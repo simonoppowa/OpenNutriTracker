@@ -1,200 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@mealDetailCurrentSelectionLabel": {
-    "placeholders": {
-      "kcal": {
-        "type": "String"
-      }
-    }
-  },
-  "@mealDetailDayTotalLabel": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "goal": {
-        "type": "String"
-      }
-    }
-  },
-  "@mealNutrientsPerQtyLabel": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@quickAddAddedSnack": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsDayStartHourLabel": {
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsDayStartTimeLabel": {
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      },
-      "minute": {
-        "type": "String"
-      }
-    }
-  },
-  "@logWaterAmountLabel": {
-    "placeholders": {
-      "amount": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsNotificationsTimeLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "@waterChipLabel": {
-    "placeholders": {
-      "current": {
-        "type": "int"
-      },
-      "goal": {
-        "type": "int"
-      }
-    }
-  },
-  "@weeklyWeightGoalKgPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
-  "@weeklyWeightGoalLbsPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "activityExample": "pl. futás, kerékpározás, jóga …",
   "activityLabel": "Tevékenység",
   "addItemLabel": "Új elem hozzáadása:",
@@ -373,6 +177,16 @@
   "clearOffCacheConfirmTitle": "Törli a gyorsítótárban lévő elemeket?",
   "clearOffCacheLabel": "Gyorsítótárazott elemek törlése",
   "clearOffCacheSubtitle": "{count} darab · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Kód másolva",
   "copyCodeLabel": "Kód másolása",
@@ -387,7 +201,24 @@
   "csvImportContributeOffPrefix": "Van vonalkódja? Segítsen mindenkinek azzal, hogy felveszi a terméket az Open Food Facts adatbázisba:",
   "csvImportErrorLabel": "A CSV-fájl beolvasása nem sikerült. Ellenőrizze a formátumot, majd próbálja meg újra.",
   "csvImportPartialLabel": "{imported} importált étkezés; {skipped} sor kimaradt érvénytelen adatok miatt.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "{count} étkezés importálva.",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Azoknál az edzéseknél, amelyek nem szerepelnek a listában, illetve a fitneszkövető készülék által mért értékek esetén közvetlenül adja meg az elégetett kalóriákat",
   "customActivityDescriptionKj": "Adja meg közvetlenül az elégetett kilojoule-értéket azoknál az edzéseknél, amelyek nem szerepelnek a listában, illetve a fitneszkövető készülék által mért értékek esetén",
   "customActivityKcalHint": "pl. 250",
@@ -436,6 +267,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Jogi nyilatkozat megtekintése",
   "deleteSelectedRecipesConfirmTitle": "Töröl {count} receptet?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "Valóban törölni szeretné a kijelölt elemet?",
   "deleteTimeDialogPluralContent": "Törölni szeretné ennek az étkezésnek az összes elemét?",
   "deleteTimeDialogPluralTitle": "Törli az elemeket?",
@@ -447,12 +285,29 @@
   "diaryFutureDateWarning": "Egy jövőbeli dátumot szerkeszt",
   "diaryLabel": "Napló",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "Itt csak azok a tápanyagok kerülnek összeadásra, amelyekről a rögzített étkezésekben adatot adott meg. Ha egy étkezésnél hiányzik az érték, az nem adódik hozzá az adott tápanyaghoz – ezért előfordulhat, hogy ezek az összegek alacsonyabbak a valóságosnál.",
   "diaryNutrientPanelTitle": "A mai tápanyagok",
   "driPanelInfoTitle": "Ajánlott bevitel",
   "driPanelInfoBody": "Ezek a referenciaértékek az IOM felnőttekre vonatkozó táplálkozási referenciaértékeiből származnak, és életkortól és nemtől függően változnak. Ezek csupán iránymutatásként szolgálnak, nem pedig célértékek – az Ön egyéni igényei eltérhetnek tőlük.",
   "driPanelInfoLinkLabel": "Forrás: az IOM táplálkozási referenciaértékei",
   "driPanelReferenceLabel": "ref. {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Szénhidrátok (magastól alacsonyig)",
   "diarySortByFat": "Zsír (magastól alacsonyig)",
   "diarySortByKcal": "Kalória (magastól alacsonyig)",
@@ -529,19 +384,54 @@
   "importAction": "Importálás",
   "importActivityConfirmContent": "Ezek a tevékenységek hozzáadódnak a mai naphoz.",
   "importActivityConfirmTitle": "Importál {count} tevékenységet?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "Megosztott edzés importálása",
   "importActivitySuccessLabel": "Az edzés importálva",
   "importCustomFoodDataDescription": "Importálja saját ételeit CSV-fájlból vagy a JSON beillesztésével. Töltse le a mintát, hogy megismerje a várt adatszerkezetet és a kötelező mezőket.",
   "importCustomFoodDataLabel": "Egyéni élelmiszeradatok importálása",
   "importMealConfirmContent": "Ezek az ételek felkerülnek a(z) {mealType} menübe.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "Importál {count} elemet?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "Érvénytelen QR-kód",
   "importMealLabel": "Megosztott étkezés importálása",
   "importMealSuccessLabel": "Importált étel",
   "importMealsCsvAction": "Ételek importálása (csv)",
   "importMealsJsonAction": "Ételek importálása (json)",
   "importOffFetchFailedLabel": "{count} elem nem tölthető be az OpenFoodFacts-ból.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "Importálja ezt a receptet {count} összetevővel?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "A receptkód értelmezése nem sikerült",
   "importRecipeLabel": "Recept importálása",
   "importRecipeSuccessLabel": "Recept importálva",
@@ -595,7 +485,24 @@
   "mealBrandsLabel": "Márkák",
   "mealCarbsLabel": "Szénhidrátok",
   "mealDetailCurrentSelectionLabel": "(+{kcal} kcal – jelenlegi érték)",
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
   "mealDetailDayTotalLabel": "Nap összesen: {consumed} / {goal}",
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "mealEnergyLabel": "Energia",
   "mealFatLabel": "Zsír",
   "mealImageLabel": "Fotó hozzáadása",
@@ -607,6 +514,16 @@
   "mealNameLabel": "Étel neve",
   "mealNameValidationError": "Az étel nevében legalább egy betűnek szerepelnie kell",
   "mealNutrientsPerQtyLabel": "{qty} {unit} darabonként",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "mealNutrientsTotalLabel": "Teljes érték",
   "mealPatternFiveSmall": "5 egyenlő kisebb étkezés",
   "mealPatternMediterranean": "Mediterrán",
@@ -694,7 +611,7 @@
   "ozUnit": "uncia",
   "paActiveVideoGames": "aktív videojátékok",
   "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, általános",
-  "paAmericanFootballGeneral": "foci",
+  "paAmericanFootballGeneral": "Amerikai futball",
   "paAmericanFootballGeneralDesc": "gyors rögzítés, megjelölés, általános",
   "paArcheryGeneral": "íjászat",
   "paArcheryGeneralDesc": "nem vadászat",
@@ -738,7 +655,7 @@
   "paCricketDesc": "ütés, dobás, mezőnyjáték",
   "paCroquet": "krokett",
   "paCroquetDesc": "általános",
-  "paCrossCountrySkiing": "terepfutás",
+  "paCrossCountrySkiing": "sífutás",
   "paCrossCountrySkiingDesc": "terepfutás, általános",
   "paCurling": "curling",
   "paCurlingDesc": "általános",
@@ -750,7 +667,7 @@
   "paDartsWallDesc": "fal vagy gyep",
   "paDivingGeneral": "búvárkodás",
   "paDivingGeneralDesc": "könnyűbúvárkodás, búvárkodás, általáno",
-  "paDivingSpringboardPlatform": "búvárkodás",
+  "paDivingSpringboardPlatform": "műugrás vagy toronyugrás",
   "paDivingSpringboardPlatformDesc": "ugródeszka vagy emelvény",
   "paFencing": "vívás",
   "paFencingDesc": "általános",
@@ -931,11 +848,25 @@
   "profileTargetWeightNotSetLabel": "Nincs beállítva",
   "profileTargetWeightReached": "Elérte a célját",
   "profileTargetWeightToGo": "{value} a célhoz",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "Súlytörténet",
   "proteinLabel": "fehérje",
   "proteinLabelShort": "f",
   "quantityLabel": "Mennyiség",
   "quickAddAddedSnack": "Hozzáadva ehhez: {mealType}",
+  "@quickAddAddedSnack": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "quickAddBottomSheetTitle": "Gyors hozzáadás",
   "quickAddCardLabel": "Gyors hozzáadás",
   "quickAddCarbsHint": "Szénhidrát (g, opcionális)",
@@ -959,6 +890,13 @@
   "recipeImageTakePhoto": "Fotó készítése",
   "recipeIngredientAmountLabel": "Mennyiség",
   "recipeIngredientCountLabel": "{count} hozzávaló",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "Egység",
   "recipeIngredientsLabel": "Hozzávalók",
   "recipeInvalidTotalWeightLabel": "A teljes súlynak nullánál nagyobbnak kell lennie",
@@ -1004,6 +942,13 @@
   "selectPalCategoryLabel": "Aktivitási szint kiválasztása",
   "selectWeightDialogLabel": "Súly kiválasztása",
   "selectionCountLabel": "kiválasztva {count}",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "servingLabel": "Adag",
   "servingSizeLabelImperial": "Egy adag (oz/fl oz)",
   "servingSizeLabelMetric": "Egy adag",
@@ -1016,10 +961,27 @@
   "settingsCustomMealsLabel": "Egyedi ételek",
   "settingsDayStartDescription": "Válassza ki azt az órát, amikor a napja megkezdődik. Az ennél az óránál korábban rögzített étkezések és tevékenységek az előző naphoz fognak számítani — ez akkor hasznos, ha éjszaka dolgozik vagy későn étkezik.",
   "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDayStartHoursPickerLabel": "Óra",
   "settingsDayStartLabel": "A nap kezdete:",
   "settingsDayStartMinutesPickerLabel": "Perc",
   "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Jogi nyilatkozat",
   "settingsDistanceLabel": "Távolság",
   "settingsEnergyUnitLabel": "Energiaegység",
@@ -1060,6 +1022,13 @@
   "settingsMetricLabel": "Metrikus (kg, cm, ml)",
   "settingsNotificationsLabel": "Napi emlékeztető",
   "settingsNotificationsTimeLabel": "Emlékeztető időpontja: {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNutrientGoalsHint": "A napi táblázatban szereplő minden tápanyagra vonatkozó személyre szabott célértékek. A napló ezeket veszi figyelembe az alapértelmezett napi referenciaértékek helyett, amikor beállít egyet.",
   "settingsNutrientGoalsLabel": "Tápanyag-célértékek",
   "settingsNutrientsHelp": "Válassza ki, mely tápanyagok jelenjenek meg a napi áttekintő panelen. A rejtett tápanyagokat bármikor újra megjelenítheti.",
@@ -1138,8 +1107,22 @@
   "vitaminDLabel": "D-vitamin",
   "warningLabel": "Figyelem",
   "weeklyWeightGoalKgPerWeek": "{rate} kg/hét",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalLabel": "Heti arány",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/hét",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalNoneLabel": "Nincs beállítva",
   "weightHistoryAddEntry": "Bejegyzés hozzáadása",
   "weightHistoryChartEmptyState": "Legalább két napra vonatkozóan rögzítsen adatokat, hogy láthassa a tendenciát.",
@@ -1157,6 +1140,13 @@
     }
   },
   "logWaterAmountLabel": "{amount} ml hozzáadása",
+  "@logWaterAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "logWaterDialogTitle": "Vízfogyasztási napló",
   "logWaterNothingToUndoLabel": "Nincs mit visszavonni",
   "logWaterUndoLabel": "Utolsó visszavonása",
@@ -1164,6 +1154,16 @@
   "settingsWaterGoalDescription": "A kezdőképernyőn található víz-ikon használata.",
   "settingsWaterGoalLabel": "Napi vízfogyasztási cél",
   "waterChipLabel": "{current} / {goal} ml",
+  "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
   "zincLabel": "cink",
   "profileFastingEntry": "Böjt időzítő",
   "fastingTitle": "Böjt időzítő",
@@ -1271,5 +1271,381 @@
   "quickAddActivityAddedSnack": "Tevékenység hozzáadva",
   "quickAddActivityNameLabel": "Név (opcionális)",
   "scannerLockOrientationTooltip": "Álló formátumra rögzítés",
-  "scannerUnlockOrientationTooltip": "Elforgatás engedélyezése"
+  "scannerUnlockOrientationTooltip": "Elforgatás engedélyezése",
+  "dataCollectionLabel": "Küldj összeomlási jelentéseket, hogy segítsd a hibákat. Nincs élelmiszer-napló vagy súlyadat.",
+  "settingsDeleteAllDataConfirmContent": "Ez kizárólag az aktuális profilhoz tartozó adatokat – a profilt, az étkezéseket, a tevékenységeket, a súlyelőzményeket és a böjtölési alkalmakat – törli. Eltávolítja továbbá az AI-szolgáltató kulcsát és a szervercímet is, amelyek az eszközön található összes profil esetében közösek. A megosztott tartalmakat (egyedi étkezések, receptek, tevékenységsablonok), valamint az Open Food Facts és az USDA Food Data Central katalógusait ez nem érinti. A művelet nem vonható vissza.",
+  "policyChangeNoticeTitle": "Frissítettük az adatvédelmi irányelveket",
+  "policyChangeNoticeBody": "Az alkalmazás működése nem változott; csupán az változott, hogy ebből mennyit osztunk meg Önnel.\n\nMostantól megnevezzük azokat a szolgáltatásokat, amelyek eddig is megkapták a keresési adatait. Új rész foglalkozik az egészségügyi adatokkal – ide tartozik például az edzésadatok importálásának lehetősége is. Emellett tájékoztatjuk arról, hogy az ételkereső háttérrendszerünk a kérésekkel együtt rögzíti, majd 24 órán át megőrzi a hozzávetőleges tartózkodási helyét.\n\nA naplója továbbra is kizárólag az eszközén marad, ahogyan eddig is.",
+  "policyChangeNoticeReadAction": "Szabályzat elolvasása",
+  "policyChangeNoticeDismissAction": "Értettem",
+  "disclaimerAcknowledgeLabel": "Értem",
+  "exportImportErrorUnreadableLabel": "A kiválasztott fájlt nem sikerült beolvasni. Válassza ki az OpenNutriTracker által exportált .zip biztonsági mentést.",
+  "exportImportErrorWriteFailedLabel": "A fájl nem menthető el a kiválasztott helyre. Próbálkozzon egy másik mappával!",
+  "noResultsSubtitle": "A kereséshez nem találtunk megfelelő élelmiszert. Próbálkozzon egy másik névvel, olvassa be a vonalkódot, vagy hozzon létre saját terméket.",
+  "noResultsScanBarcode": "Vonalkód beolvasása",
+  "noResultsCreateCustomFood": "Egyedi étel létrehozása",
+  "onboardingAdultEquationNotice": "A kalóriabevitelre vonatkozó célértékeket felnőttekre vonatkozó referenciaegyenletek alapján számítják ki. 19 év alattiaknak az eredményt orvossal vagy dietetikusával javasolt egyeztetniük.",
+  "onboardingBlockedActivitySnack": "Válassza ki a tevékenységi szintjét a folytatáshoz",
+  "onboardingBlockedBodySnack": "A folytatáshoz adjon meg egy érvényes magasságot és testsúlyt",
+  "onboardingBlockedDemoPolicySnack": "A demó kipróbálásához fogadja el az adatvédelmi szabályzatot.",
+  "onboardingBlockedGoalSnack": "Válassza ki a kívánt testsúlyt a folytatáshoz",
+  "onboardingBlockedOverviewSnack": "Néhány adat még hiányzik. Menjen vissza, és hajtsa végre az előző lépéseket.",
+  "onboardingBlockedPolicySnack": "A folytatáshoz fogadja el az adatvédelmi szabályzatot.",
+  "onboardingBlockedProfileSnack": "A folytatáshoz válassza ki a nemét, és adja meg a születési dátumát",
+  "onboardingFoodSourcesEnabledCount": "{enabled} / {total} engedélyezett",
+  "@onboardingFoodSourcesEnabledCount": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingGoalSuggestedBadge": "Javasolt",
+  "onboardingGoalSuggestionBmi": "Az Ön BMI-értéke {bmi} — WHO: {status}.",
+  "@onboardingGoalSuggestionBmi": {
+    "placeholders": {
+      "bmi": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingGoalSuggestionTarget": "A megadott célsúly alapján.",
+  "onboardingHealthyRangeLabel": "A(z) {height} értékre vonatkozó egészséges tartomány: {range}",
+  "@onboardingHealthyRangeLabel": {
+    "placeholders": {
+      "height": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeSource": "WHO, BMI 18.5–24.9",
+  "onboardingImplausibleChange": "Módosítás",
+  "onboardingImplausibleHeightBody": "A(z) {value} szokatlan magasság. Megtartja?",
+  "@onboardingImplausibleHeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingImplausibleKeep": "Megtartás",
+  "onboardingImplausibleTitle": "Ellenőrizze még egyszer ezt az értéket",
+  "sendCrashReports": "Összeomlási jelentések küldése",
+  "suggestedLabel": "Ajánlott",
+  "bulkAddTitle": "Több elem hozzáadása",
+  "bulkAddInputHint": "2 tojás, 100 g pirítós, feketekávé",
+  "bulkAddParseLabel": "Élelmiszerek keresése",
+  "bulkAddSubmitLabel": "{count} elem naplózása",
+  "@bulkAddSubmitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddNoMatchLabel": "Ezt a terméket nem sikerült megtalálni",
+  "bulkAddUncertainLabel": "Ellenőrizze az egyezést",
+  "bulkAddSkipLabel": "Kihagyás",
+  "bulkAddIncludeLabel": "Hozzáadás",
+  "bulkAddChooseFoodLabel": "Válasszon egy másik ételt",
+  "bulkAddNothingToLogLabel": "Még nincs mit rögzíteni",
+  "bulkAddSearchFailedLabel": "Ezeket az ételeket nem sikerült megtalálnom",
+  "bulkAddCheckAmountLabel": "Ellenőrizze az egységet erre a mennyiségre vonatkozóan.",
+  "bulkAddDefaultAmountLabel": "A mennyiség nincs megadva",
+  "bulkAddErrorInvalidName": "{number}. tétel: érvénytelen ételnév",
+  "@bulkAddErrorInvalidName": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddErrorQuantityTooSmall": "{number} tétel: a mennyiségnek nagyobbnak kell lennie, mint 0",
+  "@bulkAddErrorQuantityTooSmall": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddErrorQuantityTooLarge": "{number}. tétel: a mennyiség legfeljebb {bound} lehet",
+  "@bulkAddErrorQuantityTooLarge": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddRowQuantityInvalid": "Adjon meg egy legfeljebb két tizedesjegyű számot",
+  "bulkAddRowQuantityTooSmall": "A mennyiségnek nagyobbnak kell lennie, mint 0",
+  "bulkAddRowQuantityTooLarge": "A mennyiség legfeljebb {bound} lehet",
+  "@bulkAddRowQuantityTooLarge": {
+    "placeholders": {
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAiAssistLabel": "MI-alapú étkezési segítség",
+  "settingsAiAssistNotConfiguredLabel": "Ki — nincs elmentett kulcs",
+  "settingsAiAssistPausedLabel": "Szüneteltetve — kulcs elmentve",
+  "settingsAiAssistEnabledLabel": "MI-támogatás használata",
+  "aiAssistExperimentalLabel": "Kísérleti",
+  "aiAssistExperimentalNote": "Ez a funkció megváltozhat vagy megszűnhet, és ezzel együtt a kínált szolgáltatók és modellek is változhatnak.",
+  "aiConsentTitle": "Mielőtt ezt bekapcsolná",
+  "bulkAddModelHintLabel": "Egy modell fel tudja ezt olvasni Önnek",
+  "bulkAddModelHintKeyLabel": "Saját API-kulccsal",
+  "aiConsentChangeProviderNote": "Később szolgáltatót válthat. Az egyes szolgáltatók feltételei a Beállításokban láthatók, és semmi sem kerül továbbításra a beírt vagy lefényképezett adatok közül, amíg nem használja a funkciót.",
+  "aiConsentOwnServerCheckNote": "A szervercím elmentésekor a rendszer lekérdezi a kínált modelleket, és elvégez egyetlen ellenőrző tesztet: ehhez egy rögzített példamondatot és egy saját mintafényképünket használja – az Ön anyagait soha sem.",
+  "aiConsentAgreeLabel": "ÉRTEM",
+  "aiAssistDisclosureCommon": "A naplója és a profilja soha nem kerül elküldésre. A tápértékadatok mindig az élelmiszer-adatbázisokból származnak, soha nem a modellből. A kulcs kizárólag ezen az eszközön van tárolva: az OpenNutriTracker soha nem látja, és nem fizet a használatáért.",
+  "aiAssistDisclosureAnthropic": "A kulcs mentése után a többelemes hozzáadási képernyőn beírt szöveg – valamint az ott beolvasni kívánt fotók – továbbításra kerülnek az Anthropicnak. A fotók kizárólag az adott kéréshez kerülnek elküldésre, és soha nem kerülnek mentésre.",
+  "aiAssistDisclosureOpenRouter": "A kulcs elmentése után a többelemű hozzáadási képernyőn beírt szöveg – valamint az ott beolvasni kívánt fotók – az OpenRouterhez kerülnek, amely továbbítja azokat a választott modellt kiszolgáló szolgáltatónak. Az OpenRouter minden kérésnél továbbít egy fiók szintű azonosítót is az adott szolgáltatónak, és ezt nem lehet kikapcsolni. A rendszer a kérés továbbításán túl nem tárolja a tartalmadat, kivéve, ha ez visszaélések felderítéséhez, biztonsági okokból, számlázáshoz vagy jogi előírások betartásához szükséges. Az Ön modelljét kiszolgáló szolgáltató a saját irányelvei szerint kezeli a kapott adatokat.",
+  "aiAssistDisclosureOpenAI": "Ha a jelszót elmentette, a többelemű hozzáadási képernyőn beírt szöveg – valamint az ott beolvasásra kiválasztott fotók – továbbításra kerülnek az OpenAI-nak. Az OpenAI az elküldött adatokat legfeljebb 30 napig tárolja a visszaélések felderítése céljából, illetve ennél hosszabb ideig, ha ezt a törvény előírja, vagy ha ez ésszerűen szükséges a szolgáltatásai vagy harmadik felek védelme érdekében.",
+  "aiAssistProviderOwnServerLabel": "Saját szerver",
+  "aiAssistEndpointFieldLabel": "Kiszolgáló címe",
+  "aiAssistModelFieldLabel": "Modellnév",
+  "aiAssistDisclosureOwnServerSecure": "Ha egy címet elmentett, a többelemű hozzáadási képernyőn beírt szöveg, valamint az ott megtekintésre kiválasztott fotók a(z) {host} szerverre kerülnek – amely az Ön szervere. Harmadik fél nem kapja meg ezeket, és a projektnek nincs kapcsolata azzal a géppel, így nem tud semmilyen garanciát vállalni arra vonatkozóan, hogy mit tárol az adott szerver. A kapcsolat titkosított.",
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistDisclosureOwnServerPlaintext": "Ha egy címet elmentett, a többelemű hozzáadási képernyőn beírt szöveg, valamint az ott megtekintésre kiválasztott fotók a(z) {host} címre kerülnek elküldésre — ez egy általad üzemeltetett szerver. Harmadik fél nem kapja meg ezeket, és a projektnek nincs kapcsolata azzal a géppel, így nem tud semmiféle garanciát vállalni arra vonatkozóan, hogy mit tárol az adott szerver. Ez a cím egyszerű HTTP-cím, így a kapcsolat nem titkosított: a telefon és a szerver közötti hálózaton bárki elolvashatja az elküldött adatokat.",
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistEndpointInvalidLabel": "Adjon meg egy http:// vagy https:// kezdetű címet",
+  "aiAssistModelRequiredLabel": "Adja meg a szerver által használandó modell nevét.",
+  "aiAssistEndpointPublicPlaintextLabel": "Ez a cím nyilvános és titkosítatlan, ezért az oda érkező kéréseket elutasítja a rendszer. Használjon https-t vagy egy privát címet.",
+  "aiAssistProbeSectionLabel": "Beállításellenőrzés",
+  "aiAssistProbeCheckLabel": "Kiszolgáló ellenőrzése",
+  "aiAssistProbeTextLabel": "Az étkezés leírása",
+  "aiAssistProbePhotoLabel": "Fotók",
+  "aiAssistProbePassedLabel": "Ellenőrizve – a szerver elemekkel válaszolt.",
+  "aiAssistProbeUnknownLabel": "Még nincs ellenőrizve.",
+  "aiAssistProbeNoAnswerLabel": "Ellenőrizve – nem érkezett válasz, így semmit sem sikerült megtudni erről a szerverről. Próbálja meg újra, amikor már működik és elérhető.",
+  "aiAssistProbeTextFailedLabel": "Ellenőrizve – a modell nem adott vissza találatot. A beírt ételeket továbbra is feldolgozza az offline elemző, így továbbra is kipróbálhatja a funkciót.",
+  "aiAssistProbePhotoFailedLabel": "Ellenőrizve — ez a modell nem adott meg egyetlen elemet sem a fotóhoz, ezért a fotó beolvasása ezen a szerveren nem elérhető.",
+  "aiAssistLoadModelsLabel": "Modellek betöltése",
+  "aiAssistPickModelLabel": "Modell kiválasztása",
+  "aiAssistModelsUnreachableLabel": "Nem sikerült elérni a következőt: {host}. Lehet, hogy alvó módban van, másik hálózaton található, vagy VPN mögött van – írja be inkább a modell nevét.",
+  "@aiAssistModelsUnreachableLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsEmptyLabel": "A(z) {host} válaszolt, de nem sorol fel modelleket. Írja be inkább a modell nevét.",
+  "@aiAssistModelsEmptyLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsRejectedLabel": "A(z) {host} válaszolt, de nem adott meg modelllistát. Ellenőrizze a címet, vagy írja be inkább a modell nevét.",
+  "@aiAssistModelsRejectedLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsInsecureLabel": "Nem került elküldésre semmi: ez a cím nyilvános és titkosítatlan. Használja az https-t, vagy írja be inkább a modell nevét.",
+  "aiAssistProviderLabel": "Szolgáltató",
+  "aiAssistModelLabel": "Modell",
+  "aiAssistServedByLabel": "Szolgáltató: {provider}",
+  "@aiAssistServedByLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelRecommendedLabel": "Ajánlott",
+  "aiAssistModelCheaperLabel": "Olcsóbb, de gyengébb teljesítményt nyújt rossz minőségű fotók esetén",
+  "aiAssistModelMoreItemsLabel": "További elemek felsorolása egy fotó alapján",
+  "aiAssistModelCheapestLabel": "A legolcsóbb ezen a listán",
+  "aiAssistNoKeyForProviderLabel": "Ehhez a szolgáltatóhoz nincs elmentett kulcs.",
+  "aiAssistKeyFieldLabel": "{provider} API-kulcs",
+  "@aiAssistKeyFieldLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistKeySavedLabel": "A kulcs elmentve",
+  "aiAssistRemoveKeyLabel": "Kulcs eltávolítása",
+  "bulkAddReadByModelLabel": "MI által olvasva – ellenőrizze az egyes sorokat",
+  "bulkAddModelKeyRejectedLabel": "Az MI nem futott le: az API-kulcsát elutasították.",
+  "bulkAddModelUnsupportedLabel": "Az MI nem futott le: a kiválasztott modell nem volt használható.",
+  "bulkAddModelNoCreditLabel": "Az MI nem futott le: elfogyott a keret a szolgáltatói fiókjában.",
+  "bulkAddModelInsecureServerLabel": "Az AI nem futott le: az a cím nyilvános és titkosítatlan.",
+  "bulkAddModelTimedOutLabel": "Az MI nem futott le: a szervere nem válaszolt időben.",
+  "bulkAddWaitElapsedLabel": "Várakozás a szerverre · {seconds} másodperc",
+  "@bulkAddWaitElapsedLabel": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddWaitModelLoadingLabel": "Lehet, hogy a szerver éppen betölti a modelljét. Az első kérés egy kis várakozás után akár egy-két percet is igénybe vehet – ez teljesen normális.",
+  "bulkAddWaitCancelLabel": "Mégse",
+  "bulkAddPhotoLabel": "Fotó beolvasása",
+  "bulkAddPhotoDisclosureCommon": "Az OpenNutriTracker nem készít saját másolatot, és az adatok soha nem kerülnek bele az exportált fájlokba.",
+  "bulkAddPhotoDisclosureAnthropic": "A fényképet elküldik az Anthropicnak, hogy azonosítsák a rajta látható ételeket.",
+  "bulkAddPhotoDisclosureOpenRouter": "A fotót az OpenRouternek küldik el, amely továbbítja azt a(z) {provider} szolgáltatónak, hogy az azonosítsa a képen látható ételeket.",
+  "@bulkAddPhotoDisclosureOpenRouter": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddPhotoDisclosureOpenAI": "A fényképet az OpenAI-nak küldik el, hogy azonosítsa a rajta látható ételeket. Az OpenAI legfeljebb 30 napig tárolja a fényképet a visszaélések felderítése céljából, illetve ennél hosszabb ideig, ha ezt a törvény előírja, vagy ha ez ésszerűen szükséges a szolgáltatásai vagy harmadik felek károsodás elleni védelme érdekében.",
+  "bulkAddPhotoDisclosureOwnServer": "A fotót elküldjük a(z) {host} szerverre, hogy azonosítsák a rajta látható ételeket.",
+  "@bulkAddPhotoDisclosureOwnServer": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddReadFromPhotoLabel": "Beolvasás fénykép alapján – ellenőrizzen minden ételt és mennyiséget.",
+  "bulkAddPhotoUnavailableLabel": "Kapcsolja be a mesterséges intelligenciával működő étkezési segítséget a beállításokban a fényképek olvasásához",
+  "bulkAddPhotoKeyRejectedLabel": "Az API-kulcsa elutasításra került. Ellenőrizze a Beállításokban.",
+  "bulkAddPhotoCameraFailedLabel": "Nem sikerült megnyitni a kamerát. Ellenőrizze a kamera engedélyét, majd próbálja meg újra.",
+  "bulkAddPhotoFailedLabel": "Nem sikerült beolvasni a fényképet. Ellenőrizze az internetkapcsolatot, és próbálja újra.",
+  "bulkAddPhotoUnreadableLabel": "Ezt a képet nem lehetett használni. Próbáljon meg egy másik fotót!",
+  "bulkAddPhotoUnsupportedLabel": "Ez a modell nem tudja beolvasni a fényképeket. Válasszon egy másikat a Beállítások menüben, vagy írja be az elemeket helyette.",
+  "bulkAddPhotoNoCreditLabel": "A kérés nem teljesíthető: a szolgáltatói fiókjának egyenlege elfogyott. Töltse fel az egyenlegét a szolgáltatónál, vagy írja be manuálisan az elemeket.",
+  "bulkAddPhotoNoFoodLabel": "Ezen a fotón nem található étel. Próbálkozzon egy másik fotóval, vagy írja be inkább az ételek nevét.",
+  "settingsHealthSyncSubtitle": "Edzések importálása",
+  "healthSyncAutoImportLabel": "Edzések automatikus importálása innen: {platform}",
+  "@healthSyncAutoImportLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncKcalMultiplierLabel": "Edzéssel elégetett kalória jóváírása",
+  "healthSyncKcalMultiplierSubtitle": "A szervezete jellemzően úgy kompenzálja az edzést, hogy a nap hátralévő részében kevesebb kalóriát éget el. A 100% az edzés során elégetett összes kalóriát beszámítja a napi céljába.",
+  "healthSyncKcalMultiplierValueLabel": "{percent}%",
+  "@healthSyncKcalMultiplierValueLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncSuggestedLabel": "Önnek ajánlott: {percent}%",
+  "@healthSyncSuggestedLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncImportNowLabel": "Importálás most",
+  "healthSyncLastImportLabel": "Utolsó importálás: {time}",
+  "@healthSyncLastImportLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncNeverImportedLabel": "Még nem importált edzéseket",
+  "healthSyncPermissionDeniedLabel": "A(z) {platform} elérése nem biztosított. Engedélyezze az OpenNutriTracker számára az edzések olvasását az importáláshoz.",
+  "@healthSyncPermissionDeniedLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureTitle": "Importálja az edzéseket innen: {platform}?",
+  "@healthSyncDisclosureTitle": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureBody": "Az OpenNutriTracker beolvassa a(z) {platform} alkalmazásból a befejezett edzéseidet — azok típusát, időpontját, időtartamát és az általuk jelzett energiaértéket.\n\nAz edzések tevékenységként kerülnek rögzítésre a naplóba, ahol szerkesztheti vagy törölheti őket, és az általuk jelzett energiaérték az Ön által választott arányban növeli az adott nap kalóriacélját.",
+  "@healthSyncDisclosureBody": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureBodyFatAddendum": "Az OpenNutriTracker beolvassa a(z) {platform} által tárolt legfrissebb testzsírszázalék-adatot is. A testzsírszázalék-adatot arra használja, hogy javaslatot tegyen arra, milyennek kellene lennie ennek az aránynak.",
+  "@healthSyncDisclosureBodyFatAddendum": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureFooter": "A(z) {platform} felé semmilyen adat nem kerül visszaküldésre, és az adatok közül semmi sem kerül továbbításra — mind az eszközön maradnak.\n\nEzt a funkciót bármikor kikapcsolhatja, és ezzel megakadályozza a további adatolvasást.",
+  "@healthSyncDisclosureFooter": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureContinueAction": "Tovább",
+  "healthSyncUnavailableLabel": "Ezen az eszközön nem érhetők el egészségügyi adatok. Az edzésadatok importálásához az Android rendszeren a Health Connect, az iOS rendszeren pedig az Apple Health szükséges.",
+  "sourcesEnergyCompensationTitle": "Edzéssel elégetett kalória jóváírása",
+  "sourcesEnergyCompensationDescription": "Az importált edzések esetében az alkalmazás kevesebb energiát számol el, mint amennyit a készülék jelez. Az emberek az edzés hatását úgy kompenzálják, hogy a nap többi részében kevesebb kalóriát égetnek el – átlagosan körülbelül 28%-kal kevesebbet, és ez az arány magasabb testzsírszázalék esetén még nagyobb. A javasolt érték ezen kutatáson alapul, és a Beállítások → Egészségszinkronizálás menüpontban felülírhatja. Magát az energiaértéket az edzést rögzítő alkalmazás vagy készülék jelenti, nem pedig az alkalmazás MET-képlete alapján számítja ki.",
+  "onboardingHealthyRangeApply": "A(z) {weight} értéket használja",
+  "@onboardingHealthyRangeApply": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiAssistOnLabel": "Be",
+  "aiAssistProbeRunningLabel": "A szerver ellenőrzése folyamatban. A két ellenőrzés egymás után fut le, ezért számítson akár {minutes, plural, one{a minute} other{{minutes} minutes}} várakozási időre is – nyugodtan bezárhatja ezt az ablakot, a válasz itt lesz, amikor visszatér.",
+  "@aiAssistProbeRunningLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncImportedCountLabel": "{count, plural, =0{No new workouts} one{1 workout imported} other{{count} workouts imported}}",
+  "@healthSyncImportedCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  }
 }

@@ -59,7 +59,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   String _initialUnit = "";
   String _initialQuantity = "";
 
-  bool _hydrationRequested = false;
+  // Set on the first didChangeDependencies pass, which is the only one that
+  // reads the route arguments and requests hydration (see there).
+  bool _argumentsRead = false;
   bool _userChangedSelection = false;
 
   /// True while `_applyInitialSelection` is running. The bottom sheet's
@@ -127,22 +129,30 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   @override
   void didChangeDependencies() {
-    final args =
-        ModalRoute.of(context)?.settings.arguments as MealDetailScreenArguments;
-    meal = args.mealEntity;
-    _day = args.day;
-    intakeTypeEntity = args.intakeTypeEntity;
-    _usesImperialUnits = args.usesImperialUnits;
+    // `ModalRoute.of` re-runs this whenever a route is pushed over or popped
+    // off this screen — the unit dropdown's own menu included — so the
+    // arguments are read once. Re-reading `meal` on every pass handed the
+    // thin search hit back to the sheet the moment the dropdown opened,
+    // after hydration had already swapped in the full record: the serving
+    // entry the user then tapped was no longer in the rebuilt list and the
+    // button went blank (#1216).
+    if (!_argumentsRead) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments
+              as MealDetailScreenArguments;
+      meal = args.mealEntity;
+      _day = args.day;
+      intakeTypeEntity = args.intakeTypeEntity;
+      _usesImperialUnits = args.usesImperialUnits;
+      _argumentsRead = true;
 
-    _mealDetailBloc.add(LoadDailyTotalsEvent(_day));
-
-    // Thin OFF search results get hydrated to the full product record (serving
-    // fields + micronutrients) once, in the background; the listener in build()
-    // swaps the displayed meal in when it arrives.
-    if (!_hydrationRequested) {
-      _hydrationRequested = true;
+      // Thin OFF search results get hydrated to the full product record
+      // (serving fields + micronutrients) once, in the background; the
+      // listener in build() swaps the displayed meal in when it arrives.
       _mealDetailBloc.add(HydrateMealEvent(meal));
     }
+
+    _mealDetailBloc.add(LoadDailyTotalsEvent(_day));
 
     _applyInitialSelection();
 
@@ -199,10 +209,13 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           _initialQuantity = _initialQuantityMetric;
           quantityTextController.text = _initialQuantityMetric;
         }
-        // Send both the quantity AND the just-picked unit so the event
-        // is complete — the child bottom sheet's text-listener also fires
-        // from the write above, but `_applyingInitialSelection` makes
-        // `onQuantityOrUnitChanged` ignore that echo.
+        // The unit rides along, not just the quantity: on the re-pick after
+        // hydration the bottom sheet is already listening to the controller,
+        // and the write above echoes back through onQuantityOrUnitChanged
+        // with the unit the sheet last rendered (#1216). That echo is also
+        // what `_applyingInitialSelection` makes `onQuantityOrUnitChanged`
+        // ignore, so neither the stale unit nor the phantom
+        // `_userChangedSelection` flip nor the scroll reaches the screen.
         _mealDetailBloc.add(
           UpdateKcalEvent(
             meal: meal,

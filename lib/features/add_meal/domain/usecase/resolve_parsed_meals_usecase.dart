@@ -105,7 +105,11 @@ class ResolveParsedMealsUseCase {
     final query = item.query;
 
     // Both entry points run in parallel. `searchFDCFoodByString` queries
-    // Supabase despite the name.
+    // Supabase despite the name, and `forResolution` asks for the page
+    // this class auto-selects from: cut with the row's `has_portion`
+    // column read, so a portion-bearing record the ranking below would
+    // pick is not lost before it is scored (#1190). The Food tab's page
+    // is the same search cut without it (#1164).
     //
     // Each is guarded separately rather than wrapped in a single
     // `Future.wait`, which fails fast: one source erroring must narrow the
@@ -115,7 +119,12 @@ class ResolveParsedMealsUseCase {
     // transient network error into a lost row.
     final results = await Future.wait([
       _search(() => _searchProductsUseCase.searchOFFProductsByString(query)),
-      _search(() => _searchProductsUseCase.searchFDCFoodByString(query)),
+      _search(
+        () => _searchProductsUseCase.searchFDCFoodByString(
+          query,
+          forResolution: true,
+        ),
+      ),
     ]);
 
     // mergeAndRankMeals still does the work only it does: dedup across

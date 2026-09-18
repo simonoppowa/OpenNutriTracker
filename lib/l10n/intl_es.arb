@@ -1,59 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "activityExample": "ej. salir a correr, bicicleta, yoga ...",
   "activityLabel": "Actividad",
   "addItemLabel": "Agregar nuevo elemento:",
@@ -232,6 +177,16 @@
   "clearOffCacheConfirmTitle": "¿Limpiar elementos de la caché?",
   "clearOffCacheLabel": "Borrar elementos de la caché",
   "clearOffCacheSubtitle": "{count} elemento(s) · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Código copiado",
   "copyCodeLabel": "Copiar código",
@@ -246,7 +201,24 @@
   "csvImportContributeOffPrefix": "¿Tienes un código de barras? Ayuda a todo el mundo añadiendo el producto a Open Food Facts:",
   "csvImportErrorLabel": "No se pudo leer el fichero CSV. Comprueba el formato e inténtalo de nuevo.",
   "csvImportPartialLabel": "{imported} comida(s) importadas; {skipped} filas(s) ignoradas por datos invalidos.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "{count} comida(s) importada(s).",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Introduce las calorías quemadas directamente para actividades que no están en la lista o que no se ha leído desde un fitness tracker",
   "customActivityDescriptionKj": "Introduce los kilojulios quemados directamente para actividades que no están en la lista o que no se ha leído desde un fitness tracker",
   "customActivityKcalHint": "ej. 250",
@@ -295,6 +267,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Ver aviso",
   "deleteSelectedRecipesConfirmTitle": "¿Borrar {count} receta(s)?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "¿Quieres borrar el elemento seleccionado?",
   "deleteTimeDialogPluralContent": "¿Quieres borrar todos los alimentos de esta comida?",
   "deleteTimeDialogPluralTitle": "¿Borrar elementos?",
@@ -311,6 +290,13 @@
   "driPanelInfoBody": "Estos valores de referencia provienen de las Ingestas Dietéticas de Referencia del IOM para adultos y varían según la edad y el género. Son un punto de referencia, no un objetivo, tus necesidades personales pueden ser diferentes.",
   "driPanelInfoLinkLabel": "Fuente: IOM Dietary Reference Intakes",
   "driPanelReferenceLabel": "ref {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Hidratos (más a menos)",
   "diarySortByFat": "Grasas (más a menos)",
   "diarySortByKcal": "Calorias (más a menos)",
@@ -391,10 +377,24 @@
   "importCustomFoodDataDescription": "Importa tus propias preparaciones desde un archivo CSV o copiando JSON. Descarga una plantilla para ver la forma esperada y los campos requeridos.",
   "importCustomFoodDataLabel": "Importar Datos Alimenticios Personalizados",
   "importMealConfirmContent": "Estos ítems serán añadidos a tu {mealType}",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealErrorLabel": "Código QR inválido",
   "importMealLabel": "Importar preparación compartida",
   "importMealSuccessLabel": "Preparación importada",
   "importMealsCsvAction": "Importar preparacaciones (csv)",
   "importMealsJsonAction": "Importar preparaciones (json)",
-  "importRecipeConfirmContent": "¿Importar esta receta con {count} ingrediente(s)?"
+  "importRecipeConfirmContent": "¿Importar esta receta con {count} ingrediente(s)?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

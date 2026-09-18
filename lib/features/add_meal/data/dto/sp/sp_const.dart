@@ -34,11 +34,25 @@ class SPConst {
   static const mainImageUrl = 'main_image_url';
   static const tags = 'tags';
 
+  /// Whether the backend holds a deliverable portion for the food —
+  /// `food_has_deliverable_portion(food_id)`, the predicate the search
+  /// RPCs already order by, sent as a column so the app's cut of the
+  /// hundred rows to twenty can read it (#1190; the backend's
+  /// `2026-09-13_food_summary_has_portion` migration). Absent from a
+  /// backend that predates that migration, and the DTO reads absence as
+  /// null: unknown, not false.
+  static const foodHasPortion = 'has_portion';
+
   // food_translation columns
   static const translationFoodId = 'food_id';
   static const translationLocale = 'locale';
   static const translationDescription = 'description';
   static const translationSource = 'source';
+
+  /// [foodHasPortion] on a `search_food_translation` row, for the same
+  /// reader: the translation cut. Absent before that migration, read as
+  /// null.
+  static const translationHasPortion = 'has_portion';
 
   /// food_translation.source value for unreviewed machine translations
   /// (DeepL/LLM). The app shows a small disclosure hint for these; the
@@ -155,11 +169,11 @@ class SPConst {
       case SupportedLanguage.uk:
         return 'uk';
       case SupportedLanguage.hu:
-        // No food_translation rows yet: the localized search returns
-        // nothing and falls through to English, and portion labels arrive
-        // unlocalized — which the #966 gate hides behind the generic serving
-        // word for a non-English UI — until the backend has Hungarian rows.
-        return 'hu';
+        // food_translation has no Hungarian rows yet. Returning 'hu' would
+        // cost every Hungarian search a guaranteed-empty translation RPC
+        // before the English one, plus an empty portion-label request, for
+        // no result. Flip to 'hu' once the backend carries the rows.
+        return null;
     }
   }
 }

@@ -1,9 +1,9 @@
-import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/app_locale.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_dto.dart';
@@ -129,7 +129,7 @@ class MealEntity extends Equatable {
   /// measures; when this search's page did return the row, the fresh
   /// entity, flag or portions and all, stands in the cached copy's slot
   /// (`SearchProductsUseCase._freshest`). What is left penalised is a row
-  /// the page did not return, and that is the gap `_noPortionsPenalty`'s
+  /// the page did not return, and that is the gap `noPortionsPenalty`'s
   /// comment already records.
   final bool portionsUnavailable;
 
@@ -378,7 +378,7 @@ class MealEntity extends Equatable {
     return MealEntity(
       code: offProduct.code,
       name: offProduct.getLocaleName(
-        SupportedLanguage.fromCode(Platform.localeName),
+        SupportedLanguage.fromCode(AppLocale.localeName),
       ),
       brands: offProduct.brands,
       thumbnailImageUrl: offProduct.image_front_thumb_url,

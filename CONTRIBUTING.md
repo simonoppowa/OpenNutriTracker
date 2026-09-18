@@ -53,7 +53,7 @@ To ship a language once it is about 90 % translated on Weblate: add `'<code>': '
 
 ### Translating
 
-Translators work on [Weblate](https://hosted.weblate.org/engage/opennutritracker/) — no Dart, no local setup — and anyone can start a language there. Weblate opens a pull request against `develop` with the accumulated translations about once a day. **Merge those with a merge commit, never squash**: Weblate rebases its own commits onto `develop`, and a squash makes its next rebase fail. Machine-translation suggestions appear on Weblate for new strings; accepting one is a translator's decision, never automatic.
+Translators work on [Weblate](https://hosted.weblate.org/engage/opennutritracker/) — no Dart, no local setup — and anyone can start a language there. Weblate opens a pull request against `develop` with the accumulated translations about once a day, and the `Merge Weblate pull requests` workflow lands it with a merge commit as soon as the Default Workflow is green — nobody needs to press a button. (That workflow runs from its copy on `main`, so a change to it ships as a hotfix to `main` as well as to `develop`.) If you ever merge one by hand, **use a merge commit, never squash**: Weblate rebases its own commits onto `develop`, and after a squash that rebase conflicts and Weblate locks the component, shutting translators out. Recovery is on Weblate under *Operations → Repository maintenance → Reset and reapply* (never *Reset and discard* — it drops the pending strings the commit policy holds back). Machine-translation suggestions appear on Weblate for new strings; accepting one is a translator's decision, never automatic.
 
 ## Code generation
 

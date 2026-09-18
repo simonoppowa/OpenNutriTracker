@@ -1,200 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@mealDetailCurrentSelectionLabel": {
-    "placeholders": {
-      "kcal": {
-        "type": "String"
-      }
-    }
-  },
-  "@mealDetailDayTotalLabel": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "goal": {
-        "type": "String"
-      }
-    }
-  },
-  "@mealNutrientsPerQtyLabel": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@quickAddAddedSnack": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsDayStartHourLabel": {
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsDayStartTimeLabel": {
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      },
-      "minute": {
-        "type": "String"
-      }
-    }
-  },
-  "@logWaterAmountLabel": {
-    "placeholders": {
-      "amount": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsNotificationsTimeLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "@waterChipLabel": {
-    "placeholders": {
-      "current": {
-        "type": "int"
-      },
-      "goal": {
-        "type": "int"
-      }
-    }
-  },
-  "@weeklyWeightGoalKgPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
-  "@weeklyWeightGoalLbsPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "activityExample": "par ex. course à pied, vélo, yoga...",
   "activityLabel": "Activité",
   "addItemLabel": "Ajouter un nouvel élément :",
@@ -373,6 +177,16 @@
   "clearOffCacheConfirmTitle": "Effacer les éléments en cache ?",
   "clearOffCacheLabel": "Effacer les éléments en cache",
   "clearOffCacheSubtitle": "{count} élément(s) · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Code copié",
   "copyCodeLabel": "Copier le code",
@@ -387,7 +201,24 @@
   "csvImportContributeOffPrefix": "Vous avez un code-barres ? Aidez tout le monde en ajoutant ce produit à Open Food Facts :",
   "csvImportErrorLabel": "Impossible de lire le fichier CSV. Vérifiez son format puis réessayez.",
   "csvImportPartialLabel": "{imported} repas importé(s) ; {skipped} ligne(s) ignorée(s) en raison de données invalides.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "{count} repas importé(s).",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Saisissez directement les calories brûlées pour un exercice qui n'est pas dans la liste ou provenant d'un bracelet connecté",
   "customActivityDescriptionKj": "Saisissez directement les kilojoules brûlés pour un exercice qui n'est pas dans la liste ou provenant d'un bracelet connecté",
   "customActivityKcalHint": "par ex. 250",
@@ -436,6 +267,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Voir l'avertissement",
   "deleteSelectedRecipesConfirmTitle": "Supprimer {count} recette(s) ?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "Voulez-vous supprimer l'élément sélectionné ?",
   "deleteTimeDialogPluralContent": "Voulez-vous supprimer tous les éléments de ce repas ?",
   "deleteTimeDialogPluralTitle": "Supprimer les éléments ?",
@@ -447,12 +285,29 @@
   "diaryFutureDateWarning": "Vous modifiez une date future",
   "diaryLabel": "Journal",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "Seuls les nutriments suivis dans les repas enregistrés sont additionnés ici. Si un repas ne contient pas une valeur, il ne contribue pas au total de ce nutriment.",
   "diaryNutrientPanelTitle": "Nutriments du jour",
   "driPanelInfoTitle": "Apports de référence",
   "driPanelInfoBody": "Ces valeurs de référence proviennent des Apports Nutritionnels de Référence (DRI) de l'Institute of Medicine pour les adultes et varient selon l'âge et le sexe. Elles servent de point de repère, pas d'objectif : vos besoins personnels peuvent être différents.",
   "driPanelInfoLinkLabel": "Source : Institute of Medicine – Dietary Reference Intakes",
   "driPanelReferenceLabel": "réf. {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Glucides (du plus élevé au plus faible)",
   "diarySortByFat": "Lipides (du plus élevé au plus faible)",
   "diarySortByKcal": "Calories (du plus élevé au plus faible)",
@@ -529,19 +384,54 @@
   "importAction": "Importer",
   "importActivityConfirmContent": "Ces activités seront ajoutées à aujourd'hui.",
   "importActivityConfirmTitle": "Importer {count} activité(s) ?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "Importer un entraînement partagé",
   "importActivitySuccessLabel": "Entraînement importé",
   "importCustomFoodDataDescription": "Importez vos propres repas à partir d'un fichier CSV ou en collant du JSON. Téléchargez un exemple pour voir le format attendu et les champs obligatoires.",
   "importCustomFoodDataLabel": "Importer des aliments personnalisés",
   "importMealConfirmContent": "Ces éléments seront ajoutés à votre {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "Importer {count} élément(s) ?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "Code QR invalide",
   "importMealLabel": "Importer un repas partagé",
   "importMealSuccessLabel": "Repas importé",
   "importMealsCsvAction": "Importer des repas (csv)",
   "importMealsJsonAction": "Importer des repas (json)",
   "importOffFetchFailedLabel": "Impossible de récupérer {count} élément(s) depuis Open Food Facts.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "Importer cette recette contenant {count} ingrédient(s) ?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "Impossible d'analyser le code de la recette",
   "importRecipeLabel": "Importer une recette",
   "importRecipeSuccessLabel": "Recette importée",
@@ -595,7 +485,24 @@
   "mealBrandsLabel": "Marques",
   "mealCarbsLabel": "Glucides",
   "mealDetailCurrentSelectionLabel": "(+{kcal} kcal sélection actuelle)",
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
   "mealDetailDayTotalLabel": "Total de la journée : {consumed} / {goal}",
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "mealEnergyLabel": "Énergie",
   "mealFatLabel": "Lipides",
   "mealImageLabel": "Ajouter une photo",
@@ -607,6 +514,16 @@
   "mealNameLabel": "Nom du repas",
   "mealNameValidationError": "Le nom du repas doit contenir au moins une lettre",
   "mealNutrientsPerQtyLabel": "Pour {qty} {unit}",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "mealNutrientsTotalLabel": "Quantité totale",
   "mealPatternFiveSmall": "Cinq petits repas",
   "mealPatternMediterranean": "Méditerranéen",
@@ -931,11 +848,25 @@
   "profileTargetWeightNotSetLabel": "Non défini",
   "profileTargetWeightReached": "Vous avez atteint votre objectif",
   "profileTargetWeightToGo": "{value} avant votre objectif",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "Historique du poids",
   "proteinLabel": "protéines",
   "proteinLabelShort": "p",
   "quantityLabel": "Quantité",
   "quickAddAddedSnack": "Ajouté à {mealType}",
+  "@quickAddAddedSnack": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "quickAddBottomSheetTitle": "Ajout rapide",
   "quickAddCardLabel": "Ajout rapide",
   "quickAddCarbsHint": "Glucides (g, facultatif)",
@@ -959,6 +890,13 @@
   "recipeImageTakePhoto": "Prendre une photo",
   "recipeIngredientAmountLabel": "Quantité",
   "recipeIngredientCountLabel": "{count} ingrédient(s)",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "Unité",
   "recipeIngredientsLabel": "Ingrédients",
   "recipeInvalidTotalWeightLabel": "Le poids total doit être supérieur à zéro",
@@ -1004,6 +942,13 @@
   "selectPalCategoryLabel": "Sélectionner le niveau d'activité",
   "selectWeightDialogLabel": "Sélectionner le poids",
   "selectionCountLabel": "{count} sélectionné(s)",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "servingLabel": "Portion",
   "servingSizeLabelImperial": "Une portion (oz/fl oz)",
   "servingSizeLabelMetric": "Une portion",
@@ -1016,10 +961,27 @@
   "settingsCustomMealsLabel": "Repas personnalisés",
   "settingsDayStartDescription": "Choisissez l'heure à laquelle votre journée commence. Les repas et activités enregistrés avant cette heure seront comptabilisés pour la journée précédente — pratique si vous travaillez de nuit ou mangez tard.",
   "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDayStartHoursPickerLabel": "Heures",
   "settingsDayStartLabel": "La journée commence à",
   "settingsDayStartMinutesPickerLabel": "Minutes",
   "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Avertissement",
   "settingsDistanceLabel": "Distance",
   "settingsEnergyUnitLabel": "Unité d'énergie",
@@ -1060,6 +1022,13 @@
   "settingsMetricLabel": "Métrique (kg, cm, ml)",
   "settingsNotificationsLabel": "Rappel quotidien",
   "settingsNotificationsTimeLabel": "Heure du rappel : {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNutrientGoalsHint": "Objectifs personnalisés pour chaque nutriment affiché dans le panneau quotidien. Le journal utilise ces objectifs à la place des valeurs de référence par défaut lorsque vous en définissez.",
   "settingsNutrientGoalsLabel": "Objectifs nutritionnels",
   "settingsNutrientsHelp": "Choisissez les nutriments visibles dans le panneau quotidien. Les nutriments masqués peuvent être réactivés à tout moment.",
@@ -1138,8 +1107,22 @@
   "vitaminDLabel": "vitamine D",
   "warningLabel": "Avertissement",
   "weeklyWeightGoalKgPerWeek": "{rate} kg/semaine",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalLabel": "Rythme hebdomadaire",
   "weeklyWeightGoalLbsPerWeek": "{rate} lb/semaine",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalNoneLabel": "Non défini",
   "weightHistoryAddEntry": "Ajouter une entrée",
   "weightHistoryChartEmptyState": "Enregistrez au moins deux jours pour afficher votre tendance.",
@@ -1157,6 +1140,13 @@
     }
   },
   "logWaterAmountLabel": "Ajouter {amount} ml",
+  "@logWaterAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "logWaterDialogTitle": "Enregistrer une consommation d'eau",
   "logWaterNothingToUndoLabel": "Rien à annuler",
   "logWaterUndoLabel": "Annuler la dernière action",
@@ -1164,6 +1154,16 @@
   "settingsWaterGoalDescription": "Utilisé par l'indicateur d'eau sur l'écran d'accueil.",
   "settingsWaterGoalLabel": "Objectif quotidien d'eau",
   "waterChipLabel": "{current} / {goal} ml",
+  "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
   "zincLabel": "zinc",
   "profileFastingEntry": "Minuteur de jeûne",
   "fastingTitle": "Minuteur de jeûne",

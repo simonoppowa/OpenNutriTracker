@@ -38,9 +38,14 @@ Rules:
   omit both "quantity" and "unit".
 - Only include "unit" if the user stated one, and only when it is one of
   the listed values. A bare count has no unit.
-- If the user's unit is not in the list (tbsp, tsp, cup, slice...),
-  give the "quantity" and leave "unit" out. Do not substitute a different
-  unit: reporting 2 tbsp as 2 g is worse than reporting 2 with no unit.
+- If the user named a household measure that is not in the unit list — a
+  slice, piece, cup, tablespoon, teaspoon, or a size such as small, medium
+  or large — give the "quantity", leave "unit" out, and put the measure in
+  "portion" as one English word, even when the meal is written in another
+  language: "3 Scheiben Brot" -> query "Brot", quantity 3, portion "slice";
+  "2 tbsp olive oil" -> quantity 2, portion "tablespoon". Do not substitute
+  a unit from the list: reporting 2 tbsp as 2 g is worse than reporting 2
+  with no unit.
 - Never convert a quantity between units. Report the number as written.
 - If nothing in the input is food, return an empty list.''';
 

@@ -102,6 +102,37 @@ class SpFoodDTO {
   @JsonKey(name: 'niacin_100')
   final double? niacin100;
 
+  /// Whether the backend holds a deliverable portion for this food, as
+  /// the search RPC reports it — or null when the backend did not say.
+  ///
+  /// The resolver takes 0.15 off a backend record with no labelled
+  /// portion and, among equals, prefers the record with the most
+  /// (`resolver_relevance.dart`), but it reads those off
+  /// `MealEntity.portions`, which are fetched for the twenty rows the
+  /// data source keeps — after the cut from the backend's hundred. A row
+  /// the resolver would pick could be cut for what the cut could not
+  /// see: on `muffins`, twenty portionless SR Legacy rows titled exactly
+  /// "Muffins" at 1.0 pushed the survey's "Muffin, NFS" (0.857, five
+  /// portions) to twenty-first (#1190). This column is the boolean
+  /// shadow of that lookup — `food_has_deliverable_portion(food_id)`,
+  /// the predicate `portions_by_food_ids` filters on — so the cut can
+  /// apply the same penalty and a tie key in the same direction
+  /// (`rankAndTruncateFoodsByName`). Read there, for the resolver's page
+  /// only — the Food tab's is cut with it unread (#1164) — and nowhere
+  /// else: the entity carries the portions themselves once they are
+  /// fetched.
+  ///
+  /// Null is "the backend did not send the column": a backend that
+  /// predates the `2026-09-13_food_summary_has_portion` migration answers
+  /// with `food_summary` rows that have no `has_portion`, and the cut then
+  /// applies no penalty and no tie key, exactly as it did before the
+  /// column existed. Absent is not false — false is the backend's answer
+  /// that there is no portion, and only the backend gets to give it. Once
+  /// sent, the column is NOT NULL, and a boolean: this field casts it as
+  /// every other column here is cast, and trusts the type as they do.
+  @JsonKey(name: SPConst.foodHasPortion)
+  final bool? hasPortion;
+
   /// Locale-specific name resolved from `food_translation`, set by
   /// SpFoodDataSource after the summary row is fetched. Null when the
   /// search ran against the English `food_summary.name` directly.
@@ -183,6 +214,7 @@ class SpFoodDTO {
     this.vitaminB6100,
     this.vitaminB12100,
     this.niacin100,
+    this.hasPortion,
     this.localizedName,
   });
 

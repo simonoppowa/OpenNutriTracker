@@ -108,6 +108,7 @@ class _FakeSearch implements SearchProductsUseCase {
   Future<SearchProductsResult> searchFDCFoodByString(
     String searchString, {
     bool skipRemote = false,
+    bool forResolution = false,
   }) async => const SearchProductsResult(meals: [], remoteSourceEmpty: false);
 
   @override
