@@ -32,6 +32,15 @@ at the end rather than smoothed over.
 >   Omnibus deferral, now confirmed from EUR-Lex as Regulation (EU) 2026/1744.
 >   **Article 50 was not deferred**, which is the point the timeline here
 >   turns on.
+> - The design assessed below was reversed on 2026-08-14 (#633): a model
+>   never emits a nutrition value. The schema exposes only `query`,
+>   `quantity`, `unit` and `portion` (`lib/features/add_meal/domain/
+>   meal_items_api.dart`), every gram and every macro comes from a database
+>   row, and `MealSourceEntity` has no `estimated` value. So "model-supplied
+>   macros used only on a database miss and flagged `estimated`" in the
+>   paragraph below, and the `estimated`-marker analysis that follows from
+>   it, describe a design that was not built; the constraints they were
+>   weighed against still apply to the design that was.
 
 The thing assessed is the design recorded in #599 as revised on 2026-08-02:
 tier 0 is a deterministic parser with no model and no new network call; tiers 1–2
