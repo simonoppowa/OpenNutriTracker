@@ -1272,7 +1272,7 @@
   "quickAddActivityNameLabel": "Név (opcionális)",
   "scannerLockOrientationTooltip": "Álló formátumra rögzítés",
   "scannerUnlockOrientationTooltip": "Elforgatás engedélyezése",
-  "dataCollectionLabel": "Küldje el a rendszerleállási jelentéseket, hogy segítsen a hibák kijavításában. Az étkezési napló és a testsúlyadatok nem kerülnek továbbításra.",
+  "dataCollectionLabel": "Küldj összeomlási jelentéseket, hogy segítsd a hibákat. Nincs élelmiszer-napló vagy súlyadat.",
   "settingsDeleteAllDataConfirmContent": "Ez kizárólag az aktuális profilhoz tartozó adatokat – a profilt, az étkezéseket, a tevékenységeket, a súlyelőzményeket és a böjtölési alkalmakat – törli. Eltávolítja továbbá az AI-szolgáltató kulcsát és a szervercímet is, amelyek az eszközön található összes profil esetében közösek. A megosztott tartalmakat (egyedi étkezések, receptek, tevékenységsablonok), valamint az Open Food Facts és az USDA Food Data Central katalógusait ez nem érinti. A művelet nem vonható vissza.",
   "policyChangeNoticeTitle": "Frissítettük az adatvédelmi irányelveket",
   "policyChangeNoticeBody": "Az alkalmazás működése nem változott; csupán az változott, hogy ebből mennyit osztunk meg Önnel.\n\nMostantól megnevezzük azokat a szolgáltatásokat, amelyek eddig is megkapták a keresési adatait. Új rész foglalkozik az egészségügyi adatokkal – ide tartozik például az edzésadatok importálásának lehetősége is. Emellett tájékoztatjuk arról, hogy az ételkereső háttérrendszerünk a kérésekkel együtt rögzíti, majd 24 órán át megőrzi a hozzávetőleges tartózkodási helyét.\n\nA naplója továbbra is kizárólag az eszközén marad, ahogyan eddig is.",
