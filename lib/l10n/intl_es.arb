@@ -1653,5 +1653,7 @@
     }
   },
   "paWaterAerobicsDesc": "",
-  "offDisclaimer": ""
+  "offDisclaimer": "",
+  "dataCollectionLabel": "",
+  "settingsDeleteAllDataConfirmContent": ""
 }
