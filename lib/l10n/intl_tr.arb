@@ -1,142 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@mealNutrientsPerQtyLabel": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsNotificationsTimeLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "@weeklyWeightGoalKgPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
-  "@weeklyWeightGoalLbsPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "activityExample": "ör. koşu, bisiklet, yoga ...",
   "activityLabel": "Aktivite",
   "addItemLabel": "Yeni Öğe Ekle:",
@@ -149,29 +11,101 @@
   "foodSourcesHelpText": "Arama sonuçları bu gıda veritabanlarından gelir. Open Food Facts, ürün ve barkod aramasını sağlar ve her zaman etkindir.",
   "machineTranslatedNameHint": "Ad otomatik olarak çevrildi",
   "measureUnitBar": "{count, plural, other{bar}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, other{şişe}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, other{kutu}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, other{fincan}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, other{yumurta}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, other{paket}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, other{parça}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, other{porsiyon}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, other{porsiyon}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, other{dilim}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, other{yemek kaşığı}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, other{çay kaşığı}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Gıda veritabanları",
   "settingsFoodSourcesSubtitle": "Arama sonuçlarının kaynağını seçin",
   "onboardingOtherOptionsLabel": "Diğer seçenekler",
@@ -222,6 +156,16 @@
   "clearOffCacheConfirmTitle": "Önbelleği temizle?",
   "clearOffCacheLabel": "Önbelleği temizle",
   "clearOffCacheSubtitle": "{count} öğe · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Kod kopyalandı",
   "copyCodeLabel": "Kodu kopyala",
@@ -236,7 +180,24 @@
   "csvImportContributeOffPrefix": "Barkod var mı? Ürünü Open Food Facts'e katkıda bulunun:",
   "csvImportErrorLabel": "CSV dosyası okunamadı. Biçimi kontrol edin ve tekrar deneyin.",
   "csvImportPartialLabel": "{imported} öğün içe aktarıldı; geçersiz veri nedeniyle {skipped} satır atlandı.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "{count} öğün içe aktarıldı.",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kaloriyi doğrudan girin",
   "customActivityDescriptionKj": "Listede olmayan antrenmanlar veya bir fitness takip cihazından okumalar için yakılan kilojulleri doğrudan girin",
   "customActivityKcalHint": "örn. 250",
@@ -291,6 +252,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Sorumluluk reddini görüntüle",
   "deleteSelectedRecipesConfirmTitle": "{count} tarif silinsin mi?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "Seçilen öğeyi silmek istiyor musunuz?",
   "deleteTimeDialogPluralContent": "Bu öğüne ait tüm girdileri silmek istiyor musunuz?",
   "deleteTimeDialogPluralTitle": "Girdiler silinsin mi?",
@@ -302,12 +270,29 @@
   "diaryFutureDateWarning": "Gelecekteki bir tarihi düzenliyorsunuz",
   "diaryLabel": "Günlük",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "Yalnızca kaydettiğin öğünlerde takip edilen besinler burada toplanır. Bir değeri eksik olan öğün o besine katkıda bulunmaz — bu nedenle toplamlar olduğundan az görünebilir.",
   "diaryNutrientPanelTitle": "Bugünün besinleri",
   "driPanelInfoTitle": "Referans alım",
   "driPanelInfoBody": "Bu referans değerler, yetişkinler için IOM Diyet Referans Alımları'ndan gelir ve yaşa ile cinsiyete göre değişir. Bir hedef değil, bir referans noktasıdır — kendi ihtiyaçların farklı olabilir.",
   "driPanelInfoLinkLabel": "Kaynak: IOM Dietary Reference Intakes",
   "driPanelReferenceLabel": "ref. {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Karbonhidrat (çoktan aza)",
   "diarySortByFat": "Yağ (çoktan aza)",
   "diarySortByKcal": "Kalori (çoktan aza)",
@@ -387,19 +372,54 @@
   "importAction": "İçe Aktar",
   "importActivityConfirmContent": "Bu aktiviteler bugüne eklenecek.",
   "importActivityConfirmTitle": "{count} aktivite içe aktarılsın mı?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "Paylaşılan antrenmanı içe aktar",
   "importActivitySuccessLabel": "Antrenman içe aktarıldı",
   "importCustomFoodDataDescription": "Kendi yemeklerinizi bir CSV dosyasından veya JSON yapıştırarak içe aktarın. Beklenen şekli ve zorunlu alanları görmek için bir örnek indirin.",
   "importCustomFoodDataLabel": "Özel Gıda Verilerini İçe Aktar",
   "importMealConfirmContent": "These items will be added to your {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "Import {count} items?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "Invalid QR code",
   "importMealLabel": "Import shared meal",
   "importMealSuccessLabel": "Meal imported",
   "importMealsCsvAction": "Yemekleri içe aktar (csv)",
   "importMealsJsonAction": "Yemekleri içe aktar (json)",
   "importOffFetchFailedLabel": "{count} öğe OpenFoodFacts'ten alınamadı.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "{count} malzeme içeren bu tarif içe aktarılsın mı?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "Tarif kodu çözümlenemedi",
   "importRecipeLabel": "Tarifi içe aktar",
   "importRecipeSuccessLabel": "Tarif içe aktarıldı",
@@ -465,6 +485,16 @@
   "mealNameLabel": "Yemek adı",
   "mealNameValidationError": "Yemek adı en az bir harf içermelidir",
   "mealNutrientsPerQtyLabel": "{qty} {unit} başına",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "mealNutrientsTotalLabel": "Toplam miktar",
   "mealPatternFiveSmall": "Beş küçük",
   "mealPatternMediterranean": "Akdeniz",
@@ -805,6 +835,13 @@
   "profileTargetWeightNotSetLabel": "Ayarlanmadı",
   "profileTargetWeightReached": "Hedefine ulaştın",
   "profileTargetWeightToGo": "Hedefine {value} kaldı",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "Kilo geçmişi",
   "proteinLabel": "protein",
   "proteinLabelShort": "p",
@@ -833,6 +870,13 @@
   "recipeImageTakePhoto": "Fotoğraf çek",
   "recipeIngredientAmountLabel": "Miktar",
   "recipeIngredientCountLabel": "{count} malzeme",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "Birim",
   "recipeIngredientsLabel": "Malzemeler",
   "recipeInvalidTotalWeightLabel": "Toplam ağırlık sıfırdan büyük olmalı",
@@ -878,6 +922,13 @@
   "selectPalCategoryLabel": "Aktivite Seviyesini Seçin",
   "selectWeightDialogLabel": "Kilo Seçin",
   "selectionCountLabel": "{count} seçildi",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sendCrashReports": "Çökme raporları gönder",
   "servingLabel": "Porsiyon",
   "servingSizeLabelImperial": "Bir porsiyon (oz/fl oz)",
@@ -952,6 +1003,13 @@
   "settingsMetricLabel": "Metrik (kg, cm, ml)",
   "settingsNotificationsLabel": "Günlük Hatırlatıcı",
   "settingsNotificationsTimeLabel": "Hatırlatma zamanı: {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNutrientGoalsHint": "Günlük paneldeki her besin için kişisel hedefler. Bir hedef belirlediğinde günlük, varsayılan günlük referanslar yerine bu değerleri kullanır.",
   "settingsNutrientGoalsLabel": "Besin hedefleri",
   "settingsNutrientsHelp": "Günlük panelde hangi besinlerin görüneceğini seç. Gizlenenler istediğin zaman tekrar açılabilir.",
@@ -1031,8 +1089,22 @@
   "vitaminDLabel": "D vitamini",
   "warningLabel": "Uyarı",
   "weeklyWeightGoalKgPerWeek": "{rate} kg/hafta",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalLabel": "Haftalık oran",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/hafta",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalNoneLabel": "Ayarlanmadı",
   "weightHistoryAddEntry": "Kayıt ekle",
   "weightHistoryChartEmptyState": "Eğilimini görmek için en az iki gün kaydet.",
@@ -1094,26 +1166,40 @@
   "customMealsMergeConfirmContent": "Bu işlem, {loser} ile kaydedilen tüm girdileri değiştirip {winner} olarak gösterir ve {loser} özel yiyeceklerinden kaldırılır. Bu işlem geri alınamaz.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Birleştir",
   "customMealsMergeSuccessSnackbarOne": "Birleştirildi — {winner} artık 1 kayda sahip.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Birleştirildi — {winner} artık {count} kayda sahip.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Oruç · {remaining} kaldı",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Oruç zamanlayıcısı",
@@ -1184,9 +1270,21 @@
   "aiAssistEndpointFieldLabel": "Sunucu adresi",
   "aiAssistModelFieldLabel": "Model adı",
   "aiAssistDisclosureOwnServerSecure": "Adres kaydedildiğinde, çoklu ekleme ekranında yazdığınız metin ve orada okutmayı seçtiğiniz her fotoğraf {host} adresine — kendi işlettiğiniz bir sunucuya — gönderilir. Bunu hiçbir üçüncü taraf almaz; projenin o makineyle bir ilişkisi yoktur ve neyi sakladığı konusunda hiçbir söz veremez. Bağlantı şifrelidir.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Adres kaydedildiğinde, çoklu ekleme ekranında yazdığınız metin ve orada okutmayı seçtiğiniz her fotoğraf {host} adresine — kendi işlettiğiniz bir sunucuya — gönderilir. Bunu hiçbir üçüncü taraf almaz; projenin o makineyle bir ilişkisi yoktur ve neyi sakladığı konusunda hiçbir söz veremez. Bu adres düz HTTP olduğundan bağlantı şifreli değildir: bu telefonla o sunucu arasındaki ağda bulunan her şey gönderilenleri okuyabilir.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "http:// veya https:// ile başlayan bir adres girin.",
   "aiAssistModelRequiredLabel": "Bu sunucunun kullanacağı model adını girin.",
   "aiAssistEndpointPublicPlaintextLabel": "Bu adres herkese açık ve şifresiz olduğundan oraya giden istekler reddedilir. https veya özel bir adres kullanın.",
