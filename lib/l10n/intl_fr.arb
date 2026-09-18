@@ -1271,5 +1271,387 @@
   "quickAddActivityAddedSnack": "Activité ajoutée",
   "quickAddActivityNameLabel": "Nom (facultatif)",
   "scannerLockOrientationTooltip": "Verrouiller en mode portrait",
-  "scannerUnlockOrientationTooltip": "Autoriser la rotation"
+  "scannerUnlockOrientationTooltip": "Autoriser la rotation",
+  "onboardingBlockedDemoPolicySnack": "",
+  "aiAssistModelFieldLabel": "",
+  "onboardingBlockedOverviewSnack": "",
+  "bulkAddPhotoCameraFailedLabel": "",
+  "onboardingBlockedActivitySnack": "",
+  "settingsAiAssistEnabledLabel": "",
+  "aiAssistModelsInsecureLabel": "",
+  "bulkAddRowQuantityTooSmall": "",
+  "aiAssistProbeUnknownLabel": "",
+  "healthSyncSuggestedLabel": "",
+  "@healthSyncSuggestedLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncDisclosureBody": "",
+  "@healthSyncDisclosureBody": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddDefaultAmountLabel": "",
+  "onboardingImplausibleHeightBody": "",
+  "@onboardingImplausibleHeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingFoodSourcesEnabledCount": "",
+  "@onboardingFoodSourcesEnabledCount": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddWaitCancelLabel": "",
+  "aiConsentAgreeLabel": "",
+  "aiAssistProviderLabel": "",
+  "aiAssistExperimentalLabel": "",
+  "policyChangeNoticeTitle": "",
+  "bulkAddInputHint": "",
+  "bulkAddSkipLabel": "",
+  "healthSyncImportedCountLabel": "",
+  "@healthSyncImportedCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "onboardingImplausibleWeightBody": "",
+  "@onboardingImplausibleWeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiAssistNotConfiguredLabel": "",
+  "bulkAddCheckAmountLabel": "",
+  "aiAssistDisclosureOwnServerSecure": "",
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddModelUnsupportedLabel": "",
+  "aiAssistDisclosureOpenRouter": "",
+  "aiAssistModelsEmptyLabel": "",
+  "@aiAssistModelsEmptyLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddSearchFailedLabel": "",
+  "onboardingImplausibleKeep": "",
+  "aiConsentChangeProviderNote": "",
+  "onboardingHealthyRangeLabel": "",
+  "@onboardingHealthyRangeLabel": {
+    "placeholders": {
+      "height": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistProbeNoAnswerLabel": "",
+  "suggestedLabel": "",
+  "aiAssistModelCheapestLabel": "",
+  "onboardingGoalSuggestionTarget": "",
+  "healthSyncKcalMultiplierSubtitle": "",
+  "aiAssistExperimentalNote": "",
+  "bulkAddParseLabel": "",
+  "bulkAddModelTimedOutLabel": "",
+  "aiAssistProbePhotoFailedLabel": "",
+  "bulkAddPhotoUnavailableLabel": "",
+  "aiAssistEndpointFieldLabel": "",
+  "onboardingImplausibleChange": "",
+  "aiAssistModelMoreItemsLabel": "",
+  "healthSyncDisclosureFooter": "",
+  "@healthSyncDisclosureFooter": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "sendCrashReports": "",
+  "aiAssistModelCheaperLabel": "",
+  "settingsAiAssistPausedLabel": "",
+  "bulkAddPhotoDisclosureOwnServer": "",
+  "@bulkAddPhotoDisclosureOwnServer": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddModelHintKeyLabel": "",
+  "healthSyncUnavailableLabel": "",
+  "bulkAddNoMatchLabel": "",
+  "bulkAddErrorInvalidName": "",
+  "@bulkAddErrorInvalidName": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddReadFromPhotoLabel": "",
+  "healthSyncDisclosureTitle": "",
+  "@healthSyncDisclosureTitle": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddPhotoDisclosureAnthropic": "",
+  "bulkAddPhotoNoCreditLabel": "",
+  "bulkAddNothingToLogLabel": "",
+  "bulkAddWaitElapsedLabel": "",
+  "@bulkAddWaitElapsedLabel": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncKcalMultiplierLabel": "",
+  "aiAssistRemoveKeyLabel": "",
+  "exportImportErrorUnreadableLabel": "",
+  "bulkAddSubmitLabel": "",
+  "@bulkAddSubmitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiAssistEndpointPublicPlaintextLabel": "",
+  "aiAssistDisclosureOpenAI": "",
+  "aiAssistKeyFieldLabel": "",
+  "@aiAssistKeyFieldLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistProbePhotoLabel": "",
+  "bulkAddChooseFoodLabel": "",
+  "bulkAddModelInsecureServerLabel": "",
+  "noResultsCreateCustomFood": "",
+  "aiAssistEndpointInvalidLabel": "",
+  "aiAssistProbePassedLabel": "",
+  "healthSyncDisclosureBodyFatAddendum": "",
+  "@healthSyncDisclosureBodyFatAddendum": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddPhotoFailedLabel": "",
+  "aiAssistModelRequiredLabel": "",
+  "onboardingAdultEquationNotice": "",
+  "aiAssistDisclosureAnthropic": "",
+  "sourcesEnergyCompensationDescription": "",
+  "aiAssistModelLabel": "",
+  "aiAssistProbeCheckLabel": "",
+  "aiAssistModelRecommendedLabel": "",
+  "bulkAddPhotoLabel": "",
+  "healthSyncImportNowLabel": "",
+  "aiAssistServedByLabel": "",
+  "@aiAssistServedByLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistDisclosureOwnServerPlaintext": "",
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncAutoImportLabel": "",
+  "@healthSyncAutoImportLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddTitle": "",
+  "bulkAddErrorQuantityTooSmall": "",
+  "@bulkAddErrorQuantityTooSmall": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddPhotoDisclosureOpenAI": "",
+  "bulkAddPhotoUnsupportedLabel": "",
+  "exportImportErrorWriteFailedLabel": "",
+  "aiAssistNoKeyForProviderLabel": "",
+  "bulkAddModelNoCreditLabel": "",
+  "bulkAddIncludeLabel": "",
+  "policyChangeNoticeBody": "",
+  "sourcesEnergyCompensationTitle": "",
+  "bulkAddPhotoUnreadableLabel": "",
+  "bulkAddPhotoDisclosureCommon": "",
+  "aiAssistPickModelLabel": "",
+  "onboardingBlockedProfileSnack": "",
+  "onboardingBlockedBodySnack": "",
+  "bulkAddErrorQuantityTooLarge": "",
+  "@bulkAddErrorQuantityTooLarge": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "policyChangeNoticeReadAction": "",
+  "aiAssistLoadModelsLabel": "",
+  "bulkAddPhotoKeyRejectedLabel": "",
+  "onboardingGoalSuggestionBmi": "",
+  "@onboardingGoalSuggestionBmi": {
+    "placeholders": {
+      "bmi": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "noResultsScanBarcode": "",
+  "aiAssistProbeTextLabel": "",
+  "healthSyncPermissionDeniedLabel": "",
+  "@healthSyncPermissionDeniedLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAiAssistOnLabel": "",
+  "policyChangeNoticeDismissAction": "",
+  "healthSyncKcalMultiplierValueLabel": "",
+  "@healthSyncKcalMultiplierValueLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingBlockedGoalSnack": "",
+  "bulkAddWaitModelLoadingLabel": "",
+  "aiAssistProbeSectionLabel": "",
+  "healthSyncLastImportLabel": "",
+  "@healthSyncLastImportLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddModelKeyRejectedLabel": "",
+  "bulkAddReadByModelLabel": "",
+  "aiAssistKeySavedLabel": "",
+  "disclaimerAcknowledgeLabel": "",
+  "settingsHealthSyncSubtitle": "",
+  "aiAssistProviderOwnServerLabel": "",
+  "onboardingHealthyRangeSource": "",
+  "aiAssistProbeRunningLabel": "",
+  "@aiAssistProbeRunningLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingGoalSuggestedBadge": "",
+  "aiAssistModelsRejectedLabel": "",
+  "@aiAssistModelsRejectedLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddPhotoNoFoodLabel": "",
+  "aiAssistDisclosureCommon": "",
+  "aiAssistProbeTextFailedLabel": "",
+  "bulkAddPhotoDisclosureOpenRouter": "",
+  "@bulkAddPhotoDisclosureOpenRouter": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeApply": "",
+  "@onboardingHealthyRangeApply": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsUnreachableLabel": "",
+  "@aiAssistModelsUnreachableLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureContinueAction": "",
+  "healthSyncNeverImportedLabel": "",
+  "onboardingBlockedPolicySnack": "",
+  "bulkAddUncertainLabel": "",
+  "bulkAddRowQuantityTooLarge": "",
+  "@bulkAddRowQuantityTooLarge": {
+    "placeholders": {
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "aiConsentOwnServerCheckNote": "",
+  "bulkAddModelHintLabel": "",
+  "settingsAiAssistLabel": "",
+  "noResultsSubtitle": "",
+  "bulkAddRowQuantityInvalid": "",
+  "aiConsentTitle": "",
+  "onboardingImplausibleTitle": ""
 }
