@@ -17,9 +17,10 @@ import 'package:opennutritracker/generated/l10n.dart';
 // Dart's DateTime only knows the process zone and UTC — there is no way to
 // build a local date in a zone the test picks — so the DST groups below can
 // only exercise the transition under a zone that has one on the pinned
-// dates (`TZ=Europe/Berlin flutter test …`). CI runs in UTC; there they
-// skip with a reason rather than pass without proving anything. The first
-// group runs everywhere.
+// dates. `just test` runs in the process zone (UTC on CI), where they skip
+// with a reason rather than pass without proving anything; `just test_dst`
+// reruns this file under Europe/Berlin, on CI too, so they execute. The
+// first group runs everywhere.
 
 WeightLogEntity _entry(DateTime date, double weightKg) =>
     WeightLogEntity(date: date, weightKg: weightKg);
@@ -47,7 +48,7 @@ String? _skipUnless(DateTime day, int hours, String what) =>
     _hoursIn(day) == hours
     ? null
     : 'no $what on $day in zone ${day.timeZoneName}; '
-          'run with TZ=Europe/Berlin';
+          'run `just test_dst` (TZ=Europe/Berlin)';
 
 Future<LineChartData> _pumpChart(
   WidgetTester tester, {

@@ -6,9 +6,10 @@ import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 //
 // Dart's DateTime only knows the process zone and UTC — there is no way to
 // build a local date in a zone the test picks — so the DST cases can only
-// run under a zone that has the transition (`TZ=Europe/Berlin flutter test
-// …`). CI runs in UTC; there the DST groups skip with a reason instead of
-// passing vacuously.
+// run under a zone that has the transition. `just test` runs in the process
+// zone (UTC on CI), where the DST groups skip with a reason instead of
+// passing vacuously; `just test_dst` reruns this file under Europe/Berlin,
+// on CI too, so they execute.
 
 /// Hours in the local calendar day that starts at [day]'s midnight: 24
 /// normally, 25 on an autumn fall-back day, 23 on a spring-forward day.
@@ -19,7 +20,7 @@ String? _skipUnless(DateTime day, int hours, String what) =>
     _hoursIn(day) == hours
     ? null
     : 'no $what on $day in zone ${day.timeZoneName}; '
-          'run with TZ=Europe/Berlin';
+          'run `just test_dst` (TZ=Europe/Berlin)';
 
 void main() {
   group('CalendarDayCalc.daysBetween', () {

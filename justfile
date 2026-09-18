@@ -151,8 +151,17 @@ check_agents_md:
 test:
   flutter test
 
+# The #1207 DST tests pin dates around Europe/Berlin's transitions and skip,
+# with a reason, in a zone that has none on those dates -- the UTC of `just
+# test` on CI. Dart's DateTime only knows the process zone, so the zone has
+# to come from TZ: rerun the two files under it so the guard executes.
+test_dst:
+  TZ=Europe/Berlin flutter test \
+    test/unit_test/calendar_day_calc_test.dart \
+    test/features/profile/presentation/widgets/weight_trend_chart_test.dart
+
 # Run CI checks
-ci: check_agents_md install (format "--set-exit-if-changed") check_l10n build && test
+ci: check_agents_md install (format "--set-exit-if-changed") check_l10n build && test test_dst
   flutter analyze
 
 create_emulator:
