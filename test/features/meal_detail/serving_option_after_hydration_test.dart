@@ -289,11 +289,12 @@ void main() {
       await tester.tap(find.text(naLabel()).last);
       await tester.pumpAndSettle();
 
-      // The reporter's state: "N/A" showing, quantity 1. Their next move
-      // was to open the menu and tap the serving entry — which then
-      // vanished: the sheet rebuilt with a value its item list no longer
-      // held (a DropdownButton assertion in debug, a blank button in
-      // release), and the amount was left unscaled at 1 g.
+      // The explicit N/A pick above stands in for the state the stale echo
+      // used to leave behind (first test): "N/A" showing, quantity 1. The
+      // `detailed` check right after the menu opened is what turns red
+      // without the read-once guard; the pick below then walks the fixed
+      // path end to end — the serving entry stays selected and scales the
+      // amount, instead of vanishing from the button and logging 1 g.
       expect(bloc!.state.selectedUnit, UnitDropdownItem.gml.toString());
       expect(find.text(naLabel()), findsOneWidget);
       await pickUnit(tester, '31.8g');

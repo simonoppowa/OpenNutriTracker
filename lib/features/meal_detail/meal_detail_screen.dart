@@ -55,7 +55,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   String _initialUnit = "";
   String _initialQuantity = "";
 
-  bool _hydrationRequested = false;
+  // Set on the first didChangeDependencies pass, which is the only one that
+  // reads the route arguments and requests hydration (see there).
+  bool _argumentsRead = false;
   bool _userChangedSelection = false;
 
   // Scroll distance from expandedHeight down to the collapsed SliverAppBar
@@ -104,7 +106,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     // after hydration had already swapped in the full record: the serving
     // entry the user then tapped was no longer in the rebuilt list and the
     // button went blank (#1216).
-    if (!_hydrationRequested) {
+    if (!_argumentsRead) {
       final args =
           ModalRoute.of(context)?.settings.arguments
               as MealDetailScreenArguments;
@@ -112,11 +114,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       _day = args.day;
       intakeTypeEntity = args.intakeTypeEntity;
       _usesImperialUnits = args.usesImperialUnits;
+      _argumentsRead = true;
 
       // Thin OFF search results get hydrated to the full product record
       // (serving fields + micronutrients) once, in the background; the
       // listener in build() swaps the displayed meal in when it arrives.
-      _hydrationRequested = true;
       _mealDetailBloc.add(HydrateMealEvent(meal));
     }
 
