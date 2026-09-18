@@ -60,6 +60,7 @@ class OFFConst {
   static const _offProductNameTRTag = "product_name_tr";
   static const _offProductNameUKTag = "product_name_uk";
   static const _offProductNameHUTag = "product_name_hu";
+  static const _offProductNameESTag = "product_name_es";
   static const _offLocalizedProductNameTags = [
     _offProductNameCSTag,
     _offProductNameITTag,
@@ -67,6 +68,7 @@ class OFFConst {
     _offProductNameTRTag,
     _offProductNameUKTag,
     _offProductNameHUTag,
+    _offProductNameESTag,
   ];
   static const _offCodeTag = "code";
   static const _offBrandsTag = "brands";
