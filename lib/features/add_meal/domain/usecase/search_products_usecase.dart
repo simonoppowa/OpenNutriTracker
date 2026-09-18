@@ -74,9 +74,17 @@ class SearchProductsUseCase {
   /// host: the request goes to the Supabase backend, never to USDA. The name
   /// is kept because [MealSourceEntity.fdc] is persisted in Hive and renaming
   /// it would need a data migration.
+  ///
+  /// [forResolution] is what `ResolveParsedMealsUseCase` passes and the
+  /// Food tab does not: the backend's hundred rows are cut to twenty in
+  /// the data source, and for the resolver's page — which it auto-selects
+  /// from — that cut reads each row's `has_portion` column, where the
+  /// Food tab's page is cut without it (#1164 part 3, #1190; the cut's
+  /// comment in `sp_food_data_source.dart` has the measurements).
   Future<SearchProductsResult> searchFDCFoodByString(
     String searchString, {
     bool skipRemote = false,
+    bool forResolution = false,
   }) async {
     if (skipRemote) {
       return _buildResult(searchString, const [],
@@ -84,7 +92,10 @@ class SearchProductsUseCase {
     }
     final remote = await _safeRemoteCall(
       'FDC',
-      () => _productsRepository.getSupabaseFoodsByString(searchString),
+      () => _productsRepository.getSupabaseFoodsByString(
+        searchString,
+        forResolution: forResolution,
+      ),
     );
     await _cacheRemoteResults(remote);
     return _buildResult(searchString, remote,

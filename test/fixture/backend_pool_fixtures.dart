@@ -53,7 +53,14 @@ const _native = 'native';
 /// `ProductsRepository` has decorated a fresh page, and what the
 /// resolver's no-portions penalty and portions key read. Every row the
 /// backend orders as having a portion has at least one here, and every
-/// row it orders as having none has none.
+/// row it orders as having none has none — which is why [flagged] and
+/// [flaggedTranslations] can derive the `has_portion` column the backend's
+/// `2026-09-13_food_summary_has_portion` migration adds to the search rows
+/// from the same count: the column is
+/// `food_has_deliverable_portion(food_id)`, the predicate the RPCs
+/// already order by and `portions_by_food_ids` filters on. The pools as
+/// copied carry no such column, exactly as the backend answered before
+/// that migration, and the DTO reads its absence as null.
 ///
 /// What each pool holds, as fetched (rows / with a portion / titled as the
 /// term / titled and with a portion):
@@ -77,13 +84,13 @@ const _native = 'native';
 /// same family, but no title equals `eggs`, so the title-first key does
 /// nothing and the hundred are the shortest matches of any title.
 ///
-/// `muffins` is here for the one thing the data source's cut does not
-/// read, the portions: the full-text match finds the survey's "Muffin"
-/// family, forty rows with a portion, and behind them the twenty SR
-/// Legacy rows that spell their title "Muffins" — none with a portion,
-/// and every one an exact match for the query where "Muffin" is a soft
-/// one. `resolver_sibling_selection_test` pins what the cut makes of
-/// that.
+/// `muffins` is here for the portions, which the data source's cut
+/// reads only through the `has_portion` flag (#1190): the full-text
+/// match finds the survey's "Muffin" family, forty rows with a portion,
+/// and behind them the twenty SR Legacy rows that spell their title
+/// "Muffins" — none with a portion, and every one an exact match for the
+/// query where "Muffin" is a soft one. `resolver_sibling_selection_test`
+/// pins what the cut makes of that with the flag and without.
 class BackendPoolFixtures {
   static SpFoodDTO _dto(_Row row) => SpFoodDTO(
     foodId: row.$1,
@@ -132,6 +139,37 @@ class BackendPoolFixtures {
     List<SpFoodDTO> pool,
     Map<int, int> portions,
   ) => [for (final row in pool) fresh(row, portions)];
+
+  /// [pool] as `search_food_summary` answers it once the migration is
+  /// applied: every row carrying `has_portion`, true where [portions]
+  /// says the backend delivers one. Built through the JSON the backend
+  /// sends — the row's own columns plus the new one — so the DTO's
+  /// reading of the column is on the path, not bypassed by a constructor.
+  static List<SpFoodDTO> flagged(
+    List<SpFoodDTO> pool,
+    Map<int, int> portions,
+  ) => [
+    for (final row in pool)
+      SpFoodDTO.fromJson({
+        ...row.toJson(),
+        SPConst.foodHasPortion: portions[row.foodId]! > 0,
+      }),
+  ];
+
+  /// [pool] as `search_food_translation` answers it once the migration is
+  /// applied: every row carrying `has_portion`, true where [portions]
+  /// says the backend delivers one.
+  static List<Map<String, dynamic>> flaggedTranslations(
+    List<Map<String, dynamic>> pool,
+    Map<int, int> portions,
+  ) => [
+    for (final row in pool)
+      {
+        ...row,
+        SPConst.translationHasPortion:
+            portions[row[SPConst.translationFoodId] as int]! > 0,
+      },
+  ];
 
   static const potatoNfs = 2709382;
   static const potatoFrenchFriesNfs = 2709456;

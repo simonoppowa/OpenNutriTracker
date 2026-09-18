@@ -35,10 +35,16 @@ class _FakeSp extends SpFoodDataSource {
   final List<SpFoodDTO> foods;
   final Map<int, String> labels;
   final Map<int, List<MealPortionEntity>>? portions;
+  bool? askedForResolution;
 
   @override
-  Future<List<SpFoodDTO>> fetchSearchWordResults(String searchString) async =>
-      foods;
+  Future<List<SpFoodDTO>> fetchSearchWordResults(
+    String searchString, {
+    bool forResolution = false,
+  }) async {
+    askedForResolution = forResolution;
+    return foods;
+  }
 
   @override
   Future<Map<int, String>> fetchPortionLabels(List<int> foodIds) async =>
@@ -63,15 +69,32 @@ class _NoOff extends OFFDataSource {
   );
 }
 
-Future<Map<String, MealEntity>> _search(_FakeSp sp) async {
+Future<Map<String, MealEntity>> _search(
+  _FakeSp sp, {
+  bool forResolution = false,
+}) async {
   final meals = await ProductsRepository(
     _NoOff(),
     sp,
-  ).getSupabaseFoodsByString('bread');
+  ).getSupabaseFoodsByString('bread', forResolution: forResolution);
   return {for (final meal in meals) meal.name!: meal};
 }
 
 void main() {
+  test('whose page it is reaches the data source', () async {
+    // The cut to twenty happens in the data source, and only the
+    // resolver's page is cut with the row's `has_portion` read (#1164,
+    // #1190); the repository passes the caller's answer through and adds
+    // nothing of its own.
+    final sp = _FakeSp([_food(1, 'Bread, rye')], portions: const {});
+
+    await _search(sp);
+    expect(sp.askedForResolution, isFalse);
+
+    await _search(sp, forResolution: true);
+    expect(sp.askedForResolution, isTrue);
+  });
+
   // The portion lookup is a second call after the search itself, and it can
   // fail on its own. Before #1170's review a failure came back as an empty
   // map, indistinguishable from a backend that has no portion for any food

@@ -14,7 +14,8 @@
 /// derivation closes that way, and one scorer over it (`scoreText` in
 /// `soft_text_score.dart`, which also decides which qualifiers a query
 /// names) closes the other; what stays open is what the cut does not
-/// read — the portions, and the translation row's source — listed at
+/// read — the portion count behind the `has_portion` flag it does read,
+/// and the translation row's source — listed at
 /// `rankAndTruncateFoodsByName`.
 ///
 /// Derived rather than read off the backend's `short_title` column

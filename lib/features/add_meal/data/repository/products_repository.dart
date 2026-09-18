@@ -100,11 +100,17 @@ class ProductsRepository {
     return ranked.take(_searchResultLimit).map((p) => p.meal).toList();
   }
 
+  /// [forResolution]: the page is the resolver's, and the data source's
+  /// cut reads each row's `has_portion` column; false — the Food tab's
+  /// search — and it does not. `SpFoodDataSource.fetchSearchWordResults`
+  /// says why the two are cut differently (#1164, #1190).
   Future<List<MealEntity>> getSupabaseFoodsByString(
-    String searchString,
-  ) async {
+    String searchString, {
+    bool forResolution = false,
+  }) async {
     final spWordResponse = await _spBackendDataSource.fetchSearchWordResults(
       searchString,
+      forResolution: forResolution,
     );
     final products = spWordResponse
         .map((foodItem) => MealEntity.fromSpFood(foodItem))
