@@ -210,8 +210,11 @@ class PhysicalActivityEntity extends Equatable {
       "02210": S.of(context).paHighIntensityIntervalExerciseDesc,
       "02214": S.of(context).paHighIntensityIntervalExerciseVigorousDesc,
       "02068": S.of(context).paRopeSkippingGeneralDesc,
-      "02080": S.of(context).paModerateEffortDesc,
-      "02090": S.of(context).paModerateEffortDesc,
+      // Both rows describe themselves as "moderate effort", the string
+      // paHighIntensityIntervalExerciseDesc already carries; one unit for
+      // one phrasing rather than a third key saying the same thing.
+      "02080": S.of(context).paHighIntensityIntervalExerciseDesc,
+      "02090": S.of(context).paHighIntensityIntervalExerciseDesc,
       "02095": S.of(context).paGeneralDesc,
       "02120": S.of(context).paWaterAerobicsDesc,
       "02160": S.of(context).paYogaDesc,
