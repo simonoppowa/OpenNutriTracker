@@ -53,7 +53,7 @@ English names in `food_summary.name` are searched with Postgres full-text search
 
 One row per (food, locale) pair: `food_id`, `locale`, `description`, `source`. The app both **searches** this table for non-English locales and uses it to **label** foods in the UI. The `source` column records how the translation was produced — `native` (the original database carries the name, e.g. BLS German), `community`, `verified`, or `machine`. Machine translations (DeepL/LLM, produced by the backend repo's `translate_all.py`) are shown with a small disclosure hint in the app; human-sourced ones are not.
 
-Supported locales are mapped in `SPConst.translationLocaleOf` — currently `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk`, and `hu`, with English reading `food_summary.name` directly. Translation search uses the `simple` text-search configuration, since the table holds many languages — again inside `search_food_translation` rather than in the app.
+Supported locales are mapped in `SPConst.translationLocaleOf` — currently `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, and `uk`, with English reading `food_summary.name` directly (`hu` and `es` map to `null` until the table has their rows). Translation search uses the `simple` text-search configuration, since the table holds many languages — again inside `search_food_translation` rather than in the app.
 
 ## Setting up your own backend
 

@@ -205,12 +205,45 @@ void main() {
         equals('Default Name - testValue'),
       );
     });
+
+    test('Case 15: Spanish locale returns product_name_es when present', () {
+      final product = _buildProduct(
+        product_name: 'Default Name - testValue',
+        product_name_en: 'English Name - testValue',
+        product_name_es: 'Nombre español - testValue',
+      );
+
+      expect(
+        product.getLocaleName(SupportedLanguage.es),
+        equals('Nombre español - testValue'),
+      );
+    });
+
+    test('Case 16: Spanish locale falls through when the name is absent',
+        () {
+      final product = _buildProduct(
+        product_name: 'Default Name - testValue',
+        product_name_en: 'English Name - testValue',
+        product_name_es: null,
+      );
+
+      expect(
+        product.getLocaleName(SupportedLanguage.es),
+        equals('Default Name - testValue'),
+      );
+    });
   });
 
   group('SupportedLanguage.fromCode', () {
     test('maps a Hungarian device locale, with or without a region', () {
       expect(SupportedLanguage.fromCode('hu_HU'), SupportedLanguage.hu);
       expect(SupportedLanguage.fromCode('hu'), SupportedLanguage.hu);
+    });
+
+    test('maps a Spanish device locale, with or without a region', () {
+      expect(SupportedLanguage.fromCode('es_ES'), SupportedLanguage.es);
+      expect(SupportedLanguage.fromCode('es_MX'), SupportedLanguage.es);
+      expect(SupportedLanguage.fromCode('es'), SupportedLanguage.es);
     });
 
     test('a language without a SupportedLanguage value falls back to English',
@@ -288,6 +321,7 @@ OFFProductDTO _buildProduct({
   String? product_name_tr,
   String? product_name_uk,
   String? product_name_hu,
+  String? product_name_es,
 }) {
   return OFFProductDTO(
     code: '123',
@@ -300,6 +334,7 @@ OFFProductDTO _buildProduct({
     product_name_tr: product_name_tr,
     product_name_uk: product_name_uk,
     product_name_hu: product_name_hu,
+    product_name_es: product_name_es,
     brands: null,
     image_front_thumb_url: null,
     image_front_url: null,
