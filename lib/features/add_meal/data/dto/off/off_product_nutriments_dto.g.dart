@@ -32,7 +32,7 @@ OFFProductNutrimentsDTO _$OFFProductNutrimentsDTOFromJson(
   vitamin_d_100g: json['vitamin-d_100g'],
   vitamin_b6_100g: json['vitamin-b6_100g'],
   vitamin_b12_100g: json['vitamin-b12_100g'],
-  niacin_100g: json['niacin_100g'],
+  niacin_100g: json['vitamin-pp_100g'],
 );
 
 Map<String, dynamic> _$OFFProductNutrimentsDTOToJson(
@@ -61,5 +61,5 @@ Map<String, dynamic> _$OFFProductNutrimentsDTOToJson(
   'vitamin-d_100g': instance.vitamin_d_100g,
   'vitamin-b6_100g': instance.vitamin_b6_100g,
   'vitamin-b12_100g': instance.vitamin_b12_100g,
-  'niacin_100g': instance.niacin_100g,
+  'vitamin-pp_100g': instance.niacin_100g,
 };
