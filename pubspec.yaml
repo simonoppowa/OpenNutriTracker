@@ -73,6 +73,10 @@ dependencies:
   image_picker: ^1.2.3
   flutter_image_compress: ^2.5.1
 
+  # iOS home-screen calorie widget. Android stores the same snapshot
+  # and has no widget UI yet.
+  home_widget: ^0.10.0
+
   hive_ce: ^2.20.0
   hive_ce_flutter: ^2.3.4
 

@@ -25,6 +25,8 @@ import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -50,6 +52,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
   final AddWaterIntakeUsecase _addWaterIntakeUsecase;
   final DeleteWaterIntakeUsecase _deleteWaterIntakeUsecase;
+  final CalorieWidgetStore _calorieWidgetStore;
 
   DateTime currentDay = DateTime.now();
 
@@ -68,8 +71,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     this._getUserUsecase,
     this._getWaterIntakeUsecase,
     this._addWaterIntakeUsecase,
-    this._deleteWaterIntakeUsecase,
-  ) : super(HomeInitial()) {
+    this._deleteWaterIntakeUsecase, {
+    CalorieWidgetStore? calorieWidgetStore,
+  }) : _calorieWidgetStore = calorieWidgetStore ?? HomeWidgetCalorieStore(),
+       super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
 
@@ -245,7 +250,29 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           waterIntakes: waterIntakes,
         ),
       );
+      await _publishCalorieWidget(
+        consumedKcal: totalKcalIntake,
+        goalKcal: totalKcalGoal,
+        offsetMinutes: configData.dayStartOffsetTotalMinutes,
+      );
     });
+  }
+
+  Future<void> _publishCalorieWidget({
+    required double consumedKcal,
+    required double goalKcal,
+    required int offsetMinutes,
+  }) async {
+    final snapshot = CalorieWidgetSnapshot.fromHome(
+      consumedKcal: consumedKcal,
+      goalKcal: goalKcal,
+      offsetMinutes: offsetMinutes,
+    );
+    try {
+      await _calorieWidgetStore.write(snapshot);
+    } catch (_) {
+      // A widget write must not block the home screen.
+    }
   }
 
   double getTotalKcal(List<IntakeEntity> intakeList) =>
