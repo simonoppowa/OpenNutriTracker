@@ -116,7 +116,7 @@ MealItemsApi mealItemsApiFor(
       selection.apiKey == null ? null : key,
       model: modelId,
       endpoint: Uri.parse(selection.endpoint!),
-      toolChoice: ToolChoiceMode.anyTool,
+      toolChoice: ToolChoiceMode.namedFunction,
       // The two halves of #774, and they only make sense together. The
       // longer budget is what stops a cold model load being reported as a
       // failure at all; the classification is what stops the failures that
