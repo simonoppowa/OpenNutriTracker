@@ -18,17 +18,19 @@ class TrendsLoading extends TrendsState {
 class TrendsLoaded extends TrendsState {
   final int rangeDays; // the selected range chip: 7, 30, 90, or 0 for "All"
   final int windowDays; // effective span the charts plot over (resolved "All")
+  final DateTime today; // logical today under the configured day boundary
   final List<TrackedDayEntity> days; // tracked days over the selected window
   final List<TrackedDayEntity> priorWeek; // the 7 days before this week
   final List<WeightLogEntity> weight; // full weight history, windowed in the UI
   final BodyWeightUnit bodyWeightUnit;
   final double? targetWeightKg; // user's #119 target, for the chart reference
-  final Map<DateTime, int> waterByDay; // ml logged per calendar day
+  final Map<DateTime, int> waterByDay; // ml logged per logical day
   final int waterGoalMl;
 
   const TrendsLoaded({
     required this.rangeDays,
     required this.windowDays,
+    required this.today,
     required this.days,
     required this.priorWeek,
     required this.weight,
@@ -42,6 +44,7 @@ class TrendsLoaded extends TrendsState {
   List<Object?> get props => [
         rangeDays,
         windowDays,
+        today,
         days,
         priorWeek,
         weight,

@@ -14,7 +14,10 @@ import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
+import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 /// Records the (start, end) ranges it is asked for so the bloc's date-window
 /// arithmetic can be asserted, and returns a canned list. The bloc calls this
@@ -83,6 +86,8 @@ class _FakeGetUserUsecase implements GetUserUsecase {
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
   bool usesImperialUnits = false;
+  int dayStartOffsetHours = 0;
+  int dayStartOffsetMinutes = 0;
 
   @override
   Future<ConfigEntity> getConfig() async => ConfigEntity(
@@ -93,6 +98,8 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
         usesImperialUnits: usesImperialUnits,
         bodyWeightUnit:
             usesImperialUnits ? BodyWeightUnit.lb : BodyWeightUnit.kg,
+        dayStartOffsetHours: dayStartOffsetHours,
+        dayStartOffsetMinutes: dayStartOffsetMinutes,
       );
 
   @override
@@ -115,6 +122,8 @@ WeightLogEntity _wl(DateTime date, double kg) =>
     WeightLogEntity(date: date, weightKg: kg);
 
 void main() {
+  setUpAll(tzdata.initializeTimeZones);
+
   // The bloc anchors every window on midnight-today; mirror that here so the
   // expected ranges line up with what the bloc computes.
   final now = DateTime.now();
@@ -220,6 +229,167 @@ void main() {
     test('a fixed range sets windowDays equal to the chip', () async {
       final emitted = await load(const LoadTrendsEvent(rangeDays: 30));
       expect((emitted.last as TrendsLoaded).windowDays, 30);
+    });
+
+    test('midnight day start preserves normal food and water dates',
+        () async {
+      DayBoundaryCalc.clock = () => DateTime(2026, 8, 12, 0, 30);
+      addTearDown(() => DayBoundaryCalc.clock = DateTime.now);
+      trackedDay.result = [
+        TrackedDayEntity(
+          day: DateTime(2026, 8, 12),
+          calorieGoal: 2000,
+          caloriesTracked: 500,
+        ),
+      ];
+      water.result = [
+        WaterIntakeEntity(
+          id: 'before-midnight',
+          dateTime: DateTime(2026, 8, 11, 23, 59, 59),
+          amountMl: 100,
+        ),
+        WaterIntakeEntity(
+          id: 'at-midnight',
+          dateTime: DateTime(2026, 8, 12),
+          amountMl: 200,
+        ),
+        WaterIntakeEntity(
+          id: 'after-midnight',
+          dateTime: DateTime(2026, 8, 12, 0, 0, 1),
+          amountMl: 300,
+        ),
+      ];
+
+      final emitted = await load(const LoadTrendsEvent());
+      final loaded = emitted.last as TrendsLoaded;
+
+      expect(loaded.today, DateTime(2026, 8, 12));
+      expect(
+        trackedDay.rangeCalls.first,
+        (
+          start: DateTime(2026, 8, 6),
+          end: DateTime(2026, 8, 12, 23, 59, 59),
+        ),
+      );
+      expect(loaded.days, trackedDay.result);
+      expect(loaded.waterByDay, {
+        DateTime(2026, 8, 11): 100,
+        DateTime(2026, 8, 12): 500,
+      });
+    });
+
+    test('08:00 day start keeps pre-boundary food and water on the prior day',
+        () async {
+      DayBoundaryCalc.clock = () => DateTime(2026, 8, 12, 7, 30);
+      addTearDown(() => DayBoundaryCalc.clock = DateTime.now);
+      config.dayStartOffsetHours = 8;
+      trackedDay.result = [
+        TrackedDayEntity(
+          day: DateTime(2026, 8, 11, 23),
+          calorieGoal: 2000,
+          caloriesTracked: 500,
+        ),
+      ];
+      water.result = [
+        WaterIntakeEntity(
+          id: 'before-midnight',
+          dateTime: DateTime(2026, 8, 11, 23, 59),
+          amountMl: 100,
+        ),
+        WaterIntakeEntity(
+          id: 'after-midnight',
+          dateTime: DateTime(2026, 8, 12, 0, 1),
+          amountMl: 200,
+        ),
+        WaterIntakeEntity(
+          id: 'before-boundary',
+          dateTime: DateTime(2026, 8, 12, 7, 59, 59),
+          amountMl: 300,
+        ),
+        WaterIntakeEntity(
+          id: 'at-boundary',
+          dateTime: DateTime(2026, 8, 12, 8),
+          amountMl: 400,
+        ),
+        WaterIntakeEntity(
+          id: 'after-boundary',
+          dateTime: DateTime(2026, 8, 12, 8, 0, 1),
+          amountMl: 500,
+        ),
+      ];
+
+      final emitted = await load(const LoadTrendsEvent());
+      final loaded = emitted.last as TrendsLoaded;
+
+      expect(loaded.today, DateTime(2026, 8, 11));
+      expect(
+        trackedDay.rangeCalls.first,
+        (
+          start: DateTime(2026, 8, 5),
+          end: DateTime(2026, 8, 11, 23, 59, 59),
+        ),
+      );
+      expect(loaded.days, trackedDay.result);
+      expect(loaded.waterByDay, {
+        DateTime(2026, 8, 11): 600,
+        DateTime(2026, 8, 12): 900,
+      });
+    });
+
+    test('08:00 day start follows local wall time across spring DST',
+        () async {
+      final newYork = tz.getLocation('America/New_York');
+      DayBoundaryCalc.clock = () => tz.TZDateTime(
+            newYork,
+            2026,
+            3,
+            8,
+            7,
+            30,
+          );
+      addTearDown(() => DayBoundaryCalc.clock = DateTime.now);
+      config.dayStartOffsetHours = 8;
+      water.result = [
+        WaterIntakeEntity(
+          id: 'before-midnight',
+          dateTime: tz.TZDateTime(newYork, 2026, 3, 7, 23, 59),
+          amountMl: 100,
+        ),
+        WaterIntakeEntity(
+          id: 'before-spring-forward',
+          dateTime: tz.TZDateTime(newYork, 2026, 3, 8, 1, 59),
+          amountMl: 200,
+        ),
+        WaterIntakeEntity(
+          id: 'after-spring-forward',
+          dateTime: tz.TZDateTime(newYork, 2026, 3, 8, 3),
+          amountMl: 300,
+        ),
+        WaterIntakeEntity(
+          id: 'before-boundary',
+          dateTime: tz.TZDateTime(newYork, 2026, 3, 8, 7, 59, 59),
+          amountMl: 400,
+        ),
+        WaterIntakeEntity(
+          id: 'at-boundary',
+          dateTime: tz.TZDateTime(newYork, 2026, 3, 8, 8),
+          amountMl: 500,
+        ),
+        WaterIntakeEntity(
+          id: 'after-boundary',
+          dateTime: tz.TZDateTime(newYork, 2026, 3, 8, 8, 0, 1),
+          amountMl: 600,
+        ),
+      ];
+
+      final emitted = await load(const LoadTrendsEvent());
+      final loaded = emitted.last as TrendsLoaded;
+
+      expect(loaded.today, DateTime(2026, 3, 7));
+      expect(loaded.waterByDay, {
+        DateTime(2026, 3, 7): 1000,
+        DateTime(2026, 3, 8): 1100,
+      });
     });
 
     test('the "All" range (0) spans back to the earliest data', () async {
