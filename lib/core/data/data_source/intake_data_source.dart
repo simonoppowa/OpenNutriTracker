@@ -109,10 +109,7 @@ class IntakeDataSource {
         )
         .toList();
 
-    // Surface custom meals before remote-sourced results.
-    final custom = uniqueIntake.where((i) => i.meal.source == MealSourceDBO.custom).toList();
-    final others = uniqueIntake.where((i) => i.meal.source != MealSourceDBO.custom).toList();
-    return [...custom, ...others].take(number).toList();
+    return uniqueIntake.take(number).toList();
   }
 
   Future<List<IntakeDBO>> getCustomMealIntakes() async {
