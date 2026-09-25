@@ -62,16 +62,21 @@ class TrackedDayEntity extends Equatable {
   });
 
   factory TrackedDayEntity.fromTrackedDayDBO(TrackedDayDBO trackedDayDBO) {
+    // A running total that took in a NaN nutriment stays NaN on disk (#1254),
+    // and NaN.toInt() throws in the Trends and Diary cards, so a non-finite
+    // total reads as nothing tracked rather than taking the card down.
+    double? finite(double? value) =>
+        value != null && value.isFinite ? value : null;
     return TrackedDayEntity(
       day: trackedDayDBO.day,
       calorieGoal: trackedDayDBO.calorieGoal,
-      caloriesTracked: trackedDayDBO.caloriesTracked,
+      caloriesTracked: finite(trackedDayDBO.caloriesTracked) ?? 0,
       carbsGoal: trackedDayDBO.carbsGoal,
-      carbsTracked: trackedDayDBO.carbsTracked,
+      carbsTracked: finite(trackedDayDBO.carbsTracked),
       fatGoal: trackedDayDBO.fatGoal,
-      fatTracked: trackedDayDBO.fatTracked,
+      fatTracked: finite(trackedDayDBO.fatTracked),
       proteinGoal: trackedDayDBO.proteinGoal,
-      proteinTracked: trackedDayDBO.proteinTracked,
+      proteinTracked: finite(trackedDayDBO.proteinTracked),
       fibreGoal: trackedDayDBO.fibreGoal,
       satFatGoal: trackedDayDBO.satFatGoal,
       sugarsGoal: trackedDayDBO.sugarsGoal,

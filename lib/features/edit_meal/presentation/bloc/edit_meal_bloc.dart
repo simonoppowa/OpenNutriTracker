@@ -21,9 +21,14 @@ part 'edit_meal_event.dart';
 /// instantiating the bloc's dependency graph — see
 /// `test/unit_test/edit_meal_simple_mode_scale_test.dart` for the
 /// regression coverage on Simple-mode (#232).
+///
+/// A base of 0 falls back to the no-op factor like unparseable input does:
+/// `100 / 0` is infinite, and a nutriment typed as 0 times infinity is NaN,
+/// which reached the stored meal, the intake and the day's totals, and
+/// blanked every card that rounds a total with `toInt()` (#1254).
 double factorTo100gFromBase(String baseQuantity) {
   final parsed = double.tryParse(baseQuantity);
-  return parsed != null ? (100 / parsed) : 1;
+  return (parsed != null && parsed.isFinite && parsed > 0) ? (100 / parsed) : 1;
 }
 
 /// Custom meal form view mode (#232). Persisted on ConfigDBO so the form
