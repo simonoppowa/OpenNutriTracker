@@ -103,34 +103,40 @@ class MealNutrimentsEntity extends Equatable {
         fiber100: null,
       );
 
+  /// Stored values that are NaN or infinite read back as null ("unknown").
+  /// A custom meal saved with a base quantity of 0 was stored that way
+  /// (#1254); read through unchanged, one such row turned every total it
+  /// fed into NaN and threw in the widgets that round those totals.
   factory MealNutrimentsEntity.fromMealNutrimentsDBO(
     MealNutrimentsDBO nutriments,
   ) {
+    double? finite(double? value) =>
+        value != null && value.isFinite ? value : null;
     return MealNutrimentsEntity(
-      energyKcal100: nutriments.energyKcal100,
-      carbohydrates100: nutriments.carbohydrates100,
-      fat100: nutriments.fat100,
-      proteins100: nutriments.proteins100,
-      sugars100: nutriments.sugars100,
-      saturatedFat100: nutriments.saturatedFat100,
-      fiber100: nutriments.fiber100,
-      monounsaturatedFat100: nutriments.monounsaturatedFat100,
-      polyunsaturatedFat100: nutriments.polyunsaturatedFat100,
-      transFat100: nutriments.transFat100,
-      cholesterol100: nutriments.cholesterol100,
-      sodium100: nutriments.sodium100,
-      potassium100: nutriments.potassium100,
-      magnesium100: nutriments.magnesium100,
-      calcium100: nutriments.calcium100,
-      iron100: nutriments.iron100,
-      zinc100: nutriments.zinc100,
-      phosphorus100: nutriments.phosphorus100,
-      vitaminA100: nutriments.vitaminA100,
-      vitaminC100: nutriments.vitaminC100,
-      vitaminD100: nutriments.vitaminD100,
-      vitaminB6100: nutriments.vitaminB6100,
-      vitaminB12100: nutriments.vitaminB12100,
-      niacin100: nutriments.niacin100,
+      energyKcal100: finite(nutriments.energyKcal100),
+      carbohydrates100: finite(nutriments.carbohydrates100),
+      fat100: finite(nutriments.fat100),
+      proteins100: finite(nutriments.proteins100),
+      sugars100: finite(nutriments.sugars100),
+      saturatedFat100: finite(nutriments.saturatedFat100),
+      fiber100: finite(nutriments.fiber100),
+      monounsaturatedFat100: finite(nutriments.monounsaturatedFat100),
+      polyunsaturatedFat100: finite(nutriments.polyunsaturatedFat100),
+      transFat100: finite(nutriments.transFat100),
+      cholesterol100: finite(nutriments.cholesterol100),
+      sodium100: finite(nutriments.sodium100),
+      potassium100: finite(nutriments.potassium100),
+      magnesium100: finite(nutriments.magnesium100),
+      calcium100: finite(nutriments.calcium100),
+      iron100: finite(nutriments.iron100),
+      zinc100: finite(nutriments.zinc100),
+      phosphorus100: finite(nutriments.phosphorus100),
+      vitaminA100: finite(nutriments.vitaminA100),
+      vitaminC100: finite(nutriments.vitaminC100),
+      vitaminD100: finite(nutriments.vitaminD100),
+      vitaminB6100: finite(nutriments.vitaminB6100),
+      vitaminB12100: finite(nutriments.vitaminB12100),
+      niacin100: finite(nutriments.niacin100),
     );
   }
 
