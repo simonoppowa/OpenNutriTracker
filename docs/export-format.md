@@ -116,10 +116,19 @@ Array of intake records:
         "niacin100": null
       },
       "dataVersion": 1                // see "Micronutrient units" below
-    }
+    },
+    "recipeSnapshot": null,          // full RecipeDBO at log time for new recipe entries
+    "conversionParentId": null       // transient link on replacement ingredients
   }
 ]
 ```
+
+Newly logged recipe entries carry a full `recipeSnapshot` with the recipe's
+`ingredients` and `totalWeightG` as they were when logged. Old entries have
+`null` here and cannot safely be exploded using the current recipe definition.
+After a successful conversion, the original row is removed and the ingredient
+rows are ordinary intakes. An interrupted conversion may export a non-null
+`conversionParentId`; import/startup recovery uses it to avoid double-counting.
 
 #### Micronutrient units on Open Food Facts rows
 
@@ -264,6 +273,8 @@ Header lookup is case-insensitive.
 | `vitamin_b12_per_100g`          | number | no       | µg.                                            |
 | `niacin_per_100g`               | number | no       | mg (B3).                                       |
 | `meal_data_version`             | number | no       | See [Micronutrient units](#micronutrient-units-on-open-food-facts-rows). |
+| `recipe_snapshot_json`          | string | no       | Quoted JSON object with the logged recipe's ingredients and yield; empty on old/non-recipe entries. |
+| `conversion_parent_id`          | string | no       | Transient conversion link for interrupted writes. |
 
 ### `user_activity.csv`
 
