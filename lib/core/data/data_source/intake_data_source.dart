@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/visible_intakes.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
@@ -14,6 +15,8 @@ class IntakeDataSource {
   IntakeDataSource(this._db);
 
   Box<IntakeDBO> get _intakeBox => _db.intakeBox;
+
+  Iterable<IntakeDBO> get _visibleIntakes => visibleIntakes(_intakeBox.values);
 
   Future<void> addIntake(IntakeDBO intakeDBO) async {
     log.fine('Adding new intake item to db');
@@ -54,13 +57,11 @@ class IntakeDataSource {
   }
 
   Future<IntakeDBO?> getIntakeById(String intakeId) async {
-    return _intakeBox.values.firstWhereOrNull(
-      (intake) => intake.id == intakeId,
-    );
+    return _visibleIntakes.firstWhereOrNull((intake) => intake.id == intakeId);
   }
 
   Future<List<IntakeDBO>> getAllIntakes() async {
-    return _intakeBox.values.toList();
+    return _visibleIntakes.toList();
   }
 
   /// Intakes of [intakeType] filed under the calendar day [day].
@@ -82,7 +83,7 @@ class IntakeDataSource {
       dayStartOffsetHours,
       dayStartOffsetMinutes,
     );
-    return _intakeBox.values
+    return _visibleIntakes
         .where(
           (intake) =>
               DayBoundaryCalc.isMomentInLogicalDayMinutes(
@@ -96,7 +97,7 @@ class IntakeDataSource {
   }
 
   Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 100000}) async {
-    final intakeList = _intakeBox.values.toList();
+    final intakeList = _visibleIntakes.toList();
 
     //  sort list by date (newest first) and filter unique intake
     intakeList.sort((a, b) => (-1) * a.dateTime.compareTo(b.dateTime));
@@ -116,7 +117,9 @@ class IntakeDataSource {
   }
 
   Future<List<IntakeDBO>> getCustomMealIntakes() async {
-    return _intakeBox.values.where((dbo) => dbo.meal.source == MealSourceDBO.custom).toList();
+    return _visibleIntakes
+        .where((dbo) => dbo.meal.source == MealSourceDBO.custom)
+        .toList();
   }
 
   /// Replace the denormalised [MealDBO] snapshot on every intake whose
@@ -145,6 +148,8 @@ class IntakeDataSource {
         type: dbo.type,
         meal: toMeal,
         dateTime: dbo.dateTime,
+        recipeSnapshot: dbo.recipeSnapshot,
+        conversionParentId: dbo.conversionParentId,
       );
       await _intakeBox.put(entry.key, updated);
       rewrites.add((dbo, updated));

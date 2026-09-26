@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
@@ -32,6 +33,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final GetTrackedDayUsecase _getTrackedDayUsecase;
   final ProductsRepository _productsRepository;
   final RemoteSearchCacheDataSource _remoteSearchCacheDataSource;
+  final RecipeRepository? _recipeRepository;
 
   MealDetailBloc(
     this._addIntakeUseCase,
@@ -40,13 +42,15 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._getMacroGoalUsecase,
     this._getTrackedDayUsecase,
     this._productsRepository,
-    this._remoteSearchCacheDataSource,
-  ) : super(
-          MealDetailInitial(
-            totalQuantityConverted: '100',
-            selectedUnit: UnitDropdownItem.gml.toString(),
-          ),
-        ) {
+    this._remoteSearchCacheDataSource, {
+    RecipeRepository? recipeRepository,
+  }) : _recipeRepository = recipeRepository,
+       super(
+         MealDetailInitial(
+           totalQuantityConverted: '100',
+           selectedUnit: UnitDropdownItem.gml.toString(),
+         ),
+       ) {
     on<UpdateKcalEvent>((event, emit) async {
       try {
         final selectedTotalQuantity =
@@ -158,8 +162,9 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     String amountText,
     IntakeTypeEntity type,
     MealEntity meal,
-    DateTime day,
-  ) async {
+    DateTime day, {
+    IntakeEntity? copiedFrom,
+  }) async {
     final quantity = double.parse(amountText.replaceAll(',', '.'));
 
     final intakeEntity = IntakeEntity(
@@ -169,6 +174,11 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       type: type,
       meal: meal,
       dateTime: day,
+      recipeSnapshot: meal.source == MealSourceEntity.recipe
+          ? copiedFrom != null
+                ? copiedFrom.recipeSnapshot
+                : _recipeRepository?.getRecipeById(meal.code ?? '')
+          : null,
     );
     // Write the intake immediately so the Home/Diary refresh that
     // follows on the caller side picks it up. The cache refresh happens

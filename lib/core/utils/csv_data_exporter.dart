@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/utils/csv_row_parser.dart';
 
@@ -66,11 +69,16 @@ class CsvDataExporter {
     'vitamin_b6_per_100g',
     'vitamin_b12_per_100g',
     'niacin_per_100g',
-    // Appended last so an older CSV still parses. Mirrors
-    // `MealDBO.dataVersion`: a row with `meal_source` of `off` and no value
+    // Appended after the original nutrient columns; older CSVs still parse.
+    // Mirrors `MealDBO.dataVersion`: a row with `meal_source` of `off`
+    // and no value
     // here was written before #775 and holds its micronutrients in raw
     // grams, which the importer scales into app units (#1152).
     'meal_data_version',
+    // Optional on legacy entries. JSON in one quoted cell keeps the full
+    // ingredient snapshot, including micronutrients and precise amounts.
+    'recipe_snapshot_json',
+    'conversion_parent_id',
   ];
 
   static const userActivityColumns = <String>[
@@ -155,6 +163,12 @@ class CsvDataExporter {
         _num(n.vitaminB12100),
         _num(n.niacin100),
         _num(meal.dataVersion?.toDouble()),
+        _cell(
+          intake.recipeSnapshot == null
+              ? null
+              : jsonEncode(intake.recipeSnapshot!.toJson()),
+        ),
+        _cell(intake.conversionParentId),
       ];
       buf.writeln(cells.join(','));
     }
@@ -281,6 +295,13 @@ class CsvDataExporter {
           type: _parseIntakeType(row['type']),
           meal: meal,
           dateTime: DateTime.parse(row['date_time'] ?? ''),
+          recipeSnapshot: _nullable(row['recipe_snapshot_json']) == null
+              ? null
+              : RecipeDBO.fromJson(
+                  jsonDecode(row['recipe_snapshot_json']!)
+                      as Map<String, dynamic>,
+                ),
+          conversionParentId: _nullable(row['conversion_parent_id']),
         ),
       );
     }

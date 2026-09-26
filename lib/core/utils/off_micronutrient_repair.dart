@@ -125,6 +125,10 @@ class OffMicronutrientRepair {
       type: intake.type,
       meal: meal,
       dateTime: intake.dateTime,
+      recipeSnapshot: intake.recipeSnapshot == null
+          ? null
+          : repairRecipe(intake.recipeSnapshot!),
+      conversionParentId: intake.conversionParentId,
     );
   }
 

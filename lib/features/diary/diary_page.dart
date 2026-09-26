@@ -249,6 +249,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       finalType,
       intakeEntity.meal,
       DateTime.now(),
+      copiedFrom: intakeEntity,
     );
     _diaryBloc.updateHomePage();
   }

@@ -2,6 +2,7 @@ import 'package:hive_ce/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 
 part 'intake_dbo.g.dart';
@@ -24,6 +25,12 @@ class IntakeDBO extends HiveObject {
   @HiveField(5)
   DateTime dateTime;
 
+  @HiveField(6)
+  RecipeDBO? recipeSnapshot;
+
+  @HiveField(7)
+  String? conversionParentId;
+
   IntakeDBO({
     required this.id,
     required this.unit,
@@ -31,6 +38,8 @@ class IntakeDBO extends HiveObject {
     required this.type,
     required this.meal,
     required this.dateTime,
+    this.recipeSnapshot,
+    this.conversionParentId,
   });
 
   factory IntakeDBO.fromIntakeEntity(IntakeEntity entity) {
@@ -41,6 +50,8 @@ class IntakeDBO extends HiveObject {
       type: IntakeTypeDBO.fromIntakeTypeEntity(entity.type),
       meal: MealDBO.fromMealEntity(entity.meal),
       dateTime: entity.dateTime,
+      recipeSnapshot: entity.recipeSnapshot?.toDBO(),
+      conversionParentId: entity.conversionParentId,
     );
   }
 

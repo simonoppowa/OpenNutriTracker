@@ -46,6 +46,7 @@ import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/explode_recipe_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_all_recipes_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templates_usecase.dart';
@@ -322,6 +323,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      recipeRepository: locator(),
     ),
   );
   locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
@@ -413,6 +415,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<DeleteIntakeUsecase>(
     () => DeleteIntakeUsecase(locator()),
+  );
+  locator.registerLazySingleton<ExplodeRecipeIntakeUsecase>(
+    () => ExplodeRecipeIntakeUsecase(hiveDBProvider, locator()),
   );
   locator.registerLazySingleton<UpdateIntakeUsecase>(
     () => UpdateIntakeUsecase(locator()),
@@ -631,6 +636,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<HealthService>(() => healthService);
 
   await ensureConfigInitialized(locator());
+  await locator<ExplodeRecipeIntakeUsecase>().recover();
   // Before any screen reads the intake log: brings Open Food Facts rows a
   // released build wrote in raw grams into the app's units (#1152).
   await ensureOffMicronutrientsRepaired(hiveDBProvider);

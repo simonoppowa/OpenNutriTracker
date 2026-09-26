@@ -250,11 +250,10 @@ class SharedMealPayload {
   ///   - off + code      → offRef (barcode-only; receiver fetches + caches)
   ///   - fdc             → SharedMealItem with source='fdc' (snapshot;
   ///                       receiver caches in RemoteSearchCacheDataSource)
-  ///   - recipe + code   → recipes bucket (full embedded recipe via
-  ///                       [recipeRepository] lookup; receiver saves to
-  ///                       RecipeRepository). Falls back to a custom
-  ///                       SharedMealItem when the repository or recipe
-  ///                       isn't found.
+  ///   - recipe + code   → recipes bucket (the logged ingredient snapshot
+  ///                       when present, otherwise a legacy lookup via
+  ///                       [recipeRepository]). Falls back to a custom
+  ///                       SharedMealItem when neither recipe is found.
   ///   - custom / other  → SharedMealItem with source='custom' (saved to
   ///                       CustomMealDataSource on receive)
   factory SharedMealPayload.fromIntakeList(
@@ -270,9 +269,10 @@ class SharedMealPayload {
       if (meal.source == MealSourceEntity.off && meal.code != null) {
         offRefs.add(SharedMealOffRef.fromIntakeEntity(intake));
       } else if (meal.source == MealSourceEntity.recipe &&
-          meal.code != null &&
-          recipeRepository != null) {
-        final recipe = recipeRepository.getRecipeById(meal.code!);
+          (intake.recipeSnapshot != null ||
+              (meal.code != null && recipeRepository != null))) {
+        final recipe = intake.recipeSnapshot ??
+            recipeRepository!.getRecipeById(meal.code!);
         if (recipe != null) {
           recipes.add(SharedMealRecipeItem(
             recipe: SharedRecipePayload.fromRecipe(recipe),

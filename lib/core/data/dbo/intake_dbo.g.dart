@@ -23,13 +23,15 @@ class IntakeDBOAdapter extends TypeAdapter<IntakeDBO> {
       type: fields[3] as IntakeTypeDBO,
       meal: fields[4] as MealDBO,
       dateTime: fields[5] as DateTime,
+      recipeSnapshot: fields[6] as RecipeDBO?,
+      conversionParentId: fields[7] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, IntakeDBO obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +43,11 @@ class IntakeDBOAdapter extends TypeAdapter<IntakeDBO> {
       ..writeByte(4)
       ..write(obj.meal)
       ..writeByte(5)
-      ..write(obj.dateTime);
+      ..write(obj.dateTime)
+      ..writeByte(6)
+      ..write(obj.recipeSnapshot)
+      ..writeByte(7)
+      ..write(obj.conversionParentId);
   }
 
   @override
@@ -66,6 +72,10 @@ IntakeDBO _$IntakeDBOFromJson(Map<String, dynamic> json) => IntakeDBO(
   type: $enumDecode(_$IntakeTypeDBOEnumMap, json['type']),
   meal: MealDBO.fromJson(json['meal'] as Map<String, dynamic>),
   dateTime: DateTime.parse(json['dateTime'] as String),
+  recipeSnapshot: json['recipeSnapshot'] == null
+      ? null
+      : RecipeDBO.fromJson(json['recipeSnapshot'] as Map<String, dynamic>),
+  conversionParentId: json['conversionParentId'] as String?,
 );
 
 Map<String, dynamic> _$IntakeDBOToJson(IntakeDBO instance) => <String, dynamic>{
@@ -75,6 +85,8 @@ Map<String, dynamic> _$IntakeDBOToJson(IntakeDBO instance) => <String, dynamic>{
   'type': _$IntakeTypeDBOEnumMap[instance.type]!,
   'meal': instance.meal,
   'dateTime': instance.dateTime.toIso8601String(),
+  'recipeSnapshot': instance.recipeSnapshot,
+  'conversionParentId': instance.conversionParentId,
 };
 
 const _$IntakeTypeDBOEnumMap = {

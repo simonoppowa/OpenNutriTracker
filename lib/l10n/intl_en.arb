@@ -1,4 +1,10 @@
 {
+  "explodeRecipeLabel": "Explode",
+  "explodeRecipeConfirmTitle": "Explode recipe?",
+  "explodeRecipeOneWayHint": "This replaces the recipe row with editable ingredients and cannot be undone.",
+  "explodeRecipeOldEntryMessage": "This older entry has no saved ingredients. Log the recipe again to use Explode.",
+  "explodeRecipeSuccessMessage": "Recipe replaced with ingredients.",
+  "explodeRecipeFailedMessage": "Could not finish exploding the recipe. Reload the diary to check the result.",
   "@PHYSICAL_ACTIVITIES": {},
   "@clearOffCacheSubtitle": {
     "placeholders": {

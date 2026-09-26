@@ -1,6 +1,7 @@
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/visible_intakes.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
@@ -47,7 +48,9 @@ Future<int> ensureTrackedDayTotalsFinite(
     config.dayStartOffsetHours,
     config.dayStartOffsetMinutes,
   );
-  final intakes = db.intakeBox.values.map(IntakeEntity.fromIntakeDBO).toList();
+  final intakes = visibleIntakes(db.intakeBox.values)
+      .map(IntakeEntity.fromIntakeDBO)
+      .toList();
 
   double finiteOrZero(double value) => value.isFinite ? value : 0;
 

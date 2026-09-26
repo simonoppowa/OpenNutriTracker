@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/explode_recipe_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
@@ -27,6 +28,10 @@ class SwitchProfileUsecase {
     await _hiveDBProvider.switchProfile(profile.id, profile.boxSuffix);
     await _secureAppStorageProvider.setActiveProfileId(profile.id);
     await ensureConfigInitialized(_configDataSource);
+    await ExplodeRecipeIntakeUsecase(
+      _hiveDBProvider,
+      _configDataSource,
+    ).recover();
     // The target's intake log has not been opened since the upgrade if this
     // profile was never active on the new build; repair it before the tab
     // BLoCs reload against it (#1152).
