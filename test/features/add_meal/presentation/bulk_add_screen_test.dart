@@ -16,6 +16,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -64,7 +65,9 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
     String amountText,
     IntakeTypeEntity intakeTypeEntity,
     MealEntity meal,
-    DateTime day,
+    DateTime day, {
+    IntakeEntity? copiedFrom,
+  }
   ) async {
     if (failOnSecondWrite && writes.length == 1) {
       throw StateError('write failed');
