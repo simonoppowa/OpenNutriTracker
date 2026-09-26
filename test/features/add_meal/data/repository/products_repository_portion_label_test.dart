@@ -5,6 +5,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_word_response_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 
 SpFoodDTO _food(
   int id,
@@ -34,14 +35,24 @@ class _FakeSp extends SpFoodDataSource {
   List<int>? askedFor;
 
   @override
-  Future<List<SpFoodDTO>> fetchSearchWordResults(String searchString) async =>
-      foods;
+  Future<List<SpFoodDTO>> fetchSearchWordResults(
+    String searchString, {
+    bool forResolution = false,
+  }) async => foods;
 
   @override
   Future<Map<int, String>> fetchPortionLabels(List<int> foodIds) async {
     askedFor = foodIds;
     return labels;
   }
+
+  // The backend answered and had no portions: the label tests are about
+  // labels, and this keeps them off the failed-lookup path (null), which
+  // `products_repository_portions_unavailable_test` covers.
+  @override
+  Future<Map<int, List<MealPortionEntity>>?> fetchPortions(
+    List<int> foodIds,
+  ) async => const {};
 }
 
 class _FakeOff extends OFFDataSource {

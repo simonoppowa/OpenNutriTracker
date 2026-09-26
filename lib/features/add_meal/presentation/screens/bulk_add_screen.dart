@@ -21,6 +21,7 @@ import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart'
 import 'package:opennutritracker/features/add_meal/util/portion_label.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/own_server_wait_indicator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -189,6 +190,28 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     return (provider: provider, name: host);
   }
 
+  /// Whether a read from this screen waits on a server the user runs.
+  ///
+  /// Decides which loading state is drawn. The bloc cannot say: it hands the
+  /// line to `ReadMealTextUseCase`, which reads the selection itself and
+  /// never reports which provider it chose — and the loading state is
+  /// emitted *before* that read, deliberately, so a screen that does nothing
+  /// for two seconds does not read as broken. Asked of the keystore here
+  /// instead, in the same way and for the same reasons as the answers above:
+  /// once, and again after Settings, which is the only place it can change.
+  ///
+  /// `enabled` and not only the provider, because a paused feature takes the
+  /// parser path and answers at once — a two-minute wait drawn for that
+  /// would describe a request never sent. Hosted providers keep the bare
+  /// spinner; they answer in seconds and the sentence about a model loading
+  /// would be noise there (#1148).
+  late Future<bool> _waitsOnOwnServer = _resolveWaitsOnOwnServer();
+
+  Future<bool> _resolveWaitsOnOwnServer() async {
+    final summary = await locator<AiCredentialStorage>().readSummary();
+    return summary.enabled && summary.provider == AiProvider.ownServer;
+  }
+
   late BulkAddScreenArguments _args;
   bool _submitting = false;
 
@@ -219,6 +242,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       _photoDestination = _resolvePhotoDestination();
       _photoAvailable = _resolvePhotoAvailable();
       _modelUnknown = _resolveModelUnknown();
+      _waitsOnOwnServer = _resolveWaitsOnOwnServer();
     });
   }
 
@@ -468,7 +492,22 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   Widget _buildBody(BuildContext context, BulkAddState state) {
     if (state is BulkAddLoadingState) {
-      return const Center(child: CircularProgressIndicator());
+      return FutureBuilder<bool>(
+        future: _waitsOnOwnServer,
+        // The bare spinner until the keystore answers, and for good on the
+        // hosted three: they answer in seconds, and #1148 keys the richer
+        // state on the one provider whose wait is legitimately long.
+        //
+        // Keyed by attempt so a Search tapped mid-wait starts the count
+        // again for the request now in flight, rather than carrying on
+        // from the one it replaced.
+        builder: (context, snapshot) => snapshot.data == true
+            ? OwnServerWaitIndicator(
+                key: ValueKey(state.attempt),
+                onCancel: () => _bloc.add(const CancelBulkReadEvent()),
+              )
+            : const Center(child: CircularProgressIndicator()),
+      );
     }
     if (state is BulkAddErrorState) {
       return _centeredMessage(context, S.of(context).bulkAddSearchFailedLabel);

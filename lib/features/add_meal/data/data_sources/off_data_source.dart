@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/app_locale.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/ont_http_client.dart';
 import 'package:opennutritracker/core/utils/retry_util.dart';
@@ -42,11 +42,11 @@ class OFFDataSource {
   })  : _clientFactory = clientFactory ?? http.Client.new,
         _now = now ?? DateTime.now;
 
-  /// The device language as a Search-a-licious relevance context, always with
+  /// The app's language as a Search-a-licious relevance context, always with
   /// English appended as a fallback so non-English locales still match the
   /// large English-only slice of the catalogue.
   String _searchLangs() {
-    final lang = SupportedLanguage.fromCode(Platform.localeName).name;
+    final lang = SupportedLanguage.fromCode(AppLocale.localeName).name;
     return lang == 'en' ? 'en' : '$lang,en';
   }
 

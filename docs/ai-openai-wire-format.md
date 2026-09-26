@@ -24,7 +24,7 @@ Completions to avoid a parameter you have to send anyway costs the tool-calling
 combination this feature needs.
 
 **But the port is larger than the map assumed.** The map's note that
-`OpenRouterMealItemsApi` is *"the OpenAI-compatible shape"* is true of **Chat
+`OpenAiCompatibleMealItemsApi` is *"the OpenAI-compatible shape"* is true of **Chat
 Completions**, which is not the API to build on. Against Responses, the
 existing client agrees on almost nothing at the wire level: not the endpoint,
 not the message array, not the tool wrapper, not the token field, not the
@@ -51,9 +51,11 @@ Three findings the existing code has backwards, each documented below:
 
 The strict-mode answer is in [Section F](#f-strict-mode). Short version: the
 nullable union **is** the sanctioned way to express an optional field, the
-documentation says so in as many words, and the objection recorded in
-`openrouter_meal_items_api.dart` — that `required` would oblige the model to
-produce a number for every item — does not survive it. That is for
+documentation says so in as many words, and the objection the generic client
+recorded at the time — that `required` would oblige the model to produce a
+number for every item — does not survive it. (It no longer records it:
+[#701](https://github.com/simonoppowa/OpenNutriTracker/pull/701) rewrote that
+comment after this note.) That is for
 [#683](https://github.com/simonoppowa/OpenNutriTracker/issues/683) to decide,
 not this note.
 
@@ -95,11 +97,11 @@ lists what it has to settle.
 ## What differs from the existing OpenRouter client
 
 Read against
-[`openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)
+[`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)
 line by line. "Same" means the byte-level shape is identical and the code
 transfers unchanged.
 
-| What | `OpenRouterMealItemsApi` sends today | Direct OpenAI, Responses API | Same? |
+| What | `OpenAiCompatibleMealItemsApi` sends today | Direct OpenAI, Responses API | Same? |
 | --- | --- | --- | --- |
 | Endpoint | `openrouter.ai/api/v1/chat/completions` | `api.openai.com/v1/responses` | no |
 | Auth header | `authorization: Bearer …` | `Authorization: Bearer …` | **yes** |
@@ -210,7 +212,7 @@ Markdown twin strips, leaving the columns blank — so **it is not usable as
 evidence** and is not cited here.
 
 **The one honest argument from familiarity** is that Chat Completions is what
-the app already speaks, so `OpenRouterMealItemsApi` could be subclassed or
+the app already speaks, so `OpenAiCompatibleMealItemsApi` could be subclassed or
 parameterised. The divergence table is the answer: against Responses the
 overlap is three items, and against Chat Completions the overlap would be real
 but bought by building the app's newest client on the surface OpenAI tells you
@@ -641,7 +643,7 @@ Structured outputs guide, under *All fields must be `required`*:
 > To use Structured Outputs, all fields or function parameters must be
 > specified as `required`.
 
-So the 400 recorded in `openrouter_meal_items_api.dart` — *"'required' is
+So the 400 recorded in `openai_compatible_meal_items_api.dart` — *"'required' is
 required to be supplied and to be an array including every key in properties.
 Missing 'quantity'."* — was OpenAI's documented behaviour working as designed,
 not a broker quirk. And the failure mode is documented: *"If you send `strict:
@@ -666,14 +668,24 @@ Both guides carry a worked example doing exactly this: `"units": {"type":
 ["string", "null"], "enum": ["celsius", "fahrenheit"]}` with `"required":
 ["location", "units"]`.
 
-**This is the finding that reopens the schema question.** The comment in
-`openrouter_meal_items_api.dart` reasons that *"making them required would
-oblige the model to produce a number for every item, which is the estimation
-this whole design exists to prevent"* — and against a plain `required` that is
-correct. Against `required` plus `["number", "null"]` it is not: the model is
-obliged to emit the *key*, and `null` is a conforming value for it. The
-parenthesis *"and the model will return a value for each parameter"* is the
-only behavioural consequence, and the value can be `null`.
+**This is the finding that reopens the schema question.** The comment in the
+generic client [reasoned, when this note was
+written](https://github.com/simonoppowa/OpenNutriTracker/blob/7481bff76d020f14f5c13d3a1957a57a25f441e3/lib/features/add_meal/data/openrouter_meal_items_api.dart#L86-L90),
+that *"making them required would oblige the model to produce a number for
+every item, which is the estimation this whole design exists to prevent"* — and
+against a plain `required` that is correct. Against `required` plus `["number",
+"null"]` it is not: the model is obliged to emit the *key*, and `null` is a
+conforming value for it. The parenthesis *"and the model will return a value
+for each parameter"* is the only behavioural consequence, and the value can be
+`null`.
+
+That comment no longer says this.
+[#701](https://github.com/simonoppowa/OpenNutriTracker/pull/701) acted on this
+reading: `openai_compatible_meal_items_api.dart:194-212` now records the
+estimation argument as the *former* rationale, states that a nullable union
+invalidates it, and gives the reason the decision actually rests on — strict
+buys this design nothing, because enforcement is in Dart. Quote the historical
+revision linked above, not the current file, for the claim in this paragraph.
 
 The downstream effect on this app is small.
 [`_mealItemFrom`](../lib/features/add_meal/domain/meal_items_api.dart) already
@@ -900,7 +912,7 @@ Related notes in this repo:
 [`ai-open-research-questions.md`](ai-open-research-questions.md)
 
 In-repo files cited:
-[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart) ·
+[`lib/features/add_meal/data/openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart) ·
 [`lib/features/add_meal/data/anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart) ·
 [`lib/features/add_meal/domain/meal_items_api.dart`](../lib/features/add_meal/domain/meal_items_api.dart) ·
 [`lib/features/add_meal/domain/meal_interpreter_exception.dart`](../lib/features/add_meal/domain/meal_interpreter_exception.dart)

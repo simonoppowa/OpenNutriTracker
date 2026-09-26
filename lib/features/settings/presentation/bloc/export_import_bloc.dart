@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logging/logging.dart';
+import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
@@ -23,6 +25,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   // #70 follow-up: saved Custom activity templates (name + typical kcal).
   static const customActivityTemplateJsonFileName =
       'custom_activity_templates.json';
+
+  static final _log = Logger('ExportImportBloc');
 
   final ExportDataUsecase _exportDataUsecase;
   final ImportDataUsecase _importDataUsecase;
@@ -63,8 +67,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         } else {
           emit(ExportImportInitial());
         }
-      } catch (e) {
-        emit(ExportImportError());
+      } catch (e, stackTrace) {
+        emit(_failed('Export (${event.format.name})', e, stackTrace));
       }
     });
 
@@ -87,8 +91,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         } else {
           emit(ExportImportInitial());
         }
-      } catch (e) {
-        emit(ExportImportError());
+      } catch (e, stackTrace) {
+        emit(_failed('Import (${event.format.name})', e, stackTrace));
       }
     });
 
@@ -106,7 +110,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
             anyHadBarcode: result.anyImportedHadBarcode,
           ));
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        _log.severe('Import meals CSV failed', e, stackTrace);
         emit(CsvImportErrorState(e.toString()));
       }
     });
@@ -123,7 +128,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
             skipped: result.skippedRows,
           ));
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        _log.severe('Import recipes CSV failed', e, stackTrace);
         emit(CsvImportErrorState(e.toString()));
       }
     });
@@ -133,8 +139,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         emit(ExportImportLoadingState());
         final saved = await _downloadSampleCsvUsecase.downloadSample();
         emit(saved ? ExportImportSuccess() : ExportImportInitial());
-      } catch (e) {
-        emit(ExportImportError());
+      } catch (e, stackTrace) {
+        emit(_failed('Download meals CSV sample', e, stackTrace));
       }
     });
 
@@ -144,8 +150,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         final saved =
             await _downloadSampleCsvUsecase.downloadRecipeSample();
         emit(saved ? ExportImportSuccess() : ExportImportInitial());
-      } catch (e) {
-        emit(ExportImportError());
+      } catch (e, stackTrace) {
+        emit(_failed('Download recipes CSV sample', e, stackTrace));
       }
     });
 
@@ -154,8 +160,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         emit(ExportImportLoadingState());
         final saved = await _downloadSampleJsonUsecase.downloadSample();
         emit(saved ? ExportImportSuccess() : ExportImportInitial());
-      } catch (e) {
-        emit(ExportImportError());
+      } catch (e, stackTrace) {
+        emit(_failed('Download meals JSON sample', e, stackTrace));
       }
     });
 
@@ -175,7 +181,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
             errorMessages: result.errorMessages,
           ));
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        _log.severe('Import meals JSON failed', e, stackTrace);
         emit(JsonImportErrorState([e.toString()]));
       }
     });
@@ -195,7 +202,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
             errorMessages: result.errorMessages,
           ));
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        _log.severe('Import recipes JSON failed', e, stackTrace);
         emit(RecipeJsonImportErrorState([e.toString()]));
       }
     });
@@ -208,13 +216,41 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
         final saved =
             await _downloadSampleJsonUsecase.downloadRecipeSample();
         emit(saved ? ExportImportSuccess() : ExportImportInitial());
-      } catch (e) {
-        emit(ExportImportError());
+      } catch (e, stackTrace) {
+        emit(_failed('Download recipes JSON sample', e, stackTrace));
       }
     });
 
     on<ResetExportImportStateEvent>((event, emit) {
       emit(ExportImportInitial());
     });
+  }
+
+  /// The state to emit when [operation] threw [error].
+  ///
+  /// Every failure is logged with its stack trace — before #1103 these
+  /// catch sites bound `e` and never read it, which left a bug report
+  /// with nothing but "it says error". A dismissed picker is not a
+  /// failure: it goes back to [ExportImportInitial], so the dialog shows
+  /// its description again instead of an error row.
+  ExportImportState _failed(
+    String operation,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    if (error is ExportImportFailure) {
+      if (error.reason == ExportImportFailureReason.cancelled) {
+        _log.fine('$operation cancelled by the user');
+        return ExportImportInitial();
+      }
+      _log.severe(
+        '$operation failed (${error.reason.name})',
+        error,
+        stackTrace,
+      );
+      return ExportImportError(error.reason);
+    }
+    _log.severe('$operation failed (unexpected)', error, stackTrace);
+    return const ExportImportError(ExportImportFailureReason.unexpected);
   }
 }

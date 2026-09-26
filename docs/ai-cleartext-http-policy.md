@@ -123,7 +123,7 @@ Confirmed by reading, not by assumption:
 - The AI clients
   ([`anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart),
   [`openai_meal_items_api.dart`](../lib/features/add_meal/data/openai_meal_items_api.dart),
-  [`openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart))
+  [`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart))
   all import `package:http/http.dart`. [`pubspec.yaml`](../pubspec.yaml) pins
   `http: ^1.6.0`. There is no `cupertino_http`, no `cronet_http`, and no `dio`.
 - [`README.md`](../README.md) publishes a **"What leaves your device"** table

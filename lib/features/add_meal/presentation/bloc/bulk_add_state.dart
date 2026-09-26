@@ -11,8 +11,21 @@ class BulkAddInitial extends BulkAddState {
   const BulkAddInitial();
 }
 
+/// A read is in flight: the model, the food search, or both.
+///
+/// [attempt] tells one wait from the next. Two loading states used to be
+/// equal, so a second Search tapped mid-wait never reached the screen — and
+/// the elapsed counter drawn for a server the user runs (#1148) kept counting
+/// from the first tap, describing a request that was no longer the one in
+/// flight. It is also what [CancelBulkReadEvent] orphans: a result landing
+/// for an attempt that is no longer current is dropped rather than shown.
 class BulkAddLoadingState extends BulkAddState {
-  const BulkAddLoadingState();
+  final int attempt;
+
+  const BulkAddLoadingState({this.attempt = 0});
+
+  @override
+  List<Object?> get props => [attempt];
 }
 
 /// Resolution itself failed. Distinct from "resolved but matched nothing",

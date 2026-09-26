@@ -22,7 +22,7 @@ question the docs simply do not address.
 Written to answer [#733](https://github.com/simonoppowa/OpenNutriTracker/issues/733)
 on map [#732](https://github.com/simonoppowa/OpenNutriTracker/issues/732). The
 thing being matched against is the request
-[`OpenRouterMealItemsApi`](../lib/features/add_meal/data/openrouter_meal_items_api.dart)
+[`OpenAiCompatibleMealItemsApi`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart)
 already puts on the wire, and the schema in
 [`meal_items_api.dart`](../lib/features/add_meal/domain/meal_items_api.dart) —
 `query` required, `quantity` and `unit` optional, `additionalProperties: false`,
@@ -169,7 +169,7 @@ no `strict` field.
 ## A. What the existing client sends, field by field
 
 Read against
-[`openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart).
+[`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart).
 "Survives" means the exact bytes it already builds are accepted and mean the
 same thing.
 
@@ -593,7 +593,7 @@ image, the arguments-as-a-string decode — is byte-identical across all four
 runtimes and across OpenRouter.
 
 That is the opposite of the situation that made `AnthropicMealItemsApi` and
-`OpenRouterMealItemsApi` two classes. The reason recorded there is that the two
+`OpenAiCompatibleMealItemsApi` two classes. The reason recorded there is that the two
 *"agree on nothing"* about shape: a different tool wrapper, a different image
 carrier, a reversed part order, a different arguments type, a different failure
 envelope. Here the shape is the same and only the *policy* differs. Five
@@ -722,7 +722,7 @@ Related notes in this repo:
 [`ai-open-research-questions.md`](ai-open-research-questions.md)
 
 In-repo files cited:
-[`lib/features/add_meal/data/openrouter_meal_items_api.dart`](../lib/features/add_meal/data/openrouter_meal_items_api.dart) ·
+[`lib/features/add_meal/data/openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart) ·
 [`lib/features/add_meal/domain/meal_items_api.dart`](../lib/features/add_meal/domain/meal_items_api.dart) ·
 [`lib/features/add_meal/util/meal_photo_encoder.dart`](../lib/features/add_meal/util/meal_photo_encoder.dart) ·
 [`lib/features/add_meal/data/anthropic_meal_items_api.dart`](../lib/features/add_meal/data/anthropic_meal_items_api.dart)

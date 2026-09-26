@@ -43,6 +43,9 @@ class ProductsRepository {
     // re-rank by fusing relevance position with OFF's popularity_key so
     // popular, well-maintained products surface first — without letting
     // popularity drag in off-topic matches the way a hard popularity sort does.
+    // The country boost follows the device on purpose, not the language
+    // picked in the app: a German speaker in Austria wants Austrian
+    // products ranked up. Food-name language is AppLocale's job (#1214).
     final userCountryTag = OffCountry.fromLocale(Platform.localeName);
     final candidates = <_RankedOffProduct>[];
     for (var i = 0; i < offWordResponse.products.length; i++) {
@@ -97,11 +100,17 @@ class ProductsRepository {
     return ranked.take(_searchResultLimit).map((p) => p.meal).toList();
   }
 
+  /// [forResolution]: the page is the resolver's, and the data source's
+  /// cut reads each row's `has_portion` column; false — the Food tab's
+  /// search — and it does not. `SpFoodDataSource.fetchSearchWordResults`
+  /// says why the two are cut differently (#1164, #1190).
   Future<List<MealEntity>> getSupabaseFoodsByString(
-    String searchString,
-  ) async {
+    String searchString, {
+    bool forResolution = false,
+  }) async {
     final spWordResponse = await _spBackendDataSource.fetchSearchWordResults(
       searchString,
+      forResolution: forResolution,
     );
     final products = spWordResponse
         .map((foodItem) => MealEntity.fromSpFood(foodItem))
@@ -125,7 +134,6 @@ class ProductsRepository {
       _spBackendDataSource.fetchPortionLabels(ids),
       _spBackendDataSource.fetchPortions(ids),
     ).wait;
-    if (labels.isEmpty && portions.isEmpty) return products;
 
     return [
       for (final meal in products)
@@ -138,16 +146,25 @@ class ProductsRepository {
   /// Either can be absent independently — a food may have a verified default
   /// label and only one portion, or several portions and no translation — so
   /// they are applied separately rather than as a pair.
+  ///
+  /// [portions] is null when the lookup could not be made at all, and then
+  /// the meal is marked rather than left bare: bare is what a food the
+  /// backend has no portion for looks like, and the resolver penalises that
+  /// (`MealEntity.portionsUnavailable` says why the two must not be
+  /// confused). A food missing from a map the backend did answer is that
+  /// confirmed case, and stays bare.
   MealEntity _decorate(
     MealEntity meal,
     Map<int, String> labels,
-    Map<int, List<MealPortionEntity>> portions,
+    Map<int, List<MealPortionEntity>>? portions,
   ) {
     final id = int.tryParse(meal.code ?? '');
     if (id == null) return meal;
     var result = meal;
     if (labels[id] case final label?) result = result.withServingLabel(label);
-    if (portions[id] case final found? when found.isNotEmpty) {
+    if (portions == null) {
+      result = result.withPortionsUnavailable();
+    } else if (portions[id] case final found? when found.isNotEmpty) {
       result = result.withPortions(found);
     }
     return result;

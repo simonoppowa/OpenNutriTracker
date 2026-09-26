@@ -86,7 +86,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 | **Portable** | Export your diary, activities, tracked days, recipes, weight history and custom activity templates as JSON — or diary, activities and tracked days as CSV — re-import it, or share an entry by QR. The [export format](docs/export-format.md) documents the schema and what it leaves out. |
 | **Open** | Open Food Facts, USDA FoodData Central (CC0) and the German BLS (CC BY 4.0). The backend is its own open repository you can [self-host](docs/supabase-self-hosting.md). |
 | **Community driven** | Over 30 developers have already contributed code, and most merged pull requests come from someone other than the maintainer. Features and fixes arrive as user issues and PRs, across the app and its food backend, and every translation is contributed on [Weblate](https://hosted.weblate.org/engage/opennutritracker/), which needs no Dart and no local setup. |
-| **Inclusive** | Non-binary calorie estimation grounded in published trans-health research, nine languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
+| **Inclusive** | Non-binary calorie estimation grounded in published trans-health research, eleven languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
 
 ## Key features
 
@@ -201,13 +201,13 @@ The `SHA-256` line in the output should match the value above exactly.
 
 ## Translations
 
-OpenNutriTracker is translated on [Hosted Weblate](https://hosted.weblate.org/engage/opennutritracker/). Translating needs no local setup and no Dart. Pick a language, edit the strings in the browser, and Weblate syncs the result back to this repository.
+OpenNutriTracker is translated on [Hosted Weblate](https://hosted.weblate.org/engage/opennutritracker/). Translating needs no local setup and no Dart. Pick a language, edit the strings in the browser, and Weblate sends the result back to this repository as pull requests.
 
 <p align="center">
   <a href="https://hosted.weblate.org/engage/opennutritracker/"><img alt="Translation status per language" src="https://hosted.weblate.org/widget/opennutritracker/multi-auto.svg" /></a>
 </p>
 
-To start a language that isn't listed yet, request it from the [Weblate project page](https://hosted.weblate.org/projects/opennutritracker/). If you would rather work in the repository directly, the source strings live in [`lib/l10n/intl_en.arb`](lib/l10n/intl_en.arb). See [CONTRIBUTING.md](CONTRIBUTING.md) for the conventions.
+Any language can be started on the [Weblate project page](https://hosted.weblate.org/projects/opennutritracker/); it ships in the app once it is about 90 % translated. The source strings live in [`lib/l10n/intl_en.arb`](lib/l10n/intl_en.arb); see [CONTRIBUTING.md](CONTRIBUTING.md) for how strings and languages are added.
 
 ## What people say
 

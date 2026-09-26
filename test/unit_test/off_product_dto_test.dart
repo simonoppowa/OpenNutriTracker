@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_word_response_dto.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
 void main() {
   group('OFFProductDTO getLocaleName', () {
@@ -179,6 +180,79 @@ void main() {
       expect(product.getLocaleName(SupportedLanguage.cs),
           equals('Default name'));
     });
+    test('Case 13: Hungarian locale returns product_name_hu when present', () {
+      final product = _buildProduct(
+        product_name: 'Default Name - testValue',
+        product_name_en: 'English Name - testValue',
+        product_name_hu: 'Magyar név - testValue',
+      );
+
+      expect(
+        product.getLocaleName(SupportedLanguage.hu),
+        equals('Magyar név - testValue'),
+      );
+    });
+
+    test('Case 14: Hungarian locale falls through when the name is absent',
+        () {
+      final product = _buildProduct(
+        product_name: 'Default Name - testValue',
+        product_name_en: 'English Name - testValue',
+        product_name_hu: null,
+      );
+
+      expect(
+        product.getLocaleName(SupportedLanguage.hu),
+        equals('Default Name - testValue'),
+      );
+    });
+
+    test('Case 15: Spanish locale returns product_name_es when present', () {
+      final product = _buildProduct(
+        product_name: 'Default Name - testValue',
+        product_name_en: 'English Name - testValue',
+        product_name_es: 'Nombre español - testValue',
+      );
+
+      expect(
+        product.getLocaleName(SupportedLanguage.es),
+        equals('Nombre español - testValue'),
+      );
+    });
+
+    test('Case 16: Spanish locale falls through when the name is absent',
+        () {
+      final product = _buildProduct(
+        product_name: 'Default Name - testValue',
+        product_name_en: 'English Name - testValue',
+        product_name_es: null,
+      );
+
+      expect(
+        product.getLocaleName(SupportedLanguage.es),
+        equals('Default Name - testValue'),
+      );
+    });
+  });
+
+  group('SupportedLanguage.fromCode', () {
+    test('maps a Hungarian device locale, with or without a region', () {
+      expect(SupportedLanguage.fromCode('hu_HU'), SupportedLanguage.hu);
+      expect(SupportedLanguage.fromCode('hu'), SupportedLanguage.hu);
+    });
+
+    test('maps a Spanish device locale, with or without a region', () {
+      expect(SupportedLanguage.fromCode('es_ES'), SupportedLanguage.es);
+      expect(SupportedLanguage.fromCode('es_MX'), SupportedLanguage.es);
+      expect(SupportedLanguage.fromCode('es'), SupportedLanguage.es);
+    });
+
+    test('a language without a SupportedLanguage value falls back to English',
+        () {
+      // Swedish has an ARB but no food-name language yet; the default arm
+      // is what off_data_source and SPConst rely on for every such locale.
+      expect(SupportedLanguage.fromCode('sv_SE'), SupportedLanguage.en);
+    });
   });
 
   group('OFFProductDTO.fromJson brands coercion', () {
@@ -236,6 +310,55 @@ void main() {
       expect(response.page_count, 316);
     });
   });
+
+  // #1153: OFF's nutrient id for niacin is `vitamin-pp`, so the API emits
+  // `vitamin-pp_100g` and never `niacin_100g`. A missing `@JsonKey` here made
+  // every OFF product read niacin as null, silently dropping the value from
+  // the daily figure. Locking the mapping in so a future rename doesn't
+  // regress it back to nothing.
+  group('OFFProductNutrimentsDTO.fromJson niacin mapping', () {
+    test('reads niacin from vitamin-pp_100g', () {
+      final nutriments = OFFProductNutrimentsDTO.fromJson({
+        'vitamin-pp_100g': 12.5,
+      });
+
+      expect(nutriments.niacin_100g, 12.5);
+    });
+
+    test('leaves niacin null when vitamin-pp_100g is absent', () {
+      final nutriments = OFFProductNutrimentsDTO.fromJson(<String, dynamic>{});
+
+      expect(nutriments.niacin_100g, isNull);
+    });
+
+    test('does NOT read the historical, absent niacin_100g key', () {
+      final nutriments = OFFProductNutrimentsDTO.fromJson({
+        'niacin_100g': 99.9,
+      });
+
+      expect(nutriments.niacin_100g, isNull);
+    });
+
+    // Boundary crossing test #1153 asks for: parse a real vitamin-pp_100g
+    // value the way OFF's v2 API emits it and check that the domain entity
+    // reads niacin mg-scaled. `0.069` g / 100 g is Marmite (50184453) as
+    // the live API returns it today (`_unit: g`); the entity applies the
+    // OFF `_gToMg` (x1000) so the field lands at 69 mg / 100 g, which is
+    // what the Marmite label prints.
+    test(
+      'MealNutrimentsEntity.fromOffNutriments scales vitamin-pp_100g '
+      'to mg per 100 g',
+      () {
+        final nutriments = OFFProductNutrimentsDTO.fromJson({
+          'vitamin-pp_100g': 0.069,
+        });
+
+        final entity = MealNutrimentsEntity.fromOffNutriments(nutriments);
+
+        expect(entity.niacin100, closeTo(69.0, 1e-9));
+      },
+    );
+  });
 }
 
 OFFProductDTO _buildProduct({
@@ -247,6 +370,8 @@ OFFProductDTO _buildProduct({
   String? product_name_it,
   String? product_name_tr,
   String? product_name_uk,
+  String? product_name_hu,
+  String? product_name_es,
 }) {
   return OFFProductDTO(
     code: '123',
@@ -258,6 +383,8 @@ OFFProductDTO _buildProduct({
     product_name_it: product_name_it,
     product_name_tr: product_name_tr,
     product_name_uk: product_name_uk,
+    product_name_hu: product_name_hu,
+    product_name_es: product_name_es,
     brands: null,
     image_front_thumb_url: null,
     image_front_url: null,

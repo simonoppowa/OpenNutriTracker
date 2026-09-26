@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/l10n/shipped_locales.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
@@ -235,6 +236,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         : S.of(context).energyUnitKcalLabel,
                     onTap: () =>
                         _showEnergyUnitDialog(context, state.usesKilojoules),
+                  ),
+                  // #1126: opt out of the serving-first default so the
+                  // meal-detail dropdown lands on the food unit (g, oz,
+                  // ml, fl oz) straight away. Sits after Energy unit in
+                  // the Units & Energy group since it steers the same
+                  // meal-detail dropdown. Off preserves the pre-existing
+                  // behaviour — serving wins whenever the food has one.
+                  _SettingsSwitchTile(
+                    identifier: 'settings-default-raw-food-units',
+                    palette: palette,
+                    icon: Icons.straighten_rounded,
+                    title: S.of(context).settingsDefaultToRawFoodUnitsLabel,
+                    subtitle: S
+                        .of(context)
+                        .settingsDefaultToRawFoodUnitsSubtitle,
+                    value: state.defaultToRawFoodUnits,
+                    onChanged: (bool value) {
+                      _settingsBloc.setDefaultToRawFoodUnits(value);
+                      _settingsBloc.add(LoadSettingsEvent());
+                    },
                   ),
                 ],
               ),
@@ -1209,19 +1230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  static const _supportedLocales = <String, String>{
-    'en': 'English',
-    'de': 'Deutsch',
-    'tr': 'Türkçe',
-    'cs': 'Čeština',
-    'it': 'Italiano',
-    'uk': 'Українська',
-    'zh': '中文',
-    'pl': 'Polski',
-    'sk': 'Slovenčina',
-  };
-
-  String? _localeDisplayName(String? code) => _supportedLocales[code];
+  String? _localeDisplayName(String? code) => shippedLocales[code];
 
   // Sentinel value meaning "follow system locale"
   static const _systemLocale = '';
@@ -1253,7 +1262,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           value: _systemLocale,
                         ),
-                        ..._supportedLocales.entries.map(
+                        ...shippedLocales.entries.map(
                           (e) => RadioListTile<String>(
                             title: Text(e.value),
                             value: e.key,
@@ -1656,6 +1665,7 @@ class _SettingsTile extends StatelessWidget {
 
 /// Switch variant of [_SettingsTile] for the boolean toggles.
 class _SettingsSwitchTile extends StatelessWidget {
+  final String? identifier;
   final AppPalette palette;
   final IconData icon;
   final String title;
@@ -1664,6 +1674,7 @@ class _SettingsSwitchTile extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   const _SettingsSwitchTile({
+    this.identifier,
     required this.palette,
     required this.icon,
     required this.title,
@@ -1676,7 +1687,7 @@ class _SettingsSwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
     final text = Theme.of(context).textTheme;
-    return SwitchListTile(
+    final tile = SwitchListTile(
       secondary: _SettingsIconChip(palette: palette, icon: icon, color: accent),
       title: Text(
         title,
@@ -1691,6 +1702,8 @@ class _SettingsSwitchTile extends StatelessWidget {
       value: value,
       onChanged: onChanged,
     );
+    if (identifier == null) return tile;
+    return Semantics(identifier: identifier!, child: tile);
   }
 }
 

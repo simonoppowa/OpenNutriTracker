@@ -1,142 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@mealNutrientsPerQtyLabel": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsNotificationsTimeLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "@weeklyWeightGoalKgPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
-  "@weeklyWeightGoalLbsPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "activityExample": "z. B. Laufen, Radfahren, Yoga ...",
   "activityLabel": "Aktivität",
   "addItemLabel": "Neuen Eintrag hinzufügen:",
@@ -149,29 +11,101 @@
   "foodSourcesHelpText": "Suchergebnisse stammen aus diesen Lebensmitteldatenbanken. Open Food Facts liefert die Produkt- und Barcode-Suche und ist immer aktiviert.",
   "machineTranslatedNameHint": "Name automatisch übersetzt",
   "measureUnitBar": "{count, plural, one{Riegel} other{Riegel}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{Flasche} other{Flaschen}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{Dose} other{Dosen}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{Tasse} other{Tassen}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{Ei} other{Eier}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{Packung} other{Packungen}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{Stück} other{Stück}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{Portion} other{Portionen}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{Portion} other{Portionen}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{Scheibe} other{Scheiben}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{Esslöffel} other{Esslöffel}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{Teelöffel} other{Teelöffel}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Lebensmitteldatenbanken",
   "settingsFoodSourcesSubtitle": "Wähle, woher die Suchergebnisse stammen",
   "onboardingOtherOptionsLabel": "Weitere Optionen",
@@ -222,6 +156,16 @@
   "clearOffCacheConfirmTitle": "Cache leeren?",
   "clearOffCacheLabel": "Cache leeren",
   "clearOffCacheSubtitle": "{count} Eintrag/Einträge · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Code kopiert",
   "copyCodeLabel": "Code kopieren",
@@ -236,7 +180,24 @@
   "csvImportContributeOffPrefix": "Barcode dabei? Trag das Produkt zu Open Food Facts bei:",
   "csvImportErrorLabel": "CSV-Datei konnte nicht gelesen werden. Format prüfen und erneut versuchen.",
   "csvImportPartialLabel": "{imported} Mahlzeit(en) importiert; {skipped} Zeile(n) wegen ungültiger Daten übersprungen.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "{count} Mahlzeit(en) importiert.",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Trage verbrannte Kalorien direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker",
   "customActivityDescriptionKj": "Trage verbrannte Kilojoule direkt ein – für Trainings, die nicht in der Liste sind, oder Werte aus einem Fitnesstracker",
   "customActivityKcalHint": "z. B. 250",
@@ -291,6 +252,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Hinweis anzeigen",
   "deleteSelectedRecipesConfirmTitle": "{count} Rezept(e) löschen?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "Möchten Sie den ausgewählten Eintrag löschen?",
   "deleteTimeDialogPluralContent": "Möchten Sie alle Einträge dieser Mahlzeit löschen?",
   "deleteTimeDialogPluralTitle": "Einträge löschen?",
@@ -302,12 +270,29 @@
   "diaryFutureDateWarning": "Du bearbeitest ein zukünftiges Datum",
   "diaryLabel": "Tagebuch",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "Hier werden nur Nährstoffe summiert, die auf deinen protokollierten Mahlzeiten erfasst sind. Eine Mahlzeit ohne einen Wert trägt nichts zu diesem Nährstoff bei — die Summen können also zu niedrig sein.",
   "diaryNutrientPanelTitle": "Heutige Nährstoffe",
   "driPanelInfoTitle": "Referenzzufuhr",
   "driPanelInfoBody": "Diese Referenzwerte stammen aus den IOM-Empfehlungen zur Nährstoffzufuhr für Erwachsene und hängen von Alter und Geschlecht ab. Sie dienen als Orientierung, nicht als Vorgabe — dein eigener Bedarf kann abweichen.",
   "driPanelInfoLinkLabel": "Quelle: IOM Dietary Reference Intakes",
   "driPanelReferenceLabel": "Ref. {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Kohlenhydrate (absteigend)",
   "diarySortByFat": "Fett (absteigend)",
   "diarySortByKcal": "Kalorien (absteigend)",
@@ -347,6 +332,8 @@
   "exportImportCsvRecipesNote": "CSV speichert Aktivitäten, das Essensprotokoll und protokollierte Tage. Rezepte und angehängte Fotos werden nur in JSON gesichert — wähle JSON, wenn du sie im Backup behalten möchtest.",
   "exportImportDescription": "Sie können die App-Daten in eine Zip-Datei exportieren und später importieren. Dies ist nützlich, wenn Sie Ihre Daten sichern oder auf ein anderes Gerät übertragen möchten.\n\nDie App nutzt keinen Cloud-Dienst, um Ihre Daten zu speichern.",
   "exportImportErrorLabel": "Fehler beim Export/Import",
+  "exportImportErrorUnreadableLabel": "Die ausgewählte Datei konnte nicht gelesen werden. Wählen Sie die von OpenNutriTracker exportierte .zip-Sicherung.",
+  "exportImportErrorWriteFailedLabel": "Die Datei konnte nicht am gewählten Ort gespeichert werden. Versuchen Sie einen anderen Ordner.",
   "exportImportSuccessLabel": "Export / Import erfolgreich",
   "fatLabel": "Fett",
   "fatLabelShort": "f",
@@ -385,19 +372,54 @@
   "importAction": "Importieren",
   "importActivityConfirmContent": "Diese Aktivitäten werden zu heute hinzugefügt.",
   "importActivityConfirmTitle": "{count} Aktivitäten importieren?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "Geteiltes Training importieren",
   "importActivitySuccessLabel": "Training importiert",
   "importCustomFoodDataDescription": "Importiere eigene Mahlzeiten aus einer CSV-Datei oder durch Einfügen von JSON. Lade eine Beispieldatei herunter, um die erwartete Form und Pflichtfelder zu sehen.",
   "importCustomFoodDataLabel": "Eigene Lebensmittel-Daten importieren",
   "importMealConfirmContent": "Diese Einträge werden zu {mealType} hinzugefügt.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "{count} Einträge importieren?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "Ungültiger QR-Code",
   "importMealLabel": "Geteilte Mahlzeit importieren",
   "importMealSuccessLabel": "Mahlzeit importiert",
   "importMealsCsvAction": "Mahlzeiten importieren (csv)",
   "importMealsJsonAction": "Mahlzeiten importieren (json)",
   "importOffFetchFailedLabel": "{count} Einträge konnten nicht von OpenFoodFacts abgerufen werden.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "Dieses Rezept mit {count} Zutat(en) importieren?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "Rezept-Code konnte nicht gelesen werden",
   "importRecipeLabel": "Rezept importieren",
   "importRecipeSuccessLabel": "Rezept importiert",
@@ -463,6 +485,16 @@
   "mealNameLabel": "Mahlzeitenname",
   "mealNameValidationError": "Mahlzeitenname muss mindestens einen Buchstaben enthalten",
   "mealNutrientsPerQtyLabel": "Pro {qty} {unit}",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "mealNutrientsTotalLabel": "Gesamtmenge",
   "mealPatternFiveSmall": "5 kleine",
   "mealPatternMediterranean": "Mediterran",
@@ -483,6 +515,9 @@
   "noActivityRecentlyAddedLabel": "Keine kürzlich hinzugefügten Aktivitäten",
   "noMealsRecentlyAddedLabel": "Keine kürzlich hinzugefügten Mahlzeiten",
   "noResultsFound": "Keine Ergebnisse gefunden",
+  "noResultsSubtitle": "Zu dieser Suche passt kein Lebensmittel. Versuche einen anderen Namen, scanne den Barcode oder lege ein eigenes an.",
+  "noResultsScanBarcode": "Barcode scannen",
+  "noResultsCreateCustomFood": "Eigenes Lebensmittel erstellen",
   "notAvailableLabel": "N/A",
   "nothingAddedLabel": "Nichts hinzugefügt",
   "notificationsDailyReminderBody": "Vergiss nicht, heute deine Mahlzeiten zu protokollieren!",
@@ -800,6 +835,13 @@
   "profileTargetWeightNotSetLabel": "Nicht festgelegt",
   "profileTargetWeightReached": "Du hast dein Ziel erreicht",
   "profileTargetWeightToGo": "Noch {value} bis zum Ziel",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "Gewichtsverlauf",
   "proteinLabel": "Protein",
   "proteinLabelShort": "p",
@@ -828,6 +870,13 @@
   "recipeImageTakePhoto": "Foto aufnehmen",
   "recipeIngredientAmountLabel": "Menge",
   "recipeIngredientCountLabel": "{count} Zutat(en)",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "Einheit",
   "recipeIngredientsLabel": "Zutaten",
   "recipeInvalidTotalWeightLabel": "Gesamtgewicht muss größer als null sein",
@@ -873,6 +922,13 @@
   "selectPalCategoryLabel": "Aktivitätslevel auswählen",
   "selectWeightDialogLabel": "Gewicht auswählen",
   "selectionCountLabel": "{count} ausgewählt",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sendCrashReports": "Absturzberichte senden",
   "servingLabel": "Portion",
   "servingSizeLabelImperial": "Eine Portion (oz/fl oz)",
@@ -947,6 +1003,13 @@
   "settingsMetricLabel": "Metrisch (kg, cm, ml)",
   "settingsNotificationsLabel": "Tägliche Erinnerung",
   "settingsNotificationsTimeLabel": "Erinnerungszeit: {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNutrientGoalsHint": "Persönliche Zielwerte für jeden Nährstoff im täglichen Panel. Das Tagebuch verwendet diese Werte anstelle der Standardreferenzen, sobald du einen festlegst.",
   "settingsNutrientGoalsLabel": "Nährstoffziele",
   "settingsNutrientsHelp": "Wähle, welche Nährstoffe im Tagespanel sichtbar sind. Ausgeblendete kannst du jederzeit wieder einschalten.",
@@ -1026,8 +1089,22 @@
   "vitaminDLabel": "Vitamin D",
   "warningLabel": "Warnung",
   "weeklyWeightGoalKgPerWeek": "{rate} kg/Woche",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalLabel": "Wöchentliche Rate",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/Woche",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalNoneLabel": "Nicht festgelegt",
   "weightHistoryAddEntry": "Eintrag hinzufügen",
   "weightHistoryChartEmptyState": "Trage mindestens zwei Tage ein, um deinen Verlauf zu sehen.",
@@ -1089,26 +1166,40 @@
   "customMealsMergeConfirmContent": "Dadurch werden alle Einträge, die mit {loser} protokolliert wurden, ersetzt, sodass sie {winner} anzeigen. Außerdem wird {loser} aus deinen eigenen Mahlzeiten entfernt. Das kann nicht rückgängig gemacht werden.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Zusammenführen",
   "customMealsMergeSuccessSnackbarOne": "Zusammengeführt — {winner} hat jetzt 1 Eintrag.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Zusammengeführt — {winner} hat jetzt {count} Einträge.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Fasten · noch {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Fasten-Timer",
@@ -1179,9 +1270,21 @@
   "aiAssistEndpointFieldLabel": "Serveradresse",
   "aiAssistModelFieldLabel": "Modellname",
   "aiAssistDisclosureOwnServerSecure": "Mit gespeicherter Adresse wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst, und jedes Foto, das du dort auslesen lässt, an {host} gesendet — einen Server, den du selbst betreibst. Niemand Drittes erhält ihn, und das Projekt hat keine Beziehung zu dieser Maschine und kann nichts darüber zusagen, was sie aufbewahrt. Die Verbindung ist verschlüsselt.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Mit gespeicherter Adresse wird der Text, den du auf dem Mehrfach-Hinzufügen-Bildschirm eingibst, und jedes Foto, das du dort auslesen lässt, an {host} gesendet — einen Server, den du selbst betreibst. Niemand Drittes erhält ihn, und das Projekt hat keine Beziehung zu dieser Maschine und kann nichts darüber zusagen, was sie aufbewahrt. Diese Adresse ist einfaches HTTP, die Verbindung ist also nicht verschlüsselt: Alles im Netzwerk zwischen diesem Telefon und dem Server kann mitlesen, was gesendet wird.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Gib eine Adresse ein, die mit http:// oder https:// beginnt.",
   "aiAssistModelRequiredLabel": "Gib den Namen des Modells an, das dieser Server verwenden soll.",
   "aiAssistEndpointPublicPlaintextLabel": "Diese Adresse ist öffentlich und unverschlüsselt, deshalb werden Anfragen dorthin abgelehnt. Nimm https oder eine private Adresse.",
@@ -1218,6 +1321,9 @@
   "bulkAddModelNoCreditLabel": "KI nicht ausgeführt: Das Guthaben deines Anbieterkontos ist aufgebraucht.",
   "bulkAddModelInsecureServerLabel": "KI nicht ausgeführt: Adresse öffentlich, unverschlüsselt.",
   "bulkAddModelTimedOutLabel": "KI nicht ausgeführt: Dein Server hat nicht rechtzeitig geantwortet.",
+  "bulkAddWaitElapsedLabel": "Warte auf deinen Server · {seconds} s",
+  "bulkAddWaitModelLoadingLabel": "Dein Server lädt vermutlich gerade sein Modell. Die erste Anfrage nach längerer Pause kann ein bis zwei Minuten dauern – das ist normal.",
+  "bulkAddWaitCancelLabel": "Abbrechen",
   "bulkAddPhotoLabel": "Foto auslesen",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker behält keine eigene Kopie davon, und es landet nie in deinen Exporten.",
   "bulkAddPhotoDisclosureAnthropic": "Das Foto wird an Anthropic gesendet, um die darauf abgebildeten Lebensmittel zu erkennen.",

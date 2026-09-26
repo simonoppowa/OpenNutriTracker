@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 2.3.0+65
+version: 2.4.0+66
 
 environment:
   sdk: '>=3.11.0 <4.0.0'
@@ -48,15 +48,15 @@ dependencies:
   package_info_plus: ^10.2.1
   url_launcher: ^6.3.2
   flutter_svg: ^2.3.0
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.0
   flutter_cache_manager: ^3.4.2
   envied: ^1.3.8
-  archive: 4.0.9
+  archive: 4.2.0
   file_picker: ^12.2.0
 
   flutter_bloc: ^9.1.1
   bloc_concurrency: ^0.3.0
-  stream_transform: ^2.1.1
+  stream_transform: ^2.1.2
   equatable: ^2.1.0
 
   percent_indicator: ^4.2.5
@@ -67,20 +67,20 @@ dependencies:
   animated_flip_counter: ^0.3.4
   fl_chart: ^1.2.0
 
-  mobile_scanner: ^7.4.0
+  mobile_scanner: ^7.4.1
   qr_flutter: ^4.1.0
   share_plus: ^13.3.0
   image_picker: ^1.2.3
   flutter_image_compress: ^2.5.1
 
-  hive_ce: ^2.19.3
+  hive_ce: ^2.20.0
   hive_ce_flutter: ^2.3.4
 
-  sentry_flutter: ^9.26.0
-  synchronized: ^3.4.0
+  sentry_flutter: ^9.30.0
+  synchronized: ^3.4.2
 
   supabase_flutter: ^2.17.2
-  flutter_local_notifications: ^22.3.0
+  flutter_local_notifications: ^22.3.1
   timezone: ^0.11.1
   flutter_timezone: ^5.1.0
 
@@ -177,10 +177,16 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/icon/ont_logo_square_color_back_1024x1024.png"
   adaptive_icon_background: "#ffffff"
   adaptive_icon_monochrome: "assets/icon/ont_logo_square_color_white_1024x1024.png"
+  # The logo PNGs are a tight crop; this inset keeps the artwork inside the
+  # 66dp safe zone of the adaptive icon (#1151). The tool's default is 16.
+  adaptive_icon_foreground_inset: 23
   ios: true
   remove_alpha_ios: true
   image_path: "assets/icon/ont_logo_square_color_back_1024x1024.png"
-  image_path_ios_dark_transparent: "assets/icon/ont_logo_square_color_white_1024x1024.png"
-  image_path_ios_tinted_grayscale: "assets/icon/ont_logo_square_color_white_1024x1024.png"
+  # iOS has no inset option, so it gets pre-padded copies of the logo PNGs;
+  # regenerate them with tools/icons/pad_ios_launcher_icon.py.
+  image_path_ios: "assets/icon/ont_launcher_ios_color_back_1024x1024.png"
+  image_path_ios_dark_transparent: "assets/icon/ont_launcher_ios_color_white_1024x1024.png"
+  image_path_ios_tinted_grayscale: "assets/icon/ont_launcher_ios_color_white_1024x1024.png"
   desaturate_tinted_to_grayscale_ios: true
   min_sdk_android: 21

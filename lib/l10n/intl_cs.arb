@@ -1,111 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "activityExample": "např. běh, cyklistika, jóga ...",
   "activityLabel": "Activita",
   "addItemLabel": "Přidat nový záznam:",
@@ -118,29 +11,101 @@
   "foodSourcesHelpText": "Výsledky vyhledávání pocházejí z těchto databází potravin. Open Food Facts pohání vyhledávání produktů a čárových kódů a je vždy zapnutá.",
   "machineTranslatedNameHint": "Název byl přeložen automaticky",
   "measureUnitBar": "{count, plural, one{tyčinka} few{tyčinky} other{tyčinek}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{láhev} few{láhve} other{lahví}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{plechovka} few{plechovky} other{plechovek}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{šálek} few{šálky} other{šálků}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{vejce} few{vejce} other{vajec}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{balení} few{balení} other{balení}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{kus} few{kusy} other{kusů}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{porce} few{porce} other{porcí}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{porce} few{porce} other{porcí}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{plátek} few{plátky} other{plátků}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{lžíce} few{lžíce} other{lžic}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{lžička} few{lžičky} other{lžiček}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Databáze potravin",
   "settingsFoodSourcesSubtitle": "Vyberte, odkud pocházejí výsledky vyhledávání",
   "onboardingOtherOptionsLabel": "Další možnosti",
@@ -191,6 +156,16 @@
   "clearOffCacheConfirmTitle": "Vymazat mezipaměť?",
   "clearOffCacheLabel": "Vymazat mezipaměť",
   "clearOffCacheSubtitle": "{count} položek · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "cm",
   "codeCopiedLabel": "Kód zkopírován",
   "copyCodeLabel": "Kopírovat kód",
@@ -205,7 +180,24 @@
   "csvImportContributeOffPrefix": "Máte čárový kód? Přispějte produktem do Open Food Facts:",
   "csvImportErrorLabel": "Nelze přečíst CSV soubor. Zkontrolujte formát a zkuste znovu.",
   "csvImportPartialLabel": "Importováno {imported} jídel; {skipped} řádků přeskočeno kvůli neplatným datům.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "Importováno {count} jídel.",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Zadejte spálené kalorie přímo, pro tréninky, které nejsou na seznamu, nebo hodnoty z fitness náramku",
   "customActivityDescriptionKj": "Zadejte spálené kilojouly přímo, pro tréninky, které nejsou na seznamu, nebo hodnoty z fitness náramku",
   "customActivityKcalHint": "např. 250",
@@ -260,6 +252,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Zobrazit upozornění",
   "deleteSelectedRecipesConfirmTitle": "Smazat {count} recept(ů)?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "Přejete si vymazat označený záznam?",
   "deleteTimeDialogPluralContent": "Přejete si vymazat všechny položky vybraného pokrmu?",
   "deleteTimeDialogPluralTitle": "Smazat položky?",
@@ -271,12 +270,29 @@
   "diaryFutureDateWarning": "Upravujete datum v budoucnosti",
   "diaryLabel": "Diář",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "Sčítají se zde pouze živiny, které jsou u zaznamenaných jídel zachyceny. Jídlo bez hodnoty k dané živině nepřispěje — součty proto mohou být podhodnocené.",
   "diaryNutrientPanelTitle": "Dnešní živiny",
   "driPanelInfoTitle": "Referenční příjem",
   "driPanelInfoBody": "Tyto referenční hodnoty pocházejí z doporučených dietních příjmů IOM pro dospělé a liší se podle věku a pohlaví. Jde o orientační údaj, nikoli o cíl — tvoje vlastní potřeby se mohou lišit.",
   "driPanelInfoLinkLabel": "Zdroj: IOM Dietary Reference Intakes",
   "driPanelReferenceLabel": "ref. {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Sacharidy (sestupně)",
   "diarySortByFat": "Tuky (sestupně)",
   "diarySortByKcal": "Kalorie (sestupně)",
@@ -316,6 +332,8 @@
   "exportImportCsvRecipesNote": "CSV obsahuje aktivitu, deník jídla a zaznamenané dny. Recepty a připojené fotky se ukládají jen do JSON — přepni na JSON, pokud je chceš mít v záloze.",
   "exportImportDescription": "Můžete uložit data z aplikace do .zip archívu a později je znovu importovat. To je užitečné, pokud potřebujete data zálohovat, nebo přenést na jiné zařízení.\n\nAplikace pro ukládání dat nepoužívá žádné cloudové služby.",
   "exportImportErrorLabel": "Export / Import selhal",
+  "exportImportErrorUnreadableLabel": "Vybraný soubor se nepodařilo přečíst. Vyberte zálohu .zip, kterou OpenNutriTracker exportoval.",
+  "exportImportErrorWriteFailedLabel": "Soubor se nepodařilo uložit do vybraného umístění. Zkuste jinou složku.",
   "exportImportSuccessLabel": "Export / Import byl úspěšný",
   "fatLabel": "tuky",
   "fatLabelShort": "t",
@@ -354,19 +372,54 @@
   "importAction": "Import",
   "importActivityConfirmContent": "Tyto aktivity budou přidány do dneška.",
   "importActivityConfirmTitle": "Importovat {count} aktivit?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "Importovat sdílený trénink",
   "importActivitySuccessLabel": "Trénink importován",
   "importCustomFoodDataDescription": "Importujte vlastní jídla z CSV souboru nebo vložením JSON. Stáhněte si ukázku, abyste viděli očekávaný tvar a povinná pole.",
   "importCustomFoodDataLabel": "Importovat vlastní data potravin",
   "importMealConfirmContent": "Tyto položky budou přidány do {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "Importovat {count} položek?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "Neplatný QR kód",
   "importMealLabel": "Importovat sdílené jídlo",
   "importMealSuccessLabel": "Jídlo importováno",
   "importMealsCsvAction": "Importovat jídla (csv)",
   "importMealsJsonAction": "Importovat jídla (json)",
   "importOffFetchFailedLabel": "{count} položek nebylo možné načíst z OpenFoodFacts.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "Importovat tento recept s {count} ingrediencí(emi)?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "Nepodařilo se zpracovat kód receptu",
   "importRecipeLabel": "Importovat recept",
   "importRecipeSuccessLabel": "Recept importován",
@@ -452,6 +505,9 @@
   "noActivityRecentlyAddedLabel": "Žádné aktivity dosud nezadány",
   "noMealsRecentlyAddedLabel": "Žádné pokrmy dosud nezadány",
   "noResultsFound": "Nenalezeny žádné výsledky",
+  "noResultsSubtitle": "Tomuto hledání neodpovídá žádná potravina. Zkuste jiný název, naskenujte čárový kód nebo si vytvořte vlastní.",
+  "noResultsScanBarcode": "Naskenovat čárový kód",
+  "noResultsCreateCustomFood": "Vytvořit vlastní potravinu",
   "notAvailableLabel": "neuvedeno",
   "nothingAddedLabel": "Nezadáno",
   "notificationsDailyReminderBody": "Nezapomeňte si dnes zaznamenat svá jídla!",
@@ -769,6 +825,13 @@
   "profileTargetWeightNotSetLabel": "Nenastaveno",
   "profileTargetWeightReached": "Dosáhli jste svého cíle",
   "profileTargetWeightToGo": "Zbývá {value} do cíle",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "Historie hmotnosti",
   "proteinLabel": "bílkoviny",
   "proteinLabelShort": "b",
@@ -797,6 +860,13 @@
   "recipeImageTakePhoto": "Pořídit fotku",
   "recipeIngredientAmountLabel": "Množství",
   "recipeIngredientCountLabel": "{count} ingredience(í)",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "Jednotka",
   "recipeIngredientsLabel": "Ingredience",
   "recipeInvalidTotalWeightLabel": "Celková hmotnost musí být větší než nula",
@@ -842,6 +912,13 @@
   "selectPalCategoryLabel": "Zvolte úroveň vašich aktivit",
   "selectWeightDialogLabel": "Zadejte hmotnost",
   "selectionCountLabel": "Vybráno: {count}",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sendCrashReports": "Odesílat hlášení o pádech",
   "servingLabel": "Porce",
   "servingSizeLabelImperial": "Jedna porce (oz/fl oz)",
@@ -1058,26 +1135,40 @@
   "customMealsMergeConfirmContent": "Tímto se všechny záznamy zapsané s {loser} nahradí, aby se zobrazovaly jako {winner}, a {loser} bude odstraněna z vašich vlastních potravin. Tuto akci nelze vrátit zpět.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Sloučit",
   "customMealsMergeSuccessSnackbarOne": "Sloučeno — {winner} má nyní 1 záznam.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Sloučeno — {winner} má nyní {count} záznamů.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Půst · zbývá {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Časovač půstu",
@@ -1148,9 +1239,21 @@
   "aiAssistEndpointFieldLabel": "Adresa serveru",
   "aiAssistModelFieldLabel": "Název modelu",
   "aiAssistDisclosureOwnServerSecure": "S uloženou adresou se text, který zadáte na obrazovce hromadného přidávání, a každá fotografie, kterou si tam necháte přečíst, odesílá na {host} — server, který provozujete vy. Nezískává jej žádná třetí strana a projekt nemá k tomuto stroji žádný vztah a nemůže nic slíbit o tom, co si uchovává. Spojení je šifrované.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "S uloženou adresou se text, který zadáte na obrazovce hromadného přidávání, a každá fotografie, kterou si tam necháte přečíst, odesílá na {host} — server, který provozujete vy. Nezískává jej žádná třetí strana a projekt nemá k tomuto stroji žádný vztah a nemůže nic slíbit o tom, co si uchovává. Tato adresa je prosté HTTP, spojení tedy není šifrované: cokoli v síti mezi tímto telefonem a oním serverem si může přečíst, co se odesílá.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Zadejte adresu začínající na http:// nebo https://",
   "aiAssistModelRequiredLabel": "Zadejte název modelu, který má tento server použít.",
   "aiAssistEndpointPublicPlaintextLabel": "Tato adresa je veřejná a nešifrovaná, proto jsou požadavky na ni odmítány. Použijte https nebo privátní adresu.",
@@ -1187,6 +1290,9 @@
   "bulkAddModelNoCreditLabel": "AI se nespustila: na účtu u poskytovatele nemáte kredit.",
   "bulkAddModelInsecureServerLabel": "AI se nespustila: adresa je veřejná a nešifrovaná.",
   "bulkAddModelTimedOutLabel": "AI se nespustila: váš server neodpověděl včas.",
+  "bulkAddWaitElapsedLabel": "Čekání na váš server · {seconds} s",
+  "bulkAddWaitModelLoadingLabel": "Váš server pravděpodobně právě načítá svůj model. První požadavek po delší pauze může trvat minutu až dvě – to je normální.",
+  "bulkAddWaitCancelLabel": "Zrušit",
   "bulkAddPhotoLabel": "Načíst fotku",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker si neponechává vlastní kopii a fotka se nikdy nedostane do vašich exportů.",
   "bulkAddPhotoDisclosureAnthropic": "Fotka se odešle společnosti Anthropic, aby rozpoznala potraviny na ní.",

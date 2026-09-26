@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/utils/csv_meal_importer.dart';
 import 'package:opennutritracker/core/utils/csv_recipe_importer.dart';
+import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 
 class DownloadSampleCsvUsecase {
   static const mealsSampleFileName = 'opennutritracker-meals-sample.csv';
@@ -23,11 +24,15 @@ class DownloadSampleCsvUsecase {
 
   Future<bool> _saveCsv(String csvString, String fileName) async {
     final bytes = Uint8List.fromList(utf8.encode(csvString));
-    final result = await FilePicker.saveFile(
-      fileName: fileName,
-      type: FileType.custom,
-      allowedExtensions: ['csv'],
-      bytes: bytes,
+    final result = await ExportImportFailure.guard(
+      ExportImportFailureReason.writeFailed,
+      'Could not save $fileName',
+      () => FilePicker.saveFile(
+        fileName: fileName,
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+        bytes: bytes,
+      ),
     );
     return result != null;
   }

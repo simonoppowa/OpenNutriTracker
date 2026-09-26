@@ -51,12 +51,30 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   final quantityTextController = TextEditingController();
   late bool _usesImperialUnits;
   bool _showMicronutrients = false;
+  // #1126: preloaded from `ConfigEntity.defaultToRawFoodUnits`. False keeps
+  // the pre-existing "serving wins whenever one exists" default; true
+  // steers `_applyInitialSelection` to grams/oz (or ml/fl oz) instead.
+  bool _defaultToRawFoodUnits = false;
 
   String _initialUnit = "";
   String _initialQuantity = "";
 
-  bool _hydrationRequested = false;
+  // Set on the first didChangeDependencies pass, which is the only one that
+  // reads the route arguments and requests hydration (see there).
+  bool _argumentsRead = false;
   bool _userChangedSelection = false;
+
+  /// True while `_applyInitialSelection` is running. The bottom sheet's
+  /// text-change listener echoes every write to `quantityTextController`
+  /// back through [onQuantityOrUnitChanged], including the ones this
+  /// method makes itself, and its `widget.selectedUnit` is the last
+  /// rendered value — not the unit we're currently switching to. Without
+  /// this guard the echo would (a) dispatch a stale-unit UpdateKcalEvent
+  /// on top of the explicit one below, (b) flip [_userChangedSelection]
+  /// to true although nobody touched anything, and (c) call
+  /// `_scrollToCalorieText` on open — enough scroll to collapse the app
+  /// bar and push the product image out of view.
+  bool _applyingInitialSelection = false;
 
   // Scroll distance from expandedHeight down to the collapsed SliverAppBar
   // (toolbar + bottom bar): 268-124 with the DailyKcalOverview bottom bar,
@@ -68,7 +86,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   void initState() {
     _mealDetailBloc = locator<MealDetailBloc>();
-    _loadMicronutrientSetting();
+    _loadDetailPreferences();
     _scrollController.addListener(_handleScroll);
     super.initState();
   }
@@ -88,31 +106,53 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     }
   }
 
-  Future<void> _loadMicronutrientSetting() async {
+  Future<void> _loadDetailPreferences() async {
     final config = await locator<GetConfigUsecase>().getConfig();
-    if (mounted) {
-      setState(() => _showMicronutrients = config.showMicronutrients);
+    if (!mounted) return;
+    final wasSelectionInitialised = _initialUnit != "";
+    setState(() {
+      _showMicronutrients = config.showMicronutrients;
+      _defaultToRawFoodUnits = config.defaultToRawFoodUnits;
+    });
+    // #1126: the config read is async, so `_applyInitialSelection` may have
+    // already run with the fallback default of "prefer serving". Re-pick
+    // if the user hasn't touched selection yet, so opting into raw units
+    // still switches the very first render's dropdown to grams/oz.
+    if (wasSelectionInitialised &&
+        _defaultToRawFoodUnits &&
+        !_userChangedSelection) {
+      _initialUnit = "";
+      _initialQuantity = "";
+      _applyInitialSelection();
     }
   }
 
   @override
   void didChangeDependencies() {
-    final args =
-        ModalRoute.of(context)?.settings.arguments as MealDetailScreenArguments;
-    meal = args.mealEntity;
-    _day = args.day;
-    intakeTypeEntity = args.intakeTypeEntity;
-    _usesImperialUnits = args.usesImperialUnits;
+    // `ModalRoute.of` re-runs this whenever a route is pushed over or popped
+    // off this screen — the unit dropdown's own menu included — so the
+    // arguments are read once. Re-reading `meal` on every pass handed the
+    // thin search hit back to the sheet the moment the dropdown opened,
+    // after hydration had already swapped in the full record: the serving
+    // entry the user then tapped was no longer in the rebuilt list and the
+    // button went blank (#1216).
+    if (!_argumentsRead) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments
+              as MealDetailScreenArguments;
+      meal = args.mealEntity;
+      _day = args.day;
+      intakeTypeEntity = args.intakeTypeEntity;
+      _usesImperialUnits = args.usesImperialUnits;
+      _argumentsRead = true;
 
-    _mealDetailBloc.add(LoadDailyTotalsEvent(_day));
-
-    // Thin OFF search results get hydrated to the full product record (serving
-    // fields + micronutrients) once, in the background; the listener in build()
-    // swaps the displayed meal in when it arrives.
-    if (!_hydrationRequested) {
-      _hydrationRequested = true;
+      // Thin OFF search results get hydrated to the full product record
+      // (serving fields + micronutrients) once, in the background; the
+      // listener in build() swaps the displayed meal in when it arrives.
       _mealDetailBloc.add(HydrateMealEvent(meal));
     }
+
+    _mealDetailBloc.add(LoadDailyTotalsEvent(_day));
 
     _applyInitialSelection();
 
@@ -124,44 +164,68 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   /// imperial). Guarded so it only runs while the user hasn't chosen yet, and
   /// re-run after hydration reveals serving values.
   void _applyInitialSelection() {
-    if (_initialUnit == "") {
-      // `scalableServingQuantity`, not `hasServingValues` (#629): the latter
-      // is true for a record whose serving is unparseable text, and nothing
-      // can scale those — they defaulted to "1 serving" and logged 1 g.
-      if (meal.scalableServingQuantity != null) {
-        _initialUnit = UnitDropdownItem.serving.toString();
-      } else if (meal.isLiquid) {
-        _initialUnit = _usesImperialUnits
-            ? UnitDropdownItem.flOz.toString()
-            : UnitDropdownItem.ml.toString();
-      } else if (meal.isSolid) {
-        _initialUnit = _usesImperialUnits
-            ? UnitDropdownItem.oz.toString()
-            : UnitDropdownItem.g.toString();
-      } else {
-        _initialUnit = UnitDropdownItem.gml.toString();
-      }
-      _mealDetailBloc.add(
-        UpdateKcalEvent(meal: meal, selectedUnit: _initialUnit),
-      );
-    }
+    // #1126: when the user has opted into raw units in Settings, the
+    // scalable-serving branch is skipped so grams/oz (or ml/fl oz)
+    // becomes the very first render's default. `hasScalableServing`
+    // stays the classifier — a record with no parseable serving still
+    // falls through to weight/volume the same way it always did.
+    final preferServing =
+        meal.scalableServingQuantity != null && !_defaultToRawFoodUnits;
 
-    if (_initialQuantity == "") {
-      // Gated the same way as the unit above, so a bare "1" can never end
-      // up beside a weight unit.
-      if (meal.scalableServingQuantity != null) {
-        _initialQuantity = "1";
-        quantityTextController.text = "1";
-      } else if (_usesImperialUnits) {
-        _initialQuantity = _initialQuantityImperial;
-        quantityTextController.text = _initialQuantityImperial;
-      } else {
-        _initialQuantity = _initialQuantityMetric;
-        quantityTextController.text = _initialQuantityMetric;
+    _applyingInitialSelection = true;
+    try {
+      if (_initialUnit == "") {
+        // `scalableServingQuantity`, not `hasServingValues` (#629): the latter
+        // is true for a record whose serving is unparseable text, and nothing
+        // can scale those — they defaulted to "1 serving" and logged 1 g.
+        if (preferServing) {
+          _initialUnit = UnitDropdownItem.serving.toString();
+        } else if (meal.isLiquid) {
+          _initialUnit = _usesImperialUnits
+              ? UnitDropdownItem.flOz.toString()
+              : UnitDropdownItem.ml.toString();
+        } else if (meal.isSolid) {
+          _initialUnit = _usesImperialUnits
+              ? UnitDropdownItem.oz.toString()
+              : UnitDropdownItem.g.toString();
+        } else {
+          _initialUnit = UnitDropdownItem.gml.toString();
+        }
+        _mealDetailBloc.add(
+          UpdateKcalEvent(meal: meal, selectedUnit: _initialUnit),
+        );
       }
-      _mealDetailBloc.add(
-        UpdateKcalEvent(meal: meal, totalQuantity: quantityTextController.text),
-      );
+
+      if (_initialQuantity == "") {
+        // Gated the same way as the unit above, so a bare "1" can never end
+        // up beside a weight unit.
+        if (preferServing) {
+          _initialQuantity = "1";
+          quantityTextController.text = "1";
+        } else if (_usesImperialUnits) {
+          _initialQuantity = _initialQuantityImperial;
+          quantityTextController.text = _initialQuantityImperial;
+        } else {
+          _initialQuantity = _initialQuantityMetric;
+          quantityTextController.text = _initialQuantityMetric;
+        }
+        // The unit rides along, not just the quantity: on the re-pick after
+        // hydration the bottom sheet is already listening to the controller,
+        // and the write above echoes back through onQuantityOrUnitChanged
+        // with the unit the sheet last rendered (#1216). That echo is also
+        // what `_applyingInitialSelection` makes `onQuantityOrUnitChanged`
+        // ignore, so neither the stale unit nor the phantom
+        // `_userChangedSelection` flip nor the scroll reaches the screen.
+        _mealDetailBloc.add(
+          UpdateKcalEvent(
+            meal: meal,
+            totalQuantity: quantityTextController.text,
+            selectedUnit: _initialUnit,
+          ),
+        );
+      }
+    } finally {
+      _applyingInitialSelection = false;
     }
   }
 
@@ -432,6 +496,13 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   void onQuantityOrUnitChanged(String? quantityString, String? unit) {
     if (quantityString == null || unit == null) {
+      return;
+    }
+    if (_applyingInitialSelection) {
+      // Echo from `_applyInitialSelection`'s own controller.text write;
+      // that method dispatches an authoritative UpdateKcalEvent itself.
+      // Treating this as a user edit would collapse the app bar on open
+      // via `_scrollToCalorieText` and record a phantom selection.
       return;
     }
     _userChangedSelection = true;

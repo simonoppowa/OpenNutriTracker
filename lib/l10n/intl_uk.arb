@@ -1,111 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "activityExample": "наприклад, біг, їзда на велосипеді, йога ...",
   "activityLabel": "Активність",
   "addItemLabel": "Додати новий елемент:",
@@ -118,29 +11,101 @@
   "foodSourcesHelpText": "Результати пошуку надходять із цих баз даних продуктів. Open Food Facts забезпечує пошук продуктів і штрих-кодів і завжди ввімкнена.",
   "machineTranslatedNameHint": "Назву перекладено автоматично",
   "measureUnitBar": "{count, plural, one{батончик} few{батончики} many{батончиків} other{батончика}}",
-  "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitBottle": "{count, plural, one{пляшка} few{пляшки} many{пляшок} other{пляшки}}",
-  "@measureUnitBottle": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCan": "{count, plural, one{банка} few{банки} many{банок} other{банки}}",
-  "@measureUnitCan": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitCup": "{count, plural, one{чашка} few{чашки} many{чашок} other{чашки}}",
-  "@measureUnitCup": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitEgg": "{count, plural, one{яйце} few{яйця} many{яєць} other{яйця}}",
-  "@measureUnitEgg": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPackage": "{count, plural, one{упаковка} few{упаковки} many{упаковок} other{упаковки}}",
-  "@measureUnitPackage": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPiece": "{count, plural, one{шматок} few{шматки} many{шматків} other{шматка}}",
-  "@measureUnitPiece": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitPortion": "{count, plural, one{порція} few{порції} many{порцій} other{порції}}",
-  "@measureUnitPortion": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitServing": "{count, plural, one{порція} few{порції} many{порцій} other{порції}}",
-  "@measureUnitServing": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitSlice": "{count, plural, one{скибка} few{скибки} many{скибок} other{скибки}}",
-  "@measureUnitSlice": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTablespoon": "{count, plural, one{столова ложка} few{столові ложки} many{столових ложок} other{столової ложки}}",
-  "@measureUnitTablespoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "measureUnitTeaspoon": "{count, plural, one{чайна ложка} few{чайні ложки} many{чайних ложок} other{чайної ложки}}",
-  "@measureUnitTeaspoon": {"placeholders": {"count": {"type": "num"}}},
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
   "settingsFoodSourcesLabel": "Бази даних продуктів",
   "settingsFoodSourcesSubtitle": "Виберіть, звідки надходять результати пошуку",
   "onboardingOtherOptionsLabel": "Інші параметри",
@@ -191,6 +156,16 @@
   "clearOffCacheConfirmTitle": "Очистити кеш?",
   "clearOffCacheLabel": "Очистити кеш",
   "clearOffCacheSubtitle": "{count} елементів · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "см",
   "codeCopiedLabel": "Код скопійовано",
   "copyCodeLabel": "Копіювати код",
@@ -205,7 +180,24 @@
   "csvImportContributeOffPrefix": "Маєте штрих-код? Додайте продукт до Open Food Facts:",
   "csvImportErrorLabel": "Не вдалося прочитати CSV файл. Перевірте формат і спробуйте знову.",
   "csvImportPartialLabel": "Імпортовано {imported} страв; {skipped} рядків пропущено через неправильні дані.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "Імпортовано {count} страв.",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Введіть спалені калорії безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера",
   "customActivityDescriptionKj": "Введіть спалені кілоджоулі безпосередньо — для тренувань, яких немає у списку, або показників із фітнес-трекера",
   "customActivityKcalHint": "напр. 250",
@@ -260,6 +252,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Переглянути застереження",
   "deleteSelectedRecipesConfirmTitle": "Видалити {count} рецепт(ів)?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "Ви хочете видалити вибраний елемент?",
   "deleteTimeDialogPluralContent": "Ви хочете видалити всі елементи цієї страви?",
   "deleteTimeDialogPluralTitle": "Видалити елементи?",
@@ -271,12 +270,29 @@
   "diaryFutureDateWarning": "Ви редагуєте майбутню дату",
   "diaryLabel": "Щоденник",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "Тут підсумовуються лише ті поживні речовини, які записані для зареєстрованих страв. Страва без значення не додає нічого до відповідного показника — тож суми можуть бути занижені.",
   "diaryNutrientPanelTitle": "Поживні речовини за сьогодні",
   "driPanelInfoTitle": "Орієнтовне споживання",
   "driPanelInfoBody": "Ці орієнтовні значення взято з рекомендованих норм споживання IOM для дорослих і вони залежать від віку та статі. Це точка відліку, а не мета — твої власні потреби можуть бути іншими.",
   "driPanelInfoLinkLabel": "Джерело: IOM Dietary Reference Intakes",
   "driPanelReferenceLabel": "орієнт. {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Вуглеводи (за спаданням)",
   "diarySortByFat": "Жири (за спаданням)",
   "diarySortByKcal": "Калорії (за спаданням)",
@@ -316,6 +332,8 @@
   "exportImportCsvRecipesNote": "CSV зберігає активність, журнал прийомів їжі та відстежувані дні. Рецепти й додані фото зберігаються лише в JSON — перейдіть на JSON, якщо хочете залишити їх у резервній копії.",
   "exportImportDescription": "Ви можете експортувати дані додатка у zip-файл і імпортувати їх пізніше. Це корисно, якщо ви хочете зробити резервну копію або перенести дані на інший пристрій. Додаток не використовує жодних хмарних сервісів для зберігання ваших даних.",
   "exportImportErrorLabel": "Помилка експорту / імпорту",
+  "exportImportErrorUnreadableLabel": "Не вдалося прочитати вибраний файл. Виберіть резервну копію .zip, експортовану OpenNutriTracker.",
+  "exportImportErrorWriteFailedLabel": "Не вдалося зберегти файл у вибраному місці. Спробуйте іншу папку.",
   "exportImportSuccessLabel": "Експорт / Імпорт успішний",
   "fatLabel": "жири",
   "fatLabelShort": "ж",
@@ -354,19 +372,54 @@
   "importAction": "Імпортувати",
   "importActivityConfirmContent": "Ці активності буде додано на сьогодні.",
   "importActivityConfirmTitle": "Імпортувати {count} активностей?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "Імпортувати спільне тренування",
   "importActivitySuccessLabel": "Тренування імпортовано",
   "importCustomFoodDataDescription": "Імпортуйте власні страви з CSV-файлу або вставивши JSON. Завантажте зразок, щоб побачити очікувану форму та обовʼязкові поля.",
   "importCustomFoodDataLabel": "Імпортувати власні дані про їжу",
   "importMealConfirmContent": "These items will be added to your {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "Import {count} items?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "Invalid QR code",
   "importMealLabel": "Import shared meal",
   "importMealSuccessLabel": "Meal imported",
   "importMealsCsvAction": "Імпортувати страви (csv)",
   "importMealsJsonAction": "Імпортувати страви (json)",
   "importOffFetchFailedLabel": "{count} елемент(ів) не вдалося отримати з OpenFoodFacts.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "Імпортувати цей рецепт з {count} інгредієнт(ами)?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "Не вдалося розпізнати код рецепта",
   "importRecipeLabel": "Імпортувати рецепт",
   "importRecipeSuccessLabel": "Рецепт імпортовано",
@@ -452,6 +505,9 @@
   "noActivityRecentlyAddedLabel": "Нещодавно не додано активності",
   "noMealsRecentlyAddedLabel": "Нещодавно не додано страв",
   "noResultsFound": "Нічого не знайдено",
+  "noResultsSubtitle": "Жоден продукт не відповідає цьому пошуку. Спробуйте іншу назву, відскануйте штрих-код або створіть власний.",
+  "noResultsScanBarcode": "Сканувати штрих-код",
+  "noResultsCreateCustomFood": "Створити власний продукт",
   "notAvailableLabel": "Н/Д",
   "nothingAddedLabel": "Нічого не додано",
   "notificationsDailyReminderBody": "Не забудьте сьогодні записати свої страви!",
@@ -769,6 +825,13 @@
   "profileTargetWeightNotSetLabel": "Не задано",
   "profileTargetWeightReached": "Ви досягли своєї цілі",
   "profileTargetWeightToGo": "Залишилось {value} до цілі",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "Історія ваги",
   "proteinLabel": "білки",
   "proteinLabelShort": "б",
@@ -797,6 +860,13 @@
   "recipeImageTakePhoto": "Зробити фото",
   "recipeIngredientAmountLabel": "Кількість",
   "recipeIngredientCountLabel": "{count} інгредієнт(ів)",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "Одиниця",
   "recipeIngredientsLabel": "Інгредієнти",
   "recipeInvalidTotalWeightLabel": "Загальна вага має бути більшою за нуль",
@@ -842,6 +912,13 @@
   "selectPalCategoryLabel": "Виберіть рівень активності",
   "selectWeightDialogLabel": "Виберіть вагу",
   "selectionCountLabel": "Вибрано: {count}",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sendCrashReports": "Надсилати звіти про збої",
   "servingLabel": "Порція",
   "servingSizeLabelImperial": "Одна порція (унція/рідка унція)",
@@ -1058,26 +1135,40 @@
   "customMealsMergeConfirmContent": "Це замінить усі записи, додані з {loser}, щоб вони показували {winner}, і видалить {loser} з ваших власних страв. Цю дію не можна скасувати.",
   "@customMealsMergeConfirmContent": {
     "placeholders": {
-      "loser": { "type": "String" },
-      "winner": { "type": "String" }
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "customMealsMergeConfirmAction": "Об’єднати",
   "customMealsMergeSuccessSnackbarOne": "Об'єднано — {winner} тепер має 1 запис.",
   "@customMealsMergeSuccessSnackbarOne": {
-    "placeholders": { "winner": { "type": "String" } }
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
   },
   "customMealsMergeSuccessSnackbarOther": "Об'єднано — {winner} тепер має {count} записів.",
   "@customMealsMergeSuccessSnackbarOther": {
     "placeholders": {
-      "count": { "type": "int" },
-      "winner": { "type": "String" }
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
     }
   },
   "fastingHomeChipBody": "Голодування · залишилось {remaining}",
   "@fastingHomeChipBody": {
     "placeholders": {
-      "remaining": { "type": "String" }
+      "remaining": {
+        "type": "String"
+      }
     }
   },
   "fastingNotificationChannelName": "Таймер голодування",
@@ -1148,9 +1239,21 @@
   "aiAssistEndpointFieldLabel": "Адреса сервера",
   "aiAssistModelFieldLabel": "Назва моделі",
   "aiAssistDisclosureOwnServerSecure": "Зі збереженою адресою текст, який ви вводите на екрані додавання кількох позицій, і будь-яке фото, яке ви даєте прочитати там, надсилається на {host} — сервер, який ви обслуговуєте самі. Його не отримує жодна третя сторона, і проєкт не має стосунку до цієї машини та нічого не може обіцяти щодо того, що вона зберігає. З’єднання зашифроване.",
-  "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistDisclosureOwnServerPlaintext": "Зі збереженою адресою текст, який ви вводите на екрані додавання кількох позицій, і будь-яке фото, яке ви даєте прочитати там, надсилається на {host} — сервер, який ви обслуговуєте самі. Його не отримує жодна третя сторона, і проєкт не має стосунку до цієї машини та нічого не може обіцяти щодо того, що вона зберігає. Ця адреса використовує звичайний HTTP, тому з’єднання не зашифроване: усе в мережі між цим телефоном і тим сервером може прочитати те, що надсилається.",
-  "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "aiAssistEndpointInvalidLabel": "Введіть адресу, що починається з http:// або https://",
   "aiAssistModelRequiredLabel": "Вкажіть назву моделі, яку має використовувати цей сервер.",
   "aiAssistEndpointPublicPlaintextLabel": "Ця адреса публічна й незашифрована, тому запити до неї відхиляються. Використайте https або приватну адресу.",
@@ -1187,6 +1290,9 @@
   "bulkAddModelNoCreditLabel": "ШІ не запущено: на рахунку у постачальника закінчилися кошти.",
   "bulkAddModelInsecureServerLabel": "ШІ не запущено: адреса публічна та незашифрована.",
   "bulkAddModelTimedOutLabel": "ШІ не запущено: ваш сервер не відповів вчасно.",
+  "bulkAddWaitElapsedLabel": "Очікування вашого сервера · {seconds} с",
+  "bulkAddWaitModelLoadingLabel": "Ваш сервер, імовірно, завантажує свою модель. Перший запит після тривалої паузи може тривати хвилину або дві — це нормально.",
+  "bulkAddWaitCancelLabel": "Скасувати",
   "bulkAddPhotoLabel": "Зчитати фото",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker не зберігає власної копії, і фото ніколи не потрапляє до ваших експортів.",
   "bulkAddPhotoDisclosureAnthropic": "Фото надсилається до Anthropic, щоб розпізнати продукти на ньому.",

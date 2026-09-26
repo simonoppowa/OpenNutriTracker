@@ -50,9 +50,24 @@ import 'package:path_provider/path_provider.dart';
 /// every push to `develop` and `main` (it is excluded from pull requests,
 /// which is map #1016's work). Without a gate, this file would join both,
 /// seed a year of demo data into each, and make them slower and flakier for
-/// no benefit. The screenshot lane passes
-/// `--dart-define=STORE_SCREENSHOTS=true`; nothing else does, so everywhere
-/// else this test is skipped at compile time.
+/// no benefit. Only `--dart-define=STORE_SCREENSHOTS=true` enables it, and
+/// nothing in CI passes that — the dispatch-only iOS lane that did so was
+/// removed in #1076 — so everywhere else this test is skipped at compile
+/// time.
+///
+/// ## Why it is kept, and what it cannot do
+///
+/// It is kept for what it encodes — the shot order, the finders, the demo
+/// fixture, and the assertions that refuse a loading or banner-covered frame
+/// — not as a working capture route. It cannot currently give you the files:
+/// `takeScreenshot` writes into the app's Documents directory and
+/// `flutter test` uninstalls the app on exit, taking the container with it.
+/// That is the defect that defeated the lane, and it is a property of this
+/// test rather than of CI, so a hand-run hits it too. Exporting means a
+/// `flutter drive` + `onScreenshot` conversion, which writes host-side.
+///
+/// The shipped captures come from `xcrun simctl io booted screenshot`
+/// instead; see `fastlane/metadata/ios/en-US/screenshots/README.md`.
 const bool _enabled = bool.fromEnvironment('STORE_SCREENSHOTS');
 
 /// Which demo fixture stands behind the shots.

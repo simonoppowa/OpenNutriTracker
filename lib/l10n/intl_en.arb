@@ -409,6 +409,8 @@
   "exportImportCsvRecipesNote": "CSV keeps your activity, meal log and tracked days. Recipes and any photos you've attached are JSON-only — switch to JSON if you want them in your backup.",
   "exportImportDescription": "You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data.",
   "exportImportErrorLabel": "Export / Import error",
+  "exportImportErrorUnreadableLabel": "The selected file could not be read. Choose the .zip backup that OpenNutriTracker exported.",
+  "exportImportErrorWriteFailedLabel": "The file could not be saved to the chosen location. Try a different folder.",
   "exportImportSuccessLabel": "Export / Import successful",
   "fatLabel": "fat",
   "fatLabelShort": "f",
@@ -545,6 +547,9 @@
   "noActivityRecentlyAddedLabel": "No activity recently added",
   "noMealsRecentlyAddedLabel": "No meals recently added",
   "noResultsFound": "No results found",
+  "noResultsSubtitle": "No foods matched that search. Try a different name, scan the barcode, or create your own.",
+  "noResultsScanBarcode": "Scan barcode",
+  "noResultsCreateCustomFood": "Create custom food",
   "notAvailableLabel": "N/A",
   "nothingAddedLabel": "Nothing added",
   "notificationsDailyReminderBody": "Don't forget to log your meals today!",
@@ -632,7 +637,7 @@
   "ozUnit": "oz",
   "paActiveVideoGames": "active video games",
   "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, general",
-  "paAmericanFootballGeneral": "football",
+  "paAmericanFootballGeneral": "American football",
   "paAmericanFootballGeneralDesc": "touch, flag, general",
   "paArcheryGeneral": "archery",
   "paArcheryGeneralDesc": "non-hunting",
@@ -688,7 +693,7 @@
   "paDartsWallDesc": "wall or lawn",
   "paDivingGeneral": "diving",
   "paDivingGeneralDesc": "skindiving, scuba diving, general",
-  "paDivingSpringboardPlatform": "diving",
+  "paDivingSpringboardPlatform": "springboard or platform diving",
   "paDivingSpringboardPlatformDesc": "springboard or platform",
   "paFencing": "fencing",
   "paFencingDesc": "general",
@@ -1020,6 +1025,8 @@
   "settingsShowActivityTracking": "Show Activity Tracking",
   "settingsShowMealMacros": "Show Meal Macros",
   "settingsShowMicronutrientsLabel": "Show Micronutrients",
+  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
+  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Daily sodium cap in milligrams. Default reference is 2300mg.",
   "settingsSodiumGoalLabel": "Sodium goal",
   "settingsSourceCodeLabel": "Source Code",
@@ -1309,6 +1316,16 @@
   "bulkAddModelNoCreditLabel": "AI didn't run: your provider account is out of credit.",
   "bulkAddModelInsecureServerLabel": "AI didn't run: that address is public and unencrypted.",
   "bulkAddModelTimedOutLabel": "AI didn't run: your server didn't answer in time.",
+  "bulkAddWaitElapsedLabel": "Waiting for your server · {seconds} s",
+  "@bulkAddWaitElapsedLabel": {
+      "placeholders": {
+          "seconds": {
+              "type": "int"
+          }
+      }
+  },
+  "bulkAddWaitModelLoadingLabel": "Your server may be loading its model. The first request after a while can take a minute or two — that is normal.",
+  "bulkAddWaitCancelLabel": "Cancel",
   "bulkAddPhotoLabel": "Read a photo",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker keeps no copy of its own, and it is never included in your exports.",
   "bulkAddPhotoDisclosureAnthropic": "The photo is sent to Anthropic to identify the foods in it.",
