@@ -2,8 +2,8 @@
 
 A release is **a merge of `develop` into `main`** — directly when the two merge cleanly, through a
 `release/*` branch when they do not; [The release PR](#the-release-pr) says how to tell. There is
-no release script, and no tag to push by hand: pushing to `main` starts the pipeline, and the pipeline does the packaging, the store
-uploads and the GitHub release itself.
+no release script, and no tag to push by hand: pushing to `main` starts the pipeline, and the
+pipeline does the packaging, the store uploads and the GitHub release itself.
 
 A **hotfix merged straight to `main`** starts the same pipeline, which is why it is a legitimate
 thing to do — and why it needs [its own step afterwards](#hotfixes-and-the-way-back-to-develop),
@@ -229,10 +229,11 @@ what [the hotfix section](#hotfixes-and-the-way-back-to-develop) forbids:
       it, or its history cannot be read at a glance, stop and resolve it by hand.
 
       A `DU` deserves the closest look: `main`'s change to a file `develop` has deleted is exactly
-      where a hotfix goes missing, and if it is one, the fix needs a new home on `develop`. **Do not reach for
-      `git merge -X ours`.** It resolves every conflicted hunk without a look, and a hotfix that
-      only *deletes* lines never shows up in the gap check, which counts `+` lines — so it would
-      vanish, and the check below would still pass.
+      where a hotfix goes missing, and if it is one, the fix needs a new home on `develop`.
+
+      **Do not reach for `git merge -X ours`.** It resolves every conflicted hunk without a look,
+      and a hotfix that only *deletes* lines never shows up in the gap check, which counts `+`
+      lines — so it would vanish, and the check below would still pass.
 - [ ] **Commit, and prove nothing came down:**
 
       ```bash
