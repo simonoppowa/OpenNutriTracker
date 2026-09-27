@@ -90,11 +90,10 @@ String _ownServerDisclosure(S s, String typedEndpoint) {
   final display = AiCredentialStorage.displayHost(typed);
   if (display == null) return '';
   // Which of the two this connection is, read off the scheme as typed, and
-  // nothing beyond that. It deliberately does **not** say the address is
-  // private: nothing checks that today — #758 may — and the string it picks
-  // states what is true of any plaintext connection instead of claiming a
-  // boundary has been enforced.
+  // nothing beyond that. The plaintext sentence states the rule the guard
+  // enforces per request (loopback only, #1050) rather than a claim about
+  // this address, which may be a name nothing has resolved yet.
   return Uri.tryParse(typed)?.scheme == 'https'
       ? s.aiAssistDisclosureOwnServerSecure(display)
-      : s.aiAssistDisclosureOwnServerPlaintext(display);
+      : s.aiAssistDisclosureOwnServerLoopback(display);
 }

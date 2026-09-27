@@ -279,9 +279,9 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
       // opened. The host is not logged: it is the address of a machine in
       // somebody's house, and this exception is raised on requests that may
       // carry a photograph of their dinner.
-      _log.warning('Refused a plaintext request to a public address');
+      _log.warning('Refused a plaintext request that would leave the phone');
       throw const MealInterpreterException(
-        'plaintext to a public address',
+        'plaintext off the phone',
         failure: MealInterpreterFailure.insecureDestination,
       );
     } on TimeoutException {

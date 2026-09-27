@@ -117,15 +117,20 @@ and `READ_TOTAL_CALORIES_BURNED`. The **Health apps declaration** (Play Console
 → App content) has to be brought in line with that in the same pass — it was
 last edited before any health permission existed in the app.
 
+## Decided
+
+- **"Encrypted in transit" stays Yes (2026-09-27, #1050).** The own-server AI
+  provider used to accept `http://` to any private address, which the
+  app-wide, unconditional form could not describe. The carve-out was narrowed
+  instead of the answer changed: `lib/core/utils/plaintext_destination_guard.dart`
+  now allows plain HTTP to loopback only (`127.0.0.0/8`, `::1`). Loopback never
+  leaves the device, so it is not transmission, and everything that does leave
+  is encrypted. A server elsewhere on the user's network needs `https://`.
+
 ## Still open, needing a decision rather than a lookup
 
 - **Approximate location.** It is declared as collected. Whatever justified it
   should be written down here, or the entry removed.
-- **"Encrypted in transit" vs the own-server AI provider.** The own-server
-  provider accepts an `http://` address for private/loopback destinations. The
-  form's answer is app-wide with no conditional, so either that carve-out goes
-  (`lib/core/utils/plaintext_destination_guard.dart`) or the answer becomes No.
-  See [#816](https://github.com/simonoppowa/OpenNutriTracker/issues/816).
 - **The provider API key as a user identifier.** It travels on every AI request
   and works as a stable per-user handle at the vendor. Whether that is a
   "User ID" the app collects is a genuine judgment call — the argument against

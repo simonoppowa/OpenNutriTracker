@@ -657,7 +657,7 @@ void main() {
 
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-        'http://192.168.1.5:11434',
+        'https://192.168.1.5:11434',
       );
       await tester.pumpAndSettle();
 
@@ -686,7 +686,7 @@ void main() {
 
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-        'http://ollama:hunter2@192.168.1.5:11434',
+        'https://ollama:hunter2@192.168.1.5:11434',
       );
       await tester.pumpAndSettle();
 
@@ -711,7 +711,7 @@ void main() {
 
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-        'http://192.168.1.5:11434',
+        'http://127.0.0.1:11434',
       );
       await tester.pumpAndSettle();
       // Asserted against the string itself rather than the words "not
@@ -720,7 +720,7 @@ void main() {
       // "stays on your own network" claim from this very sentence.
       expect(
         find.textContaining(
-          l10nEn.aiAssistDisclosureOwnServerPlaintext('192.168.1.5:11434'),
+          l10nEn.aiAssistDisclosureOwnServerLoopback('127.0.0.1:11434'),
         ),
         findsOneWidget,
         reason: 'the dialog is the only place a user learns this',
@@ -739,7 +739,7 @@ void main() {
       );
       expect(
         find.textContaining(
-          l10nEn.aiAssistDisclosureOwnServerPlaintext('ollama.example.com'),
+          l10nEn.aiAssistDisclosureOwnServerLoopback('ollama.example.com'),
         ),
         findsNothing,
       );
@@ -753,7 +753,7 @@ void main() {
 
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-        'http://192.168.1.5:11434',
+        'https://192.168.1.5:11434',
       );
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-model-field'),
@@ -765,7 +765,7 @@ void main() {
 
       expect(
         await storage.readEndpoint(provider: AiProvider.ownServer),
-        'http://192.168.1.5:11434/v1/chat/completions',
+        'https://192.168.1.5:11434/v1/chat/completions',
         reason: 'a base address is completed to the route runtimes answer on',
       );
       expect(await storage.readModel(provider: AiProvider.ownServer),
@@ -820,7 +820,7 @@ void main() {
 
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-        'http://192.168.1.5:11434',
+        'https://192.168.1.5:11434',
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text(l10nEn.dialogOKLabel));
@@ -885,7 +885,7 @@ void main() {
       // entirely: nothing written, dialog closed, and the row still naming
       // the address the user believed they had just deleted.
       await storage.writeOwnServerConfiguration(
-        endpoint: 'http://192.168.1.5:11434',
+        endpoint: 'https://192.168.1.5:11434',
         model: 'gemma3:4b',
       );
       await tester.pumpWidget(_app(storage));
@@ -907,7 +907,7 @@ void main() {
       expect(find.text(l10nEn.aiAssistEndpointInvalidLabel), findsOneWidget);
       expect(
         await storage.readEndpoint(provider: AiProvider.ownServer),
-        'http://192.168.1.5:11434/v1/chat/completions',
+        'https://192.168.1.5:11434/v1/chat/completions',
         reason: 'refusing must not delete it either — Remove does that',
       );
     });
@@ -923,7 +923,7 @@ void main() {
       // address too. Changing the machine you run Ollama on should not mean
       // tearing the whole setting down.
       await storage.writeEndpoint(
-        'http://192.168.1.5:11434',
+        'https://192.168.1.5:11434',
         provider: AiProvider.ownServer,
       );
       await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
@@ -932,7 +932,7 @@ void main() {
 
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-        'http://192.168.1.9:11434',
+        'https://192.168.1.9:11434',
       );
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-model-field'),
@@ -943,7 +943,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(await storage.readEndpoint(provider: AiProvider.ownServer),
-          'http://192.168.1.9:11434/v1/chat/completions');
+          'https://192.168.1.9:11434/v1/chat/completions');
       expect(
         await storage.readModel(provider: AiProvider.ownServer),
         'qwen3:8b',
@@ -961,7 +961,7 @@ void main() {
       // key — a reverse-proxied one — where the credential row appears, OK
       // disappeared with it, and the address underneath was frozen.
       await storage.writeEndpoint(
-        'http://192.168.1.5:11434',
+        'https://192.168.1.5:11434',
         provider: AiProvider.ownServer,
       );
       await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
@@ -977,14 +977,14 @@ void main() {
 
       await tester.enterText(
         find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-        'http://192.168.1.9:11434',
+        'https://192.168.1.9:11434',
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text(l10nEn.dialogOKLabel));
       await tester.pumpAndSettle();
 
       expect(await storage.readEndpoint(provider: AiProvider.ownServer),
-          'http://192.168.1.9:11434/v1/chat/completions');
+          'https://192.168.1.9:11434/v1/chat/completions');
     });
 
     testWidgets('no key stored is not reported as a key saved', (
@@ -995,7 +995,7 @@ void main() {
       // `has a key` are the same fact for the hosted three and different for
       // this one.
       await storage.writeEndpoint(
-        'http://192.168.1.5:11434',
+        'https://192.168.1.5:11434',
         provider: AiProvider.ownServer,
       );
       await tester.pumpWidget(_app(storage));
@@ -1019,7 +1019,7 @@ void main() {
       // right for a new one, wrong for the one already stored. Pausing and
       // then confirming the dialog must not undo the pause.
       await storage.writeEndpoint(
-        'http://192.168.1.5:11434',
+        'https://192.168.1.5:11434',
         provider: AiProvider.ownServer,
       );
       await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
@@ -1043,7 +1043,7 @@ void main() {
       // provider is an address and a model rather than a key. They used to
       // ride on the same flag as the masked key row.
       await storage.writeEndpoint(
-        'http://192.168.1.5:11434',
+        'https://192.168.1.5:11434',
         provider: AiProvider.ownServer,
       );
       await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
@@ -1072,7 +1072,7 @@ void main() {
       addTearDown(tester.view.reset);
 
       await storage.writeEndpoint(
-        'http://very-long-server-name.home.arpa:11434',
+        'https://very-long-server-name.home.arpa:11434',
         provider: AiProvider.ownServer,
       );
       await storage.writeModel('gemma3:4b', provider: AiProvider.ownServer);
@@ -1138,7 +1138,7 @@ void main() {
         l10nEn.aiAssistModelsUnreachableLabel(host),
         l10nEn.aiAssistModelsEmptyLabel(host),
         l10nEn.aiAssistModelsRejectedLabel(host),
-        l10nEn.aiAssistModelsInsecureLabel,
+        l10nEn.aiAssistModelsOffDevicePlaintextLabel,
       ];
 
       testWidgets('opening the dialog asks the server nothing', (tester) async {
@@ -1149,7 +1149,7 @@ void main() {
         // change the theme. #738: never on open.
         final server = _Server.listing(['gemma3:4b']);
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
@@ -1173,7 +1173,7 @@ void main() {
         // address stored behind it.
         final server = _Server.listing(['gemma3:4b']);
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
@@ -1194,11 +1194,11 @@ void main() {
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await typeEndpoint(tester, 'https://192.168.1.5:11434');
         await pressLoad(tester);
 
         expect(server.requests, [
-          Uri.parse('http://192.168.1.5:11434/v1/models'),
+          Uri.parse('https://192.168.1.5:11434/v1/models'),
         ]);
         expect(
           find.bySemanticsIdentifier('ai-assist-model-picker'),
@@ -1211,7 +1211,7 @@ void main() {
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await typeEndpoint(tester, 'https://192.168.1.5:11434');
         await pressLoad(tester);
 
         await tester.ensureVisible(find.byType(DropdownButton<String>));
@@ -1234,7 +1234,7 @@ void main() {
         );
         expect(
           await storage.readEndpoint(provider: AiProvider.ownServer),
-          'http://192.168.1.5:11434/v1/chat/completions',
+          'https://192.168.1.5:11434/v1/chat/completions',
         );
       });
 
@@ -1250,7 +1250,7 @@ void main() {
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await typeEndpoint(tester, 'https://192.168.1.5:11434');
         await pressLoad(tester);
 
         expect(
@@ -1282,7 +1282,7 @@ void main() {
         final unreachable = _Server.unreachable();
         await tester.pumpWidget(_app(storage, modelList: unreachable.api));
         await tester.pumpAndSettle();
-        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await typeEndpoint(tester, 'https://192.168.1.5:11434');
         await pressLoad(tester);
 
         expect(
@@ -1299,7 +1299,7 @@ void main() {
         final empty = _Server.listing([]);
         await tester.pumpWidget(_app(storage, modelList: empty.api));
         await tester.pumpAndSettle();
-        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await typeEndpoint(tester, 'https://192.168.1.5:11434');
         await pressLoad(tester);
 
         expect(
@@ -1324,7 +1324,7 @@ void main() {
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await typeEndpoint(tester, 'http://192.168.1.5:8080');
+        await typeEndpoint(tester, 'https://192.168.1.5:8080');
         await pressLoad(tester);
 
         expect(
@@ -1347,7 +1347,7 @@ void main() {
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await typeEndpoint(tester, 'http://192.168.1.5:11434');
+        await typeEndpoint(tester, 'https://192.168.1.5:11434');
         await pressLoad(tester);
 
         expect(
@@ -1369,7 +1369,7 @@ void main() {
         // alternating between a laptop and a desktop re-picks every time.
         final server = _Server.listing(['qwen3:8b']);
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
@@ -1378,12 +1378,12 @@ void main() {
 
         expect(server.requests, isEmpty, reason: 'nothing on open');
 
-        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await typeEndpoint(tester, 'https://192.168.1.9:11434');
         await tester.testTextInput.receiveAction(TextInputAction.done);
         await tester.pumpAndSettle();
 
         expect(server.requests, [
-          Uri.parse('http://192.168.1.9:11434/v1/models'),
+          Uri.parse('https://192.168.1.9:11434/v1/models'),
         ]);
         expect(
           tester
@@ -1413,19 +1413,19 @@ void main() {
         server.gates['192.168.1.9'] = Completer<void>();
         server.gates['192.168.1.7'] = Completer<void>();
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await commitEndpoint(tester, 'http://192.168.1.9:11434');
-        await commitEndpoint(tester, 'http://192.168.1.7:11434');
+        await commitEndpoint(tester, 'https://192.168.1.9:11434');
+        await commitEndpoint(tester, 'https://192.168.1.7:11434');
 
         expect(server.requests, [
-          Uri.parse('http://192.168.1.9:11434/v1/models'),
-          Uri.parse('http://192.168.1.7:11434/v1/models'),
+          Uri.parse('https://192.168.1.9:11434/v1/models'),
+          Uri.parse('https://192.168.1.7:11434/v1/models'),
         ]);
 
         for (final gate in server.gates.values) {
@@ -1448,15 +1448,15 @@ void main() {
         server.gates['192.168.1.9'] = Completer<void>();
         server.gates['192.168.1.7'] = Completer<void>();
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await commitEndpoint(tester, 'http://192.168.1.9:11434');
-        await commitEndpoint(tester, 'http://192.168.1.7:11434');
+        await commitEndpoint(tester, 'https://192.168.1.9:11434');
+        await commitEndpoint(tester, 'https://192.168.1.7:11434');
 
         // **The newer answer first, then the older one.** Released in the
         // order they were sent, the right list would be written last by
@@ -1494,14 +1494,14 @@ void main() {
         });
         server.gates['192.168.1.9'] = Completer<void>();
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await commitEndpoint(tester, 'http://192.168.1.9:11434');
+        await commitEndpoint(tester, 'https://192.168.1.9:11434');
 
         // **Away and back before the answer lands**, which is the case a
         // provider check alone cannot see: by the time this request returns,
@@ -1542,7 +1542,7 @@ void main() {
         // URL change, or every glance at this dialog would be a request.
         final server = _Server.listing(['gemma3:4b']);
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
@@ -1568,7 +1568,7 @@ void main() {
         // and this is neither.
         final server = _Server.listing(['gemma3:4b']);
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
@@ -1577,7 +1577,7 @@ void main() {
 
         // Changed, so the only thing standing between this and a request is
         // the dialog knowing it is closing.
-        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await typeEndpoint(tester, 'https://192.168.1.9:11434');
         await tester.tap(find.text(l10nEn.dialogCancelLabel));
         await tester.pumpAndSettle();
 
@@ -1599,21 +1599,21 @@ void main() {
         // Focus moving to the model field, which is where someone goes next.
         final server = _Server.listing(['gemma3:4b']);
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await typeEndpoint(tester, 'https://192.168.1.9:11434');
         await tester.showKeyboard(
           find.bySemanticsIdentifier('ai-assist-model-field'),
         );
         await tester.pumpAndSettle();
 
         expect(server.requests, [
-          Uri.parse('http://192.168.1.9:11434/v1/models'),
+          Uri.parse('https://192.168.1.9:11434/v1/models'),
         ]);
       });
 
@@ -1625,14 +1625,14 @@ void main() {
         // would refuse with "name the model" over a name the user just typed.
         final server = _Server.listing(['gemma3:4b']);
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 
-        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await typeEndpoint(tester, 'https://192.168.1.9:11434');
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-model-field'),
           'qwen3:8b',
@@ -1643,7 +1643,7 @@ void main() {
 
         expect(
           await storage.readEndpoint(provider: AiProvider.ownServer),
-          'http://192.168.1.9:11434/v1/chat/completions',
+          'https://192.168.1.9:11434/v1/chat/completions',
         );
         expect(
           await storage.readModel(provider: AiProvider.ownServer),
@@ -1657,7 +1657,7 @@ void main() {
         // because a dialog embedded in a body has nothing to pop.
         final server = _Server.listing(['gemma3:4b']);
         await storage.writeOwnServerConfiguration(
-          endpoint: 'http://192.168.1.5:11434',
+          endpoint: 'https://192.168.1.5:11434',
           model: 'gemma3:4b',
           provider: AiProvider.ownServer,
         );
@@ -1687,7 +1687,7 @@ void main() {
         await tester.tap(find.text('open'));
         await tester.pumpAndSettle();
 
-        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await typeEndpoint(tester, 'https://192.168.1.9:11434');
         // What Android's back gesture delivers. `pageBack` looks for a back
         // button widget, and a dialog route has none.
         await tester.binding.handlePopRoute();
@@ -1799,7 +1799,7 @@ void main() {
         /// A real host's address would read as public to the guard just the
         /// same, but it would also be someone's.
         const publicAddress = 'http://203.0.113.1:11434';
-        const privateAddress = 'http://192.168.99.99:11434';
+        const loopbackAddress = 'http://127.0.0.1:11434';
 
         /// Types **without letting the clock run**, for the same reason
         /// [commitEndpoint] does: `pumpAndSettle` ages a request held open by
@@ -1844,17 +1844,17 @@ void main() {
           await pressLoad(tester);
 
           expect(
-            find.text(l10nEn.aiAssistModelsInsecureLabel),
+            find.text(l10nEn.aiAssistModelsOffDevicePlaintextLabel),
             findsOneWidget,
             reason: 'the refusal has to be announced at all, or #758 is '
                 'undone',
           );
           expect(server.requests, isEmpty, reason: 'nothing was sent');
 
-          await typeEndpoint(tester, privateAddress);
+          await typeEndpoint(tester, loopbackAddress);
 
           expect(
-            find.text(l10nEn.aiAssistModelsInsecureLabel),
+            find.text(l10nEn.aiAssistModelsOffDevicePlaintextLabel),
             findsNothing,
             reason: 'the sentence was about an address that is no longer in '
                 'the field',
@@ -1871,7 +1871,7 @@ void main() {
           await tester.pumpWidget(_app(storage, modelList: server.api));
           await tester.pumpAndSettle();
 
-          await typeEndpoint(tester, 'http://192.168.1.5:11434');
+          await typeEndpoint(tester, 'https://192.168.1.5:11434');
           await pressLoad(tester);
 
           expect(
@@ -1879,7 +1879,7 @@ void main() {
             findsOneWidget,
           );
 
-          await typeEndpoint(tester, 'http://192.168.1.9:11434');
+          await typeEndpoint(tester, 'https://192.168.1.9:11434');
 
           expect(
             find.bySemanticsIdentifier('ai-assist-model-picker'),
@@ -1899,7 +1899,7 @@ void main() {
           // picking from it is what fills the model field.
           final server = _Server.listing(['qwen3:8b']);
           await storage.writeOwnServerConfiguration(
-            endpoint: 'http://192.168.1.5:11434',
+            endpoint: 'https://192.168.1.5:11434',
             model: 'gemma3:4b',
             provider: AiProvider.ownServer,
           );
@@ -1948,17 +1948,17 @@ void main() {
 
           await typeEndpoint(tester, publicAddress);
           await pressLoad(tester);
-          await typeEndpoint(tester, privateAddress);
+          await typeEndpoint(tester, loopbackAddress);
           await pressLoad(tester);
 
           expect(server.requests, [
-            Uri.parse('http://192.168.99.99:11434/v1/models'),
+            Uri.parse('http://127.0.0.1:11434/v1/models'),
           ]);
           expect(
             find.bySemanticsIdentifier('ai-assist-model-picker'),
             findsOneWidget,
           );
-          for (final message in messagesFor('192.168.99.99:11434')) {
+          for (final message in messagesFor('127.0.0.1:11434')) {
             expect(find.text(message), findsNothing);
           }
         });
@@ -1977,9 +1977,9 @@ void main() {
           await tester.pumpWidget(_app(storage, modelList: server.api));
           await tester.pumpAndSettle();
 
-          await typeEndpointNow(tester, 'http://192.168.1.9:11434');
+          await typeEndpointNow(tester, 'https://192.168.1.9:11434');
           await pressLoadNow(tester);
-          await typeEndpointNow(tester, 'http://192.168.1.7:11434');
+          await typeEndpointNow(tester, 'https://192.168.1.7:11434');
 
           server.gates['192.168.1.9']!.complete();
           await tester.pumpAndSettle();
@@ -2028,7 +2028,7 @@ void main() {
       /// A saved, usable server, so the section is on screen without going
       /// through the save path first.
       Future<void> configure() => storage.writeOwnServerConfiguration(
-        endpoint: 'http://192.168.1.5:11434',
+        endpoint: 'https://192.168.1.5:11434',
         model: 'gemma3:4b',
         provider: AiProvider.ownServer,
       );
@@ -2048,7 +2048,7 @@ void main() {
       Future<void> fillAndSave(WidgetTester tester) async {
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-          'http://192.168.1.5:11434',
+          'https://192.168.1.5:11434',
         );
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-model-field'),
@@ -2083,7 +2083,7 @@ void main() {
         );
         expect(
           await storage.readEndpoint(provider: AiProvider.ownServer),
-          'http://192.168.1.5:11434/v1/chat/completions',
+          'https://192.168.1.5:11434/v1/chat/completions',
         );
         expect(prober.calls, 1, reason: 'and it really did start one');
       });
@@ -2423,13 +2423,14 @@ void main() {
         // folded in here is only that a *literal* address needs no lookup to
         // judge, so the one refusal that can be shown at save time is —
         // instead of storing a configuration whose only symptom is offline
-        // parser rows forever.
+        // parser rows forever. A LAN address, because since #1050 that is
+        // refused too: plain http is for a server on this phone only.
         await tester.pumpWidget(_app(storage, probeRunner: runner));
         await tester.pumpAndSettle();
 
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-endpoint-field'),
-          'http://203.0.113.1:11434',
+          'http://192.168.1.5:11434',
         );
         await tester.enterText(
           find.bySemanticsIdentifier('ai-assist-model-field'),
@@ -2440,7 +2441,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text(l10nEn.aiAssistEndpointPublicPlaintextLabel),
+          find.text(l10nEn.aiAssistEndpointOffDevicePlaintextLabel),
           findsOneWidget,
         );
         expect(await storage.readEndpoint(provider: AiProvider.ownServer),
@@ -2448,19 +2449,18 @@ void main() {
         expect(prober.calls, 0, reason: 'nothing was configured to check');
       });
 
-      testWidgets('a private address is not refused, and https is not '
-          'either', (tester) async {
+      testWidgets('a LAN address over https is not refused', (tester) async {
         await tester.pumpWidget(_app(storage, probeRunner: runner));
         await tester.pumpAndSettle();
         await fillAndSave(tester);
 
         expect(
-          find.text(l10nEn.aiAssistEndpointPublicPlaintextLabel),
+          find.text(l10nEn.aiAssistEndpointOffDevicePlaintextLabel),
           findsNothing,
         );
         expect(
           await storage.readEndpoint(provider: AiProvider.ownServer),
-          'http://192.168.1.5:11434/v1/chat/completions',
+          'https://192.168.1.5:11434/v1/chat/completions',
         );
       });
 
@@ -2471,7 +2471,7 @@ void main() {
         // is a question with a network round trip in it. Answering it at save
         // time would make saving wait on the network, which is the one thing
         // #735 forbids — so the name is saved and refused per request if it
-        // turns out to resolve somewhere public.
+        // turns out to resolve anywhere but this phone.
         await tester.pumpWidget(_app(storage, probeRunner: runner));
         await tester.pumpAndSettle();
 
@@ -2488,7 +2488,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text(l10nEn.aiAssistEndpointPublicPlaintextLabel),
+          find.text(l10nEn.aiAssistEndpointOffDevicePlaintextLabel),
           findsNothing,
         );
         expect(

@@ -638,7 +638,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
         final endpointError = resolved == null
             ? s.aiAssistEndpointInvalidLabel
             : _refusedBeforeItLeaves(resolved)
-            ? s.aiAssistEndpointPublicPlaintextLabel
+            ? s.aiAssistEndpointOffDevicePlaintextLabel
             : null;
         final modelError = model.isEmpty ? s.aiAssistModelRequiredLabel : null;
         if (endpointError != null || modelError != null) {
@@ -776,7 +776,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   bool _refusedBeforeItLeaves(Uri resolved) {
     if (resolved.scheme != 'http') return false;
     final literal = InternetAddress.tryParse(resolved.host);
-    return literal != null && !isPrivateDestination(literal);
+    return literal != null && !isLoopbackDestination(literal);
   }
 
   String _providerName(BuildContext context, AiProvider provider) =>
@@ -891,7 +891,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                             labelText: s.aiAssistEndpointFieldLabel,
                             // A base address, which the store completes to
                             // the chat route the runtimes actually answer on.
-                            hintText: 'http://192.168.1.5:11434',
+                            // https, because plain http is refused anywhere
+                            // but this phone (#1050).
+                            hintText: 'https://192.168.1.5:11434',
                             errorText: _endpointError,
                             border: const OutlineInputBorder(),
                           ),
@@ -1128,7 +1130,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     final host = _modelListHost ?? '';
     return switch (_modelListFailure) {
       AiModelListFailure.unreachable => s.aiAssistModelsUnreachableLabel(host),
-      AiModelListFailure.insecureDestination => s.aiAssistModelsInsecureLabel,
+      AiModelListFailure.insecureDestination => s.aiAssistModelsOffDevicePlaintextLabel,
       AiModelListFailure.rejected => s.aiAssistModelsRejectedLabel(host),
       // A list did come back. Only its being empty is worth a sentence — a
       // list with entries in it speaks for itself, in the picker below.

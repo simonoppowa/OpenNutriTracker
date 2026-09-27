@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-/// Raised when a plaintext request would leave for somewhere that is not
-/// private. Carries the host, never the path or the body: this is thrown on
+/// Raised when a plaintext request would leave the phone. Carries the host, never the path or the body: this is thrown on
 /// a request that may be a photograph of somebody's dinner.
 class InsecureDestinationException implements Exception {
   final String host;
@@ -14,45 +13,24 @@ class InsecureDestinationException implements Exception {
   String toString() => 'InsecureDestinationException($host)';
 }
 
-/// Whether the app is willing to send **plaintext** to [address].
+/// Whether the app is willing to send **plaintext** to [address]: only when
+/// it is this phone itself, `127.0.0.0/8` or `::1`.
 ///
-/// Loopback, link-local, RFC 1918 and IPv6 unique-local. Deliberately not a
-/// judgement about whether an address is *reachable* or *safe* in general —
-/// only about whether an unencrypted payload sent to it stays off the public
-/// internet.
-///
-/// **Carrier-grade NAT (`100.64.0.0/10`) is not included, and that is a real
-/// exclusion rather than an oversight.** It is what Tailscale hands out, so
-/// a user reaching their own machine over a tailnet is refused plaintext and
-/// has to use `https://`. The range is shared address space, not private
-/// space: the app cannot tell a tailnet from an ISP's CGNAT, and treating
-/// every `100.x` as private would quietly permit plaintext to a carrier's
-/// network. Worth revisiting with evidence, not by assumption.
-bool isPrivateDestination(InternetAddress address) {
-  // `::1` and `127.0.0.0/8`, and `fe80::/10` and `169.254.0.0/16`. Dart
-  // already answers both correctly for both families.
-  if (address.isLoopback || address.isLinkLocal) return true;
+/// Until #1050 this also admitted link-local, RFC 1918 and IPv6 unique-local
+/// addresses, on the reasoning that a payload sent there stays off the
+/// public internet. It does not stay on the phone, though, and Play's Data
+/// safety form can only declare encryption in transit if it holds for
+/// **all** data the app transmits off the device — with no room for "unless
+/// the user typed a LAN address". Loopback never leaves the device, so it is
+/// not transmission at all, and the declaration stays true. A server
+/// elsewhere on the user's network needs `https://`.
+bool isLoopbackDestination(InternetAddress address) {
+  if (address.isLoopback) return true;
 
+  // An IPv4-mapped v6 address — `::ffff:127.0.0.1` — is a v4 destination
+  // wearing a v6 shape, and is judged by its v4 bytes.
   final raw = address.rawAddress;
-  if (address.type == InternetAddressType.IPv4) return _isPrivateV4(raw);
-
-  // An IPv4-mapped v6 address — `::ffff:192.168.1.5` — is a v4 destination
-  // wearing a v6 shape. Judging it by its v6 bytes would call a LAN address
-  // public, which is the mirror of the bug that makes this check necessary
-  // at all.
-  if (raw.length == 16 && _isV4Mapped(raw)) {
-    return _isPrivateV4(raw.sublist(12));
-  }
-
-  // `fc00::/7` — unique local. The v6 answer to RFC 1918.
-  return raw.isNotEmpty && (raw[0] & 0xFE) == 0xFC;
-}
-
-bool _isPrivateV4(List<int> raw) {
-  if (raw.length != 4) return false;
-  return raw[0] == 10 ||
-      (raw[0] == 172 && raw[1] >= 16 && raw[1] <= 31) ||
-      (raw[0] == 192 && raw[1] == 168);
+  return raw.length == 16 && _isV4Mapped(raw) && raw[12] == 127;
 }
 
 bool _isV4Mapped(List<int> raw) {
@@ -98,8 +76,8 @@ class PlaintextDestinationGuard {
   /// know the RFC to reach. `InternetAddress.tryParse` returns null on that
   /// escaped form, which sent the address down the DNS branch below, where
   /// the lookup fails and the caller is told the server is **unreachable** —
-  /// about a link-local server this check exists to *permit*, and which an
-  /// unguarded client reaches perfectly well.
+  /// when the true answer is the policy refusal, which wants a different fix
+  /// (`https://`) from an unreachable server.
   ///
   /// `dart:io` does exactly this substitution itself, in
   /// `escapeLinkLocalAddress`, before it resolves or connects. Doing it here
@@ -132,7 +110,7 @@ class PlaintextDestinationGuard {
     final literal = InternetAddress.tryParse(_withZoneUnescaped(host));
     if (literal != null) {
       // No lookup to do, and nothing to pin — the user typed the address.
-      if (isPrivateDestination(literal)) return url;
+      if (isLoopbackDestination(literal)) return url;
       throw InsecureDestinationException(host);
     }
 
@@ -147,10 +125,10 @@ class PlaintextDestinationGuard {
     }
 
     for (final address in addresses) {
-      if (!isPrivateDestination(address)) continue;
-      // The first private answer wins, whichever family it came from. A name
-      // that resolves to both a public v4 and a private v6 is reachable
-      // privately, and the app is about to prove it by connecting there.
+      if (!isLoopbackDestination(address)) continue;
+      // The first loopback answer wins, whichever family it came from. A name
+      // that resolves to both `127.0.0.1` and something else is reachable on
+      // the phone, and the app is about to prove it by connecting there.
       return url.replace(host: address.address);
     }
 
@@ -184,8 +162,8 @@ class GuardedPlaintextClient extends http.BaseClient {
 
     // Redirects are followed inside `dart:io`, below `BaseClient.send`, so a
     // hop never comes back through here and never meets [approve]. Left on,
-    // a server answering 30x with a public `http://` target would have that
-    // connection made — from a check that reported the destination private.
+    // a server answering 30x with an `http://` target off the phone would
+    // have that connection made — past a check that only saw the first hop.
     // The guard cannot vouch for a hop it never sees, so it does not let one
     // happen: a redirect is returned to the caller as the 30x it is.
     //
