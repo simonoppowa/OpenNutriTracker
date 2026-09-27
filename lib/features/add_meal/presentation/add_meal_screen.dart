@@ -376,20 +376,30 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         // either — say so instead of only offering the
                         // scan/create actions a real zero-result state gets.
                         if (productsFailed || foodFailed) {
-                          return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              PartialResultsNotice(
-                                onRetry: productsFailed
-                                    ? _onProductsRefreshButtonPressed
-                                    : _onFoodRefreshButtonPressed,
-                              ),
-                              NoResultsWidget(
-                                onScanBarcode: _onBarcodeIconPressed,
-                                onCreateCustomFood: () =>
-                                    _onCustomAddButtonPressed(imperial),
-                              ),
-                            ],
+                          // SingleChildScrollView, not a plain Column: this
+                          // sits directly inside the Expanded above, and
+                          // NoResultsWidget alone already relies on its own
+                          // internal scroll view to stay overflow-safe on a
+                          // short viewport (see the landscape overflow this
+                          // screen hit in #165). Stacking a second widget on
+                          // top of it without that same protection would
+                          // reintroduce that overflow.
+                          return SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                PartialResultsNotice(
+                                  onRetry: productsFailed
+                                      ? _onProductsRefreshButtonPressed
+                                      : _onFoodRefreshButtonPressed,
+                                ),
+                                NoResultsWidget(
+                                  onScanBarcode: _onBarcodeIconPressed,
+                                  onCreateCustomFood: () =>
+                                      _onCustomAddButtonPressed(imperial),
+                                ),
+                              ],
+                            ),
                           );
                         }
                         return NoResultsWidget(
