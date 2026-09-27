@@ -1,8 +1,8 @@
 # Releasing
 
-A release is **a merge of `develop` into `main`**, carried by a `release/*` branch — see
-[The release PR](#the-release-pr) for why it cannot be a direct `develop → main` PR. There is no
-release script, and no tag to push by hand: pushing to `main` starts the pipeline, and the pipeline does the packaging, the store
+A release is **a merge of `develop` into `main`** — directly when the two merge cleanly, through a
+`release/*` branch when they do not; [The release PR](#the-release-pr) says how to tell. There is
+no release script, and no tag to push by hand: pushing to `main` starts the pipeline, and the pipeline does the packaging, the store
 uploads and the GitHub release itself.
 
 A **hotfix merged straight to `main`** starts the same pipeline, which is why it is a legitimate
@@ -142,42 +142,83 @@ repeatable — see the caveat at the top of this section.
 
 ## The release PR
 
-A direct `develop → main` PR does not work here. Under the squash-merge flow `main` carries each
-release as a commit `develop` will never contain, so the two branches share only an old merge base
-and the PR **conflicts** — and GitHub runs no `pull_request` workflow on a conflicting PR, because
-it cannot build the PR's merge ref. The PR reports no checks at all. That is how the 2.4.0 attempt
-([#1269](https://github.com/simonoppowa/OpenNutriTracker/pull/1269)) went, and it is the silence
-the second item below exists to catch.
+**Check first whether `develop` merges into `main` cleanly.** It decides which of the two paths
+below applies, and it is cheaper than finding out from a PR:
 
-The conflicts are resolved on a release branch, never on `develop` — merging `main` into `develop`
-is what [the hotfix section](#hotfixes-and-the-way-back-to-develop) forbids.
+```bash
+git fetch origin
+git merge-tree --write-tree origin/main origin/develop >/dev/null && echo clean || echo conflicts
+```
 
-- [ ] **Run the gap check first** ([Hotfixes](#hotfixes-and-the-way-back-to-develop)). The next
-      step resolves every conflict to `develop`'s side, so a `main`-only line inside a conflicting
-      hunk would be dropped without a word. A hotfix that never came back is invisible from here on,
-      and shipping without it is the whole cost.
-- [ ] **Cut the release branch and merge `main` into it**, resolving to `develop`'s side:
+It conflicts when `main` holds a version of some lines that `develop` has since changed — a
+hotfix, a fix made separately on a release branch, or a previous release that was **squashed**
+rather than merged. A squash leaves `merge-base(main, develop)` where it was, so every hunk
+`develop` edits again after that release conflicts with `main`'s copy of it; the conflict grows
+with churn rather than appearing at once. 2.4.0 was squashed, which left the base at `2789fa9f`.
+
+A conflicting PR is worse than it looks: GitHub runs no `pull_request` workflow on one, because it
+cannot build the PR's merge ref, so the PR reports **no checks at all**
+([#1269](https://github.com/simonoppowa/OpenNutriTracker/pull/1269)). Resolve before opening it.
+
+**If it is clean:**
+
+- [ ] Open **one** `develop → main` PR. `main` takes release merges only
+      ([CONTRIBUTING.md](../CONTRIBUTING.md)).
+
+**If it conflicts**, reconcile on a release branch — never on `develop`, where merging `main` in is
+what [the hotfix section](#hotfixes-and-the-way-back-to-develop) forbids:
+
+- [ ] **Run the gap check first** ([Hotfixes](#hotfixes-and-the-way-back-to-develop)). A hotfix
+      that never came back is invisible from here on, and shipping without it is the whole cost.
+- [ ] **Cut the branch and start the merge**, without letting git resolve anything:
 
       ```bash
       git switch -c release/X.Y.Z origin/develop
-      git merge -X ours origin/main -m "Merge main into release/X.Y.Z"
-      git diff --stat origin/develop HEAD    # must print nothing
+      git merge --no-commit origin/main
+      git diff --name-only --diff-filter=U        # the conflicted files
       ```
 
-      An empty diff proves the merge brought nothing down and only gave `main` an ancestry link.
-      If it prints anything, a non-conflicting `main`-only change merged in — stop and find out why
-      the gap check missed it. `5a582111` (2.3.0) and `31165d48` (2.4.0) are the precedent.
-- [ ] Push it and open **one** `release/X.Y.Z → main` PR. `main` takes release merges only
-      ([CONTRIBUTING.md](../CONTRIBUTING.md)).
+      For a build-only release (`2.2.0+63` → `2.2.0+64`) the name is already taken, because
+      release branches are kept: use `release/X.Y.Z-N`, with the new build number.
+- [ ] **Look at each conflicted file before resolving it.** Read what `main` did to it since the
+      merge base — deletions as well as additions:
+
+      ```bash
+      git diff "$(git merge-base origin/main origin/develop)" origin/main -- <file>
+      ```
+
+      If all of it is already on `develop` — the previous release's own content, or a fix made on
+      both branches — take `develop`'s side with `git checkout --ours -- <file> && git add <file>`.
+      If any of it is not, it is a hotfix gap: stop and bring it back first. **Do not reach for
+      `git merge -X ours`.** It resolves every conflicted hunk without a look, and a hotfix that
+      only *deletes* lines never shows up in the gap check, which counts `+` lines — so it would
+      vanish, and the check below would still pass.
+- [ ] **Commit, and prove nothing came down:**
+
+      ```bash
+      git commit -m "Merge main into release/X.Y.Z"
+      git diff --stat origin/develop HEAD         # must print nothing
+      ```
+
+      Empty means the merge only gave `main` an ancestry link. If it prints anything, a
+      non-conflicting `main`-only change merged in: find out why the gap check missed it.
+      `5a582111` (2.3.0) and `31165d48` (2.4.0) are the precedent.
+- [ ] Push it and open **one** `release/X.Y.Z → main` PR. Keep the branch afterwards —
+      `release/2.2.0`, `release/2.3.0` and `release/2.4.0` all still exist.
+
+**Either way:**
+
 - [ ] Confirm the checks are **registered**, not just absent. A PR that gets no checks still reports
       mergeable, and silence looks exactly like success. A conflict is the usual cause.
 - [ ] **Merge with "Create a merge commit" — never squash.** All three buttons are enabled and
-      squash is the habit. A squash leaves `merge-base(main, develop)` where it was, so the next
-      release conflicts across everything again; a merge commit moves it forward. Check afterwards:
-      `git log -1 --format=%P origin/main` should print two parents. 2.4.0 was squashed, which is
-      why its base is still `2789fa9f` from September 7.
-- [ ] From here the pipeline runs; do not tag by hand. Keep the release branch — `release/2.2.0`,
-      `release/2.3.0` and `release/2.4.0` all still exist.
+      squash is the habit. A merge commit moves the merge base up to this release, which is what
+      lets the next release take the clean path; a squash leaves it behind. Check afterwards —
+      GitHub merged it, so fetch first, or the local ref still shows the pre-merge commit:
+
+      ```bash
+      git fetch origin main && git log -1 --format=%P origin/main    # two parents
+      ```
+- [ ] From here the pipeline runs; do not tag by hand.
 
 ## After the pipeline finishes
 
