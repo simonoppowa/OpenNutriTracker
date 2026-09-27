@@ -142,7 +142,27 @@ repeatable — see the caveat at the top of this section.
 
 ## The release PR
 
-**Check first whether `develop` merges into `main` cleanly.** It decides which of the two paths
+- [ ] **Run the gap check** ([Hotfixes](#hotfixes-and-the-way-back-to-develop)) — on both paths
+      below. A hotfix that never came back is invisible from here on, and shipping without it is
+      the whole cost. The clean path needs it as much as the other: a missed hotfix on lines
+      `develop` never touched merges without a conflict, survives on `main`, and still never
+      reaches `develop`, where later work can undo it.
+
+      That section's loop counts `+` lines only, so it cannot see a hotfix that only *deletes*.
+      Also list the files `main` has changed since the merge base that still differ from
+      `develop` — deletions included, and without the noise of a squashed release, whose content
+      `develop` already has:
+
+      ```bash
+      base=$(git merge-base origin/main origin/develop)
+      git diff --name-only "$base" origin/main | while read -r f; do
+        git diff --quiet origin/develop origin/main -- "$f" || echo "$f"
+      done
+      ```
+
+      Every file it prints needs a reason. After 2.4.0 it printed none.
+
+**Then check whether `develop` merges into `main` cleanly.** It decides which of the two paths
 below applies, and it is cheaper than finding out from a PR:
 
 ```bash
@@ -168,8 +188,6 @@ cannot build the PR's merge ref, so the PR reports **no checks at all**
 **If it conflicts**, reconcile on a release branch — never on `develop`, where merging `main` in is
 what [the hotfix section](#hotfixes-and-the-way-back-to-develop) forbids:
 
-- [ ] **Run the gap check first** ([Hotfixes](#hotfixes-and-the-way-back-to-develop)). A hotfix
-      that never came back is invisible from here on, and shipping without it is the whole cost.
 - [ ] **Cut the branch and start the merge**, without letting git resolve anything:
 
       ```bash
@@ -187,9 +205,17 @@ what [the hotfix section](#hotfixes-and-the-way-back-to-develop) forbids:
       git diff "$(git merge-base origin/main origin/develop)" origin/main -- <file>
       ```
 
-      If all of it is already on `develop` — the previous release's own content, or a fix made on
-      both branches — take `develop`'s side with `git checkout --ours -- <file> && git add <file>`.
-      If any of it is not, it is a hotfix gap: stop and bring it back first. **Do not reach for
+      If any of it is not already on `develop`, it is a hotfix gap: stop and bring it back first.
+      If all of it is — the previous release's own content, or a fix made on both branches — take
+      `develop`'s side, which depends on the kind of conflict `git status --short` shows:
+
+      | Status | What happened | Take `develop`'s side with |
+      | :-- | :-- | :-- |
+      | `UU`, `AA`, `UD` | both edited it; or `main` deleted it | `git checkout --ours -- <file> && git add <file>` |
+      | `DU` | `develop` deleted it, `main` changed it | `git rm -- <file>` — there is no "ours" to check out |
+
+      A `DU` deserves the closest look: `main`'s change to a file `develop` has deleted is exactly
+      where a hotfix goes missing, and if it is one, the fix needs a new home on `develop`. **Do not reach for
       `git merge -X ours`.** It resolves every conflicted hunk without a look, and a hotfix that
       only *deletes* lines never shows up in the gap check, which counts `+` lines — so it would
       vanish, and the check below would still pass.
