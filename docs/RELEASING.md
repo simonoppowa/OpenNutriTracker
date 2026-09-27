@@ -128,6 +128,12 @@ repeatable — see the caveat at the top of this section.
       directory also holds a stale `12.txt` from the F-Droid era; ignore that one. The pipeline does
       **not** upload it (`skip_upload_metadata: true`), so this file is the record, and the text
       still has to be pasted into the consoles by hand.
+
+      **Keep it within 500 characters** — characters, not words. Play refuses anything longer, but
+      only when the text is pasted, so `test/unit_test/store_declarations_test.dart` checks every
+      file in the directory and fails `linux-checks` first. It measures after `trimRight()`, so a
+      trailing newline is free and a leading one is not. `63.txt` was once 628 characters and would
+      have been refused; `66.txt` came in at 795 on its first draft. For scale, `65.txt` is 497.
 - [ ] **Check the Play data-safety declaration still matches what the app does.** Any release that
       adds or changes a network destination changes this answer. It is the one item here whose
       failure mode is the app being pulled rather than a bad release.
@@ -341,9 +347,18 @@ skipped — which is exactly why they get skipped.
 Store credentials, signing keys and the Play service account live in repository secrets and are
 consumed by the workflow; none of them need touching for an ordinary release.
 
-`main` and `develop` carry slightly different workflow sets, and the difference runs the other way
-than you might expect: `develop` has `ios-integration-attempt.yml`, which `main` does not. Both
-carry `default_workflow.yml`, `add-issues-to-projects.yml` and `policy-snapshot.yml`.
+`main` and `develop` carry the same six workflow files — `default_workflow.yml`,
+`add-issues-to-projects.yml`, `ios-integration-attempt.yml`, `merge-weblate-prs.yml`,
+`play-screenshots.yml` and `policy-snapshot.yml` — and as of 2.4.0 all six are byte-identical.
+Between releases they drift: `default_workflow.yml` was newer on `develop` until 2.4.0 landed.
+When they differ, check which side is ahead before calling it a gap. `develop`-ahead is ordinary
+work waiting for the next release; `main`-ahead is exactly what a workflow hotfix leaves behind
+([#1226](https://github.com/simonoppowa/OpenNutriTracker/pull/1226)) and needs its
+[way back to `develop`](#hotfixes-and-the-way-back-to-develop).
+
+```bash
+git diff --stat origin/main origin/develop -- .github/workflows/
+```
 
 There is no site-publishing or signing-fingerprint workflow any more. `deploy-site.yml`,
 `update-release-fingerprint.yml` and the whole `docs/site/` tree were removed with the project
