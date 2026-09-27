@@ -142,11 +142,12 @@ repeatable — see the caveat at the top of this section.
 
 ## The release PR
 
-- [ ] **Run the gap check** ([Hotfixes](#hotfixes-and-the-way-back-to-develop)) — on both paths
-      below. A hotfix that never came back is invisible from here on, and shipping without it is
-      the whole cost. The clean path needs it as much as the other: a missed hotfix on lines
-      `develop` never touched merges without a conflict, survives on `main`, and still never
-      reaches `develop`, where later work can undo it.
+- [ ] **Fetch, then run the gap check** ([Hotfixes](#hotfixes-and-the-way-back-to-develop)) — on
+      both paths below. Fetch first (`git fetch origin`): with stale refs a recent hotfix is simply
+      not there to find. A hotfix that never came back is invisible from here on, and shipping
+      without it is the whole cost. The clean path needs it as much as the other: a missed hotfix
+      on lines `develop` never touched merges without a conflict, survives on `main`, and still
+      never reaches `develop`, where later work can undo it.
 
       That section's loop counts `+` lines only, so it cannot see a hotfix that only *deletes*.
       Also list the files `main` has changed since the merge base that still differ from
@@ -162,11 +163,20 @@ repeatable — see the caveat at the top of this section.
 
       Every file it prints needs a reason. After 2.4.0 it printed none.
 
+      Both listings compare *paths*, so a file `develop` has renamed escapes them: a hotfix that
+      deleted it on `main` leaves the old path absent from both tips. List the files `main`
+      changed that `develop` has since renamed, and read each by hand:
+
+      ```bash
+      export LC_ALL=C
+      comm -12 <(git diff --name-only "$base" origin/main | sort) \
+               <(git diff --name-status -M "$base" origin/develop | awk '$1 ~ /^R/ {print $2}' | sort)
+      ```
+
 **Then check whether `develop` merges into `main` cleanly.** It decides which of the two paths
 below applies, and it is cheaper than finding out from a PR:
 
 ```bash
-git fetch origin
 git merge-tree --write-tree origin/main origin/develop >/dev/null && echo clean || echo conflicts
 ```
 
@@ -213,6 +223,10 @@ what [the hotfix section](#hotfixes-and-the-way-back-to-develop) forbids:
       | :-- | :-- | :-- |
       | `UU`, `AA`, `UD` | both edited it; or `main` deleted it | `git checkout --ours -- <file> && git add <file>` |
       | `DU` | `develop` deleted it, `main` changed it | `git rm -- <file>` — there is no "ours" to check out |
+      | anything else — `AU`, `UA`, `DD`, or a conflict on a file the rename check above listed | a rename is involved | resolve by hand: follow it with `git log --follow -- <path>` and read both sides |
+
+      The table covers the common cases; it is not a merge algorithm. When a conflict does not fit
+      it, or its history cannot be read at a glance, stop and resolve it by hand.
 
       A `DU` deserves the closest look: `main`'s change to a file `develop` has deleted is exactly
       where a hotfix goes missing, and if it is one, the fix needs a new home on `develop`. **Do not reach for
