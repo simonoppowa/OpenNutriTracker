@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_sea
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/partial_results_notice.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
@@ -160,6 +161,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   void _onFoodRefreshButtonPressed() {
     _foodBloc.add(const RefreshFoodEvent());
+  }
+
+  void _onAllSourcesRefreshButtonPressed() {
+    _onProductsRefreshButtonPressed();
+    _onFoodRefreshButtonPressed();
   }
 
   void _onRecentMealsRefreshButtonPressed() {
@@ -333,12 +339,15 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       // before rendering the merged list — showing whichever
                       // lands first would make results pop in and shift when
                       // the second source arrives. A failed source counts as
-                      // answered, so one outage doesn't block the other's
-                      // results.
+                      // answered so one outage doesn't block the other's
+                      // results, but it is tracked separately from a genuine
+                      // zero-result answer so the two never look the same.
                       if (_productsPending(ps, query) ||
                           _foodPending(fs, query)) {
                         return _pendingSpinner;
                       }
+                      final productsFailed = ps is ProductsFailedState;
+                      final foodFailed = fs is FoodFailedState;
                       final products = ps is ProductsLoadedState
                           ? ps.products
                           : const <MealEntity>[];
@@ -355,20 +364,60 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         if (ps is ProductsInitial && fs is FoodInitial) {
                           return const DefaultsResultsWidget();
                         }
+                        if (productsFailed && foodFailed) {
+                          return ErrorDialog(
+                            errorText: S.of(context).errorFetchingSearchResults,
+                            onRefreshPressed: _onAllSourcesRefreshButtonPressed,
+                          );
+                        }
+                        // Exactly one source failed: the other genuinely has
+                        // zero matches, so this is not a hard error, but it
+                        // is not a confirmed "no results" from both sources
+                        // either — say so instead of only offering the
+                        // scan/create actions a real zero-result state gets.
+                        if (productsFailed || foodFailed) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PartialResultsNotice(
+                                onRetry: productsFailed
+                                    ? _onProductsRefreshButtonPressed
+                                    : _onFoodRefreshButtonPressed,
+                              ),
+                              NoResultsWidget(
+                                onScanBarcode: _onBarcodeIconPressed,
+                                onCreateCustomFood: () =>
+                                    _onCustomAddButtonPressed(imperial),
+                              ),
+                            ],
+                          );
+                        }
                         return NoResultsWidget(
                           onScanBarcode: _onBarcodeIconPressed,
                           onCreateCustomFood: () =>
                               _onCustomAddButtonPressed(imperial),
                         );
                       }
-                      return ListView.builder(
-                        itemCount: merged.length,
-                        itemBuilder: (context, index) => MealItemCard(
-                          day: _day,
-                          mealEntity: merged[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: imperial,
-                        ),
+                      return Column(
+                        children: [
+                          if (productsFailed || foodFailed)
+                            PartialResultsNotice(
+                              onRetry: productsFailed
+                                  ? _onProductsRefreshButtonPressed
+                                  : _onFoodRefreshButtonPressed,
+                            ),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: merged.length,
+                              itemBuilder: (context, index) => MealItemCard(
+                                day: _day,
+                                mealEntity: merged[index],
+                                addMealType: _mealType,
+                                usesImperialUnits: imperial,
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   );
