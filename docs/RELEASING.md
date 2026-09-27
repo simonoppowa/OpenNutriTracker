@@ -380,14 +380,17 @@ consumed by the workflow; none of them need touching for an ordinary release.
 `add-issues-to-projects.yml`, `ios-integration-attempt.yml`, `merge-weblate-prs.yml`,
 `play-screenshots.yml` and `policy-snapshot.yml` — and as of 2.4.0 all six are byte-identical.
 Between releases they drift: `default_workflow.yml` was newer on `develop` until 2.4.0 landed.
-When they differ, check which side is ahead before calling it a gap. `develop`-ahead is ordinary
-work waiting for the next release; `main`-ahead is exactly what a workflow hotfix leaves behind
-([#1226](https://github.com/simonoppowa/OpenNutriTracker/pull/1226)) and needs its
-[way back to `develop`](#hotfixes-and-the-way-back-to-develop).
+When they differ, do not decide from the file list — a changed file says nothing about which side
+moved. Read the patch the way [the hotfix section](#hotfixes-and-the-way-back-to-develop) reads
+everything else, oriented so that a `+` line is one `main` has and `develop` does not:
 
 ```bash
-git diff --stat origin/main origin/develop -- .github/workflows/
+git diff origin/develop origin/main -- .github/workflows/
 ```
+
+A `+` line is a gap only if `develop` has no newer version of it. Most will be `develop` having
+moved on since the last release. One that is not is exactly what a workflow hotfix leaves behind
+([#1226](https://github.com/simonoppowa/OpenNutriTracker/pull/1226)), and it needs its way back.
 
 There is no site-publishing or signing-fingerprint workflow any more. `deploy-site.yml`,
 `update-release-fingerprint.yml` and the whole `docs/site/` tree were removed with the project
