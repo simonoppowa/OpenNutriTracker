@@ -303,11 +303,25 @@ class SharedRecipePayload {
     return base64Url.encode(gzip.encode(utf8.encode(json)));
   }
 
+  /// Whether the sender typed the total weight in rather than leaving it as
+  /// the ingredient sum. The wire format has no flag for that (#1194), so it
+  /// is read off the numbers: an untouched total *is* the ingredient sum, up
+  /// to the 0.05 g that [_compact]'s one-decimal rounding can move each of
+  /// those values. Anything further apart was entered by hand, and saving
+  /// without saying so would replace it with the sum.
+  bool get totalWeightOverridden {
+    final ingredientSumG =
+        ingredients.fold<double>(0, (sum, i) => sum + i.convertedAmountG);
+    final roundingSlackG = 0.05 * (ingredients.length + 1);
+    return (totalWeightG - ingredientSumG).abs() > roundingSlackG;
+  }
+
   /// Builds a fresh RecipeEntity from this payload. Caller is responsible
   /// for persisting via SaveRecipeUseCase, which re-aggregates nutrition
   /// from the ingredients (the aggregated values in the payload are
   /// transmitted for display purposes during the import-confirm step but
-  /// are recomputed on save).
+  /// are recomputed on save) — passing [totalWeightOverridden], or a
+  /// hand-entered total weight is recomputed away too.
   RecipeEntity toRecipeEntity() {
     final now = DateTime.now();
     return RecipeEntity(
