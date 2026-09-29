@@ -531,7 +531,9 @@ Future<void> initLocator() async {
 
   // Recipe use cases
   locator.registerLazySingleton(() => ComputeRecipeNutritionUseCase());
-  locator.registerLazySingleton(() => SaveRecipeUseCase(locator(), locator()));
+  locator.registerLazySingleton(
+    () => SaveRecipeUseCase(locator(), locator(), locator(), locator()),
+  );
   locator.registerLazySingleton(() => GetAllRecipesUseCase(locator()));
   locator.registerLazySingleton(() => GetRecipeByIdUseCase(locator()));
   locator.registerLazySingleton(() => DeleteRecipeUseCase(locator()));
