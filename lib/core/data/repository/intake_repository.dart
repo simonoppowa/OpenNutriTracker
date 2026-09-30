@@ -85,10 +85,33 @@ class IntakeRepository {
       toMeal: toMeal,
     );
     return rewrites
-        .map((pair) => (
-              IntakeEntity.fromIntakeDBO(pair.$1),
-              IntakeEntity.fromIntakeDBO(pair.$2),
-            ))
+        .map(
+          (pair) => (
+            IntakeEntity.fromIntakeDBO(pair.$1),
+            IntakeEntity.fromIntakeDBO(pair.$2),
+          ),
+        )
+        .toList();
+  }
+
+  /// Rewrites every recipe-sourced intake whose meal.code matches
+  /// [recipeId] to snapshot [toMeal]. Returns before/after pairs for
+  /// TrackedDay reconciliation.
+  Future<List<(IntakeEntity, IntakeEntity)>> remapRecipeOnIntakes({
+    required String recipeId,
+    required MealDBO toMeal,
+  }) async {
+    final rewrites = await _intakeDataSource.remapRecipeOnIntakes(
+      recipeId: recipeId,
+      toMeal: toMeal,
+    );
+    return rewrites
+        .map(
+          (pair) => (
+            IntakeEntity.fromIntakeDBO(pair.$1),
+            IntakeEntity.fromIntakeDBO(pair.$2),
+          ),
+        )
         .toList();
   }
 }

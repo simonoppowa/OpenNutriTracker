@@ -137,9 +137,12 @@ ExportImportBloc _bloc({
   final recipeRepository = RecipeRepository(RecipeDataSource(_provider));
   final customMealDataSource = CustomMealDataSource(_provider);
   final configRepository = ConfigRepository(ConfigDataSource(_provider));
+  final addTrackedDayUsecase = AddTrackedDayUsecase(trackedDayRepository);
   final saveRecipeUseCase = SaveRecipeUseCase(
     recipeRepository,
     ComputeRecipeNutritionUseCase(),
+    intakeRepository,
+    addTrackedDayUsecase,
   );
 
   return ExportImportBloc(

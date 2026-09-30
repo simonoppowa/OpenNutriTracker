@@ -3,8 +3,12 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
@@ -28,9 +32,25 @@ class _FakeRecipeRepository implements RecipeRepository {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
+class _NoOpIntakeRepository implements IntakeRepository {
+  @override
+  Future<List<(IntakeEntity, IntakeEntity)>> remapRecipeOnIntakes({
+    required String recipeId,
+    required MealDBO toMeal,
+  }) async => [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future.value([]);
+}
+
+class _NoOpAddTrackedDayUsecase implements AddTrackedDayUsecase {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future.value();
+}
+
 base class _StubPlatformFile extends PlatformFile {
   _StubPlatformFile({required this.name, required String path})
-      : uri = Uri.file(path);
+    : uri = Uri.file(path);
 
   @override
   final String name;
@@ -60,10 +80,8 @@ base class _StubPlatformFile extends PlatformFile {
 }
 
 Future<PlatformFile?> Function() _pickerReturning(File file) {
-  return () async => _StubPlatformFile(
-        name: file.uri.pathSegments.last,
-        path: file.path,
-      );
+  return () async =>
+      _StubPlatformFile(name: file.uri.pathSegments.last, path: file.path);
 }
 
 ImportRecipesJsonUsecase _buildUsecase(
@@ -71,7 +89,12 @@ ImportRecipesJsonUsecase _buildUsecase(
   File pickedFile,
 ) {
   return ImportRecipesJsonUsecase(
-    SaveRecipeUseCase(repo, ComputeRecipeNutritionUseCase()),
+    SaveRecipeUseCase(
+      repo,
+      ComputeRecipeNutritionUseCase(),
+      _NoOpIntakeRepository(),
+      _NoOpAddTrackedDayUsecase(),
+    ),
     pickFile: _pickerReturning(pickedFile),
   );
 }
@@ -112,7 +135,10 @@ void main() {
         expect(repo.saved, hasLength(1));
         final saved = repo.saved.single;
         expect(saved.totalWeightG, 300);
-        expect(saved.aggregatedNutrimentsPer100.energyKcal100, closeTo(132, 1e-9));
+        expect(
+          saved.aggregatedNutrimentsPer100.energyKcal100,
+          closeTo(132, 1e-9),
+        );
       },
     );
 
@@ -142,7 +168,12 @@ void main() {
     test('returns null when the picker is cancelled', () async {
       final repo = _FakeRecipeRepository();
       final usecase = ImportRecipesJsonUsecase(
-        SaveRecipeUseCase(repo, ComputeRecipeNutritionUseCase()),
+        SaveRecipeUseCase(
+          repo,
+          ComputeRecipeNutritionUseCase(),
+          _NoOpIntakeRepository(),
+          _NoOpAddTrackedDayUsecase(),
+        ),
         pickFile: () async => null,
       );
 
@@ -167,8 +198,10 @@ void main() {
 
       expect(result!.imported, 0);
       expect(result.skippedRecipes, 1);
-      expect(result.errorMessages.single,
-          contains('"totalWeight" must be a positive finite number'));
+      expect(
+        result.errorMessages.single,
+        contains('"totalWeight" must be a positive finite number'),
+      );
       expect(repo.saved, isEmpty);
     });
   });

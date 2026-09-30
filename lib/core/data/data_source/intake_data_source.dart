@@ -27,8 +27,9 @@ class IntakeDataSource {
 
   Future<void> deleteIntakeFromId(String intakeId) async {
     log.fine('Deleting intake item from db');
-    final toDelete =
-        _intakeBox.values.where((dbo) => dbo.id == intakeId).toList();
+    final toDelete = _intakeBox.values
+        .where((dbo) => dbo.id == intakeId)
+        .toList();
     for (final element in toDelete) {
       await element.delete();
     }
@@ -110,13 +111,19 @@ class IntakeDataSource {
         .toList();
 
     // Surface custom meals before remote-sourced results.
-    final custom = uniqueIntake.where((i) => i.meal.source == MealSourceDBO.custom).toList();
-    final others = uniqueIntake.where((i) => i.meal.source != MealSourceDBO.custom).toList();
+    final custom = uniqueIntake
+        .where((i) => i.meal.source == MealSourceDBO.custom)
+        .toList();
+    final others = uniqueIntake
+        .where((i) => i.meal.source != MealSourceDBO.custom)
+        .toList();
     return [...custom, ...others].take(number).toList();
   }
 
   Future<List<IntakeDBO>> getCustomMealIntakes() async {
-    return _intakeBox.values.where((dbo) => dbo.meal.source == MealSourceDBO.custom).toList();
+    return _intakeBox.values
+        .where((dbo) => dbo.meal.source == MealSourceDBO.custom)
+        .toList();
   }
 
   /// Replace the denormalised [MealDBO] snapshot on every intake whose
@@ -131,13 +138,39 @@ class IntakeDataSource {
     required String fromMealKey,
     required MealDBO toMeal,
   }) async {
+    return _remapIntakeSnapshots(
+      fromKey: fromMealKey,
+      toMeal: toMeal,
+      sourceFilter: MealSourceDBO.custom,
+    );
+  }
+
+  /// Same as [remapCustomMealOnIntakes] but for recipe-sourced intakes.
+  /// Called when a saved recipe is edited so that "Recently added" and
+  /// past diary entries reflect the updated name, nutrition and serving.
+  Future<List<(IntakeDBO, IntakeDBO)>> remapRecipeOnIntakes({
+    required String recipeId,
+    required MealDBO toMeal,
+  }) async {
+    return _remapIntakeSnapshots(
+      fromKey: recipeId,
+      toMeal: toMeal,
+      sourceFilter: MealSourceDBO.recipe,
+    );
+  }
+
+  Future<List<(IntakeDBO, IntakeDBO)>> _remapIntakeSnapshots({
+    required String fromKey,
+    required MealDBO toMeal,
+    required MealSourceDBO sourceFilter,
+  }) async {
     final rewrites = <(IntakeDBO, IntakeDBO)>[];
     final entries = _intakeBox.toMap().entries.toList();
     for (final entry in entries) {
       final dbo = entry.value;
-      if (dbo.meal.source != MealSourceDBO.custom) continue;
+      if (dbo.meal.source != sourceFilter) continue;
       final key = dbo.meal.code ?? dbo.meal.name;
-      if (key != fromMealKey) continue;
+      if (key != fromKey) continue;
       final updated = IntakeDBO(
         id: dbo.id,
         unit: dbo.unit,

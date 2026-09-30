@@ -2,6 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -18,6 +22,22 @@ class _FakeRecipeRepository implements RecipeRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+class _NoOpIntakeRepository implements IntakeRepository {
+  @override
+  Future<List<(IntakeEntity, IntakeEntity)>> remapRecipeOnIntakes({
+    required String recipeId,
+    required MealDBO toMeal,
+  }) async => [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future.value([]);
+}
+
+class _NoOpAddTrackedDayUsecase implements AddTrackedDayUsecase {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future.value();
 }
 
 MealEntity _meal(String code, {double kcal = 100}) {
@@ -52,7 +72,9 @@ void main() {
   setUp(() {
     compute = ComputeRecipeNutritionUseCase();
     repo = _FakeRecipeRepository();
-    save = SaveRecipeUseCase(repo, compute);
+    save = SaveRecipeUseCase(
+      repo, compute, _NoOpIntakeRepository(), _NoOpAddTrackedDayUsecase(),
+    );
     bloc = RecipeBuilderBloc(compute, save);
   });
 
