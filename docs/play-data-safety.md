@@ -117,6 +117,12 @@ and `READ_TOTAL_CALORIES_BURNED`. The **Health apps declaration** (Play Console
 → App content) has to be brought in line with that in the same pass — it was
 last edited before any health permission existed in the app.
 
+Weight import added `READ_WEIGHT`. It is its own switch in Settings → Health
+sync with its own in-app disclosure, and the reading lands in the on-device
+weight log, so the "not collected" reasoning above is unchanged — but the
+Health apps declaration has to list it before a build that declares it is
+submitted.
+
 ## Still open, needing a decision rather than a lookup
 
 - **Approximate location.** It is declared as collected. Whatever justified it

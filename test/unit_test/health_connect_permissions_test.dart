@@ -152,6 +152,11 @@ void main() {
       expect(declared, contains('READ_TOTAL_CALORIES_BURNED'));
     });
 
+    test('weight is declared', () {
+      // The weight import files body weight readings in the weight log.
+      expect(declared, contains('READ_WEIGHT'));
+    });
+
     test('the three permissions Play refused are not declared', () {
       expect(
         declared.intersection({
@@ -168,13 +173,13 @@ void main() {
       );
     });
 
-    test('no health permission is declared beyond those two', () {
+    test('no health permission is declared beyond those three', () {
       // Catches a new read added here without the declaration form being
       // updated to match. A plugin merging one in never reaches this set —
       // that is the separate plugin test below.
       expect(
         declared,
-        {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
+        {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED', 'READ_WEIGHT'},
         reason:
             'Every declared Health Connect permission has to be justified by '
             'a feature in the Play Console declaration form. Adding one here '
@@ -245,7 +250,7 @@ void main() {
         .where((file) => file.path.endsWith('AndroidManifest.xml'))
         .toList();
 
-    test('declares those two health permissions and no others', () {
+    test('declares those three health permissions and no others', () {
       // Not a failure: the Android build is not a precondition for the unit
       // suite, and `linux-checks` never runs one. Silence would be, though —
       // a skipped guard that reads as a passing one is the failure mode this
@@ -266,7 +271,7 @@ void main() {
         // actually shipped is the last place to be picky about spelling.
         expect(
           healthIn(mergedManifest.readAsStringSync()).kept,
-          {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
+          {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED', 'READ_WEIGHT'},
           reason:
               '${mergedManifest.path} ships a health permission set the '
               'repo did not declare, and one the plugin check did not '
