@@ -184,4 +184,26 @@ void main() {
       );
     });
   });
+
+  group('WeightHistoryScreen entry tiles', () {
+    testWidgets('marks an imported entry, and only that one', (tester) async {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final entries = [
+        WeightLogEntity(date: today, weightKg: 71.0, externalId: 'hc-1'),
+        WeightLogEntity(
+          date: today.subtract(const Duration(days: 1)),
+          weightKg: 71.5,
+        ),
+      ];
+
+      await tester.pumpWidget(_wrap(_buildScreen(entries)));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('Imported from Health Connect'),
+        findsOneWidget,
+      );
+    });
+  });
 }

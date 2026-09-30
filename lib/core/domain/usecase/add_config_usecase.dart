@@ -146,6 +146,10 @@ class AddConfigUsecase {
     await _configRepository.setConfigHealthImportEnabled(enabled);
   }
 
+  Future<void> setConfigHealthWeightImportEnabled(bool enabled) async {
+    await _configRepository.setConfigHealthWeightImportEnabled(enabled);
+  }
+
   Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
     await _configRepository.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }

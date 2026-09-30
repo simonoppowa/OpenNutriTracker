@@ -109,6 +109,16 @@ class ConfigEntity extends Equatable {
   /// [healthImportBackfillDays] on the first run).
   final DateTime? healthLastImportAt;
 
+  /// Whether body weight readings are imported from Health Connect / Apple
+  /// Health into the weight log. Off until the user opts in, independently of
+  /// [healthImportEnabled].
+  final bool healthWeightImportEnabled;
+
+  /// End of the window covered by the last successful weight import, or null
+  /// if weight has never been imported (which backfills
+  /// [healthImportBackfillDays] on the first run).
+  final DateTime? healthWeightLastImportAt;
+
   /// External record ids of imported workouts the user deleted, mapped to the
   /// workout's own start time. The importer skips them, so a deletion sticks
   /// instead of being undone by the next overlapping read. Empty when nothing
@@ -266,6 +276,8 @@ class ConfigEntity extends Equatable {
     this.healthImportEnabled = false,
     this.healthWorkoutKcalMultiplier,
     this.healthLastImportAt,
+    this.healthWeightImportEnabled = false,
+    this.healthWeightLastImportAt,
     this.healthDeletedWorkouts = const <String, DateTime>{},
     this.legacyHealthDeletedExternalIds = const <String>{},
     this.policyNoticeRevisionSeen = 0,
@@ -384,6 +396,8 @@ class ConfigEntity extends Equatable {
       dbo.healthWorkoutKcalMultiplier,
     ),
     healthLastImportAt: dbo.healthLastImportAt,
+    healthWeightImportEnabled: dbo.healthWeightImportEnabled ?? false,
+    healthWeightLastImportAt: dbo.healthWeightLastImportAt,
     policyNoticeRevisionSeen: dbo.policyNoticeRevisionSeen ?? 0,
     healthDeletedWorkouts: dbo.healthDeletedWorkouts != null
         ? Map<String, DateTime>.from(dbo.healthDeletedWorkouts!)
@@ -493,6 +507,8 @@ class ConfigEntity extends Equatable {
     healthImportEnabled,
     healthWorkoutKcalMultiplier,
     healthLastImportAt,
+    healthWeightImportEnabled,
+    healthWeightLastImportAt,
     healthDeletedWorkouts,
     legacyHealthDeletedExternalIds,
     policyNoticeRevisionSeen,

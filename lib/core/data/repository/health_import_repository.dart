@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/data_source/health/external_weight.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 
@@ -24,4 +25,12 @@ class HealthImportRepository {
 
   Future<double?> getLatestBodyFatPercent() async =>
       await _healthService.readLatestBodyFatPercent();
+
+  Future<bool> requestWeightPermissions() async =>
+      await _healthService.requestWeightPermissions();
+
+  Future<List<ExternalWeight>> getWeights({
+    required DateTime from,
+    required DateTime to,
+  }) async => await _healthService.readWeights(from: from, to: to);
 }

@@ -21,8 +21,17 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// sentences into Apple's prompt, so this is not required there, but a
 /// disclosure that appeared on one platform and not the other would be a
 /// strange thing to explain and a worse thing to maintain.
+///
+/// Workout import and weight import are separate opt-ins that ask the platform
+/// for separate permissions, so each gets its own disclosure naming only what
+/// that switch reads ([subject]).
 class HealthDisclosureDialog extends StatelessWidget {
-  const HealthDisclosureDialog({super.key});
+  final HealthDisclosureSubject subject;
+
+  const HealthDisclosureDialog({
+    super.key,
+    this.subject = HealthDisclosureSubject.workouts,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +42,14 @@ class HealthDisclosureDialog extends StatelessWidget {
       // short viewport, so the whole thing scrolls rather than just the
       // content (see PolicyChangeDialog, which had exactly this bug).
       scrollable: true,
-      title: Text(s.healthSyncDisclosureTitle(healthPlatformName)),
+      title: Text(switch (subject) {
+        HealthDisclosureSubject.workouts => s.healthSyncDisclosureTitle(
+          healthPlatformName,
+        ),
+        HealthDisclosureSubject.weight => s.healthSyncWeightDisclosureTitle(
+          healthPlatformName,
+        ),
+      }),
       content: Text(_body(s)),
       actions: [
         TextButton(
@@ -55,10 +71,23 @@ class HealthDisclosureDialog extends StatelessWidget {
   /// still read the same things — a paragraph about what is collected reads
   /// as an afterthought once it follows the line about turning the feature
   /// off.
+  ///
+  /// The weight disclosure never carries the body-fat paragraph: body fat is
+  /// requested with workouts, not with weight.
   String _body(S s) => [
-    s.healthSyncDisclosureBody(healthPlatformName),
-    if (healthStoreReadsBodyFat)
-      s.healthSyncDisclosureBodyFatAddendum(healthPlatformName),
+    ...switch (subject) {
+      HealthDisclosureSubject.workouts => [
+        s.healthSyncDisclosureBody(healthPlatformName),
+        if (healthStoreReadsBodyFat)
+          s.healthSyncDisclosureBodyFatAddendum(healthPlatformName),
+      ],
+      HealthDisclosureSubject.weight => [
+        s.healthSyncWeightDisclosureBody(healthPlatformName),
+      ],
+    },
     s.healthSyncDisclosureFooter(healthPlatformName),
   ].join('\n\n');
 }
+
+/// Which health import a [HealthDisclosureDialog] is asking consent for.
+enum HealthDisclosureSubject { workouts, weight }

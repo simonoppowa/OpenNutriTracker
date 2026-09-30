@@ -121,6 +121,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _addConfigUsecase.setConfigHealthImportEnabled(enabled);
   }
 
+  Future<void> setHealthWeightImportEnabled(bool enabled) {
+    return _addConfigUsecase.setConfigHealthWeightImportEnabled(enabled);
+  }
+
   /// Persists the share of an imported workout's reported energy that counts
   /// toward the daily goal, as a fraction. Applies to future imports only —
   /// activities already filed keep the calories they were written with.

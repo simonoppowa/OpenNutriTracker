@@ -4,6 +4,7 @@ import 'dart:math' show max;
 import 'package:health/health.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:opennutritracker/core/data/data_source/health/external_weight.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
@@ -45,6 +46,9 @@ enum HealthTargetPlatform {
 ///    health store had no body fat on record.
 ///
 /// HealthKit is not subject to that policy and keeps both.
+///
+/// Body weight is read on both platforms (READ_WEIGHT on Android) for the
+/// weight log, behind its own opt-in and its own permission request.
 class HealthPackageService implements HealthService {
   /// Workouts, on every platform that has a health store. On Android this is
   /// requested (it is what grants READ_EXERCISE) but read through
@@ -61,6 +65,11 @@ class HealthPackageService implements HealthService {
   /// Body fat personalises the calorie-credit suggestion. iOS only; see the
   /// class doc.
   static const _iosBodyCompositionType = HealthDataType.BODY_FAT_PERCENTAGE;
+
+  /// Body weight, for the weight log. Its own opt-in with its own permission
+  /// request, so it is deliberately not in [_readTypes]: turning on workout
+  /// import must not ask for weight, and the reverse.
+  static const _weightType = HealthDataType.WEIGHT;
 
   List<HealthDataType> get _readTypes => [
     _workoutType,
@@ -294,6 +303,84 @@ class HealthPackageService implements HealthService {
     final value = latest?.value;
     if (value is! NumericHealthValue) return null;
     return _bodyFatAsPercent(value.numericValue.toDouble());
+  }
+
+  @override
+  Future<bool> requestWeightPermissions() async {
+    if (_platform == HealthTargetPlatform.unsupported) return false;
+    final granted = await _health.requestAuthorization(
+      const [_weightType],
+      permissions: const [HealthDataAccess.READ],
+    );
+    if (!granted) return false;
+    // Same rule as [requestPermissions]: only a definite refusal counts, and
+    // iOS answers null because it never reports read grants.
+    final hasWeightPermission = await _health.hasPermissions(
+      const [_weightType],
+      permissions: const [HealthDataAccess.READ],
+    );
+    return hasWeightPermission != false;
+  }
+
+  @override
+  Future<List<ExternalWeight>> readWeights({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    // As in [readWorkouts]: a revoked grant would otherwise come back as an
+    // empty list and move the watermark past readings never seen.
+    final hasPermission = await _health.hasPermissions(
+      const [_weightType],
+      permissions: const [HealthDataAccess.READ],
+    );
+    if (hasPermission == false) {
+      throw StateError('Missing health read permission for a weight import');
+    }
+    final points = await _health.getHealthDataFromTypes(
+      types: const [_weightType],
+      startTime: from,
+      endTime: to,
+    );
+    return [for (final point in points) ?weightFromPoint(point)];
+  }
+
+  /// Maps one WEIGHT data point, or returns null for a point that does not
+  /// carry a usable weight.
+  @visibleForTesting
+  static ExternalWeight? weightFromPoint(HealthDataPoint point) {
+    final value = point.value;
+    if (value is! NumericHealthValue) {
+      _log.warning(
+        'Skipping health point ${point.uuid}: expected a numeric weight, '
+        'got ${value.runtimeType}',
+      );
+      return null;
+    }
+    final weightKg = _weightInKg(value.numericValue, point.unit);
+    if (weightKg == null || !weightKg.isFinite || weightKg <= 0) return null;
+    return ExternalWeight(
+      id: point.uuid,
+      measuredAt: point.dateFrom,
+      weightKg: weightKg,
+      sourceAppName: point.sourceName,
+    );
+  }
+
+  /// Both bridges report WEIGHT in kilograms, but as with energy the unit
+  /// travels with the value, so honour it. An unconvertible unit drops the
+  /// reading rather than logging a weight off by some unknown factor.
+  static double? _weightInKg(num weight, HealthDataUnit unit) {
+    switch (unit) {
+      case HealthDataUnit.KILOGRAM:
+        return weight.toDouble();
+      case HealthDataUnit.GRAM:
+        return weight / 1000;
+      case HealthDataUnit.POUND:
+        return weight * 0.45359237;
+      default:
+        _log.warning('Dropping weight reading in unsupported unit $unit');
+        return null;
+    }
   }
 
   /// Both platform bridges report workout energy in kilocalories, but the
