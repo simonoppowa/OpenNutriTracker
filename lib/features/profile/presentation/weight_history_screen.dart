@@ -11,6 +11,8 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/weight_trend_chart.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart'
+    show healthPlatformName;
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Screen for browsing and adding weight log entries.
@@ -241,9 +243,14 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     return ListTile(
       title: Text(displayStr),
       subtitle: Text(
-        entry.note?.isNotEmpty == true
-            ? '$dateLabel  •  ${entry.note}'
-            : dateLabel,
+        [
+          dateLabel,
+          if (entry.note?.isNotEmpty == true) entry.note!,
+          // Tells the user why an entry they never typed is here, and which
+          // app to look in if the reading is wrong.
+          if (entry.isImported)
+            S.of(context).weightHistoryImportedLabel(healthPlatformName),
+        ].join('  •  '),
       ),
       trailing: IconButton(
         icon: const Icon(Icons.delete_outline),

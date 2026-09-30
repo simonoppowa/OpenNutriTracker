@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/data/repository/health_import_repository.d
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -17,6 +18,7 @@ import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -44,9 +46,13 @@ String get healthPlatformName =>
 /// penalises.
 bool get healthStoreReadsBodyFat => Platform.isIOS;
 
-/// Settings → Health sync: opts into importing finished workouts from Health
-/// Connect / Apple Health, and tunes how much of the energy those workouts
-/// report is credited toward the daily calorie goal.
+/// Settings → Health sync: opts into importing finished workouts and body
+/// weight from Health Connect / Apple Health, and tunes how much of the energy
+/// those workouts report is credited toward the daily calorie goal.
+///
+/// The two imports are separate switches with separate permission requests —
+/// someone who only wants their scale's readings should not have to grant
+/// workout access, or the reverse.
 ///
 /// The credit is a share rather than the raw figure because bodies compensate
 /// for exercise (see [WorkoutCompensationCalc]); the screen offers a
@@ -90,6 +96,9 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
   double? _suggestedMultiplier;
   DateTime? _lastImportAt;
 
+  bool _weightImportEnabled = false;
+  DateTime? _weightLastImportAt;
+
   @override
   void initState() {
     super.initState();
@@ -106,6 +115,8 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
       _storedMultiplier = config.healthWorkoutKcalMultiplier;
       _multiplier = config.effectiveHealthWorkoutKcalMultiplier;
       _lastImportAt = config.healthLastImportAt;
+      _weightImportEnabled = config.healthWeightImportEnabled;
+      _weightLastImportAt = config.healthWeightLastImportAt;
       _loading = false;
     });
     // Only meaningful once the user has opted in: the body fat reading the
@@ -156,7 +167,7 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     // Shown on every opt-in, not once ever. Re-enabling is rare, and a
     // disclosure that only the first user of a device ever saw would be a
     // disclosure to the wrong person on a shared handset.
-    if (!await _confirmDisclosure()) return;
+    if (!await _confirmDisclosure(HealthDisclosureSubject.workouts)) return;
 
     setState(() => _busy = true);
     try {
@@ -183,7 +194,8 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
         final suggested = _suggestedMultiplier;
         if (suggested != null) await _applyMultiplier(suggested);
       }
-      await _runImport(reportCount: false);
+      final message = await _runImport(reportCount: false);
+      if (message != null && mounted) _showMessage(message);
     } catch (error, stackTrace) {
       _log.warning('Enabling workout import failed', error, stackTrace);
       if (!mounted) return;
@@ -196,37 +208,106 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     }
   }
 
+  Future<void> _onWeightImportChanged(bool enabled) async {
+    if (!enabled) {
+      setState(() => _weightImportEnabled = false);
+      await locator<SettingsBloc>().setHealthWeightImportEnabled(false);
+      return;
+    }
+
+    // Same consent gate as the workout switch: nothing is asked of the
+    // platform unless the user confirms the disclosure.
+    if (!await _confirmDisclosure(HealthDisclosureSubject.weight)) return;
+
+    setState(() => _busy = true);
+    try {
+      final granted = await locator<HealthImportRepository>()
+          .requestWeightPermissions();
+      if (!mounted) return;
+      if (!granted) {
+        setState(() => _weightImportEnabled = false);
+        _showMessage(
+          S
+              .of(context)
+              .healthSyncWeightPermissionDeniedLabel(healthPlatformName),
+        );
+        return;
+      }
+      await locator<SettingsBloc>().setHealthWeightImportEnabled(true);
+      if (!mounted) return;
+      setState(() => _weightImportEnabled = true);
+      final message = await _runWeightImport(reportCount: false);
+      if (message != null && mounted) _showMessage(message);
+    } catch (error, stackTrace) {
+      _log.warning('Enabling weight import failed', error, stackTrace);
+      if (!mounted) return;
+      setState(() => _weightImportEnabled = false);
+      _showMessage(
+        S.of(context).healthSyncWeightPermissionDeniedLabel(healthPlatformName),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Runs a weight import and returns what to tell the user, or null when
+  /// there is nothing worth saying. [reportCount] is false on the opt-in
+  /// path, as for workouts, so only a failure is reported there.
+  Future<String?> _runWeightImport({bool reportCount = true}) async {
+    try {
+      final imported = await locator<ImportWeightsUsecase>().importNow();
+      await _reloadWatermark();
+      if (imported > 0) {
+        locator<HomeBloc>().add(const LoadItemsEvent());
+        locator<ProfileBloc>().add(LoadProfileEvent());
+      }
+      if (!mounted || !reportCount) return null;
+      return S.of(context).healthSyncWeightImportedCountLabel(imported);
+    } catch (error, stackTrace) {
+      _log.warning('Weight import failed', error, stackTrace);
+      if (!mounted) return null;
+      return S
+          .of(context)
+          .healthSyncWeightPermissionDeniedLabel(healthPlatformName);
+    }
+  }
+
   /// Runs an import the user is waiting on, and tells them how it went.
   /// [reportCount] is false on the opt-in path, where the switch flipping is
   /// the feedback and a "no new workouts" toast would only read as a failure.
-  Future<void> _runImport({bool reportCount = true}) async {
+  ///
+  /// Returns the message rather than showing it, so "Import now" can put the
+  /// workout and weight outcomes in one snackbar.
+  Future<String?> _runImport({bool reportCount = true}) async {
     try {
       final imported = await locator<ImportWorkoutsUsecase>().importNow();
       await _reloadWatermark();
-      if (!mounted) return;
-      if (reportCount) {
-        _showMessage(S.of(context).healthSyncImportedCountLabel(imported));
-      }
       if (imported > 0) {
         locator<HomeBloc>().add(const LoadItemsEvent());
         locator<DiaryBloc>().add(const LoadDiaryYearEvent());
         locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
       }
+      if (!mounted || !reportCount) return null;
+      return S.of(context).healthSyncImportedCountLabel(imported);
     } catch (error, stackTrace) {
       // Whatever the platform threw, the user's lever is the same one: the
       // read access this app was granted.
       _log.warning('Workout import failed', error, stackTrace);
-      if (!mounted) return;
-      _showMessage(
-        S.of(context).healthSyncPermissionDeniedLabel(healthPlatformName),
-      );
+      if (!mounted) return null;
+      return S.of(context).healthSyncPermissionDeniedLabel(healthPlatformName);
     }
   }
 
+  /// Runs every import the user has switched on, one after the other, and
+  /// reports them together.
   Future<void> _onImportNowPressed() async {
     setState(() => _busy = true);
     try {
-      await _runImport();
+      final messages = [
+        if (_importEnabled) await _runImport(),
+        if (_weightImportEnabled) await _runWeightImport(),
+      ].nonNulls.toList();
+      if (messages.isNotEmpty && mounted) _showMessage(messages.join('\n'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -237,7 +318,10 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
   Future<void> _reloadWatermark() async {
     final config = await locator<GetConfigUsecase>().getConfig();
     if (!mounted) return;
-    setState(() => _lastImportAt = config.healthLastImportAt);
+    setState(() {
+      _lastImportAt = config.healthLastImportAt;
+      _weightLastImportAt = config.healthWeightLastImportAt;
+    });
   }
 
   Future<void> _applyMultiplier(double multiplier) async {
@@ -265,11 +349,11 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
   /// A dismissal returns null, which reads as a refusal — the one direction
   /// this must fail in, since the alternative is asking the platform for
   /// health data on the strength of a stray tap.
-  Future<bool> _confirmDisclosure() async {
+  Future<bool> _confirmDisclosure(HealthDisclosureSubject subject) async {
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const HealthDisclosureDialog(),
+      builder: (_) => HealthDisclosureDialog(subject: subject),
     );
     return accepted ?? false;
   }
@@ -301,6 +385,13 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     return suggested;
   }
 
+  /// The more recent of the two imports' watermarks.
+  DateTime? get _latestImportAt {
+    final times = [?_lastImportAt, ?_weightLastImportAt];
+    if (times.isEmpty) return null;
+    return times.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
+
   String _formatLastImport(BuildContext context, DateTime lastImportAt) {
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     return DateFormat.yMMMd(localeTag).add_Hm().format(lastImportAt);
@@ -311,6 +402,9 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     final s = S.of(context);
     final textTheme = Theme.of(context).textTheme;
     final canEdit = _isAvailable && _importEnabled && !_busy;
+    final canImport =
+        _isAvailable && (_importEnabled || _weightImportEnabled) && !_busy;
+    final latestImportAt = _latestImportAt;
     return Scaffold(
       appBar: AppBar(title: Text(healthPlatformName)),
       body: _loading
@@ -342,19 +436,37 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                   ),
                 ),
                 _buildMultiplierSection(context, s, textTheme, canEdit),
+                const Divider(),
+                Semantics(
+                  identifier: 'health-sync-weight-import',
+                  child: SwitchListTile(
+                    secondary: const Icon(Icons.monitor_weight_outlined),
+                    title: Text(
+                      s.healthSyncWeightImportLabel(healthPlatformName),
+                    ),
+                    subtitle: Text(s.healthSyncWeightImportSubtitle),
+                    value: _weightImportEnabled,
+                    onChanged: _isAvailable && !_busy
+                        ? _onWeightImportChanged
+                        : null,
+                  ),
+                ),
+                const Divider(),
                 Semantics(
                   identifier: 'health-sync-import-now',
                   child: ListTile(
                     leading: const Icon(Icons.download_rounded),
                     title: Text(s.healthSyncImportNowLabel),
                     subtitle: Text(
-                      _lastImportAt == null
-                          ? s.healthSyncNeverImportedLabel
-                          : s.healthSyncLastImportLabel(
-                              _formatLastImport(context, _lastImportAt!),
-                            ),
+                      latestImportAt != null
+                          ? s.healthSyncLastImportLabel(
+                              _formatLastImport(context, latestImportAt),
+                            )
+                          : _weightImportEnabled
+                          ? s.healthSyncNothingImportedLabel
+                          : s.healthSyncNeverImportedLabel,
                     ),
-                    enabled: canEdit,
+                    enabled: canImport,
                     onTap: _onImportNowPressed,
                   ),
                 ),

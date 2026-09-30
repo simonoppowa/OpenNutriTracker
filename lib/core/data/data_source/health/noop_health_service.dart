@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/data_source/health/external_weight.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 
@@ -24,4 +25,13 @@ class NoopHealthService implements HealthService {
 
   @override
   Future<double?> readLatestBodyFatPercent() async => null;
+
+  @override
+  Future<bool> requestWeightPermissions() async => false;
+
+  @override
+  Future<List<ExternalWeight>> readWeights({
+    required DateTime from,
+    required DateTime to,
+  }) async => const <ExternalWeight>[];
 }

@@ -13,11 +13,17 @@ class WeightLogDBO extends HiveObject {
   double weightKg;
   @HiveField(2)
   String? note;
+  // Platform record id when the reading was imported from Health Connect /
+  // Apple Health; null for a weight the user entered. The importer never
+  // overwrites an entry without one.
+  @HiveField(3)
+  String? externalId;
 
   WeightLogDBO({
     required this.date,
     required this.weightKg,
     this.note,
+    this.externalId,
   });
 
   factory WeightLogDBO.fromWeightLogEntity(WeightLogEntity entity) {
@@ -25,6 +31,7 @@ class WeightLogDBO extends HiveObject {
       date: entity.date,
       weightKg: entity.weightKg,
       note: entity.note,
+      externalId: entity.externalId,
     );
   }
 

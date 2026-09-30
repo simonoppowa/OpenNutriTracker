@@ -20,19 +20,22 @@ class WeightLogDBOAdapter extends TypeAdapter<WeightLogDBO> {
       date: fields[0] as DateTime,
       weightKg: (fields[1] as num).toDouble(),
       note: fields[2] as String?,
+      externalId: fields[3] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WeightLogDBO obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
       ..write(obj.weightKg)
       ..writeByte(2)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(3)
+      ..write(obj.externalId);
   }
 
   @override
@@ -54,6 +57,7 @@ WeightLogDBO _$WeightLogDBOFromJson(Map<String, dynamic> json) => WeightLogDBO(
   date: DateTime.parse(json['date'] as String),
   weightKg: (json['weightKg'] as num).toDouble(),
   note: json['note'] as String?,
+  externalId: json['externalId'] as String?,
 );
 
 Map<String, dynamic> _$WeightLogDBOToJson(WeightLogDBO instance) =>
@@ -61,4 +65,5 @@ Map<String, dynamic> _$WeightLogDBOToJson(WeightLogDBO instance) =>
       'date': instance.date.toIso8601String(),
       'weightKg': instance.weightKg,
       'note': instance.note,
+      'externalId': instance.externalId,
     };
