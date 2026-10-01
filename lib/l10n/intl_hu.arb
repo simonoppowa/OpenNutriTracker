@@ -1649,5 +1649,13 @@
     }
   },
   "settingsDefaultToRawFoodUnitsLabel": "Alapértelmezésben súlyt vagy térfogatot használjon, ne adagot",
-  "settingsDefaultToRawFoodUnitsSubtitle": "Ha egy élelmiszer adagban van feltüntetve, akkor inkább a súly vagy a térfogat alapján rögzítse az adatot. Az adagokat továbbra is kiválaszthatja az egységek legördülő menüből."
+  "settingsDefaultToRawFoodUnitsSubtitle": "Ha egy élelmiszer adagban van feltüntetve, akkor inkább a súly vagy a térfogat alapján rögzítse az adatot. Az adagokat továbbra is kiválaszthatja az egységek legördülő menüből.",
+  "onboardingImplausibleWeightBody": "A(z) {value} szokatlan súly. Megtartja?",
+  "@onboardingImplausibleWeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  }
 }
