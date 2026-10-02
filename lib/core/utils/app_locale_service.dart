@@ -19,15 +19,25 @@ import 'package:flutter/services.dart';
 class AppLocaleService {
   static const _channel = MethodChannel('com.opennutritracker/locale');
 
-  /// The language tag the user chose in Android's Settings, or null when they
-  /// have not overridden it and the app should follow its own saved choice.
-  static Future<String?> getApplicationLocale() async {
+  /// The language tag the user chose in Android's Settings, or a null tag
+  /// when they have not overridden it and the app should follow its own saved
+  /// choice.
+  ///
+  /// `readFailed` separates "the platform says there is no override" from
+  /// "the platform could not be asked". [reconcileAppLocale] treats a missing
+  /// override as the user having cleared it, so a transient channel failure
+  /// reported as a plain null would destroy their saved language.
+  /// [MissingPluginException] is not a failure: no registered handler means a
+  /// platform with no per-app language setting at all, where "no override" is
+  /// the honest answer.
+  static Future<({String? tag, bool readFailed})> getApplicationLocale() async {
     try {
-      return await _channel.invokeMethod<String?>('getApplicationLocale');
+      final tag = await _channel.invokeMethod<String?>('getApplicationLocale');
+      return (tag: tag, readFailed: false);
     } on PlatformException {
-      return null;
+      return (tag: null, readFailed: true);
     } on MissingPluginException {
-      return null;
+      return (tag: null, readFailed: false);
     }
   }
 

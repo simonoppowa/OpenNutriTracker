@@ -213,5 +213,25 @@ void main() {
         expect(config.healthImportEnabled, isNull);
       },
     );
+
+    test('the locale-sync marker is device-wide, with a false default',
+        () async {
+      // #810: the marker records that the OS picker was seen holding a value,
+      // a fact about the device, so it lives beside selectedLocale in the app
+      // box. Per profile, a second profile would read "never seeded" and
+      // re-push a language the user cleared in the OS picker.
+      final profileA = sourceFor(profileABox);
+      await profileA.initializeConfig();
+      expect(await profileA.getLocaleSyncSeeded(), isFalse);
+      await profileA.setLocaleSyncSeeded();
+
+      final profileB = sourceFor(profileBBox);
+      await profileB.initializeConfig();
+      expect(await profileB.getLocaleSyncSeeded(), isTrue);
+
+      // The delete-all shape: an emptied profile box must not blank it.
+      await profileABox.clear();
+      expect(await profileA.getLocaleSyncSeeded(), isTrue);
+    });
   });
 }
