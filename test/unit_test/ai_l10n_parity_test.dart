@@ -34,20 +34,20 @@ void main() {
     // #774.
     'bulkAddModelTimedOutLabel',
     // #758.
-    'bulkAddModelInsecureServerLabel',
+    'bulkAddModelOffDevicePlaintextLabel',
     // #756
     'aiAssistProviderOwnServerLabel',
     'aiAssistEndpointFieldLabel',
     'aiAssistModelFieldLabel',
     'aiAssistDisclosureOwnServerSecure',
-    'aiAssistDisclosureOwnServerPlaintext',
+    'aiAssistDisclosureOwnServerLoopback',
     // What the dialog says instead of storing an address that can never be
     // requested, or a server with no model to ask for.
     'aiAssistEndpointInvalidLabel',
     'aiAssistModelRequiredLabel',
     // #780. The setup check, reported per capability — and the save-time
     // refusal folded in from #758.
-    'aiAssistEndpointPublicPlaintextLabel',
+    'aiAssistEndpointOffDevicePlaintextLabel',
     'aiAssistProbeSectionLabel',
     'aiAssistProbeRunningLabel',
     'aiAssistProbeCheckLabel',
@@ -72,7 +72,7 @@ void main() {
     'aiAssistModelsUnreachableLabel',
     'aiAssistModelsEmptyLabel',
     'aiAssistModelsRejectedLabel',
-    'aiAssistModelsInsecureLabel',
+    'aiAssistModelsOffDevicePlaintextLabel',
   ];
   final arb = {
     for (final locale in locales)
@@ -315,9 +315,10 @@ void main() {
     // `http://example.com` it was simply false, in nine languages, at the
     // moment the user is agreeing to send their meals there.
     //
-    // #758 may yet restrict plain HTTP to private addresses. Until something
-    // checks, nothing here may say it has been checked — and if #758 lands,
-    // the sentence it earns is a new one rather than this one returning.
+    // Since #1050 the guard allows plain HTTP to loopback only, and the
+    // sentence it earned says exactly that: nothing unencrypted leaves the
+    // phone. The network-boundary wording stays forbidden, because a LAN is
+    // precisely what is no longer permitted.
     //
     // Narrow in the same way the on-device guard above is narrow, and for the
     // same reason: these are the two languages this repo can vouch for
@@ -332,10 +333,10 @@ void main() {
       'nur erlaubt, weil',
     ];
     for (final locale in localesWith([
-      'aiAssistDisclosureOwnServerPlaintext',
+      'aiAssistDisclosureOwnServerLoopback',
     ])) {
       final value =
-          arb[locale]!['aiAssistDisclosureOwnServerPlaintext'] as String;
+          arb[locale]!['aiAssistDisclosureOwnServerLoopback'] as String;
       for (final phrase in forbidden) {
         expect(
           value.toLowerCase(),

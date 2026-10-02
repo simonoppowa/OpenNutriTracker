@@ -69,9 +69,9 @@ class AiModelListResult {
 /// as a capability signal; that question is #735's probe, which asks by
 /// sending a real request.
 ///
-/// Every request goes through [GuardedPlaintextClient], so #758's rule —
-/// plaintext to private and loopback addresses only, checked against the
-/// resolved address per request — covers this call the same way it covers a
+/// Every request goes through [GuardedPlaintextClient], so the plaintext
+/// rule — loopback only since #1050, checked against the resolved address per
+/// request — covers this call the same way it covers a
 /// meal. The refusal comes back as [AiModelListFailure.insecureDestination]
 /// rather than as an exception the settings dialog would have to catch.
 class AiModelListApi {
@@ -108,7 +108,7 @@ class AiModelListApi {
       // Ahead of the catch-all, which would report this as unreachable and
       // send the user to wake a machine the app never spoke to. The host is
       // not logged — it is an address on somebody's home network.
-      _log.warning('Refused a plaintext model list to a public address');
+      _log.warning('Refused a plaintext model list that would leave the phone');
       return const AiModelListResult.failed(
         AiModelListFailure.insecureDestination,
       );

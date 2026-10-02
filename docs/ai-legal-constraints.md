@@ -853,6 +853,12 @@ So the form cannot express "https except to a private address the user
 named", and answering it needs a decision rather than a restatement.
 Apple has no equivalent field.
 
+**Decided 2026-09-27 on
+[#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050):** the
+app changed rather than the answer. Plain HTTP is now allowed to loopback
+only, which never leaves the device, so "encrypted in transit" is true
+again without a conditional.
+
 ## F-Droid
 
 Primary text: [Anti-Features](https://f-droid.org/en/docs/Anti-Features/),

@@ -291,11 +291,11 @@ reply is still a valid answer to the question asked, and losing someone's meal e
 routing discrepancy would be the worse outcome.
 
 Three of the four destinations are compiled-in `https://` URLs and cannot be redirected. The
-fourth is an address you supply, and there plaintext is the ordinary case rather than an edge one:
-the field's own example is `http://192.168.1.5:11434`, and the dialog carries a separate
-disclosure sentence for an unencrypted address precisely because that is what people save. So the
-guard is not deciding *whether* plaintext happens but *where it may go* — see
-[the guardrails](#the-guardrails).
+fourth is an address you supply, and there plaintext is what a local runtime speaks by default.
+Since [#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050) it is allowed only to a
+server on the phone itself (loopback); any other address needs `https://`, which is what keeps
+Play's "encrypted in transit" answer true. The dialog carries a separate disclosure sentence for a
+plain-HTTP address that states that rule — see [the guardrails](#the-guardrails).
 
 **Two requests reach a server you run before any meal does.** One is the setup check described
 [below](#a-server-you-run-the-probe), which OK starts. The other is a `GET` to `/v1/models` on
@@ -311,7 +311,7 @@ off the address field instead — so on a first-time setup your server has alrea
 what it serves by the time that screen appears. The request carries an `Authorization` header
 when a key is available, and a key typed into the dialog counts before OK commits it, because a
 reverse proxy in front of a local runtime will want one. The plaintext guard covers it like any
-other request, so a public `http://` address is refused rather than asked.
+other request, so an `http://` address off the phone is refused rather than asked.
 
 The consent screen names both requests before you agree, and it is shown once for the whole
 feature — so someone who agreed while setting up a hosted provider does not see that paragraph
@@ -486,7 +486,7 @@ Independent checks, not a sequence. Each one is pinned by a test that fails if i
 | Payload never logged by a client | the meal you typed, or a photo, reaching a log or an error string from a failed send | all three clients | contract test — *a failing send puts the payload in neither the error nor the log*; *a photo never reaches the error or the log either* |
 | Response body withheld on rejection | a provider's error text carrying your content back into a log | all three clients | contract test — *a rejected request does not carry the response body* |
 | Consent before storage | a credential stored, or used, before you agreed to what leaving the device means | [`ai_assist_dialog.dart`](../lib/features/settings/presentation/widgets/ai_assist_dialog.dart), [`ai_consent_screen.dart`](../lib/features/settings/presentation/widgets/ai_consent_screen.dart), [`ai_credential_storage.dart`](../lib/core/utils/ai_credential_storage.dart) | [`ai_assist_dialog_test.dart`](../test/features/settings/presentation/ai_assist_dialog_test.dart), [`ai_credential_storage_test.dart`](../test/unit_test/ai_credential_storage_test.dart) — *a credential without an agreement is not usable* |
-| Plaintext destination guard | `http://` to anywhere that is not private | [`plaintext_destination_guard.dart`](../lib/core/utils/plaintext_destination_guard.dart) | [`plaintext_destination_guard_test.dart`](../test/unit_test/plaintext_destination_guard_test.dart) |
+| Plaintext destination guard | `http://` to anywhere but the phone itself | [`plaintext_destination_guard.dart`](../lib/core/utils/plaintext_destination_guard.dart) | [`plaintext_destination_guard_test.dart`](../test/unit_test/plaintext_destination_guard_test.dart) |
 | Address pinning after lookup | DNS answering differently the second time | same file | same test |
 | Vendor pin, fallbacks off | OpenRouter serving from a vendor the screen never named | [`meal_items_api_factory.dart`](../lib/features/add_meal/data/meal_items_api_factory.dart) | [`meal_items_api_factory_test.dart`](../test/unit_test/meal_items_api_factory_test.dart) |
 | Data collection denied on the broker path | OpenRouter routing to a vendor that may keep your meal and train on it | [`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart) | [`openrouter_meal_items_api_test.dart`](../test/unit_test/openrouter_meal_items_api_test.dart) — *refuses providers that may keep and train on the input* |
@@ -503,11 +503,11 @@ is the whole of the enforcement, and it stays whole because **a redirect is not 
 would be made on the strength of an approval granted to a different destination; instead a 30x
 comes back to the caller as the response it is. That holds for `https://` too, which the guard
 otherwise waves through: an encrypted first hop says nothing about where its `Location` points.
-The check permits loopback, link-local, RFC 1918 and IPv6 unique-local,
-and it deliberately excludes carrier-grade NAT (`100.64.0.0/10`) — which is what Tailscale hands
-out, so a tailnet user must use `https://`. The app cannot tell a tailnet from an ISP's shared
-address space, and treating every `100.x` as private would quietly permit plaintext onto a
-carrier's network.
+The check permits loopback only (`127.0.0.0/8` and `::1`). Until
+[#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050) it also permitted link-local,
+RFC 1918 and IPv6 unique-local, which keeps plaintext off the public internet but not on the
+device — and Play's "encrypted in transit" declaration is app-wide, covering everything that leaves
+it. A server anywhere else, a LAN or a tailnet included, needs `https://`.
 
 That the platform does not enforce this was measured rather than assumed. `dart:io` opens BSD
 sockets, so a request never passes through NSURLSession or Android's HTTP stacks, and neither iOS

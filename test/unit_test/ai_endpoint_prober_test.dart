@@ -69,7 +69,7 @@ const _prose = '{"choices":[{"message":{"content":"That looks like bread."}}]}';
 
 const _selection = AiSelection(
   provider: AiProvider.ownServer,
-  endpoint: 'http://192.168.1.5:11434/v1/chat/completions',
+  endpoint: 'http://127.0.0.1:11434/v1/chat/completions',
   modelId: 'gemma3:4b',
 );
 
