@@ -406,7 +406,7 @@ Future<void> initLocator() async {
     () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
-    () => GetIntakeUsecase(locator()),
+    () => GetIntakeUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<AddIntakeUsecase>(
     () => AddIntakeUsecase(locator()),
