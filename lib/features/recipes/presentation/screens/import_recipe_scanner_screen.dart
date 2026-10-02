@@ -156,7 +156,10 @@ class _ImportRecipeScannerScreenState extends State<ImportRecipeScannerScreen>
       if (!mounted) return;
       final confirmed = await _showConfirmDialog(payload);
       if (confirmed == true && mounted) {
-        await locator<SaveRecipeUseCase>().save(payload.toRecipeEntity());
+        await locator<SaveRecipeUseCase>().save(
+          payload.toRecipeEntity(),
+          totalWeightOverridden: payload.totalWeightOverridden,
+        );
         locator<RecipesBloc>().add(const LoadRecipesEvent());
         if (mounted) {
           Navigator.of(context).pop();
