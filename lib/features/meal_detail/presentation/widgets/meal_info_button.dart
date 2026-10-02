@@ -25,16 +25,17 @@ class MealInfoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final infoUrl = _getInfoUrl();
+    if (infoUrl.isEmpty) return const SizedBox.shrink();
+
     final accent = Theme.of(context).colorScheme.primary;
     return TextButton.icon(
-      onPressed: () => _launchUrl(_getInfoUrl()),
+      onPressed: () => _launchUrl(infoUrl),
       icon: Icon(Icons.open_in_new_rounded, size: 20, color: accent),
       label: Text(
         _getInfoLabelText(context),
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-            ),
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(color: accent, fontWeight: FontWeight.w700),
         textAlign: TextAlign.center,
       ),
     );
@@ -55,7 +56,8 @@ class MealInfoButton extends StatelessWidget {
       case MealSourceEntity.fdc:
         // Foods without a per-item detail page (BLS, INDB, TBCA...) link
         // to their database's website instead.
-        siteUrl = url ??
+        siteUrl =
+            url ??
             SPConst.foodSourceWebsites[backendSource] ??
             FDCConst.fdcWebsiteUrl;
         break;
