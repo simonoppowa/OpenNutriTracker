@@ -50,25 +50,46 @@ readily as on an iOS simulator. Exporting means the `flutter drive` +
 
 The other nine are good as they stand.
 
-## These cannot be uploaded yet
+## Only with a release
 
-App Store Connect will not accept them against v2.2.0. A released version is
+App Store Connect will not take screenshots against a released version. It is
 read-only: every field on the version page reports `disabled`, Save is
 disabled, and Media Manager renders no upload target at all. Screenshots need
 a version in "Prepare for Submission", and that version needs a build before
-it can be submitted — so the listing change ships with the next release
-rather than on its own. This is the answer to #1080.
+it can be submitted — so the listing change ships with a release rather than
+on its own. This is the answer to #1080.
 
 Play is not like this, which is easy to over-generalise from: a listing-only
 edit there went through to the live listing with no binary
 (`.github/workflows/play-screenshots.yml`).
 
-## One thing to confirm on an editable version
+## What 2.4.0 shipped
 
-The iPad set matches App Store Connect's **13" Display** slot exactly. The
-iPhone side is less certain: Media Manager for this app lists 6.5", 6.3",
-6.1", 5.5", 4.7", 4" and 3.5" and shows **no 6.9" slot** — checked twice,
-with no "6.9" anywhere in the page text — while 1290x2796 is Apple's 6.9"
-size. Older app records did accept 1290x2796 under the 6.5" slot, so this may
-be a non-issue, but it cannot be settled against a read-only page. Check it
-before assuming the iPhone set drops straight in.
+2.4.0 (build 66, submitted 2026-10-02) carries nine of the twelve — the three
+owed frames above were left out:
+
+| Slot | Files, in listing order |
+| :-- | :-- |
+| iPhone 6.9" | `01-home`, `02-diary-meals`, `05-diary-calendar`, `06-profile` |
+| iPad 13" | `01-home`, `02-diary-meals`, `06-profile`, `04-trends`, `05-diary-calendar` |
+
+The iPad order differs from the file order and was accepted as it stands.
+The 6.5" and 5.5" iPhone slots are empty; 5.5" had held a legacy set from
+2.2.0, removed so no older device shows it.
+
+## Uploading on an editable version
+
+- **The 1290x2796 set goes in the 6.9" slot, not 6.5".** The 6.5" slot rejects
+  it — it accepts only 1242x2688 and 1284x2778. Media Manager did not list a
+  6.9" slot at first, on the released v2.2.0 or on the new 2.4.0, while the
+  6.5" slot held the 2.2.0 images; it was there after the 6.5" set had been
+  deleted. Which of the two made it appear is not known. Once 6.9" is filled,
+  6.5" reads "Using 6.9" Display" and stops being required.
+- **"Add for Review" locks the screenshots.** Choose File and Delete All
+  disappear. Remove the version from the Draft Submission panel (the item's
+  Delete button — the version and its metadata survive), edit, and add it
+  again.
+- **Listing order is the order Apple finishes processing, not the order the
+  files were chosen.** A multi-file upload landed reversed, and
+  `02-diary-meals` came out last on both devices even uploaded one at a time.
+  Check the order after the upload and drag to fix it.
