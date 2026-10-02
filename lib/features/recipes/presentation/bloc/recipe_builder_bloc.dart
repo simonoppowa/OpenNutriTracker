@@ -56,6 +56,13 @@ class RecipeBuilderBloc
       // the field values but treat the builder as a fresh create so save()
       // assigns a new uuid.
       final isDuplicate = r.id.isEmpty;
+      // The override flag is not persisted, but an unedited total is always
+      // the exact sum of the stored ingredient grams, so any difference means
+      // the user typed the weight in. Resetting it here was #1277.
+      final ingredientSumG = r.ingredients.fold<double>(
+        0,
+        (sum, i) => sum + i.convertedAmountG,
+      );
       emit(
         state.copyWith(
           id: isDuplicate ? null : r.id,
@@ -64,7 +71,8 @@ class RecipeBuilderBloc
           servingsCount: r.servingsCount,
           ingredients: r.ingredients,
           totalWeightG: r.totalWeightG,
-          totalWeightOverridden: false,
+          totalWeightOverridden: r.totalWeightG > 0 &&
+              (r.totalWeightG - ingredientSumG).abs() > 0.001,
           aggregatedNutrimentsPer100: r.aggregatedNutrimentsPer100,
           isExistingRecipe: !isDuplicate,
           tags: r.tags,
