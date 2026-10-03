@@ -43,16 +43,49 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   bool _loaded = false;
 
   late final TextEditingController _kcalController;
+  late final EnergyUnitProvider _units;
+
+  /// True while the field holds text the user typed that has not yet
+  /// been parsed into [_kcalAdjustment]. Set by the field's onChanged
+  /// (user edits only — programmatic writes via [_setField] don't fire
+  /// it), cleared whenever the field is rewritten from a kcal value.
+  bool _fieldEdited = false;
+
+  /// The unit the field text is currently written in. When the provider
+  /// switches units the text is stale, so [_onUnitsChanged] rewrites it.
+  late bool _fieldUsesKj;
+
+  /// Writes [kcal] into the field in the current display unit. Every
+  /// programmatic write goes through here so the field is in sync with
+  /// [_kcalAdjustment] and not marked as edited.
+  void _setField(double kcal) {
+    final usesKj = _units.usesKilojoules;
+    final display = usesKj ? UnitCalc.kcalToKj(kcal) : kcal;
+    _kcalController.text = display.round().toString();
+    _fieldUsesKj = usesKj;
+    _fieldEdited = false;
+  }
+
+  void _onUnitsChanged() {
+    if (_units.usesKilojoules == _fieldUsesKj || !_loaded) return;
+    // Rewrite in the new unit; any text typed but not yet applied was
+    // in the old unit and can't be reinterpreted, so it is dropped.
+    _setField(_kcalAdjustment);
+  }
 
   @override
   void initState() {
     super.initState();
     _kcalController = TextEditingController(text: '0');
+    _units = Provider.of<EnergyUnitProvider>(context, listen: false);
+    _fieldUsesKj = _units.usesKilojoules;
+    _units.addListener(_onUnitsChanged);
     _load();
   }
 
   @override
   void dispose() {
+    _units.removeListener(_onUnitsChanged);
     _kcalController.dispose();
     super.dispose();
   }
@@ -61,13 +94,10 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
     final kcal = await widget.settingsBloc.getKcalAdjustment();
     final user = await widget.profileBloc.getUser();
     if (!mounted) return;
-    final usesKj =
-        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
-    final display = usesKj ? UnitCalc.kcalToKj(kcal) : kcal;
     setState(() {
       _kcalAdjustment = kcal;
       _user = user;
-      _kcalController.text = display.round().toString();
+      _setField(kcal);
       _loaded = true;
     });
   }
@@ -76,22 +106,18 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
     // The text field always reads in whichever unit the user is
     // seeing; convert back to kcal once for storage so the persisted
     // value stays consistent across unit toggles.
-    final usesKj =
-        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    final usesKj = _units.usesKilojoules;
     final parsed = int.tryParse(_kcalController.text);
     if (parsed == null) {
       // Bad input — snap the field back to the last good value.
-      final display =
-          usesKj ? UnitCalc.kcalToKj(_kcalAdjustment) : _kcalAdjustment;
-      _kcalController.text = display.round().toString();
+      _setField(_kcalAdjustment);
       return;
     }
     final asKcal =
         usesKj ? UnitCalc.kjToKcal(parsed.toDouble()) : parsed.toDouble();
     final clamped = asKcal.clamp(_minKcalAdjustment, _maxKcalAdjustment);
-    final clampedDisplay = usesKj ? UnitCalc.kcalToKj(clamped) : clamped;
     setState(() => _kcalAdjustment = clamped);
-    _kcalController.text = clampedDisplay.round().toString();
+    _setField(clamped);
   }
 
   Future<void> _openCaloriesProfileDialog() async {
@@ -112,8 +138,17 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   }
 
   Future<void> _save() async {
+    // A value typed into the field only reaches _kcalAdjustment on
+    // submit/editing-complete, and tapping OK does neither — apply it
+    // here or a typed-then-OK'd value is silently dropped. Only when the
+    // user actually edited it, though: the field holds the *rounded*
+    // display value, and in kJ mode re-parsing that on every save would
+    // walk the stored kcal toward zero by one each time.
+    if (_fieldEdited) _applyKcalInput();
+    // round(), not toInt(): a kJ slider step converts to kcal with float
+    // noise (209.2 / 4.184 = 49.999…) that truncation turns into 49.
     await widget.settingsBloc.setKcalAdjustment(
-      _kcalAdjustment.toInt().toDouble(),
+      _kcalAdjustment.round().toDouble(),
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
@@ -143,7 +178,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
             onPressed: _loaded
                 ? () {
                     setState(() => _kcalAdjustment = 0);
-                    _kcalController.text = '0';
+                    _setField(0);
                   }
                 : null,
             child: Text(s.buttonResetLabel),
@@ -257,6 +292,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                       vertical: 12,
                                     ),
                                   ),
+                                  onChanged: (_) => _fieldEdited = true,
                                   onSubmitted: (_) => _applyKcalInput(),
                                   onEditingComplete: _applyKcalInput,
                                 ),
@@ -277,7 +313,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                   ? UnitCalc.kjToKcal(value)
                                   : value;
                               setState(() => _kcalAdjustment = asKcal);
-                              _kcalController.text = value.round().toString();
+                              _setField(asKcal);
                             },
                           ),
                         ),
