@@ -66,13 +66,14 @@ class _TrendsView extends StatelessWidget {
               days: state.days,
               priorWeek: state.priorWeek,
               rangeDays: state.windowDays,
+              today: state.today,
               palette: palette,
             ),
             const SizedBox(height: Dimens.spacing16),
             _RangeSelector(rangeDays: state.rangeDays),
             const SizedBox(height: Dimens.spacing16),
             _CaloriesTrendCard(
-                days: state.days, rangeDays: state.windowDays, palette: palette),
+                days: state.days, rangeDays: state.windowDays, today: state.today, palette: palette),
             const SizedBox(height: Dimens.spacing16),
             _MacrosTrendCard(
                 days: state.days, rangeDays: state.windowDays, palette: palette),
@@ -81,6 +82,7 @@ class _TrendsView extends StatelessWidget {
               waterByDay: state.waterByDay,
               goalMl: state.waterGoalMl,
               rangeDays: state.windowDays,
+              today: state.today,
               palette: palette,
             ),
             const SizedBox(height: Dimens.spacing16),
@@ -131,11 +133,13 @@ class _StreakCard extends StatelessWidget {
   final List<TrackedDayEntity> days;
   final List<TrackedDayEntity> priorWeek;
   final int rangeDays;
+  final DateTime today;
   final AppPalette palette;
   const _StreakCard({
     required this.days,
     required this.priorWeek,
     required this.rangeDays,
+    required this.today,
     required this.palette,
   });
 
@@ -144,12 +148,10 @@ class _StreakCard extends StatelessWidget {
     final accent = Theme.of(context).colorScheme.primary;
     final errorColor = Theme.of(context).colorScheme.error;
     final text = Theme.of(context).textTheme;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final windowStart =
         DateTime(today.year, today.month, today.day - (rangeDays - 1));
-    final weekEnd = today;
-    final weekStart = weekEnd.subtract(const Duration(days: 6));
+    final dayBeforeWeek = DateTime(today.year, today.month, today.day - 7);
+    final dayAfterWeek = DateTime(today.year, today.month, today.day + 1);
 
     bool onTrack(TrackedDayEntity d) =>
         d.getCalendarDayRatingColor(context) != errorColor;
@@ -166,8 +168,7 @@ class _StreakCard extends StatelessWidget {
     final priorOnTrack = priorWeek.where(onTrack).toList();
     final thisWeek = onTrackDays
         .where((day) =>
-            day.isAfter(weekStart.subtract(const Duration(days: 1))) &&
-            day.isBefore(weekEnd.add(const Duration(days: 1))))
+            day.isAfter(dayBeforeWeek) && day.isBefore(dayAfterWeek))
         .length;
     final delta = priorOnTrack.isNotEmpty
         ? thisWeek - priorOnTrack.length
@@ -248,21 +249,25 @@ class _WeekDeltaChip extends StatelessWidget {
 class _CaloriesTrendCard extends StatelessWidget {
   final List<TrackedDayEntity> days;
   final int rangeDays;
+  final DateTime today;
   final AppPalette palette;
-  const _CaloriesTrendCard({required this.days, required this.rangeDays, required this.palette});
+  const _CaloriesTrendCard({
+    required this.days,
+    required this.rangeDays,
+    required this.today,
+    required this.palette,
+  });
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final accent = Theme.of(context).colorScheme.primary;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final byDay = {for (final d in days) DateTime(d.day.year, d.day.month, d.day.day): d};
     // Full per-day series across the window; missing days contribute 0 tracked.
     final spots = <FlSpot>[];
     final goals = <double>[];
     for (int i = 0; i < rangeDays; i++) {
-      final day = today.subtract(Duration(days: rangeDays - 1 - i));
+      final day = DateTime(today.year, today.month, today.day - (rangeDays - 1 - i));
       final d = byDay[DateTime(day.year, day.month, day.day)];
       spots.add(FlSpot(i.toDouble(), d?.caloriesTracked ?? 0));
       if (d != null && d.calorieGoal > 0) goals.add(d.calorieGoal);
@@ -339,11 +344,13 @@ class _WaterTrendCard extends StatelessWidget {
   final Map<DateTime, int> waterByDay;
   final int goalMl;
   final int rangeDays;
+  final DateTime today;
   final AppPalette palette;
   const _WaterTrendCard({
     required this.waterByDay,
     required this.goalMl,
     required this.rangeDays,
+    required this.today,
     required this.palette,
   });
 
@@ -351,13 +358,11 @@ class _WaterTrendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final color = palette.proteinColor;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final spots = <FlSpot>[];
     var sum = 0;
     var loggedDays = 0;
     for (int i = 0; i < rangeDays; i++) {
-      final day = today.subtract(Duration(days: rangeDays - 1 - i));
+      final day = DateTime(today.year, today.month, today.day - (rangeDays - 1 - i));
       final ml = waterByDay[DateTime(day.year, day.month, day.day)] ?? 0;
       spots.add(FlSpot(i.toDouble(), ml.toDouble()));
       if (ml > 0) {
