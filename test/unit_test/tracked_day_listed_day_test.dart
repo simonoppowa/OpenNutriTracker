@@ -10,23 +10,32 @@ import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 
 import '../fixture/physical_activity_entity_fixtures.dart';
@@ -39,7 +48,8 @@ import '../helpers/hive_test_setup.dart';
 /// every writer has to put an entry's calories on the row of the day the
 /// Diary lists that entry under. With a day-start boundary configured the
 /// Diary files an entry logged at 02:00 under the previous day; these
-/// tests pin that the row follows it.
+/// tests pin that the row follows it. The last group pins the Diary
+/// restoring the row of a day an older build left without one.
 class _FakeKcalGoal extends Fake implements GetKcalGoalUsecase {
   @override
   Future<double> getKcalGoal({
@@ -66,6 +76,16 @@ class _FakeRemoteSearchCache extends Fake
     implements RemoteSearchCacheDataSource {}
 
 class _FakeContext extends Fake implements BuildContext {}
+
+class _FakeDeleteIntake extends Fake implements DeleteIntakeUsecase {}
+
+class _FakeDeleteActivity extends Fake implements DeleteUserActivityUsecase {}
+
+class _FakeUpdateIntake extends Fake implements UpdateIntakeUsecase {}
+
+class _FakeUpdateActivity extends Fake implements UpdateUserActivityUsecase {}
+
+class _FakeAddConfig extends Fake implements AddConfigUsecase {}
 
 /// 200 kcal per 100 g, and no barcode, so logging it never reaches the
 /// remote-cache refresh.
@@ -104,6 +124,9 @@ void main() {
   late GetTrackedDayUsecase getTrackedDay;
   late MealDetailBloc mealDetailBloc;
   late LogUserActivityUsecase logActivity;
+  late IntakeRepository intakeRepository;
+  late UserActivityRepository activityRepository;
+  late CalendarDayBloc calendarDayBloc;
 
   setUpAll(() {
     Hive.init('.');
@@ -124,11 +147,9 @@ void main() {
     );
     await ConfigDataSource(db).initializeConfig();
 
-    final intakeRepository = IntakeRepository(IntakeDataSource(db));
+    intakeRepository = IntakeRepository(IntakeDataSource(db));
     final trackedDayRepository = TrackedDayRepository(TrackedDayDataSource(db));
-    final activityRepository = UserActivityRepository(
-      UserActivityDataSource(db),
-    );
+    activityRepository = UserActivityRepository(UserActivityDataSource(db));
     final addTrackedDay = AddTrackedDayUsecase(trackedDayRepository);
     getIntake = GetIntakeUsecase(intakeRepository);
     getActivities = GetUserActivityUsecase(activityRepository);
@@ -148,10 +169,25 @@ void main() {
       _FakeKcalGoal(),
       _FakeMacroGoal(),
     );
+    calendarDayBloc = CalendarDayBloc(
+      getActivities,
+      getIntake,
+      _FakeDeleteIntake(),
+      _FakeDeleteActivity(),
+      getTrackedDay,
+      addTrackedDay,
+      _FakeUpdateIntake(),
+      _FakeUpdateActivity(),
+      GetConfigUsecase(ConfigRepository(ConfigDataSource(db))),
+      _FakeAddConfig(),
+      _FakeKcalGoal(),
+      _FakeMacroGoal(),
+    );
   });
 
   tearDown(() async {
     await mealDetailBloc.close();
+    await calendarDayBloc.close();
     await configBox.deleteFromDisk();
     await intakeBox.deleteFromDisk();
     await trackedDayBox.deleteFromDisk();
@@ -239,7 +275,10 @@ void main() {
       expect(day.row, isNotNull, reason: 'else the Diary says Nothing added');
       expect(day.row!.caloriesTracked, 200);
 
-      final nextDay = await diaryDay(DateTime.utc(2026, 10, 5), boundaryHours: 4);
+      final nextDay = await diaryDay(
+        DateTime.utc(2026, 10, 5),
+        boundaryHours: 4,
+      );
       expect(nextDay.intakes, 0);
       expect(nextDay.row, isNull, reason: 'nothing is listed on the 5th');
     });
@@ -267,6 +306,49 @@ void main() {
       expect(day.intakes, 1);
       expect(day.row!.caloriesTracked, 200);
       expect(day.row!.day.day, 4);
+    });
+  });
+
+  group('a day left without a row by an older build', () {
+    final label = DateTime.utc(2026, 9, 20);
+
+    Future<CalendarDayLoaded> load() async {
+      calendarDayBloc.add(LoadCalendarDayEvent(label));
+      return await calendarDayBloc.stream.firstWhere(
+            (state) => state is CalendarDayLoaded,
+          )
+          as CalendarDayLoaded;
+    }
+
+    test('gets its row back when the Diary opens it, totals summed from '
+        'its entries and the goal raised by its activity', () async {
+      await intakeRepository.addIntake(
+        IntakeEntity(
+          id: 'legacy-toast',
+          unit: 'g',
+          amount: 100,
+          type: IntakeTypeEntity.breakfast,
+          meal: _meal,
+          dateTime: label,
+        ),
+      );
+      await activityRepository.addUserActivity(activityAt(label));
+      expect(await getTrackedDay.getTrackedDay(label), isNull);
+
+      final state = await load();
+      expect(state.breakfastIntakeList, hasLength(1));
+      expect(state.trackedDayEntity, isNotNull);
+
+      final row = (await diaryDay(label)).row!;
+      expect(row.caloriesTracked, 200);
+      expect(row.carbsTracked, 40);
+      expect(row.calorieGoal, 2150);
+    });
+
+    test('a day with nothing logged stays without a row', () async {
+      final state = await load();
+      expect(state.trackedDayEntity, isNull);
+      expect(trackedDayBox.isEmpty, isTrue);
     });
   });
 }
