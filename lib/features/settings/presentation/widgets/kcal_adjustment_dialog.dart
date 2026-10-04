@@ -58,6 +58,11 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   /// Writes [kcal] into the field in the current display unit. Every
   /// programmatic write goes through here so the field is in sync with
   /// [_kcalAdjustment] and not marked as edited.
+  ///
+  /// Clearing [_fieldEdited] here relies on no user edit being in flight:
+  /// onChanged runs synchronously with the edit and never for writes to
+  /// the controller, so it can't land after this. Deferring onChanged
+  /// (e.g. a debounce) would break that and re-mark the field as edited.
   void _setField(double kcal) {
     final usesKj = _units.usesKilojoules;
     final display = usesKj ? UnitCalc.kcalToKj(kcal) : kcal;
