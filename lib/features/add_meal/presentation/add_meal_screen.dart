@@ -9,6 +9,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
@@ -41,6 +42,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
   late ProductsBloc _productsBloc;
   late FoodBloc _foodBloc;
   late RecentMealBloc _recentMealBloc;
+  late FavouriteMealBloc _favouriteMealBloc;
 
   // Single smart search: one field, one results list, and source-filter chips.
   // Opens on Recent (fast re-logging); typing searches Products by default,
@@ -52,6 +54,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
     _productsBloc = locator<ProductsBloc>();
     _foodBloc = locator<FoodBloc>();
     _recentMealBloc = locator<RecentMealBloc>();
+    _favouriteMealBloc = locator<FavouriteMealBloc>();
     super.initState();
   }
 
@@ -67,6 +70,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
   @override
   void dispose() {
     _searchStringListener.dispose();
+    _favouriteMealBloc.close();
     super.dispose();
   }
 
@@ -166,10 +170,19 @@ class _AddMealScreenState extends State<AddMealScreen> {
     _recentMealBloc.add(const LoadRecentMealEvent(searchString: ""));
   }
 
+  void _onFavouritesRefreshButtonPressed() {
+    _favouriteMealBloc.add(
+      LoadFavouriteMealEvent(searchString: _searchStringListener.value),
+    );
+  }
+
   /// Resolves the source to search for a query: an empty query always returns
   /// to Recent; a non-empty query searches Products by default, unless the user
   /// has explicitly chosen Food. Keeps the chip selection and the results in sync.
+  /// Favourites is the exception — a chosen list the query filters, so typing
+  /// or clearing the field keeps the user on it.
   _SearchSource _resolveSource(String trimmed) {
+    if (_source == _SearchSource.favourites) return _SearchSource.favourites;
     if (trimmed.isEmpty) return _SearchSource.recent;
     // Typing searches every source at once (All); an explicit Products / Food
     // choice narrows that merged list.
@@ -206,6 +219,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     if (source == _SearchSource.recent) {
       _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
     }
+    if (source == _SearchSource.favourites) {
+      _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: inputText));
+    }
   }
 
   /// Debounced search-as-you-type. Recent filters local intake history; the
@@ -224,6 +240,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     if (source == _SearchSource.recent) {
       _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
     }
+    if (source == _SearchSource.favourites) {
+      _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: inputText));
+    }
   }
 
   void _selectSource(_SearchSource source) {
@@ -237,6 +256,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     }
     if (source == _SearchSource.recent) {
       _recentMealBloc.add(LoadRecentMealEvent(searchString: query));
+    }
+    if (source == _SearchSource.favourites) {
+      _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: query));
     }
   }
 
@@ -257,6 +279,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
         child: Row(
           children: [
             chip(_SearchSource.recent, S.of(context).recentlyAddedLabel),
+            Semantics(
+              identifier: 'add-meal-source-favourites',
+              child: chip(
+                _SearchSource.favourites,
+                S.of(context).favouritesLabel,
+              ),
+            ),
             chip(_SearchSource.all, S.of(context).allItemsLabel),
             chip(_SearchSource.products, S.of(context).searchProductsPage),
             chip(_SearchSource.food, S.of(context).searchFoodPage),
@@ -488,6 +517,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
             ),
           ],
         );
+      case _SearchSource.favourites:
+        return _buildFavouriteResults(context, query);
       case _SearchSource.recent:
         return BlocBuilder<RecentMealBloc, RecentMealState>(
           bloc: _recentMealBloc,
@@ -535,6 +566,57 @@ class _AddMealScreenState extends State<AddMealScreen> {
           },
         );
     }
+  }
+
+  Widget _buildFavouriteResults(BuildContext context, String query) {
+    return BlocBuilder<FavouriteMealBloc, FavouriteMealState>(
+      bloc: _favouriteMealBloc,
+      builder: (context, state) {
+        if (state is FavouriteMealInitial) {
+          _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: query));
+          return const SizedBox();
+        } else if (state is FavouriteMealLoadingState) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 32),
+            child: CircularProgressIndicator(),
+          );
+        } else if (state is FavouriteMealLoadedState) {
+          if (state.favourites.isNotEmpty) {
+            return Semantics(
+              identifier: 'add-meal-favourites-list',
+              container: true,
+              child: ListView.builder(
+                itemCount: state.favourites.length,
+                itemBuilder: (context, index) => MealItemCard(
+                  day: _day,
+                  mealEntity: state.favourites[index],
+                  addMealType: _mealType,
+                  usesImperialUnits: state.usesImperialUnits,
+                ),
+              ),
+            );
+          }
+          if (query.trim().isEmpty) {
+            return EmptyHint(
+              icon: Icons.star_outline_rounded,
+              title: S.of(context).favouritesEmptyTitle,
+              subtitle: S.of(context).favouritesEmptySubtitle,
+            );
+          }
+          return NoResultsWidget(
+            onScanBarcode: _onBarcodeIconPressed,
+            onCreateCustomFood: () =>
+                _onCustomAddButtonPressed(state.usesImperialUnits),
+          );
+        } else if (state is FavouriteMealFailedState) {
+          return ErrorDialog(
+            errorText: S.of(context).errorLoadingFavourites,
+            onRefreshPressed: _onFavouritesRefreshButtonPressed,
+          );
+        }
+        return const SizedBox();
+      },
+    );
   }
 
   void _onBarcodeIconPressed() {
@@ -610,4 +692,4 @@ class AddMealScreenArguments {
   AddMealScreenArguments(this.mealType, this.day);
 }
 
-enum _SearchSource { recent, all, products, food }
+enum _SearchSource { recent, favourites, all, products, food }
