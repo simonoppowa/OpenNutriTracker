@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/favourite_toggle_button.dart';
 import 'package:opennutritracker/features/add_meal/util/food_emoji_resolver.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -82,6 +83,10 @@ class MealItemCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: Dimens.spacing8),
+            FavouriteToggleButton(
+              meal: mealEntity,
+              semanticsIdentifier: 'meal-item-favourite',
+            ),
             Semantics(
               identifier: 'meal-item-add',
               child: IconButton(

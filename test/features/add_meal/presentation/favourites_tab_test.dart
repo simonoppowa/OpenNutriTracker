@@ -15,9 +15,11 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -105,6 +107,9 @@ void main() {
       )
       ..registerFactory<FavouriteMealBloc>(
         () => FavouriteMealBloc(favourites.get, config),
+      )
+      ..registerFactory<FavouriteToggleBloc>(
+        () => FavouriteToggleBloc(favourites.get, favourites.toggle),
       );
   });
 
@@ -184,4 +189,52 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('unstarring a card takes it off the list', (tester) async {
+    favourites.add(_meal('lunch', 'Packed lunch'));
+    await openFavourites(tester);
+
+    await tester.tap(find.byWidgetPredicate(_isCardStar));
+    await tester.pumpAndSettle();
+
+    expect(favourites.all, isEmpty);
+    expect(find.text(l10nEn.favouritesEmptyTitle), findsOneWidget);
+  });
+
+  testWidgets('the star on a search result stars it without logging', (
+    tester,
+  ) async {
+    // The card is the same one every search source renders.
+    final meal = _meal('3017620422003', 'Nutella');
+    await tester.pumpWidget(
+      ChangeNotifierProvider<EnergyUnitProvider>(
+        create: (_) => EnergyUnitProvider(usesKilojoules: false),
+        child: MaterialApp(
+          localizationsDelegates: const [S.delegate],
+          supportedLocales: S.supportedLocales,
+          home: Scaffold(
+            body: MealItemCard(
+              day: DateTime(2026, 10, 4),
+              mealEntity: meal,
+              addMealType: AddMealType.snackType,
+              usesImperialUnits: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byTooltip(l10nEn.favouriteAddTooltip), findsOneWidget);
+
+    await tester.tap(find.byWidgetPredicate(_isCardStar));
+    await tester.pumpAndSettle();
+
+    expect(favourites.contains(meal), isTrue);
+    expect(find.byTooltip(l10nEn.favouriteRemoveTooltip), findsOneWidget);
+    // Still on the list: starring does not open the detail page to log.
+    expect(find.byType(MealItemCard), findsOneWidget);
+  });
 }
+
+bool _isCardStar(Widget w) =>
+    w is Semantics && w.properties.identifier == 'meal-item-favourite';

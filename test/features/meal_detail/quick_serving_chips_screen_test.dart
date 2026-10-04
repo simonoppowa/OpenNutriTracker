@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -27,6 +28,9 @@ import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
+
+import '../../helpers/fake_favourites.dart';
+import '../../helpers/test_l10n.dart';
 
 // Screen-level counterpart to `quick_serving_chips_widget_test.dart`.
 // Drives the real [MealDetailScreen] with a scalable-serving solid product
@@ -61,6 +65,7 @@ MealEntity _solidThirtyGramServing() => MealEntity(
 void main() {
   final getIt = GetIt.instance;
   MealDetailBloc? bloc;
+  late FakeFavourites favourites;
 
   setUp(() {
     bloc = null;
@@ -78,6 +83,11 @@ void main() {
     getIt.registerLazySingleton<GetConfigUsecase>(_FakeGetConfigUsecase.new);
     getIt.registerLazySingleton<GetIntakeUsecase>(_FakeGetIntakeUsecase.new);
     getIt.registerLazySingleton<CacheManager>(_FakeCacheManager.new);
+    // #1307: the detail page's star.
+    favourites = FakeFavourites();
+    getIt.registerFactory<FavouriteToggleBloc>(
+      () => FavouriteToggleBloc(favourites.get, favourites.toggle),
+    );
     getIt.registerLazySingleton<HomeBloc>(_FakeHomeBloc.new);
     getIt.registerLazySingleton<DiaryBloc>(_FakeDiaryBloc.new);
     getIt.registerLazySingleton<CalendarDayBloc>(_FakeCalendarDayBloc.new);
@@ -186,6 +196,33 @@ void main() {
       expect(bloc!.state.totalQuantityConverted, '100.0');
     },
   );
+
+  testWidgets('the app bar star favourites the food and unstars it', (
+    tester,
+  ) async {
+    // #1307: starring from the detail page, with nothing logged.
+    final meal = _solidThirtyGramServing();
+    await pumpMealDetail(tester, meal);
+    final star = find.byWidgetPredicate(
+      (w) =>
+          w is Semantics &&
+          w.properties.identifier == 'meal-detail-favourite',
+    );
+    expect(find.byTooltip(l10nEn.favouriteAddTooltip), findsOneWidget);
+
+    await tester.tap(star);
+    await tester.pumpAndSettle();
+
+    expect(favourites.contains(meal), isTrue);
+    expect(find.byTooltip(l10nEn.favouriteRemoveTooltip), findsOneWidget);
+    expect(find.byType(MealDetailScreen), findsOneWidget);
+
+    await tester.tap(star);
+    await tester.pumpAndSettle();
+
+    expect(favourites.contains(meal), isFalse);
+    expect(find.byTooltip(l10nEn.favouriteAddTooltip), findsOneWidget);
+  });
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
