@@ -2,6 +2,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service_factory.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
@@ -17,6 +18,7 @@ import 'package:opennutritracker/core/data/data_source/water_intake_data_source.
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
@@ -49,6 +51,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.d
 import 'package:opennutritracker/core/domain/usecase/get_all_recipes_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templates_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_favourite_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_breakdown_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
@@ -66,6 +69,7 @@ import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/send_intake_to_profiles_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
@@ -470,6 +474,12 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<DeleteWeightLogUsecase>(
     () => DeleteWeightLogUsecase(locator()),
   );
+  locator.registerLazySingleton<GetFavouriteMealsUsecase>(
+    () => GetFavouriteMealsUsecase(locator()),
+  );
+  locator.registerLazySingleton<ToggleFavouriteMealUsecase>(
+    () => ToggleFavouriteMealUsecase(locator()),
+  );
   locator.registerLazySingleton<AddWaterIntakeUsecase>(
     () => AddWaterIntakeUsecase(locator()),
   );
@@ -495,10 +505,12 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
     ),
   );
   locator.registerLazySingleton(
     () => ImportDataUsecase(
+      locator(),
       locator(),
       locator(),
       locator(),
@@ -562,6 +574,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<WeightLogRepository>(
     () => WeightLogRepository(locator()),
   );
+  locator.registerLazySingleton<FavouriteMealRepository>(
+    () => FavouriteMealRepository(locator(), locator(), locator()),
+  );
   locator.registerLazySingleton<WaterIntakeRepository>(
     () => WaterIntakeRepository(locator()),
   );
@@ -603,6 +618,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));
   locator.registerLazySingleton<WeightLogDataSource>(
     () => WeightLogDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<FavouriteMealDataSource>(
+    () => FavouriteMealDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton<WaterIntakeDataSource>(
     () => WaterIntakeDataSource(hiveDBProvider),

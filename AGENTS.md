@@ -310,6 +310,7 @@ Named routes are defined in `NavigationOptions` and registered in `main.dart`. T
 | `WeightLogBox`                 | `WeightLogDBO`              | Weight history points for the profile trend chart                    |
 | `WaterIntakeBox`               | `WaterIntakeDBO`            | Water log entries powering the home chip                             |
 | `FastingBox`                   | `FastingSessionDBO`         | Fasting sessions (current and historical) for the timer              |
+| `FavouriteMealBox`             | `FavouriteMealDBO`          | Starred foods and meals for the add-food Favourites tab              |
 
 When adding a new `@HiveType`, assign a unique `typeId`. Check all existing DBOs to avoid collisions — IDs are currently scattered across 0–30+.
 
@@ -335,7 +336,7 @@ Calculation utilities live in `lib/core/utils/calc/`:
 
 ### Data export / import
 
-Settings screen exports to a `.zip` that bundles intakes, activities, tracked days, and recipes in both JSON (canonical, re-importable) and CSV (flat, for spreadsheets) formats — see [`docs/export-format.md`](docs/export-format.md) for the full schema. Import accepts the same zip and merges its contents into the existing boxes. User profile data (height, weight, birthday, PAL, goal) is intentionally **not** included in the export. Settings → Import also supports a pasted JSON blob for ad-hoc meal imports.
+Settings screen exports to a `.zip` that bundles intakes, activities, tracked days, recipes and favourites in both JSON (canonical, re-importable) and CSV (flat, for spreadsheets) formats — see [`docs/export-format.md`](docs/export-format.md) for the full schema. Import accepts the same zip and merges its contents into the existing boxes. User profile data (height, weight, birthday, PAL, goal) is intentionally **not** included in the export. Settings → Import also supports a pasted JSON blob for ad-hoc meal imports.
 
 ## GitHub issue and PR templates
 

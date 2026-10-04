@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
@@ -35,6 +36,24 @@ void main() {
       );
 
       expect(paths, ['recipe_images/r.webp', 'meal_images/saved.webp']);
+    });
+
+    // #1307: a starred custom meal whose template was deleted keeps its
+    // photo on the favourite's snapshot, and nowhere else.
+    test('collects a photo that exists only on a favourite', () {
+      final paths = ExportDataUsecase.userImagePaths(
+        recipes: const [],
+        customMeals: const [],
+        intakes: const [],
+        favourites: [
+          FavouriteMealDBO(
+            meal: _meal(imagePath: 'meal_images/starred.webp'),
+            addedAt: DateTime(2026, 10, 4),
+          ),
+        ],
+      );
+
+      expect(paths, ['meal_images/starred.webp']);
     });
 
     // The ordinary case — a saved custom meal that has also been logged —

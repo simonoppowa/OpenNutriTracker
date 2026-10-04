@@ -28,6 +28,7 @@ next to its CSV counterpart will not find one.
 | `user_recipes.json`              | Recipes only. Nested-ingredient shape, no CSV counterpart. |
 | `weight_log.json`                | Weight history.                                          |
 | `custom_activity_templates.json` | Saved custom activities — name and typical kcal.         |
+| `user_favourites.json`           | The starred foods and meals, each with a meal snapshot.  |
 
 **CSV bundle**
 
@@ -38,12 +39,12 @@ next to its CSV counterpart will not find one.
 | `user_tracked_day.csv`  | Flat tracked days — **lossy, see [Round-trip guarantee](#round-trip-guarantee)**. |
 
 **Photos travel with the JSON bundle only.** User-attached photos are added under
-`recipe_images/` and `meal_images/` when you export as JSON, gathered from three places: recipes,
-saved custom meals, and **the diary entries themselves**. That third source is not redundant — a
+`recipe_images/` and `meal_images/` when you export as JSON, gathered from recipes, saved custom
+meals, favourites, and **the diary entries themselves**. That third source is not redundant — a
 custom meal logged with *Save for next time* off keeps its photo on the entry without leaving a
 saved meal behind, so gathering only from the first two put the filename in the JSON and left the
 bytes out of the zip ([#1061](https://github.com/simonoppowa/OpenNutriTracker/issues/1061)). A
-photo reachable from any of the three is in the bundle exactly once.
+photo reachable from any of them is in the bundle exactly once.
 
 A CSV export carries none, and the CSV importer does not restore them — another reason to use
 JSON for anything you intend to restore from.
@@ -200,6 +201,15 @@ Array of recipe records, each holding an `ingredients` list referencing
 external food items by code. The nested-ingredient shape makes CSV a poor fit
 here, so recipes ship as JSON only. See `lib/core/data/dbo/recipe_dbo.dart`
 for the precise field list.
+
+### `user_favourites.json`
+
+Array of the active profile's favourites
+([#1307](https://github.com/simonoppowa/OpenNutriTracker/issues/1307)), each a
+`meal` — the same `MealDBO` shape as an intake's — and the `addedAt` timestamp
+that orders the list. Optional on import, so bundles from before the list existed
+still restore; an imported favourite replaces one already on the list for the same
+food. See `lib/core/data/dbo/favourite_meal_dbo.dart`.
 
 ## CSV schema
 

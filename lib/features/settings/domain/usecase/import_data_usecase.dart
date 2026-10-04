@@ -5,11 +5,13 @@ import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -33,6 +35,7 @@ class ImportDataUsecase {
   final RecipeRepository _recipeRepository;
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
+  final FavouriteMealRepository _favouriteMealRepository;
 
   /// Seam for tests: `FilePicker.pickFile` is static and needs a platform
   /// channel, so the picker outcomes (#1103: cancel, a pick without a
@@ -45,14 +48,16 @@ class ImportDataUsecase {
     this._trackedDayRepository,
     this._recipeRepository,
     this._weightLogRepository,
-    this._customActivityTemplateRepository, {
+    this._customActivityTemplateRepository,
+    this._favouriteMealRepository, {
     PickImportFile pickFile = _pickAnyFile,
   }) : _pickFile = pickFile;
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
-  /// weight log or Custom activity template data from a zip file
-  /// containing JSON files. Recipe, weight log and template files are
-  /// treated as optional so zips exported by older versions still import.
+  /// weight log, Custom activity template or favourites data from a zip
+  /// file containing JSON files. Recipe, weight log, template and favourites
+  /// files are treated as optional so zips exported by older versions still
+  /// import.
   ///
   /// Returns true when the import completed. Throws an
   /// [ExportImportFailure] whose reason says what went wrong — including
@@ -65,8 +70,9 @@ class ImportDataUsecase {
     String trackedDayJsonFileName,
     String recipeJsonFileName,
     String weightLogJsonFileName,
-    String customActivityTemplateJsonFileName,
-  ) async {
+    String customActivityTemplateJsonFileName, {
+    String favouriteJsonFileName = 'user_favourites.json',
+  }) async {
     final archive = await _pickAndDecodeArchive();
 
     // Extract and process user activity data
@@ -139,6 +145,18 @@ class ImportDataUsecase {
         CustomActivityTemplateDBO.fromJson,
       );
       await _customActivityTemplateRepository.addAllTemplateDBOs(templateDBOs);
+    }
+
+    // Favourites (#1307) — optional, zips from before the list existed have
+    // none. Merged by meal key, so restoring onto a list that already holds
+    // a food keeps one entry for it.
+    final favouriteFile = archive.findFile(favouriteJsonFileName);
+    if (favouriteFile != null) {
+      final favouriteDBOs = _decodeJsonList(
+        favouriteFile,
+        FavouriteMealDBO.fromJson,
+      );
+      await _favouriteMealRepository.addAllFavouriteDBOs(favouriteDBOs);
     }
 
     // Restore any user-attached photos — recipes under `recipe_images/`
