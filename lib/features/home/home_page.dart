@@ -244,11 +244,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 onItemTappedCallback: onActivityItemTapped,
                 onItemDragCallback: onActivityItemDrag,
               ),
-            // #150 follow-up: a 0% share (e.g. OMAD sets snack to 0) hides the
-            // section entirely so the home view doesn't carry an empty header
-            // the user explicitly opted out of. Already-logged intakes for a
-            // hidden section still count toward daily totals.
-            if (breakfastSharePct > 0)
+            // #150 follow-up: a 0% share (e.g. OMAD sets snack to 0) hides an
+            // empty section so the home view doesn't carry a header the user
+            // explicitly opted out of. A section that holds intakes always
+            // shows, so they stay editable and deletable (#1305).
+            if (IntakeVerticalList.isShown(
+              sharePct: breakfastSharePct,
+              intakes: breakfastIntakeList,
+            ))
               IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).breakfastLabel,
@@ -262,7 +265,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 showMealMacros: showMealMacros,
                 mealKcalTarget: breakfastKcalTarget,
               ),
-            if (lunchSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: lunchSharePct,
+              intakes: lunchIntakeList,
+            ))
               IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).lunchLabel,
@@ -276,7 +282,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 showMealMacros: showMealMacros,
                 mealKcalTarget: lunchKcalTarget,
               ),
-            if (dinnerSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: dinnerSharePct,
+              intakes: dinnerIntakeList,
+            ))
               IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).dinnerLabel,
@@ -290,7 +299,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 showMealMacros: showMealMacros,
                 mealKcalTarget: dinnerKcalTarget,
               ),
-            if (snackSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: snackSharePct,
+              intakes: snackIntakeList,
+            ))
               IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).snackLabel,
