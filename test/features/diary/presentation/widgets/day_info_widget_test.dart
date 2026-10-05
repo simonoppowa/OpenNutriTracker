@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -67,6 +68,48 @@ IntakeEntity _intake(IntakeTypeEntity type, String name) {
   );
 }
 
+final _dinner = _intake(IntakeTypeEntity.dinner, 'Dinner Stew');
+
+/// OMAD shares: only dinner has a share, breakfast is at 0 %.
+Future<void> _pumpOmadDay(
+  WidgetTester tester, {
+  required List<IntakeEntity> breakfastIntake,
+  void Function(IntakeEntity intake, TrackedDayEntity? trackedDay)?
+      onDeleteIntake,
+}) async {
+  await tester.pumpWidget(ChangeNotifierProvider<EnergyUnitProvider>(
+    create: (_) => EnergyUnitProvider(),
+    child: MaterialApp(
+      localizationsDelegates: const [S.delegate],
+      supportedLocales: S.supportedLocales,
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: DayInfoWidget(
+            selectedDay: DateTime(2026, 6, 15),
+            trackedDayEntity: null,
+            userActivities: const [],
+            breakfastIntake: breakfastIntake,
+            lunchIntake: const [],
+            dinnerIntake: [_dinner],
+            snackIntake: const [],
+            usesImperialUnits: false,
+            showActivityTracking: false,
+            onDeleteIntake: onDeleteIntake ?? (_, _) {},
+            onDeleteActivity: (_, _) {},
+            onCopyIntake: (_, _, _) {},
+            onCopyActivity: (_, _) {},
+            breakfastSharePct: 0,
+            lunchSharePct: 0,
+            dinnerSharePct: 100,
+            snackSharePct: 0,
+          ),
+        ),
+      ),
+    ),
+  ));
+  await tester.pump();
+}
+
 void main() {
   setUpAll(() {
     final locator = GetIt.instance;
@@ -86,44 +129,50 @@ void main() {
   // to see, edit or delete it. Empty 0 % sections stay hidden.
   testWidgets('a 0 % meal section with intakes is shown, an empty one is not',
       (WidgetTester tester) async {
-    await tester.pumpWidget(ChangeNotifierProvider<EnergyUnitProvider>(
-      create: (_) => EnergyUnitProvider(),
-      child: MaterialApp(
-        localizationsDelegates: const [S.delegate],
-        supportedLocales: S.supportedLocales,
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: DayInfoWidget(
-              selectedDay: DateTime(2026, 6, 15),
-              trackedDayEntity: null,
-              userActivities: const [],
-              breakfastIntake: [
-                _intake(IntakeTypeEntity.breakfast, 'Hidden Porridge'),
-              ],
-              lunchIntake: const [],
-              dinnerIntake: [_intake(IntakeTypeEntity.dinner, 'Dinner Stew')],
-              snackIntake: const [],
-              usesImperialUnits: false,
-              showActivityTracking: false,
-              onDeleteIntake: (_, _) {},
-              onDeleteActivity: (_, _) {},
-              onCopyIntake: (_, _, _) {},
-              onCopyActivity: (_, _) {},
-              breakfastSharePct: 0,
-              lunchSharePct: 0,
-              dinnerSharePct: 100,
-              snackSharePct: 0,
-            ),
-          ),
-        ),
-      ),
-    ));
-    await tester.pump();
+    await _pumpOmadDay(
+      tester,
+      breakfastIntake: [
+        _intake(IntakeTypeEntity.breakfast, 'Hidden Porridge'),
+      ],
+    );
 
     expect(find.text(l10nEn.breakfastLabel), findsOneWidget);
     expect(find.text('Hidden Porridge'), findsOneWidget);
     expect(find.text(l10nEn.dinnerLabel), findsOneWidget);
     expect(find.text(l10nEn.lunchLabel), findsNothing);
     expect(find.text(l10nEn.snackLabel), findsNothing);
+  });
+
+  // #1305: showing the entry is half the fix; it must also be deletable
+  // through the same long-press flow as any other entry. Once it is gone the
+  // empty 0 % section hides again.
+  testWidgets('an entry in a 0 % meal section can be deleted',
+      (WidgetTester tester) async {
+    final porridge = _intake(IntakeTypeEntity.breakfast, 'Hidden Porridge');
+    final deleted = <IntakeEntity>[];
+    await _pumpOmadDay(
+      tester,
+      breakfastIntake: [porridge],
+      onDeleteIntake: (intake, _) => deleted.add(intake),
+    );
+
+    // A past day, so the long-press asks copy-or-delete before confirming.
+    await tester.longPress(find.text('Hidden Porridge'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.dialogDeleteLabel.toUpperCase()));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nEn.deleteTimeDialogTitle), findsOneWidget);
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(deleted, [porridge]);
+
+    // The page reloads without the deleted entry.
+    await _pumpOmadDay(tester, breakfastIntake: const []);
+
+    expect(find.text('Hidden Porridge'), findsNothing);
+    expect(find.text(l10nEn.breakfastLabel), findsNothing);
+    expect(find.text(l10nEn.dinnerLabel), findsOneWidget);
+    expect(find.text('Dinner Stew'), findsOneWidget);
   });
 }
