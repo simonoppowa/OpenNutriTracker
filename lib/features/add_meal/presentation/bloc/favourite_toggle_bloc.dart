@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
@@ -34,6 +35,9 @@ class FavouriteToggleBloc
       _meal = event.meal;
       await _refresh(emit);
     });
+    // One toggle at a time: each reads the stored state before writing it,
+    // so a double tap run side by side would read before the first write
+    // landed and star the meal twice instead of starring and unstarring it.
     on<ToggleFavouriteEvent>((event, emit) async {
       _meal = event.meal;
       try {
@@ -44,7 +48,7 @@ class FavouriteToggleBloc
       } catch (error) {
         log.severe(error);
       }
-    });
+    }, transformer: sequential());
     on<_FavouritesChangedEvent>((event, emit) => _refresh(emit));
     _changes = _getFavouriteMealsUsecase.watchFavourites().listen(
       (_) => add(const _FavouritesChangedEvent()),

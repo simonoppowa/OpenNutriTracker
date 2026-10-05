@@ -20,6 +20,10 @@ class FakeFavourites {
   /// Set to make every read fail, for the error state.
   Object? readError;
 
+  /// Set to let a toggle's write land a turn after its read, the way a Hive
+  /// put does, so a second toggle can read the list in between.
+  bool slowWrites = false;
+
   List<MealEntity> get all => _meals.values.toList().reversed.toList();
 
   bool contains(MealEntity meal) =>
@@ -64,7 +68,9 @@ class _FakeToggleFavouriteMealUsecase implements ToggleFavouriteMealUsecase {
 
   @override
   Future<bool> toggle(MealEntity meal) async {
-    if (_store.contains(meal)) {
+    final wasFavourite = _store.contains(meal);
+    if (_store.slowWrites) await Future<void>.delayed(Duration.zero);
+    if (wasFavourite) {
       _store.remove(meal);
       return false;
     }

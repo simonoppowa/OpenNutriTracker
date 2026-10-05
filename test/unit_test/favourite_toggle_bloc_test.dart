@@ -59,6 +59,26 @@ void main() {
     expect(favourites.contains(meal), isFalse);
   });
 
+  test('a double tap lands back where it started', () async {
+    // Each toggle reads the stored state before writing it. Run side by
+    // side, the second tap would read the list before the first one's write
+    // landed and star the meal a second time instead of unstarring it.
+    favourites.slowWrites = true;
+    final meal = _meal('6');
+    bloc.add(LoadFavouriteStatusEvent(meal));
+    expect(await settle(), isFalse);
+
+    bloc
+      ..add(ToggleFavouriteEvent(meal))
+      ..add(ToggleFavouriteEvent(meal));
+    for (var i = 0; i < 5; i++) {
+      await settle();
+    }
+
+    expect(favourites.contains(meal), isFalse);
+    expect(bloc.state.isFavourite, isFalse);
+  });
+
   test('follows a toggle made by another star', () async {
     final meal = _meal('3');
     bloc.add(LoadFavouriteStatusEvent(meal));
