@@ -25,6 +25,7 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
@@ -412,6 +413,76 @@ void main() {
     test('a day with nothing logged stays without a row', () async {
       await reconcile(currentGoals: currentGoals);
       expect(trackedDayBox.isEmpty, isTrue);
+    });
+  });
+
+  group('moving the day boundary', () {
+    late SetDayBoundaryUsecase setDayBoundary;
+
+    setUp(() {
+      setDayBoundary = SetDayBoundaryUsecase(db, ConfigDataSource(db));
+    });
+
+    test('takes the rows along: no entry counted twice, no marker left on '
+        'a day with nothing listed', () async {
+      await addFood(DateTime(2026, 10, 4, 12));
+      await addFood(DateTime(2026, 10, 5, 2));
+      expect((await diaryDay(DateTime.utc(2026, 10, 5))).row, isNotNull);
+
+      await setDayBoundary.setDayBoundary(4, 0);
+
+      final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
+      expect(day.intakes, 2);
+      expect(day.row!.caloriesTracked, 400);
+      final nextDay = await diaryDay(
+        DateTime.utc(2026, 10, 5),
+        boundaryHours: 4,
+      );
+      expect(nextDay.intakes, 0);
+      expect(nextDay.row, isNull);
+      expect(totalTracked(), 400);
+    });
+
+    test('moves the energy an activity burned with it, and back', () async {
+      final at = DateTime(2026, 10, 5, 2);
+      await addFood(DateTime(2026, 10, 4, 12));
+      await logActivity.logActivity(activityAt(at), day: at);
+
+      await setDayBoundary.setDayBoundary(4, 0);
+
+      final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
+      expect(day.activities, 1);
+      expect(day.row!.calorieGoal, 2150);
+      expect(
+        (await diaryDay(DateTime.utc(2026, 10, 5), boundaryHours: 4)).row,
+        isNull,
+      );
+
+      await setDayBoundary.setDayBoundary(0, 0);
+
+      final back = await diaryDay(DateTime.utc(2026, 10, 4));
+      expect(back.row!.calorieGoal, 2000);
+      expect(back.row!.caloriesTracked, 200);
+      final nextDay = await diaryDay(DateTime.utc(2026, 10, 5));
+      expect(nextDay.activities, 1);
+      expect(nextDay.row!.calorieGoal, 2150);
+      expect(nextDay.row!.caloriesTracked, 0);
+    });
+
+    test('a day that keeps entries of its own keeps its row', () async {
+      await addFood(DateTime(2026, 10, 5, 2));
+      await addFood(DateTime(2026, 10, 5, 12));
+
+      await setDayBoundary.setDayBoundary(4, 0);
+
+      final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
+      expect(day.row!.caloriesTracked, 200);
+      expect(day.row!.calorieGoal, 2000);
+      final nextDay = await diaryDay(
+        DateTime.utc(2026, 10, 5),
+        boundaryHours: 4,
+      );
+      expect(nextDay.row!.caloriesTracked, 200);
     });
   });
 

@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 
 part 'settings_event.dart';
@@ -30,6 +31,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   // fibre / sat-fat / sugar sliders with the user's existing per-day
   // overrides rather than always starting from defaults.
   final GetTrackedDayUsecase _getTrackedDayUsecase;
+  final SetDayBoundaryUsecase _setDayBoundaryUsecase;
 
   SettingsBloc(
     this._getConfigUsecase,
@@ -39,6 +41,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     this._getMacroGoalUsecase,
     this._cachedOffMealDataSource,
     this._getTrackedDayUsecase,
+    this._setDayBoundaryUsecase,
   ) : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
@@ -173,20 +176,17 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     await _addConfigUsecase.setDiarySortPreference(mealKey, sortIndex);
   }
 
-  // #139: persist the configurable diary day boundary (0-23).
-  Future<void> setDayStartOffsetHours(int hours) async {
-    await _addConfigUsecase.setConfigDayStartOffsetHours(hours);
+  // #139: persist the configurable diary day boundary — hours 0-23 and,
+  // since the follow-up, minutes 0-59 so shift workers on 04:30 (or
+  // 03:45) can be exact. One write that also moves the tracked-day rows
+  // onto the days their entries are now listed under (#1317).
+  Future<void> setDayStartOffset(int hours, int minutes) async {
+    await _setDayBoundaryUsecase.setDayBoundary(hours, minutes);
   }
 
   Future<int> getDayStartOffsetHours() async {
     final config = await _getConfigUsecase.getConfig();
     return config.dayStartOffsetHours;
-  }
-
-  // #139 follow-up: persist the minute component (0-59) of the diary
-  // day boundary so shift workers on 04:30 (or 03:45) can be exact.
-  Future<void> setDayStartOffsetMinutes(int minutes) async {
-    await _addConfigUsecase.setConfigDayStartOffsetMinutes(minutes);
   }
 
   Future<int> getDayStartOffsetMinutes() async {
