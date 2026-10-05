@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/splash_screen.dart';
 import 'package:opennutritracker/core/presentation/storage_recovery_app.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
+import 'package:opennutritracker/core/presentation/widgets/keyboard_dismisser.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
@@ -302,6 +303,9 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: _appLocales,
+      // Above the Navigator, so dialogs and sheets are covered too.
+      builder: (context, child) =>
+          KeyboardDismisser(child: child ?? const SizedBox.shrink()),
       initialRoute: NavigationOptions.splashRoute,
       routes: {
         NavigationOptions.splashRoute: (context) =>

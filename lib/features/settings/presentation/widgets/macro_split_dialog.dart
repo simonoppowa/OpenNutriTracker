@@ -88,12 +88,21 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   late final TextEditingController _proteinController;
   late final TextEditingController _fatController;
 
+  /// A typed value is applied when its field loses focus, not only on
+  /// submit: the iOS number pad has no return key, so a submit never comes
+  /// and the other two macros never visibly rebalanced (#1324).
+  late final Map<_MacroField, FocusNode> _focusNodes;
+
   @override
   void initState() {
     super.initState();
     _carbsController = TextEditingController();
     _proteinController = TextEditingController();
     _fatController = TextEditingController();
+    _focusNodes = {
+      for (final field in _MacroField.values)
+        field: FocusNode()..addListener(() => _onFocusChanged(field)),
+    };
     _load();
   }
 
@@ -102,7 +111,15 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     _carbsController.dispose();
     _proteinController.dispose();
     _fatController.dispose();
+    for (final node in _focusNodes.values) {
+      node.dispose();
+    }
     super.dispose();
+  }
+
+  void _onFocusChanged(_MacroField field) {
+    if (!mounted || _focusNodes[field]!.hasFocus) return;
+    if (_lastEditedMacro == field) _applyPendingTextInputs();
   }
 
   Future<void> _load() async {
@@ -328,6 +345,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     value: _carbsPct,
                     color: Colors.orange,
                     controller: _carbsController,
+                    focusNode: _focusNodes[_MacroField.carbs]!,
                     semanticIdentifier: 'macro-split-carbs',
                     onSliderChanged: (v) => setState(
                       () => _redistribute(
@@ -349,6 +367,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     value: _proteinPct,
                     color: Colors.blue,
                     controller: _proteinController,
+                    focusNode: _focusNodes[_MacroField.protein]!,
                     semanticIdentifier: 'macro-split-protein',
                     onSliderChanged: (v) => setState(
                       () => _redistribute(
@@ -370,6 +389,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     value: _fatPct,
                     color: Colors.green,
                     controller: _fatController,
+                    focusNode: _focusNodes[_MacroField.fat]!,
                     semanticIdentifier: 'macro-split-fat',
                     onSliderChanged: (v) => setState(
                       () => _redistribute(
@@ -411,6 +431,7 @@ class _MacroRow extends StatelessWidget {
   final double value;
   final Color color;
   final TextEditingController controller;
+  final FocusNode focusNode;
   final String semanticIdentifier;
   final ValueChanged<double> onSliderChanged;
   final VoidCallback onSliderEnd;
@@ -422,6 +443,7 @@ class _MacroRow extends StatelessWidget {
     required this.value,
     required this.color,
     required this.controller,
+    required this.focusNode,
     required this.semanticIdentifier,
     required this.onSliderChanged,
     required this.onSliderEnd,
@@ -447,6 +469,7 @@ class _MacroRow extends StatelessWidget {
               width: MediaQuery.textScalerOf(context).scale(96),
               child: TextField(
                 controller: controller,
+                focusNode: focusNode,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textAlign: TextAlign.right,
