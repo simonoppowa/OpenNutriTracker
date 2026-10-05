@@ -186,6 +186,53 @@ void main() {
     },
   );
 
+  testWidgets(
+    'applies a typed value when its field loses focus, without a submit',
+    (tester) async {
+      // #1324: the iOS number pad has no return key, so onSubmitted never
+      // fires there. Leaving the field has to rebalance the other two.
+      final settingsBloc = _FakeSettingsBloc();
+      final homeBloc = _FakeHomeBloc();
+
+      await tester.pumpWidget(
+        _wrap(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => MacroSplitDialog(
+                    settingsBloc: settingsBloc,
+                    homeBloc: homeBloc,
+                  ),
+                ),
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      final fields = find.byType(TextField);
+      await tester.tap(fields.at(1));
+      await tester.enterText(fields.at(1), '25');
+      await tester.pump();
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump();
+
+      String textOf(int i) =>
+          tester.widget<TextField>(fields.at(i)).controller!.text;
+      // protein 25 / residual 75 split 60:25 → ~52.9 / ~22.1.
+      expect(textOf(0), '53');
+      expect(textOf(1), '25');
+      expect(textOf(2), '22');
+      expect(find.text('100% total'), findsOneWidget);
+    },
+  );
+
   test('roundMacroPercentsToHundred always sums to 100', () {
     // Typical redistribute leftovers.
     expect(roundMacroPercentsToHundred(50, 18.75, 31.25), (50, 19, 31));
