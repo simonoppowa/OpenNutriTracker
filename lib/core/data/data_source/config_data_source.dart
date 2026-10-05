@@ -301,6 +301,19 @@ class ConfigDataSource {
     await _update((c) => c.dayStartOffsetMinutes = minutes);
   }
 
+  /// Sets both halves of the day boundary in one write.
+  ///
+  /// Like every setter here, the new value is in the box before the
+  /// returned future is first awaited (see [_writeBoth]);
+  /// `moveDayBoundary` relies on that to regroup the tracked-day rows in
+  /// the same synchronous step (#1317).
+  Future<void> setConfigDayStartOffset(int hours, int minutes) async {
+    await _update((c) {
+      c.dayStartOffsetHours = hours;
+      c.dayStartOffsetMinutes = minutes;
+    });
+  }
+
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
     await _update((c) => c.dailyWaterGoalMl = goalMl);
   }
@@ -411,6 +424,11 @@ class ConfigDataSource {
   }
 
   Future<ConfigDBO> getConfig() async => _readMerged();
+
+  /// [getConfig] without the yield, for a caller that has to read the
+  /// config and write what depends on it before any other code runs
+  /// (#1317).
+  ConfigDBO getConfigNow() => _readMerged();
 
   Future<bool> getHasAcceptedAnonymousData() async =>
       _readMerged().hasAcceptedSendAnonymousData;

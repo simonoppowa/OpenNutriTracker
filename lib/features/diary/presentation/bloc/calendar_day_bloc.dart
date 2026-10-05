@@ -11,8 +11,6 @@ import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
@@ -36,8 +34,6 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final UpdateUserActivityUsecase _updateUserActivityUsecase;
   final GetConfigUsecase _getConfigUsecase;
   final AddConfigUsecase _addConfigUsecase;
-  final GetKcalGoalUsecase _getKcalGoalUsecase;
-  final GetMacroGoalUsecase _getMacroGoalUsecase;
 
   DateTime? _currentDay;
 
@@ -52,8 +48,6 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     this._updateUserActivityUsecase,
     this._getConfigUsecase,
     this._addConfigUsecase,
-    this._getKcalGoalUsecase,
-    this._getMacroGoalUsecase,
   ) : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
@@ -110,17 +104,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       dayStartOffsetMinutes: dayStartOffsetMinutes,
     );
 
-    var trackedDayEntity = await _getTrackedDayUsecase.getTrackedDay(day);
-    final intakes = [
-      ...breakfastIntakeList,
-      ...lunchIntakeList,
-      ...dinnerIntakeList,
-      ...snackIntakeList,
-    ];
-    if (trackedDayEntity == null &&
-        (intakes.isNotEmpty || userActivities.isNotEmpty)) {
-      trackedDayEntity = await _restoreTrackedDay(day, intakes, userActivities);
-    }
+    final trackedDayEntity = await _getTrackedDayUsecase.getTrackedDay(day);
     final configData = await _getConfigUsecase.getConfig();
 
     // #150: only surface per-meal targets when this calendar day has a
@@ -161,48 +145,6 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         diarySortPreferences: config.diarySortPreferences,
       ),
     );
-  }
-
-  /// Writes the tracked-day row of a [day] that lists entries but has none
-  /// (#1317), so the Diary shows its summary rather than "Nothing added"
-  /// above them.
-  ///
-  /// Every writer creates the row with the entry today, so this only
-  /// meets days left without one: by builds that keyed rows differently
-  /// from the listing, or by an entry whose wall-clock timestamp now reads
-  /// as another day because the device's time zone changed. The row is
-  /// the one those writers would have made — today's goal, raised by the
-  /// day's activities as logging them would have — with its totals summed
-  /// from the entries listed.
-  Future<TrackedDayEntity?> _restoreTrackedDay(
-    DateTime day,
-    List<IntakeEntity> intakes,
-    List<UserActivityEntity> activities,
-  ) async {
-    final kcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-      totalKcalActivitiesParam: 0,
-    );
-    final burnedKcal = activities.fold(0.0, (sum, a) => sum + a.burnedKcal);
-    // One write of absolute values, so two loads racing to restore the
-    // same day cannot raise its goal twice.
-    await _addTrackedDayUsecase.addNewTrackedDay(
-      day,
-      kcalGoal + burnedKcal,
-      await _getMacroGoalUsecase.getCarbsGoal(kcalGoal) +
-          MacroCalc.getTotalCarbsGoal(burnedKcal),
-      await _getMacroGoalUsecase.getFatsGoal(kcalGoal) +
-          MacroCalc.getTotalFatsGoal(burnedKcal),
-      await _getMacroGoalUsecase.getProteinsGoal(kcalGoal) +
-          MacroCalc.getTotalProteinsGoal(burnedKcal),
-    );
-    await _addTrackedDayUsecase.reconcileDayTracked(
-      day,
-      intakes.fold(0.0, (sum, i) => sum + i.totalKcal),
-      intakes.fold(0.0, (sum, i) => sum + i.totalCarbsGram),
-      intakes.fold(0.0, (sum, i) => sum + i.totalFatsGram),
-      intakes.fold(0.0, (sum, i) => sum + i.totalProteinsGram),
-    );
-    return _getTrackedDayUsecase.getTrackedDay(day);
   }
 
   /// Persist the user's sort choice for a single meal section. The diary

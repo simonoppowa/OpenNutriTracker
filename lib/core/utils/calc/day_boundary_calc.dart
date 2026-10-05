@@ -125,6 +125,21 @@ class DayBoundaryCalc {
           ? moment
           : logicalDayOfMinutes(moment, offsetTotalMinutes);
 
+  /// The date of [dayLabelOf] as `yyyy-MM-dd`, the key of the tracked-day
+  /// row holding [moment]'s entry, without building the label: a local
+  /// midnight costs a time-zone lookup, and the pass that checks every
+  /// logged entry against its row (#1317) spent most of its time on it.
+  /// Shifting [moment] lands on the same date.
+  static String dayKeyOf(DateTime moment, int? offsetTotalMinutes) {
+    final day = isDayLabel(moment)
+        ? moment
+        : moment.subtract(
+            Duration(minutes: _sanitiseTotalMinutes(offsetTotalMinutes)),
+          );
+    String pad(int value, int width) => '$value'.padLeft(width, '0');
+    return '${pad(day.year, 4)}-${pad(day.month, 2)}-${pad(day.day, 2)}';
+  }
+
   /// True when [a] and [b] resolve to the same logical day under
   /// [offsetTotalMinutes].
   ///
