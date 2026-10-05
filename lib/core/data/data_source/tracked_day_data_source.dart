@@ -1,6 +1,9 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
@@ -12,8 +15,28 @@ class TrackedDayDataSource {
 
   Box<TrackedDayDBO> get _trackedDayBox => _db.trackedDayBox;
 
+  /// The diary day whose row [day] names (#1317).
+  ///
+  /// Callers hand this source either a day label — a Diary cell, or
+  /// HomeBloc's resolved logical day — or a moment: an entry's own
+  /// timestamp, or a raw `DateTime.now()` from Home. A moment has to land
+  /// on the row of the day the Diary lists an entry stamped with it
+  /// under, or with a day-start boundary configured an entry logged at
+  /// 02:00 is listed on one day while its row is created on the next, and
+  /// the Diary reports "Nothing added" beside it. Labels pass through
+  /// unchanged, so the boundary is only read for a moment.
+  Future<DateTime> _diaryDayOf(DateTime day) async {
+    if (DayBoundaryCalc.isDayLabel(day)) return day;
+    final config = ConfigEntity.fromConfigDBO(
+      await ConfigDataSource(_db).getConfig(),
+    );
+    return DayBoundaryCalc.dayLabelOf(day, config.dayStartOffsetTotalMinutes);
+  }
+
   Future<void> saveTrackedDay(TrackedDayDBO trackedDayDBO) async {
     log.fine('Updating tracked day in db');
+    // Stored as the label too: the Diary calendar keys its map by `day`.
+    trackedDayDBO.day = await _diaryDayOf(trackedDayDBO.day);
     await _trackedDayBox.put(trackedDayDBO.day.toParsedDay(), trackedDayDBO);
   }
 
@@ -30,7 +53,7 @@ class TrackedDayDataSource {
   }
 
   Future<TrackedDayDBO?> getTrackedDay(DateTime day) async {
-    return _trackedDayBox.get(day.toParsedDay());
+    return _trackedDayBox.get((await _diaryDayOf(day)).toParsedDay());
   }
 
   Future<List<TrackedDayDBO>> getTrackedDaysInRange(
@@ -47,7 +70,7 @@ class TrackedDayDataSource {
   }
 
   Future<bool> hasTrackedDay(DateTime day) async =>
-      _trackedDayBox.get(day.toParsedDay()) != null;
+      await getTrackedDay(day) != null;
 
   Future<void> updateDayCalorieGoal(DateTime day, double calorieGoal) async {
     log.fine('Updating tracked day total calories');

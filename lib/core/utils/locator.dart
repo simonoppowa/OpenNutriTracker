@@ -65,12 +65,14 @@ import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/send_intake_to_profiles_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
+import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:http/http.dart' as http;
@@ -276,6 +278,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(), // #173: GetTrackedDayUsecase for nutrient-goal pre-fill
+      locator(),
     ),
   );
   locator.registerFactory(
@@ -357,6 +360,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<AddConfigUsecase>(
     () => AddConfigUsecase(locator()),
   );
+  locator.registerLazySingleton<SetDayBoundaryUsecase>(
+    () => SetDayBoundaryUsecase(locator(), locator()),
+  );
   locator.registerLazySingleton<GetUserUsecase>(
     () => GetUserUsecase(locator()),
   );
@@ -372,7 +378,12 @@ Future<void> initLocator() async {
     () => CreateProfileUsecase(locator()),
   );
   locator.registerLazySingleton<SwitchProfileUsecase>(
-    () => SwitchProfileUsecase(locator(), locator(), locator()),
+    () => SwitchProfileUsecase(
+      locator(),
+      locator(),
+      locator(),
+      currentTrackedDayGoals: _currentTrackedDayGoals,
+    ),
   );
   locator.registerLazySingleton<UpdateProfileUsecase>(
     () => UpdateProfileUsecase(locator()),
@@ -637,4 +648,27 @@ Future<void> initLocator() async {
   // Before Diary and Trends read the day totals: rebuilds any day a NaN
   // intake left with a NaN total from its intakes (#1254).
   await ensureTrackedDayTotalsFinite(hiveDBProvider, locator());
+  // Before Diary and Trends read the day rows: brings each in line with
+  // the entries the Diary lists on its day (#1317).
+  await ensureTrackedDaysMatchEntries(
+    hiveDBProvider,
+    locator(),
+    currentGoals: _currentTrackedDayGoals,
+  );
+}
+
+/// The goals a tracked day starts from today, before activities — what
+/// `LogUserActivityUsecase` creates a row with. Only asked for when a
+/// profile lists entries without a single row (#1317).
+Future<TrackedDayGoals> _currentTrackedDayGoals() async {
+  final kcal = await locator<GetKcalGoalUsecase>().getKcalGoal(
+    totalKcalActivitiesParam: 0,
+  );
+  final macroGoals = locator<GetMacroGoalUsecase>();
+  return (
+    kcal: kcal,
+    carbs: await macroGoals.getCarbsGoal(kcal),
+    fat: await macroGoals.getFatsGoal(kcal),
+    protein: await macroGoals.getProteinsGoal(kcal),
+  );
 }

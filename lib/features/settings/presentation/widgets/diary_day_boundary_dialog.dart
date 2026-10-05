@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -14,12 +15,14 @@ import 'package:opennutritracker/generated/l10n.dart';
 class DiaryDayBoundaryDialog extends StatefulWidget {
   final SettingsBloc settingsBloc;
   final HomeBloc homeBloc;
+  final DiaryBloc diaryBloc;
   final CalendarDayBloc calendarDayBloc;
 
   const DiaryDayBoundaryDialog({
     super.key,
     required this.settingsBloc,
     required this.homeBloc,
+    required this.diaryBloc,
     required this.calendarDayBloc,
   });
 
@@ -50,13 +53,14 @@ class _DiaryDayBoundaryDialogState extends State<DiaryDayBoundaryDialog> {
   }
 
   Future<void> _save() async {
-    await widget.settingsBloc.setDayStartOffsetHours(_hours);
-    await widget.settingsBloc.setDayStartOffsetMinutes(_minutes);
+    await widget.settingsBloc.setDayStartOffset(_hours, _minutes);
     widget.settingsBloc.add(LoadSettingsEvent());
     // Refresh anywhere day rollover affects what's shown: the home
     // dashboard's totals and the calendar day view both partition
-    // intake by day boundary.
+    // intake by day boundary, and the calendar's markers follow the
+    // tracked-day rows that moved with it (#1317).
     widget.homeBloc.add(const LoadItemsEvent());
+    widget.diaryBloc.add(const LoadDiaryYearEvent());
     widget.calendarDayBloc.add(RefreshCalendarDayEvent());
     if (!mounted) return;
     Navigator.of(context).pop();

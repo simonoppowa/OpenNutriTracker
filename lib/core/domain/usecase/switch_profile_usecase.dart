@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
 
 /// Makes [profile] the active profile: swaps the open box-set, persists
@@ -16,12 +17,14 @@ class SwitchProfileUsecase {
   final HiveDBProvider _hiveDBProvider;
   final SecureAppStorageProvider _secureAppStorageProvider;
   final ConfigDataSource _configDataSource;
+  final Future<TrackedDayGoals> Function()? _currentTrackedDayGoals;
 
   SwitchProfileUsecase(
     this._hiveDBProvider,
     this._secureAppStorageProvider,
-    this._configDataSource,
-  );
+    this._configDataSource, {
+    Future<TrackedDayGoals> Function()? currentTrackedDayGoals,
+  }) : _currentTrackedDayGoals = currentTrackedDayGoals;
 
   Future<void> switchProfile(ProfileEntity profile) async {
     await _hiveDBProvider.switchProfile(profile.id, profile.boxSuffix);
@@ -34,5 +37,12 @@ class SwitchProfileUsecase {
     // Same reason: a day total this profile took a NaN into on an older
     // build is rebuilt from its intakes before the tabs read it (#1254).
     await ensureTrackedDayTotalsFinite(_hiveDBProvider, _configDataSource);
+    // The boundary is app-wide: if it moved while another profile was
+    // active, this profile's rows are still keyed by the old one (#1317).
+    await ensureTrackedDaysMatchEntries(
+      _hiveDBProvider,
+      _configDataSource,
+      currentGoals: _currentTrackedDayGoals,
+    );
   }
 }
