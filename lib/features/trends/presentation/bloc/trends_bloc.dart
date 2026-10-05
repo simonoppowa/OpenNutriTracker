@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 
 part 'trends_event.dart';
 part 'trends_state.dart';
@@ -29,18 +30,20 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
     on<LoadTrendsEvent>((event, emit) async {
       emit(const TrendsLoading());
       try {
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
+        final config = await _getConfigUsecase.getConfig();
+        final today = DayBoundaryCalc.currentLogicalDayMinutes(
+          config.dayStartOffsetTotalMinutes,
+        );
         // Today's tracked day is stamped with the time it was created, so the
         // range end must cover the whole day or today drops out of the result
         // (the range filter is inclusive but compares against this instant).
-        final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        final endOfToday = DateTime(today.year, today.month, today.day, 23, 59, 59);
         // rangeDays 0 is the "All" chip: pull a wide window and let the actual
         // span fall out of the earliest data point below.
         final isAll = event.rangeDays == 0;
         final fetchDays = isAll ? 3650 : event.rangeDays;
         final days = await _getTrackedDayUsecase.getTrackedDaysByRange(
-          today.subtract(Duration(days: fetchDays - 1)),
+          DateTime(today.year, today.month, today.day - (fetchDays - 1)),
           endOfToday,
         );
         // The full weight history; the chart windows it for display. This
@@ -50,17 +53,19 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         weight.sort((a, b) => a.date.compareTo(b.date));
         // The 7 days before this week, for a week-over-week consistency delta.
         final priorWeek = await _getTrackedDayUsecase.getTrackedDaysByRange(
-          today.subtract(const Duration(days: 13)),
-          DateTime(now.year, now.month, now.day - 7, 23, 59, 59),
+          DateTime(today.year, today.month, today.day - 13),
+          DateTime(today.year, today.month, today.day - 7, 23, 59, 59),
         );
         final user = await _getUserUsecase.getUserData();
-        final config = await _getConfigUsecase.getConfig();
 
-        // Water totalled per calendar day; the card fills missing days with 0.
+        // Water follows the same logical-day boundary as food and the diary.
         final waterEntries = await _getWaterIntakeUsecase.getAllEntries();
         final waterByDay = <DateTime, int>{};
         for (final e in waterEntries) {
-          final d = DateTime(e.dateTime.year, e.dateTime.month, e.dateTime.day);
+          final d = DayBoundaryCalc.logicalDayOfMinutes(
+            e.dateTime,
+            config.dayStartOffsetTotalMinutes,
+          );
           waterByDay[d] = (waterByDay[d] ?? 0) + e.amountMl;
         }
 
@@ -85,14 +90,24 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
           for (final k in waterByDay.keys) {
             consider(k);
           }
-          windowDays = earliest == null
-              ? 30 // no data yet: a sensible empty-chart width
-              : (today.difference(earliest!).inDays + 1).clamp(2, 3650);
+          if (earliest == null) {
+            windowDays = 30; // no data yet: a sensible empty-chart width
+          } else {
+            // Compare date labels in UTC so a local DST transition cannot
+            // shorten or lengthen the apparent number of calendar days.
+            final first = earliest!;
+            final calendarDays = DateTime.utc(today.year, today.month, today.day)
+                    .difference(DateTime.utc(first.year, first.month, first.day))
+                    .inDays +
+                1;
+            windowDays = calendarDays.clamp(2, 3650);
+          }
         }
 
         emit(TrendsLoaded(
           rangeDays: event.rangeDays,
           windowDays: windowDays,
+          today: today,
           days: days,
           priorWeek: priorWeek,
           weight: weight,

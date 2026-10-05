@@ -11,7 +11,15 @@
   DateTime windowStart,
   DateTime today,
 ) {
-  final total = today.difference(windowStart).inDays;
+  // These are calendar labels, so compare their UTC spellings rather than
+  // elapsed local time; a DST transition must not add or remove a day.
+  final total = DateTime.utc(today.year, today.month, today.day)
+      .difference(DateTime.utc(
+        windowStart.year,
+        windowStart.month,
+        windowStart.day,
+      ))
+      .inDays;
   if (total < 0) return (current: 0, longest: 0);
 
   var longest = 0;
