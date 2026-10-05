@@ -7,15 +7,29 @@ import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_favourite_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
 import '../helpers/hive_test_setup.dart';
+
+class _FakeGetConfigUsecase implements GetConfigUsecase {
+  @override
+  Future<ConfigEntity> getConfig() async =>
+      const ConfigEntity(true, true, false, AppThemeEntity.system);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
 
 MealEntity _meal({
   required String? code,
@@ -256,6 +270,68 @@ void main() {
     expect(events, hasLength(2));
     await sub.cancel();
   });
+
+  test('watchFavourites fires on a custom meal or recipe edit', () async {
+    // The list reads both libraries in place of its snapshots, so an edit
+    // there changes what it shows.
+    final events = <void>[];
+    final sub = getFavourites.watchFavourites().listen(events.add);
+
+    await CustomMealDataSource(
+      FakeHiveDBProvider(customMealBox: customMealBox),
+    ).saveCustomMeal(
+      MealDBO.fromMealEntity(
+        _meal(code: 'c', name: 'Soup', source: MealSourceEntity.custom),
+      ),
+    );
+    await RecipeDataSource(
+      FakeHiveDBProvider(recipeBox: recipeBox),
+    ).saveRecipe(_recipe(id: 'r', name: 'Chili').toDBO());
+    await Future<void>.delayed(Duration.zero);
+
+    expect(events, hasLength(2));
+    await sub.cancel();
+  });
+
+  test(
+    'an open Favourites list follows an edit to a starred custom meal',
+    () async {
+      final original = _meal(
+        code: 'c3',
+        name: 'Overnight oats',
+        source: MealSourceEntity.custom,
+        kcal: 150,
+      );
+      await customMealBox.add(MealDBO.fromMealEntity(original));
+      await repository.addFavourite(original);
+      final bloc = FavouriteMealBloc(getFavourites, _FakeGetConfigUsecase());
+      bloc.add(const LoadFavouriteMealEvent(searchString: ''));
+      await bloc.stream.firstWhere((s) => s is FavouriteMealLoadedState);
+      final reload = bloc.stream
+          .firstWhere((s) => s is FavouriteMealLoadedState)
+          .timeout(const Duration(seconds: 5));
+
+      // Edited from its detail page, opened from the Favourites tab that is
+      // still on the route stack underneath.
+      await CustomMealDataSource(
+        FakeHiveDBProvider(customMealBox: customMealBox),
+      ).saveCustomMeal(
+        MealDBO.fromMealEntity(
+          _meal(
+            code: 'c3',
+            name: 'Overnight oats',
+            source: MealSourceEntity.custom,
+            kcal: 180,
+          ),
+        ),
+      );
+
+      final updated = await reload;
+      final favourites = (updated as FavouriteMealLoadedState).favourites;
+      expect(favourites.single.nutriments.energyKcal100, 180);
+      await bloc.close();
+    },
+  );
 
   test('is a per-profile box', () {
     // #1307: favourites are this person's usual foods, so a profile switch

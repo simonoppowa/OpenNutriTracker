@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:stream_transform/stream_transform.dart';
 
 class FavouriteMealRepository {
   final FavouriteMealDataSource _favouriteMealDataSource;
@@ -71,5 +72,11 @@ class FavouriteMealRepository {
     await _favouriteMealDataSource.addAllFavourites(favourites);
   }
 
-  Stream<void> watchFavourites() => _favouriteMealDataSource.watch();
+  /// Fires on anything that can change [getAllFavourites]: a star toggled,
+  /// or a custom meal or recipe edited in its library, which the list reads
+  /// in place of its snapshot.
+  Stream<void> watchFavourites() => _favouriteMealDataSource.watch().mergeAll([
+    _customMealDataSource.watch(),
+    _recipeDataSource.watch(),
+  ]);
 }

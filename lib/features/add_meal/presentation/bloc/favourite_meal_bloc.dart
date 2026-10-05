@@ -13,9 +13,10 @@ part 'favourite_meal_state.dart';
 
 /// Backs the Favourites source on the add-food screen (#1307).
 ///
-/// Follows the box rather than waiting to be asked: a star toggled on the
-/// detail page or on a search result re-runs the last query, so the list is
-/// already current when the user comes back to it.
+/// Follows the boxes rather than waiting to be asked: a star toggled on the
+/// detail page or on a search result, or a starred custom meal or recipe
+/// edited from there, re-runs the last query, so the list is already current
+/// when the user comes back to it.
 class FavouriteMealBloc extends Bloc<FavouriteMealEvent, FavouriteMealState> {
   final log = Logger('FavouriteMealBloc');
 

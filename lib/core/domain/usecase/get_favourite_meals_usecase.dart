@@ -14,6 +14,7 @@ class GetFavouriteMealsUsecase {
     return _favouriteMealRepository.isFavourite(meal);
   }
 
-  /// Fires whenever any favourite is added or removed.
+  /// Fires whenever a favourite is added or removed, or a starred custom
+  /// meal or recipe is edited.
   Stream<void> watchFavourites() => _favouriteMealRepository.watchFavourites();
 }

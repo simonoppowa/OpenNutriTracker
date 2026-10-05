@@ -32,4 +32,8 @@ class CustomMealDataSource {
       await meal.delete();
     }
   }
+
+  /// Fires after every write to the box, so a list showing a custom meal
+  /// can follow an edit made on another screen.
+  Stream<void> watch() => _customMealBox.watch().map((_) {});
 }
