@@ -11,12 +11,14 @@ class FavouriteToggleButton extends StatefulWidget {
   final MealEntity meal;
 
   /// Locale-independent handle for UI drivers, e.g. `meal-detail-favourite`.
-  final String semanticsIdentifier;
+  /// Left out on a list row: the list surface carries the identifier and a
+  /// driver finds the row by its text (AGENTS.md, "Dynamic lists").
+  final String? semanticsIdentifier;
 
   const FavouriteToggleButton({
     super.key,
     required this.meal,
-    required this.semanticsIdentifier,
+    this.semanticsIdentifier,
   });
 
   @override
@@ -53,23 +55,23 @@ class _FavouriteToggleButtonState extends State<FavouriteToggleButton> {
     return BlocBuilder<FavouriteToggleBloc, FavouriteToggleState>(
       bloc: _bloc,
       builder: (context, state) {
-        return Semantics(
-          identifier: widget.semanticsIdentifier,
-          child: IconButton(
-            isSelected: state.isFavourite,
-            icon: const Icon(Icons.star_outline_rounded),
-            selectedIcon: Icon(
-              Icons.star_rounded,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            tooltip: state.isFavourite
-                ? S.of(context).favouriteRemoveTooltip
-                : S.of(context).favouriteAddTooltip,
-            // The use case reads the stored state itself, so a tap before
-            // the first read still lands the right way round.
-            onPressed: () => _bloc.add(ToggleFavouriteEvent(widget.meal)),
+        final button = IconButton(
+          isSelected: state.isFavourite,
+          icon: const Icon(Icons.star_outline_rounded),
+          selectedIcon: Icon(
+            Icons.star_rounded,
+            color: Theme.of(context).colorScheme.primary,
           ),
+          tooltip: state.isFavourite
+              ? S.of(context).favouriteRemoveTooltip
+              : S.of(context).favouriteAddTooltip,
+          // The use case reads the stored state itself, so a tap before
+          // the first read still lands the right way round.
+          onPressed: () => _bloc.add(ToggleFavouriteEvent(widget.meal)),
         );
+        final identifier = widget.semanticsIdentifier;
+        if (identifier == null) return button;
+        return Semantics(identifier: identifier, child: button);
       },
     );
   }

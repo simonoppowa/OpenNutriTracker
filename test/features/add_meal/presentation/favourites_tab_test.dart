@@ -19,6 +19,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_t
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/favourite_toggle_button.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -194,11 +195,35 @@ void main() {
     favourites.add(_meal('lunch', 'Packed lunch'));
     await openFavourites(tester);
 
-    await tester.tap(find.byWidgetPredicate(_isCardStar));
+    await tester.tap(_cardStar);
     await tester.pumpAndSettle();
 
     expect(favourites.all, isEmpty);
     expect(find.text(l10nEn.favouritesEmptyTitle), findsOneWidget);
+  });
+
+  testWidgets('the list carries the identifier, not each card\'s star', (
+    tester,
+  ) async {
+    favourites
+      ..add(_meal('lunch', 'Packed lunch'))
+      ..add(_meal('oats', 'Overnight oats'));
+    await openFavourites(tester);
+
+    // AGENTS.md, "Dynamic lists": a driver scopes into the list by its
+    // identifier and finds the row by text, so builder children publish
+    // none — one id repeated on every row would match them all.
+    expect(_withIdentifier('add-meal-favourites-list'), findsOneWidget);
+    expect(_cardStar, findsNWidgets(2));
+    expect(
+      find.descendant(
+        of: _cardStar,
+        matching: find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.identifier != null,
+        ),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('the star on a search result stars it without logging', (
@@ -226,7 +251,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byTooltip(l10nEn.favouriteAddTooltip), findsOneWidget);
 
-    await tester.tap(find.byWidgetPredicate(_isCardStar));
+    await tester.tap(_cardStar);
     await tester.pumpAndSettle();
 
     expect(favourites.contains(meal), isTrue);
@@ -236,5 +261,8 @@ void main() {
   });
 }
 
-bool _isCardStar(Widget w) =>
-    w is Semantics && w.properties.identifier == 'meal-item-favourite';
+final _cardStar = find.byType(FavouriteToggleButton);
+
+Finder _withIdentifier(String identifier) => find.byWidgetPredicate(
+  (w) => w is Semantics && w.properties.identifier == identifier,
+);
