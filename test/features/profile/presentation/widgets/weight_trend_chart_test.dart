@@ -112,7 +112,9 @@ void _expectCalendarWindow(
   required DateTime checkDay,
   required int checkX,
 }) {
-  final spots = data.lineBarsData.single.spots;
+  // The raw readings are the first series; the moving-average overlay
+  // (#1119) follows it.
+  final spots = data.lineBarsData.first.spots;
   expect(
     spots,
     hasLength(windowDays),
@@ -123,6 +125,18 @@ void _expectCalendarWindow(
     [for (var i = 0; i < windowDays; i++) i.toDouble()],
     reason: 'one integer x per calendar day, no gap and no doubled day',
   );
+  // Each moving-average point is anchored on an entry's date, in order,
+  // dropping only leading entries with too few samples, so its x values
+  // are the tail of the raw ones, including across a 23- or 25-hour day.
+  final rawXs = spots.map((s) => s.x).toList();
+  for (final ma in data.lineBarsData.skip(1)) {
+    final maXs = ma.spots.map((s) => s.x).toList();
+    expect(
+      maXs,
+      rawXs.sublist(rawXs.length - maXs.length),
+      reason: 'the moving average sits on the same calendar-day x as its dot',
+    );
+  }
   expect(data.minX, 0);
   expect(data.maxX, (windowDays - 1).toDouble());
   expect(_bottomLabel(data, 0), _mmmd(windowStart));
@@ -166,7 +180,7 @@ void main() {
           checkX: 15,
         );
         expect(
-          data.lineBarsData.single.spots.map((s) => s.y),
+          data.lineBarsData.first.spots.map((s) => s.y),
           isNot(contains(99.0)),
           reason: 'entries outside the window are not drawn',
         );

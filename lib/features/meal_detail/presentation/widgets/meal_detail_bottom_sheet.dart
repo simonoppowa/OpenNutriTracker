@@ -14,6 +14,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/quick_serving_option.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailBottomSheet extends StatefulWidget {
@@ -84,6 +85,26 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     );
   }
 
+  void _onQuickServingSelected(QuickServingOption option) {
+    final quantityText = _formatQuantity(option.quantity);
+    // Detach the change listener before the programmatic write, otherwise
+    // setting the controller's text fires _onQuantityChanged with the OLD
+    // unit before the callback below applies option.unit — so every chip
+    // tap emitted a stale-unit UpdateKcalEvent (100 g briefly computed as
+    // 100 servings) before landing on the right one.
+    widget.quantityTextController.removeListener(_onQuantityChanged);
+    widget.quantityTextController.text = quantityText;
+    widget.quantityTextController.addListener(_onQuantityChanged);
+    widget.onQuantityOrUnitChanged(quantityText, option.unit);
+  }
+
+  String _formatQuantity(double value) {
+    if (value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
+    return value.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
@@ -94,6 +115,16 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
       onClosing: () {},
       enableDrag: false,
       builder: (context) {
+        // Quick-quantity presets — one tap to a common portion instead of
+        // typing. Uses the food's own serving when it has one and 100 g
+        // for solids. Computed once so the collection-if below can drop
+        // the row entirely when nothing applies (no orphan SizedBox).
+        final quickOptions = productMissingRequiredInfo
+            ? const <QuickServingOption>[]
+            : quickServingOptionsFor(
+                widget.product,
+                S.of(context).gramUnit,
+              );
         return Container(
           decoration: BoxDecoration(
             border: Border(
@@ -153,7 +184,8 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                               items: <DropdownMenuItem<String>>[
                                 // #629: a serving the app cannot scale
                                 // is a no-op dressed as a unit.
-                                if (widget.product.scalableServingQuantity != null)
+                                if (widget.product.scalableServingQuantity !=
+                                    null)
                                   _getServingDropdownItem(context),
                                 if (widget.product.isSolid ||
                                     !widget.product.isLiquid &&
@@ -175,30 +207,30 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                           ),
                         ],
                       ),
-                      if (!productMissingRequiredInfo) ...[
-                        const SizedBox(height: Dimens.spacing12),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Wrap(
-                            spacing: Dimens.spacing8,
-                            children: [
-                              // Quick-quantity presets — one tap to a common
-                              // serving size instead of typing.
-                              for (final preset in const [50, 100, 150, 200, 250])
-                                ActionChip(
-                                  label: Text('$preset'),
-                                  onPressed: () {
-                                    widget.quantityTextController.text = '$preset';
-                                    widget.onQuantityOrUnitChanged(
-                                      '$preset',
-                                      widget.selectedUnit,
-                                    );
-                                  },
-                                ),
-                            ],
+                      if (quickOptions.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: Dimens.spacing12,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Wrap(
+                              spacing: Dimens.spacing8,
+                              children: [
+                                for (final option in quickOptions)
+                                  Semantics(
+                                    identifier:
+                                        'meal-detail-chip-${option.id}',
+                                    child: ActionChip(
+                                      label: Text(option.label),
+                                      onPressed: () =>
+                                          _onQuickServingSelected(option),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                      ],
                       const SizedBox(height: Dimens.spacing16),
                       Semantics(
                         identifier: 'meal-detail-add',
@@ -388,11 +420,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         : '${S.of(context).servingLabel} (${widget.product.servingQuantity} ${widget.product.servingUnit})';
     return DropdownMenuItem(
       value: UnitDropdownItem.serving.toString(),
-      child: Text(
-        servingText,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      ),
+      child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 1),
     );
   }
 

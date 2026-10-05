@@ -181,6 +181,12 @@ class ConfigDBO extends HiveObject {
   // existed before the field did — exactly the users the notice is for.
   @HiveField(37)
   int? policyNoticeRevisionSeen;
+  // #1126: default the meal-detail unit dropdown to weight/volume even when
+  // the food has a scalable serving. Null means "user has never picked",
+  // which reads as false — the app keeps preferring servings until the
+  // user opts out, matching every install that predates the field.
+  @HiveField(39)
+  bool? defaultToRawFoodUnits;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -219,6 +225,7 @@ class ConfigDBO extends HiveObject {
     this.healthDeletedExternalIds,
     this.policyNoticeRevisionSeen,
     this.healthDeletedWorkouts,
+    this.defaultToRawFoodUnits,
   });
 
   factory ConfigDBO.empty() =>

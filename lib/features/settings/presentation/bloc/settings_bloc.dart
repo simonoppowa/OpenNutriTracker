@@ -76,6 +76,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           isDemoData: userConfig.isDemoData,
           healthImportEnabled: userConfig.healthImportEnabled,
           healthWorkoutKcalMultiplier: userConfig.healthWorkoutKcalMultiplier,
+          defaultToRawFoodUnits: userConfig.defaultToRawFoodUnits,
         ),
       );
     });
@@ -149,6 +150,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   void setUsesKilojoules(bool usesKilojoules) {
     _addConfigUsecase.setConfigUsesKilojoules(usesKilojoules);
+  }
+
+  void setDefaultToRawFoodUnits(bool value) {
+    _addConfigUsecase.setConfigDefaultToRawFoodUnits(value);
   }
 
   void setUseMaterialYou(bool useMaterialYou) {

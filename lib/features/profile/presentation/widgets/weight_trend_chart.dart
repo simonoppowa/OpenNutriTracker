@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/calc/weight_moving_average.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Smoothed weight trend line shared by the weight-history screen and the
@@ -21,6 +22,12 @@ class WeightTrendChart extends StatelessWidget {
   final int windowDays;
   final double chartHeight;
 
+  /// Trailing-window length for the moving-average overlay. Null hides the
+  /// overlay entirely; the default of 7 days is a common weight-tracking
+  /// smoothing that hides day-to-day water swings without lagging the real
+  /// trend too far (#1119).
+  final int? movingAverageWindowDays;
+
   /// The clock "today" is read from. The window's DST behaviour depends on
   /// which dates it spans, so a test that reads the real clock only proves
   /// something for a few weeks a year; tests pin this and restore it.
@@ -35,6 +42,7 @@ class WeightTrendChart extends StatelessWidget {
     required this.targetWeightKg,
     this.windowDays = 30,
     this.chartHeight = 220,
+    this.movingAverageWindowDays = 7,
   });
 
   /// Converts a stored kg value to the chart's y-axis unit.
@@ -107,8 +115,28 @@ class WeightTrendChart extends StatelessWidget {
         FlSpot(dayIndex(entry.date).toDouble(), _toChartY(entry.weightKg)),
     ];
 
-    final minY = spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
-    final maxY = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    // Compute the moving average against the *full* log and clip to the
+    // visible window, so the leftmost MA point is anchored on entries
+    // predating the window rather than lagging one window-length behind.
+    final maSpots = <FlSpot>[
+      if (movingAverageWindowDays != null)
+        for (final point
+            in WeightMovingAverage(windowDays: movingAverageWindowDays!)
+                .compute(entries)
+                .where((p) =>
+                    !p.date.isBefore(windowStart) &&
+                    !p.date.isAfter(today)))
+          FlSpot(dayIndex(point.date).toDouble(), _toChartY(point.weightKg)),
+    ];
+
+    // The MA is the one series whose leftmost points fold in readings
+    // that predate the visible window, so its y can land above or below
+    // the raw envelope; include both series in the range so the dashed
+    // line never paints outside the plot (LineChartData defaults to
+    // FlClipData.none()).
+    final rangeSpots = [...spots, ...maSpots];
+    final minY = rangeSpots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+    final maxY = rangeSpots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
     // Pad so points don't sit on the edges. When all weights are identical we
     // still need a non-zero range or fl_chart throws.
     final yPadding = ((maxY - minY) * 0.15).clamp(0.5, 5.0);
@@ -208,6 +236,20 @@ class WeightTrendChart extends StatelessWidget {
                       ),
                 ),
               ),
+              // Moving-average overlay (#1119): dashed, no dots, thinner
+              // than the primary line so the raw readings still read as
+              // the leading signal. Rendered second so it sits on top of
+              // the raw line where they overlap.
+              if (maSpots.length >= 2)
+                LineChartBarData(
+                  spots: maSpots,
+                  isCurved: true,
+                  preventCurveOverShooting: true,
+                  color: lineColor.withValues(alpha: 0.55),
+                  barWidth: 1.5,
+                  dashArray: const [6, 4],
+                  dotData: const FlDotData(show: false),
+                ),
             ],
           ),
         ),

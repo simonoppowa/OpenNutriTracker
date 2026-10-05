@@ -1,8 +1,9 @@
 # Releasing
 
-A release is **a merge of `develop` into `main`**. There is no release script, and no tag to push
-by hand: pushing to `main` starts the pipeline, and the pipeline does the packaging, the store
-uploads and the GitHub release itself.
+A release is **a merge of `develop` into `main`** — directly when the two merge cleanly, through a
+`release/*` branch when they do not; [The release PR](#the-release-pr) says how to tell. There is
+no release script, and no tag to push by hand: pushing to `main` starts the pipeline, and the
+pipeline does the packaging, the store uploads and the GitHub release itself.
 
 A **hotfix merged straight to `main`** starts the same pipeline, which is why it is a legitimate
 thing to do — and why it needs [its own step afterwards](#hotfixes-and-the-way-back-to-develop),
@@ -128,6 +129,12 @@ repeatable — see the caveat at the top of this section.
       directory also holds a stale `12.txt` from the F-Droid era; ignore that one. The pipeline does
       **not** upload it (`skip_upload_metadata: true`), so this file is the record, and the text
       still has to be pasted into the consoles by hand.
+
+      **Keep it within 500 characters** — characters, not words. Play refuses anything longer, but
+      only when the text is pasted, so `test/unit_test/store_declarations_test.dart` checks every
+      file in the directory and fails `linux-checks` first. It measures after `trimRight()`, so a
+      trailing newline is free and a leading one is not. `63.txt` was once 628 characters and would
+      have been refused; `66.txt` came in at 795 on its first draft. For scale, `65.txt` is 497.
 - [ ] **Check the Play data-safety declaration still matches what the app does.** Any release that
       adds or changes a network destination changes this answer. It is the one item here whose
       failure mode is the app being pulled rather than a bad release.
@@ -135,14 +142,124 @@ repeatable — see the caveat at the top of this section.
 
 ## The release PR
 
-- [ ] Open **one** batched `develop → main` PR. `main` takes release merges only
+- [ ] **Fetch, then run the gap check** ([Hotfixes](#hotfixes-and-the-way-back-to-develop)) — on
+      both paths below. Fetch first (`git fetch origin`): with stale refs a recent hotfix is simply
+      not there to find. A hotfix that never came back is invisible from here on, and shipping
+      without it is the whole cost. The clean path needs it as much as the other: a missed hotfix
+      on lines `develop` never touched merges without a conflict, survives on `main`, and still
+      never reaches `develop`, where later work can undo it.
+
+      That section's loop counts `+` lines only, so it cannot see a hotfix that only *deletes*.
+      Also list the files `main` has changed since the merge base that still differ from
+      `develop` — deletions included, and without the noise of a squashed release, whose content
+      `develop` already has:
+
+      ```bash
+      base=$(git merge-base origin/main origin/develop)
+      git diff --name-only "$base" origin/main | while read -r f; do
+        git diff --quiet origin/develop origin/main -- "$f" || echo "$f"
+      done
+      ```
+
+      Every file it prints needs a reason. After 2.4.0 it printed none.
+
+      Both listings compare *paths*, so a file `develop` has renamed escapes them: a hotfix that
+      deleted it on `main` leaves the old path absent from both tips. List the files `main`
+      changed that `develop` has since renamed, and read each by hand:
+
+      ```bash
+      export LC_ALL=C
+      comm -12 <(git diff --name-only "$base" origin/main | sort) \
+               <(git diff --name-status -M "$base" origin/develop | awk '$1 ~ /^R/ {print $2}' | sort)
+      ```
+
+**Then check whether `develop` merges into `main` cleanly.** It decides which of the two paths
+below applies, and it is cheaper than finding out from a PR:
+
+```bash
+git merge-tree --write-tree origin/main origin/develop >/dev/null && echo clean || echo conflicts
+```
+
+It conflicts when `main` holds a version of some lines that `develop` has since changed — a
+hotfix, a fix made separately on a release branch, or a previous release that was **squashed**
+rather than merged. A squash leaves `merge-base(main, develop)` where it was, so every hunk
+`develop` edits again after that release conflicts with `main`'s copy of it; the conflict grows
+with churn rather than appearing at once. 2.4.0 was squashed, which left the base at `2789fa9f`.
+
+A conflicting PR is worse than it looks: GitHub runs no `pull_request` workflow on one, because it
+cannot build the PR's merge ref, so the PR reports **no checks at all**
+([#1269](https://github.com/simonoppowa/OpenNutriTracker/pull/1269)). Resolve before opening it.
+
+**If it is clean:**
+
+- [ ] Open **one** `develop → main` PR. `main` takes release merges only
       ([CONTRIBUTING.md](../CONTRIBUTING.md)).
+
+**If it conflicts**, reconcile on a release branch — never on `develop`, where merging `main` in is
+what [the hotfix section](#hotfixes-and-the-way-back-to-develop) forbids:
+
+- [ ] **Cut the branch and start the merge**, without letting git resolve anything:
+
+      ```bash
+      git switch -c release/X.Y.Z origin/develop
+      git merge --no-commit origin/main
+      git diff --name-only --diff-filter=U        # the conflicted files
+      ```
+
+      For a build-only release (`2.2.0+63` → `2.2.0+64`) the name is already taken, because
+      release branches are kept: use `release/X.Y.Z-N`, with the new build number.
+- [ ] **Look at each conflicted file before resolving it.** Read what `main` did to it since the
+      merge base — deletions as well as additions:
+
+      ```bash
+      git diff "$(git merge-base origin/main origin/develop)" origin/main -- <file>
+      ```
+
+      If any of it is not already on `develop`, it is a hotfix gap: stop and bring it back first.
+      If all of it is — the previous release's own content, or a fix made on both branches — take
+      `develop`'s side, which depends on the kind of conflict `git status --short` shows:
+
+      | Status | What happened | Take `develop`'s side with |
+      | :-- | :-- | :-- |
+      | `UU`, `AA`, `UD` | both edited it; or `main` deleted it | `git checkout --ours -- <file> && git add <file>` |
+      | `DU` | `develop` deleted it, `main` changed it | `git rm -- <file>` — there is no "ours" to check out |
+      | anything else — `AU`, `UA`, `DD`, or a conflict on a file the rename check above listed | a rename is involved | resolve by hand: follow it with `git log --follow -- <path>` and read both sides |
+
+      The table covers the common cases; it is not a merge algorithm. When a conflict does not fit
+      it, or its history cannot be read at a glance, stop and resolve it by hand.
+
+      A `DU` deserves the closest look: `main`'s change to a file `develop` has deleted is exactly
+      where a hotfix goes missing, and if it is one, the fix needs a new home on `develop`.
+
+      **Do not reach for `git merge -X ours`.** It resolves every conflicted hunk without a look,
+      and a hotfix that only *deletes* lines never shows up in the gap check, which counts `+`
+      lines — so it would vanish, and the check below would still pass.
+- [ ] **Commit, and prove nothing came down:**
+
+      ```bash
+      git commit -m "Merge main into release/X.Y.Z"
+      git diff --stat origin/develop HEAD         # must print nothing
+      ```
+
+      Empty means the merge only gave `main` an ancestry link. If it prints anything, a
+      non-conflicting `main`-only change merged in: find out why the gap check missed it.
+      `5a582111` (2.3.0) and `31165d48` (2.4.0) are the precedent.
+- [ ] Push it and open **one** `release/X.Y.Z → main` PR. Keep the branch afterwards —
+      `release/2.2.0`, `release/2.3.0` and `release/2.4.0` all still exist.
+
+**Either way:**
+
 - [ ] Confirm the checks are **registered**, not just absent. A PR that gets no checks still reports
-      mergeable, and silence looks exactly like success.
-- [ ] Merge. From here the pipeline runs; do not tag by hand.
-- [ ] Confirm `develop` is not missing anything `main` already has — see
-      [Hotfixes](#hotfixes-and-the-way-back-to-develop). A hotfix that never came back is invisible
-      at this point, and shipping without it is the whole cost.
+      mergeable, and silence looks exactly like success. A conflict is the usual cause.
+- [ ] **Merge with "Create a merge commit" — never squash.** All three buttons are enabled and
+      squash is the habit. A merge commit moves the merge base up to this release, which is what
+      lets the next release take the clean path; a squash leaves it behind. Check afterwards —
+      GitHub merged it, so fetch first, or the local ref still shows the pre-merge commit:
+
+      ```bash
+      git fetch origin main && git log -1 --format=%P origin/main    # two parents
+      ```
+- [ ] From here the pipeline runs; do not tag by hand.
 
 ## After the pipeline finishes
 
@@ -341,9 +458,21 @@ skipped — which is exactly why they get skipped.
 Store credentials, signing keys and the Play service account live in repository secrets and are
 consumed by the workflow; none of them need touching for an ordinary release.
 
-`main` and `develop` carry slightly different workflow sets, and the difference runs the other way
-than you might expect: `develop` has `ios-integration-attempt.yml`, which `main` does not. Both
-carry `default_workflow.yml`, `add-issues-to-projects.yml` and `policy-snapshot.yml`.
+`main` and `develop` carry the same six workflow files — `default_workflow.yml`,
+`add-issues-to-projects.yml`, `ios-integration-attempt.yml`, `merge-weblate-prs.yml`,
+`play-screenshots.yml` and `policy-snapshot.yml` — and as of 2.4.0 all six are byte-identical.
+Between releases they drift: `default_workflow.yml` was newer on `develop` until 2.4.0 landed.
+When they differ, do not decide from the file list — a changed file says nothing about which side
+moved. Read the patch the way [the hotfix section](#hotfixes-and-the-way-back-to-develop) reads
+everything else, oriented so that a `+` line is one `main` has and `develop` does not:
+
+```bash
+git diff origin/develop origin/main -- .github/workflows/
+```
+
+A `+` line is a gap only if `develop` has no newer version of it. Most will be `develop` having
+moved on since the last release. One that is not is exactly what a workflow hotfix leaves behind
+([#1226](https://github.com/simonoppowa/OpenNutriTracker/pull/1226)), and it needs its way back.
 
 There is no site-publishing or signing-fingerprint workflow any more. `deploy-site.yml`,
 `update-release-fingerprint.yml` and the whole `docs/site/` tree were removed with the project

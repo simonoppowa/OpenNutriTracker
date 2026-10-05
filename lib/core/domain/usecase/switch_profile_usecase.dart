@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
 
 /// Makes [profile] the active profile: swaps the open box-set, persists
 /// the active pointer, and seeds the target's config if it's brand new.
@@ -30,5 +31,8 @@ class SwitchProfileUsecase {
     // profile was never active on the new build; repair it before the tab
     // BLoCs reload against it (#1152).
     await ensureOffMicronutrientsRepaired(_hiveDBProvider);
+    // Same reason: a day total this profile took a NaN into on an older
+    // build is rebuilt from its intakes before the tabs read it (#1254).
+    await ensureTrackedDayTotalsFinite(_hiveDBProvider, _configDataSource);
   }
 }

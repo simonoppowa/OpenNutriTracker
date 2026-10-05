@@ -122,6 +122,10 @@ class ConfigRepository {
     await _configDataSource.setConfigUsesKilojoules(usesKilojoules);
   }
 
+  Future<void> setConfigDefaultToRawFoodUnits(bool value) async {
+    await _configDataSource.setConfigDefaultToRawFoodUnits(value);
+  }
+
   Future<void> setConfigMealKcalSharesPct(Map<String, int> shares) async {
     await _configDataSource.setConfigMealKcalSharesPct(shares);
   }
