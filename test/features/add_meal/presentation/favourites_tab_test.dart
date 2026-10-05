@@ -54,7 +54,11 @@ class _UnusedSearch implements SearchProductsUseCase {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
-MealEntity _meal(String code, String name) => MealEntity(
+MealEntity _meal(
+  String code,
+  String name, {
+  MealSourceEntity source = MealSourceEntity.custom,
+}) => MealEntity(
   code: code,
   name: name,
   url: null,
@@ -64,7 +68,7 @@ MealEntity _meal(String code, String name) => MealEntity(
   servingUnit: null,
   servingSize: null,
   nutriments: MealNutrimentsEntity.empty(),
-  source: MealSourceEntity.custom,
+  source: source,
 );
 
 Widget _app() => ChangeNotifierProvider<EnergyUnitProvider>(
@@ -224,6 +228,30 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('a recycled star rereads when the food comes from elsewhere', (
+    tester,
+  ) async {
+    // Same barcode digits and name, different source: equal as MealEntity,
+    // which compares code and name only, but two different favourites.
+    final off = _meal('123', 'Milk', source: MealSourceEntity.off);
+    final backend = _meal('123', 'Milk', source: MealSourceEntity.fdc);
+    favourites.add(off);
+    Widget star(MealEntity meal) => MaterialApp(
+      localizationsDelegates: const [S.delegate],
+      supportedLocales: S.supportedLocales,
+      home: Scaffold(body: FavouriteToggleButton(meal: meal)),
+    );
+
+    await tester.pumpWidget(star(off));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip(l10nEn.favouriteRemoveTooltip), findsOneWidget);
+
+    // The list rebuilds this row's state with the other food.
+    await tester.pumpWidget(star(backend));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip(l10nEn.favouriteAddTooltip), findsOneWidget);
   });
 
   testWidgets('the star on a search result stars it without logging', (

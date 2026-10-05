@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
@@ -38,8 +39,11 @@ class _FavouriteToggleButtonState extends State<FavouriteToggleButton> {
   @override
   void didUpdateWidget(FavouriteToggleButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // A recycled list row hands this state a different food.
-    if (oldWidget.meal != widget.meal) {
+    // A recycled list row hands this state a different food. Compared by
+    // favourite key, not MealEntity ==, which ignores the source: the same
+    // digits from Open Food Facts and the backend are two favourites.
+    if (FavouriteMealRepository.keyOf(oldWidget.meal) !=
+        FavouriteMealRepository.keyOf(widget.meal)) {
       _bloc.add(LoadFavouriteStatusEvent(widget.meal));
     }
   }
