@@ -179,7 +179,9 @@ class MealItemCard extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          chip,
+          // Flexible too: on a narrow phone the chip alone can be wider
+          // than the column the favourite star leaves it.
+          Flexible(child: chip),
           const SizedBox(width: Dimens.spacing8),
           Flexible(child: quantity),
         ],
@@ -214,6 +216,8 @@ class MealItemCard extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: foreground,
               fontWeight: FontWeight.w700,

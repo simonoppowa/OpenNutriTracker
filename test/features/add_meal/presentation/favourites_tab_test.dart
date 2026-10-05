@@ -287,6 +287,51 @@ void main() {
     // Still on the list: starring does not open the detail page to log.
     expect(find.byType(MealItemCard), findsOneWidget);
   });
+
+  testWidgets('the star leaves the source chip room on a narrow phone', (
+    tester,
+  ) async {
+    // 340 dp wide, like a Pixel at a large display size. The star costs the
+    // middle column about 48 px, and an Open Food Facts chip next to a
+    // package quantity used to overflow its Row by 10 px there.
+    tester.view.physicalSize = const Size(1020, 2400);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+    final meal = MealEntity(
+      code: '4008400290126',
+      name: 'Chocolate chip cookie dough ice cream',
+      brands: 'Ben & Jerry\'s',
+      url: null,
+      mealQuantity: '465',
+      mealUnit: 'ml',
+      servingQuantity: null,
+      servingUnit: null,
+      servingSize: null,
+      nutriments: MealNutrimentsEntity.empty(),
+      source: MealSourceEntity.off,
+    );
+    await tester.pumpWidget(
+      ChangeNotifierProvider<EnergyUnitProvider>(
+        create: (_) => EnergyUnitProvider(usesKilojoules: false),
+        child: MaterialApp(
+          localizationsDelegates: const [S.delegate],
+          supportedLocales: S.supportedLocales,
+          home: Scaffold(
+            body: MealItemCard(
+              day: DateTime(2026, 10, 4),
+              mealEntity: meal,
+              addMealType: AddMealType.snackType,
+              usesImperialUnits: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(_cardStar, findsOneWidget);
+  });
 }
 
 final _cardStar = find.byType(FavouriteToggleButton);
