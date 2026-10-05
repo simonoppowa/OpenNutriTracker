@@ -336,7 +336,7 @@ Calculation utilities live in `lib/core/utils/calc/`:
 
 ### Data export / import
 
-Settings screen exports to a `.zip` that bundles intakes, activities, tracked days, recipes and favourites in both JSON (canonical, re-importable) and CSV (flat, for spreadsheets) formats — see [`docs/export-format.md`](docs/export-format.md) for the full schema. Import accepts the same zip and merges its contents into the existing boxes. User profile data (height, weight, birthday, PAL, goal) is intentionally **not** included in the export. Settings → Import also supports a pasted JSON blob for ad-hoc meal imports.
+Settings screen exports to a `.zip` that bundles intakes, activities and tracked days as JSON (canonical, re-importable) or CSV (flat, for spreadsheets); recipes, favourites, the weight log and custom activity templates are JSON-only — see [`docs/export-format.md`](docs/export-format.md) for the full schema. Import accepts the same zip and merges its contents into the existing boxes. User profile data (height, weight, birthday, PAL, goal) is intentionally **not** included in the export. Settings → Import also supports a pasted JSON blob for ad-hoc meal imports.
 
 ## GitHub issue and PR templates
 

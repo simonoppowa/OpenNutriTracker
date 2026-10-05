@@ -40,10 +40,10 @@ next to its CSV counterpart will not find one.
 
 **Photos travel with the JSON bundle only.** User-attached photos are added under
 `recipe_images/` and `meal_images/` when you export as JSON, gathered from recipes, saved custom
-meals, favourites, and **the diary entries themselves**. That third source is not redundant — a
+meals, favourites, and **the diary entries themselves**. The diary entries are not redundant — a
 custom meal logged with *Save for next time* off keeps its photo on the entry without leaving a
-saved meal behind, so gathering only from the first two put the filename in the JSON and left the
-bytes out of the zip ([#1061](https://github.com/simonoppowa/OpenNutriTracker/issues/1061)). A
+saved meal behind, so gathering only from recipes and saved meals put the filename in the JSON and
+left the bytes out of the zip ([#1061](https://github.com/simonoppowa/OpenNutriTracker/issues/1061)). A
 photo reachable from any of them is in the bundle exactly once.
 
 A CSV export carries none, and the CSV importer does not restore them — another reason to use
