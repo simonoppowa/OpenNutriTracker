@@ -1,1 +1,18 @@
-{}
+{
+  "activityExample": "مثال: جري، ركوب الدراجة، يوغا ...",
+  "activityLabel": "نشاط",
+  "addItemLabel": "إضافة عنصر جديد:",
+  "addLabel": "إضافة",
+  "additionalInfoLabelCompendium2011": "تم توفير المعلومات\n من قبل \n2024 Compendium\nof Physical Activities",
+  "additionalInfoLabelCustom": "عنصر وجبة مخصص",
+  "additionalInfoLabelFDC": "مزيد من المعلومات في\nFoodData Central",
+  "additionalInfoLabelSource": "مزيد من المعلومات في\n{sourceName}",
+  "@additionalInfoLabelSource": {
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodSourcesAlwaysEnabledLabel": "تفعيل دائما"
+}
