@@ -186,6 +186,13 @@ jobs:
       - name: Run tests
         run: just test
 
+      # The suite above runs in the runner's UTC, where the #1207 DST tests
+      # skip with a reason (Dart can only see the process zone). This rerun
+      # of just those files under Europe/Berlin is the one automated run in
+      # which they execute; a regression of that fix passes `just test`.
+      - name: Run the DST tests in a zone with transitions
+        run: just test_dst
+
       # The iOS pod-install fallback parser is the only piece of the iOS
       # CI flow that decides which pods to update when Podfile.lock
       # drifts. A regression in its regexes would silently degrade the

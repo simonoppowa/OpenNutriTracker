@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
@@ -113,12 +114,10 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
         final oldestDate = nonFutureEntries
             .map((e) => e.date)
             .reduce((a, b) => a.isBefore(b) ? a : b);
-        final oldestDateOnly = DateTime(
-          oldestDate.year,
-          oldestDate.month,
-          oldestDate.day,
-        );
-        final diffDays = today.difference(oldestDateOnly).inDays + 1;
+        // Calendar days, not elapsed 24-hour spans: across a spring-forward
+        // `difference().inDays` comes out one short and the chart window
+        // would start the day after the oldest entry (#1207).
+        final diffDays = CalendarDayCalc.daysBetween(oldestDate, today) + 1;
         return diffDays < 30 ? 30 : diffDays;
     }
   }
