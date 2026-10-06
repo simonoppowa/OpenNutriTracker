@@ -15,5 +15,12 @@
     }
   },
   "foodSourcesAlwaysEnabledLabel": "Alltid aktiverad",
-  "foodSourcesHelpText": "Sökresultat kommer från dessa livsmedelsdatabaser. Open Food Facts driver produkten och streckkodsökningen och är alltid aktiverad."
+  "foodSourcesHelpText": "Sökresultat kommer från dessa livsmedelsdatabaser. Open Food Facts driver produkten och streckkodsökningen och är alltid aktiverad.",
+  "importMealCodeLabel": "Importera delad måltid (kod)",
+  "sharedMealParseLabel": "Tolka",
+  "sharedMealInvalidCodeLabel": "Ange en giltig kod för en delad måltid.",
+  "sharedMealUnnamedLabel": "Livsmedel utan namn",
+  "sharedMealUnavailableLabel": "Inte tillgängligt — denna post kommer att hoppas över.",
+  "sharedMealTotalLabel": "Totalt",
+  "sharedMealPartialTotalLabel": "Totalt (ofullständigt)"
 }
