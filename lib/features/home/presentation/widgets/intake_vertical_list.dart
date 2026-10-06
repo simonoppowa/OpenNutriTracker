@@ -24,6 +24,8 @@ import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_
 import 'package:opennutritracker/features/home/domain/entity/shared_meal_payload.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/shared_meal_import_dialogs.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/shared_meal_importer.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -269,6 +271,28 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                               ),
                             );
                           }
+                        case VerticalListPopupMenuSelections.onImportCode:
+                          final payload = await showDialog<SharedMealPayload>(
+                            context: context,
+                            builder: (_) => const SharedMealCodeDialog(),
+                          );
+                          if (payload != null && context.mounted) {
+                            final imported = await SharedMealImporter(
+                              context,
+                              widget.addMealType.getIntakeType(),
+                              widget.addMealType,
+                              widget.day,
+                            ).importPayload(payload);
+                            if (imported && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    S.of(context).importMealSuccessLabel,
+                                  ),
+                                ),
+                              );
+                            }
+                          }
                       }
                     },
                     itemBuilder: (BuildContext context) =>
@@ -289,6 +313,13 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                           PopupMenuItem<VerticalListPopupMenuSelections>(
                               value: VerticalListPopupMenuSelections.onImport,
                               child: Text(S.of(context).importMealLabel)),
+                          PopupMenuItem<VerticalListPopupMenuSelections>(
+                            value: VerticalListPopupMenuSelections.onImportCode,
+                            child: Semantics(
+                              identifier: 'intake-import-meal-code',
+                              child: Text(S.of(context).importMealCodeLabel),
+                            ),
+                          ),
                         ])),
             ],
           ),
