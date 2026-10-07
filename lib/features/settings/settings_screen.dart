@@ -1253,22 +1253,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     groupValue: selectedCode,
                     onChanged: (v) =>
                         setState(() => selectedCode = v as String),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RadioListTile<String>(
-                          title: Text(
-                            S.of(context).settingsThemeSystemDefaultLabel,
+                    // The list outgrows a short phone, so it scrolls
+                    // between the title and the buttons (#1331).
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          RadioListTile<String>(
+                            title: Text(
+                              S.of(context).settingsThemeSystemDefaultLabel,
+                            ),
+                            value: _systemLocale,
                           ),
-                          value: _systemLocale,
-                        ),
-                        ...shippedLocales.entries.map(
-                          (e) => RadioListTile<String>(
-                            title: Text(e.value),
-                            value: e.key,
+                          ...shippedLocales.entries.map(
+                            (e) => RadioListTile<String>(
+                              title: Text(e.value),
+                              value: e.key,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },
