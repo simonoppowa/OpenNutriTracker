@@ -317,6 +317,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             intake: intakeEntity,
                             firstListElement: false,
                             usesImperialUnits: widget.usesImperialUnits,
+                            sortType: widget.sortType,
                           ),
                         ),
                       ),
@@ -345,6 +346,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       onItemTapped: widget.onItemTappedCallback,
                       firstListElement: false,
                       usesImperialUnits: widget.usesImperialUnits,
+                      sortType: widget.sortType,
                     ),
                   ),
                 PlaceholderCard(
