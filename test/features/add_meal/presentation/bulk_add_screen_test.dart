@@ -1210,7 +1210,7 @@ void main() {
     await tester.pumpAndSettle();
     await _parse(tester, '100g toast');
 
-    expect(find.text(l10nEn.bulkAddModelInsecureServerLabel), findsOneWidget);
+    expect(find.text(l10nEn.bulkAddModelOffDevicePlaintextLabel), findsOneWidget);
     expect(find.byIcon(Icons.lock_outline), findsOneWidget);
     expect(find.byIcon(Icons.wifi_off_rounded), findsNothing);
     // The rows survive: refusing to send must not cost the entry.
@@ -1245,7 +1245,7 @@ void main() {
 
     final de = lookupS(const Locale('de'));
     final notice = tester.renderObject<RenderParagraph>(
-      find.text(de.bulkAddModelInsecureServerLabel),
+      find.text(de.bulkAddModelOffDevicePlaintextLabel),
     );
 
     expect(
@@ -1354,7 +1354,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final l10n = await S.delegate.load(const Locale('en'));
-      expect(find.text(l10n.bulkAddModelInsecureServerLabel), findsOneWidget);
+      expect(find.text(l10n.bulkAddModelOffDevicePlaintextLabel), findsOneWidget);
       expect(find.text(l10n.bulkAddPhotoUnsupportedLabel), findsNothing);
     },
   );

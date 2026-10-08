@@ -51,6 +51,12 @@ Health Connect or HealthKit integration. So today the declaration is honest, and
 user-typed `http://` address under [#758](https://github.com/simonoppowa/OpenNutriTracker/issues/758)
 would be the app's only plaintext path.
 
+> **Update, 2026-09-27.** Resolved on
+> [#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050) by
+> narrowing the app, not the declaration: plain HTTP is allowed to loopback
+> only, so nothing unencrypted leaves the device and **Yes** is true again. The
+> 2026-09-04 note below describes the state before that change.
+
 > **Update, 2026-09-04.** Two facts in the paragraph above have expired, and the
 > findings are left as read on 2026-08-22 rather than rewritten. **#758 shipped**,
 > so the conditional in the last sentence is no longer conditional: the app permits

@@ -84,7 +84,7 @@ enum BulkAddPhotoError {
   /// than offered a retry: nothing about trying again changes the answer.
   unsupported,
 
-  /// The app declined to send a photograph in plaintext to a public address.
+  /// The app declined to send a photograph in plaintext off the phone.
   /// The fix is the destination or its scheme, not the model or the network.
   insecureDestination,
 }

@@ -50,49 +50,41 @@ InternetAddress _v6(String s) => InternetAddress(s, type: InternetAddressType.IP
 /// Android's cleartext policy never see these requests. There is no second
 /// line of defence behind these tests.
 void main() {
-  group('what counts as private', () {
-    test('the RFC 1918 ranges, at their edges', () {
-      for (final address in [
-        '10.0.0.0', '10.255.255.255',
-        '172.16.0.0', '172.31.255.255',
-        '192.168.0.0', '192.168.255.255',
-      ]) {
-        expect(isPrivateDestination(_v4(address)), isTrue, reason: address);
+  group('what counts as this phone', () {
+    test('loopback, both families, across the whole v4 /8', () {
+      for (final address in ['127.0.0.1', '127.0.0.53', '127.255.255.254']) {
+        expect(isLoopbackDestination(_v4(address)), isTrue, reason: address);
       }
+      expect(isLoopbackDestination(_v6('::1')), isTrue);
     });
 
-    test('and the addresses just outside them', () {
-      // 172.15 and 172.32 bracket the /12. Getting this wrong by one octet
-      // is the classic version of this bug and it fails open.
+    test('a LAN is not this phone (#1050)', () {
+      // Until #1050 these were all allowed plaintext. They stay off the
+      // public internet, but they leave the device — and Play's encryption
+      // in transit declaration covers everything that does.
       for (final address in [
-        '11.0.0.0', '172.15.255.255', '172.32.0.0', '192.167.255.255',
-        '192.169.0.0', '8.8.8.8', '1.1.1.1',
+        '10.0.0.1', '172.16.0.1', '192.168.1.5', '169.254.1.1',
       ]) {
-        expect(isPrivateDestination(_v4(address)), isFalse, reason: address);
+        expect(isLoopbackDestination(_v4(address)), isFalse, reason: address);
       }
+      expect(isLoopbackDestination(_v6('fe80::1')), isFalse);
+      expect(isLoopbackDestination(_v6('fd00::1')), isFalse);
     });
 
-    test('loopback and link-local, both families', () {
-      expect(isPrivateDestination(_v4('127.0.0.1')), isTrue);
-      expect(isPrivateDestination(_v4('169.254.1.1')), isTrue);
-      expect(isPrivateDestination(_v6('::1')), isTrue);
-      expect(isPrivateDestination(_v6('fe80::1')), isTrue);
-    });
-
-    test('IPv6 unique-local, and global-scope v6 is not', () {
-      expect(isPrivateDestination(_v6('fd00::1')), isTrue);
-      expect(isPrivateDestination(_v6('fc00::1')), isTrue);
-      // A global address from the measured dual-stack case.
-      expect(isPrivateDestination(_v6('2001:db8::1')), isFalse);
-      expect(isPrivateDestination(_v6('2606:4700::1111')), isFalse);
+    test('and neither is anything public', () {
+      for (final address in ['8.8.8.8', '1.1.1.1', '126.255.255.255',
+          '128.0.0.1']) {
+        expect(isLoopbackDestination(_v4(address)), isFalse, reason: address);
+      }
+      expect(isLoopbackDestination(_v6('2001:db8::1')), isFalse);
+      expect(isLoopbackDestination(_v6('::2')), isFalse);
     });
 
     test('an IPv4-mapped v6 address is judged as the v4 it is', () {
-      // `::ffff:192.168.1.5` is a LAN destination wearing a v6 shape. Reading
-      // its v6 bytes would call it public, which is the mirror image of the
-      // bug this whole check exists to prevent.
-      expect(isPrivateDestination(_v6('::ffff:192.168.1.5')), isTrue);
-      expect(isPrivateDestination(_v6('::ffff:8.8.8.8')), isFalse);
+      // `::ffff:127.0.0.1` is this phone wearing a v6 shape.
+      expect(isLoopbackDestination(_v6('::ffff:127.0.0.1')), isTrue);
+      expect(isLoopbackDestination(_v6('::ffff:192.168.1.5')), isFalse);
+      expect(isLoopbackDestination(_v6('::ffff:8.8.8.8')), isFalse);
     });
   });
 
@@ -111,10 +103,19 @@ void main() {
       expect(await guard.approve(url), url);
     });
 
-    test('a private literal is allowed and left alone', () async {
-      final url = Uri.parse('http://192.168.1.5:11434/v1/chat/completions');
+    test('a loopback literal is allowed and left alone', () async {
+      final url = Uri.parse('http://127.0.0.1:11434/v1/chat/completions');
 
       expect(await PlaintextDestinationGuard().approve(url), url);
+    });
+
+    test('a LAN literal is refused', () async {
+      final url = Uri.parse('http://192.168.1.5:11434/v1/chat/completions');
+
+      await expectLater(
+        PlaintextDestinationGuard().approve(url),
+        throwsA(isA<InsecureDestinationException>()),
+      );
     });
 
     test('a public literal is refused', () async {
@@ -126,17 +127,17 @@ void main() {
       );
     });
 
-    test('a name resolving privately is pinned to that address', () async {
+    test('a name resolving to loopback is pinned to that address', () async {
       // The gap this closes: checking a name and then handing the name back
       // to the socket layer leaves a second lookup free to answer
       // differently. The request goes to the address that was approved.
-      final guard = guardResolving([_v4('192.168.1.5')]);
+      final guard = guardResolving([_v4('127.0.0.1')]);
 
       final approved = await guard.approve(
-        Uri.parse('http://ollama.lan:11434/v1/chat/completions'),
+        Uri.parse('http://localhost:11434/v1/chat/completions'),
       );
 
-      expect(approved.host, '192.168.1.5');
+      expect(approved.host, '127.0.0.1');
       expect(approved.port, 11434);
       expect(approved.path, '/v1/chat/completions');
     });
@@ -154,13 +155,23 @@ void main() {
       );
     });
 
-    test('a private v6 is honoured even when a public v4 answers too', () async {
-      // Both families are considered, and the private answer wins — the app
+    test('a name resolving only to the LAN is refused', () async {
+      final guard = guardResolving([_v4('192.168.1.5'), _v6('fd00::5')]);
+
+      await expectLater(
+        guard.approve(Uri.parse('http://ollama.lan:11434/v1')),
+        throwsA(isA<InsecureDestinationException>()),
+      );
+    });
+
+    test('a loopback v6 is honoured even when a public v4 answers too',
+        () async {
+      // Both families are considered, and the loopback answer wins — the app
       // is about to prove the claim by connecting there.
-      final guard = guardResolving([_v4('93.184.216.34'), _v6('fd00::5')]);
+      final guard = guardResolving([_v4('93.184.216.34'), _v6('::1')]);
 
       final approved = await guard.approve(
-        Uri.parse('http://ollama.lan:11434/v1'),
+        Uri.parse('http://localhost:11434/v1'),
       );
 
       expect(approved.host, isNot('93.184.216.34'));
@@ -172,8 +183,9 @@ void main() {
     // more than one interface, and it is the case the guard was silently
     // breaking: `Uri` escapes the `%` to `%25`, `InternetAddress.tryParse`
     // refuses that, and the address fell through to a DNS lookup that cannot
-    // succeed — so a link-local server this check exists to *permit* was
-    // reported unreachable, while an unguarded client reached it fine.
+    // succeed — so a link-local server was reported unreachable. Since #1050
+    // link-local is refused plaintext, and the zone handling is what makes
+    // that the answer, rather than a misleading "unreachable".
     //
     // Two things make these tests fussier than they look:
     //
@@ -202,7 +214,7 @@ void main() {
           lookup: (host) async => fail('a zoned literal reached the resolver: $host'),
         );
 
-    test('a zoned link-local literal is allowed, and left alone', () async {
+    test('a zoned link-local literal is refused without a lookup', () async {
       final zone = await anInterfaceName();
       if (zone == null) {
         markTestSkipped('no network interface to name a zone with');
@@ -213,9 +225,11 @@ void main() {
       expect(url.host, 'fe80::1%25$zone');
       expect(InternetAddress.tryParse(url.host), isNull);
 
-      // Returned untouched: the socket layer does its own unescaping, and
-      // rewriting the host here would only cost the zone.
-      expect(await guardThatMustNotResolve().approve(url), url);
+      // Refused as the policy it is, not reported unreachable by a lookup.
+      await expectLater(
+        guardThatMustNotResolve().approve(url),
+        throwsA(isA<InsecureDestinationException>()),
+      );
     });
 
     test('the typed % and the RFC 6874 %25 are the same destination', () async {
@@ -231,8 +245,12 @@ void main() {
       expect(typed.host, escaped.host);
 
       final guard = guardThatMustNotResolve();
-      expect(await guard.approve(typed), typed);
-      expect(await guard.approve(escaped), escaped);
+      for (final url in [typed, escaped]) {
+        await expectLater(
+          guard.approve(url),
+          throwsA(isA<InsecureDestinationException>()),
+        );
+      }
     });
 
     test('a hostname is never rewritten by the zone handling', () async {
@@ -241,7 +259,7 @@ void main() {
       final seen = <String>[];
       final guard = PlaintextDestinationGuard(lookup: (host) async {
         seen.add(host);
-        return [_v4('192.168.1.5')];
+        return [_v4('127.0.0.1')];
       });
 
       await guard.approve(Uri.parse('http://ollama.lan:11434/v1'));
@@ -279,7 +297,7 @@ void main() {
       final client = GuardedPlaintextClient(
         inner,
         guard: PlaintextDestinationGuard(
-          lookup: (_) async => [_v4('192.168.1.5')],
+          lookup: (_) async => [_v4('127.0.0.1')],
         ),
       );
 
@@ -289,7 +307,7 @@ void main() {
         headers: {'content-type': 'application/json'},
       );
 
-      expect(inner.sent!.url.host, '192.168.1.5');
+      expect(inner.sent!.url.host, '127.0.0.1');
       // With the port. `ollama.lan` alone is a different authority from the
       // `ollama.lan:11434` that was typed, and a local model server is
       // essentially never on 80, so dropping it is the common case rather
@@ -305,7 +323,7 @@ void main() {
       final client = GuardedPlaintextClient(
         inner,
         guard: PlaintextDestinationGuard(
-          lookup: (_) async => [_v4('192.168.1.5')],
+          lookup: (_) async => [_v4('127.0.0.1')],
         ),
       );
 
@@ -344,14 +362,14 @@ void main() {
 
     test('redirects are not followed, on the rebound path', () async {
       // The gap this closes: `dart:io` follows a 30x below `BaseClient.send`,
-      // so the hop never re-enters the guard. A private server answering with
-      // a public `http://` Location would have had that connection made, out
-      // of a check that reported the destination private.
+      // so the hop never re-enters the guard. A server on the phone answering
+      // with an off-device `http://` Location would have had that connection
+      // made, out of a check that only approved the first hop.
       final inner = _RecordingClient();
       final client = GuardedPlaintextClient(
         inner,
         guard: PlaintextDestinationGuard(
-          lookup: (_) async => [_v4('192.168.1.5')],
+          lookup: (_) async => [_v4('127.0.0.1')],
         ),
       );
 
@@ -394,7 +412,7 @@ void main() {
       final client = GuardedPlaintextClient(
         inner,
         guard: PlaintextDestinationGuard(
-          lookup: (_) async => [_v4('192.168.1.5')],
+          lookup: (_) async => [_v4('127.0.0.1')],
         ),
       );
 
@@ -481,7 +499,7 @@ void main() {
 
     test('the guarded client stops at the 30x — literal pass-through',
         () async {
-      // A private literal is waved through `approve` untouched, so this is
+      // A loopback literal is waved through `approve` untouched, so this is
       // the branch where the request object reaches the socket as the caller
       // built it. `followRedirects` still has to have been turned off.
       final client = GuardedPlaintextClient(http.Client());

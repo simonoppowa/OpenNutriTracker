@@ -527,7 +527,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           BulkAddPhotoError.unsupported =>
             S.of(context).bulkAddPhotoUnsupportedLabel,
           BulkAddPhotoError.insecureDestination =>
-            S.of(context).bulkAddModelInsecureServerLabel,
+            S.of(context).bulkAddModelOffDevicePlaintextLabel,
           BulkAddPhotoError.billing => S.of(context).bulkAddPhotoNoCreditLabel,
         },
         // #992. Three of these sentences send the user to Settings by name and
@@ -641,7 +641,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           MealTextModelFailure.timeout =>
             S.of(context).bulkAddModelTimedOutLabel,
           MealTextModelFailure.insecureDestination =>
-            S.of(context).bulkAddModelInsecureServerLabel,
+            S.of(context).bulkAddModelOffDevicePlaintextLabel,
         },
         // Coloured as a warning, unlike the neutral "read by AI" banner:
         // this one is asking the user to go and change something.
