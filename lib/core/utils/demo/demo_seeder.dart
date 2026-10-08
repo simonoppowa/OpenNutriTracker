@@ -123,7 +123,7 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   await locator<AcknowledgeFastingWarningUseCase>()();
 
   // Hand-picked Unsplash photos, reused across every day's intake entries
-  // — see unsplash_attribution.dart for why these are hardcoded URLs
+  // — see unsplash_attribution.dart for why these are hardcoded photo ids
   // rather than a live search.
   final foods = await buildDemoFoods();
   await _setupActiveProfile();
@@ -361,7 +361,9 @@ UserEntity _demoUser(DateTime startOfToday) => UserEntity(
 /// The one hand-picked Unsplash portrait used for the demo profile's
 /// avatar (see unsplash_attribution.dart) — bundled at
 /// [assets/demo/alex_demo_avatar.jpg] so Try Demo needs no network for
-/// the headshot. Meal thumbnails still hotlink curated Unsplash CDN URLs.
+/// the headshot. Meal thumbnails are bundled the same way under
+/// `assets/demo/meals/` and copied in by `_importMealPhoto` in
+/// demo_content.dart.
 const _profilePhotoId = '1651684215020-f7a5b6610f23';
 const _profileAvatarAsset = 'assets/demo/alex_demo_avatar.jpg';
 
