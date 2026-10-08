@@ -47,6 +47,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
   // with Food / Recent a chip away.
   _SearchSource _source = _SearchSource.recent;
 
+  // #576: once the user explicitly taps the Recent chip, typing should keep
+  // filtering Recent instead of silently jumping to All (the default-Recent
+  // case still upgrades to All on first keystroke, matching existing
+  // behavior for someone who never touched the chips).
+  bool _stickOnRecent = false;
+
   @override
   void initState() {
     _productsBloc = locator<ProductsBloc>();
@@ -171,9 +177,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
   /// has explicitly chosen Food. Keeps the chip selection and the results in sync.
   _SearchSource _resolveSource(String trimmed) {
     if (trimmed.isEmpty) return _SearchSource.recent;
-    // Typing searches every source at once (All); an explicit Products / Food
-    // choice narrows that merged list.
-    return _source == _SearchSource.recent ? _SearchSource.all : _source;
+    if (_source == _SearchSource.recent) {
+      // Typing searches every source at once (All) by default — unless the
+      // user explicitly chose the Recent chip, in which case it stays put
+      // and filters recent history instead (#576).
+      return _stickOnRecent ? _SearchSource.recent : _SearchSource.all;
+    }
+    // An explicit Products / Food choice narrows that merged list.
+    return _source;
   }
 
   bool _searchesProducts(_SearchSource s) =>
@@ -227,7 +238,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
   }
 
   void _selectSource(_SearchSource source) {
-    setState(() => _source = source);
+    setState(() {
+      _source = source;
+      _stickOnRecent = source == _SearchSource.recent;
+    });
     final query = _searchStringListener.value;
     if (_searchesProducts(source)) {
       _productsBloc.add(LoadProductsEvent(searchString: query));
@@ -239,6 +253,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
       _recentMealBloc.add(LoadRecentMealEvent(searchString: query));
     }
   }
+
+  // #576: "Search all" CTA on an empty filtered-Recent result — switches to
+  // the All chip without the user having to find and tap it themselves.
+  void _onSearchAllPressed() => _selectSource(_SearchSource.all);
 
   Widget _buildSourceChips(BuildContext context, AppPalette palette) {
     Widget chip(_SearchSource source, String label) => Padding(
@@ -524,6 +542,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 onScanBarcode: _onBarcodeIconPressed,
                 onCreateCustomFood: () =>
                     _onCustomAddButtonPressed(state.usesImperialUnits),
+                onSearchAll: _stickOnRecent ? _onSearchAllPressed : null,
               );
             } else if (state is RecentMealFailedState) {
               return ErrorDialog(
