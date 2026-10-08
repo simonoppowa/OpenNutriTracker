@@ -1,12 +1,15 @@
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class GetIntakeUsecase {
   final IntakeRepository _intakeRepository;
+  final RecipeRepository _recipeRepository;
 
-  GetIntakeUsecase(this._intakeRepository);
+  GetIntakeUsecase(this._intakeRepository, this._recipeRepository);
 
   /// The day label the `getToday…` reads below filter on. The queries
   /// take a label, so the boundary has to be resolved here rather than
@@ -105,8 +108,29 @@ class GetIntakeUsecase {
           dayStartOffsetHours: dayStartOffsetHours,
           dayStartOffsetMinutes: dayStartOffsetMinutes);
 
+  /// Recents are built from the meal snapshot each intake stored, which is
+  /// right for the diary and wrong for re-logging: after a recipe is edited,
+  /// its old name, nutrition and servings kept being offered (#1276). A
+  /// recipe that still exists is offered as it is now; a deleted one keeps
+  /// its last snapshot, and the intakes themselves are never rewritten.
   Future<List<IntakeEntity>> getRecentIntake() async {
-    return _intakeRepository.getRecentIntake();
+    final recent = await _intakeRepository.getRecentIntake();
+    return recent.map((intake) {
+      final meal = intake.meal;
+      if (meal.source != MealSourceEntity.recipe || meal.code == null) {
+        return intake;
+      }
+      final recipe = _recipeRepository.getRecipeById(meal.code!);
+      if (recipe == null) return intake;
+      return IntakeEntity(
+        id: intake.id,
+        unit: intake.unit,
+        amount: intake.amount,
+        type: intake.type,
+        meal: recipe.toMealEntity(),
+        dateTime: intake.dateTime,
+      );
+    }).toList();
   }
 
   Future<IntakeEntity?> getIntakeById(String intakeId) async {
