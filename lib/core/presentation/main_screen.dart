@@ -216,7 +216,10 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           day: DateTime.now(),
           showActivityTracking: config.showActivityTracking,
           usesImperialUnits: config.usesImperialFoodUnits,
-          suggestedType: MealTypeSuggester.suggestFromTime(DateTime.now()),
+          suggestedType: MealTypeSuggester.suggestFromTime(
+            DateTime.now(),
+            mealSharesPct: config.mealKcalSharesPct,
+          ),
         );
       },
     );
