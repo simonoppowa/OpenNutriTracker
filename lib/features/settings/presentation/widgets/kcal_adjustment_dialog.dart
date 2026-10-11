@@ -112,6 +112,11 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   }
 
   Future<void> _save() async {
+    // Apply any value still sitting in the text field. Without this,
+    // typing a number and tapping OK (without pressing the keyboard's
+    // Done key first) silently saved the slider's last value instead.
+    // Same fix as the macro split dialog (#525).
+    _applyKcalInput();
     await widget.settingsBloc.setKcalAdjustment(
       _kcalAdjustment.toInt().toDouble(),
     );
