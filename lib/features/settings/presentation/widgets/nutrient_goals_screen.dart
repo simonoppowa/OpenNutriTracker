@@ -225,7 +225,33 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     _syncControllers();
   }
 
+  /// Applies whatever is still sitting in each text field before
+  /// saving. Without this, typing a value and tapping Save (without
+  /// pressing the keyboard's Done key first) silently dropped the
+  /// typed value. Same fix as the macro split dialog (#525).
+  void _applyPendingTextInputs() {
+    _applyText(_fibreController, _fibreMin, _fibreMax, (v) => _fibre = v);
+    _applyText(_satFatController, _satFatMin, _satFatMax, (v) => _satFat = v);
+    _applyText(_sugarsController, _sugarsMin, _sugarsMax, (v) => _sugars = v);
+    _applyText(_sodiumController, _sodiumMin, _sodiumMax, (v) => _sodium = v);
+    _applyText(
+        _calciumController, _calciumMin, _calciumMax, (v) => _calcium = v);
+    _applyText(_ironController, _ironMin, _ironMax, (v) => _iron = v,
+        decimalStep: true);
+    _applyText(_potassiumController, _potassiumMin, _potassiumMax,
+        (v) => _potassium = v);
+    _applyText(_magnesiumController, _magnesiumMin, _magnesiumMax,
+        (v) => _magnesium = v);
+    _applyText(_vitaminDController, _vitaminDMin, _vitaminDMax,
+        (v) => _vitaminD = v,
+        decimalStep: true);
+    _applyText(_vitaminB12Controller, _vitaminB12Min, _vitaminB12Max,
+        (v) => _vitaminB12 = v,
+        decimalStep: true);
+  }
+
   Future<void> _save() async {
+    _applyPendingTextInputs();
     // Make sure today's tracked-day row exists before we write per-
     // nutrient values onto it. updateTrackedDay creates the row from
     // current macro goals if missing, or refreshes the macro columns

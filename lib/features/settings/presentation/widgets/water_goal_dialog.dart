@@ -79,6 +79,10 @@ class _WaterGoalDialogState extends State<WaterGoalDialog> {
   }
 
   Future<void> _save() async {
+    // Apply any value still sitting in the text field, so typing a
+    // number and tapping OK works without pressing Done first.
+    // Same fix as the macro split dialog (#525).
+    _applyTextInput();
     await widget.settingsBloc.setDailyWaterGoalMl(_goalMl);
     widget.homeBloc.add(const LoadItemsEvent());
     locator<ProfileBloc>().add(LoadProfileEvent());
