@@ -310,6 +310,20 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         fatGoal: totalFatGoal,
         proteinGoal: totalProteinGoal,
       );
+    } else {
+      // No diary entry yet for this day (e.g. first thing in the
+      // morning, or right after onboarding). Create the row from the
+      // current goals, as callers rely on: without it, follow-up
+      // writes like setTodayNutrientGoals find no row and are
+      // silently skipped (#1348). Same creation pattern as
+      // MealDetailBloc/ActivityDetailBloc.
+      await _addTrackedDayUsecase.addNewTrackedDay(
+        day,
+        totalKcalGoal,
+        totalCarbsGoal,
+        totalFatGoal,
+        totalProteinGoal,
+      );
     }
   }
 }
