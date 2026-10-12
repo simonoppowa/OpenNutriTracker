@@ -182,6 +182,7 @@ class TrackedDayRepository {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async {
     await _trackedDayDataSource.updateDayNutrientGoals(
       day,
@@ -195,6 +196,7 @@ class TrackedDayRepository {
       vitaminDGoal: vitaminDGoal,
       vitaminB12Goal: vitaminB12Goal,
       magnesiumGoal: magnesiumGoal,
+      clearAll: clearAll,
     );
   }
 
