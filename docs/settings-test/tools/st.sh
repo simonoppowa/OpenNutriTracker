@@ -361,7 +361,8 @@ cmd_errors() {
   fi
   tail -n "+$from" "$EVID/logcat.txt" \
     | grep -E "E flutter|EXCEPTION CAUGHT|Failed assertion|Unhandled Exception|FATAL EXCEPTION|AndroidRuntime" \
-    | grep -E "$PKG|flutter|AndroidRuntime" | head -40
+    | grep -E "$PKG|flutter|AndroidRuntime" \
+    | grep -vE "uiautomator|RuntimeInit|Shutting down VM|boot image|lock profiling|Calling main entry|VM exiting" | head -40
 }
 
 # handoff MESSAGE — print the hand-off banner. Then wait for the maintainer to

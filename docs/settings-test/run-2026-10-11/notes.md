@@ -1,0 +1,25 @@
+# Run notes
+- 15:13 st.sh `errors` counted uiautomator's AndroidRuntime noise as errors; filtered locally (script fix to push back).
+- 15:15 `open_settings` waits for settings-food-units which sits below the fold right after expanding; use scroll_to after it (script fix).
+- 15:17 Settings list jumps to its top after every dialog save/toggle (inventory B10) — seen on 2.3.0 on every save. Note.
+- 15:19 DRIVER ERROR (not app): `scroll_to` while the per-meal dialog was open swiped across the Dinner slider (swipe y 1700→1000) and saved 16/28/50. Reset with the preset; U4 re-done cleanly. Never scroll_to with a dialog open.
+- U9 FAB centre is the white icon; sample at x=600 instead.
+- 2.5a OFF "Nutella pâte à tartiner…" (Ferrero): unit starts "15 g (Portion)" (row-5 baseline = serving); Micronutrients section shown, expanded (row-14 baseline). Logged 100 g = 539 kcal. Product screen says "Day total: …/2494" while Home goal is 2493 — 1 kcal rounding mismatch. Note.
+- 2.5d Weight history after a fresh onboarding is EMPTY — the onboarding weight (65 kg) is not a log entry; the Add-entry dialog pre-fills **70** while the profile says 65 kg. Only one row (65.8 kg Oct 10) after adding. Not a Settings row; candidate note/issue for triage.
+- Baseline: Show Micronutrients reads OFF on a fresh profile, yet the 2.5a product screen listed an expanded Micronutrients section. Row 14 decides.
+- Row 4: the kcal-adjustment dialog title still reads "Daily kcal adjustment" in kJ mode (field label is "Daily kJ adjustment:"). Note.
+- Row 4: the Trends tooltip only appears while the finger is held, and is clipped at the card's right edge for today's point. Note.
+- Row 4/K1 (belongs to row 7, B3): after changing the kcal adjustment, Diary day goal stayed 11271 kJ until R, then 12945 kJ.
+- Row 10: Nutrient goals screen pre-fills fibre **30 g** ("Default reference is 30g") while the Diary panel used **25 g** for this fresh female profile before any goal was saved. The screen shows a default the Diary doesn't apply. Candidate issue for triage.
+- Row 10 driver: the EditText accessibility node spans the whole card; its centre lands on the label, not the input box. Tap the box at x≈900, card top + ~93 px. (script fix)
+- Row 1: in Imperial mode the product's serving still reads "15 g (Portion)" in the unit menu. Note.
+- Row 23: the first screen of Food results for the same query differs from search to search (ordering not stable). Note.
+- Row 26: 'Import now' gave no visible snackbar/feedback in the dump; only the subtitle time changed. Note.
+- Row 29: editing the own-server address silently empties the Model field (after the model fetch fails); OK then shows its error below the fold. Two OK taps looked dead on the device. Candidate issue.
+- Rows 20/41: the FAB overlaps the bottom row of the You list; a tap on a tile at y≈2060–2110 opens the Add sheet instead (happened twice). Note.
+- 2026-10-13: resuming after a reboot wiped the scratchpad. **My error:** restarting `logcat_start` overwrote logcat.txt from 2026-10-11; the per-row `st errors` checks had already run and their results are in results.md, but the raw 10-11 log is gone. New log from 17:40 on 10-13.
+- 5.2: delete confirmation reads "Do want to delete the selected item?" (missing "you"). Note.
+- 5.2 prep: after deleting the Oct 10 weight (one entry left) Trends still showed '-0.2 kg/week' — Trends doesn't reload on a weight delete either (B7 family).
+- 2026-10-14 00:00 **SAFETY LAPSE (mine):** during the 5.2 checks the app left the foreground to the Lawnchair launcher. st.sh's guard exited 99 on each action, but my shell loops kept calling it, so ~30 swipes (up/down) ran on the maintainer's home screen. No taps landed (every tap needs an in-app selector), focus stayed on the launcher (no other app opened). Fixed: h.sh now drops an abort flag on exit 99 and refuses every later call until it is cleared by hand.
+- Likely cause, worth a look: with the red "Duplicate keys" ErrorWidget on Home/Diary, `nav-home` may be missing from the semantics dump, so st.sh's `back` no longer recognised the main screen and let BACK leave the app.
+- 2026-10-14 06:42: abort flag cleared deliberately to resume; old log kept as logcat-20261013.txt.
