@@ -24,10 +24,13 @@ class CustomActivityTemplateDataSource {
     log.fine('Saving custom activity template "${template.name}"');
     final existing =
         _box.values.firstWhereOrNull((dbo) => dbo.name == template.name);
+    // Replaced in place, so a re-saved template stays the first row of its
+    // name — the one an import keeps (#1357).
     if (existing != null) {
-      await existing.delete();
+      await _box.put(existing.key, template);
+    } else {
+      await _box.add(template);
     }
-    await _box.add(template);
   }
 
   /// Upserts by name, like [addTemplate]: an imported template replaces

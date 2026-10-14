@@ -51,8 +51,10 @@ class UserActivityDataSource {
       externalId: existing.externalId,
       sourceReportedKcal: existing.sourceReportedKcal,
     );
-    await existing.delete();
-    await _userActivityBox.add(updated);
+    // Replaced under its own key, so the edited row keeps its place: on an
+    // install with two copies of the id (#1357) it stays the first one,
+    // which is the copy a re-import keeps.
+    await _userActivityBox.put(existing.key, updated);
     return updated;
   }
 

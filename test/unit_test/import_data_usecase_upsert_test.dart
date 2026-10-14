@@ -24,6 +24,8 @@ import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
+import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -127,6 +129,7 @@ void main() {
   late Box<TrackedDayDBO> trackedDayBox;
   late Box<WeightLogDBO> weightLogBox;
   late Box<CustomActivityTemplateDBO> templateBox;
+  late FakeHiveDBProvider provider;
   late ImportDataUsecase usecase;
 
   setUpAll(() {
@@ -153,7 +156,7 @@ void main() {
     templateBox = await Hive.openBox<CustomActivityTemplateDBO>(
       'import_upsert_template_$tag',
     );
-    final provider = FakeHiveDBProvider(
+    provider = FakeHiveDBProvider(
       intakeBox: intakeBox,
       recipeBox: recipeBox,
       userActivityBox: activityBox,
@@ -186,20 +189,7 @@ void main() {
     if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
   });
 
-  void writeBundle({
-    List<Map<String, dynamic>> intakes = const [],
-    List<Map<String, dynamic>> activities = const [],
-    List<Map<String, dynamic>>? templates,
-  }) {
-    final entries = {
-      ExportImportBloc.userActivityJsonFileName: jsonEncode(activities),
-      ExportImportBloc.userIntakeJsonFileName: jsonEncode(intakes),
-      ExportImportBloc.trackedDayJsonFileName: '[]',
-      if (templates != null)
-        ExportImportBloc.customActivityTemplateJsonFileName: jsonEncode(
-          templates,
-        ),
-    };
+  void writeZip(Map<String, String> entries) {
     final archive = Archive();
     entries.forEach((name, content) {
       final bytes = utf8.encode(content);
@@ -209,6 +199,20 @@ void main() {
       '${tempDir.path}/backup.zip',
     ).writeAsBytesSync(ZipEncoder().encode(archive));
   }
+
+  void writeBundle({
+    List<Map<String, dynamic>> intakes = const [],
+    List<Map<String, dynamic>> activities = const [],
+    List<Map<String, dynamic>>? templates,
+  }) => writeZip({
+    ExportImportBloc.userActivityJsonFileName: jsonEncode(activities),
+    ExportImportBloc.userIntakeJsonFileName: jsonEncode(intakes),
+    ExportImportBloc.trackedDayJsonFileName: '[]',
+    if (templates != null)
+      ExportImportBloc.customActivityTemplateJsonFileName: jsonEncode(
+        templates,
+      ),
+  });
 
   Future<bool> importJson() => usecase.importData(
     ExportImportBloc.userActivityJsonFileName,
@@ -285,7 +289,7 @@ void main() {
     await importJson();
 
     expect(intakeIds(), ['meal-a']);
-    expect(intakeBox.values.single.amount, 90, reason: 'the last row wins');
+    expect(intakeBox.values.single.amount, 70, reason: 'the first row wins');
     expect(activityIds(), ['run-a']);
   });
 
@@ -306,5 +310,143 @@ void main() {
     expect(templateBox.length, 2);
     expect(byName['Bike commute']!.typicalKcal, 240);
     expect(byName['Climbing gym']!.typicalKcal, 480);
+  });
+
+  test('re-importing an export from a doubled install keeps the copy the '
+      'user edited, not the stale one after it', () async {
+    // An install hit by #1357 holds two copies of each id. Editing one
+    // updates the first copy; the export then writes the box in order, so
+    // the stale copy comes last in the bundle.
+    await intakeBox.addAll([
+      IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+      IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+    ]);
+    await activityBox.addAll([
+      UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
+      UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
+    ]);
+    await IntakeDataSource(provider).updateIntake('meal-a', {'amount': 80.0});
+    await UserActivityDataSource(provider).updateUserActivity('run-a', 45, 400);
+
+    final exportedIntakes = intakeBox.values.map((i) => i.toJson()).toList();
+    final exportedActivities = activityBox.values
+        .map((a) => a.toJson())
+        .toList();
+    expect(exportedIntakes.map((i) => i['amount']), [80, 50]);
+    expect(exportedActivities.map((a) => a['duration']), [45, 10]);
+    writeBundle(intakes: exportedIntakes, activities: exportedActivities);
+
+    await importJson();
+
+    expect(intakeIds(), ['meal-a']);
+    expect(intakeBox.values.single.amount, 80);
+    expect(activityIds(), ['run-a']);
+    expect(activityBox.values.single.duration, 45);
+    expect(activityBox.values.single.burnedKcal, 400);
+  });
+
+  group('a rejected archive leaves the device untouched', () {
+    Matcher wrongFormat() => throwsA(
+      isA<ExportImportFailure>().having(
+        (f) => f.reason,
+        'reason',
+        ExportImportFailureReason.unreadableOrWrongFormat,
+      ),
+    );
+
+    /// Every stored row, with its Hive key, so a rewrite in place or a
+    /// dropped duplicate shows up as well as a changed value.
+    String snapshot() => jsonEncode({
+      'intakes': [
+        for (final e in intakeBox.toMap().entries) [e.key, e.value.toJson()],
+      ],
+      'activities': [
+        for (final e in activityBox.toMap().entries) [e.key, e.value.toJson()],
+      ],
+      'templates': [
+        for (final e in templateBox.toMap().entries) [e.key, e.value.toJson()],
+      ],
+    });
+
+    setUp(() async {
+      // Doubled rows, so an upsert that ran would also delete one.
+      await intakeBox.addAll([
+        IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+        IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+      ]);
+      await activityBox.addAll([
+        UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
+        UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
+      ]);
+      await templateBox.add(CustomActivityTemplateDBO('Bike commute', 200));
+    });
+
+    final validActivities = jsonEncode([
+      _activityJson('run-a', duration: 45),
+      _activityJson('run-b'),
+    ]);
+    final validIntakes = jsonEncode([_intakeJson('meal-a', amount: 80)]);
+    final jsonCases = <String, Map<String, String>>{
+      'JSON, intake entry missing': {
+        ExportImportBloc.userActivityJsonFileName: validActivities,
+        ExportImportBloc.trackedDayJsonFileName: '[]',
+      },
+      'JSON, intake entry malformed': {
+        ExportImportBloc.userActivityJsonFileName: validActivities,
+        ExportImportBloc.userIntakeJsonFileName: '[{"id": "meal-a"',
+        ExportImportBloc.trackedDayJsonFileName: '[]',
+      },
+      'JSON, tracked-day entry missing': {
+        ExportImportBloc.userActivityJsonFileName: validActivities,
+        ExportImportBloc.userIntakeJsonFileName: validIntakes,
+      },
+      'JSON, optional template entry malformed': {
+        ExportImportBloc.userActivityJsonFileName: validActivities,
+        ExportImportBloc.userIntakeJsonFileName: validIntakes,
+        ExportImportBloc.trackedDayJsonFileName: '[]',
+        ExportImportBloc.customActivityTemplateJsonFileName: '{"name": 1}',
+      },
+    };
+    jsonCases.forEach((name, entries) {
+      test(name, () async {
+        final before = snapshot();
+        writeZip(entries);
+
+        await expectLater(importJson(), wrongFormat());
+
+        expect(snapshot(), before);
+      });
+    });
+
+    final validActivityCsv = CsvDataExporter.userActivitiesToCsv([
+      UserActivityDBO.fromJson(_activityJson('run-a', duration: 45)),
+    ]);
+    final csvCases = <String, Map<String, String>>{
+      'CSV, intake entry missing': {
+        'user_activity.csv': validActivityCsv,
+        'user_tracked_day.csv': '',
+      },
+      'CSV, intake entry malformed': {
+        'user_activity.csv': validActivityCsv,
+        'user_intake.csv': 'id,date_time\nmeal-a,not-a-date\n',
+        'user_tracked_day.csv': '',
+      },
+      'CSV, tracked-day entry missing': {
+        'user_activity.csv': validActivityCsv,
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(_intakeJson('meal-a', amount: 80)),
+        ]),
+      },
+    };
+    csvCases.forEach((name, entries) {
+      test(name, () async {
+        final before = snapshot();
+        writeZip(entries);
+
+        await expectLater(usecase.importDataCsv(), wrongFormat());
+
+        expect(snapshot(), before);
+      });
+    });
   });
 }

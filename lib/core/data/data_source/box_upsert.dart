@@ -6,11 +6,14 @@ extension BoxUpsert<T> on Box<T> {
   /// Writes [items] so the box ends up with exactly one row per
   /// [identityOf] value among them (#1357).
   ///
-  /// An item whose identity is already stored replaces that row in place;
-  /// any further rows sharing the identity — left behind by the import
-  /// that used to append — are deleted. Within [items] the last one with
-  /// a given identity wins. Rows whose identity is not among [items] are
-  /// left alone, and new identities are appended.
+  /// An item whose identity is already stored replaces the first such row
+  /// in place; any further rows sharing the identity — left behind by the
+  /// import that used to append — are deleted. Within [items] the first
+  /// one with a given identity wins, too: on an install that import
+  /// doubled, edits land on the first stored copy and the export writes
+  /// rows in box order, so a later duplicate in a bundle is the stale one.
+  /// Rows whose identity is not among [items] are left alone, and new
+  /// identities are appended.
   Future<void> upsertAllBy(
     Iterable<T> items,
     Object Function(T item) identityOf,
@@ -21,14 +24,15 @@ extension BoxUpsert<T> on Box<T> {
           .putIfAbsent(identityOf(entry.value), () => [])
           .add(entry.key);
     }
-    final latest = <Object, T>{
-      for (final item in items) identityOf(item): item,
-    };
+    final incoming = <Object, T>{};
+    for (final item in items) {
+      incoming.putIfAbsent(identityOf(item), () => item);
+    }
 
     final replacements = <dynamic, T>{};
     final staleKeys = <dynamic>[];
     final additions = <T>[];
-    latest.forEach((identity, item) {
+    incoming.forEach((identity, item) {
       final existingKeys = keysByIdentity[identity];
       if (existingKeys == null) {
         additions.add(item);
