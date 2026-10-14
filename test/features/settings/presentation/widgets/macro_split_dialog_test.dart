@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/macro_split_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import '../../../../helpers/fake_reload_blocs.dart';
 import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
+  final List<String> calls;
   double? savedCarbs;
   double? savedProtein;
   double? savedFat;
+
+  _FakeSettingsBloc([List<String>? calls]) : calls = calls ?? <String>[];
 
   @override
   Future<double?> getUserCarbGoalPct() async => 0.6;
@@ -32,7 +37,11 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   }
 
   @override
-  Future<void> updateTrackedDay(DateTime day) async {}
+  Future<void> updateTrackedDay(DateTime day) async {
+    // A real write yields; make sure the reload cannot overtake it.
+    await Future<void>.delayed(Duration.zero);
+    calls.add('updateTrackedDay');
+  }
 
   @override
   void add(SettingsEvent event) {}
@@ -52,6 +61,54 @@ Widget _wrap(Widget child) {
 }
 
 void main() {
+  // _save reloads the Diary and Trends singletons from the locator.
+  late ReloadRecorder recorder;
+
+  setUp(() {
+    recorder = ReloadRecorder()..register();
+  });
+
+  tearDown(() async => locator.reset());
+
+  testWidgets(
+    'saving reloads the Diary, the open day and Trends after today\'s '
+    'tracked day has its new macro goals (#1359)',
+    (tester) async {
+      final settingsBloc = _FakeSettingsBloc(recorder.log);
+      final homeBloc = _FakeHomeBloc();
+
+      await tester.pumpWidget(
+        _wrap(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => MacroSplitDialog(
+                    settingsBloc: settingsBloc,
+                    homeBloc: homeBloc,
+                  ),
+                ),
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(recorder.diaryReloaded, isTrue);
+      expect(recorder.calendarDayReloaded, isTrue);
+      expect(recorder.trendsReloaded, isTrue);
+      expect(recorder.log.first, 'updateTrackedDay');
+    },
+  );
+
   testWidgets('saves typed macro values even without submitting the field', (
     tester,
   ) async {

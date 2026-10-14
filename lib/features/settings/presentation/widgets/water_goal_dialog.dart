@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -82,6 +83,7 @@ class _WaterGoalDialogState extends State<WaterGoalDialog> {
     await widget.settingsBloc.setDailyWaterGoalMl(_goalMl);
     widget.homeBloc.add(const LoadItemsEvent());
     locator<ProfileBloc>().add(LoadProfileEvent());
+    reloadDiaryAndTrends();
     if (!mounted) return;
     Navigator.of(context).pop();
   }

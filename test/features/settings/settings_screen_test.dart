@@ -37,19 +37,36 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
 
   @override
   void add(SettingsEvent event) {}
+
+  @override
+  void setShowMealMacros(bool showMealMacros) {}
 }
 
 /// The screen resolves these in `initState` and only calls them from
 /// controls no test here touches.
 class _FakeProfileBloc extends Fake implements ProfileBloc {}
 
-class _FakeHomeBloc extends Fake implements HomeBloc {}
+class _FakeHomeBloc extends Fake implements HomeBloc {
+  @override
+  void add(HomeEvent event) {}
+}
 
-class _FakeDiaryBloc extends Fake implements DiaryBloc {}
+class _FakeDiaryBloc extends Fake implements DiaryBloc {
+  final List<DiaryEvent> added = [];
 
-class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {}
+  @override
+  void add(DiaryEvent event) => added.add(event);
+}
 
-class _FakeTrendsBloc extends Fake implements TrendsBloc {}
+class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
+  @override
+  void add(CalendarDayEvent event) {}
+}
+
+class _FakeTrendsBloc extends Fake implements TrendsBloc {
+  @override
+  void add(TrendsEvent event) {}
+}
 
 /// Nothing is configured, which is the state a user arrives in from a
 /// rejected key or a refused destination.
@@ -243,5 +260,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AiAssistDialog), findsNothing);
+  });
+
+  testWidgets('toggling Show Meal Macros reloads the Diary, whose meal '
+      'headers read the flag from DiaryBloc (#1359)', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final tile = find.text(l10nEn.settingsShowMealMacros);
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    final diaryBloc = locator<DiaryBloc>() as _FakeDiaryBloc;
+    expect(diaryBloc.added, contains(isA<LoadDiaryYearEvent>()));
   });
 }
