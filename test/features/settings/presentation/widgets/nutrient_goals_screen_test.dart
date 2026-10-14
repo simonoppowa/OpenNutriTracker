@@ -18,9 +18,13 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   int setNutrientGoalsCalls = 0;
   double? savedFibre;
   double? savedIron;
+  Map<String, double?> savedGoals = {};
+
+  /// Today's row as the screen loads it; null means no row yet.
+  TrackedDayEntity? today;
 
   @override
-  Future<TrackedDayEntity?> getTodayTrackedDay(DateTime day) async => null;
+  Future<TrackedDayEntity?> getTodayTrackedDay(DateTime day) async => today;
 
   @override
   Future<void> updateTrackedDay(DateTime day) async {
@@ -44,6 +48,18 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
     setNutrientGoalsCalls++;
     savedFibre = fibreGoal;
     savedIron = ironGoal;
+    savedGoals = {
+      'fibre': fibreGoal,
+      'satFat': satFatGoal,
+      'sugars': sugarsGoal,
+      'sodium': sodiumGoal,
+      'calcium': calciumGoal,
+      'iron': ironGoal,
+      'potassium': potassiumGoal,
+      'vitaminD': vitaminDGoal,
+      'vitaminB12': vitaminB12Goal,
+      'magnesium': magnesiumGoal,
+    };
   }
 
   @override
@@ -72,16 +88,14 @@ class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
 }
 
 void main() {
-  // #1347: typing a value and tapping Save without the keyboard's Done key
-  // used to drop the typed value, saving nothing for an untouched slider.
-  testWidgets('saves typed nutrient goals when Save is tapped without Done', (
-    tester,
+  Future<void> openScreen(
+    WidgetTester tester,
+    _FakeSettingsBloc settingsBloc,
   ) async {
     // Tall enough for the ListView to build every row, iron included.
     await tester.binding.setSurfaceSize(const Size(400, 3000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final settingsBloc = _FakeSettingsBloc();
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [S.delegate],
@@ -108,6 +122,20 @@ void main() {
     );
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
+  }
+
+  Future<void> tapSave(WidgetTester tester) async {
+    await tester.tap(find.text(l10nEn.buttonSaveLabel));
+    await tester.pumpAndSettle();
+  }
+
+  // #1347: typing a value and tapping Save without the keyboard's Done key
+  // used to drop the typed value, saving nothing for an untouched slider.
+  testWidgets('saves typed nutrient goals when Save is tapped without Done', (
+    tester,
+  ) async {
+    final settingsBloc = _FakeSettingsBloc();
+    await openScreen(tester, settingsBloc);
 
     // Rows run fibre, saturated fat, sugars, sodium, calcium, iron: the
     // first is a whole-number field, the sixth a decimal one.
@@ -123,5 +151,102 @@ void main() {
     expect(settingsBloc.savedFibre, 32);
     expect(settingsBloc.savedIron, 12.5);
     expect(find.byType(NutrientGoalsScreen), findsNothing);
+  });
+
+  // #1371 review: Save used to re-parse every field, so an untouched
+  // goal was overwritten by what its field displays — a null goal became
+  // an explicit override equal to the static default (replacing the
+  // Diary's age- and gender-aware reference), and a fractional goal of
+  // 10 or more was saved rounded. Only fields the user edited are applied.
+  group('untouched goals keep their value on Save', () {
+    testWidgets('editing only fibre leaves every other null goal null', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc();
+      await openScreen(tester, settingsBloc);
+
+      await tester.enterText(find.byType(TextField).at(0), '32');
+      await tapSave(tester);
+
+      expect(settingsBloc.setNutrientGoalsCalls, 1);
+      expect(settingsBloc.savedGoals, {
+        'fibre': 32,
+        'satFat': null,
+        'sugars': null,
+        'sodium': null,
+        'calcium': null,
+        'iron': null,
+        'potassium': null,
+        'vitaminD': null,
+        'vitaminB12': null,
+        'magnesium': null,
+      });
+    });
+
+    testWidgets('editing only fibre keeps a fractional iron goal of 12.5', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc()
+        ..today = TrackedDayEntity(
+          day: DateTime(2026, 10, 14),
+          calorieGoal: 2000,
+          caloriesTracked: 0,
+          ironGoal: 12.5,
+        );
+      await openScreen(tester, settingsBloc);
+
+      // The field shows the rounded "13"; Save must not store that.
+      expect(find.widgetWithText(TextField, '13'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).at(0), '32');
+      await tapSave(tester);
+
+      expect(settingsBloc.savedFibre, 32);
+      expect(settingsBloc.savedIron, 12.5);
+    });
+
+    testWidgets('saving without edits stores every goal exactly as loaded', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc()
+        ..today = TrackedDayEntity(
+          day: DateTime(2026, 10, 14),
+          calorieGoal: 2000,
+          caloriesTracked: 0,
+          sugarsGoal: 42.4,
+          ironGoal: 12.5,
+          magnesiumGoal: 333.3,
+        );
+      await openScreen(tester, settingsBloc);
+
+      await tapSave(tester);
+
+      expect(settingsBloc.setNutrientGoalsCalls, 1);
+      expect(settingsBloc.savedGoals, {
+        'fibre': null,
+        'satFat': null,
+        'sugars': 42.4,
+        'sodium': null,
+        'calcium': null,
+        'iron': 12.5,
+        'potassium': null,
+        'vitaminD': null,
+        'vitaminB12': null,
+        'magnesium': 333.3,
+      });
+    });
+
+    testWidgets('a field edited and then reset is not applied on Save', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc();
+      await openScreen(tester, settingsBloc);
+
+      await tester.enterText(find.byType(TextField).at(0), '32');
+      await tester.tap(find.text(l10nEn.buttonResetLabel));
+      await tester.pumpAndSettle();
+      await tapSave(tester);
+
+      expect(settingsBloc.savedGoals.values, everyElement(isNull));
+    });
   });
 }

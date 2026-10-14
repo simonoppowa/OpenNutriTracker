@@ -15,8 +15,11 @@ import '../../../../helpers/test_l10n.dart';
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
   final List<double> savedAdjustments = [];
 
+  /// The adjustment the dialog opens with, in kcal.
+  double storedAdjustment = 0;
+
   @override
-  Future<double> getKcalAdjustment() async => 0;
+  Future<double> getKcalAdjustment() async => storedAdjustment;
 
   @override
   Future<void> setKcalAdjustment(double kcalAdjustment) async {
@@ -107,5 +110,20 @@ void main() {
 
     // 1000 kJ / 4.184 = 239.0 kcal, stored as a whole number.
     expect(settingsBloc.savedAdjustments, [239]);
+  });
+
+  // #1371 review: in kJ mode a stored 100 kcal shows as 418 kJ, which
+  // converts back to 99.9 kcal and was saved truncated as 99. Text the
+  // user did not edit is no longer re-parsed on OK.
+  testWidgets('keeps a stored kcal adjustment when OK is tapped unedited in '
+      'kJ mode', (tester) async {
+    settingsBloc.storedAdjustment = 100;
+    await openDialog(tester, usesKilojoules: true);
+
+    expect(find.widgetWithText(TextField, '418'), findsOneWidget);
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedAdjustments, [100]);
   });
 }
