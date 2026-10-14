@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/box_upsert.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
@@ -20,9 +21,11 @@ class IntakeDataSource {
     await _intakeBox.add(intakeDBO);
   }
 
-  Future<void> addAllIntakes(List<IntakeDBO> intakeDBOList) async {
-    log.fine('Adding new intake items to db');
-    await _intakeBox.addAll(intakeDBOList);
+  /// Upserts by [IntakeDBO.id]: an intake whose id is already stored
+  /// replaces it, so importing a bundle twice leaves one copy (#1357).
+  Future<void> upsertAllIntakes(List<IntakeDBO> intakeDBOList) async {
+    log.fine('Upserting intake items into db');
+    await _intakeBox.upsertAllBy(intakeDBOList, (dbo) => dbo.id);
   }
 
   Future<void> deleteIntakeFromId(String intakeId) async {

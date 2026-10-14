@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/box_upsert.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
@@ -29,11 +30,13 @@ class CustomActivityTemplateDataSource {
     await _box.add(template);
   }
 
-  Future<void> addAllTemplates(
+  /// Upserts by name, like [addTemplate]: an imported template replaces
+  /// the saved one of the same name instead of sitting beside it (#1357).
+  Future<void> upsertAllTemplates(
     List<CustomActivityTemplateDBO> templates,
   ) async {
     log.fine('Bulk-importing ${templates.length} custom activity templates');
-    await _box.addAll(templates);
+    await _box.upsertAllBy(templates, (dbo) => dbo.name);
   }
 
   Future<List<CustomActivityTemplateDBO>> allTemplates() async {

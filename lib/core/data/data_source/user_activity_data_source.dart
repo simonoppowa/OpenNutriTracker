@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/box_upsert.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -18,11 +19,14 @@ class UserActivityDataSource {
     await _userActivityBox.add(userActivityDBO);
   }
 
-  Future<void> addAllUserActivities(
+  /// Upserts by [UserActivityDBO.id]: an activity whose id is already
+  /// stored replaces it, so importing a bundle twice leaves one copy
+  /// (#1357).
+  Future<void> upsertAllUserActivities(
     List<UserActivityDBO> userActivityDBOList,
   ) async {
-    log.fine('Adding new user activities to db');
-    await _userActivityBox.addAll(userActivityDBOList);
+    log.fine('Upserting user activities into db');
+    await _userActivityBox.upsertAllBy(userActivityDBOList, (dbo) => dbo.id);
   }
 
   Future<UserActivityDBO?> updateUserActivity(

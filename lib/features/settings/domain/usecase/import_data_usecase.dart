@@ -76,7 +76,7 @@ class ImportDataUsecase {
         userActivityFile,
         UserActivityDBO.fromJson,
       );
-      await _userActivityRepository.addAllUserActivityDBOs(userActivityDBOs);
+      await _userActivityRepository.upsertAllUserActivityDBOs(userActivityDBOs);
     } else {
       throw _missingEntry(userActivityJsonFileName);
     }
@@ -92,7 +92,7 @@ class ImportDataUsecase {
         intakeFile,
         IntakeDBO.fromJson,
       ).map(OffMicronutrientRepair.repairIntake).toList();
-      await _intakeRepository.addAllIntakeDBOs(intakeDBOs);
+      await _intakeRepository.upsertAllIntakeDBOs(intakeDBOs);
     } else {
       throw _missingEntry(userIntakeJsonFileName);
     }
@@ -138,7 +138,9 @@ class ImportDataUsecase {
         templateFile,
         CustomActivityTemplateDBO.fromJson,
       );
-      await _customActivityTemplateRepository.addAllTemplateDBOs(templateDBOs);
+      await _customActivityTemplateRepository.upsertAllTemplateDBOs(
+        templateDBOs,
+      );
     }
 
     // Restore any user-attached photos — recipes under `recipe_images/`
@@ -189,7 +191,7 @@ class ImportDataUsecase {
         activityFile,
         CsvDataExporter.parseUserActivitiesFromCsv,
       );
-      await _userActivityRepository.addAllUserActivityDBOs(dbos);
+      await _userActivityRepository.upsertAllUserActivityDBOs(dbos);
     } else {
       throw _missingEntry(userActivityCsvFileName);
     }
@@ -202,7 +204,7 @@ class ImportDataUsecase {
         intakeFile,
         CsvDataExporter.parseIntakesFromCsv,
       ).map(OffMicronutrientRepair.repairIntake).toList();
-      await _intakeRepository.addAllIntakeDBOs(dbos);
+      await _intakeRepository.upsertAllIntakeDBOs(dbos);
     } else {
       throw _missingEntry(userIntakeCsvFileName);
     }

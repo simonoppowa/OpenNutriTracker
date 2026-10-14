@@ -53,6 +53,11 @@ included; see `lib/core/data/data_source/user_data_source.dart`. Note this is th
 profile only: your logged **weight history** *is* exported, as `weight_log.json`.
 
 The user can re-import the same zip via **Settings → Import**, in either format.
+Import merges into what is on the device: an intake, activity or recipe whose
+`id` is already stored is replaced by the imported row, as is a Custom activity
+template with the same name, and tracked days and weight-log points replace by
+day. Entries the zip does not carry are kept, and importing the same zip twice
+changes nothing.
 The CSV files also exist so a spreadsheet, a Syncthing-style backup, or external
 tooling can read the same data without going through Hive.
 
