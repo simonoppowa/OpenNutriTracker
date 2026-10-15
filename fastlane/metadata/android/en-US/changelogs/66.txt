@@ -1,1 +1,6 @@
-- "A slice of bread" now logs the regular slice instead of the smallest one listed — when you type it as well as when the AI reads it. Any food that lists its portions as small, medium and large picks the middle one when your words name no size, so "2 cookies" means two regular cookies, not two bite-size ones
+- Now in Spanish and Hungarian, with food names in the language you read the app in
+- Minerals and vitamins on Open Food Facts foods were saved far too small; they are corrected automatically, so those numbers will change
+- Log a serving with 0.5x, 1x, 2x or 100 g, or default to weight in settings
+- "A slice of bread" now logs a regular slice, not the smallest one listed
+- Your weight chart carries a 7-day average
+- Database foods show their full description

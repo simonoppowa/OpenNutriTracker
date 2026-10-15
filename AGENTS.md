@@ -18,7 +18,7 @@ When a diff edits prose that already existed, separate what it introduced from w
 
 ### 1. Localization in a code PR: `intl_en.arb` only
 
-Translations come from Weblate as their own pull requests (`CONTRIBUTING.md`, "Translating"). A code PR that adds or changes a string edits `lib/l10n/intl_en.arb` alone; the other languages show English until Weblate fills them, and `just check_l10n` does not fail on that. Report a code PR that hand-edits another `intl_*.arb` — it collides with Weblate's next rebase — unless the PR is Weblate's own, or ships a language (a line in `lib/core/l10n/shipped_locales.dart` plus `dart run tool/check_locales.dart --fix`; `just test` checks that the platform lists agree). Never ask a contributor to translate, and never audit keys the PR did not touch.
+Translations come from Weblate as their own pull requests (`CONTRIBUTING.md`, "Translating"); the `Merge Weblate pull requests` workflow merges them with a merge commit once CI is green, and a Weblate PR must never be squashed — that locks the component (recovery: Weblate's *Reset and reapply*). A code PR that adds or changes a string edits `lib/l10n/intl_en.arb` alone; the other languages show English until Weblate fills them, and `just check_l10n` does not fail on that. Report a code PR that hand-edits another `intl_*.arb` — it collides with Weblate's next rebase — unless the PR is Weblate's own, or ships a language (a line in `lib/core/l10n/shipped_locales.dart` plus `dart run tool/check_locales.dart --fix`; `just test` checks that the platform lists agree). Never ask a contributor to translate, and never audit keys the PR did not touch.
 
 Before approving a new key, search the ARBs for one that already says the same thing — this app has shipped a while and often does. A second phrasing for one action is worse than a late translation: name the existing key.
 
@@ -135,7 +135,7 @@ The generated files are **gitignored — never edit them by hand**. Add a key to
 
 Shipped languages are the map in `lib/core/l10n/shipped_locales.dart` — resolution, the Settings picker, `Info.plist` and `locales_config.xml` all derive from it (`tool/check_locales.dart`, run by `just test`). The recipe is in that file's header.
 
-Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk`, `hu` query translations, falling back to English). It is about food names from the backend, not UI languages, and is deliberately separate.
+Note: the `SupportedLanguage` enum maps device locales to `food_translation` locales via `SPConst.translationLocaleOf` (`en` reads `food_summary.name` directly; `de`, `pl`, `zh`, `cs`, `it`, `sk`, `tr`, `uk` query translations, falling back to English; `hu` and `es` are in the enum for Open Food Facts names but map to `null` until the backend carries their rows). It is about food names from the backend, not UI languages, and is deliberately separate.
 
 ## Code Style
 

@@ -86,7 +86,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 | **Portable** | Export your diary, activities, tracked days, recipes, weight history and custom activity templates as JSON — or diary, activities and tracked days as CSV — re-import it, or share an entry by QR. The [export format](docs/export-format.md) documents the schema and what it leaves out. |
 | **Open** | Open Food Facts, USDA FoodData Central (CC0) and the German BLS (CC BY 4.0). The backend is its own open repository you can [self-host](docs/supabase-self-hosting.md). |
 | **Community driven** | Over 30 developers have already contributed code, and most merged pull requests come from someone other than the maintainer. Features and fixes arrive as user issues and PRs, across the app and its food backend, and every translation is contributed on [Weblate](https://hosted.weblate.org/engage/opennutritracker/), which needs no Dart and no local setup. |
-| **Inclusive** | Non-binary calorie estimation grounded in published trans-health research, nine languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
+| **Inclusive** | Non-binary calorie estimation grounded in published trans-health research, eleven languages, kcal or kJ, and screen-reader support treated as a bug when it breaks. |
 
 ## Key features
 

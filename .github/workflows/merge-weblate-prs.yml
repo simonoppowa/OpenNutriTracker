@@ -1,0 +1,78 @@
+name: Merge Weblate pull requests
+
+# Weblate's pull requests have to land with a merge commit. Weblate rebases its
+# branch onto develop after every push; a squash leaves it with commits whose
+# patches no longer exist upstream, the rebase conflicts, and "Lock on error"
+# shuts translators out until someone runs "Reset and reapply" (CONTRIBUTING,
+# "Translating"). GitHub's merge button defaults to squash, so this workflow
+# does the merge instead: once the Default Workflow is green on the PR's
+# current head it approves the PR and merges it with a merge commit.
+#
+# It runs with a write token, so it filters on the branch Weblate owns and
+# never checks the PR out — nothing from the PR executes here.
+#
+# pull_request_target executes the copy of this file on the DEFAULT branch
+# (main), whatever the pull request's base branch is — GitHub changed that
+# on 2025-12-08. The copy on develop is documentation until it reaches main,
+# so a change to this file ships the way a release-pipeline fix does: the
+# same commit as hotfix/* → main and as part of a PR → develop.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [develop]
+
+permissions:
+  actions: read # gh run list
+  contents: write
+  pull-requests: write
+
+# A new push from Weblate supersedes the wait for the previous head.
+concurrency:
+  group: merge-weblate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  merge:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'weblate-opennutritracker-app' &&
+      github.event.pull_request.user.login == 'hosted-weblate[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Wait for the Default Workflow on this head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # The pull_request run for this head is created moments after this
+          # event; poll until it exists and has finished.
+          while :; do
+            run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "Default Workflow" \
+                    --event pull_request --commit "$HEAD_SHA" \
+                    --json databaseId,status,conclusion --jq '.[0] // empty')
+            if [ -n "$run" ] && [ "$(jq -r .status <<<"$run")" = completed ]; then
+              break
+            fi
+            sleep 30
+          done
+          conclusion=$(jq -r .conclusion <<<"$run")
+          echo "Default Workflow run $(jq -r .databaseId <<<"$run") on $HEAD_SHA: $conclusion"
+          if [ "$conclusion" != success ]; then
+            echo "::warning::Default Workflow did not pass on $HEAD_SHA; leaving the pull request for a person."
+            exit 1
+          fi
+
+      - name: Approve and merge with a merge commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          gh pr review "$PR" --repo "$GITHUB_REPOSITORY" --approve \
+            --body "Default Workflow passed on $HEAD_SHA. Merging with a merge commit so Weblate can rebase onto develop (CONTRIBUTING, Translating)."
+          # --match-head-commit refuses the merge if Weblate pushed again in the
+          # meantime; the run for the newer head takes over.
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --merge --match-head-commit "$HEAD_SHA"
