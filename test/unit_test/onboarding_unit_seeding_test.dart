@@ -13,6 +13,8 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/locale_units.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
+import '../helpers/recording_add_weight_log_usecase.dart';
+
 /// Serves one canned config, standing in for the shared app config box.
 class _FakeConfigRepository implements ConfigRepository {
   _FakeConfigRepository(this.dbo);
@@ -54,6 +56,7 @@ void main() {
       AddUserUsecase(_FakeUserRepository()),
       AddConfigUsecase(configRepo),
       GetConfigUsecase(configRepo),
+      RecordingAddWeightLogUsecase(),
     );
     bloc.add(LoadOnboardingEvent());
     await bloc.stream.firstWhere((state) => state is OnboardingLoadedState);
@@ -224,6 +227,7 @@ void main() {
         AddUserUsecase(_FakeUserRepository()),
         AddConfigUsecase(configRepo),
         GetConfigUsecase(configRepo),
+        RecordingAddWeightLogUsecase(),
       );
       addTearDown(bloc.close);
 
@@ -257,6 +261,7 @@ void main() {
         AddUserUsecase(_FakeUserRepository()),
         AddConfigUsecase(configRepo),
         GetConfigUsecase(configRepo),
+        RecordingAddWeightLogUsecase(),
       );
       addTearDown(bloc.close);
 

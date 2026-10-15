@@ -9,10 +9,13 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+
+import '../helpers/recording_add_weight_log_usecase.dart';
 
 /// Fake repository whose every write returns a Future controlled by an
 /// external Completer. Lets us assert that `OnboardingBloc.saveOnboardingData`
@@ -93,6 +96,7 @@ void main() {
   group('OnboardingBloc.saveOnboardingData await chain', () {
     late _FakeUserRepository userRepo;
     late _FakeConfigRepository configRepo;
+    late RecordingAddWeightLogUsecase weightLog;
     late OnboardingBloc bloc;
 
     setUp(() {
@@ -102,6 +106,7 @@ void main() {
         AddUserUsecase(userRepo),
         AddConfigUsecase(configRepo),
         GetConfigUsecase(configRepo),
+        weightLog = RecordingAddWeightLogUsecase(),
       );
     });
 
@@ -167,5 +172,33 @@ void main() {
         expect(resolved, isTrue);
       },
     );
+
+    test('the onboarding weight starts the weight history (#1367)', () async {
+      // Without it, Weight history opened empty on a profile that plainly
+      // had a weight, and Add entry offered a made-up 70 kg.
+      userRepo.writeCompleter.complete();
+      configRepo.anonCompleter.complete();
+
+      await bloc.saveOnboardingData(
+        makeUser()..weightKG = 65,
+        false,
+        false,
+        BodyWeightUnit.kg,
+        false,
+        appTheme: AppThemeEntity.system,
+        foodSourceToggles: const {},
+        dailyReminderEnabled: false,
+        useMaterialYou: true,
+        accentColor: null,
+      );
+
+      final now = DateTime.now();
+      expect(weightLog.entries, [
+        WeightLogEntity(
+          date: DateTime(now.year, now.month, now.day),
+          weightKg: 65,
+        ),
+      ]);
+    });
   });
 }
