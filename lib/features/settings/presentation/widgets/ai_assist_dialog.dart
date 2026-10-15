@@ -123,6 +123,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// on. See [_endpointCommitted] for why that moment and no other.
   final _endpointFocus = FocusNode();
 
+  /// Where a refused OK sends the user. #1364: the refusal sat below the
+  /// fold with the keyboard up, so OK looked like it did nothing.
+  final _modelFocus = FocusNode();
+  final _endpointFieldKey = GlobalKey();
+  final _modelFieldKey = GlobalKey();
+
   bool _loading = true;
   bool _changed = false;
 
@@ -249,6 +255,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // field and the listener answers by calling setState on a dead State.
     _endpointFocus.removeListener(_onEndpointFocusChanged);
     _endpointFocus.dispose();
+    _modelFocus.dispose();
     _ownedModelList?.close();
     super.dispose();
   }
@@ -446,15 +453,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _endpointController.text.trim(),
     );
     if (resolved == null || resolved == _lastEndpoint) return;
-    // The model belonged to the address that just changed. #755 drops the
-    // stored one on write for the same reason — `llama3.2:8b` is a claim
-    // about one machine and says nothing about the next — and this is that
-    // rule where the user can see it happen rather than discover it later.
-    setState(() {
-      _modelController.text = '';
-      _modelError = null;
-    });
-    _loadModels();
+    // The model may belong to the address that just changed — #755's rule,
+    // `llama3.2:8b` is a claim about one machine — but only the new server
+    // can say so. Cleared here up front, a fetch that then failed left the
+    // field empty with nothing to pick from, and OK refused (#1364). So the
+    // field is left alone until the new server answers without it.
+    _loadModels(dropUnlistedModel: _modelController.text.trim());
   }
 
   /// Asks the configured server what it has.
@@ -464,7 +468,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// appearing in this list says a model exists on that machine and never
   /// that it works for this app. Whether it works is #735's probe, which
   /// finds out by sending a real request.
-  Future<void> _loadModels() async {
+  ///
+  /// [dropUnlistedModel] is the model that was in the field when the address
+  /// changed. It is cleared only when the server answered with a list that
+  /// lacks it **and** the field still holds it: a failed fetch proves
+  /// nothing, and a name typed while the request was out is the user's.
+  Future<void> _loadModels({String? dropUnlistedModel}) async {
     final s = S.of(context);
     final typed = _endpointController.text.trim();
     final url = AiCredentialStorage.resolveModelsEndpoint(typed);
@@ -514,10 +523,19 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // Dropping this one loses nothing: a newer request writes every field it
     // would have, and a provider switch has already cleared them.
     if (!mounted || generation != _modelsGeneration) return;
+    final ids = result.failure == null ? result.ids : null;
     setState(() {
       _fetchingModels = false;
-      _modelIds = result.failure == null ? result.ids : null;
+      _modelIds = ids;
       _modelListFailure = result.failure;
+      if (ids != null &&
+          dropUnlistedModel != null &&
+          dropUnlistedModel.isNotEmpty &&
+          !ids.contains(dropUnlistedModel) &&
+          _modelController.text.trim() == dropUnlistedModel) {
+        _modelController.text = '';
+        _modelError = null;
+      }
     });
   }
 
@@ -646,6 +664,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
             _endpointError = endpointError;
             _modelError = modelError;
           });
+          _revealRefusal(endpointError != null);
           return;
         }
 
@@ -699,6 +718,26 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
 
     if (!mounted) return;
     Navigator.of(context).pop(changed);
+  }
+
+  /// Brings a refused field into view and puts the cursor in it, once the
+  /// error text has been laid out. #1364: the dialog is taller than a phone,
+  /// so a refusal rendered below the fold made OK look dead.
+  void _revealRefusal(bool onEndpoint) {
+    final key = onEndpoint ? _endpointFieldKey : _modelFieldKey;
+    final focus = onEndpoint ? _endpointFocus : _modelFocus;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final fieldContext = key.currentContext;
+      if (!mounted || fieldContext == null) return;
+      focus.requestFocus();
+      unawaited(
+        Scrollable.ensureVisible(
+          fieldContext,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 200),
+        ),
+      );
+    });
   }
 
   /// True when the user has agreed to what leaving the device means, asking
@@ -877,6 +916,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                       Semantics(
                         identifier: 'ai-assist-endpoint-field',
                         child: TextField(
+                          key: _endpointFieldKey,
                           controller: _endpointController,
                           focusNode: _endpointFocus,
                           keyboardType: TextInputType.url,
@@ -1364,7 +1404,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           Semantics(
             identifier: 'ai-assist-model-field',
             child: TextField(
+              key: _modelFieldKey,
               controller: _modelController,
+              focusNode: _modelFocus,
               autocorrect: false,
               decoration: InputDecoration(
                 labelText: s.aiAssistModelFieldLabel,
