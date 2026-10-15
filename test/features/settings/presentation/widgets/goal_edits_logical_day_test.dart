@@ -42,8 +42,12 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   final List<DateTime> trackedDayReads = [];
   final List<DateTime> nutrientGoalWrites = [];
 
+  /// The boundary passes as soon as a tracked day is updated, so a save
+  /// that resolved the day a second time would write to the next day.
   @override
-  Future<DateTime> getCurrentLogicalDay() async => _logicalDay;
+  Future<DateTime> getCurrentLogicalDay() async => trackedDayUpdates.isEmpty
+      ? _logicalDay
+      : _logicalDay.add(const Duration(days: 1));
 
   @override
   Future<void> updateTrackedDay(DateTime day) async =>
