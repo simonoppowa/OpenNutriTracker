@@ -32,4 +32,21 @@ void main() {
       expect(localizeServingLabel(s, '38 g'), '38 g');
     });
   });
+  group('imperialServingLabel (#1368)', () {
+    final s = lookupS(const Locale('en'));
+
+    test('converts grams and millilitres, keeping the rest of the label', () {
+      expect(imperialServingLabel(s, '15 g (Portion)'), '0.53 oz (Portion)');
+      expect(imperialServingLabel(s, '1 slice (38 g)'), '1 slice (1.34 oz)');
+      expect(imperialServingLabel(s, '250ml'), '8.45 ${s.flOzUnit}');
+      expect(imperialServingLabel(s, 'Serving (31.8 g)'), 'Serving (1.12 oz)');
+    });
+
+    test('leaves labels without a gram or millilitre amount alone', () {
+      expect(imperialServingLabel(s, '1 cup'), '1 cup');
+      expect(imperialServingLabel(s, '1 tablet (500 mg)'), '1 tablet (500 mg)');
+      expect(imperialServingLabel(s, '1.5 kg'), '1.5 kg');
+      expect(imperialServingLabel(s, '2 grams'), '2 grams');
+    });
+  });
 }
