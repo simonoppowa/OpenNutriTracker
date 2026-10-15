@@ -127,6 +127,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _settingsBloc.add(LoadSettingsEvent());
   }
 
+  /// Whether a route was covering this screen's own the last time we looked.
+  bool _wasCovered = false;
+
+  /// Reloads when the user comes back to this screen from a route pushed
+  /// over it.
+  ///
+  /// `initState` covers the pushed form, which is built fresh on every visit,
+  /// but the embedded form lives on in the You tab: the search and scan
+  /// screens that fill the cache are pushed over it and popped, and nothing
+  /// rebuilt it, so the "Clear cached items" count stayed at what it was
+  /// when Settings was first expanded (#1368). `isCurrentOf` makes this run
+  /// again whenever the route stops or starts being the top one.
+  void _reloadOnReturn() {
+    final isCurrent = ModalRoute.isCurrentOf(context) ?? true;
+    if (isCurrent && _wasCovered) _settingsBloc.add(LoadSettingsEvent());
+    _wasCovered = !isCurrent;
+  }
+
   /// Acts on what the caller asked the settings route for — see
   /// [SettingsScreenArguments].
   ///
@@ -135,6 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _reloadOnReturn();
     if (_routeRequestHandled || widget.embedded) return;
     _routeRequestHandled = true;
     final arguments = ModalRoute.of(context)?.settings.arguments;

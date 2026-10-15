@@ -155,4 +155,47 @@ void main() {
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
+  testWidgets('coming back from a pushed screen re-reads the cache count '
+      '(#1368)', (tester) async {
+    // The embedded form, as the You tab hosts it: it outlives the search and
+    // scan screens that fill the cache, which are pushed over it.
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigatorKey,
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.supportedLocales,
+        home: const Scaffold(
+          body: SingleChildScrollView(child: SettingsScreen(embedded: true)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final loadsOnEntry = settingsBloc.events
+        .whereType<LoadSettingsEvent>()
+        .length;
+
+    navigatorKey.currentState!.push(
+      MaterialPageRoute<void>(builder: (_) => const Scaffold()),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      settingsBloc.events.whereType<LoadSettingsEvent>(),
+      hasLength(loadsOnEntry),
+      reason: 'nothing to refresh while it is covered',
+    );
+
+    navigatorKey.currentState!.pop();
+    await tester.pumpAndSettle();
+
+    expect(
+      settingsBloc.events.whereType<LoadSettingsEvent>(),
+      hasLength(loadsOnEntry + 1),
+    );
+  });
 }
