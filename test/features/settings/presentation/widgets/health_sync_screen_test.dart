@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/workout_compensation_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -21,6 +22,7 @@ import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
   final List<bool> importEnabledCalls = [];
+  final List<bool> weightImportEnabledCalls = [];
   final List<double> multiplierCalls = [];
 
   @override
@@ -31,6 +33,11 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   @override
   Future<void> setHealthWorkoutKcalMultiplier(double multiplier) async {
     multiplierCalls.add(multiplier);
+  }
+
+  @override
+  Future<void> setHealthWeightImportEnabled(bool enabled) async {
+    weightImportEnabledCalls.add(enabled);
   }
 }
 
@@ -52,9 +59,17 @@ class _FakeHealthImportRepository extends Fake
   bool granted = true;
   double? bodyFatPercent;
   int requestPermissionsCalls = 0;
+  bool weightGranted = true;
+  int requestWeightPermissionsCalls = 0;
 
   @override
   Future<bool> isAvailable() async => available;
+
+  @override
+  Future<bool> requestWeightPermissions() async {
+    requestWeightPermissionsCalls++;
+    return weightGranted;
+  }
 
   @override
   Future<bool> requestPermissions() async {
@@ -74,6 +89,16 @@ class _FakeImportWorkoutsUsecase extends Fake implements ImportWorkoutsUsecase {
   Future<int> importNow() async {
     importNowCalls++;
     return importedCount;
+  }
+}
+
+class _FakeImportWeightsUsecase extends Fake implements ImportWeightsUsecase {
+  int importNowCalls = 0;
+
+  @override
+  Future<int> importNow() async {
+    importNowCalls++;
+    return 0;
   }
 }
 
@@ -100,11 +125,22 @@ Finder _byIdentifier(String identifier) => find.byWidgetPredicate(
   (widget) => widget is Semantics && widget.properties.identifier == identifier,
 );
 
+/// The screen has one switch per import; these tell them apart.
+final _workoutSwitch = find.descendant(
+  of: _byIdentifier('health-sync-auto-import'),
+  matching: find.byType(SwitchListTile),
+);
+final _weightSwitch = find.descendant(
+  of: _byIdentifier('health-sync-weight-import'),
+  matching: find.byType(SwitchListTile),
+);
+
 void main() {
   late _FakeSettingsBloc settingsBloc;
   late _FakeGetConfigUsecase getConfigUsecase;
   late _FakeHealthImportRepository healthImportRepository;
   late _FakeImportWorkoutsUsecase importWorkoutsUsecase;
+  late _FakeImportWeightsUsecase importWeightsUsecase;
 
   final user = UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight;
 
@@ -120,11 +156,13 @@ void main() {
     getConfigUsecase = _FakeGetConfigUsecase();
     healthImportRepository = _FakeHealthImportRepository();
     importWorkoutsUsecase = _FakeImportWorkoutsUsecase();
+    importWeightsUsecase = _FakeImportWeightsUsecase();
 
     locator.registerSingleton<SettingsBloc>(settingsBloc);
     locator.registerSingleton<GetConfigUsecase>(getConfigUsecase);
     locator.registerSingleton<HealthImportRepository>(healthImportRepository);
     locator.registerSingleton<ImportWorkoutsUsecase>(importWorkoutsUsecase);
+    locator.registerSingleton<ImportWeightsUsecase>(importWeightsUsecase);
     locator.registerSingleton<GetUserUsecase>(_FakeGetUserUsecase(user));
   });
 
@@ -137,6 +175,7 @@ void main() {
   void storeConfig({
     required bool healthImportEnabled,
     double? healthWorkoutKcalMultiplier,
+    bool healthWeightImportEnabled = false,
   }) {
     getConfigUsecase.config = ConfigEntity(
       true,
@@ -145,6 +184,7 @@ void main() {
       AppThemeEntity.system,
       healthImportEnabled: healthImportEnabled,
       healthWorkoutKcalMultiplier: healthWorkoutKcalMultiplier,
+      healthWeightImportEnabled: healthWeightImportEnabled,
     );
   }
 
@@ -178,7 +218,7 @@ void main() {
     await pumpScreen(tester);
 
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(_workoutSwitch).value,
       isFalse,
     );
     // A null onChanged is what makes a Slider unusable, so it is the honest
@@ -204,7 +244,7 @@ void main() {
     expect(settingsBloc.importEnabledCalls, [true]);
     expect(settingsBloc.multiplierCalls, [suggestedMultiplier]);
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(_workoutSwitch).value,
       isTrue,
     );
     expect(
@@ -226,7 +266,7 @@ void main() {
     await optIn(tester);
 
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(_workoutSwitch).value,
       isFalse,
     );
     expect(settingsBloc.importEnabledCalls, isEmpty);
@@ -328,7 +368,7 @@ void main() {
     expect(settingsBloc.importEnabledCalls, isEmpty);
     expect(importWorkoutsUsecase.importNowCalls, 0);
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(_workoutSwitch).value,
       isFalse,
     );
   });
@@ -479,6 +519,121 @@ void main() {
         find.text(withBodyFat),
         findsNothing,
         reason: 'the body-fat paragraph must not survive the gate here',
+      );
+    });
+  });
+  group('weight import', () {
+    testWidgets('opting in discloses weight and asks for weight alone', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false);
+
+      await pumpScreen(tester);
+      await tester.tap(_byIdentifier('health-sync-weight-import'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(l10nEn.healthSyncWeightDisclosureTitle(healthPlatformName)),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          [
+            l10nEn.healthSyncWeightDisclosureBody(healthPlatformName),
+            l10nEn.healthSyncDisclosureFooter(healthPlatformName),
+          ].join('\n\n'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text(l10nEn.healthSyncDisclosureContinueAction));
+      await tester.pumpAndSettle();
+
+      expect(healthImportRepository.requestWeightPermissionsCalls, 1);
+      expect(healthImportRepository.requestPermissionsCalls, 0);
+      expect(settingsBloc.weightImportEnabledCalls, [true]);
+      expect(settingsBloc.importEnabledCalls, isEmpty);
+      expect(importWeightsUsecase.importNowCalls, 1);
+      expect(importWorkoutsUsecase.importNowCalls, 0);
+      expect(tester.widget<SwitchListTile>(_weightSwitch).value, isTrue);
+      expect(tester.widget<SwitchListTile>(_workoutSwitch).value, isFalse);
+    });
+
+    testWidgets('cancelling the weight disclosure asks for nothing', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false);
+
+      await pumpScreen(tester);
+      await tester.tap(_byIdentifier('health-sync-weight-import'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogCancelLabel));
+      await tester.pumpAndSettle();
+
+      expect(healthImportRepository.requestWeightPermissionsCalls, 0);
+      expect(settingsBloc.weightImportEnabledCalls, isEmpty);
+      expect(tester.widget<SwitchListTile>(_weightSwitch).value, isFalse);
+    });
+
+    testWidgets('a refused weight grant leaves the switch off', (tester) async {
+      storeConfig(healthImportEnabled: false);
+      healthImportRepository.weightGranted = false;
+
+      await pumpScreen(tester);
+      await tester.tap(_byIdentifier('health-sync-weight-import'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.healthSyncDisclosureContinueAction));
+      await tester.pumpAndSettle();
+
+      expect(settingsBloc.weightImportEnabledCalls, isEmpty);
+      expect(importWeightsUsecase.importNowCalls, 0);
+      expect(tester.widget<SwitchListTile>(_weightSwitch).value, isFalse);
+      expect(
+        find.text(
+          l10nEn.healthSyncWeightPermissionDeniedLabel(healthPlatformName),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('import now runs the weight import on its own', (tester) async {
+      storeConfig(healthImportEnabled: false, healthWeightImportEnabled: true);
+
+      await pumpScreen(tester);
+      await tester.tap(_byIdentifier('health-sync-import-now'));
+      await tester.pumpAndSettle();
+
+      expect(importWeightsUsecase.importNowCalls, 1);
+      expect(importWorkoutsUsecase.importNowCalls, 0);
+      expect(
+        find.text(l10nEn.healthSyncWeightImportedCountLabel(0)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('import now runs both when both are on', (tester) async {
+      storeConfig(healthImportEnabled: true, healthWeightImportEnabled: true);
+
+      await pumpScreen(tester);
+      await tester.tap(_byIdentifier('health-sync-import-now'));
+      await tester.pumpAndSettle();
+
+      expect(importWorkoutsUsecase.importNowCalls, 1);
+      expect(importWeightsUsecase.importNowCalls, 1);
+      expect(
+        find.text(
+          [
+            l10nEn.healthSyncImportedCountLabel(0),
+            l10nEn.healthSyncWeightImportedCountLabel(0),
+          ].join('\n'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    test('the weight disclosure says nothing about body fat', () {
+      expect(
+        l10nEn.healthSyncWeightDisclosureBody(healthPlatformName),
+        isNot(contains('body fat')),
       );
     });
   });

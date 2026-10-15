@@ -404,4 +404,107 @@ void main() {
       expect(reader.calls, 0);
     });
   });
+  group('HealthPackageService weight', () {
+    HealthDataPoint weightPoint(num value, HealthDataUnit unit) =>
+        HealthDataPoint(
+          uuid: 'weight-1',
+          value: NumericHealthValue(numericValue: value),
+          type: HealthDataType.WEIGHT,
+          unit: unit,
+          dateFrom: DateTime(2026, 8, 13, 7),
+          dateTo: DateTime(2026, 8, 13, 7),
+          sourcePlatform: HealthPlatformType.googleHealthConnect,
+          sourceDeviceId: 'device',
+          sourceId: 'source',
+          sourceName: 'Health Sync',
+        );
+
+    test('asks for weight alone', () async {
+      final health = _FakeHealth()..workoutPermissions = true;
+      final service = HealthPackageService(
+        health,
+        platform: HealthTargetPlatform.android,
+      );
+
+      expect(await service.requestWeightPermissions(), isTrue);
+      expect(health.requestedTypes, [HealthDataType.WEIGHT]);
+    });
+
+    test('the workout request does not ask for weight', () async {
+      final health = _FakeHealth()..workoutPermissions = true;
+      await HealthPackageService(
+        health,
+        workoutReader: _FakeWorkoutReader(),
+        platform: HealthTargetPlatform.android,
+      ).requestPermissions();
+
+      expect(health.requestedTypes, isNot(contains(HealthDataType.WEIGHT)));
+    });
+
+    test('a refused weight grant is a refusal', () async {
+      final health = _FakeHealth()..workoutPermissions = false;
+      final service = HealthPackageService(
+        health,
+        platform: HealthTargetPlatform.android,
+      );
+
+      expect(await service.requestWeightPermissions(), isFalse);
+    });
+
+    test('a revoked grant fails the read instead of answering empty', () {
+      final health = _FakeHealth()..workoutPermissions = false;
+      final service = HealthPackageService(
+        health,
+        platform: HealthTargetPlatform.android,
+      );
+
+      expect(
+        service.readWeights(
+          from: DateTime(2026, 8, 1),
+          to: DateTime(2026, 8, 2),
+        ),
+        throwsStateError,
+      );
+    });
+
+    test('maps a kilogram reading', () {
+      final weight = HealthPackageService.weightFromPoint(
+        weightPoint(80.5, HealthDataUnit.KILOGRAM),
+      )!;
+      expect(weight.id, 'weight-1');
+      expect(weight.weightKg, 80.5);
+      expect(weight.measuredAt, DateTime(2026, 8, 13, 7));
+      expect(weight.sourceAppName, 'Health Sync');
+    });
+
+    test('converts pounds and grams', () {
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(176.37, HealthDataUnit.POUND),
+        )!.weightKg,
+        closeTo(80.0, 0.01),
+      );
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(80000, HealthDataUnit.GRAM),
+        )!.weightKg,
+        closeTo(80.0, 0.001),
+      );
+    });
+
+    test('drops a reading in a unit it cannot convert, or with no weight', () {
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(80, HealthDataUnit.METER),
+        ),
+        isNull,
+      );
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(0, HealthDataUnit.KILOGRAM),
+        ),
+        isNull,
+      );
+    });
+  });
 }

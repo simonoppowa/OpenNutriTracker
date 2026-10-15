@@ -200,6 +200,14 @@ class ConfigRepository {
     await _configDataSource.setConfigHealthLastImportAt(importedAt);
   }
 
+  Future<void> setConfigHealthWeightImportEnabled(bool enabled) async {
+    await _configDataSource.setConfigHealthWeightImportEnabled(enabled);
+  }
+
+  Future<void> setConfigHealthWeightLastImportAt(DateTime? importedAt) async {
+    await _configDataSource.setConfigHealthWeightLastImportAt(importedAt);
+  }
+
   Future<void> addConfigHealthDeletedWorkout(
     String externalId,
     DateTime startedAt,
