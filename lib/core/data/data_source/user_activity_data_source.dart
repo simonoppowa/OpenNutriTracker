@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/box_upsert.dart';
@@ -21,14 +20,24 @@ class UserActivityDataSource {
 
   /// Upserts by [UserActivityDBO.id]: an activity whose id is already
   /// stored replaces it, so importing a bundle twice leaves one copy
-  /// (#1357).
+  /// (#1357). Where a bundle holds an id twice the last row wins — the old
+  /// edit deleted the first copy and appended the edited one. A blank id
+  /// is no identity: that row is always added.
   Future<void> upsertAllUserActivities(
     List<UserActivityDBO> userActivityDBOList,
   ) async {
     log.fine('Upserting user activities into db');
-    await _userActivityBox.upsertAllBy(userActivityDBOList, (dbo) => dbo.id);
+    await _userActivityBox.upsertAllBy(
+      userActivityDBOList,
+      (dbo) => dbo.id.isEmpty ? null : dbo.id,
+      winner: UpsertWinner.last,
+    );
   }
 
+  /// Rewrites every stored copy of [id], so an install the old import
+  /// doubled (#1357) ends up with copies that agree. The fields an edit
+  /// does not set come from the last copy, which is the one the old edit
+  /// appended.
   Future<UserActivityDBO?> updateUserActivity(
     String id,
     double newDuration,
@@ -36,10 +45,14 @@ class UserActivityDataSource {
     double? userKcal,
   }) async {
     log.fine('Updating user activity in db');
-    final existing =
-        _userActivityBox.values.firstWhereOrNull((dbo) => dbo.id == id);
-    if (existing == null) return null;
-    final updated = UserActivityDBO(
+    final keys = [
+      for (final entry in _userActivityBox.toMap().entries)
+        if (entry.value.id == id) entry.key,
+    ];
+    if (keys.isEmpty) return null;
+    final existing = _userActivityBox.get(keys.last)!;
+    // A Hive object lives under one key, so each copy gets its own.
+    UserActivityDBO edited() => UserActivityDBO(
       existing.id,
       newDuration,
       newBurnedKcal,
@@ -51,11 +64,8 @@ class UserActivityDataSource {
       externalId: existing.externalId,
       sourceReportedKcal: existing.sourceReportedKcal,
     );
-    // Replaced under its own key, so the edited row keeps its place: on an
-    // install with two copies of the id (#1357) it stays the first one,
-    // which is the copy a re-import keeps.
-    await _userActivityBox.put(existing.key, updated);
-    return updated;
+    await _userActivityBox.putAll({for (final key in keys) key: edited()});
+    return _userActivityBox.get(keys.first);
   }
 
   Future<void> deleteIntakeFromId(String activityId) async {
