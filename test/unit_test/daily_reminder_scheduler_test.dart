@@ -43,11 +43,18 @@ class _RecordingNotificationService extends NotificationService {
   /// What the OS would hold: the last schedule, unless cancelled since.
   Map<String, Object>? pending;
 
+  /// When set, the next [cancelDailyReminder] fails and the alarm stays.
+  bool failNextCancel = false;
+
   @override
   Future<void> initialize() async {}
 
   @override
   Future<void> cancelDailyReminder() async {
+    if (failNextCancel) {
+      failNextCancel = false;
+      throw StateError('notification plugin unavailable');
+    }
     pending = null;
   }
 
@@ -165,6 +172,27 @@ void main() {
 
       await scheduler.setEnabled(false, locale: const Locale('en'));
       await scheduler.reschedule(locale: const Locale('it'));
+
+      expect(notifications.pending, isNull);
+    });
+
+    test('a cancel that failed is retried by the next refresh', () async {
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, notifications);
+      await scheduler.reschedule(locale: const Locale('en'));
+
+      // "Off" is saved before the OS is told, and the OS call fails: the
+      // alarm survives a switch that now reads off.
+      notifications.failNextCancel = true;
+      await expectLater(
+        scheduler.setEnabled(false, locale: const Locale('en')),
+        throwsStateError,
+      );
+      expect(config.config.notificationsEnabled, isFalse);
+      expect(notifications.pending, isNotNull);
+
+      // The next start-up or language refresh is where that gets put right.
+      await scheduler.reschedule(locale: const Locale('en'));
 
       expect(notifications.pending, isNull);
     });

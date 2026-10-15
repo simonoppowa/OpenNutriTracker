@@ -30,8 +30,10 @@ class DailyReminderScheduler {
 
   /// Schedules the reminder at the saved time, with its text in the language
   /// of [locale] — or, for "System default" (null), the language
-  /// `MaterialApp` resolves from [deviceLocales]. Does nothing while
-  /// reminders are off.
+  /// `MaterialApp` resolves from [deviceLocales]. While reminders are off it
+  /// cancels the reminder instead: "off" is saved before the OS is told, so
+  /// if that cancel failed, start-up or the next language change is where
+  /// the surviving alarm gets removed.
   Future<void> reschedule({
     required Locale? locale,
     List<Locale>? deviceLocales,
@@ -56,6 +58,18 @@ class DailyReminderScheduler {
         await _reschedule(locale, null);
       });
 
+  /// Switches reminders off and cancels every notification the app has
+  /// scheduled, fasting included — for delete-all, which must not race a
+  /// refresh that already read "enabled". The cancel is attempted even if
+  /// saving "off" failed; either failure is rethrown.
+  Future<void> stopAll() => _serialized(() async {
+    try {
+      await _configRepository.setNotificationsEnabled(false);
+    } finally {
+      await _notificationService.cancelAllScheduled();
+    }
+  });
+
   /// Runs [operation] once every earlier one has finished, failed or not.
   Future<void> _serialized(Future<void> Function() operation) {
     final run = _last.then((_) => operation());
@@ -65,7 +79,10 @@ class DailyReminderScheduler {
 
   Future<void> _reschedule(Locale? locale, List<Locale>? deviceLocales) async {
     final config = await _configRepository.getConfig();
-    if (!config.notificationsEnabled) return;
+    if (!config.notificationsEnabled) {
+      await _notificationService.cancelDailyReminder();
+      return;
+    }
 
     final s = lookupS(
       basicLocaleListResolution(
