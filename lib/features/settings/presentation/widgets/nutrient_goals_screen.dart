@@ -126,6 +126,14 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     super.dispose();
   }
 
+  /// The fibre reference the Diary panel uses when no goal is set: the
+  /// IOM value for the user's age and gender, 30 g without a profile.
+  double _fibreDefaultForUser() => DailyNutrientPanel.defaultReferenceFor(
+        NutrientPanelKeys.fiber,
+        _user,
+        DailyNutrientPanel.defaultFibreRefG,
+      );
+
   /// Iron RDA splits female 18 / male 8 (mg). 14 mg is the
   /// gender-neutral midpoint we pick for non-binary / unknown,
   /// matching the panel's existing fallback.
@@ -181,7 +189,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
 
   void _syncControllers() {
     _fibreController.text =
-        (_fibre ?? DailyNutrientPanel.defaultFibreRefG).round().toString();
+        (_fibre ?? _fibreDefaultForUser()).round().toString();
     _satFatController.text =
         (_satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG)
             .round()
@@ -298,7 +306,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                 _NutrientRow(
                   label: s.settingsFibreGoalLabel,
                   description: s.settingsFibreGoalDescription,
-                  value: _fibre ?? DailyNutrientPanel.defaultFibreRefG,
+                  value: _fibre ?? _fibreDefaultForUser(),
                   min: _fibreMin,
                   max: _fibreMax,
                   divisions: _fibreDivisions,
