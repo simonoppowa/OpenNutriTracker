@@ -10,6 +10,7 @@ import 'package:opennutritracker/features/settings/domain/usecase/import_meals_c
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 
 part 'export_import_event.dart';
 
@@ -39,6 +40,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   final DownloadSampleJsonUsecase _downloadSampleJsonUsecase;
   final ImportMealsJsonUsecase _importMealsJsonUsecase;
   final ImportRecipesJsonUsecase _importRecipesJsonUsecase;
+  final SettingsBloc _settingsBloc;
 
   ExportImportBloc(
     this._exportDataUsecase,
@@ -49,6 +51,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
     this._downloadSampleJsonUsecase,
     this._importMealsJsonUsecase,
     this._importRecipesJsonUsecase,
+    this._settingsBloc,
   ) : super(ExportImportInitial()) {
     on<ExportDataEvent>((event, emit) async {
       try {
@@ -92,6 +95,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
                 goalSettingsJsonFileName: goalSettingsJsonFileName,
               );
         if (result) {
+          await _syncTodayGoals();
           emit(ExportImportSuccess());
         } else {
           emit(ExportImportInitial());
@@ -229,6 +233,32 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
     on<ResetExportImportStateEvent>((event, emit) {
       emit(ExportImportInitial());
     });
+  }
+
+  /// Brings today's tracked-day goals in line with the profile and the
+  /// goal settings now on the device, the way the kcal and macro dialogs
+  /// do.
+  ///
+  /// Home computes today's goals live, but the Diary reads them off the
+  /// stored row. An import can leave that row behind the restored goal
+  /// settings (#1363), or bring in a row for today that was computed for
+  /// the profile the backup came from. Both are recomputed here, before
+  /// the screens reload. Past days keep the goals they were logged with.
+  ///
+  /// "Today" is `DateTime.now()`, as in the dialogs. It should become the
+  /// logical day once `SettingsBloc.getCurrentLogicalDay` (#1382) lands.
+  Future<void> _syncTodayGoals() async {
+    try {
+      await _settingsBloc.updateTrackedDay(DateTime.now());
+    } catch (e, stackTrace) {
+      // The data is already imported. A stale goal on today's row is not
+      // worth reporting the whole import as failed.
+      _log.warning(
+        "Could not recompute today's goals after the import",
+        e,
+        stackTrace,
+      );
+    }
   }
 
   /// The state to emit when [operation] threw [error].

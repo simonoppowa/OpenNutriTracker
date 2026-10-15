@@ -66,9 +66,13 @@ the fix wins: the first row for intakes, the last row for activities and
 templates, matching where those older builds wrote an edit. An edit on a
 current build rewrites every copy, so the copies agree. A row with a blank
 `id` has no identity and is always added, never merged. The goal settings in
-`goal_settings.json`, when the zip has one, replace the active profile's. A
-zip missing a required file, or with any file that does not parse, is rejected
-before anything on the device changes.
+`goal_settings.json`, when the zip has one, replace the active profile's. After
+any import, today's kcal and macro goals are worked out again from the
+profile and goal settings now on the device, as Home shows them. This applies
+to today's row whether it was already on the device or came in the zip. Past
+days keep the goals they were logged with. A zip missing a required file, or
+with any file that does not parse, is rejected before anything on the device
+changes.
 The CSV files also exist so a spreadsheet, a Syncthing-style backup, or external
 tooling can read the same data without going through Hive.
 
@@ -236,7 +240,8 @@ keeps its own goals. Those older builds ignore the file when they meet it.
 `null`, or a missing key, means the app default — no kcal adjustment, the
 60 / 15 / 25 carbs / protein / fat split, the 30 / 40 / 20 / 10 meal shares,
 the water goal seeded from the profile — and importing it puts that goal back
-to the default. A file with a value outside the ranges above is rejected, and
+to the default. A file with a value outside the ranges above, or a number
+that is not finite, is rejected, and
 the whole zip with it, before anything on the device changes. The tolerances
 allow for rounding in older builds. `version` goes up only for a change an
 older build would misread; a build that meets a newer version skips this file

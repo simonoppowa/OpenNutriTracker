@@ -166,7 +166,11 @@ class GoalSettingsBackup {
 
   static String? _kcalAdjustmentError(double? kcal) {
     if (kcal == null) return null;
-    if (kcal < minKcalAdjustment || kcal > maxKcalAdjustment) {
+    // NaN fails every comparison, so it is checked for first: a stored NaN
+    // would otherwise pass and make `jsonEncode` throw on export.
+    if (!kcal.isFinite ||
+        kcal < minKcalAdjustment ||
+        kcal > maxKcalAdjustment) {
       return 'kcalAdjustment $kcal is outside '
           '$minKcalAdjustment..$maxKcalAdjustment';
     }
@@ -180,7 +184,7 @@ class GoalSettingsBackup {
     if (macros.any((m) => m == null)) {
       return 'the macro split needs carbs, protein and fat together';
     }
-    if (macros.any((m) => m! < 0 || m > 1)) {
+    if (macros.any((m) => !m!.isFinite || m < 0 || m > 1)) {
       return 'macro goals are fractions between 0 and 1, got $macros';
     }
     final sum = macros.fold<double>(0, (a, m) => a + m!);

@@ -39,6 +39,7 @@ import 'package:opennutritracker/features/settings/domain/usecase/import_meals_j
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
@@ -110,6 +111,9 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
   }
 }
 
+/// Only reached after a successful import, which no test here has.
+class _UnusedSettingsBloc extends Fake implements SettingsBloc {}
+
 class _ThrowingDownloadSampleCsvUsecase extends DownloadSampleCsvUsecase {
   _ThrowingDownloadSampleCsvUsecase(this.error);
 
@@ -174,6 +178,7 @@ ExportImportBloc _bloc({
       customMealDataSource,
     ),
     ImportRecipesJsonUsecase(saveRecipeUseCase),
+    _UnusedSettingsBloc(),
   );
 }
 

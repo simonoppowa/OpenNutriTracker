@@ -10,11 +10,13 @@ import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
@@ -22,6 +24,10 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
@@ -29,12 +35,27 @@ import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_meals_json_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -77,6 +98,21 @@ final class _PickedFile extends PlatformFile {
   Stream<Uint8List> readAsByteStream() => File(path!).openRead().cast();
 }
 
+class _UnusedSearchCache extends Fake implements RemoteSearchCacheDataSource {}
+
+class _UnusedImportMealsCsv extends Fake implements ImportMealsCsvUsecase {}
+
+class _UnusedImportRecipesCsv extends Fake implements ImportRecipesCsvUsecase {}
+
+class _UnusedSampleCsv extends Fake implements DownloadSampleCsvUsecase {}
+
+class _UnusedSampleJson extends Fake implements DownloadSampleJsonUsecase {}
+
+class _UnusedImportMealsJson extends Fake implements ImportMealsJsonUsecase {}
+
+class _UnusedImportRecipesJson extends Fake
+    implements ImportRecipesJsonUsecase {}
+
 /// A valid `goal_settings.json`, as the exporter writes it.
 Map<String, dynamic> _goalsJson() => {
   'version': 1,
@@ -105,10 +141,15 @@ void main() {
   late Box<ConfigDBO> profileConfigBox;
   late Box<IntakeDBO> intakeBox;
   late Box<TrackedDayDBO> trackedDayBox;
+  late Box<UserDBO> userBox;
   late FakeHiveDBProvider provider;
   late ConfigDataSource config;
   late ExportDataUsecase exporter;
   late ImportDataUsecase importer;
+  late SettingsBloc settingsBloc;
+  late ExportImportBloc exportImportBloc;
+  late GetKcalGoalUsecase kcalGoal;
+  late GetMacroGoalUsecase macroGoal;
 
   setUpAll(() {
     Hive.init('.');
@@ -131,7 +172,9 @@ void main() {
     final customMealBox = await open<MealDBO>('custom_meal');
     final weightLogBox = await open<WeightLogDBO>('weight');
     final templateBox = await open<CustomActivityTemplateDBO>('template');
+    userBox = await open<UserDBO>('user');
     boxes = [
+      userBox,
       appConfigBox,
       profileConfigBox,
       intakeBox,
@@ -152,6 +195,7 @@ void main() {
       customMealBox: customMealBox,
       weightLogBox: weightLogBox,
       customActivityTemplateBox: templateBox,
+      userBox: userBox,
     );
     config = ConfigDataSource(provider);
     await config.initializeConfig();
@@ -186,9 +230,48 @@ void main() {
       pickFile: () async =>
           _PickedFile('backup.zip', File('${tempDir.path}/backup.zip').uri),
     );
+
+    await UserDataSource(provider).saveUserData(
+      UserDBO(
+        birthday: DateTime(1990, 6, 15),
+        heightCM: 175,
+        weightKG: 62,
+        gender: UserGenderDBO.male,
+        goal: UserWeightGoalDBO.maintainWeight,
+        pal: UserPALDBO.active,
+      ),
+    );
+    kcalGoal = GetKcalGoalUsecase(
+      UserRepository(UserDataSource(provider)),
+      configRepository,
+      activities,
+    );
+    macroGoal = GetMacroGoalUsecase(configRepository);
+    settingsBloc = SettingsBloc(
+      GetConfigUsecase(configRepository),
+      AddConfigUsecase(configRepository),
+      AddTrackedDayUsecase(trackedDays),
+      kcalGoal,
+      macroGoal,
+      _UnusedSearchCache(),
+      GetTrackedDayUsecase(trackedDays),
+    );
+    exportImportBloc = ExportImportBloc(
+      exporter,
+      importer,
+      _UnusedImportMealsCsv(),
+      _UnusedImportRecipesCsv(),
+      _UnusedSampleCsv(),
+      _UnusedSampleJson(),
+      _UnusedImportMealsJson(),
+      _UnusedImportRecipesJson(),
+      settingsBloc,
+    );
   });
 
   tearDown(() async {
+    await exportImportBloc.close();
+    await settingsBloc.close();
     PathProviderPlatform.instance = originalPathProvider;
     for (final box in boxes) {
       await box.deleteFromDisk();
@@ -481,6 +564,121 @@ void main() {
     });
   });
 
+  group('GoalSettingsBackup.fromJson', () {
+    // A zip's JSON cannot spell NaN, but the parser is the gate either way.
+    for (final bad in [double.nan, double.infinity, double.negativeInfinity]) {
+      test('rejects a non-finite kcal adjustment ($bad)', () {
+        expect(
+          () => GoalSettingsBackup.fromJson({
+            ..._goalsJson(),
+            'kcalAdjustment': bad,
+          }),
+          throwsFormatException,
+        );
+      });
+
+      test('rejects a non-finite macro ($bad)', () {
+        expect(
+          () =>
+              GoalSettingsBackup.fromJson({..._goalsJson(), 'fatGoalPct': bad}),
+          throwsFormatException,
+        );
+      });
+    }
+  });
+
+  group("after an import, today's tracked day follows the restored goals, "
+      'as Home does', () {
+    late DateTime today;
+
+    setUp(() {
+      final now = DateTime.now();
+      today = DateTime(now.year, now.month, now.day);
+    });
+
+    Future<ExportImportState> runImport() {
+      final done = exportImportBloc.stream.firstWhere(
+        (s) => s is ExportImportSuccess || s is ExportImportError,
+      );
+      exportImportBloc.add(const ImportDataEvent());
+      return done;
+    }
+
+    Future<void> expectTodayMatchesHome() async {
+      final row = trackedDayBox.get(today.toParsedDay())!;
+      final kcal = await kcalGoal.getKcalGoal();
+      expect(row.calorieGoal, kcal);
+      expect(row.carbsGoal, await macroGoal.getCarbsGoal(kcal));
+      expect(row.fatGoal, await macroGoal.getFatsGoal(kcal));
+      expect(row.proteinGoal, await macroGoal.getProteinsGoal(kcal));
+    }
+
+    TrackedDayDBO staleToday() => TrackedDayDBO(
+      day: today,
+      calorieGoal: 2744,
+      caloriesTracked: 640,
+      carbsGoal: 343,
+      fatGoal: 91,
+      proteinGoal: 137,
+    );
+
+    test('a device row for today is recomputed once the goal settings are '
+        'restored', () async {
+      await trackedDayBox.put(today.toParsedDay(), staleToday());
+      writeZip({
+        ExportImportBloc.goalSettingsJsonFileName: jsonEncode(_goalsJson()),
+      });
+
+      expect(await runImport(), isA<ExportImportSuccess>());
+
+      expect((await goals())['kcalAdjustment'], -300);
+      await expectTodayMatchesHome();
+      expect(trackedDayBox.get(today.toParsedDay())!.caloriesTracked, 640);
+    });
+
+    test('a row for today carried in the backup, computed for the old '
+        'profile, is recomputed for this one', () async {
+      writeZip({
+        ExportImportBloc.trackedDayJsonFileName: jsonEncode([
+          staleToday().toJson(),
+        ]),
+        ExportImportBloc.goalSettingsJsonFileName: jsonEncode(_goalsJson()),
+      });
+
+      expect(await runImport(), isA<ExportImportSuccess>());
+
+      await expectTodayMatchesHome();
+      expect(trackedDayBox.get(today.toParsedDay())!.caloriesTracked, 640);
+    });
+
+    test('other days keep the goals they were logged with', () async {
+      final yesterday = today.subtract(const Duration(days: 1));
+      writeZip({
+        ExportImportBloc.trackedDayJsonFileName: jsonEncode([
+          TrackedDayDBO(
+            day: yesterday,
+            calorieGoal: 2744,
+            caloriesTracked: 640,
+          ).toJson(),
+        ]),
+        ExportImportBloc.goalSettingsJsonFileName: jsonEncode(_goalsJson()),
+      });
+
+      expect(await runImport(), isA<ExportImportSuccess>());
+
+      expect(trackedDayBox.get(yesterday.toParsedDay())!.calorieGoal, 2744);
+    });
+
+    test("a rejected archive leaves today's row alone", () async {
+      await trackedDayBox.put(today.toParsedDay(), staleToday());
+      writeZip({ExportImportBloc.goalSettingsJsonFileName: '[]'});
+
+      expect(await runImport(), isA<ExportImportError>());
+
+      expect(trackedDayBox.get(today.toParsedDay())!.calorieGoal, 2744);
+    });
+  });
+
   group('GoalSettingsBackup.fromConfigDBO', () {
     test('writes a corrupt stored value as null, so its own export is never '
         'rejected on import', () {
@@ -503,6 +701,27 @@ void main() {
       expect(reread.fatGoalPct, isNull);
       expect(reread.mealKcalSharesPct, isNull);
       expect(reread.dailyWaterGoalMl, isNull);
+    });
+
+    test('writes a non-finite stored kcal adjustment or macro as null, so '
+        'the backup still encodes', () {
+      for (final bad in [double.nan, double.infinity]) {
+        final kcalStored = ConfigDBO.empty()..userKcalAdjustment = bad;
+        final macroStored = ConfigDBO.empty()
+          ..userCarbGoalPct = bad
+          ..userProteinGoalPct = 0.3
+          ..userFatGoalPct = 0.3;
+
+        final kcalBackup = GoalSettingsBackup.fromConfigDBO(kcalStored);
+        final macroBackup = GoalSettingsBackup.fromConfigDBO(macroStored);
+
+        expect(kcalBackup.kcalAdjustment, isNull, reason: '$bad');
+        expect(macroBackup.carbGoalPct, isNull, reason: '$bad');
+        expect(macroBackup.proteinGoalPct, isNull, reason: '$bad');
+        expect(macroBackup.fatGoalPct, isNull, reason: '$bad');
+        expect(() => jsonEncode(kcalBackup.toJson()), returnsNormally);
+        expect(() => jsonEncode(macroBackup.toJson()), returnsNormally);
+      }
     });
 
     test('carries only the per-profile goals', () {
