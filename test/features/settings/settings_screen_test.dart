@@ -244,4 +244,57 @@ void main() {
 
     expect(find.byType(AiAssistDialog), findsNothing);
   });
+
+  testWidgets('the language list scrolls when it is taller than the dialog '
+      '(#1331)', (tester) async {
+    // Twelve rows do not fit on a short phone. The list used to be a bare
+    // Column: it overflowed past the action buttons, the last language was
+    // painted outside the dialog, and nothing scrolled to reach it.
+    tester.view.physicalSize = const Size(750, 1334);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final languageTile = find.text(l10nEn.settingsLanguageLabel);
+    await tester.scrollUntilVisible(
+      languageTile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(languageTile);
+    await tester.pumpAndSettle();
+
+    final dialogList = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(Scrollable),
+    );
+    expect(dialogList, findsOneWidget);
+
+    final lastLanguage = find.text('Español');
+    await tester.scrollUntilVisible(lastLanguage, 100, scrollable: dialogList);
+    await tester.tap(lastLanguage);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<RadioGroup<String>>(find.byType(RadioGroup<String>))
+          .groupValue,
+      'es',
+    );
+    final actions = tester.getRect(
+      find
+          .descendant(
+            of: find.byType(AlertDialog),
+            matching: find.byType(TextButton),
+          )
+          .last,
+    );
+    expect(
+      tester.getRect(lastLanguage).bottom,
+      lessThanOrEqualTo(actions.top),
+      reason: 'the row must sit above the buttons, not under them',
+    );
+  });
 }
