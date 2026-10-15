@@ -7,7 +7,13 @@ import 'package:opennutritracker/core/utils/app_locale.dart';
 class LocaleProvider extends ChangeNotifier {
   Locale? locale;
 
-  LocaleProvider({this.locale}) {
+  /// Told about every change after start-up, from the in-app picker and from
+  /// Android's per-app language setting alike. Used to reschedule the daily
+  /// reminder, whose text the OS holds in the language it was scheduled in
+  /// (#1366).
+  final void Function(Locale? locale)? onChanged;
+
+  LocaleProvider({this.locale, this.onChanged}) {
     AppLocale.select(locale?.toString());
   }
 
@@ -15,5 +21,6 @@ class LocaleProvider extends ChangeNotifier {
     locale = newLocale;
     AppLocale.select(newLocale?.toString());
     notifyListeners();
+    onChanged?.call(newLocale);
   }
 }

@@ -18,6 +18,7 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/app_locale_sync.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -56,6 +57,13 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 /// shipped languages, computed once (WidgetsApp compares the list by
 /// identity, so a fresh list per build would re-resolve on every rebuild).
 final _appLocales = appLocales(S.supportedLocales);
+
+Future<void> _rescheduleDailyReminder(Locale? locale) =>
+    rescheduleDailyReminder(
+      configRepository: locator<ConfigRepository>(),
+      notificationService: locator<NotificationService>(),
+      locale: locale,
+    );
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,30 +111,12 @@ Future<void> _bootstrapApp() async {
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
 
-  // #312: Restore scheduled notifications after app start / device reboot.
-  // Look up the user's localized strings first — there's no widget tree yet,
-  // so S is driven directly off the saved (or device) locale, resolved against
-  // the supported locales because lookupS throws on unsupported ones. Android
-  // re-applies the channel name/description on every (re)registration, and
-  // they surface in the OS settings, so this keeps them in the user's
-  // language instead of reverting to English on each launch.
-  if (config.notificationsEnabled) {
-    final s = lookupS(
-      basicLocaleListResolution([
-        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
-      ], _appLocales),
-    );
-    final notificationService = locator<NotificationService>();
-    await notificationService.initialize();
-    await notificationService.scheduleDailyReminder(
-      hour: config.notificationHour,
-      minute: config.notificationMinute,
-      title: s.notificationsDailyReminderTitle,
-      body: s.notificationsDailyReminderBody,
-      channelName: s.notificationsDailyReminderChannelName,
-      channelDescription: s.notificationsDailyReminderChannelDescription,
-    );
-  }
+  // #312: Restore scheduled notifications after app start / device reboot,
+  // in the user's language. Android re-applies the channel name/description
+  // on every (re)registration, and they surface in the OS settings, so this
+  // keeps them from reverting to English on each launch. A language change
+  // while the app runs reschedules through [LocaleProvider] (#1366).
+  await _rescheduleDailyReminder(savedLocale);
   final hasAcceptedAnonymousData = await configRepo
       .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
@@ -198,7 +188,10 @@ void runAppWithChangeNotifiers(
         ),
       ),
       ChangeNotifierProvider(
-        create: (_) => LocaleProvider(locale: savedLocale),
+        create: (_) => LocaleProvider(
+          locale: savedLocale,
+          onChanged: (locale) => unawaited(_rescheduleDailyReminder(locale)),
+        ),
       ),
       ChangeNotifierProvider(
         create: (_) => EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
