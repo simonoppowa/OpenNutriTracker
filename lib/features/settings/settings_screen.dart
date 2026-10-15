@@ -153,6 +153,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final Widget body = BlocBuilder<SettingsBloc, SettingsState>(
       bloc: _settingsBloc,
+      // Every save and toggle reloads, and the reload starts with a loading
+      // state. Swapping the list for a spinner then threw its scroll position
+      // away and put the user back at the top, out of sight of the row they
+      // just changed (#1368). Only the first load shows the spinner; a reload
+      // keeps the list until the fresh values arrive.
+      buildWhen: (previous, current) =>
+          !(previous is SettingsLoadedState && current is SettingsLoadingState),
       builder: (context, state) {
         if (state is SettingsInitial) {
           _settingsBloc.add(LoadSettingsEvent());
