@@ -882,6 +882,85 @@ void main() {
       expect(tester.widget<TextField>(modelField).focusNode?.hasFocus, isTrue);
     });
 
+    testWidgets('a refusal on OK is in view with the keyboard up (#1364)', (
+      tester,
+    ) async {
+      // The case #1364 was filed from. `enterText` raises no keyboard, so
+      // the inset is set by hand, on the real dialog route, where it is what
+      // shrinks the scroll viewport the refusal has to land inside.
+      tester.view.physicalSize = const Size(720, 1280);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: S.supportedLocales,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => AiAssistDialog.show(
+                  context,
+                  storage,
+                  modelList: _Server.unreachable().api,
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final endpointField = find.bySemanticsIdentifier(
+        'ai-assist-endpoint-field',
+      );
+      await tester.ensureVisible(endpointField);
+      await tester.pumpAndSettle();
+      await tester.showKeyboard(endpointField);
+      // A phone keyboard: 280 of the 640 logical pixels.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 560);
+      await tester.enterText(endpointField, 'http://192.168.1.5:11434');
+      await tester.pumpAndSettle();
+
+      final scroll = find.descendant(
+        of: find.byType(AiAssistDialog),
+        matching: find.byType(SingleChildScrollView),
+      );
+      final keyboardUp = tester.getRect(scroll);
+      final modelField = find.descendant(
+        of: find.bySemanticsIdentifier('ai-assist-model-field'),
+        matching: find.byType(TextField),
+      );
+      expect(
+        tester.getRect(modelField).top,
+        greaterThan(keyboardUp.bottom),
+        reason: 'precondition: the model field starts below the fold',
+      );
+
+      final ok = find.text(l10nEn.dialogOKLabel);
+      expect(tester.getRect(ok).bottom, lessThanOrEqualTo(640 - 280));
+      await tester.tap(ok);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(modelField).focusNode?.hasFocus, isTrue);
+      // Measured again rather than reused: the viewport is whatever it is
+      // once focus and layout have settled, keyboard still up.
+      final viewport = tester.getRect(scroll);
+      final error = tester.getRect(
+        find.text(l10nEn.aiAssistModelRequiredLabel),
+      );
+      expect(error.top, greaterThanOrEqualTo(viewport.top));
+      expect(error.bottom, lessThanOrEqualTo(viewport.bottom));
+      expect(viewport.bottom, lessThanOrEqualTo(640 - 280));
+    });
+
     testWidgets('a refusal clears as soon as the field is edited', (
       tester,
     ) async {
@@ -1491,6 +1570,68 @@ void main() {
         );
       });
 
+      /// Unreachable for the first request, then listing [ids] — a server
+      /// that was asleep when the address was committed and woke up before
+      /// the user pressed Load models.
+      _Server wakesUpListing(List<String> ids) {
+        final listing = _Server.listing(ids);
+        var calls = 0;
+        return _Server((url) {
+          if (calls++ == 0) throw const SocketException('connection refused');
+          return listing._respond(url);
+        });
+      }
+
+      testWidgets('a retry that succeeds after a failed fetch still drops a '
+          'model the new server lacks', (tester) async {
+        final server = wakesUpListing(['qwen3:8b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(modelText(tester), 'gemma3:4b');
+
+        await pressLoad(tester);
+
+        expect(server.requests, hasLength(2));
+        expect(modelText(tester), isEmpty);
+      });
+
+      testWidgets('a model retyped after a failed fetch survives the retry', (
+        tester,
+      ) async {
+        // Typing it again is the user vouching for it on this server, even
+        // though the text ends up the same as what the address change left.
+        final server = wakesUpListing(['qwen3:8b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        final modelField = find.bySemanticsIdentifier('ai-assist-model-field');
+        await tester.enterText(modelField, 'gemma3');
+        await tester.enterText(modelField, 'gemma3:4b');
+        await tester.pump();
+
+        await pressLoad(tester);
+
+        expect(server.requests, hasLength(2));
+        expect(modelText(tester), 'gemma3:4b');
+      });
+
       testWidgets('a new server that has the model keeps it', (tester) async {
         final server = _Server.listing(['qwen3:8b', 'gemma3:4b']);
         await storage.writeOwnServerConfiguration(
@@ -1517,6 +1658,14 @@ void main() {
           '192.168.1.9': ['qwen3:8b'],
         });
         server.gates['192.168.1.9'] = Completer<void>();
+        // A stored model the new server does not list, so the fetch has
+        // something it would clear — an empty field would pass this
+        // however the user's edit were treated.
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
         await tester.pumpWidget(_app(storage, modelList: server.api));
         await tester.pumpAndSettle();
 

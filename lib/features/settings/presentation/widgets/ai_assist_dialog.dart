@@ -193,6 +193,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// on someone's home network, which is the behaviour #738 ruled out.
   Uri? _lastEndpoint;
 
+  /// The model that was in the field when the address last changed, and the
+  /// address it changed to: a claim about the old machine that only the new
+  /// one can settle (#755, #1364).
+  ///
+  /// Kept until that address answers with a list, rather than for one
+  /// request, so a fetch that failed and a Load models retry that then
+  /// succeeds still settles it. Dropped as soon as the user edits or picks
+  /// a model — after that the name is theirs — and on a reload.
+  ({Uri endpoint, String model})? _unconfirmedModel;
+
   /// Built lazily and only if [AiAssistDialog.modelList] was not supplied, so
   /// a dialog nobody asks for models in never constructs an HTTP client.
   AiModelListApi? _ownedModelList;
@@ -316,6 +326,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _model = AiModelCatalogue.resolve(provider, modelId);
       _endpointController.text = summary.endpoint ?? '';
       _modelController.text = modelId ?? '';
+      _unconfirmedModel = null;
       // The stored address counts as already asked-about, so returning to a
       // configured server and leaving the field alone is not a URL change.
       _lastEndpoint = summary.endpoint == null
@@ -458,7 +469,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // can say so. Cleared here up front, a fetch that then failed left the
     // field empty with nothing to pick from, and OK refused (#1364). So the
     // field is left alone until the new server answers without it.
-    _loadModels(dropUnlistedModel: _modelController.text.trim());
+    final model = _modelController.text.trim();
+    _unconfirmedModel = model.isEmpty
+        ? null
+        : (endpoint: resolved, model: model);
+    _loadModels();
   }
 
   /// Asks the configured server what it has.
@@ -469,11 +484,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// that it works for this app. Whether it works is #735's probe, which
   /// finds out by sending a real request.
   ///
-  /// [dropUnlistedModel] is the model that was in the field when the address
-  /// changed. It is cleared only when the server answered with a list that
-  /// lacks it **and** the field still holds it: a failed fetch proves
-  /// nothing, and a name typed while the request was out is the user's.
-  Future<void> _loadModels({String? dropUnlistedModel}) async {
+  /// [_unconfirmedModel] is cleared from the field only when its address
+  /// answered with a list that lacks it **and** the field still holds it: a
+  /// failed fetch proves nothing, and a name typed while the request was out
+  /// is the user's.
+  Future<void> _loadModels() async {
     final s = S.of(context);
     final typed = _endpointController.text.trim();
     final url = AiCredentialStorage.resolveModelsEndpoint(typed);
@@ -528,13 +543,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _fetchingModels = false;
       _modelIds = ids;
       _modelListFailure = result.failure;
-      if (ids != null &&
-          dropUnlistedModel != null &&
-          dropUnlistedModel.isNotEmpty &&
-          !ids.contains(dropUnlistedModel) &&
-          _modelController.text.trim() == dropUnlistedModel) {
-        _modelController.text = '';
-        _modelError = null;
+      final unconfirmed = _unconfirmedModel;
+      if (ids != null && unconfirmed?.endpoint == asking) {
+        _unconfirmedModel = null;
+        if (!ids.contains(unconfirmed!.model) &&
+            _modelController.text.trim() == unconfirmed.model) {
+          _modelController.text = '';
+          _modelError = null;
+        }
       }
     });
   }
@@ -577,6 +593,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   void _pickModel(String id) => setState(() {
     _modelController.text = id;
     _modelError = null;
+    _unconfirmedModel = null;
   });
 
   /// Leaves, and takes the provider choice back out with it.
@@ -1414,7 +1431,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                 errorText: _modelError,
                 border: const OutlineInputBorder(),
               ),
-              onChanged: (_) => setState(() => _modelError = null),
+              onChanged: (_) => setState(() {
+                _modelError = null;
+                _unconfirmedModel = null;
+              }),
             ),
           ),
           // The **only** control that starts a fetch, alongside finishing with
