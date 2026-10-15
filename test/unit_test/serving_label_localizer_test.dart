@@ -48,5 +48,25 @@ void main() {
       expect(imperialServingLabel(s, '1.5 kg'), '1.5 kg');
       expect(imperialServingLabel(s, '2 grams'), '2 grams');
     });
+
+    // Copilot review on #1384: only a complete amount converts, never the
+    // tail of a longer number or of a compound unit.
+    test('converts a leading-decimal amount as a whole number', () {
+      expect(imperialServingLabel(s, '.5 g'), '0.02 oz');
+      expect(imperialServingLabel(s, 'Serving (.5 g)'), 'Serving (0.02 oz)');
+    });
+
+    test('leaves a fraction alone', () {
+      expect(imperialServingLabel(s, '1/2 g'), '1/2 g');
+      expect(imperialServingLabel(s, '1 1/2 g'), '1 1/2 g');
+    });
+
+    test('leaves the g/ml custom-meal unit alone', () {
+      expect(
+        imperialServingLabel(s, 'Serving (100.0 g/ml)'),
+        'Serving (100.0 g/ml)',
+      );
+      expect(imperialServingLabel(s, '100 g/ml'), '100 g/ml');
+    });
   });
 }

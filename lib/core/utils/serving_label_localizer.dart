@@ -42,10 +42,12 @@ String imperialServingLabel(S s, String label) {
   });
 }
 
-/// A number followed by `g` or `ml` as a word of its own ("15 g", "250ml"),
-/// so "mg", "kg" and "grams" are not mistaken for one.
+/// A whole number followed by `g` or `ml` as a word of its own ("15 g",
+/// "250ml", ".5 g"), so "mg", "kg" and "grams" are not mistaken for one.
+/// The amount must not continue another number ("1/2 g", the "5" of
+/// "1.5"), and the unit must not be half of a compound one ("g/ml").
 final _metricAmountPattern = RegExp(
-  r'(\d+(?:[.,]\d+)?)\s*(g|ml)\b',
+  r'(?<![\d.,/])(\d+(?:[.,]\d+)?|\.\d+)\s*(g|ml)\b(?!/)',
   caseSensitive: false,
 );
 
