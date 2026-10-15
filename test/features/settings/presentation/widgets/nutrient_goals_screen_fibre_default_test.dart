@@ -97,6 +97,36 @@ void main() {
     expect(_fibreSlider(tester), 38);
   });
 
+  // The averaged non-binary reference is the midpoint of the binary rows,
+  // so it can be fractional. The field must show it as-is, not rounded
+  // away from the slider (Codex review on #1380).
+  testWidgets('a 30-year-old non-binary user opens at 31.5 g', (tester) async {
+    await _open(tester, user: _user(30, UserGenderEntity.nonBinary));
+
+    expect(_fibreText(tester), '31.5');
+    expect(_fibreSlider(tester), 31.5);
+  });
+
+  testWidgets('a 60-year-old non-binary user opens at 25.5 g', (tester) async {
+    await _open(tester, user: _user(60, UserGenderEntity.nonBinary));
+
+    expect(_fibreText(tester), '25.5');
+    expect(_fibreSlider(tester), 25.5);
+  });
+
+  testWidgets('submitting the untouched fractional default keeps 31.5 g', (
+    tester,
+  ) async {
+    await _open(tester, user: _user(30, UserGenderEntity.nonBinary));
+
+    await tester.tap(find.byType(TextField).first);
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(_fibreText(tester), '31.5');
+    expect(_fibreSlider(tester), 31.5);
+  });
+
   testWidgets('a saved fibre goal still wins over the default', (tester) async {
     await _open(
       tester,

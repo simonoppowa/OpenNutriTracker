@@ -166,6 +166,14 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   String _formatGoal(double value) =>
       value >= 10 ? value.round().toString() : value.toStringAsFixed(1);
 
+  /// Whole-step rows show a whole number unless the value itself is
+  /// fractional, as the averaged non-binary fibre reference is (31.5 g /
+  /// 25.5 g), so the field never disagrees with the slider.
+  static String _formatWholeStep(double value) =>
+      value == value.roundToDouble()
+          ? value.round().toString()
+          : value.toStringAsFixed(1);
+
   Future<void> _load() async {
     final user = await widget.profileBloc.getUser();
     final today = await widget.settingsBloc.getTodayTrackedDay(DateTime.now());
@@ -188,8 +196,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   }
 
   void _syncControllers() {
-    _fibreController.text =
-        (_fibre ?? _fibreDefaultForUser()).round().toString();
+    _fibreController.text = _formatWholeStep(_fibre ?? _fibreDefaultForUser());
     _satFatController.text =
         (_satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG)
             .round()
@@ -482,7 +489,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     final clamped = parsed.clamp(min, max).toDouble();
     setState(() => setter(clamped));
     controller.text =
-        decimalStep ? clamped.toStringAsFixed(1) : clamped.round().toString();
+        decimalStep ? clamped.toStringAsFixed(1) : _formatWholeStep(clamped);
   }
 }
 
