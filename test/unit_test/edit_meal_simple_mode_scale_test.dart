@@ -42,4 +42,23 @@ void main() {
       expect(factorTo100gFromBase('abc'), 1.0);
     });
   });
+
+  group('factorTo100gFromBase with a zero base (#1254)', () {
+    test('"0" falls back to a no-op factor of 1 instead of infinity', () {
+      expect(factorTo100gFromBase('0'), 1.0);
+      expect(factorTo100gFromBase('0.0'), 1.0);
+    });
+
+    test('a negative base falls back to 1', () {
+      expect(factorTo100gFromBase('-50'), 1.0);
+    });
+
+    test('a nutriment typed as 0 at a zero base stays 0, not NaN', () {
+      // The reported custom meal: every field 0, base quantity included.
+      // 0 * (100 / 0) is NaN, which blanked the Home and Trends cards.
+      final stored = 0.0 * factorTo100gFromBase('0');
+      expect(stored.isNaN, isFalse);
+      expect(stored, 0.0);
+    });
+  });
 }
