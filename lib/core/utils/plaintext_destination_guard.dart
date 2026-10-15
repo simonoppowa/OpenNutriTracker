@@ -40,6 +40,38 @@ bool _isV4Mapped(List<int> raw) {
   return raw[10] == 0xFF && raw[11] == 0xFF;
 }
 
+/// The address [host] spells, when it is an IP literal — or null for a name.
+///
+/// Shared by [PlaintextDestinationGuard.approve] and the settings dialog's
+/// save-time check, so the two cannot disagree about what a literal is. They
+/// did once: the dialog parsed the raw host, missed the `%25` zone below, and
+/// saved a link-local address the guard then refused on every request.
+///
+/// A link-local address needs a zone to be routable on a host with more
+/// than one interface, and RFC 6874 says a URI escapes it: `Uri` stores
+/// `http://[fe80::1%wlan0]` with a host of `fe80::1%25wlan0` — typing the
+/// bare `%` gets you the same thing, so this is not a corner someone has to
+/// know the RFC to reach. `InternetAddress.tryParse` returns null on that
+/// escaped form, which sent the address down the guard's DNS branch, where
+/// the lookup fails and the caller is told the server is **unreachable** —
+/// when the true answer is the policy refusal, which wants a different fix
+/// (`https://`) from an unreachable server.
+///
+/// `dart:io` does exactly this substitution itself, in
+/// `escapeLinkLocalAddress`, before it resolves or connects. Doing it here
+/// too is what makes the check agree with the socket layer it is guarding.
+///
+/// A name comes back null untouched, for the caller to resolve: the `25` is
+/// only dropped when it directly follows the first `%`.
+InternetAddress? parseHostLiteral(String host) =>
+    InternetAddress.tryParse(_withZoneUnescaped(host));
+
+String _withZoneUnescaped(String host) {
+  final marker = host.indexOf('%');
+  if (marker < 0 || !host.startsWith('25', marker + 1)) return host;
+  return host.replaceRange(marker + 1, marker + 3, '');
+}
+
 /// Decides, per request, whether a plaintext URL may be sent — and to which
 /// address.
 ///
@@ -66,32 +98,6 @@ class PlaintextDestinationGuard {
   static Future<List<InternetAddress>> _resolve(String host) =>
       InternetAddress.lookup(host, type: InternetAddressType.any);
 
-  /// Turns the `%25` a URI must spell a zone id with back into the `%` that
-  /// [InternetAddress] parses.
-  ///
-  /// A link-local address needs a zone to be routable on a host with more
-  /// than one interface, and RFC 6874 says a URI escapes it: `Uri` stores
-  /// `http://[fe80::1%wlan0]` with a host of `fe80::1%25wlan0` — typing the
-  /// bare `%` gets you the same thing, so this is not a corner someone has to
-  /// know the RFC to reach. `InternetAddress.tryParse` returns null on that
-  /// escaped form, which sent the address down the DNS branch below, where
-  /// the lookup fails and the caller is told the server is **unreachable** —
-  /// when the true answer is the policy refusal, which wants a different fix
-  /// (`https://`) from an unreachable server.
-  ///
-  /// `dart:io` does exactly this substitution itself, in
-  /// `escapeLinkLocalAddress`, before it resolves or connects. Doing it here
-  /// too is what makes the check agree with the socket layer it is guarding.
-  ///
-  /// Anything that still fails to parse falls through to the lookup unchanged,
-  /// so a name is never touched: the `25` is only dropped when it directly
-  /// follows the first `%`.
-  static String _withZoneUnescaped(String host) {
-    final marker = host.indexOf('%');
-    if (marker < 0 || !host.startsWith('25', marker + 1)) return host;
-    return host.replaceRange(marker + 1, marker + 3, '');
-  }
-
   /// Returns the URL to actually request, or throws
   /// [InsecureDestinationException].
   ///
@@ -107,7 +113,7 @@ class PlaintextDestinationGuard {
     if (url.scheme != 'http') return url;
 
     final host = url.host;
-    final literal = InternetAddress.tryParse(_withZoneUnescaped(host));
+    final literal = parseHostLiteral(host);
     if (literal != null) {
       // No lookup to do, and nothing to pin — the user typed the address.
       if (isLoopbackDestination(literal)) return url;

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
@@ -772,10 +771,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// Literals only, deliberately. A name is what DNS says today, which is a
   /// question with a network round trip in it, and #735's whole rule is that
   /// saving never waits on the network. `http://ollama.lan` is saved, and the
-  /// guard refuses it per request if it turns out to point somewhere public.
+  /// guard refuses it per request if it resolves anywhere but this phone.
   bool _refusedBeforeItLeaves(Uri resolved) {
     if (resolved.scheme != 'http') return false;
-    final literal = InternetAddress.tryParse(resolved.host);
+    final literal = parseHostLiteral(resolved.host);
     return literal != null && !isLoopbackDestination(literal);
   }
 

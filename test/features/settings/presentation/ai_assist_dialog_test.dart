@@ -2449,6 +2449,50 @@ void main() {
         expect(prober.calls, 0, reason: 'nothing was configured to check');
       });
 
+      testWidgets('a zoned link-local literal is refused before saving too', (
+        tester,
+      ) async {
+        // A URL spells the zone `%25`, which `InternetAddress.tryParse` does
+        // not read — so this check used to see "not a literal", save the
+        // address, and leave the guard to refuse every request after it
+        // (PR #1281 review). It has to read the host the way the guard does.
+        // The zone is named after a real interface: `tryParse` resolves a
+        // named zone against this machine, so a made-up one tests nothing.
+        final interfaces = await tester.runAsync(
+          () => NetworkInterface.list(
+            includeLoopback: true,
+            type: InternetAddressType.any,
+          ),
+        );
+        if (interfaces == null || interfaces.isEmpty) {
+          markTestSkipped('no network interface to name a zone with');
+          return;
+        }
+        final zone = interfaces.first.name;
+
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+          'http://[fe80::1%$zone]:11434',
+        );
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+          'gemma3:4b',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.dialogOKLabel));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(l10nEn.aiAssistEndpointOffDevicePlaintextLabel),
+          findsOneWidget,
+        );
+        expect(await storage.readEndpoint(provider: AiProvider.ownServer),
+            isNull);
+      });
+
       testWidgets('a LAN address over https is not refused', (tester) async {
         await tester.pumpWidget(_app(storage, probeRunner: runner));
         await tester.pumpAndSettle();
