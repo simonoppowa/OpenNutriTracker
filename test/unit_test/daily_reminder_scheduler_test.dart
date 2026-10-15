@@ -11,6 +11,8 @@ import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+import '../helpers/fake_notification_platform.dart';
+
 class _Config implements ConfigRepository {
   _Config(this.config);
 
@@ -80,8 +82,7 @@ class _RecordingNotificationService extends NotificationService {
       failNextSchedule = false;
       throw StateError('exact alarms not permitted');
     }
-    // The real service cancels, then schedules, with a gap between.
-    pending = null;
+    // The real service replaces the pending reminder once the OS answers.
     await Future<void>.delayed(Duration.zero);
     scheduled.add(
       pending = {
@@ -106,6 +107,8 @@ ConfigEntity _config({required bool enabled}) => ConfigEntity(
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('rescheduling the daily reminder for a new language (#1366)', () {
     late _RecordingNotificationService notifications;
 
@@ -282,6 +285,61 @@ void main() {
         notifications.pending?['body'],
         lookupS(const Locale('de')).notificationsDailyReminderBody,
       );
+    });
+  });
+
+  group('a reschedule that fails keeps the alarm it was replacing (#1389)', () {
+    late FakeNotificationPlatform platform;
+
+    setUp(() => (platform = FakeNotificationPlatform()).install());
+    tearDown(() => platform.uninstall());
+
+    test('a refresh whose schedule throws leaves the previous alarm', () async {
+      final scheduler = DailyReminderScheduler(
+        _Config(_config(enabled: true)),
+        NotificationService(),
+      );
+      await scheduler.refresh(locale: const Locale('en'));
+      final english = platform.pending[0];
+      expect(
+        english?['title'],
+        lookupS(const Locale('en')).notificationsDailyReminderTitle,
+      );
+
+      // A language change whose schedule the platform rejects.
+      platform.failNextSchedule = true;
+      await scheduler.refresh(locale: const Locale('it'));
+
+      expect(
+        platform.pending[0],
+        english,
+        reason: 'the reminder that was set must still fire',
+      );
+    });
+
+    test('a refresh that succeeds replaces the alarm in place', () async {
+      final scheduler = DailyReminderScheduler(
+        _Config(_config(enabled: true)),
+        NotificationService(),
+      );
+      await scheduler.refresh(locale: const Locale('en'));
+      await scheduler.refresh(locale: const Locale('it'));
+
+      expect(platform.pending.keys, [0]);
+      expect(
+        platform.pending[0]?['body'],
+        lookupS(const Locale('it')).notificationsDailyReminderBody,
+      );
+    });
+
+    test('turning reminders off still cancels the alarm', () async {
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, NotificationService());
+      await scheduler.refresh(locale: const Locale('en'));
+
+      await scheduler.setEnabled(false, locale: const Locale('en'));
+
+      expect(platform.pending, isEmpty);
     });
   });
 
