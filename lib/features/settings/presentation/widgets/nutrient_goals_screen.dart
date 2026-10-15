@@ -196,7 +196,8 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   }
 
   void _syncControllers() {
-    _fibreController.text = _formatWholeStep(_fibre ?? _fibreDefaultForUser());
+    _fibreController.text =
+        _formatWholeStep(_fibre ?? _fibreDefaultForUser());
     _satFatController.text =
         (_satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG)
             .round()
