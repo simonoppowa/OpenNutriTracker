@@ -244,6 +244,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // meal-detail dropdown. Off preserves the pre-existing
                   // behaviour — serving wins whenever the food has one.
                   _SettingsSwitchTile(
+                    identifier: 'settings-default-raw-food-units',
                     palette: palette,
                     icon: Icons.straighten_rounded,
                     title: S.of(context).settingsDefaultToRawFoodUnitsLabel,
@@ -1664,6 +1665,7 @@ class _SettingsTile extends StatelessWidget {
 
 /// Switch variant of [_SettingsTile] for the boolean toggles.
 class _SettingsSwitchTile extends StatelessWidget {
+  final String? identifier;
   final AppPalette palette;
   final IconData icon;
   final String title;
@@ -1672,6 +1674,7 @@ class _SettingsSwitchTile extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   const _SettingsSwitchTile({
+    this.identifier,
     required this.palette,
     required this.icon,
     required this.title,
@@ -1684,7 +1687,7 @@ class _SettingsSwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
     final text = Theme.of(context).textTheme;
-    return SwitchListTile(
+    final tile = SwitchListTile(
       secondary: _SettingsIconChip(palette: palette, icon: icon, color: accent),
       title: Text(
         title,
@@ -1699,6 +1702,8 @@ class _SettingsSwitchTile extends StatelessWidget {
       value: value,
       onChanged: onChanged,
     );
+    if (identifier == null) return tile;
+    return Semantics(identifier: identifier!, child: tile);
   }
 }
 
