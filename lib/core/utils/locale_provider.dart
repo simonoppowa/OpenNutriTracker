@@ -7,8 +7,9 @@ import 'package:opennutritracker/core/utils/app_locale.dart';
 class LocaleProvider extends ChangeNotifier {
   Locale? locale;
 
-  /// Told about every change after start-up, from the in-app picker and from
-  /// Android's per-app language setting alike. Used to reschedule the daily
+  /// Told about every change after start-up, from the in-app picker,
+  /// Android's per-app language setting and, while following "System
+  /// default", the device language alike. Used to reschedule the daily
   /// reminder, whose text the OS holds in the language it was scheduled in
   /// (#1366).
   final void Function(Locale? locale)? onChanged;
@@ -22,5 +23,13 @@ class LocaleProvider extends ChangeNotifier {
     AppLocale.select(newLocale?.toString());
     notifyListeners();
     onChanged?.call(newLocale);
+  }
+
+  /// The device's language list changed. While following "System default"
+  /// (null) `MaterialApp` re-resolves by itself, but [onChanged] has to hear
+  /// of it too — this is also how a cleared per-app override settles, since
+  /// Android delivers the corrected list after [updateLocale] ran (#1366).
+  void systemLocalesChanged() {
+    if (locale == null) onChanged?.call(null);
   }
 }

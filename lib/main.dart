@@ -24,7 +24,6 @@ import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dar
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/sentry_config.dart';
-import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
@@ -59,11 +58,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 final _appLocales = appLocales(S.supportedLocales);
 
 Future<void> _rescheduleDailyReminder(Locale? locale) =>
-    rescheduleDailyReminder(
-      configRepository: locator<ConfigRepository>(),
-      notificationService: locator<NotificationService>(),
-      locale: locale,
-    );
+    locator<DailyReminderScheduler>().reschedule(locale: locale);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -239,9 +234,15 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
       await AppLocaleService.getApplicationLocale(),
       _appLocales,
     );
-    if (systemCode == null || !mounted) return;
+    if (!mounted) return;
 
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    if (systemCode == null) {
+      // No per-app override: a device language change. MaterialApp follows
+      // it by itself; the reminder the OS holds does not (#1366).
+      localeProvider.systemLocalesChanged();
+      return;
+    }
     if (localeProvider.locale?.languageCode == systemCode) return;
 
     localeProvider.updateLocale(Locale(systemCode));

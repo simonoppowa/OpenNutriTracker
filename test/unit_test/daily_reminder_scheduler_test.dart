@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -12,10 +13,25 @@ import 'package:opennutritracker/generated/l10n.dart';
 class _Config implements ConfigRepository {
   _Config(this.config);
 
-  final ConfigEntity config;
+  ConfigEntity config;
+
+  /// When set, the next [getConfig] reads the config at once but holds the
+  /// answer until this completes — a refresh caught mid-flight.
+  Completer<void>? gate;
 
   @override
-  Future<ConfigEntity> getConfig() async => config;
+  Future<ConfigEntity> getConfig() async {
+    final read = config;
+    final pending = gate;
+    gate = null;
+    if (pending != null) await pending.future;
+    return read;
+  }
+
+  @override
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    config = _config(enabled: enabled);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -24,8 +40,16 @@ class _Config implements ConfigRepository {
 class _RecordingNotificationService extends NotificationService {
   final scheduled = <Map<String, Object>>[];
 
+  /// What the OS would hold: the last schedule, unless cancelled since.
+  Map<String, Object>? pending;
+
   @override
   Future<void> initialize() async {}
+
+  @override
+  Future<void> cancelDailyReminder() async {
+    pending = null;
+  }
 
   @override
   Future<void> scheduleDailyReminder({
@@ -36,13 +60,18 @@ class _RecordingNotificationService extends NotificationService {
     required String channelName,
     required String channelDescription,
   }) async {
-    scheduled.add({
-      'hour': hour,
-      'minute': minute,
-      'title': title,
-      'body': body,
-      'channelName': channelName,
-    });
+    // The real service cancels, then schedules, with a gap between.
+    pending = null;
+    await Future<void>.delayed(Duration.zero);
+    scheduled.add(
+      pending = {
+        'hour': hour,
+        'minute': minute,
+        'title': title,
+        'body': body,
+        'channelName': channelName,
+      },
+    );
   }
 }
 
@@ -70,11 +99,10 @@ void main() {
         isNot(lookupS(const Locale('en')).notificationsDailyReminderBody),
       );
 
-      await rescheduleDailyReminder(
-        configRepository: _Config(_config(enabled: true)),
-        notificationService: notifications,
-        locale: const Locale('it'),
-      );
+      await DailyReminderScheduler(
+        _Config(_config(enabled: true)),
+        notifications,
+      ).reschedule(locale: const Locale('it'));
 
       expect(notifications.scheduled, [
         {
@@ -88,11 +116,10 @@ void main() {
     });
 
     test('schedules nothing while reminders are off', () async {
-      await rescheduleDailyReminder(
-        configRepository: _Config(_config(enabled: false)),
-        notificationService: notifications,
-        locale: const Locale('it'),
-      );
+      await DailyReminderScheduler(
+        _Config(_config(enabled: false)),
+        notifications,
+      ).reschedule(locale: const Locale('it'));
 
       expect(notifications.scheduled, isEmpty);
     });
@@ -100,15 +127,72 @@ void main() {
     test('"System default" follows the device, as the UI does', () async {
       // An unshipped first preference falls through to the next one, the
       // same resolution MaterialApp makes for the UI.
-      await rescheduleDailyReminder(
-        configRepository: _Config(_config(enabled: true)),
-        notificationService: notifications,
+      await DailyReminderScheduler(
+        _Config(_config(enabled: true)),
+        notifications,
+      ).reschedule(
         locale: null,
         deviceLocales: const [Locale('fr'), Locale('de')],
       );
 
       expect(
         notifications.scheduled.single['body'],
+        lookupS(const Locale('de')).notificationsDailyReminderBody,
+      );
+    });
+
+    test('turning reminders off during a refresh leaves none behind', () async {
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, notifications);
+
+      // The refresh has read "enabled" and is still on its way to the OS
+      // when Settings turns reminders off.
+      final gate = config.gate = Completer<void>();
+      final refresh = scheduler.reschedule(locale: const Locale('it'));
+      await pumpEventQueue();
+      final disable = scheduler.setEnabled(false, locale: const Locale('en'));
+      await pumpEventQueue();
+      gate.complete();
+      await Future.wait([refresh, disable]);
+
+      expect(config.config.notificationsEnabled, isFalse);
+      expect(notifications.pending, isNull);
+    });
+
+    test('a refresh after turning reminders off schedules nothing', () async {
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, notifications);
+
+      await scheduler.setEnabled(false, locale: const Locale('en'));
+      await scheduler.reschedule(locale: const Locale('it'));
+
+      expect(notifications.pending, isNull);
+    });
+
+    test('back to "System default" ends in the new device language', () async {
+      // Android 13+: Settings starts clearing the per-app override without
+      // waiting, so the first refresh still sees the old device list; the
+      // corrected list arrives later as a platform locale event.
+      final scheduler = DailyReminderScheduler(
+        _Config(_config(enabled: true)),
+        notifications,
+      );
+      var deviceLocales = const [Locale('it')];
+      final refreshes = <Future<void>>[];
+      final provider = LocaleProvider(
+        locale: const Locale('it'),
+        onChanged: (locale) => refreshes.add(
+          scheduler.reschedule(locale: locale, deviceLocales: deviceLocales),
+        ),
+      );
+
+      provider.updateLocale(null);
+      deviceLocales = const [Locale('de')];
+      provider.systemLocalesChanged();
+      await Future.wait(refreshes);
+
+      expect(
+        notifications.pending?['body'],
         lookupS(const Locale('de')).notificationsDailyReminderBody,
       );
     });
@@ -127,6 +211,17 @@ void main() {
       provider.updateLocale(null);
 
       expect(changes, [const Locale('it'), null]);
+    });
+
+    test('reports a device language change only while following it', () {
+      final changes = <Locale?>[];
+      final provider = LocaleProvider(locale: null, onChanged: changes.add);
+
+      provider.systemLocalesChanged();
+      provider.updateLocale(const Locale('it'));
+      provider.systemLocalesChanged();
+
+      expect(changes, [null, const Locale('it')]);
     });
   });
 }

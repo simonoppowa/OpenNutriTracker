@@ -83,6 +83,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_phot
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
@@ -207,6 +208,12 @@ Future<void> initLocator() async {
   // Notification service (#312)
   locator.registerLazySingleton<NotificationService>(
     () => NotificationService(),
+  );
+  locator.registerLazySingleton<DailyReminderScheduler>(
+    () => DailyReminderScheduler(
+      locator<ConfigRepository>(),
+      locator<NotificationService>(),
+    ),
   );
 
   // Cache manager
