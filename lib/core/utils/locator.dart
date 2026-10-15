@@ -222,7 +222,12 @@ Future<void> initLocator() async {
 
   // BLoCs
   locator.registerLazySingleton<OnboardingBloc>(
-    () => OnboardingBloc(locator(), locator(), locator()),
+    () => OnboardingBloc(
+      locator(),
+      locator(),
+      locator(),
+      locator<DailyReminderScheduler>(),
+    ),
   );
   locator.registerLazySingleton<HomeBloc>(
     () => HomeBloc(
