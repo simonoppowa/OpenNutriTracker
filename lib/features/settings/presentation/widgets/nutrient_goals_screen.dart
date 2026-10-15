@@ -320,6 +320,8 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   divisions: _fibreDivisions,
                   controller: _fibreController,
                   identifier: 'nutrient-fibre-slider',
+                  // Whole steps, but the non-binary default is fractional.
+                  decimalInput: true,
                   onSliderChanged: (v) => setState(() => _fibre = v),
                   onTextSubmitted: () => _applyText(
                       _fibreController, _fibreMin, _fibreMax, (v) => _fibre = v),
@@ -505,6 +507,9 @@ class _NutrientRow extends StatelessWidget {
   final String identifier;
   final String unit;
   final bool decimalStep;
+
+  /// Accept a decimal point in the field on a whole-step row.
+  final bool decimalInput;
   final ValueChanged<double> onSliderChanged;
   final VoidCallback onTextSubmitted;
 
@@ -521,6 +526,7 @@ class _NutrientRow extends StatelessWidget {
     required this.onTextSubmitted,
     this.unit = 'g',
     this.decimalStep = false,
+    this.decimalInput = false,
   });
 
   @override
@@ -541,9 +547,9 @@ class _NutrientRow extends StatelessWidget {
                 child: TextField(
                   controller: controller,
                   keyboardType: TextInputType.numberWithOptions(
-                    decimal: decimalStep,
+                    decimal: decimalStep || decimalInput,
                   ),
-                  inputFormatters: decimalStep
+                  inputFormatters: decimalStep || decimalInput
                       ? [
                           FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d*'),

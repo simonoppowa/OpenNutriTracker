@@ -20,8 +20,31 @@ import 'package:opennutritracker/generated/l10n.dart';
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
   TrackedDayEntity? today;
 
+  /// The fibre goal handed to the last Save; null until one happens.
+  double? savedFibre;
+
   @override
   Future<TrackedDayEntity?> getTodayTrackedDay(DateTime day) async => today;
+
+  @override
+  Future<void> updateTrackedDay(DateTime day) async {}
+
+  @override
+  Future<void> setTodayNutrientGoals(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
+  }) async {
+    savedFibre = fibreGoal;
+  }
 
   @override
   void add(SettingsEvent event) {}
@@ -36,11 +59,20 @@ class _FakeProfileBloc extends Fake implements ProfileBloc {
   Future<UserEntity> getUser() async => user;
 }
 
-class _FakeHomeBloc extends Fake implements HomeBloc {}
+class _FakeHomeBloc extends Fake implements HomeBloc {
+  @override
+  void add(HomeEvent event) {}
+}
 
-class _FakeDiaryBloc extends Fake implements DiaryBloc {}
+class _FakeDiaryBloc extends Fake implements DiaryBloc {
+  @override
+  void add(DiaryEvent event) {}
+}
 
-class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {}
+class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
+  @override
+  void add(CalendarDayEvent event) {}
+}
 
 UserEntity _user(int age, UserGenderEntity gender) {
   final now = DateTime.now();
@@ -54,24 +86,45 @@ UserEntity _user(int age, UserGenderEntity gender) {
   );
 }
 
+/// Pushes the screen over a placeholder route, so Save has one to pop
+/// back to.
 Future<void> _open(
   WidgetTester tester, {
   required UserEntity user,
   TrackedDayEntity? today,
+  _FakeSettingsBloc? settingsBloc,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
       localizationsDelegates: const [S.delegate],
       supportedLocales: S.supportedLocales,
-      home: NutrientGoalsScreen(
-        settingsBloc: _FakeSettingsBloc()..today = today,
-        profileBloc: _FakeProfileBloc(user),
-        diaryBloc: _FakeDiaryBloc(),
-        calendarDayBloc: _FakeCalendarDayBloc(),
-        homeBloc: _FakeHomeBloc(),
+      home: Builder(
+        builder: (context) => TextButton(
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => NutrientGoalsScreen(
+                settingsBloc: (settingsBloc ?? _FakeSettingsBloc())
+                  ..today = today,
+                profileBloc: _FakeProfileBloc(user),
+                diaryBloc: _FakeDiaryBloc(),
+                calendarDayBloc: _FakeCalendarDayBloc(),
+                homeBloc: _FakeHomeBloc(),
+              ),
+            ),
+          ),
+          child: const Text('Open'),
+        ),
       ),
     ),
   );
+  await tester.tap(find.text('Open'));
+  await tester.pumpAndSettle();
+}
+
+/// Types [text] into the fibre field and presses Done, as a user would.
+Future<void> _typeFibre(WidgetTester tester, String text) async {
+  await tester.enterText(find.byType(TextField).first, text);
+  await tester.testTextInput.receiveAction(TextInputAction.done);
   await tester.pumpAndSettle();
 }
 
@@ -141,5 +194,57 @@ void main() {
 
     expect(_fibreText(tester), '40');
     expect(_fibreSlider(tester), 40);
+  });
+
+  // Codex review on #1380: the fibre field filtered input to digits only,
+  // so editing a fractional default dropped its decimal point ("31.5"
+  // plus a digit became "3152", clamped to 80).
+  testWidgets('editing the seeded 31.5 g keeps a decimal value', (
+    tester,
+  ) async {
+    await _open(tester, user: _user(30, UserGenderEntity.nonBinary));
+
+    await _typeFibre(tester, '31.52');
+
+    expect(_fibreText(tester), '31.5');
+    expect(_fibreSlider(tester), 31.5);
+  });
+
+  testWidgets('typing 32.5 g and saving stores 32.5 g', (tester) async {
+    final settingsBloc = _FakeSettingsBloc();
+    await _open(
+      tester,
+      user: _user(30, UserGenderEntity.nonBinary),
+      settingsBloc: settingsBloc,
+    );
+
+    await _typeFibre(tester, '32.5');
+    expect(_fibreText(tester), '32.5');
+    expect(_fibreSlider(tester), 32.5);
+
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedFibre, 32.5);
+  });
+
+  testWidgets('a whole fibre value still reads as a whole number', (
+    tester,
+  ) async {
+    final settingsBloc = _FakeSettingsBloc();
+    await _open(
+      tester,
+      user: _user(30, UserGenderEntity.female),
+      settingsBloc: settingsBloc,
+    );
+
+    await _typeFibre(tester, '28');
+    expect(_fibreText(tester), '28');
+    expect(_fibreSlider(tester), 28);
+
+    await tester.tap(find.byType(FilledButton));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedFibre, 28);
   });
 }
