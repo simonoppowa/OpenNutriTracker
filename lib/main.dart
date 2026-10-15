@@ -57,8 +57,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 /// identity, so a fresh list per build would re-resolve on every rebuild).
 final _appLocales = appLocales(S.supportedLocales);
 
-Future<void> _rescheduleDailyReminder(Locale? locale) =>
-    locator<DailyReminderScheduler>().reschedule(locale: locale);
+/// Best-effort: a notification plugin that fails is logged, never allowed to
+/// keep the app from opening or to escape a language change.
+Future<void> _refreshDailyReminder(Locale? locale) =>
+    locator<DailyReminderScheduler>().refresh(locale: locale);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -111,7 +113,9 @@ Future<void> _bootstrapApp() async {
   // on every (re)registration, and they surface in the OS settings, so this
   // keeps them from reverting to English on each launch. A language change
   // while the app runs reschedules through [LocaleProvider] (#1366).
-  await _rescheduleDailyReminder(savedLocale);
+  // Not awaited: it queues on the scheduler at once, so Settings still runs
+  // after it, but start-up never waits on (or fails with) the plugin.
+  unawaited(_refreshDailyReminder(savedLocale));
   final hasAcceptedAnonymousData = await configRepo
       .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
@@ -185,7 +189,7 @@ void runAppWithChangeNotifiers(
       ChangeNotifierProvider(
         create: (_) => LocaleProvider(
           locale: savedLocale,
-          onChanged: (locale) => unawaited(_rescheduleDailyReminder(locale)),
+          onChanged: (locale) => unawaited(_refreshDailyReminder(locale)),
         ),
       ),
       ChangeNotifierProvider(

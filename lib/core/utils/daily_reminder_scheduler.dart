@@ -1,7 +1,9 @@
 import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/widgets.dart' show basicLocaleListResolution;
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/l10n/app_locales.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -25,6 +27,7 @@ class DailyReminderScheduler {
 
   final ConfigRepository _configRepository;
   final NotificationService _notificationService;
+  final _log = Logger('DailyReminderScheduler');
 
   Future<void> _last = Future.value();
 
@@ -39,14 +42,30 @@ class DailyReminderScheduler {
     List<Locale>? deviceLocales,
   }) => _serialized(() => _reschedule(locale, deviceLocales));
 
+  /// [reschedule] for callers that must not fail on it — start-up and
+  /// language changes. A failure is logged, and the next refresh retries.
+  Future<void> refresh({
+    required Locale? locale,
+    List<Locale>? deviceLocales,
+  }) async {
+    try {
+      await reschedule(locale: locale, deviceLocales: deviceLocales);
+    } catch (error, stackTrace) {
+      _log.warning('Could not refresh the daily reminder', error, stackTrace);
+    }
+  }
+
   /// Turns the reminder on or off and saves that choice; [locale] is the
-  /// language the app currently shows.
+  /// language the app currently shows. "On" is saved only once the OS holds
+  /// the reminder, so a failed schedule throws and leaves the switch off.
   Future<void> setEnabled(bool enabled, {required Locale locale}) =>
       _serialized(() async {
-        await _configRepository.setNotificationsEnabled(enabled);
         if (enabled) {
-          await _reschedule(locale, null);
+          final config = await _configRepository.getConfig();
+          await _schedule(config, locale, null);
+          await _configRepository.setNotificationsEnabled(true);
         } else {
+          await _configRepository.setNotificationsEnabled(false);
           await _notificationService.cancelDailyReminder();
         }
       });
@@ -83,7 +102,14 @@ class DailyReminderScheduler {
       await _notificationService.cancelDailyReminder();
       return;
     }
+    await _schedule(config, locale, deviceLocales);
+  }
 
+  Future<void> _schedule(
+    ConfigEntity config,
+    Locale? locale,
+    List<Locale>? deviceLocales,
+  ) async {
     final s = lookupS(
       basicLocaleListResolution(
         locale != null

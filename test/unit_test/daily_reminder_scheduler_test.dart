@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -46,8 +47,16 @@ class _RecordingNotificationService extends NotificationService {
   /// When set, the next [cancelDailyReminder] fails and the alarm stays.
   bool failNextCancel = false;
 
+  /// When set, the next [scheduleDailyReminder] fails before the OS has it.
+  bool failNextSchedule = false;
+
+  /// When set, every [initialize] fails, as a broken plugin would.
+  bool failInitialize = false;
+
   @override
-  Future<void> initialize() async {}
+  Future<void> initialize() async {
+    if (failInitialize) throw StateError('timezone lookup failed');
+  }
 
   @override
   Future<void> cancelDailyReminder() async {
@@ -67,6 +76,10 @@ class _RecordingNotificationService extends NotificationService {
     required String channelName,
     required String channelDescription,
   }) async {
+    if (failNextSchedule) {
+      failNextSchedule = false;
+      throw StateError('exact alarms not permitted');
+    }
     // The real service cancels, then schedules, with a gap between.
     pending = null;
     await Future<void>.delayed(Duration.zero);
@@ -196,6 +209,52 @@ void main() {
 
       expect(notifications.pending, isNull);
     });
+
+    test('a schedule that failed leaves reminders off', () async {
+      final config = _Config(_config(enabled: false));
+      final scheduler = DailyReminderScheduler(config, notifications);
+
+      notifications.failNextSchedule = true;
+      await expectLater(
+        scheduler.setEnabled(true, locale: const Locale('en')),
+        throwsStateError,
+      );
+
+      // No alarm, so the switch must not read on either.
+      expect(notifications.pending, isNull);
+      expect(config.config.notificationsEnabled, isFalse);
+
+      await scheduler.setEnabled(true, locale: const Locale('en'));
+
+      expect(notifications.pending, isNotNull);
+      expect(config.config.notificationsEnabled, isTrue);
+    });
+
+    test(
+      'a refresh that fails is logged, not thrown, and the next one runs',
+      () async {
+        final config = _Config(_config(enabled: false));
+        final scheduler = DailyReminderScheduler(config, notifications);
+        final records = <LogRecord>[];
+        final sub = Logger.root.onRecord.listen(records.add);
+        addTearDown(sub.cancel);
+
+        // Start-up with reminders off still cancels, and a broken plugin
+        // must not keep the app from opening.
+        notifications.failNextCancel = true;
+        await scheduler.refresh(locale: const Locale('en'));
+        notifications.failInitialize = true;
+        config.config = _config(enabled: true);
+        await scheduler.refresh(locale: const Locale('en'));
+
+        expect(records.where((r) => r.level == Level.WARNING), hasLength(2));
+
+        notifications.failInitialize = false;
+        await scheduler.refresh(locale: const Locale('en'));
+
+        expect(notifications.pending, isNotNull);
+      },
+    );
 
     test('back to "System default" ends in the new device language', () async {
       // Android 13+: Settings starts clearing the per-app override without
