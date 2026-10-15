@@ -23,9 +23,16 @@ class IntakeDataSource {
 
   /// Upserts by [IntakeDBO.id]: an intake whose id is already stored
   /// replaces it, so importing a bundle twice leaves one copy (#1357).
+  /// Where a bundle holds an id twice the first row wins — the old edit
+  /// rewrote the first copy in place. A blank id is no identity: that row
+  /// is always added.
   Future<void> upsertAllIntakes(List<IntakeDBO> intakeDBOList) async {
     log.fine('Upserting intake items into db');
-    await _intakeBox.upsertAllBy(intakeDBOList, (dbo) => dbo.id);
+    await _intakeBox.upsertAllBy(
+      intakeDBOList,
+      (dbo) => dbo.id.isEmpty ? null : dbo.id,
+      winner: UpsertWinner.first,
+    );
   }
 
   Future<void> deleteIntakeFromId(String intakeId) async {
@@ -37,6 +44,8 @@ class IntakeDataSource {
     }
   }
 
+  /// Applies [fields] to every stored copy of [intakeId], so an install
+  /// the old import doubled (#1357) ends up with copies that agree.
   Future<IntakeDBO?> updateIntake(
     String intakeId,
     Map<String, dynamic> fields,
@@ -44,16 +53,20 @@ class IntakeDataSource {
     log.fine(
       'Updating intake $intakeId with fields ${fields.toString()} in db',
     );
-    var intakeObject = _intakeBox.values.indexed
-        .where((indexedDbo) => indexedDbo.$2.id == intakeId)
-        .firstOrNull;
-    if (intakeObject == null) {
+    final copies = _intakeBox
+        .toMap()
+        .entries
+        .where((entry) => entry.value.id == intakeId)
+        .toList();
+    if (copies.isEmpty) {
       log.fine('Cannot update intake $intakeId as it is non existent');
       return null;
     }
-    intakeObject.$2.amount = fields['amount'] ?? intakeObject.$2.amount;
-    await _intakeBox.putAt(intakeObject.$1, intakeObject.$2);
-    return _intakeBox.getAt(intakeObject.$1);
+    for (final copy in copies) {
+      copy.value.amount = fields['amount'] ?? copy.value.amount;
+    }
+    await _intakeBox.putAll({for (final copy in copies) copy.key: copy.value});
+    return _intakeBox.get(copies.first.key);
   }
 
   Future<IntakeDBO?> getIntakeById(String intakeId) async {

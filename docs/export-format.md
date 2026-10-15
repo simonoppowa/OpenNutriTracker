@@ -57,9 +57,14 @@ Import merges into what is on the device: an intake, activity or recipe whose
 `id` is already stored is replaced by the imported row, as is a Custom activity
 template with the same name, and tracked days and weight-log points replace by
 day. Entries the zip does not carry are kept, and importing the same zip twice
-changes nothing. Where the zip holds one `id` more than once, the first row
-wins. A zip missing a required file, or with any file that does not parse, is
-rejected before anything on the device changes.
+changes nothing. Where the zip holds one `id` (or template name) more than
+once — an install hit by #1357 exports two copies — the copy edited before
+the fix wins: the first row for intakes, the last row for activities and
+templates, matching where those older builds wrote an edit. An edit on a
+current build rewrites every copy, so the copies agree. A row with a blank
+`id` has no identity and is always added, never merged. A zip missing a
+required file, or with any file that does not parse, is rejected before
+anything on the device changes.
 The CSV files also exist so a spreadsheet, a Syncthing-style backup, or external
 tooling can read the same data without going through Hive.
 

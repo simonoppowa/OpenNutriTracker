@@ -312,37 +312,194 @@ void main() {
     expect(byName['Climbing gym']!.typicalKcal, 480);
   });
 
-  test('re-importing an export from a doubled install keeps the copy the '
-      'user edited, not the stale one after it', () async {
-    // An install hit by #1357 holds two copies of each id. Editing one
-    // updates the first copy; the export then writes the box in order, so
-    // the stale copy comes last in the bundle.
-    await intakeBox.addAll([
-      IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
-      IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
-    ]);
-    await activityBox.addAll([
-      UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
-      UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
-    ]);
-    await IntakeDataSource(provider).updateIntake('meal-a', {'amount': 80.0});
-    await UserActivityDataSource(provider).updateUserActivity('run-a', 45, 400);
+  group('re-importing an export from a doubled install keeps the copy the '
+      'user edited before this fix', () {
+    // An install hit by #1357 holds two copies of each id, and the export
+    // writes the box in order. Where the edit landed depended on the type:
+    // the old intake edit rewrote the first copy in place, while the old
+    // activity edit and template save deleted the first copy and appended
+    // the edited one. These fixtures write the box exactly as those old
+    // paths left it.
 
-    final exportedIntakes = intakeBox.values.map((i) => i.toJson()).toList();
-    final exportedActivities = activityBox.values
-        .map((a) => a.toJson())
-        .toList();
-    expect(exportedIntakes.map((i) => i['amount']), [80, 50]);
-    expect(exportedActivities.map((a) => a['duration']), [45, 10]);
-    writeBundle(intakes: exportedIntakes, activities: exportedActivities);
+    test('intakes: the edited copy is first, and the first row wins', () async {
+      await intakeBox.addAll([
+        IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+        IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+      ]);
+      // Old `updateIntake`: `putAt` the first match.
+      await intakeBox.putAt(
+        0,
+        IntakeDBO.fromJson(_intakeJson('meal-a', amount: 80)),
+      );
+      final exported = intakeBox.values.map((i) => i.toJson()).toList();
+      expect(exported.map((i) => i['amount']), [80, 50]);
+      writeBundle(intakes: exported);
 
-    await importJson();
+      await importJson();
 
-    expect(intakeIds(), ['meal-a']);
-    expect(intakeBox.values.single.amount, 80);
-    expect(activityIds(), ['run-a']);
-    expect(activityBox.values.single.duration, 45);
-    expect(activityBox.values.single.burnedKcal, 400);
+      expect(intakeIds(), ['meal-a']);
+      expect(intakeBox.values.single.amount, 80);
+    });
+
+    test('activities: the edited copy was appended, and the last row '
+        'wins', () async {
+      await activityBox.addAll([
+        UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
+        UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
+      ]);
+      // Old `updateUserActivity`: delete the first match, append the edit.
+      await activityBox.getAt(0)!.delete();
+      await activityBox.add(
+        UserActivityDBO.fromJson(_activityJson('run-a', duration: 45)),
+      );
+      final exported = activityBox.values.map((a) => a.toJson()).toList();
+      expect(exported.map((a) => a['duration']), [10, 45]);
+      writeBundle(activities: exported);
+
+      await importJson();
+
+      expect(activityIds(), ['run-a']);
+      expect(activityBox.values.single.duration, 45);
+    });
+
+    test('Custom activity templates: the re-saved copy was appended, and '
+        'the last row wins', () async {
+      await templateBox.addAll([
+        CustomActivityTemplateDBO('Bike commute', 200),
+        CustomActivityTemplateDBO('Bike commute', 200),
+      ]);
+      // Old `addTemplate`: delete the first match, append the new one.
+      await templateBox.getAt(0)!.delete();
+      await templateBox.add(CustomActivityTemplateDBO('Bike commute', 240));
+      final exported = templateBox.values.map((t) => t.toJson()).toList();
+      expect(exported.map((t) => t['typicalKcal']), [200, 240]);
+      writeBundle(templates: exported);
+
+      await importJson();
+
+      expect(templateBox.length, 1);
+      expect(templateBox.values.single.typicalKcal, 240);
+    });
+  });
+
+  group('an edit on this build rewrites every stored copy of the entry', () {
+    test('intake', () async {
+      await intakeBox.addAll([
+        IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+        IntakeDBO.fromJson(_intakeJson('meal-b')),
+        IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+      ]);
+
+      final updated = await IntakeDataSource(
+        provider,
+      ).updateIntake('meal-a', {'amount': 80.0});
+
+      expect(updated?.amount, 80);
+      expect(
+        intakeBox.values.where((i) => i.id == 'meal-a').map((i) => i.amount),
+        [80, 80],
+      );
+      expect(intakeBox.values.singleWhere((i) => i.id == 'meal-b').amount, 100);
+    });
+
+    test('activity, based on the last copy the old edit left', () async {
+      await activityBox.addAll([
+        UserActivityDBO.fromJson(_activityJson('run-a', duration: 10)),
+        UserActivityDBO(
+          'run-a',
+          45,
+          400,
+          DateTime(2026, 10, 1, 18),
+          UserActivityDBO.fromJson(_activityJson('run-a')).physicalActivityDBO,
+          userKcal: 400,
+        ),
+      ]);
+
+      await UserActivityDataSource(
+        provider,
+      ).updateUserActivity('run-a', 60, 500);
+
+      expect(activityBox.length, 2);
+      for (final copy in activityBox.values) {
+        expect(copy.duration, 60);
+        expect(copy.burnedKcal, 500);
+        expect(copy.userKcal, 400, reason: 'carried from the edited copy');
+      }
+    });
+
+    test('Custom activity template', () async {
+      await templateBox.addAll([
+        CustomActivityTemplateDBO('Bike commute', 200),
+        CustomActivityTemplateDBO('Climbing gym', 480),
+        CustomActivityTemplateDBO('Bike commute', 240),
+      ]);
+
+      await CustomActivityTemplateDataSource(
+        provider,
+      ).addTemplate(CustomActivityTemplateDBO('Bike commute', 260));
+
+      expect(
+        templateBox.values
+            .where((t) => t.name == 'Bike commute')
+            .map((t) => t.typicalKcal),
+        [260, 260],
+      );
+      expect(templateBox.length, 3);
+    });
+  });
+
+  group('rows without an id are never merged', () {
+    test('JSON: blank-id rows are kept apart, from each other and from '
+        'stored rows', () async {
+      await intakeBox.add(IntakeDBO.fromJson(_intakeJson('', amount: 10)));
+      await activityBox.add(
+        UserActivityDBO.fromJson(_activityJson('', duration: 5)),
+      );
+      writeBundle(
+        intakes: [_intakeJson('', amount: 20), _intakeJson('', amount: 30)],
+        activities: [
+          _activityJson('', duration: 15),
+          _activityJson('', duration: 25),
+        ],
+      );
+
+      await importJson();
+
+      expect(intakeBox.values.map((i) => i.amount).toList()..sort(), [
+        10,
+        20,
+        30,
+      ]);
+      expect(activityBox.values.map((a) => a.duration).toList()..sort(), [
+        5,
+        15,
+        25,
+      ]);
+    });
+
+    test('CSV: rows with a missing or blank id all import', () async {
+      final intakeCsv = CsvDataExporter.intakesToCsv([
+        IntakeDBO.fromJson(_intakeJson('', amount: 20)),
+        IntakeDBO.fromJson(_intakeJson('', amount: 30)),
+      ]);
+      final activityCsv = CsvDataExporter.userActivitiesToCsv([
+        UserActivityDBO.fromJson(_activityJson('', duration: 15)),
+        UserActivityDBO.fromJson(_activityJson('', duration: 25)),
+      ]);
+      writeZip({
+        'user_activity.csv': activityCsv,
+        'user_intake.csv': intakeCsv,
+        'user_tracked_day.csv': '',
+      });
+
+      expect(await usecase.importDataCsv(), isTrue);
+
+      expect(intakeBox.values.map((i) => i.amount).toList()..sort(), [20, 30]);
+      expect(activityBox.values.map((a) => a.duration).toList()..sort(), [
+        15,
+        25,
+      ]);
+    });
   });
 
   group('a rejected archive leaves the device untouched', () {
