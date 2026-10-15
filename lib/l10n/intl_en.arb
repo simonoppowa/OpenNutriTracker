@@ -971,6 +971,7 @@
   "settingsFibreGoalLabel": "Fibre goal",
   "settingsImperialLabel": "Imperial (lbs, ft, oz)",
   "settingsKcalAdjustmentLabel": "Daily kcal adjustment",
+  "settingsKjAdjustmentLabel": "Daily kJ adjustment",
   "settingsKcalGoalInfoLabel": "How your goal is calculated",
   "settingsIronGoalDescription": "Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise).",
   "settingsIronGoalLabel": "Iron goal",

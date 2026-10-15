@@ -133,7 +133,9 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
         children: [
           Expanded(
             child: Text(
-              s.settingsKcalAdjustmentLabel,
+              context.watch<EnergyUnitProvider>().usesKilojoules
+                  ? s.settingsKjAdjustmentLabel
+                  : s.settingsKcalAdjustmentLabel,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

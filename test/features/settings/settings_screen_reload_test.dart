@@ -19,6 +19,8 @@ import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+import '../../helpers/test_l10n.dart';
+
 /// A settings bloc the test drives by hand: it records what the screen asks
 /// for and emits whatever state the test pushes.
 class _DrivenSettingsBloc extends Fake implements SettingsBloc {
@@ -197,5 +199,22 @@ void main() {
       settingsBloc.events.whereType<LoadSettingsEvent>(),
       hasLength(loadsOnEntry + 1),
     );
+  });
+  testWidgets('in kJ mode the adjustment row names kJ (#1368)', (tester) async {
+    settingsBloc.push(
+      const SettingsLoadedState(
+        '1.0.0',
+        false,
+        AppThemeEntity.system,
+        false,
+        usesKilojoules: true,
+      ),
+    );
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nEn.settingsKjAdjustmentLabel), findsOneWidget);
+    expect(find.text(l10nEn.settingsKcalAdjustmentLabel), findsNothing);
   });
 }
