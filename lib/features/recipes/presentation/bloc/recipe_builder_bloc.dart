@@ -35,6 +35,7 @@ class RecipeBuilderBloc
     on<UpdateIngredientEvent>(_onUpdateIngredient);
     on<RemoveIngredientEvent>(_onRemoveIngredient);
     on<UpdateTotalWeightEvent>(_onUpdateTotalWeight);
+    on<ResetTotalWeightEvent>(_onResetTotalWeight);
     on<SaveRecipeEvent>(_onSave);
   }
 
@@ -179,6 +180,14 @@ class RecipeBuilderBloc
         totalWeightOverridden: true,
       ),
     );
+    _recompute(emit);
+  }
+
+  void _onResetTotalWeight(
+    ResetTotalWeightEvent event,
+    Emitter<RecipeBuilderState> emit,
+  ) {
+    emit(state.copyWith(totalWeightOverridden: false));
     _recompute(emit);
   }
 

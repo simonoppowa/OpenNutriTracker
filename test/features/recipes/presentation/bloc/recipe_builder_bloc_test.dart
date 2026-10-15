@@ -243,6 +243,39 @@ void main() {
         expect(bloc.state.totalWeightOverridden, isFalse);
         expect(bloc.state.totalWeightG, 900);
       });
+
+      test('Use ingredient total goes back to the sum, and it follows edits',
+          () async {
+        bloc.add(InitializeBuilderEvent(
+          existing: savedRecipe(totalWeightG: 720),
+        ));
+        bloc.add(const ResetTotalWeightEvent());
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.totalWeightOverridden, isFalse);
+        expect(bloc.state.totalWeightG, 800);
+        // 800 g at 90 kcal/100 g, spread over its own 800 g again.
+        expect(bloc.state.aggregatedNutrimentsPer100.energyKcal100, 90);
+
+        bloc.add(AddIngredientEvent(
+          meal: _meal('noodles', kcal: 350),
+          amount: 100,
+          unit: 'g',
+        ));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.totalWeightG, 900);
+      });
+
+      test('saving after the reset persists the ingredient sum', () async {
+        bloc.add(InitializeBuilderEvent(
+          existing: savedRecipe(totalWeightG: 720),
+        ));
+        bloc.add(const ResetTotalWeightEvent());
+        bloc.add(const SaveRecipeEvent());
+        await Future<void>.delayed(Duration.zero);
+
+        expect(repo.saved.single.totalWeightG, 800);
+      });
     });
   });
 }
