@@ -27,6 +27,7 @@ class OffCountry {
     'PL': 'en:poland',
     'CZ': 'en:czech-republic',
     'SK': 'en:slovakia',
+    'HU': 'en:hungary',
     'TR': 'en:turkey',
     'UA': 'en:ukraine',
     'SE': 'en:sweden',

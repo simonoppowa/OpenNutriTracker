@@ -16,7 +16,9 @@ enum SupportedLanguage {
   it,
   sk,
   tr,
-  uk;
+  uk,
+  hu,
+  es;
 
   factory SupportedLanguage.fromCode(String localeCode) {
     final languageCode = localeCode.split('_').first;
@@ -39,6 +41,10 @@ enum SupportedLanguage {
         return SupportedLanguage.tr;
       case 'uk':
         return SupportedLanguage.uk;
+      case 'hu':
+        return SupportedLanguage.hu;
+      case 'es':
+        return SupportedLanguage.es;
       default:
         return SupportedLanguage.en;
     }

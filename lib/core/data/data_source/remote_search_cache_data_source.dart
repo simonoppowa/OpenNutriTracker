@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/utils/app_locale.dart';
+import 'package:opennutritracker/core/utils/supported_language.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 /// Local cache of remote meal lookups (Open Food Facts AND Supabase FDC).
 /// Every successful network search or barcode lookup writes its result
@@ -30,11 +33,70 @@ class RemoteSearchCacheDataSource {
 
   RemoteSearchCacheDataSource(this._cacheBox, this._timestampsBox);
 
+  /// Key in the timestamps box under which the language of the cached
+  /// names is recorded. A product arrives with one already-localized name
+  /// and is stored that way, so the whole cache is in one language; when
+  /// the app's language changes the entries cannot be re-localized and are
+  /// dropped instead. Checking here, on every read and write, covers every
+  /// way the language can change — the in-app picker, Android's per-app
+  /// picker, a switch while the app was closed — without the callers
+  /// knowing. The key is neither a barcode nor a product name, so it never
+  /// collides; [pruneStale] walks the cache box, so it never sees it.
+  static const _languageStampKey = '\u0000language';
+
+  /// The sidecar box is `Box<int>`, so the language code is packed as up to
+  /// three ASCII letters, big-endian. A stamp that does not decode to the
+  /// current language only ever costs a cache clear.
+  static int _encodeLanguage(String code) =>
+      code.codeUnits.take(3).fold(0, (packed, unit) => packed * 256 + unit);
+
+  int get _currentLanguage =>
+      _encodeLanguage(SupportedLanguage.fromCode(AppLocale.localeName).name);
+
+  /// Whether the cached names are in the app's current language. A cache
+  /// written before the stamp existed counts as foreign: its names may be
+  /// in any language, and a one-time loss of the "recently used" order is
+  /// cheaper than serving the wrong one for up to the prune age.
+  bool get _inCurrentLanguage =>
+      _cacheBox.isEmpty ||
+      _timestampsBox.get(_languageStampKey) == _currentLanguage;
+
+  /// Drops a cache written in another language and stamps the current one.
+  Future<void> _ensureLanguage() async {
+    if (_languageReset != null) await _languageReset;
+    final current = _currentLanguage;
+    if (_timestampsBox.get(_languageStampKey) == current) return;
+    if (_cacheBox.isNotEmpty) {
+      await _cacheBox.clear();
+      await _timestampsBox.clear();
+    }
+    await _timestampsBox.put(_languageStampKey, current);
+  }
+
+  /// The reset a synchronous reader kicked off, so a second reader does not
+  /// start another and a test can wait for it.
+  Future<void>? _languageReset;
+
+  /// For the synchronous readers: a foreign-language cache is reported as
+  /// empty and cleared in the background, so a stale name is never served.
+  bool _readable() {
+    if (_inCurrentLanguage) return true;
+    _languageReset ??= _ensureLanguage().whenComplete(
+      () => _languageReset = null,
+    );
+    return false;
+  }
+
+  /// Completes once any background language reset has finished.
+  @visibleForTesting
+  Future<void> settle() => _languageReset ?? Future<void>.value();
+
   /// Persist [meal] in the cache and stamp its "last touched" timestamp
   /// to the current time. If a cached entry with the same code (or, when
   /// code is null, the same name) already exists, it is overwritten so
   /// the freshest remote result wins.
   Future<void> cache(MealDBO meal) async {
+    await _ensureLanguage();
     final index = _buildDedupIndex();
     final existingKey = _lookupExistingKey(meal, index);
     if (existingKey != null) {
@@ -54,6 +116,7 @@ class RemoteSearchCacheDataSource {
   /// the wrong choice for bulk caching a search result page; use
   /// [cacheFromSearch] for that.
   Future<void> cacheAll(Iterable<MealDBO> meals) async {
+    await _ensureLanguage();
     final index = _buildDedupIndex();
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final meal in meals) {
@@ -79,6 +142,7 @@ class RemoteSearchCacheDataSource {
   /// "user-selected this recently" signal isn't wiped out by an
   /// unrelated re-search of the same query.
   Future<void> cacheFromSearch(Iterable<MealDBO> meals) async {
+    await _ensureLanguage();
     final index = _buildDedupIndex();
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final meal in meals) {
@@ -150,12 +214,13 @@ class RemoteSearchCacheDataSource {
     }
   }
 
-  List<MealDBO> getAll() => _cacheBox.values.toList();
+  List<MealDBO> getAll() => _readable() ? _cacheBox.values.toList() : [];
 
   /// Returns cached entries sorted with the most recently touched first.
   /// Entries with no timestamp record sort last. Used by search to put
   /// items the user just selected at the top of the result list.
   List<MealDBO> getAllByMostRecentlyTouched() {
+    if (!_readable()) return [];
     final entries = _cacheBox.values.toList();
     entries.sort((a, b) {
       final aTs = _timestampFor(a) ?? 0;
@@ -174,6 +239,7 @@ class RemoteSearchCacheDataSource {
   /// Look up a single cached meal by barcode. Returns null when none
   /// matches — the caller should then fall back to the remote API.
   MealDBO? getByBarcode(String barcode) {
+    if (!_readable()) return null;
     for (final meal in _cacheBox.values) {
       if (meal.code == barcode) return meal;
     }
@@ -185,6 +251,7 @@ class RemoteSearchCacheDataSource {
   /// the same code is ignored so the caller fetches (and re-caches) the full
   /// product instead of serving up macros-only data on a scan or hydration.
   MealDBO? getDetailedByBarcode(String barcode) {
+    if (!_readable()) return null;
     for (final meal in _cacheBox.values) {
       if (meal.code == barcode && (meal.detailed ?? false)) return meal;
     }
@@ -223,8 +290,7 @@ class RemoteSearchCacheDataSource {
   ///
   /// Returns the number of entries removed. Call once at app startup.
   Future<int> pruneStale(Duration maxAge) async {
-    final cutoff =
-        DateTime.now().subtract(maxAge).millisecondsSinceEpoch;
+    final cutoff = DateTime.now().subtract(maxAge).millisecondsSinceEpoch;
     final keysToDelete = <dynamic>[];
     final timestampKeysToDelete = <String>[];
 

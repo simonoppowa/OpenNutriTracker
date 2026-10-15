@@ -26,6 +26,9 @@ class _FakeProductsRepository implements ProductsRepository {
   final Map<String, List<MealEntity>> fdc = {};
   bool remoteDown = false;
 
+  /// `forResolution` of every backend search, in order.
+  final askedForResolution = <bool>[];
+
   @override
   Future<List<MealEntity>> getOFFProductsByString(String searchString) async {
     if (remoteDown) throw Exception('offline');
@@ -33,7 +36,11 @@ class _FakeProductsRepository implements ProductsRepository {
   }
 
   @override
-  Future<List<MealEntity>> getSupabaseFoodsByString(String searchString) async {
+  Future<List<MealEntity>> getSupabaseFoodsByString(
+    String searchString, {
+    bool forResolution = false,
+  }) async {
+    askedForResolution.add(forResolution);
     if (remoteDown) throw Exception('offline');
     return fdc[searchString] ?? const [];
   }
@@ -138,6 +145,19 @@ void main() {
   Future<ResolvedMealItem> resolveOne(String query) async =>
       (await resolver.resolve([item(query)])).single;
 
+  test('the resolver asks the backend for its own page', () async {
+    // The data source cuts the backend's hundred rows to twenty before
+    // any portion is fetched, and for the page this use case auto-selects
+    // from it reads each row's `has_portion` column (#1190); the Food
+    // tab's page is the same search cut without it (#1164). This is the
+    // one caller that must say so, through the real SearchProductsUseCase.
+    repository.fdc['egg'] = BackendSiblingFixtures.egg;
+
+    await resolveOne('egg');
+
+    expect(repository.askedForResolution, [true]);
+  });
+
   group('a record the fresh page returned is scored as the fresh page', () {
     test('egg resolves the same on the first search and the next', () async {
       repository.fdc['egg'] = BackendSiblingFixtures.egg;
@@ -220,7 +240,11 @@ void main() {
       // Backend#10 "Bread, rye" leads the hundred; before it rye was rank
       // 157, not in the hundred, and the app landed on "Bread, pita".
       repository.fdc['bread'] = BackendPoolFixtures.freshAll(
-        rankAndTruncateFoodsByName(BackendPoolFixtures.bread, 'bread'),
+        rankAndTruncateFoodsByName(
+          BackendPoolFixtures.bread,
+          'bread',
+          forResolution: true,
+        ),
         BackendPoolFixtures.breadPortions,
       );
 
@@ -242,7 +266,11 @@ void main() {
       // logged "Stewed, seasoned, ground beef with potatoes, Mexican
       // style" at 0.5.
       repository.fdc['potato'] = BackendPoolFixtures.freshAll(
-        rankAndTruncateFoodsByName(BackendPoolFixtures.potato, 'potato'),
+        rankAndTruncateFoodsByName(
+          BackendPoolFixtures.potato,
+          'potato',
+          forResolution: true,
+        ),
         BackendPoolFixtures.potatoPortions,
       );
 

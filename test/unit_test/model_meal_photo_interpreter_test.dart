@@ -8,6 +8,7 @@ import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api
 import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
 /// Captures the outgoing request and replays a canned reply. Nothing in this
 /// file touches the network.
@@ -293,6 +294,131 @@ void main() {
 
       expect(result.items.single.query, 'salad');
       expect(result.items.single.quantity, isNull);
+    });
+  });
+
+  group('a photo may size a counted thing, never name a container (#1156)', () {
+    Future<ParsedMealItem> readOne(Map<String, dynamic> item) async {
+      final client = FakeClient(body: toolReply([item]));
+      return (await interpreterWith(client).interpret(_photo)).items.single;
+    }
+
+    test('a size on a whole count is kept', () async {
+      // The one honest thing a photograph can say about a portion: an
+      // attribute of a thing it counted. The grams still come from the
+      // food's own "1 large" row downstream, never from the model.
+      final item = await readOne({
+        'query': 'egg',
+        'quantity': 2,
+        'portion': 'large',
+      });
+
+      expect(item.quantity, 2);
+      expect(item.portion, 'large');
+    });
+
+    test('a container word is dropped and the count is kept', () async {
+      // On every uncountable the app can see, the default row already *is*
+      // the cup, so "cup" could only add a count of cups — 2 cups of rice
+      // is 316 g, which is the measurement a photo may not state. The
+      // count itself is still a count, so it stays.
+      final item = await readOne({
+        'query': 'rice',
+        'quantity': 2,
+        'portion': 'cup',
+      });
+
+      expect(item.quantity, 2);
+      expect(item.portion, isNull);
+    });
+
+    test('a fraction takes the size down with the number', () async {
+      // The size is the size of a counted thing. Once the number goes for
+      // not being a count, there is nothing for "large" to describe.
+      final item = await readOne({
+        'query': 'banana',
+        'quantity': 1.5,
+        'portion': 'large',
+      });
+
+      expect(item.quantity, isNull);
+      expect(item.unit, isNull);
+      expect(item.portion, isNull);
+    });
+
+    test('a unit takes the size down with the number too', () async {
+      final item = await readOne({
+        'query': 'rice',
+        'quantity': 200,
+        'unit': 'g',
+        'portion': 'large',
+      });
+
+      expect(item.quantity, isNull);
+      expect(item.unit, isNull);
+      expect(item.portion, isNull);
+    });
+
+    test('a size with no count is dropped', () async {
+      // A model that sized what it could not count has slipped. The matcher
+      // only runs under a stated quantity anyway; this makes the two gates
+      // one rule rather than a coincidence.
+      final item = await readOne({'query': 'apple', 'portion': 'large'});
+
+      expect(item.quantity, isNull);
+      expect(item.portion, isNull);
+    });
+
+    test('case and whitespace are normalised, not refused', () async {
+      // "LARGE " is the word; a guard that dropped it over its casing would
+      // be holding the model to a stricter contract than the prompt states.
+      final item = await readOne({
+        'query': 'egg',
+        'quantity': 2,
+        'portion': 'LARGE ',
+      });
+
+      expect(item.portion, 'large');
+    });
+
+    test('"extra large" is not one of the three', () async {
+      // Exactly the three words, not anything containing one: the food's
+      // rows say "1 large", and "extra large" would land on nothing — or,
+      // worse, on the wrong rung if the matcher ever loosened.
+      final item = await readOne({
+        'query': 'egg',
+        'quantity': 2,
+        'portion': 'extra large',
+      });
+
+      expect(item.quantity, 2);
+      expect(item.portion, isNull);
+    });
+
+    test('"mini" is not one of the three either', () async {
+      final item = await readOne({
+        'query': 'muffin',
+        'quantity': 3,
+        'portion': 'mini',
+      });
+
+      expect(item.quantity, 3);
+      expect(item.portion, isNull);
+    });
+
+    test('one dropped word does not touch the sizes beside it', () async {
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'egg', 'quantity': 2, 'portion': 'large'},
+          {'query': 'rice', 'quantity': 1, 'portion': 'bowl'},
+          {'query': 'apple', 'quantity': 1, 'portion': 'small'},
+        ]),
+      );
+
+      final result = await interpreterWith(client).interpret(_photo);
+
+      expect(result.items.map((i) => i.portion), ['large', null, 'small']);
+      expect(result.items.map((i) => i.quantity), [2, 1, 1]);
     });
   });
 

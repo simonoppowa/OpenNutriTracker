@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
+import 'package:opennutritracker/core/utils/supported_language.dart';
 
 /// Pins what a request to Open Food Facts carries about the user's locale.
 ///
@@ -56,6 +57,44 @@ void main() {
       expect(url.queryParameters.containsKey('langs'), isFalse);
       expect(url.queryParameters.containsKey('lc'), isFalse);
       expect(url.queryParameters.containsKey('cc'), isFalse);
+    });
+  });
+
+  requestedFieldsCoverEveryLocaleTheDtoReads();
+}
+
+/// OFF only returns the fields a request names. Every localized name the DTO
+/// can read has to be asked for, or that locale silently gets the product's
+/// primary-language name — which is what happened to cs/it/sk/tr/uk before
+/// Hungarian was wired in. The expected set is derived from
+/// [SupportedLanguage] so a language added to the enum without a request
+/// field fails here rather than in production.
+void requestedFieldsCoverEveryLocaleTheDtoReads() {
+  group('what a request asks OFF to return', () {
+    // pl and zh read the unsuffixed product_name (OFF rarely carries a
+    // suffixed field for them); every other language reads its own.
+    const readsUnsuffixed = {SupportedLanguage.pl, SupportedLanguage.zh};
+    final localizedNames = [
+      for (final lang in SupportedLanguage.values)
+        if (!readsUnsuffixed.contains(lang)) 'product_name_${lang.name}',
+      'product_name_fr', // not a UI language, but a fallback in getLocaleName
+    ];
+
+    test('the word search names every localized product name', () {
+      final fields =
+          OFFConst.getOffWordSearchUrl('apple').queryParameters['fields']!;
+      for (final name in localizedNames) {
+        expect(fields.split(','), contains(name), reason: name);
+      }
+    });
+
+    test('the barcode lookup names every localized product name', () {
+      final fields = OFFConst.getOffBarcodeSearchUri(
+        '737628064502',
+      ).queryParameters['fields']!;
+      for (final name in localizedNames) {
+        expect(fields.split(','), contains(name), reason: name);
+      }
     });
   });
 }

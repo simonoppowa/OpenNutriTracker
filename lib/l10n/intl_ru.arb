@@ -1,200 +1,4 @@
 {
-  "@clearOffCacheSubtitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "@csvImportPartialLabel": {
-    "placeholders": {
-      "imported": {
-        "type": "int"
-      },
-      "skipped": {
-        "type": "int"
-      }
-    }
-  },
-  "@csvImportSuccessLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@deleteSelectedRecipesConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@driPanelReferenceLabel": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@diaryMealKcalConsumedOfTarget": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "target": {
-        "type": "String"
-      }
-    }
-  },
-  "@importActivityConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importMealConfirmContent": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@importMealConfirmTitle": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importOffFetchFailedLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@importRecipeConfirmContent": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@mealDetailCurrentSelectionLabel": {
-    "placeholders": {
-      "kcal": {
-        "type": "String"
-      }
-    }
-  },
-  "@mealDetailDayTotalLabel": {
-    "placeholders": {
-      "consumed": {
-        "type": "String"
-      },
-      "goal": {
-        "type": "String"
-      }
-    }
-  },
-  "@mealNutrientsPerQtyLabel": {
-    "placeholders": {
-      "qty": {
-        "type": "String"
-      },
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
-  "@profileTargetWeightToGo": {
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  },
-  "@quickAddAddedSnack": {
-    "placeholders": {
-      "mealType": {
-        "type": "String"
-      }
-    }
-  },
-  "@recipeIngredientCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@selectionCountLabel": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsDayStartHourLabel": {
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsDayStartTimeLabel": {
-    "placeholders": {
-      "hour": {
-        "type": "int"
-      },
-      "minute": {
-        "type": "String"
-      }
-    }
-  },
-  "@logWaterAmountLabel": {
-    "placeholders": {
-      "amount": {
-        "type": "int"
-      }
-    }
-  },
-  "@settingsNotificationsTimeLabel": {
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "@waterChipLabel": {
-    "placeholders": {
-      "current": {
-        "type": "int"
-      },
-      "goal": {
-        "type": "int"
-      }
-    }
-  },
-  "@weeklyWeightGoalKgPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
-  "@weeklyWeightGoalLbsPerWeek": {
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      }
-    }
-  },
   "activityExample": "напр. бег, велосипед, йога ...",
   "activityLabel": "Активность",
   "addItemLabel": "Добавить элемент:",
@@ -373,6 +177,16 @@
   "clearOffCacheConfirmTitle": "Очистить кэш?",
   "clearOffCacheLabel": "Очистить кэш",
   "clearOffCacheSubtitle": "{count} элемент(ов) · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "cmLabel": "см",
   "codeCopiedLabel": "Код скопирован",
   "copyCodeLabel": "Скопировать код",
@@ -387,7 +201,24 @@
   "csvImportContributeOffPrefix": "Есть штрихкод? Помогите всем — добавьте продукт в Open Food Facts:",
   "csvImportErrorLabel": "Не удалось прочитать CSV-файл. Проверьте формат и попробуйте снова.",
   "csvImportPartialLabel": "Импортировано {imported} приём(ов) пищи; {skipped} строк(и) пропущено из-за некорректных данных.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
   "csvImportSuccessLabel": "Импортировано {count} приём(ов) пищи.",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "customActivityDescription": "Введите сожжённые калории напрямую — для тренировок, которых нет в списке, или показаний фитнес-трекера",
   "customActivityDescriptionKj": "Введите сожжённые килоджоули напрямую — для тренировок, которых нет в списке, или показаний фитнес-трекера",
   "customActivityKcalHint": "напр. 250",
@@ -436,6 +267,13 @@
   },
   "lowKcalWarningViewDisclaimer": "Посмотреть предупреждение",
   "deleteSelectedRecipesConfirmTitle": "Удалить {count} рецепт(ов)?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "deleteTimeDialogContent": "Удалить выбранный элемент?",
   "deleteTimeDialogPluralContent": "Удалить все элементы этого приёма пищи?",
   "deleteTimeDialogPluralTitle": "Удалить элементы?",
@@ -447,12 +285,29 @@
   "diaryFutureDateWarning": "Вы редактируете будущую дату",
   "diaryLabel": "Дневник",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} ккал",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "diaryNutrientPanelDataDisclaimer": "Здесь суммируются только нутриенты, отслеженные в занесённых приёмах пищи. Приём пищи без указанного значения не вносит вклад в этот нутриент — поэтому итоги могут быть занижены.",
   "diaryNutrientPanelTitle": "Нутриенты сегодня",
   "driPanelInfoTitle": "Рекомендуемая норма потребления",
   "driPanelInfoBody": "Эти нормы взяты из справочника рекомендуемых норм потребления IOM для взрослых и зависят от возраста и пола. Это ориентир, а не цель — ваши личные потребности могут отличаться.",
   "driPanelInfoLinkLabel": "Источник: IOM Dietary Reference Intakes",
   "driPanelReferenceLabel": "норма {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diarySortByCarbs": "Углеводы (по убыванию)",
   "diarySortByFat": "Жиры (по убыванию)",
   "diarySortByKcal": "Калории (по убыванию)",
@@ -529,19 +384,54 @@
   "importAction": "Импорт",
   "importActivityConfirmContent": "Эти активности будут добавлены на сегодня.",
   "importActivityConfirmTitle": "Импортировать {count} активностей?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importActivityLabel": "Импортировать тренировку",
   "importActivitySuccessLabel": "Тренировка импортирована",
   "importCustomFoodDataDescription": "Импортируйте свои продукты из CSV-файла или вставив JSON. Скачайте пример, чтобы увидеть ожидаемый формат и обязательные поля.",
   "importCustomFoodDataLabel": "Импорт своих продуктов",
   "importMealConfirmContent": "Эти элементы будут добавлены в {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "importMealConfirmTitle": "Импортировать {count} элемент(ов)?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importMealErrorLabel": "Неверный QR-код",
   "importMealLabel": "Импортировать приём пищи",
   "importMealSuccessLabel": "Приём пищи импортирован",
   "importMealsCsvAction": "Импорт приёмов пищи (csv)",
   "importMealsJsonAction": "Импорт приёмов пищи (json)",
   "importOffFetchFailedLabel": "Не удалось загрузить {count} элемент(ов) из OpenFoodFacts.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeConfirmContent": "Импортировать этот рецепт с {count} ингредиент(ами)?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importRecipeErrorLabel": "Не удалось распознать код рецепта",
   "importRecipeLabel": "Импортировать рецепт",
   "importRecipeSuccessLabel": "Рецепт импортирован",
@@ -595,7 +485,24 @@
   "mealBrandsLabel": "Бренды",
   "mealCarbsLabel": "Углеводы",
   "mealDetailCurrentSelectionLabel": "(+{kcal} ккал текущий выбор)",
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
   "mealDetailDayTotalLabel": "Итого за день: {consumed} / {goal}",
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "mealEnergyLabel": "Энергия",
   "mealFatLabel": "Жиры",
   "mealImageLabel": "Добавить фото",
@@ -607,6 +514,16 @@
   "mealNameLabel": "Название продукта",
   "mealNameValidationError": "Название должно содержать хотя бы одну букву",
   "mealNutrientsPerQtyLabel": "На {qty} {unit}",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "mealNutrientsTotalLabel": "Общее количество",
   "mealPatternFiveSmall": "Пять малых приёмов",
   "mealPatternMediterranean": "Средиземноморский",
@@ -931,11 +848,25 @@
   "profileTargetWeightNotSetLabel": "Не задан",
   "profileTargetWeightReached": "Вы достигли своей цели",
   "profileTargetWeightToGo": "{value} до цели",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "profileWeightHistoryTitle": "История веса",
   "proteinLabel": "белки",
   "proteinLabelShort": "б",
   "quantityLabel": "Количество",
   "quickAddAddedSnack": "Добавлено в {mealType}",
+  "@quickAddAddedSnack": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
   "quickAddBottomSheetTitle": "Быстрое добавление",
   "quickAddCardLabel": "Быстрое добавление",
   "quickAddCarbsHint": "Углеводы (г, необязательно)",
@@ -959,6 +890,13 @@
   "recipeImageTakePhoto": "Сделать фото",
   "recipeIngredientAmountLabel": "Количество",
   "recipeIngredientCountLabel": "{count} ингредиент(ов)",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "recipeIngredientUnitLabel": "Единица",
   "recipeIngredientsLabel": "Ингредиенты",
   "recipeInvalidTotalWeightLabel": "Общий вес должен быть больше нуля",
@@ -1004,6 +942,13 @@
   "selectPalCategoryLabel": "Выберите уровень активности",
   "selectWeightDialogLabel": "Выберите вес",
   "selectionCountLabel": "выбрано: {count}",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "servingLabel": "Порция",
   "servingSizeLabelImperial": "Одна порция (унц./жидк.унц.)",
   "servingSizeLabelMetric": "Одна порция",
@@ -1016,10 +961,27 @@
   "settingsCustomMealsLabel": "Свои продукты",
   "settingsDayStartDescription": "Выберите час, с которого начинается ваш день. Приёмы пищи и активности, занесённые до этого часа, засчитываются в предыдущий день — полезно, если вы работаете по ночам или едите поздно.",
   "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
   "settingsDayStartHoursPickerLabel": "Часы",
   "settingsDayStartLabel": "День начинается в",
   "settingsDayStartMinutesPickerLabel": "Минуты",
   "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
   "settingsDisclaimerLabel": "Предупреждение",
   "settingsDistanceLabel": "Расстояние",
   "settingsEnergyUnitLabel": "Единица энергии",
@@ -1060,6 +1022,13 @@
   "settingsMetricLabel": "Метрическая (кг, см, мл)",
   "settingsNotificationsLabel": "Ежедневное напоминание",
   "settingsNotificationsTimeLabel": "Время напоминания: {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "settingsNutrientGoalsHint": "Личные нормы для каждого нутриента на дневной панели. Дневник использует их вместо стандартных норм, если вы задали свою.",
   "settingsNutrientGoalsLabel": "Нормы нутриентов",
   "settingsNutrientsHelp": "Выберите, какие нутриенты отображаются на дневной панели. Скрытые можно включить обратно в любой момент.",
@@ -1138,8 +1107,22 @@
   "vitaminDLabel": "витамин D",
   "warningLabel": "Предупреждение",
   "weeklyWeightGoalKgPerWeek": "{rate} кг/неделю",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalLabel": "Недельный темп",
   "weeklyWeightGoalLbsPerWeek": "{rate} фунт/неделю",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "weeklyWeightGoalNoneLabel": "Не задан",
   "weightHistoryAddEntry": "Добавить запись",
   "weightHistoryChartEmptyState": "Занесите хотя бы два дня, чтобы увидеть тенденцию.",
@@ -1157,6 +1140,13 @@
     }
   },
   "logWaterAmountLabel": "Добавить {amount} мл",
+  "@logWaterAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "logWaterDialogTitle": "Занести приём воды",
   "logWaterNothingToUndoLabel": "Нечего отменять",
   "logWaterUndoLabel": "Отменить последнее",
@@ -1164,6 +1154,16 @@
   "settingsWaterGoalDescription": "Используется чипом воды на главном экране.",
   "settingsWaterGoalLabel": "Дневная норма воды",
   "waterChipLabel": "{current} / {goal} мл",
+  "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
   "zincLabel": "цинк",
   "profileFastingEntry": "Таймер голодания",
   "fastingTitle": "Таймер голодания",

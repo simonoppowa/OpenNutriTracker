@@ -26,6 +26,10 @@ class _FakeProductsRepository implements ProductsRepository {
   final Set<String> offThrowOn = {};
   final Set<String> fdcThrowOn = {};
 
+  /// What the last FDC search asked for: the resolver's page or the Food
+  /// tab's (#1164, #1190).
+  bool? lastForResolution;
+
   @override
   Future<List<MealEntity>> getOFFProductsByString(String searchString) async {
     if (offThrowOn.contains(searchString)) {
@@ -36,8 +40,10 @@ class _FakeProductsRepository implements ProductsRepository {
 
   @override
   Future<List<MealEntity>> getSupabaseFoodsByString(
-    String searchString,
-  ) async {
+    String searchString, {
+    bool forResolution = false,
+  }) async {
+    lastForResolution = forResolution;
     if (fdcThrowOn.contains(searchString)) {
       throw Exception('FDC HTTP 429');
     }
@@ -664,6 +670,23 @@ void main() {
 
       expect(cachedOffMealDataSource.cached, hasLength(1));
       expect(cachedOffMealDataSource.cached.single.code, 'fdc-1');
+    });
+
+    test('an FDC search is the Food tab\'s unless it says otherwise', () async {
+      // The data source cuts the backend's hundred rows to twenty, and
+      // reads each row's `has_portion` only for the resolver's page (#1190)
+      // — the Food tab's plain search is cut without it (#1164). The Food
+      // tab calls with the default; the resolver says so.
+      await useCase.searchFDCFoodByString('apple');
+      expect(productsRepository.lastForResolution, isFalse);
+
+      await useCase.searchFDCFoodByString('apple', forResolution: true);
+      expect(productsRepository.lastForResolution, isTrue);
+
+      // A skipped remote asks nothing of the repository either way.
+      productsRepository.lastForResolution = null;
+      await useCase.searchFDCFoodByString('a', skipRemote: true);
+      expect(productsRepository.lastForResolution, isNull);
     });
 
     test(

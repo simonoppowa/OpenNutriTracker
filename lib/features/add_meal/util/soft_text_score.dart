@@ -13,8 +13,10 @@
 /// resolver would have picked from the hundred was cut before it was
 /// scored. With one function scoring both, the resolver's pick is inside
 /// the twenty by construction, up to what the cut does not read — the
-/// portions, and the translation row's source; `rankAndTruncateFoodsByName`
-/// says what that leaves open, and where it bites.
+/// portions themselves, for which it reads the row's `has_portion` flag
+/// where the backend sends one and takes the resolver's own penalty off
+/// (#1190), and the translation row's source; `rankAndTruncateFoodsByName`
+/// says what that leaves open, and where it bit without the flag.
 ///
 /// **Why prefixes rather than plural rules.** Stripping a trailing `s`
 /// works in one of the nine supported locales and reintroduces exactly the

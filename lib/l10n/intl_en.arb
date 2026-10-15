@@ -1025,6 +1025,8 @@
   "settingsShowActivityTracking": "Show Activity Tracking",
   "settingsShowMealMacros": "Show Meal Macros",
   "settingsShowMicronutrientsLabel": "Show Micronutrients",
+  "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
+  "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Daily sodium cap in milligrams. Default reference is 2300mg.",
   "settingsSodiumGoalLabel": "Sodium goal",
   "settingsSourceCodeLabel": "Source Code",

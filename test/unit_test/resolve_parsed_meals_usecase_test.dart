@@ -79,6 +79,7 @@ class _FakeSearch implements SearchProductsUseCase {
   Future<SearchProductsResult> searchFDCFoodByString(
     String searchString, {
     bool skipRemote = false,
+    bool forResolution = false,
   }) async {
     if (throwSupabase.contains(searchString)) {
       started.add('sp:$searchString');

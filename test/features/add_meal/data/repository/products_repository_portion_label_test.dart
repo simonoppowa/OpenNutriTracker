@@ -35,8 +35,10 @@ class _FakeSp extends SpFoodDataSource {
   List<int>? askedFor;
 
   @override
-  Future<List<SpFoodDTO>> fetchSearchWordResults(String searchString) async =>
-      foods;
+  Future<List<SpFoodDTO>> fetchSearchWordResults(
+    String searchString, {
+    bool forResolution = false,
+  }) async => foods;
 
   @override
   Future<Map<int, String>> fetchPortionLabels(List<int> foodIds) async {

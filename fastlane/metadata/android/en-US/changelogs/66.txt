@@ -1,0 +1,6 @@
+- Now in Spanish and Hungarian, with food names in the language you read the app in
+- Minerals and vitamins on Open Food Facts foods were saved far too small; they are corrected automatically, so those numbers will change
+- Log a serving with 0.5x, 1x, 2x or 100 g, or default to weight in settings
+- "A slice of bread" now logs a regular slice, not the smallest one listed
+- Your weight chart carries a 7-day average
+- Database foods show their full description

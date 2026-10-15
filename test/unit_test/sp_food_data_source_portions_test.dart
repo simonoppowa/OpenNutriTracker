@@ -101,6 +101,74 @@ void main() {
         expect(portions.containsKey(2), isFalse);
       });
 
+      test('the English label rides beside the coalesced one', () async {
+        // `label_en` is what a model's portion key is matched against
+        // (#1157): a German reader sees "1 Scheibe", the key "slice" lands on
+        // it through the English string the record carries.
+        _serve(
+          _ScriptedClient(
+            status: 200,
+            body: jsonEncode([
+              {
+                'food_id': 1,
+                'label': '1 Scheibe',
+                'label_en': '1 slice',
+                'gram_weight': 28,
+                'localized': true,
+              },
+            ]),
+          ),
+        );
+
+        final portions = await SpFoodDataSource().fetchPortions([1]);
+
+        expect(portions![1]!.single.label, '1 Scheibe');
+        expect(portions[1]!.single.englishLabel, '1 slice');
+        expect(portions[1]!.single.localized, isTrue);
+      });
+
+      test('a backend without the column still answers', () async {
+        // The column is added in parallel; an app built before it must keep
+        // working. Absent, or present and empty, the entity carries null and
+        // the matcher falls back to the label.
+        _serve(
+          _ScriptedClient(
+            status: 200,
+            body: jsonEncode([
+              {
+                'food_id': 1,
+                'label': '1 slice',
+                'gram_weight': 28,
+                'localized': false,
+              },
+              {
+                'food_id': 1,
+                'label': '1 cup',
+                'label_en': '',
+                'gram_weight': 40,
+                'localized': false,
+              },
+              {
+                'food_id': 1,
+                'label': '1 cubic inch',
+                'label_en': null,
+                'gram_weight': 2.8,
+                'localized': false,
+              },
+            ]),
+          ),
+        );
+
+        final portions = await SpFoodDataSource().fetchPortions([1]);
+
+        expect(portions![1]!.map((p) => p.label), [
+          '1 slice',
+          '1 cup',
+          '1 cubic inch',
+        ]);
+        expect(portions[1]!.map((p) => p.englishLabel), [null, null, null]);
+      });
+
       test('nothing to ask about is not a failure', () async {
         // No client registered at all: an empty id list never reaches one,
         // and an empty page has no record to spare or to penalise.

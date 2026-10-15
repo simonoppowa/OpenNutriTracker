@@ -85,10 +85,15 @@ input's segments reliably enough to ask per row — *"100g Toast, 2 Eier"* state
 in that batch is touched. Only the typed path corroborates: a photograph states nothing, and the
 photo path's counts-only rule already drops every unit it gets.
 
-`portion` is a word, never a number — the schema says so in as many words: *"A word only, never a
-weight or a count."* It is a lookup key into the matched food's own portion list ("slice", "cup"),
-so the gram weight still comes from the database row, and a key matching nothing is ignored. It
-earns its place on the photo path, where there is no typed text for a portion word to be found in.
+`portion` is a word, never a number — the schema says so in as many words: *"one English word
+whatever language the user wrote in … Never a weight, a count, or a unit from the unit list."* It
+is a lookup key into the matched food's own portion list ("slice", "cup"), matched against the
+English label the backend sends beside the translated one, so the gram weight still comes from
+the database row. On the typed path a key that matches no row — neither it nor the user's own
+words — raises the row's existing *check the amount* flag when the food has rows to choose from:
+the word was discarded and a default took its place looking settled, and the dropdown holds the
+answer. On the photo path the key is only ever `small`, `medium` or `large` riding on a count, and
+a miss stays quiet — the batch banner is the marker there.
 
 ## A typed meal, end to end
 

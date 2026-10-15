@@ -22,9 +22,19 @@ import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 /// discards anything that came back with a unit, which is the tell that the
 /// model measured instead of counted.
 ///
-/// That rule lives here rather than in either client because it is a
-/// property of reading photographs, not of a provider. A provider added
-/// later inherits it without being asked to.
+/// **A photograph may size a counted thing, never name a container.** The
+/// `portion` key the text path carries — `slice`, `cup`, `handful` — is a
+/// measurement in a word's clothing when it comes from a picture: on every
+/// uncountable food the app can see, the default row already *is* the cup,
+/// so the only thing `cup` could add is a count of cups, which is the
+/// measuring above. A size is different: `large` on `2 eggs` describes the
+/// things that were counted, and the grams still come from the food's own
+/// `1 large` row. So [_sizesOnly] keeps `small`, `medium` and `large` on a
+/// counted item and drops every other word. #1156.
+///
+/// Both rules live here rather than in either client because they are
+/// properties of reading photographs, not of a provider. A provider added
+/// later inherits them without being asked to.
 class ModelMealPhotoInterpreter implements MealPhotoInterpreter {
   final MealItemsApi _api;
 
@@ -47,6 +57,9 @@ Rules:
   "quantity". Do not guess grams or millilitres from a photograph. The app
   asks the user for the amount, and a guess they cannot check is worse than
   no answer.
+- If you counted items and can see their size, you may add "portion":
+  "small", "medium" or "large". Nothing else belongs in "portion" from a
+  photograph — no cups, bowls, slices or handfuls.
 - Only list food you can actually identify. If you cannot tell what a dish
   is, describe it plainly ("meat stew") rather than naming a specific
   recipe you are guessing at.
@@ -67,7 +80,7 @@ Rules:
           : '$_systemPrompt\nThe user\'s app language is "$localeCode".',
     );
 
-    return _countsOnly(result);
+    return _sizesOnly(_countsOnly(result));
   }
 
   /// Drops any amount that is not a whole count of visible things.
@@ -106,4 +119,45 @@ Rules:
   /// Null counts as fine — an item with no amount is the normal case here.
   static bool _isWholeCount(double? quantity) =>
       quantity == null || quantity == quantity.roundToDouble();
+
+  /// The three words a photograph may say about the things it counted.
+  ///
+  /// English and model-facing — the same shape of contract as `unit`, not a
+  /// per-locale vocabulary for user text, which is what #600 ruled out. The
+  /// prompt asks for exactly these; this is what holds the model to it.
+  static const _photoSizes = {'small', 'medium', 'large'};
+
+  /// Keeps `portion` only as a size of one counted thing; drops it otherwise.
+  ///
+  /// Runs after [_countsOnly], so an item that lost its number has already
+  /// lost its word with it — a size is the size of a counted thing, and a
+  /// model that sized what it could not count has slipped. What is left to
+  /// decide is the word itself: trimmed and lower-cased, it survives only as
+  /// one of [_photoSizes]. `cup`, `slice`, `handful`, `extra large` and
+  /// `mini` all become null here, whatever the prompt said. The prompt
+  /// already forbids them, but a prompt is a request and this is a
+  /// guarantee.
+  ///
+  /// The matcher downstream only runs under a stated quantity, so a size on
+  /// an uncounted item would have gone nowhere anyway; dropping it here makes
+  /// that a rule rather than a coincidence of two gates agreeing. #1156.
+  MealTextParseResult _sizesOnly(MealTextParseResult result) =>
+      MealTextParseResult(
+        items: [
+          for (final item in result.items)
+            ParsedMealItem(
+              query: item.query,
+              quantity: item.quantity,
+              unit: item.unit,
+              portion: _sizeOfOne(item),
+            ),
+        ],
+        errors: result.errors,
+      );
+
+  static String? _sizeOfOne(ParsedMealItem item) {
+    if (item.quantity == null) return null;
+    final word = item.portion?.trim().toLowerCase();
+    return word != null && _photoSizes.contains(word) ? word : null;
+  }
 }

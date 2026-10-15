@@ -34,11 +34,25 @@ class SPConst {
   static const mainImageUrl = 'main_image_url';
   static const tags = 'tags';
 
+  /// Whether the backend holds a deliverable portion for the food —
+  /// `food_has_deliverable_portion(food_id)`, the predicate the search
+  /// RPCs already order by, sent as a column so the app's cut of the
+  /// hundred rows to twenty can read it (#1190; the backend's
+  /// `2026-09-13_food_summary_has_portion` migration). Absent from a
+  /// backend that predates that migration, and the DTO reads absence as
+  /// null: unknown, not false.
+  static const foodHasPortion = 'has_portion';
+
   // food_translation columns
   static const translationFoodId = 'food_id';
   static const translationLocale = 'locale';
   static const translationDescription = 'description';
   static const translationSource = 'source';
+
+  /// [foodHasPortion] on a `search_food_translation` row, for the same
+  /// reader: the translation cut. Absent before that migration, read as
+  /// null.
+  static const translationHasPortion = 'has_portion';
 
   /// food_translation.source value for unreviewed machine translations
   /// (DeepL/LLM). The app shows a small disclosure hint for these; the
@@ -154,6 +168,14 @@ class SPConst {
         return 'tr';
       case SupportedLanguage.uk:
         return 'uk';
+      case SupportedLanguage.hu:
+      case SupportedLanguage.es:
+        // food_translation has no Hungarian or Spanish rows yet. Returning
+        // the code would cost every search in these languages a
+        // guaranteed-empty translation RPC before the English one, plus an
+        // empty portion-label request, for no result. Flip to 'hu' / 'es'
+        // once the backend carries the rows.
+        return null;
     }
   }
 }

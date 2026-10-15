@@ -6,11 +6,28 @@ import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
-/// Parsed result. [recipes] hold successfully grouped + assembled recipes;
-/// [errors] hold one entry per skipped row (with the 1-based row number
-/// from the user's perspective and a short reason).
+/// One recipe pulled out of the CSV. [totalWeightOverridden] is true when
+/// the user supplied an explicit `recipe_total_weight_g` for this recipe;
+/// [ImportRecipesCsvUsecase] threads it into [SaveRecipeUseCase.save] so
+/// the override survives the save-time recompute instead of collapsing
+/// back to the ingredient sum (#1139 / #1194).
+class ImportedCsvRecipe {
+  final RecipeEntity recipe;
+  final bool totalWeightOverridden;
+
+  const ImportedCsvRecipe({
+    required this.recipe,
+    required this.totalWeightOverridden,
+  });
+}
+
+/// Parsed result. [recipes] hold successfully grouped + assembled recipes,
+/// each wrapped in [ImportedCsvRecipe] so the save-side knows whether an
+/// explicit total weight was supplied; [errors] hold one entry per skipped
+/// row (with the 1-based row number from the user's perspective and a
+/// short reason).
 class CsvRecipeImportResult {
-  final List<RecipeEntity> recipes;
+  final List<ImportedCsvRecipe> recipes;
   final List<String> errors;
 
   const CsvRecipeImportResult({required this.recipes, required this.errors});
@@ -162,8 +179,27 @@ class CsvRecipeImporter {
               ? row[_kRecipeDescription]
               : null;
       group.servingsCount ??= _parseIntOrNull(row[_kRecipeServings]);
-      group.totalWeightOverride ??=
-          CsvRowParser.parseDoubleOrNull(row[_kRecipeTotalWeightG]);
+      // Only the first non-empty `recipe_total_weight_g` per recipe wins,
+      // matching the "first non-empty value wins" rule for every other
+      // recipe-level field. A value that parses to 0, negative, NaN or
+      // infinity is rejected with a per-row error, and the group is
+      // marked so the save-time build step drops the whole recipe — same
+      // shape as JsonRecipeImporter's `totalWeight` guard (#1139 / #1194).
+      if (group.totalWeightOverride == null && !group.totalWeightRejected) {
+        final rawTotalWeight = row[_kRecipeTotalWeightG];
+        if (rawTotalWeight != null && rawTotalWeight.isNotEmpty) {
+          final parsed = CsvRowParser.parseDoubleOrNull(rawTotalWeight);
+          if (parsed == null || !(parsed > 0 && parsed.isFinite)) {
+            errors.add(
+              'Row $rowNum: recipe_total_weight_g must be a positive '
+              'finite number',
+            );
+            group.totalWeightRejected = true;
+          } else {
+            group.totalWeightOverride = parsed;
+          }
+        }
+      }
       if (group.tags.isEmpty) {
         final tagsRaw = row[_kRecipeTags] ?? '';
         if (tagsRaw.isNotEmpty) {
@@ -210,9 +246,10 @@ class CsvRecipeImporter {
     // will recompute again on save, but having values populated here lets
     // tests and downstream callers see correct totals immediately).
     final compute = ComputeRecipeNutritionUseCase();
-    final recipes = <RecipeEntity>[];
+    final recipes = <ImportedCsvRecipe>[];
     for (final group in groups.values) {
       if (group.ingredients.isEmpty) continue;
+      if (group.totalWeightRejected) continue;
       final ingredients = group.ingredients.map((p) {
         final convertedG = compute.convertAmountToGrams(
               amount: p.amount,
@@ -234,17 +271,20 @@ class CsvRecipeImporter {
       );
 
       final now = DateTime.now();
-      recipes.add(RecipeEntity(
-        id: IdGenerator.getUniqueID(),
-        name: group.name,
-        description: group.description,
-        ingredients: ingredients,
-        totalWeightG: result.totalWeightG,
-        aggregatedNutrimentsPer100: result.perHundredG,
-        createdAt: now,
-        updatedAt: now,
-        servingsCount: group.servingsCount,
-        tags: List.unmodifiable(group.tags),
+      recipes.add(ImportedCsvRecipe(
+        recipe: RecipeEntity(
+          id: IdGenerator.getUniqueID(),
+          name: group.name,
+          description: group.description,
+          ingredients: ingredients,
+          totalWeightG: result.totalWeightG,
+          aggregatedNutrimentsPer100: result.perHundredG,
+          createdAt: now,
+          updatedAt: now,
+          servingsCount: group.servingsCount,
+          tags: List.unmodifiable(group.tags),
+        ),
+        totalWeightOverridden: group.totalWeightOverride != null,
       ));
     }
 
@@ -280,6 +320,12 @@ class _RecipeGroup {
   String? description;
   int? servingsCount;
   double? totalWeightOverride;
+  /// Sticky flag set the first time a row supplies a malformed
+  /// `recipe_total_weight_g` for this recipe. Once set, later rows in the
+  /// same group cannot supply a good value, and the group is dropped at
+  /// build time — the input is malformed enough that we do not save a
+  /// partial recipe from it.
+  bool totalWeightRejected = false;
   final Set<String> tags = <String>{};
   final List<_PendingIngredient> ingredients = [];
 }

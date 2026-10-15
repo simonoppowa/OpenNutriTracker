@@ -31,8 +31,17 @@ import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
 const _detailedBonus = 0.03;
 const _machineTranslatedPenalty = 0.03;
 
-/// Taken off a backend record that carries no labelled portion — here and
-/// nowhere else (#1164).
+/// Taken off a backend record that carries no labelled portion (#1164) —
+/// here, where [scoreMealForResolution] reads it off the fetched portions,
+/// and at the data source's cut of the backend's hundred rows to the
+/// twenty this scorer sees, where `rankAndTruncateFoodsByName` reads it
+/// off the row's `has_portion` column (#1190). One constant, because the
+/// two must invert the same gaps: a portionless exact title at 1.0 and a
+/// portion-bearing soft match at 0.857 change places at 0.15 in both, or
+/// the cut keeps twenty rows the resolver ranks behind the one it cut.
+/// The Food tab still knows nothing of it: its page is cut by the same
+/// function with the column unread (`forResolution` false), and its
+/// ranker never sees a portion.
 ///
 /// The resolver's output is logged with an amount, and at that point a
 /// record that can scale one is worth more than one that cannot. The case
@@ -83,7 +92,7 @@ const _machineTranslatedPenalty = 0.03;
 /// either, so a cached copy is never "unavailable" — it is penalised as
 /// above, and the entity's comment says why that is the right answer for
 /// a row the page did not return.
-const _noPortionsPenalty = 0.15;
+const noPortionsPenalty = 0.15;
 
 /// Scores [meal] against [query] on a 0.0-1.0 scale, tolerant of
 /// inflectional suffixes. Brand-only matches count for less than the same
@@ -105,7 +114,8 @@ const _noPortionsPenalty = 0.15;
 /// that scores 1.0 still scores 1.0 whatever follows it.
 ///
 /// Unlike the shared ranker, a backend record with no labelled portion
-/// loses [_noPortionsPenalty] — see there for why this is the only place.
+/// loses [noPortionsPenalty] — see there for why the Food tab never does,
+/// and why the data source's cut takes the same amount off.
 double scoreMealForResolution(MealEntity meal, String query) {
   final queryTokens = tokenize(query);
   if (queryTokens.isEmpty) return 0.0;
@@ -129,11 +139,11 @@ double scoreMealForResolution(MealEntity meal, String query) {
   // `MealEntity.backendSource`), so BLS and INDB records are in scope.
   // And only where the emptiness is the backend's answer: a record whose
   // lookup failed is bare for a reason that says nothing about it (see
-  // [_noPortionsPenalty]).
+  // [noPortionsPenalty]).
   if (meal.source == MealSourceEntity.fdc &&
       meal.portions.isEmpty &&
       !meal.portionsUnavailable) {
-    score -= _noPortionsPenalty;
+    score -= noPortionsPenalty;
   }
 
   return score.clamp(0.0, 1.0);
@@ -228,12 +238,18 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// rule, so the record this sort would pick from the hundred is inside
 /// the twenty — up to what the cut does not read. It runs before any
 /// portion is fetched, where this sort's second key and
-/// [_noPortionsPenalty] read them, and the translation cut is handed the
-/// row's source and does not read it, where [_machineTranslatedPenalty]
-/// does; its comment says exactly what that leaves open and where it
-/// bites — `muffins`, where the penalty inverts the 0.143 between an
-/// exact plural title and the soft singular — and
-/// `resolver_sibling_selection_test` pins it.
+/// [noPortionsPenalty] read them; since #1190 it reads the row's
+/// `has_portion` column instead, the boolean shadow of the count, and
+/// applies the penalty and a tie key in this direction from it — so a
+/// portion-bearing record can still trail twenty rows that tie it on
+/// score, length and the flag with fewer portions each, and nothing else.
+/// Where the backend does not send the column the cut is as it was, and
+/// `muffins` — the penalty inverting the 0.143 between an exact plural
+/// title and the soft singular — is lost at the cut; the translation cut
+/// is handed the row's source and does not read it, where
+/// [_machineTranslatedPenalty] does. The comment at the cut says exactly
+/// what that leaves open, and `resolver_sibling_selection_test` pins
+/// each case.
 ///
 /// Every record that is not a fresh backend result has no portions, so
 /// among OFF products or cached meals the portions key is always a tie and
@@ -244,7 +260,7 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// key is bounded on the resolver's real path: `MealDBO` does not persist
 /// portions, so a backend record the search cache holds and this search's
 /// page did not return ties on it with everything, whatever the backend has
-/// for it — see [_noPortionsPenalty]. (A record the page did return reaches
+/// for it — see [noPortionsPenalty]. (A record the page did return reaches
 /// here as the fresh entity, portions and all.)
 List<MealEntity> _sorted(List<MealEntity> meals, String query) {
   // Parallel (meal, score) records rather than a map: MealEntity's Equatable

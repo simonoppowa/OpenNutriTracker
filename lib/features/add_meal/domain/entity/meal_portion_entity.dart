@@ -20,10 +20,25 @@ class MealPortionEntity extends Equatable {
     required this.label,
     required this.gramWeight,
     required this.localized,
+    this.englishLabel,
   });
 
   /// As published, count and all — "1 cup", "1 Tasse", "1 cup, cooked".
   final String label;
+
+  /// The English `portion_description` the record carries, whatever [label]
+  /// arrived as — "1 medium or regular slice" beside a verified
+  /// "1 mittlere oder normale Scheibe".
+  ///
+  /// A matching key, never a presentation string. A model names a portion
+  /// in English in every locale (#1157), so this is what its word is tried
+  /// against; the reader still sees [label], and the typed path still
+  /// matches the user's own words against [label] as before. Null while the
+  /// backend does not send it — the column is added beside the coalesced
+  /// label, and an app built before it must keep working — in which case
+  /// the matcher falls back to [label], which in eight of nine locales is
+  /// the English string anyway.
+  final String? englishLabel;
 
   /// What one of these weighs. Always greater than zero: the backend drops
   /// portions that cannot scale an amount, because offering one would put a
@@ -34,5 +49,5 @@ class MealPortionEntity extends Equatable {
   final bool localized;
 
   @override
-  List<Object?> get props => [label, gramWeight, localized];
+  List<Object?> get props => [label, gramWeight, localized, englishLabel];
 }
