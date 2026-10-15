@@ -4,7 +4,9 @@ import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
@@ -15,6 +17,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 import '../helpers/hive_test_setup.dart';
 
@@ -94,6 +97,7 @@ class _TestHiveDBProvider extends HiveDBProvider {
   final Box<WeightLogDBO> weight;
   final Box<WaterIntakeDBO> water;
   final Box<FastingSessionDBO> fasting;
+  final Box<FavouriteMealDBO> favourites;
   final Box<ConfigDBO> sharedAppConfig;
 
   _TestHiveDBProvider({
@@ -105,6 +109,7 @@ class _TestHiveDBProvider extends HiveDBProvider {
     required this.weight,
     required this.water,
     required this.fasting,
+    required this.favourites,
     required this.sharedAppConfig,
   });
 
@@ -125,6 +130,8 @@ class _TestHiveDBProvider extends HiveDBProvider {
   @override
   Box<FastingSessionDBO> get fastingBox => fasting;
   @override
+  Box<FavouriteMealDBO> get favouriteMealBox => favourites;
+  @override
   Box<ConfigDBO> get appConfigBox => sharedAppConfig;
 }
 
@@ -137,6 +144,7 @@ void main() {
   late DeleteAllUserDataUsecase sut;
   late Box<ConfigDBO> configBox;
   late Box<ConfigDBO> appConfigBox;
+  late Box<FavouriteMealDBO> favouriteBox;
 
   setUp(() async {
     Hive.init('.');
@@ -155,6 +163,9 @@ void main() {
       weight: await Hive.openBox<WeightLogDBO>('wipe_weight_$tag'),
       water: await Hive.openBox<WaterIntakeDBO>('wipe_water_$tag'),
       fasting: await Hive.openBox<FastingSessionDBO>('wipe_fasting_$tag'),
+      favourites: favouriteBox = await Hive.openBox<FavouriteMealDBO>(
+        'wipe_favourites_$tag',
+      ),
       sharedAppConfig: appConfigBox,
     );
 
@@ -228,6 +239,22 @@ void main() {
     await sut.deleteAll();
 
     expect(configBox.isEmpty, isTrue);
+  });
+
+  test('clears the active profile\'s favourites', () async {
+    // #1307: Favourites are per-profile, so a reset takes them with the
+    // rest of this profile's data.
+    await favouriteBox.put(
+      'off:1',
+      FavouriteMealDBO(
+        meal: MealDBO.fromMealEntity(MealEntity.empty()),
+        addedAt: DateTime(2026, 10, 4),
+      ),
+    );
+
+    await sut.deleteAll();
+
+    expect(favouriteBox.isEmpty, isTrue);
   });
 
   test('leaves the shared app settings alone', () async {

@@ -59,6 +59,7 @@ class DeleteAllUserDataUsecase {
       _hiveDBProvider.weightLogBox.clear(),
       _hiveDBProvider.waterIntakeBox.clear(),
       _hiveDBProvider.fastingBox.clear(),
+      _hiveDBProvider.favouriteMealBox.clear(),
     ]);
 
     // The device-wide exception. This store is keyed by provider, not by
