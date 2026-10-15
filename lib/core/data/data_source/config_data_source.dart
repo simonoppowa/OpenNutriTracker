@@ -249,6 +249,10 @@ class ConfigDataSource {
     await _update((c) => c.usesKilojoules = usesKilojoules);
   }
 
+  Future<void> setConfigDefaultToRawFoodUnits(bool value) async {
+    await _update((c) => c.defaultToRawFoodUnits = value);
+  }
+
   Future<void> setConfigMealKcalSharesPct(Map<String, int> shares) async {
     // Copy into a fresh map so Hive sees a distinct object reference on save.
     await _update((c) => c.mealKcalSharesPct = Map<String, int>.from(shares));

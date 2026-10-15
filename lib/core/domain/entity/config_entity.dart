@@ -166,6 +166,12 @@ class ConfigEntity extends Equatable {
         : backfillFloor;
   }
 
+  /// #1126: default the meal-detail unit dropdown to weight/volume even
+  /// when the food has a scalable serving. False = keep the pre-existing
+  /// behaviour (prefer serving whenever one exists) — flipped only from
+  /// Settings → Meal Detail.
+  final bool defaultToRawFoodUnits;
+
   /// Which revision of the privacy policy the user has been shown a *notice*
   /// about. Zero for every install that predates the field, which is exactly
   /// who the notice is for.
@@ -263,6 +269,7 @@ class ConfigEntity extends Equatable {
     this.healthDeletedWorkouts = const <String, DateTime>{},
     this.legacyHealthDeletedExternalIds = const <String>{},
     this.policyNoticeRevisionSeen = 0,
+    this.defaultToRawFoodUnits = false,
   });
 
   /// The multiplier the importer actually applies. Falls back to crediting
@@ -384,6 +391,7 @@ class ConfigEntity extends Equatable {
     legacyHealthDeletedExternalIds: dbo.healthDeletedExternalIds != null
         ? Set<String>.from(dbo.healthDeletedExternalIds!)
         : const <String>{},
+    defaultToRawFoodUnits: dbo.defaultToRawFoodUnits ?? false,
   );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -488,5 +496,6 @@ class ConfigEntity extends Equatable {
     healthDeletedWorkouts,
     legacyHealthDeletedExternalIds,
     policyNoticeRevisionSeen,
+    defaultToRawFoodUnits,
   ];
 }

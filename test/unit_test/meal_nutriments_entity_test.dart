@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
@@ -435,6 +436,57 @@ void main() {
     test('returns false for empty entity', () {
       final entity = MealNutrimentsEntity.empty();
       expect(entity.hasMicronutrientData, isFalse);
+    });
+  });
+
+  group('MealNutrimentsEntity.fromMealNutrimentsDBO (#1254)', () {
+    test('reads NaN and infinite values back as null', () {
+      // What a custom meal saved with a base quantity of 0 stored: every
+      // typed 0 became NaN, every other value infinity.
+      final entity = MealNutrimentsEntity.fromMealNutrimentsDBO(
+        MealNutrimentsDBO(
+          energyKcal100: double.nan,
+          carbohydrates100: double.infinity,
+          fat100: double.negativeInfinity,
+          proteins100: double.nan,
+          sugars100: double.nan,
+          saturatedFat100: double.nan,
+          fiber100: double.nan,
+          sodium100: double.nan,
+        ),
+      );
+
+      expect(entity.energyKcal100, isNull);
+      expect(entity.carbohydrates100, isNull);
+      expect(entity.fat100, isNull);
+      expect(entity.proteins100, isNull);
+      expect(entity.sugars100, isNull);
+      expect(entity.saturatedFat100, isNull);
+      expect(entity.fiber100, isNull);
+      expect(entity.sodium100, isNull);
+      expect(entity.energyPerUnit, isNull);
+    });
+
+    test('keeps finite values, zero included', () {
+      final entity = MealNutrimentsEntity.fromMealNutrimentsDBO(
+        MealNutrimentsDBO(
+          energyKcal100: 0,
+          carbohydrates100: 30,
+          fat100: 10,
+          proteins100: 15,
+          sugars100: null,
+          saturatedFat100: 3,
+          fiber100: 2,
+        ),
+      );
+
+      expect(entity.energyKcal100, 0);
+      expect(entity.carbohydrates100, 30);
+      expect(entity.fat100, 10);
+      expect(entity.proteins100, 15);
+      expect(entity.sugars100, isNull);
+      expect(entity.saturatedFat100, 3);
+      expect(entity.fiber100, 2);
     });
   });
 }
