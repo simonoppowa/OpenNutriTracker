@@ -25,6 +25,9 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   // #70 follow-up: saved Custom activity templates (name + typical kcal).
   static const customActivityTemplateJsonFileName =
       'custom_activity_templates.json';
+  // #1363: the profile's goal settings (kcal adjustment, macro split,
+  // per-meal shares, water goal).
+  static const goalSettingsJsonFileName = 'goal_settings.json';
 
   static final _log = Logger('ExportImportBloc');
 
@@ -60,6 +63,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
           weightLogJsonFileName,
           customActivityTemplateJsonFileName,
           format: event.format,
+          goalSettingsJsonFileName: goalSettingsJsonFileName,
         );
 
         if (result) {
@@ -85,6 +89,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
                 recipeJsonFileName,
                 weightLogJsonFileName,
                 customActivityTemplateJsonFileName,
+                goalSettingsJsonFileName: goalSettingsJsonFileName,
               );
         if (result) {
           emit(ExportImportSuccess());

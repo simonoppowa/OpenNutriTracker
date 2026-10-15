@@ -86,6 +86,7 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
         CustomActivityTemplateRepository(
           CustomActivityTemplateDataSource(_provider),
         ),
+        ConfigRepository(ConfigDataSource(_provider)),
       );
 
   final Object error;
@@ -103,6 +104,7 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
+    String goalSettingsJsonFileName = 'goal_settings.json',
   }) async {
     throw error;
   }
@@ -153,6 +155,7 @@ ExportImportBloc _bloc({
       CustomActivityTemplateRepository(
         CustomActivityTemplateDataSource(_provider),
       ),
+      configRepository,
       pickFile: pickFile ?? () async => throw StateError('unused'),
     ),
     ImportMealsCsvUsecase(customMealDataSource),

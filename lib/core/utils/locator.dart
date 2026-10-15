@@ -495,10 +495,12 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
     ),
   );
   locator.registerLazySingleton(
     () => ImportDataUsecase(
+      locator(),
       locator(),
       locator(),
       locator(),
