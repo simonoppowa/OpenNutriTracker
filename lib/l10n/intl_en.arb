@@ -1343,7 +1343,7 @@
   "bulkAddPhotoUnsupportedLabel": "That model can't read photos. Choose a different one in Settings, or type the items instead.",
   "bulkAddPhotoNoCreditLabel": "That request couldn't be paid for: your provider account is out of credit. Top up with your provider, or type the items instead.",
   "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead.",
-  "settingsHealthSyncSubtitle": "Import workouts",
+  "settingsHealthSyncSubtitle": "Sync workouts and nutrition",
   "healthSyncAutoImportLabel": "Automatically import workouts from {platform}",
   "@healthSyncAutoImportLabel": {"placeholders": {"platform": {"type": "String"}}},
   "healthSyncKcalMultiplierLabel": "Workout calorie credit",
