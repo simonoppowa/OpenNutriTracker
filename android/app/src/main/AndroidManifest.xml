@@ -27,6 +27,9 @@
          Android now uses; iOS still reads body fat from HealthKit. -->
     <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
+    <!-- Health Connect: nutrition export is opt-in, only requested once meal
+         export is enabled in Settings → Health sync. -->
+    <uses-permission android:name="android.permission.health.WRITE_NUTRITION"/>
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>
