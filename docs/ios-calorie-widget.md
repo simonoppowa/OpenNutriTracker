@@ -33,7 +33,7 @@ App Store and TestFlight archives need the group and both extension bundle ids r
 1. In Certificates, Identifiers & Profiles, create the App Group `group.com.opennutritracker.ont.opennutritracker` if it is not already there.
 2. Enable that App Group on the existing app ids (`com.opennutritracker.ont.opennutritracker` and the develop id).
 3. Register the two extension bundle ids and enable the same App Group on each.
-4. Regenerate the signing profiles (the project uses fastlane match for Release and Profile) so the new ids and the group are included. Debug stays on automatic signing.
+4. Regenerate the signing profiles (the project uses fastlane match for Release and Profile) so the new ids and the group are included. `ios/fastlane/Matchfile` lists the full extension id, and the `build` lane signs the `CalorieWidget` target with `match AppStore com.opennutritracker.ont.opennutritracker.CalorieWidget`. CI runs match read-only, so that profile has to exist in the match repository before the next release: run `MATCH_READONLY=false bundle exec fastlane ios certs` from `ios/` once, and make sure the Runner profile is regenerated too, since it now carries the App Group. Debug stays on automatic signing.
 5. Archive from the `full` scheme. The extension is embedded by the Runner target.
 
 `flutter build ios --no-codesign` does not need those profiles. A signed archive does.
