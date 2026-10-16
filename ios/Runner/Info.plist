@@ -70,7 +70,7 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Local network access is used only when you point AI meal logging at a server you run yourself — Ollama, LM Studio, llama.cpp or vLLM — at an address you type in. Nothing is sent unless you enter that address, and the app never discovers or contacts any other device on your network.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>When you enable meal export in Settings, OpenNutriTracker writes your logged meals, calories, and macronutrients to Apple Health. This data stays on your device and inside Apple Health.</string>
+	<string>When you enable meal export in Settings, OpenNutriTracker writes your logged meals to Apple Health: their name, time, calories and macronutrients, and any cholesterol, sodium, minerals and vitamins the food lists. This data stays on your device and inside Apple Health.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

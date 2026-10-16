@@ -20,9 +20,9 @@ void main() {
   final infoPlist = File('ios/Runner/Info.plist').readAsStringSync();
 
   String? valueFor(String key) => RegExp(
-    '<key>$key</key>\\s*<string>(.*?)</string>',
-    dotAll: true,
-  ).firstMatch(infoPlist)?.group(1);
+        '<key>$key</key>\\s*<string>(.*?)</string>',
+        dotAll: true,
+      ).firstMatch(infoPlist)?.group(1);
 
   group('HealthKit purpose strings', () {
     test('the read string is present and says what is read', () {
@@ -47,6 +47,20 @@ void main() {
         reason:
             'The write string explains that meals are exported when opted in',
       );
+    });
+
+    // #1393 review: the export writes micronutrients too
+    // (HealthPackageService.writeMeal), so the purpose string has to say so.
+    test('the write string discloses the micronutrients written', () {
+      final update = valueFor('NSHealthUpdateUsageDescription')!;
+      for (final nutrient in const [
+        'cholesterol',
+        'sodium',
+        'minerals',
+        'vitamins',
+      ]) {
+        expect(update, contains(nutrient));
+      }
     });
   });
 }
