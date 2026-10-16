@@ -128,8 +128,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _addConfigUsecase.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }
 
-  void setShowMealMacros(bool showMealMacros) {
-    _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
+  Future<void> setShowMealMacros(bool showMealMacros) {
+    return _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
   }
 
   void setNotificationsEnabled(bool enabled) {
