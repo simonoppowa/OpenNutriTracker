@@ -10,6 +10,7 @@ import '../helpers/hive_test_setup.dart';
 
 ConfigDBO _dbo({
   bool? healthImportEnabled,
+  bool? healthExportEnabled,
   double? healthWorkoutKcalMultiplier,
   DateTime? healthLastImportAt,
 }) => ConfigDBO(
@@ -18,6 +19,7 @@ ConfigDBO _dbo({
   false,
   AppThemeDBO.system,
   healthImportEnabled: healthImportEnabled,
+  healthExportEnabled: healthExportEnabled,
   healthWorkoutKcalMultiplier: healthWorkoutKcalMultiplier,
   healthLastImportAt: healthLastImportAt,
 );
@@ -28,6 +30,7 @@ void main() {
       final config = ConfigEntity.fromConfigDBO(ConfigDBO.empty());
 
       expect(config.healthImportEnabled, isFalse);
+      expect(config.healthExportEnabled, isFalse);
       expect(config.healthWorkoutKcalMultiplier, isNull);
       expect(config.healthLastImportAt, isNull);
     });
@@ -85,10 +88,15 @@ void main() {
     test('the opt-in flag and the watermark round-trip', () {
       final watermark = DateTime.utc(2026, 5, 23, 14, 30);
       final config = ConfigEntity.fromConfigDBO(
-        _dbo(healthImportEnabled: true, healthLastImportAt: watermark),
+        _dbo(
+          healthImportEnabled: true,
+          healthExportEnabled: true,
+          healthLastImportAt: watermark,
+        ),
       );
 
       expect(config.healthImportEnabled, isTrue);
+      expect(config.healthExportEnabled, isTrue);
       expect(config.healthLastImportAt, equals(watermark));
     });
   });
@@ -130,6 +138,7 @@ void main() {
       final profileA = sourceFor(profileABox);
       await profileA.initializeConfig();
       await profileA.setConfigHealthImportEnabled(true);
+      await profileA.setConfigHealthExportEnabled(true);
       await profileA.setConfigHealthWorkoutKcalMultiplier(0.7);
       await profileA.setConfigHealthLastImportAt(DateTime(2026, 5, 23, 12));
 
@@ -138,6 +147,7 @@ void main() {
       final config = await profileB.getConfig();
 
       expect(config.healthImportEnabled, isNull);
+      expect(config.healthExportEnabled, isNull);
       expect(config.healthWorkoutKcalMultiplier, isNull);
       expect(config.healthLastImportAt, isNull);
     });
