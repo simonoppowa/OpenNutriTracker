@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
@@ -19,6 +20,7 @@ import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
+import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
 
 /// Opens the system file picker for a single file of any type and resolves
 /// to the pick, or to null when the user dismissed the picker.
@@ -33,6 +35,7 @@ class ImportDataUsecase {
   final RecipeRepository _recipeRepository;
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
+  final ConfigRepository _configRepository;
 
   /// Seam for tests: `FilePicker.pickFile` is static and needs a platform
   /// channel, so the picker outcomes (#1103: cancel, a pick without a
@@ -45,14 +48,16 @@ class ImportDataUsecase {
     this._trackedDayRepository,
     this._recipeRepository,
     this._weightLogRepository,
-    this._customActivityTemplateRepository, {
+    this._customActivityTemplateRepository,
+    this._configRepository, {
     PickImportFile pickFile = _pickAnyFile,
   }) : _pickFile = pickFile;
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
-  /// weight log or Custom activity template data from a zip file
-  /// containing JSON files. Recipe, weight log and template files are
-  /// treated as optional so zips exported by older versions still import.
+  /// weight log, Custom activity template and goal settings data from a
+  /// zip file containing JSON files. Recipe, weight log, template and goal
+  /// settings files are treated as optional so zips exported by older
+  /// versions still import.
   ///
   /// Returns true when the import completed. Throws an
   /// [ExportImportFailure] whose reason says what went wrong — including
@@ -65,8 +70,9 @@ class ImportDataUsecase {
     String trackedDayJsonFileName,
     String recipeJsonFileName,
     String weightLogJsonFileName,
-    String customActivityTemplateJsonFileName,
-  ) async {
+    String customActivityTemplateJsonFileName, {
+    String goalSettingsJsonFileName = 'goal_settings.json',
+  }) async {
     final archive = await _pickAndDecodeArchive();
 
     // Decode every entry before writing anything (#1357): the upserts
@@ -114,6 +120,20 @@ class ImportDataUsecase {
         ? null
         : _decodeJsonList(templateFile, CustomActivityTemplateDBO.fromJson);
 
+    // The profile's goal settings (#1363), absent from zips written before
+    // they were exported. Checked here with everything else, so a bad
+    // value rejects the zip before any of the writes below.
+    final goalSettingsFile = archive.findFile(goalSettingsJsonFileName);
+    final goalSettings = goalSettingsFile == null
+        ? null
+        : ExportImportFailure.guardSync(
+            ExportImportFailureReason.unreadableOrWrongFormat,
+            'Could not parse ${goalSettingsFile.name}',
+            () => GoalSettingsBackup.fromJson(
+              jsonDecode(utf8.decode(goalSettingsFile.content as List<int>)),
+            ),
+          );
+
     await _userActivityRepository.upsertAllUserActivityDBOs(userActivityDBOs);
     await _intakeRepository.upsertAllIntakeDBOs(intakeDBOs);
     await _trackedDayRepository.addAllTrackedDays(trackedDayDBOs);
@@ -126,6 +146,18 @@ class ImportDataUsecase {
     if (templateDBOs != null) {
       await _customActivityTemplateRepository.upsertAllTemplateDBOs(
         templateDBOs,
+      );
+    }
+    if (goalSettings != null) {
+      // The backup's goals replace the device's, as a restore should; a
+      // null in the file puts that goal back to the app default.
+      await _configRepository.setConfigGoalSettings(
+        kcalAdjustment: goalSettings.kcalAdjustment,
+        carbGoalPct: goalSettings.carbGoalPct,
+        proteinGoalPct: goalSettings.proteinGoalPct,
+        fatGoalPct: goalSettings.fatGoalPct,
+        mealKcalSharesPct: goalSettings.mealKcalSharesPct,
+        dailyWaterGoalMl: goalSettings.dailyWaterGoalMl,
       );
     }
 
