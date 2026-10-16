@@ -349,7 +349,7 @@ class HealthPackageService implements HealthService {
       return await _health.writeMeal(
         mealType: mealType,
         startTime: intake.dateTime,
-        endTime: intake.dateTime,
+        endTime: intake.dateTime.add(const Duration(minutes: 1)),
         clientRecordId: intake.id,
         name: intake.name,
         caloriesConsumed: intake.calories,
@@ -398,7 +398,7 @@ class HealthPackageService implements HealthService {
         return await _health.delete(
           type: _nutritionType,
           startTime: at,
-          endTime: at,
+          endTime: at.add(const Duration(minutes: 1)),
         );
       }
       return false;
