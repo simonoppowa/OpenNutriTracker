@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_us
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/home/domain/entity/shared_meal_payload.dart';
 import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_payload.dart';
 
 RecipeEntity _testRecipe() {
@@ -156,7 +157,7 @@ void main() {
           MealSourceEntity.custom);
     });
 
-    // #1194: the wire format has no override flag, so a shared recipe with a
+    // #1194: the wire format had no override flag, so a shared recipe with a
     // hand-entered total weight was saved at the ingredient sum instead.
     group('a total weight entered by hand', () {
       test('is recognised after the round trip', () {
@@ -202,6 +203,85 @@ void main() {
         expect(decoded.totalWeightG - decoded.ingredients
             .fold<double>(0, (sum, i) => sum + i.convertedAmountG), isNonZero);
         expect(decoded.totalWeightOverridden, isFalse);
+      });
+
+      test('travels as a trailing flag the older layout lacks', () {
+        final base = _testRecipe();
+        final typed =
+            SharedRecipePayload.fromRecipe(base.copyWith(totalWeightG: 240))
+                .toJsonArray();
+        final untouched = SharedRecipePayload.fromRecipe(base).toJsonArray();
+
+        // Elements 0-6 keep their places, so older readers, which take
+        // elements by index, still read the payload.
+        expect(typed, hasLength(8));
+        expect(typed.last, 1);
+        expect(untouched.last, 0);
+        expect(typed[4], 240);
+      });
+
+      test('survives even when it is within rounding of the sum', () async {
+        // 299.9 g against a 300 g sum is inside the 0.15 g the numbers alone
+        // would put down to rounding; the flag says it was typed.
+        final repo = _FakeRecipeRepository();
+        final save = SaveRecipeUseCase(repo, ComputeRecipeNutritionUseCase());
+        final decoded =
+            _roundTrip(_testRecipe().copyWith(totalWeightG: 299.9));
+
+        expect(decoded.totalWeightOverridden, isTrue);
+        await save.save(
+          decoded.toRecipeEntity(),
+          totalWeightOverridden: decoded.totalWeightOverridden,
+        );
+        expect(repo.saved.single.totalWeightG, 299.9);
+      });
+
+      test('keeps its flag inside a shared meal', () {
+        final item = SharedMealRecipeItem(
+          recipe: SharedRecipePayload.fromRecipe(
+              _testRecipe().copyWith(totalWeightG: 299.9)),
+          amount: 150,
+          unit: 'g',
+        );
+        final decoded = SharedMealRecipeItem.fromArray(
+          jsonDecode(jsonEncode(item.toArray())) as List<dynamic>,
+        );
+
+        expect(decoded.recipe.totalWeightOverridden, isTrue);
+      });
+
+      group('in a payload from before the flag', () {
+        // What an older app version sends: the same array, ending at the
+        // ingredients.
+        SharedRecipePayload legacy(double totalWeightG) {
+          final array =
+              SharedRecipePayload.fromRecipe(_testRecipe()).toJsonArray();
+          array[4] = totalWeightG;
+          final json = jsonEncode(array.sublist(0, 7));
+          return SharedRecipePayload.fromJsonString(
+            base64Url.encode(gzip.encode(utf8.encode(json))),
+          );
+        }
+
+        test('still imports, read off the numbers', () async {
+          final repo = _FakeRecipeRepository();
+          final save =
+              SaveRecipeUseCase(repo, ComputeRecipeNutritionUseCase());
+          final decoded = legacy(240);
+
+          expect(decoded.totalWeightOverrideFlag, isNull);
+          expect(decoded.ingredients, hasLength(2));
+          expect(decoded.totalWeightOverridden, isTrue);
+          await save.save(
+            decoded.toRecipeEntity(),
+            totalWeightOverridden: decoded.totalWeightOverridden,
+          );
+          expect(repo.saved.single.totalWeightG, 240);
+        });
+
+        test('an untouched total is still not mistaken for one', () {
+          expect(legacy(300).totalWeightOverridden, isFalse);
+        });
       });
     });
 
