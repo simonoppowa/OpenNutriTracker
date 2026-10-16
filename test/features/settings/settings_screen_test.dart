@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -38,8 +40,14 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   @override
   void add(SettingsEvent event) {}
 
+  /// Held open by the tests, so a reload sent before the flag is stored
+  /// shows up. Made on the call, inside the test's fake-async zone; one
+  /// made in setUp would complete outside it.
+  Completer<void>? mealMacrosSaved;
+
   @override
-  void setShowMealMacros(bool showMealMacros) {}
+  Future<void> setShowMealMacros(bool showMealMacros) =>
+      (mealMacrosSaved = Completer<void>()).future;
 }
 
 /// The screen resolves these in `initState` and only calls them from
@@ -276,7 +284,14 @@ void main() {
     await tester.tap(tile);
     await tester.pumpAndSettle();
 
+    // Not before the flag is stored, or the Diary reads the old one back.
     final diaryBloc = locator<DiaryBloc>() as _FakeDiaryBloc;
+    expect(diaryBloc.added, isEmpty);
+
+    final settingsBloc = locator<SettingsBloc>() as _FakeSettingsBloc;
+    settingsBloc.mealMacrosSaved!.complete();
+    await tester.pumpAndSettle();
+
     expect(diaryBloc.added, contains(isA<LoadDiaryYearEvent>()));
   });
 }

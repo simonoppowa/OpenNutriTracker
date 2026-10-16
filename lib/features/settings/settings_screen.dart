@@ -354,8 +354,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.bar_chart_rounded,
                     title: S.of(context).settingsShowMealMacros,
                     value: state.showMealMacros,
-                    onChanged: (bool value) {
-                      _settingsBloc.setShowMealMacros(value);
+                    onChanged: (bool value) async {
+                      // Every reload below reads the flag back, so it must
+                      // be stored first.
+                      await _settingsBloc.setShowMealMacros(value);
                       _settingsBloc.add(LoadSettingsEvent());
                       _homeBloc.add(LoadItemsEvent());
                       // The Diary's meal headers read the flag from
