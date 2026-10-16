@@ -76,6 +76,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           isDemoData: userConfig.isDemoData,
           healthImportEnabled: userConfig.healthImportEnabled,
           healthWorkoutKcalMultiplier: userConfig.healthWorkoutKcalMultiplier,
+          healthExportEnabled: userConfig.healthExportEnabled,
           defaultToRawFoodUnits: userConfig.defaultToRawFoodUnits,
         ),
       );
@@ -119,6 +120,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   Future<void> setHealthImportEnabled(bool enabled) {
     return _addConfigUsecase.setConfigHealthImportEnabled(enabled);
+  }
+
+  Future<void> setHealthExportEnabled(bool enabled) {
+    return _addConfigUsecase.setConfigHealthExportEnabled(enabled);
   }
 
   /// Persists the share of an imported workout's reported energy that counts
