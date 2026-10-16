@@ -24,12 +24,17 @@ class IntakeDataSource {
   /// Upserts by [IntakeDBO.id]: an intake whose id is already stored
   /// replaces it, so importing a bundle twice leaves one copy (#1357).
   /// Where a bundle holds an id twice the first row wins — the old edit
-  /// rewrote the first copy in place. A blank id is no identity: that row
-  /// is always added.
+  /// rewrote the first copy in place. A row with a blank id gets one
+  /// derived from its content first ([withContentIds]).
   Future<void> upsertAllIntakes(List<IntakeDBO> intakeDBOList) async {
     log.fine('Upserting intake items into db');
     await _intakeBox.upsertAllBy(
-      intakeDBOList,
+      withContentIds(
+        intakeDBOList,
+        idOf: (dbo) => dbo.id,
+        toJson: (dbo) => dbo.toJson(),
+        fromJson: IntakeDBO.fromJson,
+      ),
       (dbo) => dbo.id.isEmpty ? null : dbo.id,
       winner: UpsertWinner.first,
     );

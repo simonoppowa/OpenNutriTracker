@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:opennutritracker/core/utils/id_generator.dart';
 
 /// Which row survives when one identity appears more than once (#1357).
 ///
@@ -15,6 +18,42 @@ enum UpsertWinner {
   last,
 }
 
+/// Gives each row in [items] whose id is blank (a hand-edited CSV, an old
+/// export) an id derived from its content, so it has an identity like any
+/// other row: importing the same file again replaces it instead of adding
+/// it once more, and no two stored rows share the blank id the meal lists
+/// key their cards by (#1357). Rows with equal content are told apart by
+/// how many came before them in [items], so two identical entries both
+/// survive. Rows that already have an id are returned unchanged.
+List<T> withContentIds<T>(
+  List<T> items, {
+  required String Function(T item) idOf,
+  required Map<String, dynamic> Function(T item) toJson,
+  required T Function(Map<String, dynamic> json) fromJson,
+}) {
+  final seen = <String, int>{};
+  final out = <T>[];
+  for (final item in items) {
+    if (idOf(item).isNotEmpty) {
+      out.add(item);
+      continue;
+    }
+    // Round-trip through JSON so nested DBOs become plain maps.
+    final json =
+        jsonDecode(jsonEncode(toJson(item))) as Map<String, dynamic>
+          ..remove('id');
+    final content = jsonEncode(json);
+    final occurrence = seen.update(
+      content,
+      (count) => count + 1,
+      ifAbsent: () => 0,
+    );
+    json['id'] = IdGenerator.getContentID('$content#$occurrence');
+    out.add(fromJson(json));
+  }
+  return out;
+}
+
 /// Bulk upsert for boxes whose rows carry their own identity (an `id`,
 /// a template name) rather than using it as the Hive key.
 extension BoxUpsert<T> on Box<T> {
@@ -27,9 +66,10 @@ extension BoxUpsert<T> on Box<T> {
   /// written. Rows whose identity is not among [items] are left alone, and
   /// new identities are appended.
   ///
-  /// [identityOf] returns null for a row that has no identity (a CSV row
-  /// with a blank id): such a row is always appended, and is never merged
-  /// with another row, in [items] or in the box.
+  /// [identityOf] returns null for a row that has no identity (a blank id
+  /// stored by an import before [withContentIds]): such a row is always
+  /// appended, and is never merged with another row, in [items] or in the
+  /// box.
   Future<void> upsertAllBy(
     Iterable<T> items,
     Object? Function(T item) identityOf, {

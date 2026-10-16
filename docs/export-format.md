@@ -62,7 +62,8 @@ once — an install hit by #1357 exports two copies — the copy edited before
 the fix wins: the first row for intakes, the last row for activities and
 templates, matching where those older builds wrote an edit. An edit on a
 current build rewrites every copy, so the copies agree. A row with a blank
-`id` has no identity and is always added, never merged. A zip missing a
+`id` is given one derived from its content, so importing the same zip twice
+still changes nothing, and two identical rows both stay. A zip missing a
 required file, or with any file that does not parse, is rejected before
 anything on the device changes.
 The CSV files also exist so a spreadsheet, a Syncthing-style backup, or external
