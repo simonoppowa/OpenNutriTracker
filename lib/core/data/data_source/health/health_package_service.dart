@@ -351,6 +351,7 @@ class HealthPackageService implements HealthService {
         startTime: intake.dateTime,
         endTime: intake.dateTime.add(const Duration(minutes: 1)),
         clientRecordId: intake.id,
+        clientRecordVersion: DateTime.now().millisecondsSinceEpoch.toDouble(),
         name: intake.name,
         caloriesConsumed: intake.calories,
         carbohydrates: intake.carbohydrates,
