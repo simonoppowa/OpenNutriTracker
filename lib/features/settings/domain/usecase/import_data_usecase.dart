@@ -69,76 +69,64 @@ class ImportDataUsecase {
   ) async {
     final archive = await _pickAndDecodeArchive();
 
-    // Extract and process user activity data
-    final userActivityFile = archive.findFile(userActivityJsonFileName);
-    if (userActivityFile != null) {
-      final userActivityDBOs = _decodeJsonList(
-        userActivityFile,
-        UserActivityDBO.fromJson,
-      );
-      await _userActivityRepository.addAllUserActivityDBOs(userActivityDBOs);
-    } else {
-      throw _missingEntry(userActivityJsonFileName);
-    }
+    // Decode every entry before writing anything (#1357): the upserts
+    // below replace and delete rows on the device, so an archive with a
+    // missing or malformed entry must be rejected while it has touched
+    // nothing.
+    final userActivityDBOs = _decodeJsonList(
+      _requireEntry(archive, userActivityJsonFileName),
+      UserActivityDBO.fromJson,
+    );
 
-    // Extract and process intake data. A bundle written by a build before
-    // #775 carries its Open Food Facts micronutrients in raw grams and no
-    // `dataVersion` on the meal; scale those rows on the way in, the same
-    // way the startup pass does for rows already on disk (#1152). A bundle
-    // from a repaired build carries the stamp and passes through unchanged.
-    final intakeFile = archive.findFile(userIntakeJsonFileName);
-    if (intakeFile != null) {
-      final intakeDBOs = _decodeJsonList(
-        intakeFile,
-        IntakeDBO.fromJson,
-      ).map(OffMicronutrientRepair.repairIntake).toList();
-      await _intakeRepository.addAllIntakeDBOs(intakeDBOs);
-    } else {
-      throw _missingEntry(userIntakeJsonFileName);
-    }
+    // A bundle written by a build before #775 carries its Open Food Facts
+    // micronutrients in raw grams and no `dataVersion` on the meal; scale
+    // those rows on the way in, the same way the startup pass does for rows
+    // already on disk (#1152). A bundle from a repaired build carries the
+    // stamp and passes through unchanged.
+    final intakeDBOs = _decodeJsonList(
+      _requireEntry(archive, userIntakeJsonFileName),
+      IntakeDBO.fromJson,
+    ).map(OffMicronutrientRepair.repairIntake).toList();
 
-    // Extract and process tracked day data
-    final trackedDayFile = archive.findFile(trackedDayJsonFileName);
-    if (trackedDayFile != null) {
-      final trackedDayDBOs = _decodeJsonList(
-        trackedDayFile,
-        TrackedDayDBO.fromJson,
-      );
-      await _trackedDayRepository.addAllTrackedDays(trackedDayDBOs);
-    } else {
-      throw _missingEntry(trackedDayJsonFileName);
-    }
+    final trackedDayDBOs = _decodeJsonList(
+      _requireEntry(archive, trackedDayJsonFileName),
+      TrackedDayDBO.fromJson,
+    );
 
-    // Extract and process recipe data — optional so older zips still import.
+    // Recipes, the weight log and Custom activity templates (#70
+    // follow-up) are optional so zips from older versions still import.
     // Ingredient snapshots get the same Open Food Facts repair as intakes.
     final recipeFile = archive.findFile(recipeJsonFileName);
-    if (recipeFile != null) {
-      final recipeDBOs = _decodeJsonList(
-        recipeFile,
-        RecipeDBO.fromJson,
-      ).map(OffMicronutrientRepair.repairRecipe).toList();
+    final recipeDBOs = recipeFile == null
+        ? null
+        : _decodeJsonList(
+            recipeFile,
+            RecipeDBO.fromJson,
+          ).map(OffMicronutrientRepair.repairRecipe).toList();
+
+    final weightLogFile = archive.findFile(weightLogJsonFileName);
+    final weightLogDBOs = weightLogFile == null
+        ? null
+        : _decodeJsonList(weightLogFile, WeightLogDBO.fromJson);
+
+    final templateFile = archive.findFile(customActivityTemplateJsonFileName);
+    final templateDBOs = templateFile == null
+        ? null
+        : _decodeJsonList(templateFile, CustomActivityTemplateDBO.fromJson);
+
+    await _userActivityRepository.upsertAllUserActivityDBOs(userActivityDBOs);
+    await _intakeRepository.upsertAllIntakeDBOs(intakeDBOs);
+    await _trackedDayRepository.addAllTrackedDays(trackedDayDBOs);
+    if (recipeDBOs != null) {
       await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
     }
-
-    // Extract and process weight log data — optional so older zips still import.
-    final weightLogFile = archive.findFile(weightLogJsonFileName);
-    if (weightLogFile != null) {
-      final weightLogDBOs = _decodeJsonList(
-        weightLogFile,
-        WeightLogDBO.fromJson,
-      );
+    if (weightLogDBOs != null) {
       await _weightLogRepository.addAllEntries(weightLogDBOs);
     }
-
-    // Extract and process Custom activity template data (#70 follow-up)
-    // — also optional so zips produced before templates landed still import.
-    final templateFile = archive.findFile(customActivityTemplateJsonFileName);
-    if (templateFile != null) {
-      final templateDBOs = _decodeJsonList(
-        templateFile,
-        CustomActivityTemplateDBO.fromJson,
+    if (templateDBOs != null) {
+      await _customActivityTemplateRepository.upsertAllTemplateDBOs(
+        templateDBOs,
       );
-      await _customActivityTemplateRepository.addAllTemplateDBOs(templateDBOs);
     }
 
     // Restore any user-attached photos — recipes under `recipe_images/`
@@ -183,40 +171,25 @@ class ImportDataUsecase {
   }) async {
     final archive = await _pickAndDecodeArchive();
 
-    final activityFile = archive.findFile(userActivityCsvFileName);
-    if (activityFile != null) {
-      final dbos = _decodeCsv(
-        activityFile,
-        CsvDataExporter.parseUserActivitiesFromCsv,
-      );
-      await _userActivityRepository.addAllUserActivityDBOs(dbos);
-    } else {
-      throw _missingEntry(userActivityCsvFileName);
-    }
+    // Decode all three before writing any, as in [importData] (#1357).
+    final activityDBOs = _decodeCsv(
+      _requireEntry(archive, userActivityCsvFileName),
+      CsvDataExporter.parseUserActivitiesFromCsv,
+    );
+    // Same pre-#775 scaling as the JSON leg: a CSV without the
+    // `meal_data_version` column came from a build that wrote raw grams.
+    final intakeDBOs = _decodeCsv(
+      _requireEntry(archive, userIntakeCsvFileName),
+      CsvDataExporter.parseIntakesFromCsv,
+    ).map(OffMicronutrientRepair.repairIntake).toList();
+    final trackedDayDBOs = _decodeCsv(
+      _requireEntry(archive, trackedDayCsvFileName),
+      CsvDataExporter.parseTrackedDaysFromCsv,
+    );
 
-    final intakeFile = archive.findFile(userIntakeCsvFileName);
-    if (intakeFile != null) {
-      // Same pre-#775 scaling as the JSON leg: a CSV without the
-      // `meal_data_version` column came from a build that wrote raw grams.
-      final dbos = _decodeCsv(
-        intakeFile,
-        CsvDataExporter.parseIntakesFromCsv,
-      ).map(OffMicronutrientRepair.repairIntake).toList();
-      await _intakeRepository.addAllIntakeDBOs(dbos);
-    } else {
-      throw _missingEntry(userIntakeCsvFileName);
-    }
-
-    final trackedDayFile = archive.findFile(trackedDayCsvFileName);
-    if (trackedDayFile != null) {
-      final dbos = _decodeCsv(
-        trackedDayFile,
-        CsvDataExporter.parseTrackedDaysFromCsv,
-      );
-      await _trackedDayRepository.addAllTrackedDays(dbos);
-    } else {
-      throw _missingEntry(trackedDayCsvFileName);
-    }
+    await _userActivityRepository.upsertAllUserActivityDBOs(activityDBOs);
+    await _intakeRepository.upsertAllIntakeDBOs(intakeDBOs);
+    await _trackedDayRepository.addAllTrackedDays(trackedDayDBOs);
 
     return true;
   }
@@ -257,6 +230,10 @@ class ImportDataUsecase {
       () => ZipDecoder().decodeBytes(zipBytes),
     );
   }
+
+  /// The archive's [entryName] entry, or [_missingEntry] when it has none.
+  ArchiveFile _requireEntry(Archive archive, String entryName) =>
+      archive.findFile(entryName) ?? (throw _missingEntry(entryName));
 
   /// A zip that decodes but lacks a required entry is some other zip, not
   /// an OpenNutriTracker backup.
