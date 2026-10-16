@@ -10,10 +10,10 @@ import 'dart:ui';
 /// The cases are decided on the raw [systemLocaleTag] rather than on the
 /// language it resolves to, because "no override at all" and "an override we
 /// cannot render" mean opposite things. [localeSyncSeeded] records one fact
-/// and only that fact: **the OS has been seen holding an override** -- it is
-/// what makes a later absence readable as the user having cleared it. It is
-/// never set on a platform that reports no override, because there the
-/// absence is permanent and means nothing.
+/// and only that fact: **the OS has been seen holding an override since the
+/// last clear was acted on** -- it is what makes a later absence readable as
+/// the user having cleared it. It is never set on a platform that reports no
+/// override, because there the absence is permanent and means nothing.
 ///
 /// - **A supported override.** The system wins -- it is the side the user can
 ///   see from outside the app -- and is saved if it differs. The OS holds a
@@ -42,7 +42,11 @@ import 'dart:ui';
 ///   That is a deliberate choice, so the in-app override is cleared to
 ///   follow it -- without the seeded record this case is indistinguishable
 ///   from the one above and the cleared value got silently pushed back on
-///   the next cold start.
+///   the next cold start. The seeded record is consumed with it: it
+///   described an override that no longer exists. Left standing, a language
+///   picked in the app afterwards whose push silently failed would also read
+///   as an OS clear on the next launch, and be deleted; consumed, that
+///   launch takes the branch above and retries the push instead.
 Future<String?> reconcileAppLocale({
   required String? savedLocaleCode,
   required String? systemLocaleTag,
@@ -53,6 +57,7 @@ Future<String?> reconcileAppLocale({
   required Future<void> Function(String? languageTag) pushToSystem,
   required Future<({String? tag, bool readFailed})> Function() readSystemTag,
   required Future<void> Function() markLocaleSyncSeeded,
+  required Future<void> Function() clearLocaleSyncSeeded,
 }) async {
   if (systemTagReadFailed) return savedLocaleCode;
 
@@ -82,6 +87,7 @@ Future<String?> reconcileAppLocale({
   }
 
   if (savedLocaleCode != null) await persistSelectedLocale(null);
+  await clearLocaleSyncSeeded();
   return null;
 }
 

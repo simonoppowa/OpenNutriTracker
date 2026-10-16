@@ -30,12 +30,53 @@ class _Recorder {
   final persisted = <String?>[];
   final pushed = <String?>[];
   int seededMarks = 0;
+  int seededClears = 0;
 
   Future<void> persist(String? code) async => persisted.add(code);
   Future<void> push(String? tag) async => pushed.add(tag);
   Future<({String? tag, bool readFailed})> readBack() async =>
       (tag: readBackFollowsPush ? pushed.lastOrNull : null, readFailed: false);
   Future<void> markSeeded() async => seededMarks++;
+  Future<void> clearSeeded() async => seededClears++;
+}
+
+/// One device across several launches: the saved choice, the OS override
+/// and the seeded marker all persist between [launch] calls, the way the
+/// config box and Android's per-app setting do.
+class _Device {
+  _Device({this.saved, this.osTag, this.seeded = false});
+
+  String? saved;
+  String? osTag;
+  bool seeded;
+
+  /// Whether a push reaches the OS. False models the swallowed
+  /// PlatformException in AppLocaleService.setApplicationLocale.
+  bool pushTakes = true;
+  final pushed = <String?>[];
+
+  /// The in-app picker: saves the choice and pushes it to the OS.
+  void pickInApp(String? code) {
+    saved = code;
+    pushed.add(code);
+    if (pushTakes) osTag = code;
+  }
+
+  Future<String?> launch() => reconcileAppLocale(
+    savedLocaleCode: saved,
+    systemLocaleTag: osTag,
+    systemTagReadFailed: false,
+    localeSyncSeeded: seeded,
+    supportedLocales: _supported,
+    persistSelectedLocale: (code) async => saved = code,
+    pushToSystem: (tag) async {
+      pushed.add(tag);
+      if (pushTakes) osTag = tag;
+    },
+    readSystemTag: () async => (tag: osTag, readFailed: false),
+    markLocaleSyncSeeded: () async => seeded = true,
+    clearLocaleSyncSeeded: () async => seeded = false,
+  );
 }
 
 Future<String?> _reconcile(
@@ -54,6 +95,7 @@ Future<String?> _reconcile(
   pushToSystem: recorder.push,
   readSystemTag: recorder.readBack,
   markLocaleSyncSeeded: recorder.markSeeded,
+  clearLocaleSyncSeeded: recorder.clearSeeded,
 );
 
 void main() {
@@ -174,6 +216,62 @@ void main() {
         reason: 'System default means follow the system in both pickers',
       );
       expect(recorder.seededMarks, 0);
+      expect(
+        recorder.seededClears,
+        1,
+        reason: 'the clear is acted on, so the record of the override it '
+            'removed is spent',
+      );
+    });
+
+    // Codex on #1230: the marker used to stay set for good once an override
+    // had been seen. After an OS clear, a language picked in the app whose
+    // push silently failed then left "saved, no OS tag, seeded" behind,
+    // which the next launch read as a second OS clear and deleted.
+    test('after an OS clear, a new in-app choice whose push failed survives',
+        () async {
+      final device = _Device(saved: 'pl', osTag: 'pl', seeded: true);
+
+      device.osTag = null; // System default in Android's picker
+      expect(await device.launch(), isNull);
+      expect(device.saved, isNull);
+
+      device.pushTakes = false;
+      device.pickInApp('de');
+
+      final result = await device.launch();
+
+      expect(
+        result,
+        'de',
+        reason: 'a failed push is not the user clearing their choice',
+      );
+      expect(device.saved, 'de');
+      expect(
+        device.pushed,
+        ['de', 'de'],
+        reason: 'the launch retries the push the picker could not deliver',
+      );
+      expect(device.seeded, isFalse);
+    });
+
+    test('once the retried push takes, a later OS clear is still honoured',
+        () async {
+      final device = _Device(saved: 'pl', osTag: 'pl', seeded: true);
+      device.osTag = null;
+      await device.launch();
+      device.pushTakes = false;
+      device.pickInApp('de');
+      await device.launch();
+
+      device.pushTakes = true;
+      expect(await device.launch(), 'de');
+      expect(device.osTag, 'de');
+      expect(device.seeded, isTrue);
+
+      device.osTag = null;
+      expect(await device.launch(), isNull);
+      expect(device.saved, isNull);
     });
 
     test('with nothing on either side, nothing happens', () async {
@@ -249,7 +347,12 @@ void main() {
       expect(recorder.seededMarks, 0);
     });
 
-    test('once seeded, nothing on either side writes nothing', () async {
+    // The override went away with nothing saved -- System default chosen in
+    // the app, say. The marker still describes an override that is gone, so
+    // it is consumed; left set, a later in-app choice whose push failed
+    // would be deleted as if the OS had cleared it.
+    test('once seeded, nothing on either side only spends the marker',
+        () async {
       final recorder = _Recorder();
 
       final result =
@@ -259,6 +362,7 @@ void main() {
       expect(recorder.persisted, isEmpty);
       expect(recorder.pushed, isEmpty);
       expect(recorder.seededMarks, 0);
+      expect(recorder.seededClears, 1);
     });
 
     test('an empty tag is treated as no override', () async {
@@ -289,6 +393,7 @@ void main() {
       expect(recorder.pushed, isEmpty);
       expect(recorder.persisted, isEmpty);
       expect(recorder.seededMarks, 0);
+      expect(recorder.seededClears, 0);
     });
   });
 

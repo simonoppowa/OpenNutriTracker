@@ -106,6 +106,7 @@ Future<void> _bootstrapApp() async {
     pushToSystem: AppLocaleService.setApplicationLocale,
     readSystemTag: AppLocaleService.getApplicationLocale,
     markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+    clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
 
@@ -294,6 +295,7 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
       pushToSystem: AppLocaleService.setApplicationLocale,
       readSystemTag: AppLocaleService.getApplicationLocale,
       markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+      clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
     );
     // Persistence above deliberately ran to completion regardless of widget
     // lifetime — what is saved must not depend on whether this State is

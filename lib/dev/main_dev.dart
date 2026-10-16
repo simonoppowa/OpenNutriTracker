@@ -46,6 +46,7 @@ Future<void> main() async {
     pushToSystem: AppLocaleService.setApplicationLocale,
     readSystemTag: AppLocaleService.getApplicationLocale,
     markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+    clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
   final savedAppTheme = await configRepo.getConfigAppTheme();

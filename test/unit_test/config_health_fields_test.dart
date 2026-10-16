@@ -232,6 +232,10 @@ void main() {
       // The delete-all shape: an emptied profile box must not blank it.
       await profileABox.clear();
       expect(await profileA.getLocaleSyncSeeded(), isTrue);
+
+      // Spending it after an OS clear is device-wide too.
+      await profileA.clearLocaleSyncSeeded();
+      expect(await profileB.getLocaleSyncSeeded(), isFalse);
     });
   });
 }

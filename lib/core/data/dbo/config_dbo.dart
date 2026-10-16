@@ -195,7 +195,10 @@ class ConfigDBO extends HiveObject {
   // observed with an override yet", not "the push has not happened". Without
   // it, an override the user cleared in the OS picker is indistinguishable
   // from one that was never seeded, and gets silently pushed back on the next
-  // launch. Device-wide, like selectedLocale: it is a fact about the device.
+  // launch. Reset to null when that clear is acted on, so a language picked
+  // in the app afterwards whose push silently failed is retried rather than
+  // read as a second clear. Device-wide, like selectedLocale: it is a fact
+  // about the device.
   @HiveField(40)
   bool? localeSyncSeeded;
 
