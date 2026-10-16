@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../fixture/user_entity_fixtures.dart';
+import '../../../../helpers/fake_reload_blocs.dart';
 import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
@@ -49,7 +51,11 @@ void main() {
 
   setUp(() {
     settingsBloc = _FakeSettingsBloc();
+    // Save reloads the Diary and Trends through the locator (#1359).
+    ReloadRecorder().register();
   });
+
+  tearDown(() async => locator.reset());
 
   Future<void> openDialog(
     WidgetTester tester, {
