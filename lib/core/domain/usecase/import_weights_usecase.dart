@@ -148,14 +148,18 @@ class ImportWeightsUsecase {
     if (writtenIds.isNotEmpty) await _updateCurrentWeight(writtenIds);
 
     await _configRepository.setConfigHealthWeightLastImportAt(to);
-    // Deleted weight readings share the workout tombstones, so this prunes
-    // against the same floor the workout import does. [readWindowStart]
-    // never reads back past that floor, which is what makes the shared
-    // pruning safe for both.
+    // Deleted weight readings share the workout tombstones, so the cutoff
+    // has to keep every tombstone either import can still ask about. This
+    // import's own window never reaches past the backfill floor (see
+    // [readWindowStart]), but the workout import resumes from its own
+    // watermark however old it is — a workout import left off for a month
+    // while weights kept syncing would otherwise come back to find its
+    // deletions pruned. Measuring against the workout watermark covers both:
+    // the cutoff is the earlier of its next window and the floor.
     await _configRepository.pruneConfigHealthDeletedWorkouts(
       ConfigEntity.oldestUsefulTombstone(
         now: to,
-        lastImportAt: to,
+        lastImportAt: config.healthLastImportAt,
         overlapTolerance: overlapTolerance,
       ),
     );

@@ -243,6 +243,45 @@ void main() {
       expect((await weightLogRepository.getEntry(today))!.externalId, 'd');
     });
 
+    test(
+      'keeps workout tombstones the stale workout watermark still needs',
+      () async {
+        // Workout import last ran two months ago; a workout from 45 days ago
+        // was deleted. Re-enabling it reads back from that old watermark, so
+        // the tombstone must survive weight imports in the meantime.
+        final deletedWorkoutStart = now.subtract(const Duration(days: 45));
+        await configDataSource.setConfigHealthLastImportAt(
+          now.subtract(const Duration(days: 60)),
+        );
+        await configDataSource.addConfigHealthDeletedWorkout(
+          'workout-1',
+          deletedWorkoutStart,
+        );
+
+        await usecase.importNow();
+
+        expect(
+          (await configRepository.getConfig()).healthDeletedWorkouts,
+          containsPair('workout-1', deletedWorkoutStart),
+        );
+      },
+    );
+
+    test('still prunes tombstones no import can ask about', () async {
+      await configDataSource.setConfigHealthLastImportAt(now);
+      await configDataSource.addConfigHealthDeletedWorkout(
+        'workout-1',
+        now.subtract(const Duration(days: 45)),
+      );
+
+      await usecase.importNow();
+
+      expect(
+        (await configRepository.getConfig()).healthDeletedWorkouts,
+        isEmpty,
+      );
+    });
+
     test('deleting a manual entry leaves no tombstone', () async {
       await weightLogRepository.addEntry(
         WeightLogEntity(date: today, weightKg: 79.0),
