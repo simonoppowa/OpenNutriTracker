@@ -272,7 +272,9 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
-    await widget.settingsBloc.updateTrackedDay(DateTime.now());
+    await widget.settingsBloc.updateTrackedDay(
+      await widget.settingsBloc.getCurrentLogicalDay(),
+    );
     if (!mounted) return;
     Navigator.of(context).pop();
   }

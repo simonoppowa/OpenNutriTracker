@@ -41,8 +41,20 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   // clamp honour the configured day-start offset (otherwise between midnight
   // and e.g. 4 am Home and Diary disagree on which day is "today").
   DateTime get _currentDate => _diaryBloc.currentDay;
-  var _selectedDate = DateTime.now();
-  var _focusedDate = DateTime.now();
+
+  // Null while the Diary is on "today", which is then the logical day the
+  // bloc resolved, not the calendar date: with "Day starts at" later than
+  // the current time, the calendar date is a day nothing is filed under
+  // yet, and the Diary opened on it empty while Home showed the food
+  // (#1360). A day the user picked stays picked.
+  DateTime? _pickedDate;
+  DateTime get _selectedDate => _pickedDate ?? _currentDate;
+  DateTime get _focusedDate => _selectedDate;
+
+  // The "today" the day view was last loaded for, so a reload that moves
+  // it (a day-boundary change, or a resume past the boundary) moves the
+  // day view along with it.
+  DateTime? _loadedToday;
 
   @override
   void initState() {
@@ -51,6 +63,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     _calendarDayBloc = locator<CalendarDayBloc>();
     _mealDetailBloc = locator<MealDetailBloc>();
     _activityDetailBloc = locator<ActivityDetailBloc>();
+    if (_diaryBloc.state is DiaryLoadedState) _loadedToday = _currentDate;
     super.initState();
   }
 
@@ -62,8 +75,11 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DiaryBloc, DiaryState>(
+    return BlocConsumer<DiaryBloc, DiaryState>(
       bloc: _diaryBloc,
+      listener: (context, state) {
+        if (state is DiaryLoadedState) _followToday();
+      },
       builder: (context, state) {
         if (state is DiaryInitial) {
           _diaryBloc.add(const LoadDiaryYearEvent());
@@ -347,15 +363,30 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     Map<String, TrackedDayEntity> trackedDaysMap,
   ) {
     setState(() {
-      _selectedDate = newDate;
-      _focusedDate = newDate;
-      _calendarDayBloc.add(LoadCalendarDayEvent(newDate));
+      _pickedDate =
+          DateUtils.isSameDay(newDate, _currentDate) ? null : newDate;
+      _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
     });
     if (newDate.isAfter(_currentDate) && !DateUtils.isSameDay(newDate, _currentDate)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).diaryFutureDateWarning)),
       );
     }
+  }
+
+  /// Keeps the day view on "today" when today moves under it, unless the
+  /// user has picked a day of their own.
+  void _followToday() {
+    final today = _currentDate;
+    final previous = _loadedToday;
+    _loadedToday = today;
+    if (previous == null || DateUtils.isSameDay(previous, today)) return;
+    if (_pickedDate != null) {
+      // The picked day may be the new today; stop treating it as picked.
+      if (DateUtils.isSameDay(_pickedDate, today)) _pickedDate = null;
+      return;
+    }
+    _calendarDayBloc.add(LoadCalendarDayEvent(today));
   }
 
   void _refreshPageOnDayChange() {

@@ -119,7 +119,9 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
     widget.homeBloc.add(const LoadItemsEvent());
     // Recompute today's stored kcal goal so the diary card reflects
     // the new adjustment immediately instead of waiting for tomorrow.
-    await widget.settingsBloc.updateTrackedDay(DateTime.now());
+    await widget.settingsBloc.updateTrackedDay(
+      await widget.settingsBloc.getCurrentLogicalDay(),
+    );
     if (!mounted) return;
     Navigator.of(context).pop();
   }
