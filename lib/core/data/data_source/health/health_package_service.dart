@@ -4,6 +4,7 @@ import 'dart:math' show max;
 import 'package:health/health.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
@@ -61,6 +62,9 @@ class HealthPackageService implements HealthService {
   /// Body fat personalises the calorie-credit suggestion. iOS only; see the
   /// class doc.
   static const _iosBodyCompositionType = HealthDataType.BODY_FAT_PERCENTAGE;
+
+  /// Nutrition data type used for writing meals to Health Connect and Apple Health.
+  static const _nutritionType = HealthDataType.NUTRITION;
 
   List<HealthDataType> get _readTypes => [
     _workoutType,
@@ -323,4 +327,103 @@ class HealthPackageService implements HealthService {
   /// as-is. No living adult is under 1% body fat, so a value at or below 1 is
   /// unambiguously the fractional spelling.
   double _bodyFatAsPercent(double raw) => raw <= 1 ? raw * 100 : raw;
+
+  @override
+  Future<bool> requestNutritionWritePermissions() async {
+    final granted = await _health.requestAuthorization(
+      const [_nutritionType],
+      permissions: const [HealthDataAccess.WRITE],
+    );
+    if (!granted) return false;
+    final hasPerm = await _health.hasPermissions(
+      const [_nutritionType],
+      permissions: const [HealthDataAccess.WRITE],
+    );
+    return hasPerm != false;
+  }
+
+  @override
+  Future<bool> writeMeal(ExternalMealIntake intake) async {
+    try {
+      final mealType = _mapMealType(intake.mealTypeName);
+      return await _health.writeMeal(
+        mealType: mealType,
+        startTime: intake.dateTime,
+        endTime: intake.dateTime,
+        clientRecordId: intake.id,
+        name: intake.name,
+        caloriesConsumed: intake.calories,
+        carbohydrates: intake.carbohydrates,
+        protein: intake.protein,
+        fatTotal: intake.fatTotal,
+        fiber: intake.fiber,
+        sugar: intake.sugar,
+        fatSaturated: intake.fatSaturated,
+        fatMonounsaturated: intake.fatMonounsaturated,
+        fatPolyunsaturated: intake.fatPolyunsaturated,
+        cholesterol: intake.cholesterol,
+        sodium: intake.sodium,
+        potassium: intake.potassium,
+        calcium: intake.calcium,
+        iron: intake.iron,
+        magnesium: intake.magnesium,
+        phosphorus: intake.phosphorus,
+        zinc: intake.zinc,
+        vitaminA: intake.vitaminA,
+        vitaminC: intake.vitaminC,
+        vitaminD: intake.vitaminD,
+        b6Pyridoxine: intake.vitaminB6,
+        b12Cobalamin: intake.vitaminB12,
+        b3Niacin: intake.niacin,
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to write meal intake ${intake.id} to health store',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> deleteMeal(String clientRecordId, {DateTime? at}) async {
+    try {
+      if (_platform == HealthTargetPlatform.android) {
+        return await _health.deleteByClientRecordId(
+          dataTypeKey: _nutritionType,
+          clientRecordId: clientRecordId,
+        );
+      } else if (_platform == HealthTargetPlatform.ios && at != null) {
+        return await _health.delete(
+          type: _nutritionType,
+          startTime: at,
+          endTime: at,
+        );
+      }
+      return false;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to delete meal intake $clientRecordId from health store',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  static MealType _mapMealType(String typeName) {
+    switch (typeName) {
+      case 'BREAKFAST':
+        return MealType.BREAKFAST;
+      case 'LUNCH':
+        return MealType.LUNCH;
+      case 'DINNER':
+        return MealType.DINNER;
+      case 'SNACK':
+        return MealType.SNACK;
+      default:
+        return MealType.UNKNOWN;
+    }
+  }
 }
