@@ -44,6 +44,11 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
 
   late final TextEditingController _kcalController;
 
+  /// Whether the user has typed into the field since it was last filled
+  /// in. Untouched kJ text is a rounded conversion (100 kcal shows as
+  /// 418 kJ), so re-parsing it would drift the stored value (#1371).
+  bool _kcalTextEdited = false;
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +78,8 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   }
 
   void _applyKcalInput() {
+    if (!_kcalTextEdited) return;
+    _kcalTextEdited = false;
     // The text field always reads in whichever unit the user is
     // seeing; convert back to kcal once for storage so the persisted
     // value stays consistent across unit toggles.
@@ -112,6 +119,11 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   }
 
   Future<void> _save() async {
+    // Apply any value still sitting in the text field. Without this,
+    // typing a number and tapping OK (without pressing the keyboard's
+    // Done key first) silently saved the slider's last value instead.
+    // Same fix as the macro split dialog (#525).
+    _applyKcalInput();
     await widget.settingsBloc.setKcalAdjustment(
       _kcalAdjustment.toInt().toDouble(),
     );
@@ -144,6 +156,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                 ? () {
                     setState(() => _kcalAdjustment = 0);
                     _kcalController.text = '0';
+                    _kcalTextEdited = false;
                   }
                 : null,
             child: Text(s.buttonResetLabel),
@@ -257,6 +270,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                       vertical: 12,
                                     ),
                                   ),
+                                  onChanged: (_) => _kcalTextEdited = true,
                                   onSubmitted: (_) => _applyKcalInput(),
                                   onEditingComplete: _applyKcalInput,
                                 ),
@@ -278,6 +292,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                   : value;
                               setState(() => _kcalAdjustment = asKcal);
                               _kcalController.text = value.round().toString();
+                              _kcalTextEdited = false;
                             },
                           ),
                         ),
