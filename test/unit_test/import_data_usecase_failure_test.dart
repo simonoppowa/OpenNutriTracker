@@ -5,12 +5,14 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
@@ -67,6 +69,7 @@ ImportDataUsecase _usecase(Future<PlatformFile?> Function() pickFile) {
     CustomActivityTemplateRepository(
       CustomActivityTemplateDataSource(provider),
     ),
+    ConfigRepository(ConfigDataSource(provider)),
     pickFile: pickFile,
   );
 }
