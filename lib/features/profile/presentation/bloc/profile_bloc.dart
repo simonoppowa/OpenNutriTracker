@@ -73,7 +73,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> updateUser(UserEntity userEntity) async {
     // Update user in DB
     await _addUserUsecase.addUser(userEntity);
+    await _propagateUserChange(userEntity);
+  }
 
+  /// Runs what saving a weight change sets off — today's calorie goal and
+  /// every screen that reads the user — for a weight that reached the user
+  /// record without going through [updateUser]. The health weight import
+  /// writes the current weight itself and calls this afterwards.
+  Future<void> reloadAfterWeightImport() async {
+    await _propagateUserChange(await _getUserUsecase.getUserData());
+  }
+
+  Future<void> _propagateUserChange(UserEntity userEntity) async {
     // Update Tracked Day
     await _updateTrackedDayCalorieGoal(userEntity, DateTime.now());
 

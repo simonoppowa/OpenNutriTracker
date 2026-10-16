@@ -41,6 +41,9 @@ class _FakeProfileBloc extends Bloc<ProfileEvent, ProfileState>
   Future<void> updateUser(UserEntity userEntity) async {
     updateUserCalls.add(userEntity);
   }
+
+  @override
+  Future<void> reloadAfterWeightImport() async {}
 }
 
 class _FakeAddWeightLogUsecase extends Fake implements AddWeightLogUsecase {

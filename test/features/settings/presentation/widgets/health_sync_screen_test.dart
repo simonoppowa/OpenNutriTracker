@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/workout_compensation_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
@@ -93,13 +94,22 @@ class _FakeImportWorkoutsUsecase extends Fake implements ImportWorkoutsUsecase {
 }
 
 class _FakeImportWeightsUsecase extends Fake implements ImportWeightsUsecase {
+  int importedCount = 0;
   int importNowCalls = 0;
 
   @override
   Future<int> importNow() async {
     importNowCalls++;
-    return 0;
+    return importedCount;
   }
+}
+
+class _FakeProfileBloc extends Fake implements ProfileBloc {
+  int reloadAfterWeightImportCalls = 0;
+
+  @override
+  Future<void> reloadAfterWeightImport() async =>
+      reloadAfterWeightImportCalls++;
 }
 
 class _FakeGetUserUsecase extends Fake implements GetUserUsecase {
@@ -628,6 +638,21 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    testWidgets('imported weights get the manual weight-change refresh', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false, healthWeightImportEnabled: true);
+      importWeightsUsecase.importedCount = 2;
+      final profileBloc = _FakeProfileBloc();
+      locator.registerSingleton<ProfileBloc>(profileBloc);
+
+      await pumpScreen(tester);
+      await tester.tap(_byIdentifier('health-sync-import-now'));
+      await tester.pumpAndSettle();
+
+      expect(profileBloc.reloadAfterWeightImportCalls, 1);
     });
 
     test('the weight disclosure says nothing about body fat', () {

@@ -29,13 +29,22 @@ class _FakeGetUserUsecase extends Fake implements GetUserUsecase {
 }
 
 class _FakeAddUserUsecase extends Fake implements AddUserUsecase {
+  int addUserCalls = 0;
+
   @override
-  Future<void> addUser(UserEntity userEntity) async {}
+  Future<void> addUser(UserEntity userEntity) async => addUserCalls++;
 }
 
 class _FakeAddTrackedDayUsecase extends Fake implements AddTrackedDayUsecase {
+  bool trackedDayExists = false;
+  final List<double> updatedGoals = [];
+
   @override
-  Future<bool> hasTrackedDay(DateTime day) async => false;
+  Future<bool> hasTrackedDay(DateTime day) async => trackedDayExists;
+
+  @override
+  Future<void> updateDayCalorieGoal(DateTime day, double calorieGoal) async =>
+      updatedGoals.add(calorieGoal);
 }
 
 class _FakeGetConfigUsecase extends Fake implements GetConfigUsecase {
@@ -45,7 +54,19 @@ class _FakeGetConfigUsecase extends Fake implements GetConfigUsecase {
   }
 }
 
-class _FakeGetKcalGoalUsecase extends Fake implements GetKcalGoalUsecase {}
+class _FakeGetKcalGoalUsecase extends Fake implements GetKcalGoalUsecase {
+  UserEntity? goalFor;
+
+  @override
+  Future<double> getKcalGoal({
+    UserEntity? userEntity,
+    double? totalKcalActivitiesParam,
+    double? kcalUserAdjustment,
+  }) async {
+    goalFor = userEntity;
+    return 2345;
+  }
+}
 
 class _FakeHomeBloc extends Fake implements HomeBloc {
   @override
@@ -53,13 +74,17 @@ class _FakeHomeBloc extends Fake implements HomeBloc {
 }
 
 class _FakeDiaryBloc extends Fake implements DiaryBloc {
+  final List<DiaryEvent> addedEvents = [];
+
   @override
-  void add(DiaryEvent event) {}
+  void add(DiaryEvent event) => addedEvents.add(event);
 }
 
 class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
+  final List<CalendarDayEvent> addedEvents = [];
+
   @override
-  void add(CalendarDayEvent event) {}
+  void add(CalendarDayEvent event) => addedEvents.add(event);
 }
 
 class _FakeTrendsBloc extends Fake implements TrendsBloc {
@@ -143,5 +168,41 @@ void main() {
     expect(trendsBloc.addedEvents, hasLength(1));
     final event = trendsBloc.addedEvents.single as LoadTrendsEvent;
     expect(event.rangeDays, 7);
+  });
+
+  test('reloadAfterWeightImport recalculates today\'s goal from the stored '
+      'user and reloads Diary, Calendar and Trends, without saving the user '
+      'again (a health import writes the weight itself)', () async {
+    final user = UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight;
+    trendsBloc = _FakeTrendsBloc(const TrendsInitial());
+    final diaryBloc = _FakeDiaryBloc();
+    final calendarDayBloc = _FakeCalendarDayBloc();
+    final addUserUsecase = _FakeAddUserUsecase();
+    final addTrackedDayUsecase = _FakeAddTrackedDayUsecase()
+      ..trackedDayExists = true;
+    final getKcalGoalUsecase = _FakeGetKcalGoalUsecase();
+
+    locator.registerSingleton<HomeBloc>(_FakeHomeBloc());
+    locator.registerSingleton<DiaryBloc>(diaryBloc);
+    locator.registerSingleton<CalendarDayBloc>(calendarDayBloc);
+    locator.registerSingleton<TrendsBloc>(trendsBloc);
+
+    final profileBloc = ProfileBloc(
+      _FakeGetUserUsecase(user),
+      addUserUsecase,
+      addTrackedDayUsecase,
+      _FakeGetConfigUsecase(),
+      getKcalGoalUsecase,
+    );
+    addTearDown(profileBloc.close);
+
+    await profileBloc.reloadAfterWeightImport();
+
+    expect(addUserUsecase.addUserCalls, 0);
+    expect(getKcalGoalUsecase.goalFor, same(user));
+    expect(addTrackedDayUsecase.updatedGoals, [2345]);
+    expect(diaryBloc.addedEvents, hasLength(1));
+    expect(calendarDayBloc.addedEvents, hasLength(1));
+    expect(trendsBloc.addedEvents, hasLength(1));
   });
 }

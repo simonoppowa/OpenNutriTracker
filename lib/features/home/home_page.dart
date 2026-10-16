@@ -547,13 +547,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       locator<ImportWeightsUsecase>().importIfDue(),
     ).wait;
     if (!mounted || (workouts == 0 && weights == 0)) return;
-    _homeBloc.add(const LoadItemsEvent());
-    if (workouts > 0) {
-      locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-      locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+    if (weights > 0) {
+      // A new reading can change the current weight, and with it today's
+      // calorie goal and BMI; Trends charts the log itself. This is the
+      // refresh a manual weight change gets, and it reloads Home and the
+      // Diary too, which covers any workouts imported alongside.
+      await locator<ProfileBloc>().reloadAfterWeightImport();
+      return;
     }
-    // A new reading can change the current weight, and with it BMI and the
-    // calorie goal the profile screen shows.
-    if (weights > 0) locator<ProfileBloc>().add(LoadProfileEvent());
+    _homeBloc.add(const LoadItemsEvent());
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
   }
 }

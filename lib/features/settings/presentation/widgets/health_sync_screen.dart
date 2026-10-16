@@ -257,10 +257,9 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     try {
       final imported = await locator<ImportWeightsUsecase>().importNow();
       await _reloadWatermark();
-      if (imported > 0) {
-        locator<HomeBloc>().add(const LoadItemsEvent());
-        locator<ProfileBloc>().add(LoadProfileEvent());
-      }
+      // The same refresh a manual weight change gets: today's calorie goal,
+      // Home, Profile, Diary and Trends.
+      if (imported > 0) await locator<ProfileBloc>().reloadAfterWeightImport();
       if (!mounted || !reportCount) return null;
       return S.of(context).healthSyncWeightImportedCountLabel(imported);
     } catch (error, stackTrace) {
