@@ -40,8 +40,17 @@ private struct CalorieReading {
     func nextBoundary(after moment: Date) -> Date {
         let offset = Self.sanitisedOffset(offsetMinutes)
         let start = Self.logicalDayStart(for: moment, offsetMinutes: offset)
-        let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? moment
+        let nextDay = Self.calendar.date(byAdding: .day, value: 1, to: start) ?? moment
         return nextDay.addingTimeInterval(TimeInterval(offset * 60))
+    }
+
+    /// Dart's `DateTime` is always Gregorian, so the day id has to be too.
+    /// `Calendar.current` follows the device setting (Buddhist, Hebrew,
+    /// Islamic, ...) and would format a different year and day.
+    private static var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone.current
+        return calendar
     }
 
     private static func sanitisedOffset(_ minutes: Int) -> Int {
@@ -52,15 +61,15 @@ private struct CalorieReading {
     private static func logicalDayStart(for moment: Date, offsetMinutes: Int) -> Date {
         let offset = sanitisedOffset(offsetMinutes)
         let shifted = moment.addingTimeInterval(TimeInterval(-offset * 60))
-        return Calendar.current.startOfDay(for: shifted)
+        return calendar.startOfDay(for: shifted)
     }
 
     private static func dayId(for moment: Date, offsetMinutes: Int) -> String {
         let start = logicalDayStart(for: moment, offsetMinutes: offsetMinutes)
         let formatter = DateFormatter()
-        formatter.calendar = Calendar.current
+        formatter.calendar = calendar
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone.current
+        formatter.timeZone = calendar.timeZone
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: start)
     }
