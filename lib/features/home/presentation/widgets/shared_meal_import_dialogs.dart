@@ -104,7 +104,9 @@ class SharedMealPreviewDialog extends StatelessWidget {
     final available = items.where((item) => item.meal != null).toList();
     final total =
         available.fold<double>(0, (sum, item) => sum + (item.energyKcal ?? 0));
-    final incomplete = available.any((item) => item.energyKcal == null);
+    // A skipped row (failed lookup) is missing from the sum too, so it makes
+    // the total incomplete just like a food without energy data.
+    final incomplete = items.any((item) => item.energyKcal == null);
     final numbers =
         NumberFormat('0.##', Localizations.localeOf(context).toString());
     return AlertDialog(

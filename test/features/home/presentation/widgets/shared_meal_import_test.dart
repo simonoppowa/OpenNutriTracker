@@ -255,6 +255,18 @@ void main() {
     });
   }
 
+  testWidgets('A failed lookup marks an otherwise complete total incomplete',
+      (tester) async {
+    await tester.pumpWidget(
+        app(SharedMealPreviewDialog(mealType: 'Dinner', items: [
+      SharedMealPreviewItem(meal: meal('Sardines'), amount: 90, unit: 'g'),
+      const SharedMealPreviewItem(
+          meal: null, amount: 100, unit: 'g', barcode: 'missing'),
+    ])));
+    expect(find.text(l10nEn.sharedMealPartialTotalLabel), findsOneWidget);
+    expect(find.text(l10nEn.sharedMealTotalLabel), findsNothing);
+  });
+
   testWidgets('All unavailable items disable Import', (tester) async {
     await tester.pumpWidget(
         app(const SharedMealPreviewDialog(mealType: 'Dinner', items: [
