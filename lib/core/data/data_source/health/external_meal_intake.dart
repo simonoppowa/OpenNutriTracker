@@ -9,6 +9,11 @@ import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 /// the data-source layer depends on the `health` package.
 @immutable
 class ExternalMealIntake {
+  /// How long each exported meal record lasts, starting at [dateTime]. Health
+  /// Connect rejects zero-length intervals. On iOS the same span is the delete
+  /// window, so callers deciding whether an iOS delete is safe use it too.
+  static const sampleDuration = Duration(minutes: 1);
+
   /// Stable client record id used for deduplication / in-place updates.
   final String id;
 

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
+import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
@@ -18,6 +19,7 @@ class _FakeHealthExportRepository extends Fake
     implements HealthExportRepository {
   final List<ExternalMealIntake> writtenMeals = [];
   final List<String> deletedMealIds = [];
+  final List<DateTime?> deleteWindows = [];
   bool writeResult = true;
   bool deleteResult = true;
   bool shouldThrow = false;
@@ -33,6 +35,7 @@ class _FakeHealthExportRepository extends Fake
   Future<bool> deleteMeal(String clientRecordId, {DateTime? at}) async {
     if (shouldThrow) throw Exception('Platform channel error');
     deletedMealIds.add(clientRecordId);
+    deleteWindows.add(at);
     return deleteResult;
   }
 }
@@ -56,6 +59,13 @@ class _FakeIntakeRepository extends Fake implements IntakeRepository {
   final List<IntakeEntity> addedIntakes = [];
   final List<IntakeEntity> deletedIntakes = [];
   IntakeEntity? updatedIntakeResult;
+
+  /// What the repository still holds — read by the iOS delete-window check.
+  List<IntakeEntity> storedIntakes = [];
+
+  @override
+  Future<List<IntakeDBO>> getAllIntakesDBO() async =>
+      storedIntakes.map(IntakeDBO.fromIntakeEntity).toList();
 
   @override
   Future<void> addIntake(IntakeEntity intakeEntity) async {
@@ -139,12 +149,14 @@ void main() {
   group('ExportMealIntakeUsecase', () {
     late _FakeHealthExportRepository healthRepo;
     late _FakeConfigRepository configRepo;
+    late _FakeIntakeRepository intakeRepo;
     late ExportMealIntakeUsecase usecase;
 
     setUp(() {
       healthRepo = _FakeHealthExportRepository();
       configRepo = _FakeConfigRepository();
-      usecase = ExportMealIntakeUsecase(healthRepo, configRepo);
+      intakeRepo = _FakeIntakeRepository();
+      usecase = ExportMealIntakeUsecase(healthRepo, configRepo, intakeRepo);
     });
 
     test(
@@ -181,6 +193,57 @@ void main() {
       expect(healthRepo.deletedMealIds, equals(['ont_intake_intake-123']));
     });
 
+    // #1393 review: iOS deletes by time window, and bulk add gives every row
+    // the same timestamp — deleting one must not erase the others.
+    group('iOS delete window', () {
+      IntakeEntity loggedAt(String id, DateTime dateTime) => IntakeEntity(
+        id: id,
+        unit: testIntake.unit,
+        amount: testIntake.amount,
+        type: testIntake.type,
+        meal: testIntake.meal,
+        dateTime: dateTime,
+      );
+
+      test('is passed when no other entry starts inside it', () async {
+        intakeRepo.storedIntakes = [
+          loggedAt('earlier', mealDate.subtract(const Duration(seconds: 1))),
+          loggedAt('later', mealDate.add(const Duration(minutes: 2))),
+        ];
+
+        await usecase.deleteIntake(testIntake);
+
+        expect(healthRepo.deleteWindows, [mealDate]);
+      });
+
+      test('is withheld when a bulk-add sibling shares its time', () async {
+        intakeRepo.storedIntakes = [loggedAt('sibling', mealDate)];
+
+        await usecase.deleteIntake(testIntake);
+
+        expect(healthRepo.deletedMealIds, ['ont_intake_intake-123']);
+        expect(healthRepo.deleteWindows, [null]);
+      });
+
+      test('is withheld when another entry starts later inside it', () async {
+        intakeRepo.storedIntakes = [
+          loggedAt('next', mealDate.add(const Duration(seconds: 59))),
+        ];
+
+        await usecase.deleteIntake(testIntake);
+
+        expect(healthRepo.deleteWindows, [null]);
+      });
+
+      test('ignores the entry being deleted if it is still stored', () async {
+        intakeRepo.storedIntakes = [testIntake];
+
+        await usecase.deleteIntake(testIntake);
+
+        expect(healthRepo.deleteWindows, [mealDate]);
+      });
+    });
+
     test('catches platform error and returns false without throwing', () async {
       configRepo.exportEnabled = true;
       healthRepo.shouldThrow = true;
@@ -200,7 +263,11 @@ void main() {
       healthRepo = _FakeHealthExportRepository();
       configRepo = _FakeConfigRepository();
       intakeRepo = _FakeIntakeRepository();
-      exportUsecase = ExportMealIntakeUsecase(healthRepo, configRepo);
+      exportUsecase = ExportMealIntakeUsecase(
+        healthRepo,
+        configRepo,
+        intakeRepo,
+      );
     });
 
     test('AddIntakeUsecase persists and triggers live export', () async {

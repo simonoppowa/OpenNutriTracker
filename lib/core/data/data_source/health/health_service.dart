@@ -40,6 +40,9 @@ abstract class HealthService {
 
   /// Deletes a previously written meal intake record from the health store.
   /// [clientRecordId] is used on Android (Health Connect).
-  /// [at] is used on iOS (HealthKit) to locate the sample window.
+  /// [at] is used on iOS (HealthKit), which cannot delete by record id: every
+  /// meal this app wrote starting in the [ExternalMealIntake.sampleDuration]
+  /// after [at] is removed. Pass null when that would hit another diary entry;
+  /// iOS then deletes nothing and returns false.
   Future<bool> deleteMeal(String clientRecordId, {DateTime? at});
 }

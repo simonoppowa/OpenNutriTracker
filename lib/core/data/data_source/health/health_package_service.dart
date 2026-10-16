@@ -349,7 +349,7 @@ class HealthPackageService implements HealthService {
       return await _health.writeMeal(
         mealType: mealType,
         startTime: intake.dateTime,
-        endTime: intake.dateTime.add(const Duration(minutes: 1)),
+        endTime: intake.dateTime.add(ExternalMealIntake.sampleDuration),
         clientRecordId: intake.id,
         clientRecordVersion: DateTime.now().millisecondsSinceEpoch.toDouble(),
         name: intake.name,
@@ -396,10 +396,15 @@ class HealthPackageService implements HealthService {
           clientRecordId: clientRecordId,
         );
       } else if (_platform == HealthTargetPlatform.ios && at != null) {
+        // The plugin's iOS side drops clientRecordId on write and has no
+        // delete by it, and the UUID its reader returns for a meal is one of
+        // the meal's nutrient samples, not the meal itself. So this removes
+        // every meal this app wrote starting in the window — the caller only
+        // passes [at] when no other diary entry starts inside it.
         return await _health.delete(
           type: _nutritionType,
           startTime: at,
-          endTime: at.add(const Duration(minutes: 1)),
+          endTime: at.add(ExternalMealIntake.sampleDuration),
         );
       }
       return false;

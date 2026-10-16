@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 
 /// Exports logged meals and their nutrients to Health Connect / Apple Health.
@@ -17,8 +18,13 @@ class ExportMealIntakeUsecase {
 
   final HealthExportRepository _healthExportRepository;
   final ConfigRepository _configRepository;
+  final IntakeRepository _intakeRepository;
 
-  ExportMealIntakeUsecase(this._healthExportRepository, this._configRepository);
+  ExportMealIntakeUsecase(
+    this._healthExportRepository,
+    this._configRepository,
+    this._intakeRepository,
+  );
 
   /// Exports a single [IntakeEntity] to the connected health store if enabled.
   Future<bool> exportIntake(IntakeEntity intake) async {
@@ -35,15 +41,22 @@ class ExportMealIntakeUsecase {
   }
 
   /// Deletes an exported intake from the health store when deleted in the app.
+  ///
+  /// Call after the intake has left the local repository.
   Future<bool> deleteIntake(IntakeEntity intake) async {
     try {
       final config = await _configRepository.getConfig();
       if (!config.healthExportEnabled) return false;
 
       final clientRecordId = 'ont_intake_${intake.id}';
+      // iOS can only delete by time window, and one window can hold several
+      // entries — a bulk add gives every row the same timestamp. Withholding
+      // the window then leaves the record in Apple Health rather than erasing
+      // meals the diary still has. Android deletes by record id regardless.
+      final shared = await _windowHasOtherIntake(intake);
       return await _healthExportRepository.deleteMeal(
         clientRecordId,
-        at: intake.dateTime,
+        at: shared ? null : intake.dateTime,
       );
     } catch (error, stackTrace) {
       _log.warning(
@@ -53,5 +66,19 @@ class ExportMealIntakeUsecase {
       );
       return false;
     }
+  }
+
+  /// Whether another diary entry starts inside [intake]'s iOS delete window,
+  /// `[dateTime, dateTime + sampleDuration]`.
+  Future<bool> _windowHasOtherIntake(IntakeEntity intake) async {
+    final start = intake.dateTime;
+    final end = start.add(ExternalMealIntake.sampleDuration);
+    final intakes = await _intakeRepository.getAllIntakesDBO();
+    return intakes.any(
+      (other) =>
+          other.id != intake.id &&
+          !other.dateTime.isBefore(start) &&
+          !other.dateTime.isAfter(end),
+    );
   }
 }
