@@ -12,6 +12,50 @@ private enum CalorieWidgetKeys {
     static let offset = "ont_calorie_offset_minutes"
     static let consumed = "ont_calorie_consumed"
     static let goal = "ont_calorie_goal"
+    static let titleLabel = "ont_calorie_label_title"
+    static let unitLabel = "ont_calorie_label_unit"
+    static let goalLabel = "ont_calorie_label_goal"
+    static let accessibilityLabel = "ont_calorie_label_accessibility"
+    static let openAppLabel = "ont_calorie_label_open_app"
+    static let descriptionLabel = "ont_calorie_label_description"
+}
+
+/// Copy the app writes in its own language (`CalorieWidgetLabels` in Dart),
+/// so translations come through the ARB/Weblate pipeline. The English
+/// fallbacks only cover the time before the app's first write.
+private struct CalorieLabels {
+    var title: String
+    var unit: String
+    var goal: String
+    var accessibility: String
+    var openApp: String
+    var description: String
+
+    static func load(for reading: CalorieReading? = nil) -> CalorieLabels {
+        let defaults = UserDefaults(suiteName: CalorieWidgetKeys.appGroupId)
+        func stored(_ key: String, or fallback: String) -> String {
+            guard let value = defaults?.string(forKey: key), !value.isEmpty else {
+                return fallback
+            }
+            return value
+        }
+        let consumed = reading?.consumed ?? 0
+        let goal = reading?.goal ?? 0
+        return CalorieLabels(
+            title: stored(CalorieWidgetKeys.titleLabel, or: "Calories"),
+            unit: stored(CalorieWidgetKeys.unitLabel, or: "kcal"),
+            goal: stored(CalorieWidgetKeys.goalLabel, or: "of \(goal)"),
+            accessibility: stored(
+                CalorieWidgetKeys.accessibilityLabel,
+                or: "\(consumed) of \(goal) kilocalories"
+            ),
+            openApp: stored(CalorieWidgetKeys.openAppLabel, or: "Open the app"),
+            description: stored(
+                CalorieWidgetKeys.descriptionLabel,
+                or: "Today's calories eaten and your goal."
+            )
+        )
+    }
 }
 
 private struct CalorieReading {
@@ -78,6 +122,7 @@ private struct CalorieReading {
 private struct CalorieEntry: TimelineEntry {
     var date: Date
     var reading: CalorieReading
+    var labels: CalorieLabels
     var showsNumbers: Bool
 }
 
@@ -86,6 +131,7 @@ private struct CalorieProvider: TimelineProvider {
         CalorieEntry(
             date: Date(),
             reading: CalorieReading(hasData: false, dayId: "", offsetMinutes: 0, consumed: 0, goal: 0),
+            labels: CalorieLabels.load(),
             showsNumbers: false
         )
     }
@@ -97,6 +143,7 @@ private struct CalorieProvider: TimelineProvider {
             CalorieEntry(
                 date: now,
                 reading: reading,
+                labels: CalorieLabels.load(for: reading),
                 showsNumbers: reading.isCurrent(at: now)
             )
         )
@@ -104,16 +151,19 @@ private struct CalorieProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<CalorieEntry>) -> Void) {
         let reading = CalorieReading.load()
+        let labels = CalorieLabels.load(for: reading)
         let now = Date()
         let boundary = reading.nextBoundary(after: now)
         let current = CalorieEntry(
             date: now,
             reading: reading,
+            labels: labels,
             showsNumbers: reading.isCurrent(at: now)
         )
         let expired = CalorieEntry(
             date: boundary,
             reading: reading,
+            labels: labels,
             showsNumbers: false
         )
         completion(Timeline(entries: [current, expired], policy: .after(boundary)))
@@ -153,26 +203,26 @@ private struct CalorieWidgetView: View {
                     Text("\(entry.reading.consumed)")
                         .font(.title2.weight(.semibold))
                         .minimumScaleFactor(0.6)
-                    Text("kcal")
+                    Text(entry.labels.unit)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
             }
             .padding(.horizontal, 8)
-            Text("of \(entry.reading.goal)")
+            Text(entry.labels.goal)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(12)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(entry.reading.consumed) of \(entry.reading.goal) kilocalories")
+        .accessibilityLabel(Text(entry.labels.accessibility))
     }
 
     private var placeholderBody: some View {
         VStack(spacing: 4) {
-            Text("Calories")
+            Text(entry.labels.title)
                 .font(.headline)
-            Text("Open the app")
+            Text(entry.labels.openApp)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -199,8 +249,8 @@ struct CalorieProgressWidget: Widget {
         StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
             CalorieWidgetView(entry: entry)
         }
-        .configurationDisplayName("Calories")
-        .description("Today's calories eaten and your goal.")
+        .configurationDisplayName(CalorieLabels.load().title)
+        .description(CalorieLabels.load().description)
         .supportedFamilies([.systemSmall])
     }
 }

@@ -25,6 +25,7 @@ import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
@@ -269,7 +270,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       offsetMinutes: offsetMinutes,
     );
     try {
-      await _calorieWidgetStore.write(snapshot);
+      await _calorieWidgetStore.write(
+        snapshot,
+        CalorieWidgetLabels.forAppLocale(snapshot),
+      );
     } catch (_) {
       // A widget write must not block the home screen.
     }

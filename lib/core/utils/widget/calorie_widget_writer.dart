@@ -2,11 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 
 /// Writes a [CalorieWidgetSnapshot] where the widget extension can read it.
 abstract class CalorieWidgetStore {
-  Future<void> write(CalorieWidgetSnapshot snapshot);
+  Future<void> write(
+    CalorieWidgetSnapshot snapshot,
+    CalorieWidgetLabels labels,
+  );
 }
 
 /// App Group on iOS, shared preferences on Android. Android has no
@@ -14,11 +18,15 @@ abstract class CalorieWidgetStore {
 /// can reuse the same keys.
 class HomeWidgetCalorieStore implements CalorieWidgetStore {
   @override
-  Future<void> write(CalorieWidgetSnapshot snapshot) async {
+  Future<void> write(
+    CalorieWidgetSnapshot snapshot,
+    CalorieWidgetLabels labels,
+  ) async {
     if (Platform.isIOS) {
       await HomeWidget.setAppGroupId(CalorieWidgetSnapshot.appGroupId);
     }
-    for (final entry in snapshot.toPayload().entries) {
+    final payload = {...snapshot.toPayload(), ...labels.toPayload()};
+    for (final entry in payload.entries) {
       await HomeWidget.saveWidgetData<String>(
         entry.key,
         entry.value,
