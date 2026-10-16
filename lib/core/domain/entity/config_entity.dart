@@ -97,6 +97,10 @@ class ConfigEntity extends Equatable {
   /// Off until the user opts in, so no health data is read by default.
   final bool healthImportEnabled;
 
+  /// Whether nutrition data is exported to Health Connect / Apple Health.
+  /// Off until the user opts in, so no health data is written by default.
+  final bool healthExportEnabled;
+
   /// Share of an imported workout's device-reported energy that counts
   /// toward the daily goal, as a fraction in [minHealthWorkoutKcalMultiplier]
   /// .. [maxHealthWorkoutKcalMultiplier]. Null means the user has not been
@@ -264,6 +268,7 @@ class ConfigEntity extends Equatable {
     this.foodSourceToggles = const <String, bool>{},
     this.isDemoData = false,
     this.healthImportEnabled = false,
+    this.healthExportEnabled = false,
     this.healthWorkoutKcalMultiplier,
     this.healthLastImportAt,
     this.healthDeletedWorkouts = const <String, DateTime>{},
@@ -380,6 +385,7 @@ class ConfigEntity extends Equatable {
         : const <String, bool>{},
     isDemoData: dbo.isDemoData ?? false,
     healthImportEnabled: dbo.healthImportEnabled ?? false,
+    healthExportEnabled: dbo.healthExportEnabled ?? false,
     healthWorkoutKcalMultiplier: _normaliseHealthMultiplier(
       dbo.healthWorkoutKcalMultiplier,
     ),
@@ -491,6 +497,7 @@ class ConfigEntity extends Equatable {
     foodSourceToggles,
     isDemoData,
     healthImportEnabled,
+    healthExportEnabled,
     healthWorkoutKcalMultiplier,
     healthLastImportAt,
     healthDeletedWorkouts,
