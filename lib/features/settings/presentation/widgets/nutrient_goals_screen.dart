@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
@@ -576,6 +577,12 @@ class _NutrientRow extends StatelessWidget {
                   ),
                   inputFormatters: decimalStep
                       ? [
+                          // Accept a comma from comma-decimal keyboards and
+                          // normalise it to a period, so the field always
+                          // holds what double.tryParse reads (#1387).
+                          ...CustomTextInputFormatter.doubleOnly(
+                            maxDecimals: 1,
+                          ),
                           FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d*'),
                           ),
