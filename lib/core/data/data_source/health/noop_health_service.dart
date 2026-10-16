@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 
@@ -17,6 +18,9 @@ class NoopHealthService implements HealthService {
   Future<bool> requestPermissions() async => false;
 
   @override
+  Future<bool> requestNutritionWritePermissions() async => false;
+
+  @override
   Future<List<ExternalWorkout>> readWorkouts({
     required DateTime from,
     required DateTime to,
@@ -24,4 +28,10 @@ class NoopHealthService implements HealthService {
 
   @override
   Future<double?> readLatestBodyFatPercent() async => null;
+
+  @override
+  Future<bool> writeMeal(ExternalMealIntake intake) async => false;
+
+  @override
+  Future<bool> deleteMeal(String clientRecordId, {DateTime? at}) async => false;
 }
