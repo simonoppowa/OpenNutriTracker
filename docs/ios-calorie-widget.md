@@ -15,7 +15,7 @@ The extension bundle ids are:
 - full: `com.opennutritracker.ont.opennutritracker.CalorieWidget`
 - develop: `com.opennutritracker.ont.opennutritracker.develop.CalorieWidget`
 
-The id must stay a prefix of the parent app id for that flavor. The Dart constant `CalorieWidgetSnapshot.appGroupId` and `CalorieWidgetKeys.appGroupId` in `ios/CalorieWidget/CalorieWidget.swift` must stay the same string.
+Each flavor's parent app id must stay a prefix of its extension id. The Dart constant `CalorieWidgetSnapshot.appGroupId` and `CalorieWidgetKeys.appGroupId` in `ios/CalorieWidget/CalorieWidget.swift` must stay the same string.
 
 ## Local development
 
