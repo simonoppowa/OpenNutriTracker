@@ -16,6 +16,8 @@ class CalorieWidgetSnapshot {
   static const consumedKey = 'ont_calorie_consumed';
   static const goalKey = 'ont_calorie_goal';
 
+  static const keys = [hasDataKey, dayKey, offsetKey, consumedKey, goalKey];
+
   final bool hasData;
   final String dayId;
   final int offsetMinutes;
