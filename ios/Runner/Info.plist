@@ -66,7 +66,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
     <string>Used to attach a photo to a custom meal so it's easier to recognise in your saved list, and for exporting data.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Read access to your workouts and body fat percentage is used to import workouts into your diary and to suggest how much of their energy to credit toward your daily goal. Nothing is written back to Health, and the data stays on your device.</string>
+	<string>Read access to your workouts, body weight and body fat percentage is used to import workouts into your diary, to suggest how much of their energy to credit toward your daily goal, and to add your weigh-ins to your weight history. Nothing is written back to Health, and the data stays on your device.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Local network access is used only when you point AI meal logging at a server you run yourself — Ollama, LM Studio, llama.cpp or vLLM — at an address you type in. Nothing is sent unless you enter that address, and the app never discovers or contacts any other device on your network.</string>
 	<key>NSHealthUpdateUsageDescription</key>
