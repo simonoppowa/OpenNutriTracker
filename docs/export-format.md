@@ -65,7 +65,8 @@ once — an install hit by #1357 exports two copies — the copy edited before
 the fix wins: the first row for intakes, the last row for activities and
 templates, matching where those older builds wrote an edit. An edit on a
 current build rewrites every copy, so the copies agree. A row with a blank
-`id` has no identity and is always added, never merged. The goal settings in
+`id` is given one derived from its content, so importing the same zip twice
+still changes nothing, and two identical rows both stay. The goal settings in
 `goal_settings.json`, when the zip has one, replace the active profile's. After
 any import, today's kcal and macro goals are worked out again from the
 profile and goal settings now on the device, as Home shows them. This applies

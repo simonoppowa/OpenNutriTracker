@@ -451,7 +451,7 @@ void main() {
     });
   });
 
-  group('rows without an id are never merged', () {
+  group('rows without an id', () {
     test('JSON: blank-id rows are kept apart, from each other and from '
         'stored rows', () async {
       await intakeBox.add(IntakeDBO.fromJson(_intakeJson('', amount: 10)));
@@ -502,6 +502,81 @@ void main() {
         15,
         25,
       ]);
+    });
+
+    /// Every stored id is set and unique: the meal lists key their cards
+    /// by it, and two cards with one key fail to render.
+    void expectDistinctIds() {
+      final intakeIds = intakeBox.values.map((i) => i.id).toList();
+      final activityIds = activityBox.values.map((a) => a.id).toList();
+      expect(intakeIds, everyElement(isNotEmpty));
+      expect(activityIds, everyElement(isNotEmpty));
+      expect(intakeIds.toSet(), hasLength(intakeIds.length));
+      expect(activityIds.toSet(), hasLength(activityIds.length));
+    }
+
+    test('CSV: importing a file whose rows have no id twice keeps one copy '
+        'of each, each with its own id', () async {
+      writeZip({
+        'user_activity.csv': CsvDataExporter.userActivitiesToCsv([
+          UserActivityDBO.fromJson(_activityJson('', duration: 15)),
+          UserActivityDBO.fromJson(_activityJson('', duration: 25)),
+        ]),
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(_intakeJson('', amount: 20)),
+          IntakeDBO.fromJson(_intakeJson('', amount: 30)),
+        ]),
+        'user_tracked_day.csv': '',
+      });
+
+      expect(await usecase.importDataCsv(), isTrue);
+      expect(await usecase.importDataCsv(), isTrue);
+
+      expect(intakeBox.values.map((i) => i.amount).toList()..sort(), [20, 30]);
+      expect(activityBox.values.map((a) => a.duration).toList()..sort(), [
+        15,
+        25,
+      ]);
+      expectDistinctIds();
+    });
+
+    test('JSON: importing a bundle whose rows have no id twice keeps one '
+        'copy of each', () async {
+      writeBundle(
+        intakes: [_intakeJson('', amount: 20), _intakeJson('', amount: 30)],
+        activities: [
+          _activityJson('', duration: 15),
+          _activityJson('', duration: 25),
+        ],
+      );
+
+      await importJson();
+      await importJson();
+
+      expect(intakeBox.values.map((i) => i.amount).toList()..sort(), [20, 30]);
+      expect(activityBox.values.map((a) => a.duration).toList()..sort(), [
+        15,
+        25,
+      ]);
+      expectDistinctIds();
+    });
+
+    test('two identical rows without an id are both kept, on every '
+        'import', () async {
+      writeBundle(
+        intakes: [_intakeJson('', amount: 20), _intakeJson('', amount: 20)],
+        activities: [
+          _activityJson('', duration: 15),
+          _activityJson('', duration: 15),
+        ],
+      );
+
+      await importJson();
+      await importJson();
+
+      expect(intakeBox.values.map((i) => i.amount), [20, 20]);
+      expect(activityBox.values.map((a) => a.duration), [15, 15]);
+      expectDistinctIds();
     });
   });
 

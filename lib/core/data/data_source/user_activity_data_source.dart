@@ -21,14 +21,19 @@ class UserActivityDataSource {
   /// Upserts by [UserActivityDBO.id]: an activity whose id is already
   /// stored replaces it, so importing a bundle twice leaves one copy
   /// (#1357). Where a bundle holds an id twice the last row wins — the old
-  /// edit deleted the first copy and appended the edited one. A blank id
-  /// is no identity: that row is always added.
+  /// edit deleted the first copy and appended the edited one. A row with a
+  /// blank id gets one derived from its content first ([withContentIds]).
   Future<void> upsertAllUserActivities(
     List<UserActivityDBO> userActivityDBOList,
   ) async {
     log.fine('Upserting user activities into db');
     await _userActivityBox.upsertAllBy(
-      userActivityDBOList,
+      withContentIds(
+        userActivityDBOList,
+        idOf: (dbo) => dbo.id,
+        toJson: (dbo) => dbo.toJson(),
+        fromJson: UserActivityDBO.fromJson,
+      ),
       (dbo) => dbo.id.isEmpty ? null : dbo.id,
       winner: UpsertWinner.last,
     );
