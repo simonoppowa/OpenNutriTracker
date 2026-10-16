@@ -233,7 +233,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
       _foodBloc.add(SearchFoodInputChangedEvent(searchString: inputText));
     }
     if (source == _SearchSource.recent) {
-      _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
+      // Filters the history already in memory rather than re-reading the
+      // whole intake box on every keystroke.
+      _recentMealBloc.add(
+        RecentMealSearchChangedEvent(searchString: inputText),
+      );
     }
   }
 
