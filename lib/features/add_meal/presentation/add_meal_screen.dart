@@ -542,7 +542,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 onScanBarcode: _onBarcodeIconPressed,
                 onCreateCustomFood: () =>
                     _onCustomAddButtonPressed(state.usesImperialUnits),
-                onSearchAll: _stickOnRecent ? _onSearchAllPressed : null,
+                // All skips queries below minQueryLength, so only offer it
+                // once the query is long enough to actually search.
+                onSearchAll:
+                    _stickOnRecent && query.trim().length >= minQueryLength
+                    ? _onSearchAllPressed
+                    : null,
               );
             } else if (state is RecentMealFailedState) {
               return ErrorDialog(
