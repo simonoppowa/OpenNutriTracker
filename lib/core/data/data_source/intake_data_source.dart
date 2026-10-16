@@ -32,13 +32,38 @@ class IntakeDataSource {
       withContentIds(
         intakeDBOList,
         idOf: (dbo) => dbo.id,
-        toJson: (dbo) => dbo.toJson(),
-        fromJson: IntakeDBO.fromJson,
+        contentOf: _contentOf,
+        withId: (dbo, id) => IntakeDBO(
+          id: id,
+          unit: dbo.unit,
+          amount: dbo.amount,
+          type: dbo.type,
+          meal: dbo.meal,
+          dateTime: dbo.dateTime,
+        ),
       ),
-      (dbo) => dbo.id.isEmpty ? null : dbo.id,
+      (dbo) => isBlankId(dbo.id) ? null : dbo.id,
       winner: UpsertWinner.first,
     );
   }
+
+  /// What a blank-id intake's derived id is made of: when, which meal
+  /// slot, how much of which food. These fields are in every export ever
+  /// written. The nutriments are left out — the import rescales old Open
+  /// Food Facts values (#1152), so they are not a fixed property of the
+  /// backup row — and two rows that differ only there still both stay, as
+  /// any two equal rows do. Changing this list moves every derived id, and
+  /// re-importing an old backup would then duplicate its blank-id rows.
+  static List<String?> _contentOf(IntakeDBO dbo) => [
+    dbo.dateTime.toIso8601String(),
+    dbo.type.name,
+    dbo.amount.toString(),
+    dbo.unit,
+    dbo.meal.source.name,
+    dbo.meal.code,
+    dbo.meal.name,
+    dbo.meal.brands,
+  ];
 
   Future<void> deleteIntakeFromId(String intakeId) async {
     log.fine('Deleting intake item from db');

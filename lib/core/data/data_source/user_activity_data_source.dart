@@ -31,13 +31,37 @@ class UserActivityDataSource {
       withContentIds(
         userActivityDBOList,
         idOf: (dbo) => dbo.id,
-        toJson: (dbo) => dbo.toJson(),
-        fromJson: UserActivityDBO.fromJson,
+        contentOf: _contentOf,
+        withId: (dbo, id) => UserActivityDBO(
+          id,
+          dbo.duration,
+          dbo.burnedKcal,
+          dbo.date,
+          dbo.physicalActivityDBO,
+          userKcal: dbo.userKcal,
+          externalId: dbo.externalId,
+          sourceReportedKcal: dbo.sourceReportedKcal,
+        ),
       ),
-      (dbo) => dbo.id.isEmpty ? null : dbo.id,
+      (dbo) => isBlankId(dbo.id) ? null : dbo.id,
       winner: UpsertWinner.last,
     );
   }
+
+  /// What a blank-id activity's derived id is made of: when, which
+  /// activity, for how long and for how many kcal. These fields are in
+  /// every export ever written; the optional ones added later (`userKcal`,
+  /// `externalId`, `sourceReportedKcal`) are left out so a backup reads
+  /// the same before and after them. Changing this list moves every
+  /// derived id, and re-importing an old backup would then duplicate its
+  /// blank-id rows.
+  static List<String?> _contentOf(UserActivityDBO dbo) => [
+    dbo.date.toIso8601String(),
+    dbo.physicalActivityDBO.code,
+    dbo.physicalActivityDBO.specificActivity,
+    dbo.duration.toString(),
+    dbo.burnedKcal.toString(),
+  ];
 
   /// Rewrites every stored copy of [id], so an install the old import
   /// doubled (#1357) ends up with copies that agree. The fields an edit

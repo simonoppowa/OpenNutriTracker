@@ -18,38 +18,44 @@ enum UpsertWinner {
   last,
 }
 
-/// Gives each row in [items] whose id is blank (a hand-edited CSV, an old
-/// export) an id derived from its content, so it has an identity like any
-/// other row: importing the same file again replaces it instead of adding
-/// it once more, and no two stored rows share the blank id the meal lists
-/// key their cards by (#1357). Rows with equal content are told apart by
-/// how many came before them in [items], so two identical entries both
-/// survive. Rows that already have an id are returned unchanged.
+/// Whether [id] carries no identity: empty, or only whitespace (a hand-
+/// edited backup). No generated id looks like that.
+bool isBlankId(String id) => id.trim().isEmpty;
+
+/// Gives each row in [items] whose id is blank ([isBlankId]: a hand-edited
+/// CSV, an old export) an id derived from its content, so it has an
+/// identity like any other row: importing the same file again replaces it
+/// instead of adding it once more, and no two stored rows share the blank
+/// id the meal lists key their cards by (#1357). Rows with equal content
+/// are told apart by how many came before them in [items], so two
+/// identical entries both survive. Rows that already have an id are
+/// returned unchanged.
+///
+/// [contentOf] lists the fields that make up a row's content, each already
+/// a string, in a fixed order. It names them by hand rather than reading
+/// the generated serializer, so a field a later version adds, or a change
+/// to how one is serialized, leaves the id of the same backup row where it
+/// was. Nothing here encodes a double, so a non-finite value cannot throw.
 List<T> withContentIds<T>(
   List<T> items, {
   required String Function(T item) idOf,
-  required Map<String, dynamic> Function(T item) toJson,
-  required T Function(Map<String, dynamic> json) fromJson,
+  required List<String?> Function(T item) contentOf,
+  required T Function(T item, String id) withId,
 }) {
   final seen = <String, int>{};
   final out = <T>[];
   for (final item in items) {
-    if (idOf(item).isNotEmpty) {
+    if (!isBlankId(idOf(item))) {
       out.add(item);
       continue;
     }
-    // Round-trip through JSON so nested DBOs become plain maps.
-    final json =
-        jsonDecode(jsonEncode(toJson(item))) as Map<String, dynamic>
-          ..remove('id');
-    final content = jsonEncode(json);
+    final content = jsonEncode(contentOf(item));
     final occurrence = seen.update(
       content,
       (count) => count + 1,
       ifAbsent: () => 0,
     );
-    json['id'] = IdGenerator.getContentID('$content#$occurrence');
-    out.add(fromJson(json));
+    out.add(withId(item, IdGenerator.getContentID('$content#$occurrence')));
   }
   return out;
 }
