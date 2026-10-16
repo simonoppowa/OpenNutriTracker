@@ -371,6 +371,70 @@ void main() {
     });
   });
 
+  group('how hard a server the user runs is asked for the tool call', () {
+    Future<CapturingClient> sendTo(String endpoint) => send(
+      AiSelection(
+        provider: AiProvider.ownServer,
+        apiKey: 'key',
+        endpoint: endpoint,
+        modelId: 'some-model',
+      ),
+    );
+
+    test('Gemini is asked for the tool by name', () async {
+      // #1257: Google's OpenAI-compatible layer returns the meal only when
+      // the function is named.
+      final client = await sendTo(
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], {
+        'type': 'function',
+        'function': {'name': 'log_meal_items'},
+      });
+    });
+
+    test('however the host is capitalised', () async {
+      final client = await sendTo(
+        'https://GenerativeLanguage.GoogleApis.com/v1beta/openai/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], isA<Map<String, dynamic>>());
+    });
+
+    test('llama.cpp and LM Studio keep "required"', () async {
+      // #733: llama.cpp parses `tool_choice` as a string and downgrades an
+      // object to "auto", and nothing in the prompt asks for the tool, so a
+      // named function there is a prose reply and a "no tool call" failure.
+      for (final endpoint in [
+        'https://llama.example.org/v1/chat/completions',
+        'https://lmstudio.example.org:1234/v1/chat/completions',
+      ]) {
+        final client = await sendTo(endpoint);
+        expect(client.body!['tool_choice'], 'required', reason: endpoint);
+      }
+    });
+
+    test('a look-alike host is not Gemini', () async {
+      final client = await sendTo(
+        'https://generativelanguage.googleapis.com.example.org/v1/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], 'required');
+    });
+
+    test('local addresses keep "required" too', () {
+      expect(
+        ownServerToolChoice(Uri.parse('http://192.168.1.5:8080/v1')),
+        ToolChoiceMode.anyTool,
+      );
+      expect(
+        ownServerToolChoice(Uri.parse('http://localhost:11434/v1')),
+        ToolChoiceMode.anyTool,
+      );
+    });
+  });
+
   test('both clients are held to the one shared schema', () async {
     // The no-macros guarantee is only a guarantee if it survives the switch
     // that chooses between them.
