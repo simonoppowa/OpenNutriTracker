@@ -226,6 +226,10 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   }
 
   Future<void> _save() async {
+    // Leaving a field applies its typed value (see _NutrientRow). Save does
+    // not take focus, so drop it here and settle the change before reading.
+    FocusManager.instance.primaryFocus?.unfocus();
+    FocusManager.instance.applyFocusChangesIfNeeded();
     // Make sure today's tracked-day row exists before we write per-
     // nutrient values onto it. updateTrackedDay creates the row from
     // current macro goals if missing, or refreshes the macro columns
@@ -478,7 +482,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   }
 }
 
-class _NutrientRow extends StatelessWidget {
+class _NutrientRow extends StatefulWidget {
   final String label;
   final String description;
   final double value;
@@ -508,8 +512,45 @@ class _NutrientRow extends StatelessWidget {
   });
 
   @override
+  State<_NutrientRow> createState() => _NutrientRowState();
+}
+
+class _NutrientRowState extends State<_NutrientRow> {
+  /// A typed value is applied when the field loses focus, not only on
+  /// submit: the iOS number pad has no return key (#1324).
+  late final FocusNode _focusNode;
+
+  /// Whether the field holds text the user typed that is not applied yet.
+  /// Only typed text is applied on focus loss: the field otherwise shows a
+  /// rounded copy of the value, and an untouched row has to stay unset so
+  /// it keeps following its default.
+  bool _textEdited = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode()..addListener(_onFocusChanged);
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChanged() {
+    if (!mounted || _focusNode.hasFocus || !_textEdited) return;
+    _applyText();
+  }
+
+  void _applyText() {
+    _textEdited = false;
+    widget.onTextSubmitted();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final clamped = value.clamp(min, max).toDouble();
+    final clamped = widget.value.clamp(widget.min, widget.max).toDouble();
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Column(
@@ -517,17 +558,18 @@ class _NutrientRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(label)),
+              Expanded(child: Text(widget.label)),
               SizedBox(
                 // Scale with the user's text setting so the value and unit
                 // suffix stay readable at large font scales.
                 width: MediaQuery.textScalerOf(context).scale(124),
                 child: TextField(
-                  controller: controller,
+                  controller: widget.controller,
+                  focusNode: _focusNode,
                   keyboardType: TextInputType.numberWithOptions(
-                    decimal: decimalStep,
+                    decimal: widget.decimalStep,
                   ),
-                  inputFormatters: decimalStep
+                  inputFormatters: widget.decimalStep
                       ? [
                           FilteringTextInputFormatter.allow(
                             RegExp(r'^\d*\.?\d*'),
@@ -536,24 +578,25 @@ class _NutrientRow extends StatelessWidget {
                       : [FilteringTextInputFormatter.digitsOnly],
                   textAlign: TextAlign.right,
                   decoration: InputDecoration(
-                    suffixText: unit,
+                    suffixText: widget.unit,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 12,
                     ),
                   ),
-                  onSubmitted: (_) => onTextSubmitted(),
-                  onEditingComplete: onTextSubmitted,
+                  onChanged: (_) => _textEdited = true,
+                  onSubmitted: (_) => _applyText(),
+                  onEditingComplete: _applyText,
                 ),
               ),
             ],
           ),
-          if (description.isNotEmpty)
+          if (widget.description.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2.0),
               child: Text(
-                description,
+                widget.description,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme
@@ -563,19 +606,21 @@ class _NutrientRow extends StatelessWidget {
               ),
             ),
           Semantics(
-            identifier: identifier,
+            identifier: widget.identifier,
             child: Slider(
-              min: min,
-              max: max,
+              min: widget.min,
+              max: widget.max,
               value: clamped,
-              divisions: divisions,
+              divisions: widget.divisions,
               onChanged: (v) {
-                final step = (max - min) / divisions;
-                final snapped = ((v - min) / step).round() * step + min;
-                controller.text = decimalStep
+                _textEdited = false;
+                final step = (widget.max - widget.min) / widget.divisions;
+                final snapped =
+                    ((v - widget.min) / step).round() * step + widget.min;
+                widget.controller.text = widget.decimalStep
                     ? snapped.toStringAsFixed(1)
                     : snapped.round().toString();
-                onSliderChanged(snapped);
+                widget.onSliderChanged(snapped);
               },
             ),
           ),
