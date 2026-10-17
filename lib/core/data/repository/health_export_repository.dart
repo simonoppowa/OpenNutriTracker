@@ -17,6 +17,8 @@ class HealthExportRepository {
   Future<bool> requestPermissions() async =>
       await _healthService.requestNutritionWritePermissions();
 
+  bool get upsertsByRecordId => _healthService.upsertsByRecordId;
+
   Future<bool> writeMeal(ExternalMealIntake intake) async =>
       await _healthService.writeMeal(intake);
 

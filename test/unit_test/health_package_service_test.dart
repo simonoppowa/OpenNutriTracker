@@ -461,7 +461,11 @@ void main() {
       expect(await service.deleteMeal(id, at: at), isTrue);
 
       expect(health.windowDeletes, [
-        (HealthDataType.NUTRITION, at, at.add(const Duration(minutes: 1))),
+        (
+          HealthDataType.NUTRITION,
+          at,
+          at.add(const Duration(seconds: 59, milliseconds: 999)),
+        ),
       ]);
       expect(health.idDeletes, isEmpty);
     });

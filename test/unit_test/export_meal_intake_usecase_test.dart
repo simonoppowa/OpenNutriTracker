@@ -24,10 +24,20 @@ class _FakeHealthExportRepository extends Fake
   bool deleteResult = true;
   bool shouldThrow = false;
 
+  /// Health Connect (true) or HealthKit (false).
+  bool upserts = true;
+
+  /// Deletes and writes in the order they reached the store.
+  final List<String> ops = [];
+
+  @override
+  bool get upsertsByRecordId => upserts;
+
   @override
   Future<bool> writeMeal(ExternalMealIntake intake) async {
     if (shouldThrow) throw Exception('Platform channel error');
     writtenMeals.add(intake);
+    ops.add('write ${intake.id}');
     return writeResult;
   }
 
@@ -36,6 +46,7 @@ class _FakeHealthExportRepository extends Fake
     if (shouldThrow) throw Exception('Platform channel error');
     deletedMealIds.add(clientRecordId);
     deleteWindows.add(at);
+    ops.add('delete $at');
     return deleteResult;
   }
 }
@@ -78,11 +89,24 @@ class _FakeIntakeRepository extends Fake implements IntakeRepository {
   }
 
   @override
+  Future<IntakeEntity?> getIntakeById(String intakeId) async =>
+      storedIntakes.where((intake) => intake.id == intakeId).firstOrNull;
+
+  /// Stores [updatedIntakeResult] in place of the intake it edits, as the
+  /// real repository does.
+  @override
   Future<IntakeEntity?> updateIntake(
     String intakeId,
     Map<String, dynamic> fields,
   ) async {
-    return updatedIntakeResult;
+    final result = updatedIntakeResult;
+    if (result != null) {
+      storedIntakes = [
+        for (final intake in storedIntakes)
+          if (intake.id == intakeId) result else intake,
+      ];
+    }
+    return result;
   }
 }
 
@@ -280,6 +304,125 @@ void main() {
 
         expect(healthRepo.deleteWindows, [mealDate]);
       });
+    });
+
+    // #1393 review: HealthKit has no upsert identity, so an edit has to
+    // replace the old meal's window rather than add a second meal.
+    group('iOS update', () {
+      IntakeEntity edit(
+        IntakeEntity intake, {
+        double? amount,
+        DateTime? dateTime,
+        String? id,
+      }) => IntakeEntity(
+        id: id ?? intake.id,
+        unit: intake.unit,
+        amount: amount ?? intake.amount,
+        type: intake.type,
+        meal: intake.meal,
+        dateTime: dateTime ?? intake.dateTime,
+      );
+
+      setUp(() => healthRepo.upserts = false);
+
+      test('replaces the window of an entry with no siblings', () async {
+        final after = edit(testIntake, amount: 200);
+        intakeRepo.storedIntakes = [after];
+
+        expect(await usecase.exportUpdatedIntake(testIntake, after), isTrue);
+
+        expect(healthRepo.ops, [
+          'delete $mealDate',
+          'write ont_intake_intake-123',
+        ]);
+        expect(healthRepo.writtenMeals.single.calories, closeTo(400.0, 0.01));
+      });
+
+      test('rewrites a same-minute sibling instead of losing it', () async {
+        final after = edit(testIntake, amount: 200);
+        final sibling = edit(
+          testIntake,
+          id: 'sibling',
+          dateTime: mealDate.add(const Duration(seconds: 10)),
+        );
+        intakeRepo.storedIntakes = [after, sibling];
+
+        await usecase.exportUpdatedIntake(testIntake, after);
+
+        expect(healthRepo.deleteWindows, [mealDate]);
+        expect(healthRepo.ops.first, 'delete $mealDate');
+        expect(healthRepo.writtenMeals.map((meal) => meal.id), {
+          'ont_intake_intake-123',
+          'ont_intake_sibling',
+        });
+        expect(healthRepo.writtenMeals, hasLength(2));
+      });
+
+      test('a moved entry replaces both its old and its new window', () async {
+        final moved = mealDate.add(const Duration(hours: 2));
+        final after = edit(testIntake, dateTime: moved);
+        final oldSibling = edit(testIntake, id: 'old', dateTime: mealDate);
+        final newSibling = edit(
+          testIntake,
+          id: 'new',
+          dateTime: moved.add(const Duration(seconds: 5)),
+        );
+        // Starts where the old window ends, so the delete never touched it.
+        final outside = edit(
+          testIntake,
+          id: 'outside',
+          dateTime: mealDate.add(const Duration(minutes: 1)),
+        );
+        intakeRepo.storedIntakes = [after, oldSibling, newSibling, outside];
+
+        await usecase.exportUpdatedIntake(testIntake, after);
+
+        expect(healthRepo.deleteWindows, [mealDate, moved]);
+        expect(healthRepo.ops.take(2), ['delete $mealDate', 'delete $moved']);
+        expect(healthRepo.writtenMeals.map((meal) => meal.id), {
+          'ont_intake_intake-123',
+          'ont_intake_old',
+          'ont_intake_new',
+        });
+        expect(healthRepo.writtenMeals, hasLength(3));
+      });
+
+      test('writes nothing when the old window cannot be deleted', () async {
+        final after = edit(testIntake, amount: 200);
+        intakeRepo.storedIntakes = [after];
+        healthRepo.deleteResult = false;
+
+        expect(await usecase.exportUpdatedIntake(testIntake, after), isFalse);
+
+        expect(healthRepo.writtenMeals, isEmpty);
+      });
+
+      test('UpdateIntakeUsecase hands over the entry as it was', () async {
+        final moved = mealDate.add(const Duration(hours: 2));
+        intakeRepo.storedIntakes = [testIntake];
+        intakeRepo.updatedIntakeResult = edit(testIntake, dateTime: moved);
+        final updateUsecase = UpdateIntakeUsecase(intakeRepo, usecase);
+
+        await updateUsecase.updateIntake('intake-123', {});
+        await Future<void>.delayed(Duration.zero);
+
+        expect(healthRepo.deleteWindows, [mealDate, moved]);
+      });
+    });
+
+    test('on Android an update only rewrites, by record id', () async {
+      final after = IntakeEntity(
+        id: testIntake.id,
+        unit: testIntake.unit,
+        amount: 200,
+        type: testIntake.type,
+        meal: testIntake.meal,
+        dateTime: testIntake.dateTime,
+      );
+
+      expect(await usecase.exportUpdatedIntake(testIntake, after), isTrue);
+
+      expect(healthRepo.ops, ['write ont_intake_intake-123']);
     });
 
     test('catches platform error and returns false without throwing', () async {

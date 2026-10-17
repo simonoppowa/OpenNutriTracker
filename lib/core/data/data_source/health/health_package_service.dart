@@ -343,6 +343,9 @@ class HealthPackageService implements HealthService {
   }
 
   @override
+  bool get upsertsByRecordId => _platform == HealthTargetPlatform.android;
+
+  @override
   Future<bool> writeMeal(ExternalMealIntake intake) async {
     try {
       final mealType = _mapMealType(intake.mealTypeName);
@@ -399,12 +402,16 @@ class HealthPackageService implements HealthService {
         // The plugin's iOS side drops clientRecordId on write and has no
         // delete by it, and the UUID its reader returns for a meal is one of
         // the meal's nutrient samples, not the meal itself. So this removes
-        // every meal this app wrote starting in the window — the caller only
-        // passes [at] when no other diary entry starts inside it.
+        // every meal this app wrote starting in the window; the caller
+        // decides which diary entries that touches. The end stops a
+        // millisecond short so the window is `[at, at + sampleDuration)`
+        // whether HealthKit treats its end bound as inclusive or not.
         return await _health.delete(
           type: _nutritionType,
           startTime: at,
-          endTime: at.add(ExternalMealIntake.sampleDuration),
+          endTime: at
+              .add(ExternalMealIntake.sampleDuration)
+              .subtract(const Duration(milliseconds: 1)),
         );
       }
       return false;

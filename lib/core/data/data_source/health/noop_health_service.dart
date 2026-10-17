@@ -30,6 +30,9 @@ class NoopHealthService implements HealthService {
   Future<double?> readLatestBodyFatPercent() async => null;
 
   @override
+  bool get upsertsByRecordId => true;
+
+  @override
   Future<bool> writeMeal(ExternalMealIntake intake) async => false;
 
   @override

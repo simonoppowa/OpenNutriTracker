@@ -40,6 +40,63 @@ class ExportMealIntakeUsecase {
     }
   }
 
+  /// Re-exports [after], an edit of [before] that has already been stored.
+  ///
+  /// Health Connect upserts by record id, so the new payload replaces the old
+  /// one. HealthKit has no such identity and deletes only by time window, so
+  /// there every window the edit touches is replaced whole: deleted, then
+  /// each diary entry starting in it rewritten — the edited one and any
+  /// siblings — so nothing in it is lost or counted twice.
+  Future<bool> exportUpdatedIntake(
+    IntakeEntity before,
+    IntakeEntity after,
+  ) async {
+    try {
+      final config = await _configRepository.getConfig();
+      if (!config.healthExportEnabled) return false;
+
+      if (_healthExportRepository.upsertsByRecordId) {
+        return await _healthExportRepository.writeMeal(
+          ExternalMealIntake.fromIntake(after),
+        );
+      }
+
+      final windows = {before.dateTime, after.dateTime};
+      for (final start in windows) {
+        final deleted = await _healthExportRepository.deleteMeal(
+          'ont_intake_${after.id}',
+          at: start,
+        );
+        // Rewriting over a window that is still there would double it.
+        if (!deleted) return false;
+      }
+
+      final rewrites = <String, IntakeEntity>{};
+      for (final start in windows) {
+        for (final intake in await _intakesInWindow(start)) {
+          rewrites[intake.id] = intake;
+        }
+      }
+      rewrites[after.id] = after;
+
+      var allWritten = true;
+      for (final intake in rewrites.values) {
+        final written = await _healthExportRepository.writeMeal(
+          ExternalMealIntake.fromIntake(intake),
+        );
+        allWritten = allWritten && written;
+      }
+      return allWritten;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to export edited intake ${after.id}',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
   /// Deletes an exported intake from the health store when deleted in the app.
   ///
   /// Call after the intake has left the local repository.
@@ -68,17 +125,23 @@ class ExportMealIntakeUsecase {
     }
   }
 
-  /// Whether another diary entry starts inside [intake]'s iOS delete window,
-  /// `[dateTime, dateTime + sampleDuration]`.
+  /// Whether another diary entry starts inside [intake]'s iOS delete window.
   Future<bool> _windowHasOtherIntake(IntakeEntity intake) async {
-    final start = intake.dateTime;
+    final inWindow = await _intakesInWindow(intake.dateTime);
+    return inWindow.any((other) => other.id != intake.id);
+  }
+
+  /// The diary entries starting inside the iOS delete window that opens at
+  /// [start], `[start, start + sampleDuration)`.
+  Future<List<IntakeEntity>> _intakesInWindow(DateTime start) async {
     final end = start.add(ExternalMealIntake.sampleDuration);
     final intakes = await _intakeRepository.getAllIntakesDBO();
-    return intakes.any(
-      (other) =>
-          other.id != intake.id &&
-          !other.dateTime.isBefore(start) &&
-          !other.dateTime.isAfter(end),
-    );
+    return intakes
+        .where(
+          (intake) =>
+              !intake.dateTime.isBefore(start) && intake.dateTime.isBefore(end),
+        )
+        .map(IntakeEntity.fromIntakeDBO)
+        .toList();
   }
 }

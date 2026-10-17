@@ -34,6 +34,12 @@ abstract class HealthService {
   /// suggestion calculator treats that as "fall back to BMI".
   Future<double?> readLatestBodyFatPercent();
 
+  /// Whether [writeMeal] replaces an earlier record with the same id. True on
+  /// Health Connect, which upserts by client record id. False on HealthKit,
+  /// where the plugin drops the id, so a rewrite adds a second meal unless the
+  /// caller deletes the old one first.
+  bool get upsertsByRecordId;
+
   /// Writes a meal intake record to the platform health store.
   /// Returns whether the write was successful.
   Future<bool> writeMeal(ExternalMealIntake intake);
@@ -41,8 +47,7 @@ abstract class HealthService {
   /// Deletes a previously written meal intake record from the health store.
   /// [clientRecordId] is used on Android (Health Connect).
   /// [at] is used on iOS (HealthKit), which cannot delete by record id: every
-  /// meal this app wrote starting in the [ExternalMealIntake.sampleDuration]
-  /// after [at] is removed. Pass null when that would hit another diary entry;
-  /// iOS then deletes nothing and returns false.
+  /// meal this app wrote starting in `[at, at + sampleDuration)` is removed.
+  /// Pass null to delete nothing there; iOS then returns false.
   Future<bool> deleteMeal(String clientRecordId, {DateTime? at});
 }
