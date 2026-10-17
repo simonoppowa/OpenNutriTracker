@@ -233,6 +233,59 @@ void main() {
     },
   );
 
+  testWidgets('a value applied on focus loss is not applied again on save', (
+    tester,
+  ) async {
+    // Once applied, the typed value must stop being pending. Otherwise a
+    // slider move afterwards is followed by a second, stale application on
+    // save, and the saved split drifts from the one on screen.
+    final settingsBloc = _FakeSettingsBloc();
+    final homeBloc = _FakeHomeBloc();
+
+    await tester.pumpWidget(
+      _wrap(
+        Builder(
+          builder: (context) {
+            return ElevatedButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => MacroSplitDialog(
+                  settingsBloc: settingsBloc,
+                  homeBloc: homeBloc,
+                ),
+              ),
+              child: const Text('Open'),
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final fields = find.byType(TextField);
+    await tester.tap(fields.at(1));
+    await tester.enterText(fields.at(1), '5');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+
+    final carbsSlider = tester.widget<Slider>(find.byType(Slider).first);
+    carbsSlider.onChanged!(44);
+    carbsSlider.onChangeEnd!(44);
+    await tester.pump();
+
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    // protein 5 → 67.06 / 5 / 27.94; carbs to 44 → 44 / 8.5 / 47.5.
+    // Re-applying the synced protein text "9" would save 44/9/47.
+    expect(settingsBloc.savedCarbs, 44);
+    expect(settingsBloc.savedProtein, 8);
+    expect(settingsBloc.savedFat, 48);
+  });
+
   test('roundMacroPercentsToHundred always sums to 100', () {
     // Typical redistribute leftovers.
     expect(roundMacroPercentsToHundred(50, 18.75, 31.25), (50, 19, 31));
