@@ -998,7 +998,6 @@
   "recipeServingsCountLabel": "Antal portioner (valfritt)",
   "recipeTagsHelper": "Avgränsa med kommatecken, t.ex. ”frukost, veganskt”",
   "recipeTagsLabel": "Taggar",
-  "recipeTotalWeightHelper": "Som standard används ingrediensernas sammanlagda vikt. För vätskor används uppskattningen 1 ml ≈ 1 g.",
   "recipeTotalWeightLabel": "Total vikt (g)",
   "recipesEmptyHint": "Skapa en måltid av flera ingredienser och återanvänd den som vilket annat livsmedel som helst.",
   "recipesEmptyLabel": "Inga recept ännu",

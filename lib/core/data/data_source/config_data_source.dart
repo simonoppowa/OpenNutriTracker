@@ -305,6 +305,29 @@ class ConfigDataSource {
     await _update((c) => c.dailyWaterGoalMl = goalMl);
   }
 
+  /// Replaces every per-profile goal at once, as a restore from a backup
+  /// does (#1363). One write, so the goals cannot end up half restored. A
+  /// null clears that override and the app falls back to its default.
+  Future<void> setConfigGoalSettings({
+    required double? kcalAdjustment,
+    required double? carbGoalPct,
+    required double? proteinGoalPct,
+    required double? fatGoalPct,
+    required Map<String, int>? mealKcalSharesPct,
+    required int? dailyWaterGoalMl,
+  }) async {
+    await _update((c) {
+      c.userKcalAdjustment = kcalAdjustment;
+      c.userCarbGoalPct = carbGoalPct;
+      c.userProteinGoalPct = proteinGoalPct;
+      c.userFatGoalPct = fatGoalPct;
+      c.mealKcalSharesPct = mealKcalSharesPct == null
+          ? null
+          : Map<String, int>.from(mealKcalSharesPct);
+      c.dailyWaterGoalMl = dailyWaterGoalMl;
+    });
+  }
+
   Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
     await _update((c) => c.fastingWarningAcknowledged = acknowledged);
   }
