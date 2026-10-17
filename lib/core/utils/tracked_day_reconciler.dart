@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
 
 final _log = Logger('TrackedDayReconciler');
@@ -124,10 +125,14 @@ bool _hasConsumed(TrackedDayDBO row) =>
 /// synchronous step; the returned future only waits for the disk. Dart
 /// runs no other code in between, and Hive applies a put to the box
 /// before it returns, so no writer can change an entry or a row between
-/// this reading and writing them, and a writer that resumes afterwards
-/// builds on the rewritten row: existing rows are updated in place, never
-/// replaced, so a writer still holding one does not save a stale copy
-/// over it. Keep it free of `await`.
+/// this reading and writing them. Existing rows are updated in place,
+/// never replaced, so a writer still holding one does not save a stale
+/// copy over it. Keep it free of `await`.
+///
+/// That does not cover a writer that has stored its entry but not yet
+/// added it to the row: this would count the entry and the writer would
+/// add it again. Call it inside [withTrackedDayLock], which every such
+/// writer holds across both steps.
 Future<int> reconcileTrackedDays(
   HiveDBProvider db, {
   required int offsetMinutes,
@@ -335,21 +340,24 @@ Future<int> ensureTrackedDaysMatchEntries(
       _log.warning('Could not compute the current goals', e, stack);
     }
   }
-  final offset = _offsetMinutesNow(configDataSource);
-  final recordedBy = configDataSource.getConfigNow().trackedDaysOffsetMinutes;
-  final keyedBy = recordedBy ?? 0;
-  final rowsWritten = reconcileTrackedDays(
-    db,
-    offsetMinutes: offset,
-    previousOffsetMinutes: keyedBy,
-    previousImportOffsetMinutes: recordedBy == null ? offset : null,
-    currentGoals: goals,
-  );
-  final recorded = recordedBy == offset
-      ? null
-      : configDataSource.setConfigTrackedDaysOffsetMinutes(offset);
-  final changed = await rowsWritten;
-  await recorded;
+  final changed = await withTrackedDayLock(() async {
+    final offset = _offsetMinutesNow(configDataSource);
+    final recordedBy = configDataSource.getConfigNow().trackedDaysOffsetMinutes;
+    final keyedBy = recordedBy ?? 0;
+    final rowsWritten = reconcileTrackedDays(
+      db,
+      offsetMinutes: offset,
+      previousOffsetMinutes: keyedBy,
+      previousImportOffsetMinutes: recordedBy == null ? offset : null,
+      currentGoals: goals,
+    );
+    final recorded = recordedBy == offset
+        ? null
+        : configDataSource.setConfigTrackedDaysOffsetMinutes(offset);
+    final changed = await rowsWritten;
+    await recorded;
+    return changed;
+  });
   if (changed > 0) {
     _log.info(
       'Brought $changed tracked days in line with the entries the Diary '
@@ -386,17 +394,19 @@ Future<void> ensureTrackedDaysRepaired(
 /// tracked-day rows with it (#1317).
 ///
 /// The config write and the regrouping happen in one synchronous step, so
-/// no code sees the new boundary with the rows still keyed by the old one.
-/// Besides the totals, each row's goal follows the activities that move
-/// on or off its day. Other profiles keep the boundary their rows are
-/// keyed by on record, and [ensureTrackedDaysMatchEntries] moves them from
-/// it when they are next activated.
+/// no code sees the new boundary with the rows still keyed by the old one,
+/// and inside [withTrackedDayLock], so no writer is between storing an
+/// entry and adding it to its row. Besides the totals, each row's goal
+/// follows the activities that move on or off its day. Other profiles
+/// keep the boundary their rows are keyed by on record, and
+/// [ensureTrackedDaysMatchEntries] moves them from it when they are next
+/// activated.
 Future<void> moveDayBoundary(
   HiveDBProvider db,
   ConfigDataSource configDataSource,
   int hours,
   int minutes,
-) {
+) => withTrackedDayLock(() {
   final before = _offsetMinutesNow(configDataSource);
   final configWritten = configDataSource.setConfigDayStartOffset(
     hours,
@@ -410,4 +420,4 @@ Future<void> moveDayBoundary(
   );
   final recorded = configDataSource.setConfigTrackedDaysOffsetMinutes(after);
   return Future.wait([configWritten, rowsWritten, recorded]);
-}
+});

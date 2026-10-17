@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/json_meal_importer.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Outcome of a JSON-paste import. [imported] is the number of entries
 /// written to the diary; [savedAsCustomMeals] is how many of those entries
@@ -94,18 +95,21 @@ class ImportMealsJsonUsecase {
     var savedAsCustomMeals = 0;
 
     for (final intake in parsed.intakes) {
-      await _addIntakeUsecase.addIntake(intake);
-      await _ensureTrackedDay(intake.dateTime);
-      await _addTrackedDayUsecase.addDayCaloriesTracked(
-        intake.dateTime,
-        intake.totalKcal,
-      );
-      await _addTrackedDayUsecase.addDayMacrosTracked(
-        intake.dateTime,
-        carbsTracked: intake.totalCarbsGram,
-        fatTracked: intake.totalFatsGram,
-        proteinTracked: intake.totalProteinsGram,
-      );
+      // The entry and its row together (#1317).
+      await withTrackedDayLock(() async {
+        await _addIntakeUsecase.addIntake(intake);
+        await _ensureTrackedDay(intake.dateTime);
+        await _addTrackedDayUsecase.addDayCaloriesTracked(
+          intake.dateTime,
+          intake.totalKcal,
+        );
+        await _addTrackedDayUsecase.addDayMacrosTracked(
+          intake.dateTime,
+          carbsTracked: intake.totalCarbsGram,
+          fatTracked: intake.totalFatsGram,
+          proteinTracked: intake.totalProteinsGram,
+        );
+      });
 
       final mealName = intake.meal.name?.trim() ?? '';
       if (mealName.isEmpty) continue;

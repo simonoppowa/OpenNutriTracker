@@ -1,6 +1,7 @@
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Result of a merge: how many past diary entries were rewritten so the
 /// caller can show a friendly confirmation to the person who triggered it.
@@ -51,45 +52,50 @@ class MergeCustomMealsUseCase {
       (m) => (m.code ?? m.name) == winnerKey,
       orElse: () => throw StateError('Winner custom meal not found'),
     );
-    // The winner is the survivor; we snapshot its current MealDBO onto
-    // every loser intake so they continue to read as the successor.
-    final rewrites = await _intakeRepository.remapCustomMealOnIntakes(
-      fromMealKey: loserKey,
-      toMeal: winner,
-    );
+    // The entries and their rows together, so no reconciliation reads
+    // the remapped entries against rows that do not have them yet (#1317).
+    final rewrites = await withTrackedDayLock(() async {
+      // The winner is the survivor; we snapshot its current MealDBO onto
+      // every loser intake so they continue to read as the successor.
+      final rewrites = await _intakeRepository.remapCustomMealOnIntakes(
+        fromMealKey: loserKey,
+        toMeal: winner,
+      );
 
-    // Reconcile TrackedDay totals from the macro diff per intake. If the two
-    // meals had identical nutrition this is a no-op; if they differed, the
-    // diary stays consistent with the winner going forward.
-    for (final pair in rewrites) {
-      final before = pair.$1;
-      final after = pair.$2;
-      final kcalDelta = after.totalKcal - before.totalKcal;
-      final carbsDelta = after.totalCarbsGram - before.totalCarbsGram;
-      final fatDelta = after.totalFatsGram - before.totalFatsGram;
-      final proteinDelta = after.totalProteinsGram - before.totalProteinsGram;
-      if (kcalDelta != 0) {
-        if (kcalDelta > 0) {
-          await _addTrackedDayUsecase.addDayCaloriesTracked(
+      // Reconcile TrackedDay totals from the macro diff per intake. If the
+      // two meals had identical nutrition this is a no-op; if they differed,
+      // the diary stays consistent with the winner going forward.
+      for (final pair in rewrites) {
+        final before = pair.$1;
+        final after = pair.$2;
+        final kcalDelta = after.totalKcal - before.totalKcal;
+        final carbsDelta = after.totalCarbsGram - before.totalCarbsGram;
+        final fatDelta = after.totalFatsGram - before.totalFatsGram;
+        final proteinDelta = after.totalProteinsGram - before.totalProteinsGram;
+        if (kcalDelta != 0) {
+          if (kcalDelta > 0) {
+            await _addTrackedDayUsecase.addDayCaloriesTracked(
+              after.dateTime,
+              kcalDelta,
+            );
+          } else {
+            await _addTrackedDayUsecase.removeDayCaloriesTracked(
+              after.dateTime,
+              -kcalDelta,
+            );
+          }
+        }
+        if (carbsDelta != 0 || fatDelta != 0 || proteinDelta != 0) {
+          await _addTrackedDayUsecase.addDayMacrosTracked(
             after.dateTime,
-            kcalDelta,
-          );
-        } else {
-          await _addTrackedDayUsecase.removeDayCaloriesTracked(
-            after.dateTime,
-            -kcalDelta,
+            carbsTracked: carbsDelta,
+            fatTracked: fatDelta,
+            proteinTracked: proteinDelta,
           );
         }
       }
-      if (carbsDelta != 0 || fatDelta != 0 || proteinDelta != 0) {
-        await _addTrackedDayUsecase.addDayMacrosTracked(
-          after.dateTime,
-          carbsTracked: carbsDelta,
-          fatTracked: fatDelta,
-          proteinTracked: proteinDelta,
-        );
-      }
-    }
+      return rewrites;
+    });
 
     await _customMealDataSource.deleteCustomMeal(loserKey);
 

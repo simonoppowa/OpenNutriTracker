@@ -17,6 +17,7 @@ import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 
 part 'calendar_day_event.dart';
@@ -175,17 +176,20 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     DateTime day,
   ) async {
     day = _dateLabel(day);
-    await _deleteIntakeUsecase.deleteIntake(intakeEntity);
-    await _addTrackedDayUsecase.removeDayCaloriesTracked(
-      day,
-      intakeEntity.totalKcal,
-    );
-    await _addTrackedDayUsecase.removeDayMacrosTracked(
-      day,
-      carbsTracked: intakeEntity.totalCarbsGram,
-      fatTracked: intakeEntity.totalFatsGram,
-      proteinTracked: intakeEntity.totalProteinsGram,
-    );
+    // The entry and its row together (#1317).
+    await withTrackedDayLock(() async {
+      await _deleteIntakeUsecase.deleteIntake(intakeEntity);
+      await _addTrackedDayUsecase.removeDayCaloriesTracked(
+        day,
+        intakeEntity.totalKcal,
+      );
+      await _addTrackedDayUsecase.removeDayMacrosTracked(
+        day,
+        carbsTracked: intakeEntity.totalCarbsGram,
+        fatTracked: intakeEntity.totalFatsGram,
+        proteinTracked: intakeEntity.totalProteinsGram,
+      );
+    });
   }
 
   Future<void> updateIntakeItem(
@@ -194,33 +198,41 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     DateTime day,
   ) async {
     day = _dateLabel(day);
-    final oldIntake = await _getIntakeUsecase.getIntakeById(intakeId);
-    assert(oldIntake != null);
-    final newIntake = await _updateIntakeUsecase.updateIntake(intakeId, fields);
-    assert(newIntake != null);
-    if (oldIntake!.amount > newIntake!.amount) {
-      await _addTrackedDayUsecase.removeDayCaloriesTracked(
-        day,
-        oldIntake.totalKcal - newIntake.totalKcal,
+    // The entry and its row together (#1317).
+    await withTrackedDayLock(() async {
+      final oldIntake = await _getIntakeUsecase.getIntakeById(intakeId);
+      assert(oldIntake != null);
+      final newIntake = await _updateIntakeUsecase.updateIntake(
+        intakeId,
+        fields,
       );
-      await _addTrackedDayUsecase.removeDayMacrosTracked(
-        day,
-        carbsTracked: oldIntake.totalCarbsGram - newIntake.totalCarbsGram,
-        fatTracked: oldIntake.totalFatsGram - newIntake.totalFatsGram,
-        proteinTracked: oldIntake.totalProteinsGram - newIntake.totalProteinsGram,
-      );
-    } else if (newIntake.amount > oldIntake.amount) {
-      await _addTrackedDayUsecase.addDayCaloriesTracked(
-        day,
-        newIntake.totalKcal - oldIntake.totalKcal,
-      );
-      await _addTrackedDayUsecase.addDayMacrosTracked(
-        day,
-        carbsTracked: newIntake.totalCarbsGram - oldIntake.totalCarbsGram,
-        fatTracked: newIntake.totalFatsGram - oldIntake.totalFatsGram,
-        proteinTracked: newIntake.totalProteinsGram - oldIntake.totalProteinsGram,
-      );
-    }
+      assert(newIntake != null);
+      if (oldIntake!.amount > newIntake!.amount) {
+        await _addTrackedDayUsecase.removeDayCaloriesTracked(
+          day,
+          oldIntake.totalKcal - newIntake.totalKcal,
+        );
+        await _addTrackedDayUsecase.removeDayMacrosTracked(
+          day,
+          carbsTracked: oldIntake.totalCarbsGram - newIntake.totalCarbsGram,
+          fatTracked: oldIntake.totalFatsGram - newIntake.totalFatsGram,
+          proteinTracked:
+              oldIntake.totalProteinsGram - newIntake.totalProteinsGram,
+        );
+      } else if (newIntake.amount > oldIntake.amount) {
+        await _addTrackedDayUsecase.addDayCaloriesTracked(
+          day,
+          newIntake.totalKcal - oldIntake.totalKcal,
+        );
+        await _addTrackedDayUsecase.addDayMacrosTracked(
+          day,
+          carbsTracked: newIntake.totalCarbsGram - oldIntake.totalCarbsGram,
+          fatTracked: newIntake.totalFatsGram - oldIntake.totalFatsGram,
+          proteinTracked:
+              newIntake.totalProteinsGram - oldIntake.totalProteinsGram,
+        );
+      }
+    });
   }
 
   Future<void> deleteUserActivityItem(
@@ -229,8 +241,13 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     DateTime day,
   ) async {
     day = _dateLabel(day);
-    await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
-    _addTrackedDayUsecase.reduceDayCalorieGoal(day, activityEntity.burnedKcal);
+    // The entry and its goal together (#1317).
+    await withTrackedDayLock(() async {
+      await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
+      await _addTrackedDayUsecase.reduceDayCalorieGoal(
+        day,
+        activityEntity.burnedKcal,
+      );
 
     final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);
     final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
@@ -238,12 +255,13 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       activityEntity.burnedKcal,
     );
 
-    _addTrackedDayUsecase.reduceDayMacroGoals(
-      day,
-      carbsAmount: carbsAmount,
-      fatAmount: fatAmount,
-      proteinAmount: proteinAmount,
-    );
+      await _addTrackedDayUsecase.reduceDayMacroGoals(
+        day,
+        carbsAmount: carbsAmount,
+        fatAmount: fatAmount,
+        proteinAmount: proteinAmount,
+      );
+    });
     _updateDiaryPage(day);
   }
 
@@ -253,29 +271,32 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     DateTime day,
   ) async {
     day = _dateLabel(day);
-    final newActivity = await _updateUserActivityUsecase.updateUserActivity(
-      activityEntity,
-      newDuration,
-    );
-    assert(newActivity != null);
-    final kcalDiff = newActivity!.burnedKcal - activityEntity.burnedKcal;
-    if (kcalDiff > 0) {
-      await _addTrackedDayUsecase.increaseDayCalorieGoal(day, kcalDiff);
-      await _addTrackedDayUsecase.increaseDayMacroGoals(
-        day,
-        carbsAmount: MacroCalc.getTotalCarbsGoal(kcalDiff),
-        fatAmount: MacroCalc.getTotalFatsGoal(kcalDiff),
-        proteinAmount: MacroCalc.getTotalProteinsGoal(kcalDiff),
+    // The entry and its goal together (#1317).
+    await withTrackedDayLock(() async {
+      final newActivity = await _updateUserActivityUsecase.updateUserActivity(
+        activityEntity,
+        newDuration,
       );
-    } else if (kcalDiff < 0) {
-      await _addTrackedDayUsecase.reduceDayCalorieGoal(day, kcalDiff.abs());
-      await _addTrackedDayUsecase.reduceDayMacroGoals(
-        day,
-        carbsAmount: MacroCalc.getTotalCarbsGoal(kcalDiff.abs()),
-        fatAmount: MacroCalc.getTotalFatsGoal(kcalDiff.abs()),
-        proteinAmount: MacroCalc.getTotalProteinsGoal(kcalDiff.abs()),
-      );
-    }
+      assert(newActivity != null);
+      final kcalDiff = newActivity!.burnedKcal - activityEntity.burnedKcal;
+      if (kcalDiff > 0) {
+        await _addTrackedDayUsecase.increaseDayCalorieGoal(day, kcalDiff);
+        await _addTrackedDayUsecase.increaseDayMacroGoals(
+          day,
+          carbsAmount: MacroCalc.getTotalCarbsGoal(kcalDiff),
+          fatAmount: MacroCalc.getTotalFatsGoal(kcalDiff),
+          proteinAmount: MacroCalc.getTotalProteinsGoal(kcalDiff),
+        );
+      } else if (kcalDiff < 0) {
+        await _addTrackedDayUsecase.reduceDayCalorieGoal(day, kcalDiff.abs());
+        await _addTrackedDayUsecase.reduceDayMacroGoals(
+          day,
+          carbsAmount: MacroCalc.getTotalCarbsGoal(kcalDiff.abs()),
+          fatAmount: MacroCalc.getTotalFatsGoal(kcalDiff.abs()),
+          proteinAmount: MacroCalc.getTotalProteinsGoal(kcalDiff.abs()),
+        );
+      }
+    });
   }
 
   Future<void> _updateDiaryPage(DateTime day) async {

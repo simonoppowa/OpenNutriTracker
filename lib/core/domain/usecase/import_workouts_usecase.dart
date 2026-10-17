@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.d
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Pulls finished workouts out of Health Connect / Apple Health and files
 /// them as activities, crediting a user-tunable share of the energy the
@@ -184,16 +185,24 @@ class ImportWorkoutsUsecase {
       // profile; abandoning here leaves the watermark unmoved, so the next
       // run re-reads the same window and the external-id dedupe absorbs it.
       if (!_stillOnProfile(profileId)) return imported;
-      await _logUserActivityUsecase.logActivity(
-        _toUserActivity(workout, config, activityByCode),
-        // A workout that started at 00:30 under an 03:00 day boundary belongs
-        // to the previous diary column, and its calories have to raise that
-        // day's goal, not today's.
-        day: DayBoundaryCalc.logicalDayOfMinutes(
-          workout.start,
-          config.dayStartOffsetTotalMinutes,
-        ),
-      );
+      await withTrackedDayLock(() async {
+        // The boundary is read again under the lock, not taken from the
+        // config this run started with: a boundary move in between would
+        // otherwise credit the day the workout was listed under before
+        // it (#1317).
+        final offsetMinutes =
+            (await _configRepository.getConfig()).dayStartOffsetTotalMinutes;
+        await _logUserActivityUsecase.logActivity(
+          _toUserActivity(workout, config, activityByCode),
+          // A workout that started at 00:30 under an 03:00 day boundary
+          // belongs to the previous diary column, and its calories have to
+          // raise that day's goal, not today's.
+          day: DayBoundaryCalc.logicalDayOfMinutes(
+            workout.start,
+            offsetMinutes,
+          ),
+        );
+      });
       imported++;
     }
 

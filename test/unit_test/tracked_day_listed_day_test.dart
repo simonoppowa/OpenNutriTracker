@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
@@ -55,6 +57,25 @@ class _FakeKcalGoal extends Fake implements GetKcalGoalUsecase {
     double? totalKcalActivitiesParam,
     double? kcalUserAdjustment,
   }) async => 2000;
+}
+
+/// Holds a writer between storing its entry and adding it to the row: the
+/// writers ask for the goal only after the entry is stored, to start the
+/// row of a day that has none.
+class _GatedKcalGoal extends _FakeKcalGoal {
+  final reached = Completer<void>();
+  final release = Completer<void>();
+
+  @override
+  Future<double> getKcalGoal({
+    dynamic userEntity,
+    double? totalKcalActivitiesParam,
+    double? kcalUserAdjustment,
+  }) async {
+    if (!reached.isCompleted) reached.complete();
+    await release.future;
+    return 2000;
+  }
 }
 
 class _FakeMacroGoal extends Fake implements GetMacroGoalUsecase {
@@ -676,6 +697,112 @@ void main() {
       await held.save();
 
       expect(trackedDayBox.get('2026-10-04')!.caloriesTracked, 300);
+    });
+  });
+
+  group('writers held between the entry and its row', () {
+    late SetDayBoundaryUsecase setDayBoundary;
+    late AddTrackedDayUsecase addTrackedDay;
+
+    setUp(() {
+      setDayBoundary = SetDayBoundaryUsecase(db, ConfigDataSource(db));
+      addTrackedDay = AddTrackedDayUsecase(
+        TrackedDayRepository(TrackedDayDataSource(db)),
+      );
+    });
+
+    test('a food logged across a boundary move is counted once', () async {
+      await addFood(DateTime(2026, 10, 4, 12));
+      final gate = _GatedKcalGoal();
+      final bloc = MealDetailBloc(
+        AddIntakeUsecase(intakeRepository),
+        addTrackedDay,
+        gate,
+        _FakeMacroGoal(),
+        getTrackedDay,
+        _FakeProductsRepository(),
+        _FakeRemoteSearchCache(),
+      );
+      addTearDown(bloc.close);
+
+      final logging = bloc.addIntake(
+        _FakeContext(),
+        'g',
+        '100',
+        IntakeTypeEntity.breakfast,
+        _meal,
+        DateTime(2026, 10, 5, 2),
+      );
+      await gate.reached.future;
+      expect(intakeBox.length, 2, reason: 'the entry is stored, the row not');
+      final moving = setDayBoundary.setDayBoundary(4, 0);
+      gate.release.complete();
+      await Future.wait([logging, moving]);
+
+      final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
+      expect(day.intakes, 2);
+      expect(day.row!.caloriesTracked, 400, reason: 'not 600');
+      expect(trackedDayBox.containsKey('2026-10-05'), isFalse);
+      expect(totalTracked(), 400);
+    });
+
+    test('an activity logged across a boundary move raises one goal, '
+        'once', () async {
+      await addFood(DateTime(2026, 10, 4, 12));
+      final gate = _GatedKcalGoal();
+      final logHeld = LogUserActivityUsecase(
+        AddUserActivityUsecase(activityRepository),
+        addTrackedDay,
+        gate,
+        _FakeMacroGoal(),
+      );
+
+      final at = DateTime(2026, 10, 5, 2);
+      final logging = logHeld.logActivity(activityAt(at), day: at);
+      await gate.reached.future;
+      expect(activityBox.length, 1, reason: 'stored, its goal not raised');
+      final moving = setDayBoundary.setDayBoundary(4, 0);
+      gate.release.complete();
+      await Future.wait([logging, moving]);
+
+      final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
+      expect(day.activities, 1);
+      expect(day.row!.calorieGoal, 2150, reason: 'not 2300');
+      expect(trackedDayBox.containsKey('2026-10-05'), isFalse);
+    });
+
+    test('a food logged across a profile activation is counted once', () async {
+      await setBoundary(4);
+      await reconcile();
+      await addFood(DateTime(2026, 10, 4, 12));
+      final gate = _GatedKcalGoal();
+      final bloc = MealDetailBloc(
+        AddIntakeUsecase(intakeRepository),
+        addTrackedDay,
+        gate,
+        _FakeMacroGoal(),
+        getTrackedDay,
+        _FakeProductsRepository(),
+        _FakeRemoteSearchCache(),
+      );
+      addTearDown(bloc.close);
+
+      // A day with no row yet, so the writer stops for the goal.
+      final logging = bloc.addIntake(
+        _FakeContext(),
+        'g',
+        '100',
+        IntakeTypeEntity.breakfast,
+        _meal,
+        DateTime(2026, 10, 6, 12),
+      );
+      await gate.reached.future;
+      final activating = reconcile();
+      gate.release.complete();
+      await Future.wait([logging, activating]);
+
+      expect(trackedDayBox.get('2026-10-06')!.caloriesTracked, 200);
+      expect(totalTracked(), 400);
     });
   });
 }

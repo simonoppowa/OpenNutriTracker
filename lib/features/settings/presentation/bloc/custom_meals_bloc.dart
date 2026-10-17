@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 part 'custom_meals_event.dart';
@@ -52,17 +53,20 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
             .where((intake) => (intake.meal.code ?? intake.meal.name) == event.mealKey)
             .toList();
         for (final intake in toDelete) {
-          await _deleteIntakeUsecase.deleteIntake(intake);
-          await _addTrackedDayUsecase.removeDayCaloriesTracked(
-            intake.dateTime,
-            intake.totalKcal,
-          );
-          await _addTrackedDayUsecase.removeDayMacrosTracked(
-            intake.dateTime,
-            carbsTracked: intake.totalCarbsGram,
-            fatTracked: intake.totalFatsGram,
-            proteinTracked: intake.totalProteinsGram,
-          );
+          // The entry and its row together (#1317).
+          await withTrackedDayLock(() async {
+            await _deleteIntakeUsecase.deleteIntake(intake);
+            await _addTrackedDayUsecase.removeDayCaloriesTracked(
+              intake.dateTime,
+              intake.totalKcal,
+            );
+            await _addTrackedDayUsecase.removeDayMacrosTracked(
+              intake.dateTime,
+              carbsTracked: intake.totalCarbsGram,
+              fatTracked: intake.totalFatsGram,
+              proteinTracked: intake.totalProteinsGram,
+            );
+          });
         }
         add(LoadCustomMealsEvent());
       } catch (error) {
