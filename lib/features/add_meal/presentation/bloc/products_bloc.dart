@@ -34,29 +34,15 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       (event, emit) => _loadProducts(event.searchString, emit),
       transformer: debounceRestartable(searchDebounceDuration),
     );
+    // Retry re-runs the last query through the normal path, so the result
+    // carries the unit preference and provider-failure flag like any other
+    // search. Blank to the spinner first: Retry needs visible feedback even
+    // when the failed results are still on screen.
     on<RefreshProductsEvent>((event, emit) async {
-      if (_searchString.trim().isEmpty) {
-        _completedQuery = null;
-        emit(ProductsInitial());
-        return;
+      if (_searchString.trim().length >= minQueryLength) {
+        emit(ProductsLoadingState());
       }
-      emit(ProductsLoadingState());
-      try {
-        final result = await _searchProductUseCase.searchOFFProductsByString(
-          _searchString,
-        );
-        if (emit.isDone) return;
-        emit(ProductsLoadedState(
-          products: result.meals,
-          remoteSourceEmpty: result.remoteSourceEmpty,
-          query: _searchString,
-        ));
-        _completedQuery = _searchString;
-      } catch (error) {
-        log.severe(error);
-        _completedQuery = null;
-        emit(ProductsFailedState());
-      }
+      await _loadProducts(_searchString, emit, force: true);
     });
   }
 
