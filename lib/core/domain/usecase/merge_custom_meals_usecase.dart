@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 
 /// Result of a merge: how many past diary entries were rewritten so the
 /// caller can show a friendly confirmation to the person who triggered it.
@@ -26,12 +29,14 @@ class MergeCustomMealsUseCase {
   final CustomMealDataSource _customMealDataSource;
   final IntakeRepository _intakeRepository;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
+  final ExportMealIntakeUsecase? _exportMealIntakeUsecase;
 
   MergeCustomMealsUseCase(
     this._customMealDataSource,
     this._intakeRepository,
-    this._addTrackedDayUsecase,
-  );
+    this._addTrackedDayUsecase, [
+    this._exportMealIntakeUsecase,
+  ]);
 
   /// [loserKey] / [winnerKey] are the dedup keys used everywhere else in
   /// the custom-meal layer (`meal.code ?? meal.name`).
@@ -57,6 +62,11 @@ class MergeCustomMealsUseCase {
       fromMealKey: loserKey,
       toMeal: winner,
     );
+    // The rewritten entries now carry the winner's nutrition; without this
+    // the health store keeps the loser's.
+    if (rewrites.isNotEmpty) {
+      unawaited(_exportMealIntakeUsecase?.exportUpdatedIntakes(rewrites));
+    }
 
     // Reconcile TrackedDay totals from the macro diff per intake. If the two
     // meals had identical nutrition this is a no-op; if they differed, the
