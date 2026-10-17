@@ -51,8 +51,9 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   ) : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
-      _currentDay = event.day;
-      await _loadCalendarDay(event.day, emit);
+      final day = _dateLabel(event.day);
+      _currentDay = day;
+      await _loadCalendarDay(day, emit);
     });
 
     on<RefreshCalendarDayEvent>((event, emit) async {
@@ -62,6 +63,18 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       }
     });
   }
+
+  /// The Diary cell [day] names, as the midnight label the tracked-day
+  /// lookup and writes expect (#1317).
+  ///
+  /// The intake and activity queries read only the calendar date of
+  /// [day], but `TrackedDayDataSource` files a non-midnight value under
+  /// its logical day. Before #1382 the Diary opened on a raw
+  /// `DateTime.now()`, so before a 04:00 boundary the card paired the
+  /// previous day's totals and goal with the selected day's entries, and
+  /// deleting or editing one changed the previous day's row.
+  static DateTime _dateLabel(DateTime day) =>
+      DateTime(day.year, day.month, day.day);
 
   Future<void> _loadCalendarDay(
     DateTime day,
@@ -161,6 +174,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     IntakeEntity intakeEntity,
     DateTime day,
   ) async {
+    day = _dateLabel(day);
     await _deleteIntakeUsecase.deleteIntake(intakeEntity);
     await _addTrackedDayUsecase.removeDayCaloriesTracked(
       day,
@@ -179,6 +193,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     Map<String, dynamic> fields,
     DateTime day,
   ) async {
+    day = _dateLabel(day);
     final oldIntake = await _getIntakeUsecase.getIntakeById(intakeId);
     assert(oldIntake != null);
     final newIntake = await _updateIntakeUsecase.updateIntake(intakeId, fields);
@@ -213,6 +228,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     UserActivityEntity activityEntity,
     DateTime day,
   ) async {
+    day = _dateLabel(day);
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
     _addTrackedDayUsecase.reduceDayCalorieGoal(day, activityEntity.burnedKcal);
 
@@ -236,6 +252,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     double newDuration,
     DateTime day,
   ) async {
+    day = _dateLabel(day);
     final newActivity = await _updateUserActivityUsecase.updateUserActivity(
       activityEntity,
       newDuration,
