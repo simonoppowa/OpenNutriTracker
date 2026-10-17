@@ -419,7 +419,9 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                       s.healthSyncAutoExportLabel(healthPlatformName),
                     ),
                     value: _exportEnabled,
-                    onChanged: _isAvailable && !_busy
+                    // Turning export off only stores the setting, so it stays
+                    // possible while the health store is unavailable.
+                    onChanged: (_isAvailable || _exportEnabled) && !_busy
                         ? _onAutoExportChanged
                         : null,
                   ),

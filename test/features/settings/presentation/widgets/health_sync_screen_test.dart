@@ -509,6 +509,42 @@ void main() {
   });
 
   group('nutrition export opt-in', () {
+    // #1393 review: a persisted opt-in has to stay revocable when Health
+    // Connect is uninstalled or the app fell back to NoopHealthService.
+    testWidgets('export can be turned off while the store is unavailable', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false, healthExportEnabled: true);
+      healthImportRepository.available = false;
+
+      await pumpScreen(tester);
+
+      expect(
+        tester.widget<SwitchListTile>(_autoExportSwitch()).onChanged,
+        isNotNull,
+      );
+      await tester.tap(_byIdentifier('health-sync-auto-export'));
+      await tester.pumpAndSettle();
+
+      expect(settingsBloc.exportEnabledCalls, [false]);
+      expect(tester.widget<SwitchListTile>(_autoExportSwitch()).value, isFalse);
+      expect(healthExportRepository.requestPermissionsCalls, 0);
+    });
+
+    testWidgets('export cannot be turned on while the store is unavailable', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false, healthExportEnabled: false);
+      healthImportRepository.available = false;
+
+      await pumpScreen(tester);
+
+      expect(
+        tester.widget<SwitchListTile>(_autoExportSwitch()).onChanged,
+        isNull,
+      );
+    });
+
     testWidgets('export switch is off when healthExportEnabled is false', (
       tester,
     ) async {
