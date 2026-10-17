@@ -11,6 +11,7 @@ import 'package:opennutritracker/features/settings/presentation/widgets/water_go
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../../fixture/user_entity_fixtures.dart';
+import '../../../../helpers/fake_reload_blocs.dart';
 import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
@@ -51,6 +52,8 @@ void main() {
     settingsBloc = _FakeSettingsBloc();
     locator.registerSingleton<GetUserUsecase>(_FakeGetUserUsecase());
     locator.registerSingleton<ProfileBloc>(_FakeProfileBloc());
+    // Save reloads the Diary and Trends through the locator (#1370).
+    ReloadRecorder().register();
   });
 
   tearDown(() async {
