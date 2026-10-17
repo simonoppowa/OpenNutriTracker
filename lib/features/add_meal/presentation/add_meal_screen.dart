@@ -346,8 +346,19 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           _foodPending(fs, query)) {
                         return _pendingSpinner;
                       }
-                      final productsFailed = ps is ProductsFailedState;
-                      final foodFailed = fs is FoodFailedState;
+                      // A provider timeout or rate limit doesn't fail the
+                      // bloc: the use case falls back to local matches and
+                      // flags the gap on the loaded state instead.
+                      final productsFailed = ps is ProductsFailedState ||
+                          (ps is ProductsLoadedState && ps.remoteSourceFailed);
+                      final foodFailed = fs is FoodFailedState ||
+                          (fs is FoodLoadedState && fs.remoteSourceFailed);
+                      final VoidCallback retryFailed =
+                          productsFailed && foodFailed
+                          ? _onAllSourcesRefreshButtonPressed
+                          : (productsFailed
+                                ? _onProductsRefreshButtonPressed
+                                : _onFoodRefreshButtonPressed);
                       final products = ps is ProductsLoadedState
                           ? ps.products
                           : const <MealEntity>[];
@@ -389,11 +400,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                PartialResultsNotice(
-                                  onRetry: productsFailed
-                                      ? _onProductsRefreshButtonPressed
-                                      : _onFoodRefreshButtonPressed,
-                                ),
+                                PartialResultsNotice(onRetry: retryFailed),
                                 NoResultsWidget(
                                   onScanBarcode: _onBarcodeIconPressed,
                                   onCreateCustomFood: () =>
@@ -412,11 +419,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       return Column(
                         children: [
                           if (productsFailed || foodFailed)
-                            PartialResultsNotice(
-                              onRetry: productsFailed
-                                  ? _onProductsRefreshButtonPressed
-                                  : _onFoodRefreshButtonPressed,
-                            ),
+                            PartialResultsNotice(onRetry: retryFailed),
                           Expanded(
                             child: ListView.builder(
                               itemCount: merged.length,

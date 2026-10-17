@@ -79,6 +79,7 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
           food: result.meals,
           usesImperialUnits: config.usesImperialFoodUnits,
           remoteSourceEmpty: result.remoteSourceEmpty,
+          remoteSourceFailed: result.remoteSourceFailed,
           query: searchString,
         ),
       );

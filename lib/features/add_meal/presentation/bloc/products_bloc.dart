@@ -94,6 +94,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
           products: result.meals,
           usesImperialUnits: config.usesImperialFoodUnits,
           remoteSourceEmpty: result.remoteSourceEmpty,
+          remoteSourceFailed: result.remoteSourceFailed,
           query: searchString,
         ),
       );
