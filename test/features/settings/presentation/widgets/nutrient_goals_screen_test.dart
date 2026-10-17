@@ -249,4 +249,37 @@ void main() {
       expect(settingsBloc.savedGoals.values, everyElement(isNull));
     });
   });
+
+  // #1324: the iOS number pad has no return key. Once the keyboard is
+  // dismissed, the slider has to show the typed value.
+  testWidgets('applies a typed value when the field loses focus', (
+    tester,
+  ) async {
+    final settingsBloc = _FakeSettingsBloc();
+    await openScreen(tester, settingsBloc);
+
+    final fibre = find.byType(TextField).at(0);
+    await tester.tap(fibre);
+    await tester.enterText(fibre, '32');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+
+    expect(tester.widget<Slider>(find.byType(Slider).at(0)).value, 32);
+  });
+
+  testWidgets('an unedited field applies nothing when it loses focus', (
+    tester,
+  ) async {
+    final settingsBloc = _FakeSettingsBloc();
+    await openScreen(tester, settingsBloc);
+
+    await tester.tap(find.byType(TextField).at(5));
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    await tapSave(tester);
+
+    expect(settingsBloc.savedGoals.values, everyElement(isNull));
+  });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../fixture/user_entity_fixtures.dart';
+import '../../../../helpers/fake_reload_blocs.dart';
 import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
@@ -49,7 +51,11 @@ void main() {
 
   setUp(() {
     settingsBloc = _FakeSettingsBloc();
+    // Save reloads the Diary and Trends through the locator (#1359).
+    ReloadRecorder().register();
   });
+
+  tearDown(() async => locator.reset());
 
   Future<void> openDialog(
     WidgetTester tester, {
@@ -121,6 +127,38 @@ void main() {
     await openDialog(tester, usesKilojoules: true);
 
     expect(find.widgetWithText(TextField, '418'), findsOneWidget);
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedAdjustments, [100]);
+  });
+
+  // #1324: the iOS number pad has no return key. Once the keyboard is
+  // dismissed, the slider has to show the typed value.
+  testWidgets('applies a typed value when the field loses focus', (
+    tester,
+  ) async {
+    await openDialog(tester);
+
+    await tester.tap(find.byType(TextField));
+    await tester.enterText(find.byType(TextField), '250');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+
+    expect(tester.widget<Slider>(find.byType(Slider)).value, 250);
+  });
+
+  testWidgets('an unedited field applies nothing when it loses focus', (
+    tester,
+  ) async {
+    settingsBloc.storedAdjustment = 100;
+    await openDialog(tester, usesKilojoules: true);
+
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
     await tester.tap(find.text(l10nEn.dialogOKLabel));
     await tester.pumpAndSettle();
 
