@@ -65,14 +65,23 @@ once — an install hit by #1357 exports two copies — the copy edited before
 the fix wins: the first row for intakes, the last row for activities and
 templates, matching where those older builds wrote an edit. An edit on a
 current build rewrites every copy, so the copies agree. A row with a blank
-`id` has no identity and is always added, never merged. The goal settings in
-`goal_settings.json`, when the zip has one, replace the active profile's. After
+(empty or whitespace-only) `id` is given one derived from a fixed set of its
+fields — for an intake its time, meal slot, amount, unit and the food's
+source, code, name and brands; for an activity its date, activity code and
+name, duration and kcal — so importing the same zip twice still changes
+nothing, on this build or a later one, and two identical rows both stay. Those
+fields are compared trimmed, with an empty one the same as a missing one, so a
+row's JSON and CSV copies get the same id; and a derived id never repeats an
+`id` another row in the same file already has. The
+goal settings in `goal_settings.json`, when the zip has one, replace the active
+profile's. After
 any import, today's kcal and macro goals are worked out again from the
 profile and goal settings now on the device, as Home shows them. This applies
 to today's row whether it was already on the device or came in the zip. Past
 days keep the goals they were logged with. A zip missing a required file, or
 with any file that does not parse, is rejected before anything on the device
-changes.
+changes; in a CSV file, a number written as `Infinity` or `NaN` counts as not
+parsing.
 The CSV files also exist so a spreadsheet, a Syncthing-style backup, or external
 tooling can read the same data without going through Hive.
 

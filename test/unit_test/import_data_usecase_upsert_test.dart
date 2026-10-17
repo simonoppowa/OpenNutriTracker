@@ -451,7 +451,7 @@ void main() {
     });
   });
 
-  group('rows without an id are never merged', () {
+  group('rows without an id', () {
     test('JSON: blank-id rows are kept apart, from each other and from '
         'stored rows', () async {
       await intakeBox.add(IntakeDBO.fromJson(_intakeJson('', amount: 10)));
@@ -503,6 +503,260 @@ void main() {
         25,
       ]);
     });
+
+    /// Every stored id is set and unique: the meal lists key their cards
+    /// by it, and two cards with one key fail to render.
+    void expectDistinctIds() {
+      final intakeIds = intakeBox.values.map((i) => i.id).toList();
+      final activityIds = activityBox.values.map((a) => a.id).toList();
+      expect(intakeIds, everyElement(isNotEmpty));
+      expect(activityIds, everyElement(isNotEmpty));
+      expect(intakeIds.toSet(), hasLength(intakeIds.length));
+      expect(activityIds.toSet(), hasLength(activityIds.length));
+    }
+
+    test('CSV: importing a file whose rows have no id twice keeps one copy '
+        'of each, each with its own id', () async {
+      writeZip({
+        'user_activity.csv': CsvDataExporter.userActivitiesToCsv([
+          UserActivityDBO.fromJson(_activityJson('', duration: 15)),
+          UserActivityDBO.fromJson(_activityJson('', duration: 25)),
+        ]),
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(_intakeJson('', amount: 20)),
+          IntakeDBO.fromJson(_intakeJson('', amount: 30)),
+        ]),
+        'user_tracked_day.csv': '',
+      });
+
+      expect(await usecase.importDataCsv(), isTrue);
+      expect(await usecase.importDataCsv(), isTrue);
+
+      expect(intakeBox.values.map((i) => i.amount).toList()..sort(), [20, 30]);
+      expect(activityBox.values.map((a) => a.duration).toList()..sort(), [
+        15,
+        25,
+      ]);
+      expectDistinctIds();
+    });
+
+    test('JSON: importing a bundle whose rows have no id twice keeps one '
+        'copy of each', () async {
+      writeBundle(
+        intakes: [_intakeJson('', amount: 20), _intakeJson('', amount: 30)],
+        activities: [
+          _activityJson('', duration: 15),
+          _activityJson('', duration: 25),
+        ],
+      );
+
+      await importJson();
+      await importJson();
+
+      expect(intakeBox.values.map((i) => i.amount).toList()..sort(), [20, 30]);
+      expect(activityBox.values.map((a) => a.duration).toList()..sort(), [
+        15,
+        25,
+      ]);
+      expectDistinctIds();
+    });
+
+    test('two identical rows without an id are both kept, on every '
+        'import', () async {
+      writeBundle(
+        intakes: [_intakeJson('', amount: 20), _intakeJson('', amount: 20)],
+        activities: [
+          _activityJson('', duration: 15),
+          _activityJson('', duration: 15),
+        ],
+      );
+
+      await importJson();
+      await importJson();
+
+      expect(intakeBox.values.map((i) => i.amount), [20, 20]);
+      expect(activityBox.values.map((a) => a.duration), [15, 15]);
+      expectDistinctIds();
+    });
+
+    test('a whitespace-only id is blank too, so the rows are kept apart '
+        'and get ids of their own', () async {
+      writeBundle(
+        intakes: [_intakeJson(' ', amount: 20), _intakeJson('  ', amount: 30)],
+        activities: [
+          _activityJson(' ', duration: 15),
+          _activityJson('\t', duration: 25),
+        ],
+      );
+
+      await importJson();
+      await importJson();
+
+      expect(intakeBox.values.map((i) => i.amount).toList()..sort(), [20, 30]);
+      expect(activityBox.values.map((a) => a.duration).toList()..sort(), [
+        15,
+        25,
+      ]);
+      expect(
+        intakeBox.values.map((i) => i.id.trim()),
+        everyElement(isNotEmpty),
+      );
+      expect(
+        activityBox.values.map((a) => a.id.trim()),
+        everyElement(isNotEmpty),
+      );
+      expectDistinctIds();
+    });
+
+    // The ids a blank-id row is given, pinned: a backup exported without
+    // ids must keep getting them from every later build, or re-importing it
+    // after an update would add each of its rows a second time.
+    const pinnedIntakeId = '4588dbd4-46fc-5e41-b28b-1c8c5611c280';
+    const pinnedActivityId = '7afbd754-e1b1-54a1-a42f-42abbfce1d06';
+
+    /// The pinned intake, its food named plainly `Porridge` rather than
+    /// with the trailing space `_intakeJson('')` leaves.
+    Map<String, dynamic> pinnedIntake() => _intakeJson('', amount: 20)
+      ..update(
+        'meal',
+        (meal) => <String, dynamic>{
+          ...meal as Map<String, dynamic>,
+          'name': 'Porridge',
+        },
+      );
+
+    test('a blank-id row gets the same id from every build, and from the '
+        'CSV and the JSON file alike', () async {
+      writeBundle(
+        intakes: [pinnedIntake()],
+        activities: [_activityJson('', duration: 15)],
+      );
+      await importJson();
+
+      expect(intakeIds(), [pinnedIntakeId]);
+      expect(activityIds(), [pinnedActivityId]);
+
+      writeZip({
+        'user_activity.csv': CsvDataExporter.userActivitiesToCsv([
+          UserActivityDBO.fromJson(_activityJson('', duration: 15)),
+        ]),
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(pinnedIntake()),
+        ]),
+        'user_tracked_day.csv': '',
+      });
+      expect(await usecase.importDataCsv(), isTrue);
+
+      expect(intakeIds(), [pinnedIntakeId]);
+      expect(activityIds(), [pinnedActivityId]);
+    });
+
+    test('fields outside the identity, set, null or unknown, leave the '
+        'derived id alone', () async {
+      final intake = pinnedIntake();
+      final meal = intake['meal'] as Map<String, dynamic>;
+      intake['addedByALaterVersion'] = 'x';
+      meal['localImagePath'] = null;
+      meal['dataVersion'] = 1;
+      meal['nutriments'] = {'energyKcal100': 999.0};
+      final activity = _activityJson('', duration: 15)
+        ..['addedByALaterVersion'] = null
+        ..['userKcal'] = 300.0
+        ..['externalId'] = null
+        ..['sourceReportedKcal'] = 280.0;
+      (activity['physicalActivityDBO'] as Map<String, dynamic>)['mets'] = 1.0;
+      writeBundle(intakes: [intake], activities: [activity]);
+
+      await importJson();
+
+      expect(intakeIds(), [pinnedIntakeId]);
+      expect(activityIds(), [pinnedActivityId]);
+    });
+
+    test('empty and padded fields derive the same id from the JSON file '
+        'as from the CSV, which reads them back trimmed and as null', () async {
+      final intake = pinnedIntake();
+      final meal = intake['meal'] as Map<String, dynamic>;
+      meal['code'] = '';
+      meal['name'] = ' Porridge ';
+      meal['brands'] = '';
+      final activity = _activityJson('', duration: 15);
+      (activity['physicalActivityDBO']
+              as Map<String, dynamic>)['specificActivity'] =
+          ' running ';
+      writeBundle(intakes: [intake], activities: [activity]);
+      await importJson();
+
+      expect(intakeIds(), [pinnedIntakeId]);
+      expect(activityIds(), [pinnedActivityId]);
+
+      writeZip({
+        'user_activity.csv': CsvDataExporter.userActivitiesToCsv([
+          UserActivityDBO.fromJson(activity),
+        ]),
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(intake),
+        ]),
+        'user_tracked_day.csv': '',
+      });
+      expect(await usecase.importDataCsv(), isTrue);
+
+      expect(intakeIds(), [pinnedIntakeId]);
+      expect(activityIds(), [pinnedActivityId]);
+    });
+
+    test('a signed zero derives the same id from the JSON file as from the '
+        'CSV, which writes it as 0', () async {
+      final intake = _intakeJson('', amount: -0.0);
+      final activity = _activityJson('', duration: -0.0)..['burnedKcal'] = -0.0;
+      writeBundle(intakes: [intake], activities: [activity]);
+      await importJson();
+      final jsonIntakeIds = intakeIds();
+      final jsonActivityIds = activityIds();
+
+      writeZip({
+        'user_activity.csv': CsvDataExporter.userActivitiesToCsv([
+          UserActivityDBO.fromJson(activity),
+        ]),
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(intake),
+        ]),
+        'user_tracked_day.csv': '',
+      });
+      expect(await usecase.importDataCsv(), isTrue);
+
+      expect(intakeIds(), jsonIntakeIds);
+      expect(activityIds(), jsonActivityIds);
+    });
+
+    // An export of an earlier id-less import carries the derived id; a
+    // copy of that row with its id cleared must not be handed the same one.
+    for (final copyFirst in [false, true]) {
+      test('a blank-id copy of a row that carries its derived id is kept, '
+          'on every import (copy ${copyFirst ? 'first' : 'last'})', () async {
+        final intake = pinnedIntake();
+        final activity = _activityJson('', duration: 15);
+        final explicitIntake = {...intake, 'id': pinnedIntakeId};
+        final explicitActivity = {...activity, 'id': pinnedActivityId};
+        writeBundle(
+          intakes: copyFirst
+              ? [intake, explicitIntake]
+              : [explicitIntake, intake],
+          activities: copyFirst
+              ? [activity, explicitActivity]
+              : [explicitActivity, activity],
+        );
+
+        await importJson();
+        await importJson();
+
+        expect(intakeBox.values, hasLength(2));
+        expect(activityBox.values, hasLength(2));
+        expect(intakeIds(), contains(pinnedIntakeId));
+        expect(activityIds(), contains(pinnedActivityId));
+        expectDistinctIds();
+      });
+    }
   });
 
   group('a rejected archive leaves the device untouched', () {
@@ -560,6 +814,22 @@ void main() {
         ExportImportBloc.userActivityJsonFileName: validActivities,
         ExportImportBloc.userIntakeJsonFileName: validIntakes,
       },
+      // `1e400` is a valid JSON number that decodes to Infinity, which the
+      // next JSON export could not encode.
+      'JSON, an id-less intake whose amount overflows to Infinity': {
+        ExportImportBloc.userActivityJsonFileName: validActivities,
+        ExportImportBloc.userIntakeJsonFileName: jsonEncode([
+          _intakeJson('', amount: 20),
+        ]).replaceFirst('"amount":20.0', '"amount":1e400'),
+        ExportImportBloc.trackedDayJsonFileName: '[]',
+      },
+      'JSON, a nutriment that overflows to -Infinity': {
+        ExportImportBloc.userActivityJsonFileName: validActivities,
+        ExportImportBloc.userIntakeJsonFileName: jsonEncode([
+          _intakeJson('meal-a', amount: 80),
+        ]).replaceFirst('"energyKcal100":120.0', '"energyKcal100":-1e400'),
+        ExportImportBloc.trackedDayJsonFileName: '[]',
+      },
       'JSON, optional template entry malformed': {
         ExportImportBloc.userActivityJsonFileName: validActivities,
         ExportImportBloc.userIntakeJsonFileName: validIntakes,
@@ -589,6 +859,22 @@ void main() {
       'CSV, intake entry malformed': {
         'user_activity.csv': validActivityCsv,
         'user_intake.csv': 'id,date_time\nmeal-a,not-a-date\n',
+        'user_tracked_day.csv': '',
+      },
+      // `Infinity` and `NaN` parse as doubles. Activities are written
+      // before intakes, so this also checks nothing is written before the
+      // whole archive has been read.
+      'CSV, an id-less intake whose amount is Infinity': {
+        'user_activity.csv': validActivityCsv,
+        'user_intake.csv':
+            'id,date_time,amount\n,2026-10-01T08:00:00.000,Infinity\n',
+        'user_tracked_day.csv': '',
+      },
+      'CSV, an activity whose duration is NaN': {
+        'user_activity.csv': 'id,date,duration\n,2026-10-01T18:00:00.000,NaN\n',
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(_intakeJson('meal-a', amount: 80)),
+        ]),
         'user_tracked_day.csv': '',
       },
       'CSV, tracked-day entry missing': {
