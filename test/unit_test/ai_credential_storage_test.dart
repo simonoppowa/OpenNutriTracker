@@ -1,8 +1,48 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
+
+/// Records the URL a request went to and answers with one empty tool call,
+/// enough for the chat-completions client to parse.
+class _UrlCapturingClient extends http.BaseClient {
+  Uri? url;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    url = request.url;
+    return http.StreamedResponse(
+      Stream.value(
+        utf8.encode(
+          jsonEncode({
+            'choices': [
+              {
+                'finish_reason': 'tool_calls',
+                'message': {
+                  'tool_calls': [
+                    {
+                      'function': {
+                        'name': 'log_meal_items',
+                        'arguments': '{"items":[]}',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ),
+      ),
+      200,
+      request: request,
+    );
+  }
+}
 
 /// In-memory stand-in for the platform keystore.
 ///
@@ -963,6 +1003,26 @@ void main() {
           'https://ollama.example.com/proxy/chat',
           'https://ollama.example.com/proxy/chat',
         ),
+        // Google's documented OpenAI-compatible base, with and without the
+        // trailing slash its docs print (#1257).
+        (
+          'https://generativelanguage.googleapis.com/v1beta/openai/',
+          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+        ),
+        (
+          'https://generativelanguage.googleapis.com/v1beta/openai',
+          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+        ),
+        (
+          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+        ),
+        // Only on Google's host: anywhere else `/openai` is a path the user
+        // chose, and is kept as typed like any other.
+        (
+          'https://proxy.example.com/openai',
+          'https://proxy.example.com/openai',
+        ),
       ]) {
         expect(
           AiCredentialStorage.resolveEndpoint(typed).toString(),
@@ -970,6 +1030,35 @@ void main() {
           reason: typed,
         );
       }
+    });
+
+    test('the Gemini base as typed is where the meal is POSTed', () async {
+      // From the field to the wire: the address Google's docs give, saved the
+      // way the dialog saves it, read back as the selection the factory
+      // builds the client from, and the URL that request actually goes to.
+      await storage.setActiveProvider(AiProvider.ownServer);
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        model: 'gemini-3.1-pro',
+        provider: AiProvider.ownServer,
+      );
+      final selection = await storage.readSelection();
+
+      final client = _UrlCapturingClient();
+      await mealItemsApiFor(client, selection!).requestItems(
+        content: const MealTextContent('toast'),
+        system: 'system',
+      );
+
+      expect(
+        client.url.toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(selection.endpoint!)
+            .toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/models',
+      );
     });
 
     test('the destination is named without the credential in it', () async {
