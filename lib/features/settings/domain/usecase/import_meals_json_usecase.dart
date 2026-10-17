@@ -137,7 +137,7 @@ class ImportMealsJsonUsecase {
     final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
       totalKcalGoal,
     );
-    await _addTrackedDayUsecase.addNewTrackedDay(
+    await _addTrackedDayUsecase.addNewTrackedDayIfAbsent(
       day,
       totalKcalGoal,
       totalCarbsGoal,

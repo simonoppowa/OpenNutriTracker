@@ -885,7 +885,6 @@
   "recipeServingsCountLabel": "Porcje (opcjonalnie)",
   "recipeTagsHelper": "Oddzielone przecinkami, np. \"śniadanie, wegańskie\"",
   "recipeTagsLabel": "Tagi",
-  "recipeTotalWeightHelper": "Domyślnie suma składników. Płyny przybliżone jako 1 ml ≈ 1 g.",
   "recipeTotalWeightLabel": "Waga całkowita (g)",
   "recipesEmptyHint": "Stwórz danie z kilku składników i używaj go jak każdego innego produktu.",
   "recipesEmptyLabel": "Brak przepisów",

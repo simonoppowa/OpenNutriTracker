@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/box_upsert.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
@@ -20,10 +21,49 @@ class IntakeDataSource {
     await _intakeBox.add(intakeDBO);
   }
 
-  Future<void> addAllIntakes(List<IntakeDBO> intakeDBOList) async {
-    log.fine('Adding new intake items to db');
-    await _intakeBox.addAll(intakeDBOList);
+  /// Upserts by [IntakeDBO.id]: an intake whose id is already stored
+  /// replaces it, so importing a bundle twice leaves one copy (#1357).
+  /// Where a bundle holds an id twice the first row wins — the old edit
+  /// rewrote the first copy in place. A row with a blank id gets one
+  /// derived from its content first ([withContentIds]).
+  Future<void> upsertAllIntakes(List<IntakeDBO> intakeDBOList) async {
+    log.fine('Upserting intake items into db');
+    await _intakeBox.upsertAllBy(
+      withContentIds(
+        intakeDBOList,
+        idOf: (dbo) => dbo.id,
+        contentOf: _contentOf,
+        withId: (dbo, id) => IntakeDBO(
+          id: id,
+          unit: dbo.unit,
+          amount: dbo.amount,
+          type: dbo.type,
+          meal: dbo.meal,
+          dateTime: dbo.dateTime,
+        ),
+      ),
+      (dbo) => isBlankId(dbo.id) ? null : dbo.id,
+      winner: UpsertWinner.first,
+    );
   }
+
+  /// What a blank-id intake's derived id is made of: when, which meal
+  /// slot, how much of which food. These fields are in every export ever
+  /// written. The nutriments are left out — the import rescales old Open
+  /// Food Facts values (#1152), so they are not a fixed property of the
+  /// backup row — and two rows that differ only there still both stay, as
+  /// any two equal rows do. Changing this list moves every derived id, and
+  /// re-importing an old backup would then duplicate its blank-id rows.
+  static List<String?> _contentOf(IntakeDBO dbo) => [
+    dbo.dateTime.toIso8601String(),
+    dbo.type.name,
+    contentNumber(dbo.amount),
+    dbo.unit,
+    dbo.meal.source.name,
+    dbo.meal.code,
+    dbo.meal.name,
+    dbo.meal.brands,
+  ];
 
   Future<void> deleteIntakeFromId(String intakeId) async {
     log.fine('Deleting intake item from db');
@@ -34,6 +74,8 @@ class IntakeDataSource {
     }
   }
 
+  /// Applies [fields] to every stored copy of [intakeId], so an install
+  /// the old import doubled (#1357) ends up with copies that agree.
   Future<IntakeDBO?> updateIntake(
     String intakeId,
     Map<String, dynamic> fields,
@@ -41,16 +83,20 @@ class IntakeDataSource {
     log.fine(
       'Updating intake $intakeId with fields ${fields.toString()} in db',
     );
-    var intakeObject = _intakeBox.values.indexed
-        .where((indexedDbo) => indexedDbo.$2.id == intakeId)
-        .firstOrNull;
-    if (intakeObject == null) {
+    final copies = _intakeBox
+        .toMap()
+        .entries
+        .where((entry) => entry.value.id == intakeId)
+        .toList();
+    if (copies.isEmpty) {
       log.fine('Cannot update intake $intakeId as it is non existent');
       return null;
     }
-    intakeObject.$2.amount = fields['amount'] ?? intakeObject.$2.amount;
-    await _intakeBox.putAt(intakeObject.$1, intakeObject.$2);
-    return _intakeBox.getAt(intakeObject.$1);
+    for (final copy in copies) {
+      copy.value.amount = fields['amount'] ?? copy.value.amount;
+    }
+    await _intakeBox.putAll({for (final copy in copies) copy.key: copy.value});
+    return _intakeBox.get(copies.first.key);
   }
 
   Future<IntakeDBO?> getIntakeById(String intakeId) async {
