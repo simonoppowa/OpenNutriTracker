@@ -19,12 +19,12 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/app_locale_sync.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/sentry_config.dart';
-import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
@@ -57,6 +57,11 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 /// shipped languages, computed once (WidgetsApp compares the list by
 /// identity, so a fresh list per build would re-resolve on every rebuild).
 final _appLocales = appLocales(S.supportedLocales);
+
+/// Best-effort: a notification plugin that fails is logged, never allowed to
+/// keep the app from opening or to escape a language change.
+Future<void> _refreshDailyReminder(Locale? locale) =>
+    locator<DailyReminderScheduler>().refresh(locale: locale);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -104,30 +109,14 @@ Future<void> _bootstrapApp() async {
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
 
-  // #312: Restore scheduled notifications after app start / device reboot.
-  // Look up the user's localized strings first — there's no widget tree yet,
-  // so S is driven directly off the saved (or device) locale, resolved against
-  // the supported locales because lookupS throws on unsupported ones. Android
-  // re-applies the channel name/description on every (re)registration, and
-  // they surface in the OS settings, so this keeps them in the user's
-  // language instead of reverting to English on each launch.
-  if (config.notificationsEnabled) {
-    final s = lookupS(
-      basicLocaleListResolution([
-        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
-      ], _appLocales),
-    );
-    final notificationService = locator<NotificationService>();
-    await notificationService.initialize();
-    await notificationService.scheduleDailyReminder(
-      hour: config.notificationHour,
-      minute: config.notificationMinute,
-      title: s.notificationsDailyReminderTitle,
-      body: s.notificationsDailyReminderBody,
-      channelName: s.notificationsDailyReminderChannelName,
-      channelDescription: s.notificationsDailyReminderChannelDescription,
-    );
-  }
+  // #312: Restore scheduled notifications after app start / device reboot,
+  // in the user's language. Android re-applies the channel name/description
+  // on every (re)registration, and they surface in the OS settings, so this
+  // keeps them from reverting to English on each launch. A language change
+  // while the app runs reschedules through [LocaleProvider] (#1366).
+  // Not awaited: it queues on the scheduler at once, so Settings still runs
+  // after it, but start-up never waits on (or fails with) the plugin.
+  unawaited(_refreshDailyReminder(savedLocale));
   final hasAcceptedAnonymousData = await configRepo
       .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
@@ -199,7 +188,10 @@ void runAppWithChangeNotifiers(
         ),
       ),
       ChangeNotifierProvider(
-        create: (_) => LocaleProvider(locale: savedLocale),
+        create: (_) => LocaleProvider(
+          locale: savedLocale,
+          onChanged: (locale) => unawaited(_refreshDailyReminder(locale)),
+        ),
       ),
       ChangeNotifierProvider(
         create: (_) => EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
@@ -247,9 +239,15 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
       await AppLocaleService.getApplicationLocale(),
       _appLocales,
     );
-    if (systemCode == null || !mounted) return;
+    if (!mounted) return;
 
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    if (systemCode == null) {
+      // No per-app override: a device language change. MaterialApp follows
+      // it by itself; the reminder the OS holds does not (#1366).
+      localeProvider.systemLocalesChanged();
+      return;
+    }
     if (localeProvider.locale?.languageCode == systemCode) return;
 
     localeProvider.updateLocale(Locale(systemCode));
