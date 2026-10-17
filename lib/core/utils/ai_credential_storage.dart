@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:opennutritracker/core/utils/gemini_endpoint.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -493,6 +494,13 @@ class AiCredentialStorage {
     // SDKs call the base URL, so it is a base rather than a route.
     if (path.endsWith('/v1')) {
       return uri.replace(path: '$path/chat/completions');
+    }
+    // Google documents its OpenAI-compatible base as `…/v1beta/openai/`, so
+    // that is what a Gemini user pastes, and left as typed every meal was
+    // POSTed to the base (#1257). Read as a base on that host only: on a
+    // server the user runs, a path ending in `/openai` is still theirs.
+    if (isGeminiEndpoint(uri) && path.endsWith('/openai')) {
+      return uri.replace(path: '$path$_chatCompletionsSuffix');
     }
     return uri.replace(path: path);
   }

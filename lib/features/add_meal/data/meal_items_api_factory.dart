@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
+import 'package:opennutritracker/core/utils/gemini_endpoint.dart';
 import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
@@ -55,6 +56,26 @@ const ownServerTimeout = Duration(seconds: 120);
 /// definition — exactly the case #774 measured at 22–24s.
 const aiEndpointProbeTimeout = ownServerTimeout;
 
+/// How a server the user runs is asked for the tool call.
+///
+/// **`required` by default, and not by name**: #733 measured that Ollama has
+/// no `tool_choice` field at all and llama.cpp — LM Studio's llama.cpp engine
+/// included — silently downgrades an object to `"auto"`, so a named function
+/// would be a request most of these servers quietly ignore. The prompts never
+/// tell the model to call the tool, so a downgraded request answers in prose
+/// and fails as "no tool call". `required` is what the app means with one
+/// tool defined, and where it is unsupported the reply lands as that same
+/// refusal.
+///
+/// Gemini is the exception: #1257 reports that its OpenAI-compatible layer
+/// returns the meal only when the function is named. Matched on the host
+/// rather than on the model id: the id is free text, and the host is what
+/// decides who answers.
+ToolChoiceMode ownServerToolChoice(Uri endpoint) =>
+    isGeminiEndpoint(endpoint)
+    ? ToolChoiceMode.namedFunction
+    : ToolChoiceMode.anyTool;
+
 /// Turns a stored selection into the client that will carry it.
 ///
 /// [timeout] overrides the per-provider default. It exists for the probe,
@@ -101,12 +122,8 @@ MealItemsApi mealItemsApiFor(
       model: modelId,
       timeout: timeout ?? OpenAiMealItemsApi.defaultTimeout,
     ),
-    // The user's own address, no broker, and **no forcing by name**: #733
-    // measured that Ollama has no `tool_choice` field at all and llama.cpp
-    // silently downgrades an object to "auto", so asking for a named function
-    // would be a request most of these servers quietly ignore. `required` is
-    // what the app means with one tool defined, and where it is unsupported
-    // the reply lands as the existing no-tool-call refusal.
+    // The user's own address and no broker. How hard to insist on the tool
+    // call depends on what answers there — see [ownServerToolChoice].
     AiProvider.ownServer => OpenAiCompatibleMealItemsApi(
       // The only provider whose address the user supplies, so the only one
       // where plaintext is possible at all — the other three are compiled-in
@@ -116,7 +133,7 @@ MealItemsApi mealItemsApiFor(
       selection.apiKey == null ? null : key,
       model: modelId,
       endpoint: Uri.parse(selection.endpoint!),
-      toolChoice: ToolChoiceMode.anyTool,
+      toolChoice: ownServerToolChoice(Uri.parse(selection.endpoint!)),
       // The two halves of #774, and they only make sense together. The
       // longer budget is what stops a cold model load being reported as a
       // failure at all; the classification is what stops the failures that
