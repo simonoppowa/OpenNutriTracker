@@ -998,7 +998,6 @@
   "recipeServingsCountLabel": "Raciones (opcional)",
   "recipeTagsHelper": "Separadas por comas, p. ej. \"desayuno, vegano\"",
   "recipeTagsLabel": "Etiquetas",
-  "recipeTotalWeightHelper": "Por defecto, la suma de los ingredientes. Los líquidos se aproximan como 1 ml ≈ 1 g.",
   "recipeTotalWeightLabel": "Peso total (g)",
   "recipesEmptyHint": "Compón una comida con varios ingredientes y reutilízala como cualquier otro alimento.",
   "recipesEmptyLabel": "Aún no hay recetas",

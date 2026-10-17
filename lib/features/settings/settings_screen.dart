@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
+import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -353,10 +354,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.bar_chart_rounded,
                     title: S.of(context).settingsShowMealMacros,
                     value: state.showMealMacros,
-                    onChanged: (bool value) {
-                      _settingsBloc.setShowMealMacros(value);
+                    onChanged: (bool value) async {
+                      // Every reload below reads the flag back, so it must
+                      // be stored first.
+                      await _settingsBloc.setShowMealMacros(value);
                       _settingsBloc.add(LoadSettingsEvent());
                       _homeBloc.add(LoadItemsEvent());
+                      // The Diary's meal headers read the flag from
+                      // DiaryBloc, which keeps it until reloaded.
+                      reloadDiaryAndTrends();
                     },
                   ),
                   _SettingsSwitchTile(

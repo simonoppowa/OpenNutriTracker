@@ -291,6 +291,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(), // SettingsBloc: today's goals after an import (#1363)
     ),
   );
   // Lazy singleton: shared between RecipesPage's Custom Meals tab and the
@@ -417,7 +418,7 @@ Future<void> initLocator() async {
     () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
-    () => GetIntakeUsecase(locator()),
+    () => GetIntakeUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<AddIntakeUsecase>(
     () => AddIntakeUsecase(locator()),
@@ -506,10 +507,12 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
     ),
   );
   locator.registerLazySingleton(
     () => ImportDataUsecase(
+      locator(),
       locator(),
       locator(),
       locator(),

@@ -20,6 +20,10 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
   final GetConfigUsecase _getConfigUsecase;
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
 
+  /// The range of the last [LoadTrendsEvent], so a [RefreshTrendsEvent]
+  /// keeps the chip the user picked. Null until the page first loads.
+  int? _rangeDays;
+
   TrendsBloc(
     this._getTrackedDayUsecase,
     this._getWeightLogUsecase,
@@ -27,7 +31,13 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
     this._getConfigUsecase,
     this._getWaterIntakeUsecase,
   ) : super(const TrendsInitial()) {
+    on<RefreshTrendsEvent>((event, emit) {
+      final rangeDays = _rangeDays;
+      if (rangeDays != null) add(LoadTrendsEvent(rangeDays: rangeDays));
+    });
+
     on<LoadTrendsEvent>((event, emit) async {
+      _rangeDays = event.rangeDays;
       emit(const TrendsLoading());
       try {
         final now = DateTime.now();
