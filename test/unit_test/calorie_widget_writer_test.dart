@@ -1,8 +1,11 @@
+import 'dart:ui' show Locale;
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -41,29 +44,17 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
-  Future<void> writeToday(CalorieWidgetStore store) {
-    final snapshot = CalorieWidgetSnapshot.fromHome(
-      consumedKcal: 180,
-      goalKcal: 2000,
-      offsetMinutes: 0,
-      now: DateTime(2026, 9, 23, 13, 0),
-    );
-    return store.write(
-      snapshot,
-      const CalorieWidgetLabels(
-        title: 'Calories',
-        unit: 'kcal',
-        goal: 'of 2000',
-        accessibility: '180 of 2000 kilocalories',
-        openApp: 'Open the app',
-        description: "Today's calories eaten and your goal.",
-      ),
-    );
-  }
+  final snapshot = CalorieWidgetSnapshot.fromHome(
+    consumedKcal: 180,
+    goalKcal: 2000,
+    offsetMinutes: 0,
+    now: DateTime(2026, 9, 23, 13, 0),
+  );
+  final german = CalorieWidgetLabels.of(lookupS(const Locale('de')), snapshot);
 
-  test('clear removes every key write stored', () async {
+  test('clear removes the figures and keeps the translated labels', () async {
     final store = HomeWidgetCalorieStore(isIOS: false);
-    await writeToday(store);
+    await store.write(snapshot, german);
     expect(
       stored.keys,
       containsAll([...CalorieWidgetSnapshot.keys, ...CalorieWidgetLabels.keys]),
@@ -72,17 +63,19 @@ void main() {
 
     await store.clear();
 
-    expect(stored, isEmpty);
+    // The placeholder a wipe leads to stays in German rather than falling
+    // back to the extension's English until onboarding writes again.
+    expect(stored, german.languagePayload());
   });
 
   test('clear reloads the iOS widget so it drops the old figures', () async {
     final store = HomeWidgetCalorieStore(isIOS: true);
-    await writeToday(store);
+    await store.write(snapshot, german);
     calls.clear();
 
     await store.clear();
 
-    expect(stored, isEmpty);
+    expect(stored.keys, unorderedEquals(CalorieWidgetLabels.languageKeys));
     expect(calls.first, 'setAppGroupId');
     expect(calls.last, 'updateWidget');
   });

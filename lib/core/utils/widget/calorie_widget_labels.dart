@@ -20,14 +20,14 @@ class CalorieWidgetLabels {
   static const openAppKey = 'ont_calorie_label_open_app';
   static const descriptionKey = 'ont_calorie_label_description';
 
-  static const keys = [
-    titleKey,
-    unitKey,
-    goalKey,
-    accessibilityKey,
-    openAppKey,
-    descriptionKey,
-  ];
+  /// Labels that depend only on the language. They hold nothing about the
+  /// profile, so a wipe keeps them and the placeholder stays translated.
+  static const languageKeys = [titleKey, unitKey, openAppKey, descriptionKey];
+
+  /// Labels that carry the profile's figures, and go when the figures do.
+  static const figureKeys = [goalKey, accessibilityKey];
+
+  static const keys = [...languageKeys, ...figureKeys];
 
   final String title;
   final String unit;
@@ -48,9 +48,22 @@ class CalorieWidgetLabels {
   /// The labels for [snapshot] in the language of [s]. The goal and the
   /// VoiceOver line carry the snapshot's figures, so they are written
   /// together with it.
-  factory CalorieWidgetLabels.of(S s, CalorieWidgetSnapshot snapshot) {
-    final consumed = '${snapshot.consumedKcal}';
-    final goal = '${snapshot.goalKcal}';
+  factory CalorieWidgetLabels.of(S s, CalorieWidgetSnapshot snapshot) =>
+      CalorieWidgetLabels.forFigures(
+        s,
+        consumedKcal: snapshot.consumedKcal,
+        goalKcal: snapshot.goalKcal,
+      );
+
+  /// The labels for figures already stored, for when only the language
+  /// changed.
+  factory CalorieWidgetLabels.forFigures(
+    S s, {
+    required int consumedKcal,
+    required int goalKcal,
+  }) {
+    final consumed = '$consumedKcal';
+    final goal = '$goalKcal';
     return CalorieWidgetLabels(
       title: s.trendsCaloriesLabel,
       unit: s.kcalLabel,
@@ -61,24 +74,32 @@ class CalorieWidgetLabels {
     );
   }
 
-  /// The labels in the language the app is being read in. Home publishes
+  /// The labels in the language the app is being read in.
+  factory CalorieWidgetLabels.forAppLocale(CalorieWidgetSnapshot snapshot) =>
+      CalorieWidgetLabels.of(appStrings(), snapshot);
+
+  /// The strings for the language the app is being read in. Home publishes
   /// without a BuildContext, so this resolves [AppLocale] against the
   /// shipped locales the same way `main.dart` does for the reminder text;
   /// `lookupS` throws on a locale it does not know.
-  factory CalorieWidgetLabels.forAppLocale(CalorieWidgetSnapshot snapshot) {
+  static S appStrings() {
     final language = AppLocale.localeName.split(RegExp('[_-]')).first;
     final locale = basicLocaleListResolution([
       Locale(language),
     ], appLocales(S.supportedLocales));
-    return CalorieWidgetLabels.of(lookupS(locale), snapshot);
+    return lookupS(locale);
   }
 
-  Map<String, String> toPayload() => {
+  Map<String, String> languagePayload() => {
     titleKey: title,
     unitKey: unit,
-    goalKey: goal,
-    accessibilityKey: accessibility,
     openAppKey: openApp,
     descriptionKey: description,
+  };
+
+  Map<String, String> toPayload() => {
+    ...languagePayload(),
+    goalKey: goal,
+    accessibilityKey: accessibility,
   };
 }

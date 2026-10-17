@@ -13,8 +13,9 @@ abstract class CalorieWidgetStore {
     CalorieWidgetLabels labels,
   );
 
-  /// Removes everything [write] stored and reloads the widget, so it stops
-  /// showing a profile whose data was just deleted.
+  /// Removes the profile's figures and reloads the widget, so it stops
+  /// showing a profile whose data was just deleted. The language-only
+  /// labels stay, so the placeholder it falls back to is still translated.
   Future<void> clear();
 }
 
@@ -39,7 +40,7 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
   Future<void> clear() => _save({
     for (final key in [
       ...CalorieWidgetSnapshot.keys,
-      ...CalorieWidgetLabels.keys,
+      ...CalorieWidgetLabels.figureKeys,
     ])
       key: null,
   });
