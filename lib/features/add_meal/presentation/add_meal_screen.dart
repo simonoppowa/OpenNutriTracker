@@ -377,7 +377,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         }
                         if (productsFailed && foodFailed) {
                           return ErrorDialog(
-                            errorText: S.of(context).errorFetchingSearchResults,
+                            errorText: S.of(context).errorFetchingProductData,
                             onRefreshPressed: _onAllSourcesRefreshButtonPressed,
                             retryIdentifier: 'search-all-retry',
                           );

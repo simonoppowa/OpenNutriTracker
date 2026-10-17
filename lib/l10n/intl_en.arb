@@ -399,7 +399,6 @@
   "energyUnitKcalLabel": "Kilocalories (kcal)",
   "energyUnitKjLabel": "Kilojoules (kJ)",
   "errorFetchingProductData": "Error while fetching product data",
-  "errorFetchingSearchResults": "Error while fetching search results",
   "errorLoadingActivities": "Error while loading activities",
   "errorMealSave": "Error while saving meal. Did you input the correct meal information?",
   "errorOpeningBrowser": "Error while opening browser app",

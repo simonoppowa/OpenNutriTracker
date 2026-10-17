@@ -321,7 +321,7 @@ void main() {
           findsOneWidget);
       expect(find.text(l10nEn.partialResultsNotice), findsNothing,
           reason: 'neither source answered, so none is "the one" missing');
-      expect(find.text(l10nEn.errorFetchingSearchResults), findsNothing);
+      expect(find.text(l10nEn.errorFetchingProductData), findsNothing);
 
       // Both recover; the notice's Retry re-runs both searches.
       _repository
@@ -361,7 +361,7 @@ void main() {
 
       await _search(tester, 'apple');
 
-      expect(find.text(l10nEn.errorFetchingSearchResults), findsOneWidget);
+      expect(find.text(l10nEn.errorFetchingProductData), findsOneWidget);
       expect(find.byType(NoResultsWidget), findsNothing);
       final retry = find.bySemanticsIdentifier('search-all-retry');
       expect(retry, findsOneWidget);
@@ -389,7 +389,7 @@ void main() {
 
       expect(find.byType(NoResultsWidget), findsOneWidget);
       expect(find.byType(PartialResultsNotice), findsNothing);
-      expect(find.text(l10nEn.errorFetchingSearchResults), findsNothing);
+      expect(find.text(l10nEn.errorFetchingProductData), findsNothing);
     });
   });
 }
