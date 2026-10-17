@@ -57,7 +57,7 @@ class IntakeDataSource {
   static List<String?> _contentOf(IntakeDBO dbo) => [
     dbo.dateTime.toIso8601String(),
     dbo.type.name,
-    dbo.amount.toString(),
+    contentNumber(dbo.amount),
     dbo.unit,
     dbo.meal.source.name,
     dbo.meal.code,

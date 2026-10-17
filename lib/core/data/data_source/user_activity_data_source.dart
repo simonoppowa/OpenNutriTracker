@@ -59,8 +59,8 @@ class UserActivityDataSource {
     dbo.date.toIso8601String(),
     dbo.physicalActivityDBO.code,
     dbo.physicalActivityDBO.specificActivity,
-    dbo.duration.toString(),
-    dbo.burnedKcal.toString(),
+    contentNumber(dbo.duration),
+    contentNumber(dbo.burnedKcal),
   ];
 
   /// Rewrites every stored copy of [id], so an install the old import

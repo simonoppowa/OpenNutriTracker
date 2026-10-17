@@ -370,10 +370,11 @@ class CsvDataExporter {
     return '"$escaped"';
   }
 
-  /// Render a nullable numeric cell. Null and NaN become empty so the
-  /// importer can round-trip them back to null via parseDoubleOrNull.
+  /// Render a nullable numeric cell. Null and non-finite values (NaN, and
+  /// an infinity a build before [_double] could store) become empty, so
+  /// the importer reads them back as null instead of refusing the file.
   static String _num(double? value) {
-    if (value == null || value.isNaN) return '';
+    if (value == null || !value.isFinite) return '';
     // Drop trailing `.0` for whole numbers so the CSV is easier to read
     // in a spreadsheet — `1.0` becomes `1` — without losing precision
     // (parseDoubleOrNull happily accepts either form).

@@ -705,6 +705,30 @@ void main() {
       expect(activityIds(), [pinnedActivityId]);
     });
 
+    test('a signed zero derives the same id from the JSON file as from the '
+        'CSV, which writes it as 0', () async {
+      final intake = _intakeJson('', amount: -0.0);
+      final activity = _activityJson('', duration: -0.0)..['burnedKcal'] = -0.0;
+      writeBundle(intakes: [intake], activities: [activity]);
+      await importJson();
+      final jsonIntakeIds = intakeIds();
+      final jsonActivityIds = activityIds();
+
+      writeZip({
+        'user_activity.csv': CsvDataExporter.userActivitiesToCsv([
+          UserActivityDBO.fromJson(activity),
+        ]),
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(intake),
+        ]),
+        'user_tracked_day.csv': '',
+      });
+      expect(await usecase.importDataCsv(), isTrue);
+
+      expect(intakeIds(), jsonIntakeIds);
+      expect(activityIds(), jsonActivityIds);
+    });
+
     // An export of an earlier id-less import carries the derived id; a
     // copy of that row with its id cleared must not be handed the same one.
     for (final copyFirst in [false, true]) {
@@ -789,6 +813,22 @@ void main() {
       'JSON, tracked-day entry missing': {
         ExportImportBloc.userActivityJsonFileName: validActivities,
         ExportImportBloc.userIntakeJsonFileName: validIntakes,
+      },
+      // `1e400` is a valid JSON number that decodes to Infinity, which the
+      // next JSON export could not encode.
+      'JSON, an id-less intake whose amount overflows to Infinity': {
+        ExportImportBloc.userActivityJsonFileName: validActivities,
+        ExportImportBloc.userIntakeJsonFileName: jsonEncode([
+          _intakeJson('', amount: 20),
+        ]).replaceFirst('"amount":20.0', '"amount":1e400'),
+        ExportImportBloc.trackedDayJsonFileName: '[]',
+      },
+      'JSON, a nutriment that overflows to -Infinity': {
+        ExportImportBloc.userActivityJsonFileName: validActivities,
+        ExportImportBloc.userIntakeJsonFileName: jsonEncode([
+          _intakeJson('meal-a', amount: 80),
+        ]).replaceFirst('"energyKcal100":120.0', '"energyKcal100":-1e400'),
+        ExportImportBloc.trackedDayJsonFileName: '[]',
       },
       'JSON, optional template entry malformed': {
         ExportImportBloc.userActivityJsonFileName: validActivities,

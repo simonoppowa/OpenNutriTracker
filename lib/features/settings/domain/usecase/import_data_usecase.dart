@@ -130,7 +130,7 @@ class ImportDataUsecase {
             ExportImportFailureReason.unreadableOrWrongFormat,
             'Could not parse ${goalSettingsFile.name}',
             () => GoalSettingsBackup.fromJson(
-              jsonDecode(utf8.decode(goalSettingsFile.content as List<int>)),
+              _decodeFinite(utf8.decode(goalSettingsFile.content as List<int>)),
             ),
           );
 
@@ -286,13 +286,27 @@ class ImportDataUsecase {
       'Could not parse ${entry.name}',
       () {
         final jsonString = utf8.decode(entry.content as List<int>);
-        return (jsonDecode(jsonString) as List)
+        return (_decodeFinite(jsonString) as List)
             .cast<Map<String, dynamic>>()
             .map(fromJson)
             .toList();
       },
     );
   }
+
+  /// [jsonDecode], but a number too large for a double (`1e400`), which
+  /// decodes to an infinity, is a [FormatException]: stored on the device
+  /// it would make the next JSON export throw. The CSV reader refuses
+  /// `Infinity` the same way.
+  static Object? _decodeFinite(String source) => jsonDecode(
+    source,
+    reviver: (key, value) {
+      if (value is double && !value.isFinite) {
+        throw FormatException('Not a finite number', '$key');
+      }
+      return value;
+    },
+  );
 
   /// CSV counterpart of [_decodeJsonList].
   List<T> _decodeCsv<T>(ArchiveFile entry, List<T> Function(String) parse) {

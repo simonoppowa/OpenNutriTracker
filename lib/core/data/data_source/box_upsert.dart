@@ -22,6 +22,10 @@ enum UpsertWinner {
 /// edited backup). No generated id looks like that.
 bool isBlankId(String id) => id.trim().isEmpty;
 
+/// A number as a [withContentIds] content field. `-0.0` reads as `0.0`:
+/// the CSV writes either as `0`, so the JSON file must derive the same id.
+String contentNumber(double value) => (value == 0 ? 0.0 : value).toString();
+
 /// Gives each row in [items] whose id is blank ([isBlankId]: a hand-edited
 /// CSV, an old export) an id derived from its content, so it has an
 /// identity like any other row: importing the same file again replaces it
