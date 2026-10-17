@@ -13,10 +13,10 @@ class UserActivityRepository {
     await _userActivityDataSource.addUserActivity(activityDBO);
   }
 
-  Future<void> addAllUserActivityDBOs(
+  Future<void> upsertAllUserActivityDBOs(
     List<UserActivityDBO> userActivityDBOs,
   ) async {
-    await _userActivityDataSource.addAllUserActivities(userActivityDBOs);
+    await _userActivityDataSource.upsertAllUserActivities(userActivityDBOs);
   }
 
   Future<UserActivityEntity?> updateUserActivity(

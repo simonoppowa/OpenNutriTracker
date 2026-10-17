@@ -915,7 +915,6 @@
   "recipeServingsCountLabel": "Порций (необязательно)",
   "recipeTagsHelper": "Через запятую, напр. «завтрак, веган»",
   "recipeTagsLabel": "Теги",
-  "recipeTotalWeightHelper": "По умолчанию — сумма ингредиентов. Жидкости приблизительно считаются как 1 мл ≈ 1 г.",
   "recipeTotalWeightLabel": "Общий вес (г)",
   "recipesEmptyHint": "Соберите блюдо из нескольких ингредиентов и используйте его повторно как любой другой продукт.",
   "recipesEmptyLabel": "Рецептов пока нет",
