@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/presentation/widgets/keyboard_dismisser.dart';
 
@@ -64,6 +65,21 @@ void main() {
     await tester.pump();
 
     expect(buttonPresses, 1);
+  });
+
+  testWidgets('screen readers are not offered the dismiss tap', (tester) async {
+    // The wrapper sits above every route; left in semantics, it would put an
+    // unlabelled tap action on the node covering the whole app.
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => KeyboardDismisser(child: child!),
+        home: const Scaffold(body: Text('Nothing to tap')),
+      ),
+    );
+
+    expect(find.semantics.byAction(SemanticsAction.tap), findsNothing);
+    semantics.dispose();
   });
 
   testWidgets('a tap inside a dialog closes the keyboard', (tester) async {

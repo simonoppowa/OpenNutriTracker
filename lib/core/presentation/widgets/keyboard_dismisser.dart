@@ -9,6 +9,10 @@ import 'package:flutter/material.dart';
 ///
 /// Taps that a descendant claims (a button, a chip, the text field itself)
 /// win the gesture arena, so this fires only on otherwise inert areas.
+///
+/// The gesture is kept out of the semantics tree: it sits above every route,
+/// and a screen reader would otherwise offer an unlabelled tap action on the
+/// whole app. Screen reader keyboards have their own dismiss gesture.
 class KeyboardDismisser extends StatelessWidget {
   final Widget child;
 
@@ -18,6 +22,7 @@ class KeyboardDismisser extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
+      excludeFromSemantics: true,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: child,
     );
