@@ -614,8 +614,8 @@ void main() {
     const pinnedIntakeId = '4588dbd4-46fc-5e41-b28b-1c8c5611c280';
     const pinnedActivityId = '7afbd754-e1b1-54a1-a42f-42abbfce1d06';
 
-    /// The pinned intake. Its food is named without the trailing space
-    /// `_intakeJson('')` leaves, which the CSV reader trims off a cell.
+    /// The pinned intake, its food named plainly `Porridge` rather than
+    /// with the trailing space `_intakeJson('')` leaves.
     Map<String, dynamic> pinnedIntake() => _intakeJson('', amount: 20)
       ..update(
         'meal',
@@ -672,6 +672,67 @@ void main() {
       expect(intakeIds(), [pinnedIntakeId]);
       expect(activityIds(), [pinnedActivityId]);
     });
+
+    test('empty and padded fields derive the same id from the JSON file '
+        'as from the CSV, which reads them back trimmed and as null', () async {
+      final intake = pinnedIntake();
+      final meal = intake['meal'] as Map<String, dynamic>;
+      meal['code'] = '';
+      meal['name'] = ' Porridge ';
+      meal['brands'] = '';
+      final activity = _activityJson('', duration: 15);
+      (activity['physicalActivityDBO']
+              as Map<String, dynamic>)['specificActivity'] =
+          ' running ';
+      writeBundle(intakes: [intake], activities: [activity]);
+      await importJson();
+
+      expect(intakeIds(), [pinnedIntakeId]);
+      expect(activityIds(), [pinnedActivityId]);
+
+      writeZip({
+        'user_activity.csv': CsvDataExporter.userActivitiesToCsv([
+          UserActivityDBO.fromJson(activity),
+        ]),
+        'user_intake.csv': CsvDataExporter.intakesToCsv([
+          IntakeDBO.fromJson(intake),
+        ]),
+        'user_tracked_day.csv': '',
+      });
+      expect(await usecase.importDataCsv(), isTrue);
+
+      expect(intakeIds(), [pinnedIntakeId]);
+      expect(activityIds(), [pinnedActivityId]);
+    });
+
+    // An export of an earlier id-less import carries the derived id; a
+    // copy of that row with its id cleared must not be handed the same one.
+    for (final copyFirst in [false, true]) {
+      test('a blank-id copy of a row that carries its derived id is kept, '
+          'on every import (copy ${copyFirst ? 'first' : 'last'})', () async {
+        final intake = pinnedIntake();
+        final activity = _activityJson('', duration: 15);
+        final explicitIntake = {...intake, 'id': pinnedIntakeId};
+        final explicitActivity = {...activity, 'id': pinnedActivityId};
+        writeBundle(
+          intakes: copyFirst
+              ? [intake, explicitIntake]
+              : [explicitIntake, intake],
+          activities: copyFirst
+              ? [activity, explicitActivity]
+              : [explicitActivity, activity],
+        );
+
+        await importJson();
+        await importJson();
+
+        expect(intakeBox.values, hasLength(2));
+        expect(activityBox.values, hasLength(2));
+        expect(intakeIds(), contains(pinnedIntakeId));
+        expect(activityIds(), contains(pinnedActivityId));
+        expectDistinctIds();
+      });
+    }
   });
 
   group('a rejected archive leaves the device untouched', () {

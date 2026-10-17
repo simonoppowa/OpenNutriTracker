@@ -29,19 +29,28 @@ bool isBlankId(String id) => id.trim().isEmpty;
 /// id the meal lists key their cards by (#1357). Rows with equal content
 /// are told apart by how many came before them in [items], so two
 /// identical entries both survive. Rows that already have an id are
-/// returned unchanged.
+/// returned unchanged, and no derived id repeats one of theirs: an export
+/// of an earlier id-less import carries the derived id, and a copy of that
+/// row with its id cleared takes the next occurrence instead of merging
+/// with it.
 ///
 /// [contentOf] lists the fields that make up a row's content, each already
 /// a string, in a fixed order. It names them by hand rather than reading
 /// the generated serializer, so a field a later version adds, or a change
 /// to how one is serialized, leaves the id of the same backup row where it
-/// was. Nothing here encodes a double, so a non-finite value cannot throw.
+/// was. Each field is trimmed and a blank one counts as null, as the CSV
+/// reader leaves them, so the JSON file and the CSV derive the same id.
+/// Nothing here encodes a double, so a non-finite value cannot throw.
 List<T> withContentIds<T>(
   List<T> items, {
   required String Function(T item) idOf,
   required List<String?> Function(T item) contentOf,
   required T Function(T item, String id) withId,
 }) {
+  final taken = {
+    for (final item in items)
+      if (!isBlankId(idOf(item))) idOf(item),
+  };
   final seen = <String, int>{};
   final out = <T>[];
   for (final item in items) {
@@ -49,13 +58,17 @@ List<T> withContentIds<T>(
       out.add(item);
       continue;
     }
-    final content = jsonEncode(contentOf(item));
-    final occurrence = seen.update(
-      content,
-      (count) => count + 1,
-      ifAbsent: () => 0,
-    );
-    out.add(withId(item, IdGenerator.getContentID('$content#$occurrence')));
+    final content = jsonEncode([
+      for (final field in contentOf(item))
+        (field == null || isBlankId(field)) ? null : field.trim(),
+    ]);
+    var occurrence = seen[content] ?? 0;
+    String id;
+    do {
+      id = IdGenerator.getContentID('$content#${occurrence++}');
+    } while (!taken.add(id));
+    seen[content] = occurrence;
+    out.add(withId(item, id));
   }
   return out;
 }

@@ -69,7 +69,10 @@ current build rewrites every copy, so the copies agree. A row with a blank
 fields — for an intake its time, meal slot, amount, unit and the food's
 source, code, name and brands; for an activity its date, activity code and
 name, duration and kcal — so importing the same zip twice still changes
-nothing, on this build or a later one, and two identical rows both stay. The
+nothing, on this build or a later one, and two identical rows both stay. Those
+fields are compared trimmed, with an empty one the same as a missing one, so a
+row's JSON and CSV copies get the same id; and a derived id never repeats an
+`id` another row in the same file already has. The
 goal settings in `goal_settings.json`, when the zip has one, replace the active
 profile's. After
 any import, today's kcal and macro goals are worked out again from the
