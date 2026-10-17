@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 import '../helpers/hive_test_setup.dart';
 
@@ -108,6 +109,9 @@ class _RecordingWidgetStore implements CalorieWidgetStore {
     clears++;
     if (fails) throw MissingPluginException('home_widget');
   }
+
+  @override
+  Future<void> relabel(S s) async {}
 }
 
 class _TestHiveDBProvider extends HiveDBProvider {

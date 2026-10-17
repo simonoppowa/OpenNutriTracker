@@ -2,6 +2,8 @@ import 'dart:ui' show Locale;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/utils/app_locale.dart';
+import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
@@ -79,4 +81,83 @@ void main() {
     expect(calls.first, 'setAppGroupId');
     expect(calls.last, 'updateWidget');
   });
+
+  group('a language change', () {
+    tearDown(AppLocale.reset);
+
+    final english = CalorieWidgetLabels.of(
+      lookupS(const Locale('en')),
+      snapshot,
+    );
+
+    test('relabel translates the labels around the stored figures', () async {
+      final store = HomeWidgetCalorieStore(isIOS: true);
+      await store.write(snapshot, english);
+      calls.clear();
+
+      await store.relabel(lookupS(const Locale('de')));
+
+      expect(stored, {...snapshot.toPayload(), ...german.toPayload()});
+      expect(calls.last, 'updateWidget');
+    });
+
+    test('relabel after a wipe writes no figure labels', () async {
+      final store = HomeWidgetCalorieStore(isIOS: false);
+      await store.write(snapshot, english);
+      await store.clear();
+
+      await store.relabel(lookupS(const Locale('de')));
+
+      expect(stored, german.languagePayload());
+    });
+
+    test('the language picker relabels the widget', () async {
+      final store = _RecordingStore();
+      final provider = LocaleProvider(
+        locale: const Locale('en'),
+        calorieWidgetStore: store,
+      );
+      expect(store.relabelled, isEmpty, reason: 'start-up leaves it to Home');
+
+      provider.updateLocale(const Locale('de'));
+      await pumpEventQueue();
+
+      expect(store.relabelled.single.trendsCaloriesLabel, german.title);
+    });
+
+    test('a widget that cannot be relabelled does not block it', () async {
+      final provider = LocaleProvider(
+        locale: const Locale('en'),
+        calorieWidgetStore: _RecordingStore(fails: true),
+      );
+
+      provider.updateLocale(const Locale('de'));
+      await pumpEventQueue();
+
+      expect(provider.locale, const Locale('de'));
+      expect(AppLocale.localeName, 'de');
+    });
+  });
+}
+
+class _RecordingStore implements CalorieWidgetStore {
+  final bool fails;
+  final relabelled = <S>[];
+
+  _RecordingStore({this.fails = false});
+
+  @override
+  Future<void> write(
+    CalorieWidgetSnapshot snapshot,
+    CalorieWidgetLabels labels,
+  ) async {}
+
+  @override
+  Future<void> clear() async {}
+
+  @override
+  Future<void> relabel(S s) async {
+    relabelled.add(s);
+    if (fails) throw MissingPluginException('home_widget');
+  }
 }
