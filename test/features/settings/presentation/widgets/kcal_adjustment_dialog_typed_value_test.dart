@@ -51,7 +51,7 @@ void main() {
 
   setUp(() {
     settingsBloc = _FakeSettingsBloc();
-    // Save reloads the Diary and Trends through the locator (#1370).
+    // Save reloads the Diary and Trends through the locator (#1359).
     ReloadRecorder().register();
   });
 

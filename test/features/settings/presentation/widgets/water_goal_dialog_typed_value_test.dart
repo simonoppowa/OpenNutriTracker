@@ -52,7 +52,7 @@ void main() {
     settingsBloc = _FakeSettingsBloc();
     locator.registerSingleton<GetUserUsecase>(_FakeGetUserUsecase());
     locator.registerSingleton<ProfileBloc>(_FakeProfileBloc());
-    // Save reloads the Diary and Trends through the locator (#1370).
+    // Save reloads the Diary and Trends through the locator (#1359).
     ReloadRecorder().register();
   });
 
