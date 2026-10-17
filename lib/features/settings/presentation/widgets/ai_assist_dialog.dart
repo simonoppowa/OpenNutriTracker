@@ -193,9 +193,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// on someone's home network, which is the behaviour #738 ruled out.
   Uri? _lastEndpoint;
 
-  /// The model that was in the field when the address last changed, and the
-  /// address it changed to: a claim about the old machine that only the new
-  /// one can settle (#755, #1364).
+  /// The model that was in the field when a changed address was first asked
+  /// for its models, and that address: a claim about the old machine that
+  /// only the new one can settle (#755, #1364).
   ///
   /// Kept until that address answers with a list, rather than for one
   /// request, so a fetch that failed and a Load models retry that then
@@ -249,6 +249,38 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // opened to change the theme. #738.
     _load();
     _endpointFocus.addListener(_onEndpointFocusChanged);
+  }
+
+  /// The second half of [_revealRefusal]. OK pressed with the keyboard down
+  /// scrolls the refusal into the tall viewport, and only then does the
+  /// focus it moved raise the keyboard and shrink that viewport — over
+  /// several frames, the keyboard's own animation and then the dialog's
+  /// inset padding easing after it. The field's answer to that keeps its
+  /// *cursor* in view, which can leave the error line under it beneath the
+  /// keys: OK looking dead again (#1364).
+  ///
+  /// So for as long as a refused field holds both its refusal and the focus,
+  /// every resize of the scroll viewport brings the field back into view.
+  /// The viewport rather than the window's insets, because the dialog is
+  /// still shrinking for a while after the insets stop changing. A jump
+  /// rather than an animation, because the resizes arrive once a frame, and
+  /// a jump that leaves the cursor showing leaves the field's own caret
+  /// reveal nothing to do.
+  bool _onScrollMetricsChanged(ScrollMetricsNotification notification) {
+    // The text fields scroll too; only the dialog's own viewport counts.
+    if (notification.depth != 0) return false;
+    final BuildContext? fieldContext;
+    if (_modelError != null && _modelFocus.hasFocus) {
+      fieldContext = _modelFieldKey.currentContext;
+    } else if (_endpointError != null && _endpointFocus.hasFocus) {
+      fieldContext = _endpointFieldKey.currentContext;
+    } else {
+      return false;
+    }
+    if (fieldContext != null) {
+      unawaited(Scrollable.ensureVisible(fieldContext, alignment: 0.5));
+    }
+    return false;
   }
 
   void _onEndpointFocusChanged() {
@@ -464,15 +496,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _endpointController.text.trim(),
     );
     if (resolved == null || resolved == _lastEndpoint) return;
-    // The model may belong to the address that just changed — #755's rule,
-    // `llama3.2:8b` is a claim about one machine — but only the new server
-    // can say so. Cleared here up front, a fetch that then failed left the
-    // field empty with nothing to pick from, and OK refused (#1364). So the
-    // field is left alone until the new server answers without it.
-    final model = _modelController.text.trim();
-    _unconfirmedModel = model.isEmpty
-        ? null
-        : (endpoint: resolved, model: model);
     _loadModels();
   }
 
@@ -508,6 +531,25 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // cleared the model field, sent nothing, and then filled the picker with
     // the first server's models under the second server's address.
     if (_fetchingModels && asking == _lastEndpoint) return;
+
+    // The model may belong to the address that just changed — #755's rule,
+    // `llama3.2:8b` is a claim about one machine — but only the new server
+    // can say so. Cleared up front, a fetch that then failed left the field
+    // empty with nothing to pick from, and OK refused (#1364). So the field
+    // is left alone until the new server answers without it.
+    //
+    // Here rather than in [_endpointCommitted], because Load models can be
+    // the first request for an edited address — the field need not lose
+    // focus first, through a semantics action for one. Tagged there only, a
+    // name kept for an earlier address stayed bound to it, the answer from
+    // this one could not settle it, and OK stored the old server's model
+    // against the new one.
+    if (asking != _lastEndpoint) {
+      final model = _modelController.text.trim();
+      _unconfirmedModel = model.isEmpty
+          ? null
+          : (endpoint: asking!, model: model);
+    }
 
     final generation = ++_modelsGeneration;
     // Captured for the read below rather than for the guard: a key belongs to
@@ -866,7 +908,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) unawaited(_cancel());
       },
-      child: _buildDialog(context, s, theme),
+      child: NotificationListener<ScrollMetricsNotification>(
+        onNotification: _onScrollMetricsChanged,
+        child: _buildDialog(context, s, theme),
+      ),
     );
   }
 

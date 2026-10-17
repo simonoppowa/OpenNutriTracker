@@ -199,6 +199,31 @@ Widget _app(
   ),
 );
 
+/// The dialog on a real dialog route, behind an `open` button, where a
+/// keyboard inset is what shrinks its scroll viewport — [_app] puts it in a
+/// Scaffold body, which no inset reaches.
+Widget _routeApp(
+  AiCredentialStorage storage, {
+  AiModelListApi? modelList,
+}) => MaterialApp(
+  localizationsDelegates: const [
+    S.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: S.supportedLocales,
+  home: Builder(
+    builder: (context) => Scaffold(
+      body: TextButton(
+        onPressed: () =>
+            AiAssistDialog.show(context, storage, modelList: modelList),
+        child: const Text('open'),
+      ),
+    ),
+  ),
+);
+
 void main() {
   late _MemoryStorage backing;
   late AiCredentialStorage storage;
@@ -893,27 +918,7 @@ void main() {
       addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: const [
-            S.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: S.supportedLocales,
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: TextButton(
-                onPressed: () => AiAssistDialog.show(
-                  context,
-                  storage,
-                  modelList: _Server.unreachable().api,
-                ),
-                child: const Text('open'),
-              ),
-            ),
-          ),
-        ),
+        _routeApp(storage, modelList: _Server.unreachable().api),
       );
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
@@ -959,6 +964,71 @@ void main() {
       expect(error.top, greaterThanOrEqualTo(viewport.top));
       expect(error.bottom, lessThanOrEqualTo(viewport.bottom));
       expect(viewport.bottom, lessThanOrEqualTo(640 - 280));
+    });
+
+    testWidgets('a refusal on OK stays in view when the keyboard rises '
+        'after it (#1364)', (tester) async {
+      // OK pressed with the keyboard down: the refusal is scrolled into the
+      // tall viewport, and only then does the focus it moved bring the
+      // keyboard up and shrink that viewport. The field's own caret reveal
+      // keeps the cursor in view and can leave the error line under the keys.
+      tester.view.physicalSize = const Size(720, 1280);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _routeApp(storage, modelList: _Server.unreachable().api),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final endpointField = find.bySemanticsIdentifier(
+        'ai-assist-endpoint-field',
+      );
+      await tester.ensureVisible(endpointField);
+      await tester.pumpAndSettle();
+      await tester.enterText(endpointField, 'http://192.168.1.5:11434');
+      await tester.pumpAndSettle();
+      // The keyboard dismissed, and the dialog back at its top.
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      final scroll = find.descendant(
+        of: find.byType(AiAssistDialog),
+        matching: find.byType(SingleChildScrollView),
+      );
+      tester
+          .state<ScrollableState>(
+            find
+                .descendant(of: scroll, matching: find.byType(Scrollable))
+                .first,
+          )
+          .position
+          .jumpTo(0);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+      // A phone keyboard: 280 of the 640 logical pixels, arriving once the
+      // focus OK moved has reached the platform.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 560);
+      await tester.pumpAndSettle();
+
+      final modelField = find.descendant(
+        of: find.bySemanticsIdentifier('ai-assist-model-field'),
+        matching: find.byType(TextField),
+      );
+      expect(tester.widget<TextField>(modelField).focusNode?.hasFocus, isTrue);
+      final viewport = tester.getRect(scroll);
+      expect(
+        viewport.bottom,
+        lessThanOrEqualTo(640 - 280),
+        reason: 'precondition: the keyboard shrank the dialog',
+      );
+      final error = tester.getRect(
+        find.text(l10nEn.aiAssistModelRequiredLabel),
+      );
+      expect(error.top, greaterThanOrEqualTo(viewport.top));
+      expect(error.bottom, lessThanOrEqualTo(viewport.bottom));
     });
 
     testWidgets('a refusal clears as soon as the field is edited', (
@@ -1647,6 +1717,87 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(modelText(tester), 'gemma3:4b');
+      });
+
+      /// Load models pressed while the address field still has focus, so
+      /// nothing has committed the address first — a semantics action, or a
+      /// tap that leaves focus where it was.
+      Future<void> pressLoadStillEditing(WidgetTester tester) async {
+        final endpointFocus = tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+                matching: find.byType(TextField),
+              ),
+            )
+            .focusNode!;
+        expect(
+          endpointFocus.hasFocus,
+          isTrue,
+          reason: 'precondition: the address has not been committed',
+        );
+        await pressLoad(tester);
+        expect(
+          endpointFocus.hasFocus,
+          isTrue,
+          reason: 'precondition: Load models, not leaving the field, asked',
+        );
+      }
+
+      testWidgets('Load models on an edited address drops a model that '
+          'server lacks, without the field being left', (tester) async {
+        final server = _Server.listing(['qwen3:8b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.7:11434');
+        await pressLoadStillEditing(tester);
+
+        expect(server.requests, [
+          Uri.parse('http://192.168.1.7:11434/v1/models'),
+        ]);
+        expect(modelText(tester), isEmpty);
+      });
+
+      testWidgets('a model kept through a failed fetch is settled by the '
+          'next address it is loaded for', (tester) async {
+        // The address goes to .9, which does not answer, so the model stays
+        // — tagged as .9's to settle. The address then goes to .7 and Load
+        // models asks .7 before the field is ever left. Tagged for .9 only,
+        // .7's list could not settle it, leaving the field had nothing new
+        // to ask, and OK stored the first server's model against .7.
+        final server = _Server((url) {
+          if (url.host == '192.168.1.9') {
+            throw const SocketException('connection refused');
+          }
+          return _Server.listing(['qwen3:8b'])._respond(url);
+        });
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(modelText(tester), 'gemma3:4b');
+
+        await typeEndpoint(tester, 'http://192.168.1.7:11434');
+        await pressLoadStillEditing(tester);
+
+        expect(server.requests, [
+          Uri.parse('http://192.168.1.9:11434/v1/models'),
+          Uri.parse('http://192.168.1.7:11434/v1/models'),
+        ]);
+        expect(modelText(tester), isEmpty);
       });
 
       testWidgets('a model typed while the fetch is out is not dropped when '
