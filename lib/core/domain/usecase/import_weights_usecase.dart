@@ -25,8 +25,9 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 ///  * a day whose latest reading the user deleted stays empty until a newer
 ///    reading arrives (see `DeleteWeightLogUsecase`).
 ///
-/// When the newest entry in the whole log came from this run, it also becomes
-/// the user's current weight, which is what BMI and the calorie goal use.
+/// When the newest entry in the whole log came from this run, and is newer
+/// than the weight the user gave, it also becomes the user's current weight,
+/// which is what BMI and the calorie goal use.
 ///
 /// Scheduling mirrors [ImportWorkoutsUsecase]: [importIfDue] at app start and
 /// resume, debounced and failure-swallowing; [importNow] from the settings
@@ -121,18 +122,24 @@ class ImportWeightsUsecase {
     if (!_stillOnProfile(profileId)) return 0;
 
     final latestByDay = latestReadingPerDay(readings);
-    final deletedIds = config.healthDeletedExternalIds;
 
-    final writtenIds = <String>{};
+    final written = <String, ExternalWeight>{};
     for (final MapEntry(key: day, value: reading) in latestByDay.entries) {
-      if (deletedIds.contains(reading.id)) continue;
       final existing = await _weightLogRepository.getEntry(day);
       if (existing != null && !existing.isImported) continue;
       if (existing?.externalId == reading.id &&
           existing?.weightKg == reading.weightKg) {
         continue;
       }
-      if (!_stillOnProfile(profileId)) return writtenIds.length;
+      // The tombstones are read here, as the last await before the write,
+      // rather than taken from the snapshot above: the platform read is long,
+      // and a day the user deleted while it ran would otherwise be written
+      // straight back. `DeleteWeightLogUsecase` stores the tombstone before
+      // it removes the row, so a deletion is visible here once it has begun.
+      final deletedIds = (await _configRepository.getConfig())
+          .healthDeletedExternalIds;
+      if (deletedIds.contains(reading.id)) continue;
+      if (!_stillOnProfile(profileId)) return written.length;
       await _weightLogRepository.addEntry(
         WeightLogEntity(
           date: day,
@@ -140,14 +147,20 @@ class ImportWeightsUsecase {
           externalId: reading.id,
         ),
       );
-      writtenIds.add(reading.id);
+      written[reading.id] = reading;
     }
 
-    if (!_stillOnProfile(profileId)) return writtenIds.length;
+    if (!_stillOnProfile(profileId)) return written.length;
 
-    if (writtenIds.isNotEmpty) await _updateCurrentWeight(writtenIds);
+    if (written.isNotEmpty) await _updateCurrentWeight(profileId, written);
 
+    // Every write from here on resolves its box from whichever profile is
+    // active at the moment of the call, so each is checked right before it
+    // is made: a switch during the steps above must not hand this profile's
+    // watermark to another one, which would cost that one its backfill.
+    if (!_stillOnProfile(profileId)) return written.length;
     await _configRepository.setConfigHealthWeightLastImportAt(to);
+    if (!_stillOnProfile(profileId)) return written.length;
     // Deleted weight readings share the workout tombstones, so the cutoff
     // has to keep every tombstone either import can still ask about. This
     // import's own window never reaches past the backfill floor (see
@@ -163,13 +176,13 @@ class ImportWeightsUsecase {
         overlapTolerance: overlapTolerance,
       ),
     );
-    if (writtenIds.isNotEmpty) {
+    if (written.isNotEmpty) {
       _log.info(
-        'Imported ${writtenIds.length} weight reading(s) from the platform '
+        'Imported ${written.length} weight reading(s) from the platform '
         'health store',
       );
     }
-    return writtenIds.length;
+    return written.length;
   }
 
   /// Where a run's read window starts: the watermark pushed back by
@@ -212,17 +225,40 @@ class ImportWeightsUsecase {
   }
 
   /// Makes the newest reading the user's current weight — but only when it
-  /// is also the newest entry in the log. A reading from last week that
+  /// is newer than the weight the user gave. A reading from last week that
   /// synced late must not overwrite a weight the user entered today.
-  Future<void> _updateCurrentWeight(Set<String> writtenIds) async {
+  ///
+  /// A weight entered in the app lands in the log as a manual entry, and the
+  /// newest entry wins. A weight given at onboarding never reaches the log,
+  /// though, so a profile without a manual entry is measured against the
+  /// moment the profile was created instead: only a reading taken after that
+  /// can replace it. For the default profile of an install that predates
+  /// profiles, that moment is the upgrade — later than the weight itself, so
+  /// the comparison errs toward keeping the user's weight.
+  ///
+  /// Bound to [profileId]: each read and the write are checked against it
+  /// right before they are made, so a switch mid-way cannot carry this
+  /// profile's weight into another.
+  Future<void> _updateCurrentWeight(
+    String profileId,
+    Map<String, ExternalWeight> written,
+  ) async {
     if (!await _userRepository.hasUserData()) return;
+    if (!_stillOnProfile(profileId)) return;
     final entries = await _weightLogRepository.getAllEntries();
     if (entries.isEmpty) return;
     final newest = entries.reduce((a, b) => b.date.isAfter(a.date) ? b : a);
-    if (!writtenIds.contains(newest.externalId)) return;
+    final reading = written[newest.externalId];
+    if (reading == null) return;
+    if (!entries.any((entry) => !entry.isImported)) {
+      final enteredBy = _hiveDBProvider.profileBox.get(profileId)?.createdAt;
+      if (enteredBy != null && !reading.measuredAt.isAfter(enteredBy)) return;
+    }
+    if (!_stillOnProfile(profileId)) return;
     final user = await _userRepository.getUserData();
     if (user.weightKG == newest.weightKg) return;
     user.weightKG = newest.weightKg;
+    if (!_stillOnProfile(profileId)) return;
     await _userRepository.updateUserData(user);
   }
 

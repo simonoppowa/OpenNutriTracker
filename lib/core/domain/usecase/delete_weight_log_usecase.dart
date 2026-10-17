@@ -9,7 +9,6 @@ class DeleteWeightLogUsecase {
 
   Future<void> deleteEntry(DateTime date) async {
     final entry = await _weightLogRepository.getEntry(date);
-    await _weightLogRepository.deleteEntry(date);
     final externalId = entry?.externalId;
     if (externalId != null) {
       // The weight import re-reads the day before its watermark, so a
@@ -21,11 +20,16 @@ class DeleteWeightLogUsecase {
       // and the reading happened somewhere inside it, so the day's end is
       // the latest the reading could be — the date that keeps the tombstone
       // for at least as long as the reading can still be returned.
+      //
+      // Stored before the row is removed: an import running at the same
+      // time checks the tombstones right before it writes, and must not
+      // find the day empty while the tombstone is still missing.
       final day = entry!.date;
       await _configRepository.addConfigHealthDeletedWorkout(
         externalId,
         DateTime(day.year, day.month, day.day + 1),
       );
     }
+    await _weightLogRepository.deleteEntry(date);
   }
 }

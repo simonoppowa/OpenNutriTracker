@@ -8,12 +8,14 @@ import 'package:opennutritracker/core/data/data_source/health/health_service.dar
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
@@ -46,6 +48,21 @@ class _FakeHealthService extends Fake implements HealthService {
   }
 }
 
+/// Moves the active profile away the moment the use case reads the user, the
+/// last read before the current weight is written.
+class _SwitchingUserRepository extends UserRepository {
+  final FakeHiveDBProvider provider;
+
+  _SwitchingUserRepository(super.userDataSource, this.provider);
+
+  @override
+  Future<UserEntity> getUserData() async {
+    final user = await super.getUserData();
+    provider.activeProfileId = 'profile-b';
+    return user;
+  }
+}
+
 ExternalWeight _reading(String id, DateTime at, double kg) => ExternalWeight(
   id: id,
   measuredAt: at,
@@ -61,6 +78,7 @@ void main() {
   late Box<ConfigDBO> configBox;
   late Box<WeightLogDBO> weightLogBox;
   late Box<UserDBO> userBox;
+  late Box<ProfileDBO> profileBox;
 
   late FakeHiveDBProvider provider;
   late ConfigDataSource configDataSource;
@@ -70,6 +88,16 @@ void main() {
   late _FakeHealthService healthService;
   late ImportWeightsUsecase usecase;
   late DeleteWeightLogUsecase deleteUsecase;
+
+  Future<void> setProfileCreatedAt(DateTime createdAt) => profileBox.put(
+    'profile-a',
+    ProfileDBO(
+      id: 'profile-a',
+      name: '',
+      createdAt: createdAt,
+      boxSuffix: '',
+    ),
+  );
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -81,15 +109,21 @@ void main() {
     configBox = await Hive.openBox<ConfigDBO>('weight_import_config_test');
     weightLogBox = await Hive.openBox<WeightLogDBO>('weight_import_log_test');
     userBox = await Hive.openBox<UserDBO>('weight_import_user_test');
+    profileBox = await Hive.openBox<ProfileDBO>('weight_import_profile_test');
     await configBox.clear();
     await weightLogBox.clear();
     await userBox.clear();
+    await profileBox.clear();
+    // Created long before the readings, so the onboarding weight is older
+    // than all of them unless a test says otherwise.
+    await setProfileCreatedAt(DateTime(2026, 1, 1));
 
     provider = FakeHiveDBProvider(
       activeProfileId: 'profile-a',
       configBox: configBox,
       weightLogBox: weightLogBox,
       userBox: userBox,
+      profileBox: profileBox,
     );
     configDataSource = ConfigDataSource(provider);
     await configDataSource.initializeConfig();
@@ -213,7 +247,46 @@ void main() {
     );
   });
 
+  group('ImportWeightsUsecase onboarding weight', () {
+    // Onboarding stores the weight on the user alone; nothing reaches the
+    // log, so these profiles have no manual entry to compare against.
+    test('a reading older than the profile keeps the onboarding weight', () async {
+      await setProfileCreatedAt(DateTime(2026, 5, 23, 9));
+      healthService.weights = [
+        _reading('a', DateTime(2026, 5, 3, 7), 84.0),
+        _reading('b', DateTime(2026, 5, 23, 7), 83.0),
+      ];
+
+      expect(await usecase.importNow(), equals(2));
+
+      expect((await userRepository.getUserData()).weightKG, equals(80.0));
+    });
+
+    test('a reading taken after the profile was created replaces it', () async {
+      await setProfileCreatedAt(DateTime(2026, 5, 23, 9));
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 11), 79.4)];
+
+      await usecase.importNow();
+
+      expect((await userRepository.getUserData()).weightKG, equals(79.4));
+    });
+  });
+
   group('ImportWeightsUsecase deletion', () {
+    test('a day deleted while the platform read runs stays deleted', () async {
+      healthService.weights = [_reading('b', DateTime(2026, 5, 22, 7), 80.9)];
+      await usecase.importNow();
+
+      healthService.readGate = Completer<void>();
+      final run = usecase.importNow();
+      await Future<void>.delayed(Duration.zero);
+      await deleteUsecase.deleteEntry(yesterday);
+      healthService.readGate!.complete();
+
+      expect(await run, equals(0));
+      expect(await weightLogRepository.getEntry(yesterday), isNull);
+    });
+
     test('a deleted imported day stays deleted on the next read', () async {
       healthService.weights = [
         _reading('b', DateTime(2026, 5, 22, 7), 80.9),
@@ -369,6 +442,27 @@ void main() {
 
       expect(await run, equals(0));
       expect(await weightLogRepository.getAllEntries(), isEmpty);
+    });
+  });
+
+  group('ImportWeightsUsecase profile switch after filing', () {
+    test('writes neither current weight nor watermark to the new profile', () async {
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        configRepository,
+        weightLogRepository,
+        _SwitchingUserRepository(UserDataSource(provider), provider),
+        provider,
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+
+      await usecase.importNow();
+
+      expect((await userRepository.getUserData()).weightKG, equals(80.0));
+      expect(
+        (await configRepository.getConfig()).healthWeightLastImportAt,
+        isNull,
+      );
     });
   });
 
