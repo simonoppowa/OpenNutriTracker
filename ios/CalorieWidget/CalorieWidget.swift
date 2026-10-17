@@ -6,7 +6,11 @@ import WidgetKit
 /// take the local calendar day. When that day id no longer matches, the
 /// widget shows a placeholder instead of yesterday's intake.
 private enum CalorieWidgetKeys {
-    static let appGroupId = "group.com.opennutritracker.ont.opennutritracker"
+    /// Per flavour, from the `ONT_APP_GROUP_ID` build setting via Info.plist,
+    /// so a develop install never reads or clears the App Store build's data.
+    static let appGroupId =
+        Bundle.main.object(forInfoDictionaryKey: "ONTAppGroupId") as? String
+        ?? "group.com.opennutritracker.ont.opennutritracker"
     static let hasData = "ont_calorie_has_data"
     static let day = "ont_calorie_day"
     static let offset = "ont_calorie_offset_minutes"

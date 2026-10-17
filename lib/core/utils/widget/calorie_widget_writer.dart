@@ -6,6 +6,7 @@ import 'package:home_widget/home_widget.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 /// Writes a [CalorieWidgetSnapshot] where the widget extension can read it.
 abstract class CalorieWidgetStore {
@@ -29,9 +30,17 @@ abstract class CalorieWidgetStore {
 /// can reuse the same keys.
 class HomeWidgetCalorieStore implements CalorieWidgetStore {
   final bool _isIOS;
+  final Future<String> Function() _bundleId;
+  String? _appGroupId;
 
-  HomeWidgetCalorieStore({@visibleForTesting bool? isIOS})
-    : _isIOS = isIOS ?? Platform.isIOS;
+  HomeWidgetCalorieStore({
+    @visibleForTesting bool? isIOS,
+    @visibleForTesting Future<String> Function()? bundleId,
+  }) : _isIOS = isIOS ?? Platform.isIOS,
+       _bundleId = bundleId ?? _platformBundleId;
+
+  static Future<String> _platformBundleId() async =>
+      (await PackageInfo.fromPlatform()).packageName;
 
   @override
   Future<void> write(
@@ -55,11 +64,9 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
   /// describe numbers the widget does not have.
   @override
   Future<void> relabel(S s) async {
-    if (_isIOS) {
-      await HomeWidget.setAppGroupId(CalorieWidgetSnapshot.appGroupId);
-    }
-    final consumed = await _readInt(CalorieWidgetSnapshot.consumedKey);
-    final goal = await _readInt(CalorieWidgetSnapshot.goalKey);
+    final group = await _enterAppGroup();
+    final consumed = await _readInt(group, CalorieWidgetSnapshot.consumedKey);
+    final goal = await _readInt(group, CalorieWidgetSnapshot.goalKey);
     final labels = CalorieWidgetLabels.forFigures(
       s,
       consumedKcal: consumed ?? 0,
@@ -69,23 +76,31 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
     await _save(hasFigures ? labels.toPayload() : labels.languagePayload());
   }
 
-  Future<int?> _readInt(String key) async {
+  /// The App Group of this build's flavour, from its bundle id. Kept once
+  /// found, since the bundle id cannot change while the app runs.
+  Future<String> _enterAppGroup() async {
+    final group = _appGroupId ??= CalorieWidgetSnapshot.appGroupIdFor(
+      await _bundleId(),
+    );
+    if (_isIOS) await HomeWidget.setAppGroupId(group);
+    return group;
+  }
+
+  Future<int?> _readInt(String group, String key) async {
     final value = await HomeWidget.getWidgetData<String>(
       key,
-      appGroupId: CalorieWidgetSnapshot.appGroupId,
+      appGroupId: group,
     );
     return int.tryParse(value ?? '');
   }
 
   Future<void> _save(Map<String, String?> values) async {
-    if (_isIOS) {
-      await HomeWidget.setAppGroupId(CalorieWidgetSnapshot.appGroupId);
-    }
+    final group = await _enterAppGroup();
     for (final entry in values.entries) {
       await HomeWidget.saveWidgetData<String>(
         entry.key,
         entry.value,
-        appGroupId: CalorieWidgetSnapshot.appGroupId,
+        appGroupId: group,
       );
     }
     if (!_isIOS) return;

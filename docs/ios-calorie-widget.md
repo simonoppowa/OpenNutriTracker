@@ -6,21 +6,24 @@ Android stores the same snapshot and has no widget UI yet. That work is tracked 
 
 ## App Group
 
-Both the Runner target and the `CalorieWidget` extension use:
+Each flavor has its own App Group, so a develop install (for example `just dev_seed`) next to the App Store build can never overwrite or clear that build's widget:
 
-`group.com.opennutritracker.ont.opennutritracker`
+- full: `group.com.opennutritracker.ont.opennutritracker`
+- develop: `group.com.opennutritracker.ont.opennutritracker.develop`
 
 The extension bundle ids are:
 
 - full: `com.opennutritracker.ont.opennutritracker.CalorieWidget`
 - develop: `com.opennutritracker.ont.opennutritracker.develop.CalorieWidget`
 
-Each flavor's parent app id must stay a prefix of its extension id. The Dart constant `CalorieWidgetSnapshot.appGroupId` and `CalorieWidgetKeys.appGroupId` in `ios/CalorieWidget/CalorieWidget.swift` must stay the same string.
+Each flavor's parent app id must stay a prefix of its extension id.
+
+The group is chosen by build configuration. Every Runner and CalorieWidget configuration sets the build setting `ONT_APP_GROUP_ID`; both entitlement files grant `$(ONT_APP_GROUP_ID)`, and the extension's `Info.plist` passes it to Swift as `ONTAppGroupId`. The Dart side picks the same group from the running bundle id (`CalorieWidgetSnapshot.appGroupIdFor`: a `.develop` suffix means the develop group). The two Dart constants and the build settings must stay the same strings.
 
 ## Local development
 
 1. Open `ios/Runner.xcworkspace` in Xcode.
-2. Select the Runner target, then Signing & Capabilities. Confirm the App Groups capability lists the group above. Repeat for the CalorieWidget target.
+2. Select the Runner target, then Signing & Capabilities. Confirm the App Groups capability lists the group for the flavor you build. Repeat for the CalorieWidget target.
 3. For a simulator build, the entitlement file in the project is enough. Sign with your Apple team if Xcode asks. The project file records the maintainer team used for release; a local debug build can use another team as long as both targets share it.
 4. Run the app once so Home writes today's numbers, then add the Calories widget from the Home Screen.
 
@@ -28,11 +31,11 @@ The widget shows "Open the app" until that first write, and again after the conf
 
 ## Release signing
 
-App Store and TestFlight archives need the group and both extension bundle ids registered on the Apple Developer team that signs OpenNutriTracker (`DEVELOPMENT_TEAM` `79AJPC6DP3`).
+App Store and TestFlight archives, and develop builds on a device, need both groups and both extension bundle ids registered on the Apple Developer team that signs OpenNutriTracker (`DEVELOPMENT_TEAM` `79AJPC6DP3`).
 
-1. In Certificates, Identifiers & Profiles, create the App Group `group.com.opennutritracker.ont.opennutritracker` if it is not already there.
-2. Enable that App Group on the existing app ids (`com.opennutritracker.ont.opennutritracker` and the develop id).
-3. Register the two extension bundle ids and enable the same App Group on each.
+1. In Certificates, Identifiers & Profiles, create both App Groups: `group.com.opennutritracker.ont.opennutritracker` and `group.com.opennutritracker.ont.opennutritracker.develop`.
+2. Enable the full group on `com.opennutritracker.ont.opennutritracker`, and the develop group on `com.opennutritracker.ont.opennutritracker.develop`.
+3. Register the two extension bundle ids and enable the matching group on each: the full group on the full extension, the develop group on the develop extension.
 4. Regenerate the signing profiles (the project uses fastlane match for Release and Profile) so the new ids and the group are included. `ios/fastlane/Matchfile` lists the full extension id, and the `build` lane signs the `CalorieWidget` target with `match AppStore com.opennutritracker.ont.opennutritracker.CalorieWidget`. CI runs match read-only, so that profile has to exist in the match repository before the next release: run `MATCH_READONLY=false bundle exec fastlane ios certs` from `ios/` once, and make sure the Runner profile is regenerated too, since it now carries the App Group. Debug stays on automatic signing.
 5. Archive from the `full` scheme. The extension is embedded by the Runner target.
 

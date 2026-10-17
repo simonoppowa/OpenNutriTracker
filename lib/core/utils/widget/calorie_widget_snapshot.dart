@@ -8,6 +8,8 @@ import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 /// kilojoule display preference is not applied here.
 class CalorieWidgetSnapshot {
   static const appGroupId = 'group.com.opennutritracker.ont.opennutritracker';
+  static const developAppGroupId =
+      'group.com.opennutritracker.ont.opennutritracker.develop';
   static const iosWidgetKind = 'CalorieProgressWidget';
 
   static const hasDataKey = 'ont_calorie_has_data';
@@ -85,6 +87,13 @@ class CalorieWidgetSnapshot {
     consumedKey: '$consumedKcal',
     goalKey: '$goalKcal',
   };
+
+  /// The App Group for the build with [bundleId]. The develop flavour has
+  /// its own bundle id and its own group, so a develop install next to the
+  /// App Store build can never overwrite or clear that build's widget. It
+  /// must agree with `ONT_APP_GROUP_ID` in the Xcode project.
+  static String appGroupIdFor(String bundleId) =>
+      bundleId.endsWith('.develop') ? developAppGroupId : appGroupId;
 
   static int sanitiseOffsetMinutes(int offsetMinutes) {
     if (offsetMinutes < 0 || offsetMinutes >= 24 * 60) return 0;

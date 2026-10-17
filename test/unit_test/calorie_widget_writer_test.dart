@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -15,14 +16,26 @@ void main() {
   const channel = MethodChannel('home_widget');
   late Map<String, Object?> stored;
   late List<String> calls;
+  late Set<String> groups;
 
   setUp(() {
     stored = {};
     calls = [];
+    groups = {};
+    PackageInfo.setMockInitialValues(
+      appName: 'OpenNutriTracker',
+      packageName: 'com.opennutritracker.ont.opennutritracker',
+      version: '2.4.0',
+      buildNumber: '66',
+      buildSignature: '',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
           calls.add(call.method);
           final args = call.arguments as Map<Object?, Object?>?;
+          groups.addAll(
+            [args?['appGroupId'], args?['groupId']].whereType<String>(),
+          );
           switch (call.method) {
             case 'saveWidgetData':
               final id = args!['id'] as String;
@@ -80,6 +93,50 @@ void main() {
     expect(stored.keys, unorderedEquals(CalorieWidgetLabels.languageKeys));
     expect(calls.first, 'setAppGroupId');
     expect(calls.last, 'updateWidget');
+  });
+
+  group('the App Group follows the flavour', () {
+    test('the App Store bundle id gets the production group', () {
+      expect(
+        CalorieWidgetSnapshot.appGroupIdFor(
+          'com.opennutritracker.ont.opennutritracker',
+        ),
+        'group.com.opennutritracker.ont.opennutritracker',
+      );
+    });
+
+    test('the develop bundle id gets a group of its own', () {
+      expect(
+        CalorieWidgetSnapshot.appGroupIdFor(
+          'com.opennutritracker.ont.opennutritracker.develop',
+        ),
+        'group.com.opennutritracker.ont.opennutritracker.develop',
+      );
+    });
+
+    test('a develop install never touches the production group', () async {
+      // `just dev_seed` next to the App Store build: its demo figures and
+      // its wipe must stay in the develop group.
+      final store = HomeWidgetCalorieStore(
+        isIOS: true,
+        bundleId: () async =>
+            'com.opennutritracker.ont.opennutritracker.develop',
+      );
+
+      await store.write(snapshot, german);
+      await store.clear();
+      await store.relabel(lookupS(const Locale('de')));
+
+      expect(groups, {CalorieWidgetSnapshot.developAppGroupId});
+    });
+
+    test('by default the group comes from the running bundle id', () async {
+      final store = HomeWidgetCalorieStore(isIOS: true);
+
+      await store.write(snapshot, german);
+
+      expect(groups, {CalorieWidgetSnapshot.appGroupId});
+    });
   });
 
   group('a language change', () {
