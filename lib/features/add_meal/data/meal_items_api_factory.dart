@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
+import 'package:opennutritracker/core/utils/gemini_endpoint.dart';
 import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/data/anthropic_meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/data/openai_meal_items_api.dart';
@@ -55,10 +56,6 @@ const ownServerTimeout = Duration(seconds: 120);
 /// definition — exactly the case #774 measured at 22–24s.
 const aiEndpointProbeTimeout = ownServerTimeout;
 
-/// Google's OpenAI-compatible Gemini endpoint, reached through "your own
-/// server" (#1253, #1257).
-const geminiOpenAiCompatibleHost = 'generativelanguage.googleapis.com';
-
 /// How a server the user runs is asked for the tool call.
 ///
 /// **`required` by default, and not by name**: #733 measured that Ollama has
@@ -73,9 +70,9 @@ const geminiOpenAiCompatibleHost = 'generativelanguage.googleapis.com';
 /// Gemini is the exception: #1257 reports that its OpenAI-compatible layer
 /// returns the meal only when the function is named. Matched on the host
 /// rather than on the model id: the id is free text, and the host is what
-/// decides who answers. (`Uri` already lower-cases it.)
+/// decides who answers.
 ToolChoiceMode ownServerToolChoice(Uri endpoint) =>
-    endpoint.host == geminiOpenAiCompatibleHost
+    isGeminiEndpoint(endpoint)
     ? ToolChoiceMode.namedFunction
     : ToolChoiceMode.anyTool;
 
