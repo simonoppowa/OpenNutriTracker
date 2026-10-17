@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_ingredient_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -31,12 +34,12 @@ import 'package:provider/provider.dart';
 
 import '../../../../helpers/test_l10n.dart';
 
-MealEntity meal(String name, {double? kcal = 200}) => MealEntity(
+MealEntity meal(String name, {double? kcal = 200, String? unit}) => MealEntity(
       code: name,
       name: name,
       url: null,
       mealQuantity: null,
-      mealUnit: null,
+      mealUnit: unit,
       servingQuantity: null,
       servingUnit: null,
       servingSize: null,
@@ -120,7 +123,7 @@ class _Barcode extends Fake implements SearchProductByBarcodeUseCase {
   Future<MealEntity> searchProductByBarcode(String barcode) async {
     calls.add(barcode);
     if (barcode == 'missing') throw StateError('unavailable');
-    return meal('OFF food');
+    return meal('OFF food', unit: 'g');
   }
 }
 
@@ -137,6 +140,14 @@ class _Intakes extends Fake implements MealDetailBloc {
     units.add(unit);
     if (meals.length == 1 && firstWrite != null) await firstWrite!.future;
   }
+}
+
+class _Config extends Fake implements GetConfigUsecase {
+  bool imperial = false;
+  @override
+  Future<ConfigEntity> getConfig() async =>
+      ConfigEntity(true, true, false, AppThemeEntity.system,
+          usesImperialFoodUnits: imperial);
 }
 
 class _Recipes extends Fake implements SaveRecipeUseCase {
@@ -181,12 +192,15 @@ void main() {
   late _Intakes intakes;
   late _Recipes recipes;
   late _Home home;
+  late _Config config;
   setUp(() {
     meals = _Meals();
     barcode = _Barcode();
     intakes = _Intakes();
     recipes = _Recipes();
     home = _Home();
+    config = _Config();
+    locator.registerSingleton<GetConfigUsecase>(config);
     locator.registerSingleton<CustomMealDataSource>(meals);
     locator.registerSingleton<SearchProductByBarcodeUseCase>(barcode);
     locator.registerSingleton<MealDetailBloc>(intakes);
@@ -237,7 +251,7 @@ void main() {
       await tester.pumpWidget(app(
           SharedMealPreviewDialog(mealType: 'Dinner', items: [
             SharedMealPreviewItem(
-                meal: meal('Sardines'), amount: 90, unit: 'g'),
+                meal: meal('Sardines', unit: 'g'), amount: 90, unit: 'g'),
             SharedMealPreviewItem(
                 meal: meal('Unknown energy', kcal: null),
                 amount: 3,
@@ -247,7 +261,8 @@ void main() {
           ]),
           kj: kj));
       expect(find.text('90 g'), findsOneWidget);
-      expect(find.text('3 pcs'), findsOneWidget);
+      expect(find.text('3 g/ml'), findsOneWidget);
+      expect(find.text('100 g'), findsOneWidget);
       expect(find.text(kj ? '753 kJ' : '180 kcal'), findsNWidgets(2));
       expect(find.text('—'), findsNWidgets(2));
       expect(find.text(l10nEn.sharedMealPartialTotalLabel), findsOneWidget);
@@ -266,6 +281,35 @@ void main() {
     expect(find.text(l10nEn.sharedMealPartialTotalLabel), findsOneWidget);
     expect(find.text(l10nEn.sharedMealTotalLabel), findsNothing);
   });
+
+  for (final imperial in [false, true]) {
+    testWidgets('Converted amounts show in the base unit (imperial=$imperial)',
+        (tester) async {
+      // 4 oz and 2 x 30 g servings are stored as their gram weights.
+      await tester.pumpWidget(app(SharedMealPreviewDialog(
+          mealType: 'Dinner',
+          usesImperialUnits: imperial,
+          items: [
+            SharedMealPreviewItem(
+                meal: meal('Steak', unit: 'g'), amount: 113.398, unit: 'oz'),
+            SharedMealPreviewItem(
+                meal: meal('Milk', unit: 'ml'),
+                amount: 236.588,
+                unit: 'fl.oz'),
+            SharedMealPreviewItem(
+                meal: meal('Crisps', unit: 'g'), amount: 60, unit: 'serving'),
+            const SharedMealPreviewItem(
+                meal: null, amount: 113.398, unit: 'oz', barcode: 'missing'),
+          ])));
+      // The unavailable row has no food to convert with, so it stays in g.
+      expect(find.text('113.4 g'), findsNWidgets(imperial ? 1 : 2));
+      expect(find.text('4 oz'), imperial ? findsOneWidget : findsNothing);
+      expect(find.text(imperial ? '8 fl.oz' : '236.59 ml'), findsOneWidget);
+      expect(find.text(imperial ? '2.12 oz' : '60 g'), findsOneWidget);
+      expect(find.textContaining('serving'), findsNothing);
+      expect(find.text('113.4 oz'), findsNothing);
+    });
+  }
 
   testWidgets('All unavailable items disable Import', (tester) async {
     await tester.pumpWidget(
@@ -309,6 +353,17 @@ void main() {
     await tester.tap(find.text('start'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('Importer previews with the imperial food unit setting',
+      (tester) async {
+    config.imperial = true;
+    await start(
+        tester,
+        payload(refs: [
+          const SharedMealOffRef(barcode: 'ok', amount: 113.398, unit: 'oz')
+        ]));
+    expect(find.text('4 oz'), findsOneWidget);
+  });
 
   testWidgets('Cancelling preview saves no meals, recipes or intakes',
       (tester) async {

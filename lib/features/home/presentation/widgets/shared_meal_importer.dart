@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.d
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -81,13 +82,18 @@ class SharedMealImporter {
     if (_busy || !context.mounted) return false;
     _busy = true;
     try {
-      final items = await _withProgress(() => _prepareItems(payload));
+      final (items, usesImperialUnits) = await _withProgress(() async => (
+            await _prepareItems(payload),
+            (await locator<GetConfigUsecase>().getConfig())
+                .usesImperialFoodUnits,
+          ));
       if (!context.mounted) return false;
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (_) => SharedMealPreviewDialog(
           items: items,
           mealType: _addMealType.getTypeName(context),
+          usesImperialUnits: usesImperialUnits,
         ),
       );
       if (confirmed != true || !context.mounted) return false;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -92,11 +93,13 @@ class SharedMealPreviewItem {
 class SharedMealPreviewDialog extends StatelessWidget {
   final List<SharedMealPreviewItem> items;
   final String mealType;
+  final bool usesImperialUnits;
 
   const SharedMealPreviewDialog({
     super.key,
     required this.items,
     required this.mealType,
+    this.usesImperialUnits = false,
   });
 
   @override
@@ -136,7 +139,18 @@ class SharedMealPreviewDialog extends StatelessWidget {
                       Wrap(
                         spacing: Dimens.spacing16,
                         children: [
-                          Text('${numbers.format(item.amount)} ${item.unit}'),
+                          // The shared amount is already in the food's base
+                          // unit (a "4 oz" intake is stored as 113.4 g), so
+                          // show it the way the Diary shows the intake.
+                          if (item.meal != null)
+                            MealValueUnitText(
+                              value: item.amount,
+                              meal: item.meal!,
+                              usesImperialUnits: usesImperialUnits,
+                            )
+                          else
+                            Text('${numbers.format(item.amount)} '
+                                '${_baseUnit(context, item.unit)}'),
                           Text(item.energyKcal == null
                               ? '—'
                               : EnergyDisplay.formatWithUnit(
@@ -178,5 +192,18 @@ class SharedMealPreviewDialog extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Without the food we cannot tell its base unit from the meal, so derive
+  /// it from the unit the amount was entered in.
+  static String _baseUnit(BuildContext context, String unit) {
+    switch (unit) {
+      case 'g' || 'oz':
+        return S.of(context).gramUnit;
+      case 'ml' || 'fl oz' || 'fl.oz':
+        return S.of(context).milliliterUnit;
+      default:
+        return S.of(context).gramMilliliterUnit;
+    }
   }
 }
