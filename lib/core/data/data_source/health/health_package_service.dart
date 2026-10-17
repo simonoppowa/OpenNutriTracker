@@ -343,7 +343,7 @@ class HealthPackageService implements HealthService {
   }
 
   @override
-  bool get upsertsByRecordId => _platform == HealthTargetPlatform.android;
+  bool get hasRecordIdentity => _platform == HealthTargetPlatform.android;
 
   @override
   Future<bool> writeMeal(ExternalMealIntake intake) async {
@@ -391,33 +391,44 @@ class HealthPackageService implements HealthService {
   }
 
   @override
-  Future<bool> deleteMeal(String clientRecordId, {DateTime? at}) async {
+  Future<bool> deleteMeal(String clientRecordId) async {
+    if (_platform != HealthTargetPlatform.android) return false;
     try {
-      if (_platform == HealthTargetPlatform.android) {
-        return await _health.deleteByClientRecordId(
-          dataTypeKey: _nutritionType,
-          clientRecordId: clientRecordId,
-        );
-      } else if (_platform == HealthTargetPlatform.ios && at != null) {
-        // The plugin's iOS side drops clientRecordId on write and has no
-        // delete by it, and the UUID its reader returns for a meal is one of
-        // the meal's nutrient samples, not the meal itself. So this removes
-        // every meal this app wrote starting in the window; the caller
-        // decides which diary entries that touches. The end stops a
-        // millisecond short so the window is `[at, at + sampleDuration)`
-        // whether HealthKit treats its end bound as inclusive or not.
-        return await _health.delete(
-          type: _nutritionType,
-          startTime: at,
-          endTime: at
-              .add(ExternalMealIntake.sampleDuration)
-              .subtract(const Duration(milliseconds: 1)),
-        );
-      }
-      return false;
+      return await _health.deleteByClientRecordId(
+        dataTypeKey: _nutritionType,
+        clientRecordId: clientRecordId,
+      );
     } catch (error, stackTrace) {
       _log.warning(
         'Failed to delete meal intake $clientRecordId from health store',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> deleteMealWindow(DateTime start) async {
+    if (_platform != HealthTargetPlatform.ios) return false;
+    try {
+      // The plugin's iOS side drops clientRecordId on write and has no
+      // delete by it, and the UUID its reader returns for a meal is one of
+      // the meal's nutrient samples, not the meal itself. So this removes
+      // every meal this app wrote starting in the window, from any profile;
+      // the caller rewrites the ones the diaries still hold. The end stops a
+      // millisecond short so the window is `[start, start + sampleDuration)`
+      // whether HealthKit treats its end bound as inclusive or not.
+      return await _health.delete(
+        type: _nutritionType,
+        startTime: start,
+        endTime: start
+            .add(ExternalMealIntake.sampleDuration)
+            .subtract(const Duration(milliseconds: 1)),
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to delete the meal window at $start from health store',
         error,
         stackTrace,
       );

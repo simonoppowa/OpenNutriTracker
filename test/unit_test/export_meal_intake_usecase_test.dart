@@ -1,11 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
-import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
-import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/health_export_diary_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
-import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
-import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
@@ -15,53 +14,89 @@ import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart'
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
+/// The health store, as a log of what reached it.
 class _FakeHealthExportRepository extends Fake
     implements HealthExportRepository {
-  final List<ExternalMealIntake> writtenMeals = [];
-  final List<String> deletedMealIds = [];
-  final List<DateTime?> deleteWindows = [];
-  bool writeResult = true;
+  /// Health Connect (true) or HealthKit (false).
+  bool identity = true;
   bool deleteResult = true;
   bool shouldThrow = false;
 
-  /// Health Connect (true) or HealthKit (false).
-  bool upserts = true;
+  /// A record id whose write throws.
+  String? throwFor;
+
+  /// While set, writes wait for it: holds an operation in flight.
+  Completer<void>? writeGate;
 
   /// Deletes and writes in the order they reached the store.
   final List<String> ops = [];
+  final List<ExternalMealIntake> writtenMeals = [];
 
   @override
-  bool get upsertsByRecordId => upserts;
+  bool get hasRecordIdentity => identity;
 
   @override
   Future<bool> writeMeal(ExternalMealIntake intake) async {
-    if (shouldThrow) throw Exception('Platform channel error');
+    if (shouldThrow || intake.id == throwFor) {
+      throw Exception('Platform channel error');
+    }
+    await writeGate?.future;
     writtenMeals.add(intake);
     ops.add('write ${intake.id}');
-    return writeResult;
+    return true;
   }
 
   @override
-  Future<bool> deleteMeal(String clientRecordId, {DateTime? at}) async {
+  Future<bool> deleteMeal(String clientRecordId) async {
     if (shouldThrow) throw Exception('Platform channel error');
-    deletedMealIds.add(clientRecordId);
-    deleteWindows.add(at);
-    ops.add('delete $at');
+    ops.add('delete $clientRecordId');
+    return deleteResult;
+  }
+
+  @override
+  Future<bool> deleteMealWindow(DateTime start) async {
+    if (shouldThrow) throw Exception('Platform channel error');
+    ops.add('delete window $start');
     return deleteResult;
   }
 }
 
-class _FakeConfigRepository extends Fake implements ConfigRepository {
-  bool exportEnabled = true;
+/// Every profile's diary and opt-in, with the repository's snapshot rules.
+class _FakeDiaryRepository extends Fake
+    implements HealthExportDiaryRepository {
+  @override
+  String activeProfileId = 'a';
+
+  /// Each profile's stored opt-in; a missing profile never opted in.
+  final Map<String, bool?> optIn = {'a': true};
+  final Map<String, List<IntakeEntity>> diaries = {'a': []};
+
+  /// Makes a snapshot fail as a profile switch during it would.
+  bool switchDuringSnapshot = false;
 
   @override
-  Future<ConfigEntity> getConfig() async {
-    return ConfigEntity(
-      true,
-      true,
-      false,
-      AppThemeEntity.system,
-      healthExportEnabled: exportEnabled,
+  Future<bool> isExportEnabled(String profileId) async =>
+      optIn[profileId] ?? false;
+
+  @override
+  Future<ExportWindowSnapshot> snapshotWindows(
+    Set<DateTime> starts,
+    Duration length,
+  ) async {
+    if (switchDuringSnapshot) throw StateError('profile switched');
+    bool inside(IntakeEntity intake) => starts.any(
+      (start) =>
+          !intake.dateTime.isBefore(start) &&
+          intake.dateTime.isBefore(start.add(length)),
+    );
+    return ExportWindowSnapshot(
+      exported: [
+        for (final MapEntry(key: id, value: entries) in diaries.entries)
+          if (optIn[id] == true) ...entries.where(inside),
+      ],
+      hasOptedOutEntries: diaries.entries.any(
+        (entry) => optIn[entry.key] == false && entry.value.any(inside),
+      ),
     );
   }
 }
@@ -71,12 +106,8 @@ class _FakeIntakeRepository extends Fake implements IntakeRepository {
   final List<IntakeEntity> deletedIntakes = [];
   IntakeEntity? updatedIntakeResult;
 
-  /// What the repository still holds — read by the iOS delete-window check.
+  /// What the repository holds.
   List<IntakeEntity> storedIntakes = [];
-
-  @override
-  Future<List<IntakeDBO>> getAllIntakesDBO() async =>
-      storedIntakes.map(IntakeDBO.fromIntakeEntity).toList();
 
   @override
   Future<void> addIntake(IntakeEntity intakeEntity) async {
@@ -208,225 +239,60 @@ void main() {
     });
   });
 
-  group('ExportMealIntakeUsecase', () {
-    late _FakeHealthExportRepository healthRepo;
-    late _FakeConfigRepository configRepo;
-    late _FakeIntakeRepository intakeRepo;
-    late ExportMealIntakeUsecase usecase;
+  IntakeEntity edit(
+    IntakeEntity intake, {
+    double? amount,
+    DateTime? dateTime,
+    String? id,
+  }) => IntakeEntity(
+    id: id ?? intake.id,
+    unit: intake.unit,
+    amount: amount ?? intake.amount,
+    type: intake.type,
+    meal: intake.meal,
+    dateTime: dateTime ?? intake.dateTime,
+  );
 
-    setUp(() {
-      healthRepo = _FakeHealthExportRepository();
-      configRepo = _FakeConfigRepository();
-      intakeRepo = _FakeIntakeRepository();
-      usecase = ExportMealIntakeUsecase(healthRepo, configRepo, intakeRepo);
-    });
+  late _FakeHealthExportRepository healthRepo;
+  late _FakeDiaryRepository diary;
+  late ExportMealIntakeUsecase usecase;
 
-    test(
-      'does nothing and returns false when healthExportEnabled is false',
-      () async {
-        configRepo.exportEnabled = false;
+  setUp(() {
+    healthRepo = _FakeHealthExportRepository();
+    diary = _FakeDiaryRepository();
+    usecase = ExportMealIntakeUsecase(healthRepo, diary);
+  });
 
-        final exportResult = await usecase.exportIntake(testIntake);
-        final deleteResult = await usecase.deleteIntake(testIntake);
+  group('ExportMealIntakeUsecase on Health Connect', () {
+    test('does nothing when the profile has not opted in', () async {
+      diary.optIn['a'] = false;
 
-        expect(exportResult, isFalse);
-        expect(deleteResult, isFalse);
-        expect(healthRepo.writtenMeals, isEmpty);
-        expect(healthRepo.deletedMealIds, isEmpty);
-      },
-    );
-
-    test('writes meal intake when healthExportEnabled is true', () async {
-      configRepo.exportEnabled = true;
-
-      final result = await usecase.exportIntake(testIntake);
-
-      expect(result, isTrue);
-      expect(healthRepo.writtenMeals.length, equals(1));
-      expect(healthRepo.writtenMeals.first.id, equals('ont_intake_intake-123'));
-    });
-
-    test('deletes meal intake with clientRecordId when deleted', () async {
-      configRepo.exportEnabled = true;
-
-      final result = await usecase.deleteIntake(testIntake);
-
-      expect(result, isTrue);
-      expect(healthRepo.deletedMealIds, equals(['ont_intake_intake-123']));
-    });
-
-    // #1393 review: iOS deletes by time window, and bulk add gives every row
-    // the same timestamp — deleting one must not erase the others.
-    group('iOS delete window', () {
-      IntakeEntity loggedAt(String id, DateTime dateTime) => IntakeEntity(
-        id: id,
-        unit: testIntake.unit,
-        amount: testIntake.amount,
-        type: testIntake.type,
-        meal: testIntake.meal,
-        dateTime: dateTime,
+      expect(await usecase.exportIntake(testIntake), isFalse);
+      expect(await usecase.deleteIntake(testIntake), isFalse);
+      expect(
+        await usecase.exportUpdatedIntake(testIntake, testIntake),
+        isFalse,
       );
 
-      test('is passed when no other entry starts inside it', () async {
-        intakeRepo.storedIntakes = [
-          loggedAt('earlier', mealDate.subtract(const Duration(seconds: 1))),
-          loggedAt('later', mealDate.add(const Duration(minutes: 2))),
-        ];
-
-        await usecase.deleteIntake(testIntake);
-
-        expect(healthRepo.deleteWindows, [mealDate]);
-      });
-
-      test('is withheld when a bulk-add sibling shares its time', () async {
-        intakeRepo.storedIntakes = [loggedAt('sibling', mealDate)];
-
-        await usecase.deleteIntake(testIntake);
-
-        expect(healthRepo.deletedMealIds, ['ont_intake_intake-123']);
-        expect(healthRepo.deleteWindows, [null]);
-      });
-
-      test('is withheld when another entry starts later inside it', () async {
-        intakeRepo.storedIntakes = [
-          loggedAt('next', mealDate.add(const Duration(seconds: 59))),
-        ];
-
-        await usecase.deleteIntake(testIntake);
-
-        expect(healthRepo.deleteWindows, [null]);
-      });
-
-      test('ignores the entry being deleted if it is still stored', () async {
-        intakeRepo.storedIntakes = [testIntake];
-
-        await usecase.deleteIntake(testIntake);
-
-        expect(healthRepo.deleteWindows, [mealDate]);
-      });
+      expect(healthRepo.ops, isEmpty);
     });
 
-    // #1393 review: HealthKit has no upsert identity, so an edit has to
-    // replace the old meal's window rather than add a second meal.
-    group('iOS update', () {
-      IntakeEntity edit(
-        IntakeEntity intake, {
-        double? amount,
-        DateTime? dateTime,
-        String? id,
-      }) => IntakeEntity(
-        id: id ?? intake.id,
-        unit: intake.unit,
-        amount: amount ?? intake.amount,
-        type: intake.type,
-        meal: intake.meal,
-        dateTime: dateTime ?? intake.dateTime,
-      );
+    test('writes, rewrites and deletes by record id', () async {
+      final after = edit(testIntake, amount: 200);
 
-      setUp(() => healthRepo.upserts = false);
-
-      test('replaces the window of an entry with no siblings', () async {
-        final after = edit(testIntake, amount: 200);
-        intakeRepo.storedIntakes = [after];
-
-        expect(await usecase.exportUpdatedIntake(testIntake, after), isTrue);
-
-        expect(healthRepo.ops, [
-          'delete $mealDate',
-          'write ont_intake_intake-123',
-        ]);
-        expect(healthRepo.writtenMeals.single.calories, closeTo(400.0, 0.01));
-      });
-
-      test('rewrites a same-minute sibling instead of losing it', () async {
-        final after = edit(testIntake, amount: 200);
-        final sibling = edit(
-          testIntake,
-          id: 'sibling',
-          dateTime: mealDate.add(const Duration(seconds: 10)),
-        );
-        intakeRepo.storedIntakes = [after, sibling];
-
-        await usecase.exportUpdatedIntake(testIntake, after);
-
-        expect(healthRepo.deleteWindows, [mealDate]);
-        expect(healthRepo.ops.first, 'delete $mealDate');
-        expect(healthRepo.writtenMeals.map((meal) => meal.id), {
-          'ont_intake_intake-123',
-          'ont_intake_sibling',
-        });
-        expect(healthRepo.writtenMeals, hasLength(2));
-      });
-
-      test('a moved entry replaces both its old and its new window', () async {
-        final moved = mealDate.add(const Duration(hours: 2));
-        final after = edit(testIntake, dateTime: moved);
-        final oldSibling = edit(testIntake, id: 'old', dateTime: mealDate);
-        final newSibling = edit(
-          testIntake,
-          id: 'new',
-          dateTime: moved.add(const Duration(seconds: 5)),
-        );
-        // Starts where the old window ends, so the delete never touched it.
-        final outside = edit(
-          testIntake,
-          id: 'outside',
-          dateTime: mealDate.add(const Duration(minutes: 1)),
-        );
-        intakeRepo.storedIntakes = [after, oldSibling, newSibling, outside];
-
-        await usecase.exportUpdatedIntake(testIntake, after);
-
-        expect(healthRepo.deleteWindows, [mealDate, moved]);
-        expect(healthRepo.ops.take(2), ['delete $mealDate', 'delete $moved']);
-        expect(healthRepo.writtenMeals.map((meal) => meal.id), {
-          'ont_intake_intake-123',
-          'ont_intake_old',
-          'ont_intake_new',
-        });
-        expect(healthRepo.writtenMeals, hasLength(3));
-      });
-
-      test('writes nothing when the old window cannot be deleted', () async {
-        final after = edit(testIntake, amount: 200);
-        intakeRepo.storedIntakes = [after];
-        healthRepo.deleteResult = false;
-
-        expect(await usecase.exportUpdatedIntake(testIntake, after), isFalse);
-
-        expect(healthRepo.writtenMeals, isEmpty);
-      });
-
-      test('UpdateIntakeUsecase hands over the entry as it was', () async {
-        final moved = mealDate.add(const Duration(hours: 2));
-        intakeRepo.storedIntakes = [testIntake];
-        intakeRepo.updatedIntakeResult = edit(testIntake, dateTime: moved);
-        final updateUsecase = UpdateIntakeUsecase(intakeRepo, usecase);
-
-        await updateUsecase.updateIntake('intake-123', {});
-        await Future<void>.delayed(Duration.zero);
-
-        expect(healthRepo.deleteWindows, [mealDate, moved]);
-      });
-    });
-
-    test('on Android an update only rewrites, by record id', () async {
-      final after = IntakeEntity(
-        id: testIntake.id,
-        unit: testIntake.unit,
-        amount: 200,
-        type: testIntake.type,
-        meal: testIntake.meal,
-        dateTime: testIntake.dateTime,
-      );
-
+      expect(await usecase.exportIntake(testIntake), isTrue);
       expect(await usecase.exportUpdatedIntake(testIntake, after), isTrue);
+      expect(await usecase.deleteIntake(after), isTrue);
 
-      expect(healthRepo.ops, ['write ont_intake_intake-123']);
+      expect(healthRepo.ops, [
+        'write ont_intake_intake-123',
+        'write ont_intake_intake-123',
+        'delete ont_intake_intake-123',
+      ]);
+      expect(healthRepo.writtenMeals.last.calories, closeTo(400.0, 0.01));
     });
 
-    test('catches platform error and returns false without throwing', () async {
-      configRepo.exportEnabled = true;
+    test('a platform error is reported as false without throwing', () async {
       healthRepo.shouldThrow = true;
 
       expect(await usecase.exportIntake(testIntake), isFalse);
@@ -434,70 +300,248 @@ void main() {
     });
   });
 
-  group('Intake usecases live export triggers', () {
-    late _FakeHealthExportRepository healthRepo;
-    late _FakeConfigRepository configRepo;
-    late _FakeIntakeRepository intakeRepo;
-    late ExportMealIntakeUsecase exportUsecase;
+  // #1393 review: exports were fire-and-forget, so a delete could finish
+  // before the write it followed and leave a ghost meal behind.
+  group('operations run in the order they were requested', () {
+    test('a delete waits for the write still in flight', () async {
+      healthRepo.writeGate = Completer<void>();
 
-    setUp(() {
-      healthRepo = _FakeHealthExportRepository();
-      configRepo = _FakeConfigRepository();
-      intakeRepo = _FakeIntakeRepository();
-      exportUsecase = ExportMealIntakeUsecase(
-        healthRepo,
-        configRepo,
-        intakeRepo,
+      final write = usecase.exportIntake(testIntake);
+      final delete = usecase.deleteIntake(testIntake);
+      await Future<void>.delayed(Duration.zero);
+      expect(healthRepo.ops, isEmpty);
+
+      healthRepo.writeGate!.complete();
+      await Future.wait([write, delete]);
+
+      expect(healthRepo.ops, [
+        'write ont_intake_intake-123',
+        'delete ont_intake_intake-123',
+      ]);
+    });
+
+    test('a failed operation does not stall the ones after it', () async {
+      healthRepo.throwFor = 'ont_intake_bad';
+
+      final failed = usecase.exportIntake(edit(testIntake, id: 'bad'));
+      final next = usecase.exportIntake(testIntake);
+
+      expect(await failed, isFalse);
+      expect(await next, isTrue);
+      expect(healthRepo.ops, ['write ont_intake_intake-123']);
+    });
+
+    test('consent is the requesting profile\'s, not the next one\'s', () async {
+      diary.optIn['b'] = false;
+      healthRepo.writeGate = Completer<void>();
+
+      final held = usecase.exportIntake(testIntake);
+      final queued = usecase.exportIntake(edit(testIntake, id: 'second'));
+      // A switch to a profile that never opted in lands mid-queue.
+      diary.activeProfileId = 'b';
+      healthRepo.writeGate!.complete();
+      await Future.wait([held, queued]);
+
+      expect(healthRepo.ops, [
+        'write ont_intake_intake-123',
+        'write ont_intake_second',
+      ]);
+      // And what the other profile asks for afterwards stays off.
+      expect(await usecase.exportIntake(testIntake), isFalse);
+    });
+  });
+
+  // HealthKit gets no record id from the plugin, and its only delete clears
+  // every meal this app wrote in a minute, from any profile (#1393 review).
+  group('ExportMealIntakeUsecase on HealthKit', () {
+    setUp(() => healthRepo.identity = false);
+
+    test('an add replaces its window', () async {
+      diary.diaries['a'] = [testIntake];
+
+      expect(await usecase.exportIntake(testIntake), isTrue);
+
+      expect(healthRepo.ops, [
+        'delete window $mealDate',
+        'write ont_intake_intake-123',
+      ]);
+    });
+
+    test('a delete rewrites a same-minute sibling, not skips', () async {
+      final sibling = edit(
+        testIntake,
+        id: 'sibling',
+        dateTime: mealDate.add(const Duration(seconds: 10)),
+      );
+      // The deleted entry has already left the diary.
+      diary.diaries['a'] = [sibling];
+
+      expect(await usecase.deleteIntake(testIntake), isTrue);
+
+      expect(healthRepo.ops, [
+        'delete window $mealDate',
+        'write ont_intake_sibling',
+      ]);
+    });
+
+    test('an edit with no siblings replaces only itself', () async {
+      final after = edit(testIntake, amount: 200);
+      diary.diaries['a'] = [after];
+
+      expect(await usecase.exportUpdatedIntake(testIntake, after), isTrue);
+
+      expect(healthRepo.ops, [
+        'delete window $mealDate',
+        'write ont_intake_intake-123',
+      ]);
+      expect(healthRepo.writtenMeals.single.calories, closeTo(400.0, 0.01));
+    });
+
+    test('an edit rewrites a same-minute sibling, not loses it', () async {
+      final after = edit(testIntake, amount: 200);
+      final sibling = edit(
+        testIntake,
+        id: 'sibling',
+        dateTime: mealDate.add(const Duration(seconds: 10)),
+      );
+      diary.diaries['a'] = [after, sibling];
+
+      await usecase.exportUpdatedIntake(testIntake, after);
+
+      expect(healthRepo.ops.first, 'delete window $mealDate');
+      expect(
+        healthRepo.ops.skip(1),
+        unorderedEquals([
+          'write ont_intake_intake-123',
+          'write ont_intake_sibling',
+        ]),
       );
     });
 
+    test('a moved entry replaces its old and its new window', () async {
+      final moved = mealDate.add(const Duration(hours: 2));
+      final after = edit(testIntake, dateTime: moved);
+      final oldSibling = edit(testIntake, id: 'old', dateTime: mealDate);
+      final newSibling = edit(
+        testIntake,
+        id: 'new',
+        dateTime: moved.add(const Duration(seconds: 5)),
+      );
+      // Starts where the old window ends, so the delete never touched it.
+      final outside = edit(
+        testIntake,
+        id: 'outside',
+        dateTime: mealDate.add(const Duration(minutes: 1)),
+      );
+      diary.diaries['a'] = [after, oldSibling, newSibling, outside];
+
+      await usecase.exportUpdatedIntake(testIntake, after);
+
+      expect(healthRepo.ops, [
+        'delete window $mealDate',
+        'write ont_intake_old',
+        'delete window $moved',
+        'write ont_intake_intake-123',
+        'write ont_intake_new',
+      ]);
+    });
+
+    test('nothing is written when a window cannot be deleted', () async {
+      final after = edit(testIntake, amount: 200);
+      diary.diaries['a'] = [after];
+      healthRepo.deleteResult = false;
+
+      expect(await usecase.exportUpdatedIntake(testIntake, after), isFalse);
+
+      expect(healthRepo.writtenMeals, isEmpty);
+    });
+
+    group('across profiles', () {
+      final sameMinute = mealDate.add(const Duration(seconds: 20));
+
+      test('another exporting profile is rewritten, not erased', () async {
+        diary.optIn['b'] = true;
+        diary.diaries['b'] = [edit(testIntake, id: 'b1', dateTime: sameMinute)];
+
+        await usecase.deleteIntake(testIntake);
+
+        expect(healthRepo.ops, [
+          'delete window $mealDate',
+          'write ont_intake_b1',
+        ]);
+      });
+
+      test('a profile that never opted in is not exported', () async {
+        diary.diaries['c'] = [edit(testIntake, id: 'c1', dateTime: sameMinute)];
+
+        await usecase.deleteIntake(testIntake);
+
+        expect(healthRepo.ops, ['delete window $mealDate']);
+      });
+
+      test('a profile that opted out again leaves the window alone', () async {
+        diary.optIn['b'] = false;
+        diary.diaries['b'] = [edit(testIntake, id: 'b1', dateTime: sameMinute)];
+
+        expect(await usecase.deleteIntake(testIntake), isFalse);
+
+        expect(healthRepo.ops, isEmpty);
+      });
+
+      test('a profile switch while reading deletes nothing', () async {
+        diary.diaries['a'] = [testIntake];
+        diary.switchDuringSnapshot = true;
+
+        expect(await usecase.exportIntake(testIntake), isFalse);
+
+        expect(healthRepo.ops, isEmpty);
+      });
+    });
+  });
+
+  group('Intake usecases live export triggers', () {
+    late _FakeIntakeRepository intakeRepo;
+
+    setUp(() => intakeRepo = _FakeIntakeRepository());
+
     test('AddIntakeUsecase persists and triggers live export', () async {
-      final addUsecase = AddIntakeUsecase(intakeRepo, exportUsecase);
+      final addUsecase = AddIntakeUsecase(intakeRepo, usecase);
 
       await addUsecase.addIntake(testIntake);
       await Future<void>.delayed(Duration.zero);
 
       expect(intakeRepo.addedIntakes, contains(testIntake));
-      expect(healthRepo.writtenMeals.length, equals(1));
-      expect(healthRepo.writtenMeals.first.id, equals('ont_intake_intake-123'));
+      expect(healthRepo.ops, ['write ont_intake_intake-123']);
     });
 
-    test(
-      'UpdateIntakeUsecase updates and triggers live export with updated entity',
-      () async {
-        final updated = IntakeEntity(
-          id: testIntake.id,
-          unit: testIntake.unit,
-          amount: 200,
-          type: testIntake.type,
-          meal: testIntake.meal,
-          dateTime: testIntake.dateTime,
-        );
-        intakeRepo.updatedIntakeResult = updated;
-        final updateUsecase = UpdateIntakeUsecase(intakeRepo, exportUsecase);
+    test('UpdateIntakeUsecase hands over the entry as it was', () async {
+      healthRepo.identity = false;
+      final moved = mealDate.add(const Duration(hours: 2));
+      final after = edit(testIntake, dateTime: moved);
+      intakeRepo.storedIntakes = [testIntake];
+      intakeRepo.updatedIntakeResult = after;
+      diary.diaries['a'] = [after];
+      final updateUsecase = UpdateIntakeUsecase(intakeRepo, usecase);
 
-        final res = await updateUsecase.updateIntake('intake-123', {
-          'amount': 200,
-        });
-        await Future<void>.delayed(Duration.zero);
+      expect(await updateUsecase.updateIntake('intake-123', {}), after);
+      await Future<void>.delayed(Duration.zero);
 
-        expect(res, equals(updated));
-        expect(healthRepo.writtenMeals.length, equals(1));
-        expect(healthRepo.writtenMeals.first.calories, closeTo(400.0, 0.01));
-      },
-    );
+      // The old window is only known from the entry read before the edit.
+      expect(healthRepo.ops, [
+        'delete window $mealDate',
+        'delete window $moved',
+        'write ont_intake_intake-123',
+      ]);
+    });
 
-    test(
-      'DeleteIntakeUsecase deletes and triggers delete on health store',
-      () async {
-        final deleteUsecase = DeleteIntakeUsecase(intakeRepo, exportUsecase);
+    test('DeleteIntakeUsecase deletes and triggers the health delete', () async {
+      final deleteUsecase = DeleteIntakeUsecase(intakeRepo, usecase);
 
-        await deleteUsecase.deleteIntake(testIntake);
-        await Future<void>.delayed(Duration.zero);
+      await deleteUsecase.deleteIntake(testIntake);
+      await Future<void>.delayed(Duration.zero);
 
-        expect(intakeRepo.deletedIntakes, contains(testIntake));
-        expect(healthRepo.deletedMealIds, equals(['ont_intake_intake-123']));
-      },
-    );
+      expect(intakeRepo.deletedIntakes, contains(testIntake));
+      expect(healthRepo.ops, ['delete ont_intake_intake-123']);
+    });
   });
 }

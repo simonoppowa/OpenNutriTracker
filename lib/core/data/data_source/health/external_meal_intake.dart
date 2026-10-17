@@ -14,6 +14,9 @@ class ExternalMealIntake {
   /// window, so callers working out what an iOS delete touches use it too.
   static const sampleDuration = Duration(minutes: 1);
 
+  /// The client record id a diary entry is exported under.
+  static String recordIdOf(String intakeId) => 'ont_intake_$intakeId';
+
   /// Stable client record id used for deduplication / in-place updates.
   final String id;
 
@@ -167,7 +170,7 @@ class ExternalMealIntake {
     final name = intake.meal.name?.trim();
 
     return ExternalMealIntake(
-      id: 'ont_intake_${intake.id}',
+      id: recordIdOf(intake.id),
       name: (name != null && name.isNotEmpty) ? name : null,
       mealTypeName: mealTypeString,
       dateTime: intake.dateTime,

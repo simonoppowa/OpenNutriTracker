@@ -433,11 +433,11 @@ void main() {
 
   // #1393 review: the plugin's iOS side has no delete by record id, only by
   // time window, and one window can hold several exported meals.
-  group('deleteMeal', () {
+  group('meal deletes', () {
     const id = 'ont_intake_a';
     final at = DateTime(2026, 6, 15, 12, 30);
 
-    test('on Android deletes by client record id, never by window', () async {
+    test('on Android delete by client record id, never by window', () async {
       final health = _FakeHealth();
       final service = HealthPackageService(
         health,
@@ -445,21 +445,27 @@ void main() {
         platform: HealthTargetPlatform.android,
       );
 
-      expect(await service.deleteMeal(id, at: at), isTrue);
+      expect(service.hasRecordIdentity, isTrue);
+      expect(await service.deleteMeal(id), isTrue);
+      expect(await service.deleteMealWindow(at), isFalse);
 
       expect(health.idDeletes, [(HealthDataType.NUTRITION, id)]);
       expect(health.windowDeletes, isEmpty);
     });
 
-    test('on iOS deletes the minute starting at the meal', () async {
+    test('on iOS delete the minute at the meal, never by id', () async {
       final health = _FakeHealth();
       final service = HealthPackageService(
         health,
         platform: HealthTargetPlatform.ios,
       );
 
-      expect(await service.deleteMeal(id, at: at), isTrue);
+      expect(service.hasRecordIdentity, isFalse);
+      expect(await service.deleteMealWindow(at), isTrue);
+      expect(await service.deleteMeal(id), isFalse);
 
+      // A millisecond short, so the window is half-open whichever way
+      // HealthKit reads its end bound.
       expect(health.windowDeletes, [
         (
           HealthDataType.NUTRITION,
@@ -467,19 +473,6 @@ void main() {
           at.add(const Duration(seconds: 59, milliseconds: 999)),
         ),
       ]);
-      expect(health.idDeletes, isEmpty);
-    });
-
-    test('on iOS without a window deletes nothing', () async {
-      final health = _FakeHealth();
-      final service = HealthPackageService(
-        health,
-        platform: HealthTargetPlatform.ios,
-      );
-
-      expect(await service.deleteMeal(id), isFalse);
-
-      expect(health.windowDeletes, isEmpty);
       expect(health.idDeletes, isEmpty);
     });
   });

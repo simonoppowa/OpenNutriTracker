@@ -118,6 +118,11 @@ class HiveDBProvider extends ChangeNotifier {
 
   String get activeProfileId => _activeProfileId;
 
+  /// Whether a profile switch is closing one box-set and opening another
+  /// right now. Code reading boxes across profiles checks it so it never
+  /// closes a box-set that is about to become the active one.
+  bool get isSwitching => _switching;
+
   Box<ConfigDBO> get configBox => _requireBox(_configBox, configBoxName);
   Box<IntakeDBO> get intakeBox => _requireBox(_intakeBox, intakeBoxName);
   Box<UserActivityDBO> get userActivityBox =>

@@ -17,11 +17,14 @@ class HealthExportRepository {
   Future<bool> requestPermissions() async =>
       await _healthService.requestNutritionWritePermissions();
 
-  bool get upsertsByRecordId => _healthService.upsertsByRecordId;
+  bool get hasRecordIdentity => _healthService.hasRecordIdentity;
 
   Future<bool> writeMeal(ExternalMealIntake intake) async =>
       await _healthService.writeMeal(intake);
 
-  Future<bool> deleteMeal(String clientRecordId, {DateTime? at}) async =>
-      await _healthService.deleteMeal(clientRecordId, at: at);
+  Future<bool> deleteMeal(String clientRecordId) async =>
+      await _healthService.deleteMeal(clientRecordId);
+
+  Future<bool> deleteMealWindow(DateTime start) async =>
+      await _healthService.deleteMealWindow(start);
 }

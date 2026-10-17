@@ -2,6 +2,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_export_diary_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service_factory.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
@@ -17,6 +18,7 @@ import 'package:opennutritracker/core/data/data_source/water_intake_data_source.
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/health_export_diary_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
@@ -408,7 +410,7 @@ Future<void> initLocator() async {
     () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<ExportMealIntakeUsecase>(
-    () => ExportMealIntakeUsecase(locator(), locator(), locator()),
+    () => ExportMealIntakeUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
     () => GetIntakeUsecase(locator()),
@@ -588,6 +590,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<HealthExportRepository>(
     () => HealthExportRepository(locator()),
   );
+  locator.registerLazySingleton<HealthExportDiaryRepository>(
+    () => HealthExportDiaryRepository(locator()),
+  );
 
   // DataSources
   // Per-profile data sources take the provider and resolve the *active*
@@ -631,6 +636,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<ProfileDataSource>(
     () => ProfileDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<HealthExportDiaryDataSource>(
+    () => HealthExportDiaryDataSource(hiveDBProvider),
   );
   // Probed once here rather than per call: resolving the platform health
   // store needs an await, and a plugin that can't initialise falls back to a

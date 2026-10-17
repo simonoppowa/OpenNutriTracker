@@ -28,6 +28,10 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 class ConfigDataSource {
   static const _configKey = "ConfigKey";
 
+  /// The key both config boxes store their single record under, for code
+  /// that reads another profile's box without going through this class.
+  static const configKey = _configKey;
+
   final _log = Logger('ConfigDataSource');
   final HiveDBProvider _db;
 
