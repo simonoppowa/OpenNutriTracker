@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -13,6 +14,7 @@ import 'package:opennutritracker/core/utils/calc/workout_compensation_calc.dart'
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_export_disclosure_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -21,6 +23,7 @@ import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
   final List<bool> importEnabledCalls = [];
+  final List<bool> exportEnabledCalls = [];
   final List<double> multiplierCalls = [];
 
   @override
@@ -29,8 +32,26 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   }
 
   @override
+  Future<void> setHealthExportEnabled(bool enabled) async {
+    exportEnabledCalls.add(enabled);
+  }
+
+  @override
   Future<void> setHealthWorkoutKcalMultiplier(double multiplier) async {
     multiplierCalls.add(multiplier);
+  }
+}
+
+class _FakeHealthExportRepository extends Fake
+    implements HealthExportRepository {
+  bool available = true;
+  bool granted = true;
+  int requestPermissionsCalls = 0;
+
+  @override
+  Future<bool> requestPermissions() async {
+    requestPermissionsCalls++;
+    return granted;
   }
 }
 
@@ -100,10 +121,21 @@ Finder _byIdentifier(String identifier) => find.byWidgetPredicate(
   (widget) => widget is Semantics && widget.properties.identifier == identifier,
 );
 
+Finder _autoImportSwitch() => find.descendant(
+  of: _byIdentifier('health-sync-auto-import'),
+  matching: find.byType(SwitchListTile),
+);
+
+Finder _autoExportSwitch() => find.descendant(
+  of: _byIdentifier('health-sync-auto-export'),
+  matching: find.byType(SwitchListTile),
+);
+
 void main() {
   late _FakeSettingsBloc settingsBloc;
   late _FakeGetConfigUsecase getConfigUsecase;
   late _FakeHealthImportRepository healthImportRepository;
+  late _FakeHealthExportRepository healthExportRepository;
   late _FakeImportWorkoutsUsecase importWorkoutsUsecase;
 
   final user = UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight;
@@ -119,11 +151,13 @@ void main() {
     settingsBloc = _FakeSettingsBloc();
     getConfigUsecase = _FakeGetConfigUsecase();
     healthImportRepository = _FakeHealthImportRepository();
+    healthExportRepository = _FakeHealthExportRepository();
     importWorkoutsUsecase = _FakeImportWorkoutsUsecase();
 
     locator.registerSingleton<SettingsBloc>(settingsBloc);
     locator.registerSingleton<GetConfigUsecase>(getConfigUsecase);
     locator.registerSingleton<HealthImportRepository>(healthImportRepository);
+    locator.registerSingleton<HealthExportRepository>(healthExportRepository);
     locator.registerSingleton<ImportWorkoutsUsecase>(importWorkoutsUsecase);
     locator.registerSingleton<GetUserUsecase>(_FakeGetUserUsecase(user));
   });
@@ -136,6 +170,7 @@ void main() {
   /// mirror ConfigEntity's disclaimer / policy / anonymous-data / theme head.
   void storeConfig({
     required bool healthImportEnabled,
+    bool healthExportEnabled = false,
     double? healthWorkoutKcalMultiplier,
   }) {
     getConfigUsecase.config = ConfigEntity(
@@ -144,6 +179,7 @@ void main() {
       false,
       AppThemeEntity.system,
       healthImportEnabled: healthImportEnabled,
+      healthExportEnabled: healthExportEnabled,
       healthWorkoutKcalMultiplier: healthWorkoutKcalMultiplier,
     );
   }
@@ -177,10 +213,7 @@ void main() {
 
     await pumpScreen(tester);
 
-    expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      isFalse,
-    );
+    expect(tester.widget<SwitchListTile>(_autoImportSwitch()).value, isFalse);
     // A null onChanged is what makes a Slider unusable, so it is the honest
     // assertion for "disabled while import is off".
     expect(tester.widget<Slider>(find.byType(Slider)).onChanged, isNull);
@@ -203,10 +236,7 @@ void main() {
     expect(healthImportRepository.requestPermissionsCalls, 1);
     expect(settingsBloc.importEnabledCalls, [true]);
     expect(settingsBloc.multiplierCalls, [suggestedMultiplier]);
-    expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      isTrue,
-    );
+    expect(tester.widget<SwitchListTile>(_autoImportSwitch()).value, isTrue);
     expect(
       tester.widget<Slider>(find.byType(Slider)).value,
       suggestedMultiplier,
@@ -225,10 +255,7 @@ void main() {
     await pumpScreen(tester);
     await optIn(tester);
 
-    expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      isFalse,
-    );
+    expect(tester.widget<SwitchListTile>(_autoImportSwitch()).value, isFalse);
     expect(settingsBloc.importEnabledCalls, isEmpty);
     expect(importWorkoutsUsecase.importNowCalls, 0);
     expect(
@@ -283,6 +310,7 @@ void main() {
     expect(_byIdentifier('health-sync-kcal-multiplier'), findsOneWidget);
     expect(_byIdentifier('health-sync-sources'), findsOneWidget);
     expect(_byIdentifier('health-sync-apply-suggestion'), findsOneWidget);
+    expect(_byIdentifier('health-sync-auto-export'), findsOneWidget);
   });
 
   testWidgets('the credit section title cannot overflow its row', (
@@ -327,10 +355,7 @@ void main() {
     expect(healthImportRepository.requestPermissionsCalls, 0);
     expect(settingsBloc.importEnabledCalls, isEmpty);
     expect(importWorkoutsUsecase.importNowCalls, 0);
-    expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      isFalse,
-    );
+    expect(tester.widget<SwitchListTile>(_autoImportSwitch()).value, isFalse);
   });
 
   // A dialog that a stray tap could dismiss into a permission prompt would not
@@ -480,6 +505,129 @@ void main() {
         findsNothing,
         reason: 'the body-fat paragraph must not survive the gate here',
       );
+    });
+  });
+
+  group('nutrition export opt-in', () {
+    // #1393 review: a persisted opt-in has to stay revocable when Health
+    // Connect is uninstalled or the app fell back to NoopHealthService.
+    testWidgets('export can be turned off while the store is unavailable', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false, healthExportEnabled: true);
+      healthImportRepository.available = false;
+
+      await pumpScreen(tester);
+
+      expect(
+        tester.widget<SwitchListTile>(_autoExportSwitch()).onChanged,
+        isNotNull,
+      );
+      await tester.tap(_byIdentifier('health-sync-auto-export'));
+      await tester.pumpAndSettle();
+
+      expect(settingsBloc.exportEnabledCalls, [false]);
+      expect(tester.widget<SwitchListTile>(_autoExportSwitch()).value, isFalse);
+      expect(healthExportRepository.requestPermissionsCalls, 0);
+    });
+
+    testWidgets('export cannot be turned on while the store is unavailable', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false, healthExportEnabled: false);
+      healthImportRepository.available = false;
+
+      await pumpScreen(tester);
+
+      expect(
+        tester.widget<SwitchListTile>(_autoExportSwitch()).onChanged,
+        isNull,
+      );
+    });
+
+    testWidgets('export switch is off when healthExportEnabled is false', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false, healthExportEnabled: false);
+
+      await pumpScreen(tester);
+
+      expect(tester.widget<SwitchListTile>(_autoExportSwitch()).value, isFalse);
+      expect(healthExportRepository.requestPermissionsCalls, 0);
+    });
+
+    testWidgets(
+      'opting in to export requests write permissions and enables export',
+      (tester) async {
+        storeConfig(healthImportEnabled: false, healthExportEnabled: false);
+        healthExportRepository.granted = true;
+
+        await pumpScreen(tester);
+
+        await tester.tap(_byIdentifier('health-sync-auto-export'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(HealthExportDisclosureDialog), findsOneWidget);
+        await tester.tap(find.text(l10nEn.healthSyncDisclosureContinueAction));
+        await tester.pumpAndSettle();
+
+        expect(healthExportRepository.requestPermissionsCalls, 1);
+        expect(settingsBloc.exportEnabledCalls, [true]);
+        expect(
+          tester.widget<SwitchListTile>(_autoExportSwitch()).value,
+          isTrue,
+        );
+      },
+    );
+
+    testWidgets(
+      'denied write permission leaves export switch off and shows snackbar',
+      (tester) async {
+        storeConfig(healthImportEnabled: false, healthExportEnabled: false);
+        healthExportRepository.granted = false;
+
+        await pumpScreen(tester);
+
+        await tester.tap(_byIdentifier('health-sync-auto-export'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(HealthExportDisclosureDialog), findsOneWidget);
+        await tester.tap(find.text(l10nEn.healthSyncDisclosureContinueAction));
+        await tester.pumpAndSettle();
+
+        expect(healthExportRepository.requestPermissionsCalls, 1);
+        expect(settingsBloc.exportEnabledCalls, isEmpty);
+        expect(
+          tester.widget<SwitchListTile>(_autoExportSwitch()).value,
+          isFalse,
+        );
+        expect(
+          find.text(
+            l10nEn.healthSyncExportPermissionDeniedLabel(healthPlatformName),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('cancelling export disclosure asks for nothing', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false, healthExportEnabled: false);
+      healthExportRepository.granted = true;
+
+      await pumpScreen(tester);
+
+      await tester.tap(_byIdentifier('health-sync-auto-export'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HealthExportDisclosureDialog), findsOneWidget);
+      await tester.tap(find.text(l10nEn.dialogCancelLabel));
+      await tester.pumpAndSettle();
+
+      expect(healthExportRepository.requestPermissionsCalls, 0);
+      expect(settingsBloc.exportEnabledCalls, isEmpty);
+      expect(tester.widget<SwitchListTile>(_autoExportSwitch()).value, isFalse);
     });
   });
 }

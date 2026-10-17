@@ -210,6 +210,10 @@ class ConfigRepository {
     await _configDataSource.setConfigHealthImportEnabled(enabled);
   }
 
+  Future<void> setConfigHealthExportEnabled(bool enabled) async {
+    await _configDataSource.setConfigHealthExportEnabled(enabled);
+  }
+
   Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
     await _configDataSource.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }

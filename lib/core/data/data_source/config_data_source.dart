@@ -28,6 +28,10 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 class ConfigDataSource {
   static const _configKey = "ConfigKey";
 
+  /// The key both config boxes store their single record under, for code
+  /// that reads another profile's box without going through this class.
+  static const configKey = _configKey;
+
   final _log = Logger('ConfigDataSource');
   final HiveDBProvider _db;
 
@@ -57,6 +61,7 @@ class ConfigDataSource {
       merged.mealKcalSharesPct = profile.mealKcalSharesPct;
       merged.dailyWaterGoalMl = profile.dailyWaterGoalMl;
       merged.healthImportEnabled = profile.healthImportEnabled;
+      merged.healthExportEnabled = profile.healthExportEnabled;
       merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
       merged.healthLastImportAt = profile.healthLastImportAt;
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
@@ -73,6 +78,7 @@ class ConfigDataSource {
       merged.mealKcalSharesPct = null;
       merged.dailyWaterGoalMl = null;
       merged.healthImportEnabled = null;
+      merged.healthExportEnabled = null;
       merged.healthWorkoutKcalMultiplier = null;
       merged.healthLastImportAt = null;
       merged.healthDeletedExternalIds = null;
@@ -364,6 +370,10 @@ class ConfigDataSource {
 
   Future<void> setConfigHealthImportEnabled(bool enabled) async {
     await _update((c) => c.healthImportEnabled = enabled);
+  }
+
+  Future<void> setConfigHealthExportEnabled(bool enabled) async {
+    await _update((c) => c.healthExportEnabled = enabled);
   }
 
   Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {

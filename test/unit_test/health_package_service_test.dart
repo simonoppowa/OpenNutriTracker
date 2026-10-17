@@ -47,6 +47,32 @@ class _FakeHealth extends Fake implements Health {
     queriedTypes.add(types);
     return dataPoints;
   }
+
+  /// Every time-window delete, as (type, start, end).
+  final windowDeletes = <(HealthDataType, DateTime, DateTime?)>[];
+
+  /// Every delete by client record id, as (type, id).
+  final idDeletes = <(HealthDataType, String)>[];
+
+  @override
+  Future<bool> delete({
+    required HealthDataType type,
+    required DateTime startTime,
+    DateTime? endTime,
+  }) async {
+    windowDeletes.add((type, startTime, endTime));
+    return true;
+  }
+
+  @override
+  Future<bool> deleteByClientRecordId({
+    required HealthDataType dataTypeKey,
+    required String clientRecordId,
+    String? recordId,
+  }) async {
+    idDeletes.add((dataTypeKey, clientRecordId));
+    return true;
+  }
 }
 
 /// The Health Connect session read, without a method channel.
@@ -402,6 +428,52 @@ void main() {
         throwsStateError,
       );
       expect(reader.calls, 0);
+    });
+  });
+
+  // #1393 review: the plugin's iOS side has no delete by record id, only by
+  // time window, and one window can hold several exported meals.
+  group('meal deletes', () {
+    const id = 'ont_intake_a';
+    final at = DateTime(2026, 6, 15, 12, 30);
+
+    test('on Android delete by client record id, never by window', () async {
+      final health = _FakeHealth();
+      final service = HealthPackageService(
+        health,
+        workoutReader: _FakeWorkoutReader(),
+        platform: HealthTargetPlatform.android,
+      );
+
+      expect(service.hasRecordIdentity, isTrue);
+      expect(await service.deleteMeal(id), isTrue);
+      expect(await service.deleteMealWindow(at), isFalse);
+
+      expect(health.idDeletes, [(HealthDataType.NUTRITION, id)]);
+      expect(health.windowDeletes, isEmpty);
+    });
+
+    test('on iOS delete the minute at the meal, never by id', () async {
+      final health = _FakeHealth();
+      final service = HealthPackageService(
+        health,
+        platform: HealthTargetPlatform.ios,
+      );
+
+      expect(service.hasRecordIdentity, isFalse);
+      expect(await service.deleteMealWindow(at), isTrue);
+      expect(await service.deleteMeal(id), isFalse);
+
+      // A millisecond short, so the window is half-open whichever way
+      // HealthKit reads its end bound.
+      expect(health.windowDeletes, [
+        (
+          HealthDataType.NUTRITION,
+          at,
+          at.add(const Duration(seconds: 59, milliseconds: 999)),
+        ),
+      ]);
+      expect(health.idDeletes, isEmpty);
     });
   });
 }

@@ -1345,7 +1345,7 @@
   "bulkAddPhotoUnsupportedLabel": "That model can't read photos. Choose a different one in Settings, or type the items instead.",
   "bulkAddPhotoNoCreditLabel": "That request couldn't be paid for: your provider account is out of credit. Top up with your provider, or type the items instead.",
   "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead.",
-  "settingsHealthSyncSubtitle": "Import workouts",
+  "settingsHealthSyncSubtitle": "Sync workouts and nutrition",
   "healthSyncAutoImportLabel": "Automatically import workouts from {platform}",
   "@healthSyncAutoImportLabel": {"placeholders": {"platform": {"type": "String"}}},
   "healthSyncKcalMultiplierLabel": "Workout calorie credit",
@@ -1372,6 +1372,14 @@
   "@healthSyncDisclosureFooter": {"placeholders": {"platform": {"type": "String"}}},
   "healthSyncDisclosureContinueAction": "Continue",
   "healthSyncUnavailableLabel": "Health data is not available on this device. Workout import needs Health Connect on Android or Apple Health on iOS.",
+  "healthSyncAutoExportLabel": "Automatically export meals to {platform}",
+  "@healthSyncAutoExportLabel": {"placeholders": {"platform": {"type": "String"}}},
+  "healthSyncExportPermissionDeniedLabel": "{platform} write access was not granted. Allow OpenNutriTracker to write nutrition data to export meals.",
+  "@healthSyncExportPermissionDeniedLabel": {"placeholders": {"platform": {"type": "String"}}},
+  "healthSyncExportDisclosureTitle": "Export meals to {platform}?",
+  "@healthSyncExportDisclosureTitle": {"placeholders": {"platform": {"type": "String"}}},
+  "healthSyncExportDisclosureBody": "OpenNutriTracker will write meals you log to {platform} — their name, time, calories and macronutrients (including fiber, sugar and types of fat), and any cholesterol, sodium, minerals and vitamins the food lists.\n\nYour data remains private on your device and inside {platform}. No data is sent to external servers.\n\nYou can turn this off at any time, which stops further exports.",
+  "@healthSyncExportDisclosureBody": {"placeholders": {"platform": {"type": "String"}}},
   "sourcesEnergyCompensationTitle": "Workout calorie credit",
   "sourcesEnergyCompensationDescription": "Imported workouts are credited with less than the energy your device reports. People compensate for exercise by burning fewer calories through the rest of the day — about 28% on average, and more at a higher body fat percentage. The suggested credit comes from that research and you can override it under Settings → Health sync. The energy itself is reported by the app or device that recorded the workout, not calculated with the app’s MET formula."
 }

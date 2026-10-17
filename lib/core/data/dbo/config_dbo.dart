@@ -187,6 +187,11 @@ class ConfigDBO extends HiveObject {
   // user opts out, matching every install that predates the field.
   @HiveField(39)
   bool? defaultToRawFoodUnits;
+  // Opt-in nutrition export to Health Connect (Android) / Apple Health (iOS).
+  // Null means the user has never enabled it, which reads as off — no meal
+  // data is written to the health store until they opt in.
+  @HiveField(40)
+  bool? healthExportEnabled;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -226,6 +231,7 @@ class ConfigDBO extends HiveObject {
     this.policyNoticeRevisionSeen,
     this.healthDeletedWorkouts,
     this.defaultToRawFoodUnits,
+    this.healthExportEnabled,
   });
 
   factory ConfigDBO.empty() =>
