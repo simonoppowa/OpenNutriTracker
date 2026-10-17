@@ -75,9 +75,12 @@ class SharedMealImporter {
           ),
           actions: [
             if (cancellable)
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(S.of(dialogContext).dialogCancelLabel),
+              Semantics(
+                identifier: 'import-meal-prepare-cancel',
+                child: TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(S.of(dialogContext).dialogCancelLabel),
+                ),
               ),
           ],
         ),

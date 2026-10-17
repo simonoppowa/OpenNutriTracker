@@ -485,7 +485,10 @@ void main() {
       if (viaBack) {
         await tester.binding.handlePopRoute();
       } else {
-        await tester.tap(find.text(l10nEn.dialogCancelLabel));
+        // Let the dialog finish opening so its semantics are published.
+        await tester.pump(const Duration(seconds: 1));
+        await tester
+            .tap(find.bySemanticsIdentifier('import-meal-prepare-cancel'));
       }
       await tester.pumpAndSettle();
       expect(find.byType(CircularProgressIndicator), findsNothing);
