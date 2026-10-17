@@ -1,1 +1,7 @@
-enum VerticalListPopupMenuSelections { onCopy, onDelete, onShare, onImport }
+enum VerticalListPopupMenuSelections {
+  onCopy,
+  onDelete,
+  onShare,
+  onImport,
+  onImportCode,
+}
