@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
@@ -11,6 +12,7 @@ import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -136,7 +138,10 @@ void main() {
     final trackedDayRepository = TrackedDayRepository(TrackedDayDataSource(db));
     activityRepository = UserActivityRepository(UserActivityDataSource(db));
     final addTrackedDay = AddTrackedDayUsecase(trackedDayRepository);
-    getIntake = GetIntakeUsecase(intakeRepository);
+    getIntake = GetIntakeUsecase(
+      intakeRepository,
+      RecipeRepository(RecipeDataSource(db)),
+    );
     getActivities = GetUserActivityUsecase(activityRepository);
     getTrackedDay = GetTrackedDayUsecase(trackedDayRepository);
     mealDetailBloc = MealDetailBloc(

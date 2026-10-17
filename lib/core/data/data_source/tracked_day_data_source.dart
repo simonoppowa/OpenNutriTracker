@@ -58,7 +58,12 @@ class TrackedDayDataSource {
   /// caller that checks with [hasTrackedDay] first and then calls
   /// [saveTrackedDay] has no such guarantee: the day can be created in the
   /// gap, and the put would then reset it to zero.
+  ///
+  /// Keyed like [saveTrackedDay], by the day the Diary lists the entry
+  /// under (#1317). That lookup awaits the config, so it runs before the
+  /// check, not between it and the put.
   Future<bool> saveTrackedDayIfAbsent(TrackedDayDBO trackedDayDBO) async {
+    trackedDayDBO.day = await _diaryDayOf(trackedDayDBO.day);
     final key = trackedDayDBO.day.toParsedDay();
     if (_trackedDayBox.containsKey(key)) return false;
     log.fine('Creating tracked day in db');
