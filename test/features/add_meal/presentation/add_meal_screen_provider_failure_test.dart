@@ -92,8 +92,10 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
 }
 
 class _FakeCustomMealDataSource implements CustomMealDataSource {
+  final List<MealDBO> meals = [];
+
   @override
-  List<MealDBO> getAllCustomMeals() => const [];
+  List<MealDBO> getAllCustomMeals() => meals;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -138,11 +140,12 @@ MealEntity _meal(String name, MealSourceEntity source) => MealEntity(
 
 SearchProductsUseCase _useCase(
   _FakeProductsRepository repository,
-  GetConfigUsecase config,
-) => SearchProductsUseCase(
+  GetConfigUsecase config, {
+  _FakeCustomMealDataSource? customMeals,
+}) => SearchProductsUseCase(
   repository,
   _FakeGetIntakeUsecase(),
-  _FakeCustomMealDataSource(),
+  customMeals ?? _FakeCustomMealDataSource(),
   _FakeRemoteSearchCacheDataSource(),
   _FakeRecipeDataSource(),
   config,
@@ -151,12 +154,14 @@ SearchProductsUseCase _useCase(
 final getIt = GetIt.instance;
 
 late _FakeProductsRepository _repository;
+late _FakeCustomMealDataSource _customMeals;
 
 Future<void> _register() async {
   await getIt.reset();
   _repository = _FakeProductsRepository();
+  _customMeals = _FakeCustomMealDataSource();
   final config = _FakeGetConfigUsecase();
-  final useCase = _useCase(_repository, config);
+  final useCase = _useCase(_repository, config, customMeals: _customMeals);
   getIt.registerFactory<AddMealBloc>(() => AddMealBloc(config));
   getIt.registerFactory<ProductsBloc>(() => ProductsBloc(useCase, config));
   getIt.registerFactory<FoodBloc>(() => FoodBloc(useCase, config));
@@ -292,6 +297,46 @@ void main() {
       expect(_card('Apple, raw'), findsOneWidget);
       expect(find.byType(PartialResultsNotice), findsOneWidget);
       expect(find.text(l10nEn.partialResultsNotice), findsOneWidget);
+      expect(
+        find.text(l10nEn.partialResultsAllSourcesDownNotice),
+        findsNothing,
+      );
+    });
+
+    testWidgets(
+        'both providers down but saved foods match: the list, with a notice '
+        'that no online source answered and a Retry for both', (tester) async {
+      await _register();
+      _customMeals.meals.add(
+        MealDBO.fromMealEntity(_meal('Apple pie', MealSourceEntity.custom)),
+      );
+      _repository
+        ..offThrows = true
+        ..fdcThrows = true;
+
+      await _search(tester, 'apple');
+
+      expect(_card('Apple pie'), findsOneWidget);
+      expect(find.text(l10nEn.partialResultsAllSourcesDownNotice),
+          findsOneWidget);
+      expect(find.text(l10nEn.partialResultsNotice), findsNothing,
+          reason: 'neither source answered, so none is "the one" missing');
+      expect(find.text(l10nEn.errorFetchingSearchResults), findsNothing);
+
+      // Both recover; the notice's Retry re-runs both searches.
+      _repository
+        ..offThrows = false
+        ..fdcThrows = false
+        ..offResults = [_meal('Apple juice', MealSourceEntity.off)]
+        ..fdcResults = [_meal('Apple, raw', MealSourceEntity.fdc)];
+      await tester.tap(
+        find.bySemanticsIdentifier('search-partial-results-retry'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_card('Apple juice'), findsOneWidget);
+      expect(_card('Apple, raw'), findsOneWidget);
+      expect(find.byType(PartialResultsNotice), findsNothing);
     });
 
     testWidgets('one provider down, other empty: notice above no-results', (

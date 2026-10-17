@@ -30,6 +30,28 @@ void main() {
       expect(find.text('Retry'), findsOneWidget);
     });
 
+    testWidgets('says no online source answered when all are down', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(PartialResultsNotice(onRetry: () {}, allSourcesDown: true)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'No online food source responded. Showing your saved foods only.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          "One food source didn't respond. Some results might be missing.",
+        ),
+        findsNothing,
+      );
+    });
+
     testWidgets('fires onRetry when the retry action is tapped', (
       tester,
     ) async {

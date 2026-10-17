@@ -8,10 +8,19 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// centered state) and [ErrorDialog] (a full-screen takeover) — this sits
 /// above whatever the surviving source returned, so a partial outage never
 /// reads as "no matching foods" or blocks browsing what did load.
+///
+/// [allSourcesDown] is for both online sources failing while local matches
+/// (saved and cached foods) still fill the list: the notice then says that
+/// nothing online answered, instead of blaming a single source.
 class PartialResultsNotice extends StatelessWidget {
   final VoidCallback onRetry;
+  final bool allSourcesDown;
 
-  const PartialResultsNotice({super.key, required this.onRetry});
+  const PartialResultsNotice({
+    super.key,
+    required this.onRetry,
+    this.allSourcesDown = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +37,9 @@ class PartialResultsNotice extends StatelessWidget {
           const SizedBox(width: Dimens.spacing8),
           Expanded(
             child: Text(
-              S.of(context).partialResultsNotice,
+              allSourcesDown
+                  ? S.of(context).partialResultsAllSourcesDownNotice
+                  : S.of(context).partialResultsNotice,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: palette.textMuted),

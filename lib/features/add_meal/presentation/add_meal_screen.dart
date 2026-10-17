@@ -418,8 +418,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       }
                       return Column(
                         children: [
+                          // Both down with local matches left: say nothing
+                          // online answered, not that one source is missing.
                           if (productsFailed || foodFailed)
-                            PartialResultsNotice(onRetry: retryFailed),
+                            PartialResultsNotice(
+                              onRetry: retryFailed,
+                              allSourcesDown: productsFailed && foodFailed,
+                            ),
                           Expanded(
                             child: ListView.builder(
                               itemCount: merged.length,
