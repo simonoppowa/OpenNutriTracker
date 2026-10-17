@@ -466,6 +466,23 @@ void main() {
     });
   });
 
+  group('ImportWeightsUsecase.weightsImported', () {
+    test('fires after a run that filed readings, not after an empty one', () async {
+      var events = 0;
+      final subscription = usecase.weightsImported.listen((_) => events++);
+      addTearDown(subscription.cancel);
+
+      await usecase.importNow();
+      await Future<void>.delayed(Duration.zero);
+      expect(events, equals(0));
+
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
+      await usecase.importNow();
+      await Future<void>.delayed(Duration.zero);
+      expect(events, equals(1));
+    });
+  });
+
   group('ImportWeightsUsecase.latestReadingPerDay', () {
     test('groups by local calendar day', () {
       final grouped = ImportWeightsUsecase.latestReadingPerDay([

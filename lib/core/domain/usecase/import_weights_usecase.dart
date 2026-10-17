@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_weight.dart';
@@ -48,6 +50,12 @@ class ImportWeightsUsecase {
 
   Future<int>? _inFlight;
   String? _inFlightProfileId;
+
+  final _weightsImported = StreamController<void>.broadcast();
+
+  /// Fires after a run that wrote weight-log entries, for screens that keep
+  /// their own copy of the log, such as the weight history.
+  Stream<void> get weightsImported => _weightsImported.stream;
 
   final HealthImportRepository _healthImportRepository;
   final ConfigRepository _configRepository;
@@ -181,6 +189,7 @@ class ImportWeightsUsecase {
         'Imported ${written.length} weight reading(s) from the platform '
         'health store',
       );
+      _weightsImported.add(null);
     }
     return written.length;
   }

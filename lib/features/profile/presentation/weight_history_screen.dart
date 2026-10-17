@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -7,6 +9,7 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
@@ -34,6 +37,10 @@ class WeightHistoryScreen extends StatefulWidget {
   final ConfigRepository? configRepository;
   final GetUserUsecase? getUserUsecase;
 
+  /// Fires when the health weight import files new readings. Defaults to
+  /// [ImportWeightsUsecase.weightsImported].
+  final Stream<void>? weightsImported;
+
   const WeightHistoryScreen({
     super.key,
     this.getUsecase,
@@ -41,6 +48,7 @@ class WeightHistoryScreen extends StatefulWidget {
     this.deleteUsecase,
     this.configRepository,
     this.getUserUsecase,
+    this.weightsImported,
   });
 
   @override
@@ -72,10 +80,27 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   double? _targetWeightKg;
   _ChartRange _selectedRange = _ChartRange.days30;
 
+  StreamSubscription<void>? _weightsImportedSubscription;
+
   @override
   void initState() {
     super.initState();
     _load();
+    // An import can land while this screen is open — on app resume, the
+    // Home page underneath runs one — and the list above is a copy of the
+    // log, so it reloads rather than waiting to be reopened.
+    final weightsImported =
+        widget.weightsImported ??
+        (locator.isRegistered<ImportWeightsUsecase>()
+            ? locator<ImportWeightsUsecase>().weightsImported
+            : null);
+    _weightsImportedSubscription = weightsImported?.listen((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _weightsImportedSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
