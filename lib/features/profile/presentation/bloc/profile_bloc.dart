@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/bmi_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -93,17 +94,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     trendsBloc.add(LoadTrendsEvent(rangeDays: rangeDays));
   }
 
-  Future<void> _updateTrackedDayCalorieGoal(
-    UserEntity user,
-    DateTime day,
-  ) async {
-    final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
-    if (hasTrackedDay) {
-      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-        userEntity: user,
-      );
+  Future<void> _updateTrackedDayCalorieGoal(UserEntity user, DateTime day) =>
+      // The goal counts the day's activities, so it is read and written
+      // with no boundary move between (#1317).
+      withTrackedDayLock(() async {
+        final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
+        if (hasTrackedDay) {
+          final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+            userEntity: user,
+          );
 
-      await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
-    }
-  }
+          await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
+        }
+      });
 }

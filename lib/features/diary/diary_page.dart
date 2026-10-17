@@ -197,10 +197,13 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     IntakeEntity intakeEntity,
     TrackedDayEntity? trackedDayEntity,
   ) async {
+    // The selected day, not `trackedDayEntity?.day ?? DateTime.now()`: on
+    // a past day with no tracked-day row that fallback debited today's row
+    // for an entry of another day (#1317).
     await _calendarDayBloc.deleteIntakeItem(
       context,
       intakeEntity,
-      trackedDayEntity?.day ?? DateTime.now(),
+      _selectedDate,
     );
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
@@ -216,10 +219,12 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     UserActivityEntity userActivityEntity,
     TrackedDayEntity? trackedDayEntity,
   ) async {
+    // The selected day, for the same reason as _onDeleteIntakeItem: the
+    // fallback lowered today's goal for a past day's activity (#1317).
     await _calendarDayBloc.deleteUserActivityItem(
       context,
       userActivityEntity,
-      trackedDayEntity?.day ?? DateTime.now(),
+      _selectedDate,
     );
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));

@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/scoped_hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Copies logged intakes into one or more *other* profiles.
 ///
@@ -110,26 +111,29 @@ class SendIntakeToProfilesUsecase {
           meal: intake.meal,
           dateTime: intake.dateTime,
         );
-        await intakeRepository.addIntake(copy);
+        // Like every entry-and-row write, held across both (#1317).
+        await withTrackedDayLock(() async {
+          await intakeRepository.addIntake(copy);
 
-        final day = copy.dateTime;
-        if (!await addTrackedDay.hasTrackedDay(day)) {
-          final kcalGoal = await getKcalGoal.getKcalGoal();
-          await addTrackedDay.addNewTrackedDayIfAbsent(
+          final day = copy.dateTime;
+          if (!await addTrackedDay.hasTrackedDay(day)) {
+            final kcalGoal = await getKcalGoal.getKcalGoal();
+            await addTrackedDay.addNewTrackedDayIfAbsent(
+              day,
+              kcalGoal,
+              await getMacroGoal.getCarbsGoal(kcalGoal),
+              await getMacroGoal.getFatsGoal(kcalGoal),
+              await getMacroGoal.getProteinsGoal(kcalGoal),
+            );
+          }
+          await addTrackedDay.addDayCaloriesTracked(day, copy.totalKcal);
+          await addTrackedDay.addDayMacrosTracked(
             day,
-            kcalGoal,
-            await getMacroGoal.getCarbsGoal(kcalGoal),
-            await getMacroGoal.getFatsGoal(kcalGoal),
-            await getMacroGoal.getProteinsGoal(kcalGoal),
+            carbsTracked: copy.totalCarbsGram,
+            fatTracked: copy.totalFatsGram,
+            proteinTracked: copy.totalProteinsGram,
           );
-        }
-        await addTrackedDay.addDayCaloriesTracked(day, copy.totalKcal);
-        await addTrackedDay.addDayMacrosTracked(
-          day,
-          carbsTracked: copy.totalCarbsGram,
-          fatTracked: copy.totalFatsGram,
-          proteinTracked: copy.totalProteinsGram,
-        );
+        });
       }
     } finally {
       // These boxes were opened solely for this copy — close them so they

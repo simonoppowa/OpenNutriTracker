@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/data/data_source/user_activity_data_source
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -29,6 +30,7 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 
 import '../fixture/user_entity_fixtures.dart';
@@ -100,6 +102,8 @@ void main() {
   late Box<UserActivityDBO> activityBox;
   late Box<TrackedDayDBO> trackedDayBox;
   late Box<UserDBO> userBox;
+  // Only read by the boundary move, which regroups the rows by the entries.
+  late Box<IntakeDBO> intakeBox;
 
   late ConfigDataSource configDataSource;
   late ConfigRepository configRepository;
@@ -127,6 +131,7 @@ void main() {
       'health_import_tracked_day_test',
     );
     userBox = await Hive.openBox<UserDBO>('health_import_user_test');
+    intakeBox = await Hive.openBox<IntakeDBO>('health_import_intake_test');
     // Explicit rather than relying on the teardown's delete: a box that
     // survives into the next test carries a watermark and an already-imported
     // record with it, which is precisely what these tests are checking.
@@ -134,6 +139,7 @@ void main() {
     await activityBox.clear();
     await trackedDayBox.clear();
     await userBox.clear();
+    await intakeBox.clear();
 
     provider = FakeHiveDBProvider(
       activeProfileId: 'profile-a',
@@ -141,6 +147,7 @@ void main() {
       userActivityBox: activityBox,
       trackedDayBox: trackedDayBox,
       userBox: userBox,
+      intakeBox: intakeBox,
     );
 
     configDataSource = ConfigDataSource(provider);
@@ -644,6 +651,30 @@ void main() {
         activity.physicalActivityDBO.specificActivity,
         equals('Rowing machine'),
       );
+    });
+  });
+
+  group('ImportWorkoutsUsecase day boundary', () {
+    test('a boundary moved during the platform read is the one the workout '
+        'is credited under', () async {
+      // 02:30 is the 23rd at a 00:00 boundary and the 22nd at 04:00.
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 2, 30))];
+      healthService.readGate = Completer<void>();
+
+      final run = usecase.importNow();
+      await SetDayBoundaryUsecase(
+        provider,
+        configDataSource,
+      ).setDayBoundary(4, 0);
+      healthService.readGate!.complete();
+
+      expect(await run, equals(1));
+      expect(
+        trackedDayBox.containsKey('2026-05-22'),
+        isTrue,
+        reason: 'the Diary lists the workout on the 22nd now',
+      );
+      expect(trackedDayBox.containsKey('2026-05-23'), isFalse);
     });
   });
 }
