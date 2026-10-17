@@ -915,7 +915,6 @@
   "recipeServingsCountLabel": "Adagok (opcionális)",
   "recipeTagsHelper": "Vesszővel elválasztva, pl. „reggeli, vegán”",
   "recipeTagsLabel": "Címkék",
-  "recipeTotalWeightHelper": "Alapértelmezés szerint az összetevők összege. Folyadékok esetén hozzávetőlegesen 1 ml ≈ 1 g.",
   "recipeTotalWeightLabel": "Teljes tömeg (g)",
   "recipesEmptyHint": "Állítson össze egy ételt több alapanyagból, és később használja fel újra, mint bármely más ételt.",
   "recipesEmptyLabel": "Még nincsenek receptek",
