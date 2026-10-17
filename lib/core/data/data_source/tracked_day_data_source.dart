@@ -25,6 +25,24 @@ class TrackedDayDataSource {
     });
   }
 
+  /// Writes [trackedDayDBO] only when its day has no row yet, and reports
+  /// whether it wrote one. An existing row is never replaced, so totals
+  /// another writer has already added to it survive (#1373).
+  ///
+  /// Nothing is awaited between the check and the put, and Hive enters the
+  /// new row in its in-memory keystore before `put` first awaits, so no
+  /// other writer on this isolate can create the same day in between. A
+  /// caller that checks with [hasTrackedDay] first and then calls
+  /// [saveTrackedDay] has no such guarantee: the day can be created in the
+  /// gap, and the put would then reset it to zero.
+  Future<bool> saveTrackedDayIfAbsent(TrackedDayDBO trackedDayDBO) async {
+    final key = trackedDayDBO.day.toParsedDay();
+    if (_trackedDayBox.containsKey(key)) return false;
+    log.fine('Creating tracked day in db');
+    await _trackedDayBox.put(key, trackedDayDBO);
+    return true;
+  }
+
   Future<List<TrackedDayDBO>> getAllTrackedDays() async {
     return _trackedDayBox.values.toList();
   }

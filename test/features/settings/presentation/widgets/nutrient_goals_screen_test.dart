@@ -14,15 +14,22 @@ import '../../../../fixture/user_entity_fixtures.dart';
 import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
-  bool saved = false;
+  int updateTrackedDayCalls = 0;
+  int setNutrientGoalsCalls = 0;
   double? savedFibre;
-  double? savedSatFat;
+  double? savedIron;
+  Map<String, double?> savedGoals = {};
+
+  /// Today's row as the screen loads it; null means no row yet.
+  TrackedDayEntity? today;
 
   @override
-  Future<TrackedDayEntity?> getTodayTrackedDay(DateTime day) async => null;
+  Future<TrackedDayEntity?> getTodayTrackedDay(DateTime day) async => today;
 
   @override
-  Future<void> updateTrackedDay(DateTime day) async {}
+  Future<void> updateTrackedDay(DateTime day) async {
+    updateTrackedDayCalls++;
+  }
 
   @override
   Future<void> setTodayNutrientGoals(
@@ -38,9 +45,21 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
     double? vitaminB12Goal,
     double? magnesiumGoal,
   }) async {
-    saved = true;
+    setNutrientGoalsCalls++;
     savedFibre = fibreGoal;
-    savedSatFat = satFatGoal;
+    savedIron = ironGoal;
+    savedGoals = {
+      'fibre': fibreGoal,
+      'satFat': satFatGoal,
+      'sugars': sugarsGoal,
+      'sodium': sodiumGoal,
+      'calcium': calciumGoal,
+      'iron': ironGoal,
+      'potassium': potassiumGoal,
+      'vitaminD': vitaminDGoal,
+      'vitaminB12': vitaminB12Goal,
+      'magnesium': magnesiumGoal,
+    };
   }
 
   @override
@@ -53,6 +72,11 @@ class _FakeProfileBloc extends Fake implements ProfileBloc {
       UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight;
 }
 
+class _FakeHomeBloc extends Fake implements HomeBloc {
+  @override
+  void add(HomeEvent event) {}
+}
+
 class _FakeDiaryBloc extends Fake implements DiaryBloc {
   @override
   void add(DiaryEvent event) {}
@@ -63,88 +87,199 @@ class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
   void add(CalendarDayEvent event) {}
 }
 
-class _FakeHomeBloc extends Fake implements HomeBloc {
-  @override
-  void add(HomeEvent event) {}
-}
-
 void main() {
-  Future<_FakeSettingsBloc> openScreen(WidgetTester tester) async {
-    final settingsBloc = _FakeSettingsBloc();
+  Future<void> openScreen(
+    WidgetTester tester,
+    _FakeSettingsBloc settingsBloc,
+  ) async {
+    // Tall enough for the ListView to build every row, iron included.
+    await tester.binding.setSurfaceSize(const Size(400, 3000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         supportedLocales: S.supportedLocales,
-        home: Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => NutrientGoalsScreen(
-                  settingsBloc: settingsBloc,
-                  profileBloc: _FakeProfileBloc(),
-                  diaryBloc: _FakeDiaryBloc(),
-                  calendarDayBloc: _FakeCalendarDayBloc(),
-                  homeBloc: _FakeHomeBloc(),
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => NutrientGoalsScreen(
+                    settingsBloc: settingsBloc,
+                    profileBloc: _FakeProfileBloc(),
+                    diaryBloc: _FakeDiaryBloc(),
+                    calendarDayBloc: _FakeCalendarDayBloc(),
+                    homeBloc: _FakeHomeBloc(),
+                  ),
                 ),
               ),
+              child: const Text('Open'),
             ),
-            child: const Text('Open'),
           ),
         ),
       ),
     );
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
-    return settingsBloc;
   }
 
-  Finder fibreField() => find.byType(TextField).first;
-
-  Future<void> save(WidgetTester tester) async {
+  Future<void> tapSave(WidgetTester tester) async {
     await tester.tap(find.text(l10nEn.buttonSaveLabel));
     await tester.pumpAndSettle();
   }
 
-  testWidgets('saves a typed value without a submit', (tester) async {
-    // #1324: the iOS number pad has no return key, so onSubmitted never
-    // fires there. Typing and tapping Save has to be enough.
-    final settingsBloc = await openScreen(tester);
+  // #1347: typing a value and tapping Save without the keyboard's Done key
+  // used to drop the typed value, saving nothing for an untouched slider.
+  testWidgets('saves typed nutrient goals when Save is tapped without Done', (
+    tester,
+  ) async {
+    final settingsBloc = _FakeSettingsBloc();
+    await openScreen(tester, settingsBloc);
 
-    await tester.tap(fibreField());
-    await tester.enterText(fibreField(), '40');
-    await save(tester);
+    // Rows run fibre, saturated fat, sugars, sodium, calcium, iron: the
+    // first is a whole-number field, the sixth a decimal one.
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), '32');
+    await tester.enterText(fields.at(5), '12.5');
 
-    expect(settingsBloc.saved, isTrue);
-    expect(settingsBloc.savedFibre, 40);
-    // Untouched rows keep following their defaults.
-    expect(settingsBloc.savedSatFat, isNull);
+    await tester.tap(find.text(l10nEn.buttonSaveLabel));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.updateTrackedDayCalls, 1);
+    expect(settingsBloc.setNutrientGoalsCalls, 1);
+    expect(settingsBloc.savedFibre, 32);
+    expect(settingsBloc.savedIron, 12.5);
+    expect(find.byType(NutrientGoalsScreen), findsNothing);
   });
 
+  // #1371 review: Save used to re-parse every field, so an untouched
+  // goal was overwritten by what its field displays — a null goal became
+  // an explicit override equal to the static default (replacing the
+  // Diary's age- and gender-aware reference), and a fractional goal of
+  // 10 or more was saved rounded. Only fields the user edited are applied.
+  group('untouched goals keep their value on Save', () {
+    testWidgets('editing only fibre leaves every other null goal null', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc();
+      await openScreen(tester, settingsBloc);
+
+      await tester.enterText(find.byType(TextField).at(0), '32');
+      await tapSave(tester);
+
+      expect(settingsBloc.setNutrientGoalsCalls, 1);
+      expect(settingsBloc.savedGoals, {
+        'fibre': 32,
+        'satFat': null,
+        'sugars': null,
+        'sodium': null,
+        'calcium': null,
+        'iron': null,
+        'potassium': null,
+        'vitaminD': null,
+        'vitaminB12': null,
+        'magnesium': null,
+      });
+    });
+
+    testWidgets('editing only fibre keeps a fractional iron goal of 12.5', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc()
+        ..today = TrackedDayEntity(
+          day: DateTime(2026, 10, 14),
+          calorieGoal: 2000,
+          caloriesTracked: 0,
+          ironGoal: 12.5,
+        );
+      await openScreen(tester, settingsBloc);
+
+      // The field shows the rounded "13"; Save must not store that.
+      expect(find.widgetWithText(TextField, '13'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).at(0), '32');
+      await tapSave(tester);
+
+      expect(settingsBloc.savedFibre, 32);
+      expect(settingsBloc.savedIron, 12.5);
+    });
+
+    testWidgets('saving without edits stores every goal exactly as loaded', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc()
+        ..today = TrackedDayEntity(
+          day: DateTime(2026, 10, 14),
+          calorieGoal: 2000,
+          caloriesTracked: 0,
+          sugarsGoal: 42.4,
+          ironGoal: 12.5,
+          magnesiumGoal: 333.3,
+        );
+      await openScreen(tester, settingsBloc);
+
+      await tapSave(tester);
+
+      expect(settingsBloc.setNutrientGoalsCalls, 1);
+      expect(settingsBloc.savedGoals, {
+        'fibre': null,
+        'satFat': null,
+        'sugars': 42.4,
+        'sodium': null,
+        'calcium': null,
+        'iron': 12.5,
+        'potassium': null,
+        'vitaminD': null,
+        'vitaminB12': null,
+        'magnesium': 333.3,
+      });
+    });
+
+    testWidgets('a field edited and then reset is not applied on Save', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc();
+      await openScreen(tester, settingsBloc);
+
+      await tester.enterText(find.byType(TextField).at(0), '32');
+      await tester.tap(find.text(l10nEn.buttonResetLabel));
+      await tester.pumpAndSettle();
+      await tapSave(tester);
+
+      expect(settingsBloc.savedGoals.values, everyElement(isNull));
+    });
+  });
+
+  // #1324: the iOS number pad has no return key. Once the keyboard is
+  // dismissed, the slider has to show the typed value.
   testWidgets('applies a typed value when the field loses focus', (
     tester,
   ) async {
-    await openScreen(tester);
+    final settingsBloc = _FakeSettingsBloc();
+    await openScreen(tester, settingsBloc);
 
-    await tester.tap(fibreField());
-    await tester.enterText(fibreField(), '40');
+    final fibre = find.byType(TextField).at(0);
+    await tester.tap(fibre);
+    await tester.enterText(fibre, '32');
     await tester.pump();
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pump();
 
-    expect(tester.widget<Slider>(find.byType(Slider).first).value, 40);
+    expect(tester.widget<Slider>(find.byType(Slider).at(0)).value, 32);
   });
 
-  testWidgets('a slider move after typing wins over the typed text', (
+  testWidgets('an unedited field applies nothing when it loses focus', (
     tester,
   ) async {
-    final settingsBloc = await openScreen(tester);
+    final settingsBloc = _FakeSettingsBloc();
+    await openScreen(tester, settingsBloc);
 
-    await tester.tap(fibreField());
-    await tester.enterText(fibreField(), '40');
-    tester.widget<Slider>(find.byType(Slider).first).onChanged!(20);
+    await tester.tap(find.byType(TextField).at(5));
     await tester.pump();
-    await save(tester);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    await tapSave(tester);
 
-    expect(settingsBloc.savedFibre, 20);
+    expect(settingsBloc.savedGoals.values, everyElement(isNull));
   });
 }

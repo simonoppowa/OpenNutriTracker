@@ -37,6 +37,26 @@ class AddTrackedDayUsecase {
     );
   }
 
+  /// Creates [day] unless it already exists; an existing day, and whatever
+  /// has been tracked on it, is never replaced. Returns whether it created
+  /// the day. Use this, not [addNewTrackedDay], after a [hasTrackedDay]
+  /// check: the day can be created by another writer in between (#1373).
+  Future<bool> addNewTrackedDayIfAbsent(
+    DateTime day,
+    double totalKcalGoal,
+    double totalCarbsGoal,
+    double totalFatGoal,
+    double totalProteinGoal,
+  ) async {
+    return await _trackedDayRepository.addNewTrackedDayIfAbsent(
+      day,
+      totalKcalGoal,
+      totalCarbsGoal,
+      totalFatGoal,
+      totalProteinGoal,
+    );
+  }
+
   Future<void> addDayCaloriesTracked(
     DateTime day,
     double caloriesTracked,

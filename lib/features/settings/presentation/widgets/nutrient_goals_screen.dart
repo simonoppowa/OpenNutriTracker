@@ -95,6 +95,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   late final TextEditingController _vitaminDController;
   late final TextEditingController _vitaminB12Controller;
 
+  /// Fields the user has typed into since they were last filled in. Only
+  /// these are applied: an untouched field shows a rounded value, or a
+  /// static default for a null goal, and re-parsing it would overwrite
+  /// the goal (#1371).
+  final Set<TextEditingController> _editedControllers = {};
+
   @override
   void initState() {
     super.initState();
@@ -180,6 +186,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   }
 
   void _syncControllers() {
+    _editedControllers.clear();
     _fibreController.text =
         (_fibre ?? DailyNutrientPanel.defaultFibreRefG).round().toString();
     _satFatController.text =
@@ -225,11 +232,33 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     _syncControllers();
   }
 
+  /// Applies whatever is still sitting in each edited text field before
+  /// saving. Without this, typing a value and tapping Save (without
+  /// pressing the keyboard's Done key first) silently dropped the
+  /// typed value. Same fix as the macro split dialog (#525).
+  void _applyPendingTextInputs() {
+    _applyText(_fibreController, _fibreMin, _fibreMax, (v) => _fibre = v);
+    _applyText(_satFatController, _satFatMin, _satFatMax, (v) => _satFat = v);
+    _applyText(_sugarsController, _sugarsMin, _sugarsMax, (v) => _sugars = v);
+    _applyText(_sodiumController, _sodiumMin, _sodiumMax, (v) => _sodium = v);
+    _applyText(
+        _calciumController, _calciumMin, _calciumMax, (v) => _calcium = v);
+    _applyText(_ironController, _ironMin, _ironMax, (v) => _iron = v,
+        decimalStep: true);
+    _applyText(_potassiumController, _potassiumMin, _potassiumMax,
+        (v) => _potassium = v);
+    _applyText(_magnesiumController, _magnesiumMin, _magnesiumMax,
+        (v) => _magnesium = v);
+    _applyText(_vitaminDController, _vitaminDMin, _vitaminDMax,
+        (v) => _vitaminD = v,
+        decimalStep: true);
+    _applyText(_vitaminB12Controller, _vitaminB12Min, _vitaminB12Max,
+        (v) => _vitaminB12 = v,
+        decimalStep: true);
+  }
+
   Future<void> _save() async {
-    // Leaving a field applies its typed value (see _NutrientRow). Save does
-    // not take focus, so drop it here and settle the change before reading.
-    FocusManager.instance.primaryFocus?.unfocus();
-    FocusManager.instance.applyFocusChangesIfNeeded();
+    _applyPendingTextInputs();
     // Make sure today's tracked-day row exists before we write per-
     // nutrient values onto it. updateTrackedDay creates the row from
     // current macro goals if missing, or refreshes the macro columns
@@ -306,6 +335,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _fibreMin,
                   max: _fibreMax,
                   divisions: _fibreDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _fibreController,
                   identifier: 'nutrient-fibre-slider',
                   onSliderChanged: (v) => setState(() => _fibre = v),
@@ -320,6 +350,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _satFatMin,
                   max: _satFatMax,
                   divisions: _satFatDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _satFatController,
                   identifier: 'nutrient-sat-fat-slider',
                   onSliderChanged: (v) => setState(() => _satFat = v),
@@ -333,6 +364,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _sugarsMin,
                   max: _sugarsMax,
                   divisions: _sugarsDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _sugarsController,
                   identifier: 'nutrient-sugars-slider',
                   onSliderChanged: (v) => setState(() => _sugars = v),
@@ -346,6 +378,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _sodiumMin,
                   max: _sodiumMax,
                   divisions: _sodiumDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _sodiumController,
                   unit: 'mg',
                   identifier: 'nutrient-sodium-slider',
@@ -360,6 +393,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _calciumMin,
                   max: _calciumMax,
                   divisions: _calciumDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _calciumController,
                   unit: 'mg',
                   identifier: 'nutrient-calcium-slider',
@@ -374,6 +408,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _ironMin,
                   max: _ironMax,
                   divisions: _ironDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _ironController,
                   unit: 'mg',
                   decimalStep: true,
@@ -395,6 +430,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _potassiumMin,
                   max: _potassiumMax,
                   divisions: _potassiumDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _potassiumController,
                   unit: 'mg',
                   identifier: 'nutrient-potassium-slider',
@@ -409,6 +445,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _magnesiumMin,
                   max: _magnesiumMax,
                   divisions: _magnesiumDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _magnesiumController,
                   unit: 'mg',
                   identifier: 'nutrient-magnesium-slider',
@@ -423,6 +460,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _vitaminDMin,
                   max: _vitaminDMax,
                   divisions: _vitaminDDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _vitaminDController,
                   unit: 'µg',
                   decimalStep: true,
@@ -444,6 +482,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _vitaminB12Min,
                   max: _vitaminB12Max,
                   divisions: _vitaminB12Divisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _vitaminB12Controller,
                   unit: 'µg',
                   decimalStep: true,
@@ -465,7 +504,8 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
 
   /// Direct text-input clamp: malformed parses ignore the input and
   /// leave the slider where it was; valid ones snap into the row's
-  /// declared min/max range.
+  /// declared min/max range. A field the user has not edited is left
+  /// alone, so its goal keeps its stored value, null included.
   void _applyText(
     TextEditingController controller,
     double min,
@@ -473,6 +513,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     void Function(double) setter, {
     bool decimalStep = false,
   }) {
+    if (!_editedControllers.remove(controller)) return;
     final parsed = double.tryParse(controller.text);
     if (parsed == null) return;
     final clamped = parsed.clamp(min, max).toDouble();
@@ -482,7 +523,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   }
 }
 
-class _NutrientRow extends StatefulWidget {
+class _NutrientRow extends StatelessWidget {
   final String label;
   final String description;
   final double value;
@@ -495,6 +536,7 @@ class _NutrientRow extends StatefulWidget {
   final bool decimalStep;
   final ValueChanged<double> onSliderChanged;
   final VoidCallback onTextSubmitted;
+  final ValueChanged<TextEditingController> onTextEdited;
 
   const _NutrientRow({
     required this.label,
@@ -507,50 +549,14 @@ class _NutrientRow extends StatefulWidget {
     required this.identifier,
     required this.onSliderChanged,
     required this.onTextSubmitted,
+    required this.onTextEdited,
     this.unit = 'g',
     this.decimalStep = false,
   });
 
   @override
-  State<_NutrientRow> createState() => _NutrientRowState();
-}
-
-class _NutrientRowState extends State<_NutrientRow> {
-  /// A typed value is applied when the field loses focus, not only on
-  /// submit: the iOS number pad has no return key (#1324).
-  late final FocusNode _focusNode;
-
-  /// Whether the field holds text the user typed that is not applied yet.
-  /// Only typed text is applied on focus loss: the field otherwise shows a
-  /// rounded copy of the value, and an untouched row has to stay unset so
-  /// it keeps following its default.
-  bool _textEdited = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = FocusNode()..addListener(_onFocusChanged);
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _onFocusChanged() {
-    if (!mounted || _focusNode.hasFocus || !_textEdited) return;
-    _applyText();
-  }
-
-  void _applyText() {
-    _textEdited = false;
-    widget.onTextSubmitted();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final clamped = widget.value.clamp(widget.min, widget.max).toDouble();
+    final clamped = value.clamp(min, max).toDouble();
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Column(
@@ -558,45 +564,55 @@ class _NutrientRowState extends State<_NutrientRow> {
         children: [
           Row(
             children: [
-              Expanded(child: Text(widget.label)),
+              Expanded(child: Text(label)),
               SizedBox(
                 // Scale with the user's text setting so the value and unit
                 // suffix stay readable at large font scales.
                 width: MediaQuery.textScalerOf(context).scale(124),
-                child: TextField(
-                  controller: widget.controller,
-                  focusNode: _focusNode,
-                  keyboardType: TextInputType.numberWithOptions(
-                    decimal: widget.decimalStep,
-                  ),
-                  inputFormatters: widget.decimalStep
-                      ? [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d*'),
-                          ),
-                        ]
-                      : [FilteringTextInputFormatter.digitsOnly],
-                  textAlign: TextAlign.right,
-                  decoration: InputDecoration(
-                    suffixText: widget.unit,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 12,
+                // Leaving the field applies a typed value, so the slider
+                // follows it once the keyboard closes: the iOS number pad
+                // has no return key, so a submit never comes (#1324).
+                // Untouched fields are skipped by the screen's _applyText.
+                child: Focus(
+                  canRequestFocus: false,
+                  skipTraversal: true,
+                  onFocusChange: (hasFocus) {
+                    if (!hasFocus) onTextSubmitted();
+                  },
+                  child: TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: decimalStep,
                     ),
+                    inputFormatters: decimalStep
+                        ? [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*'),
+                            ),
+                          ]
+                        : [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.right,
+                    decoration: InputDecoration(
+                      suffixText: unit,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: (_) => onTextEdited(controller),
+                    onSubmitted: (_) => onTextSubmitted(),
+                    onEditingComplete: onTextSubmitted,
                   ),
-                  onChanged: (_) => _textEdited = true,
-                  onSubmitted: (_) => _applyText(),
-                  onEditingComplete: _applyText,
                 ),
               ),
             ],
           ),
-          if (widget.description.isNotEmpty)
+          if (description.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2.0),
               child: Text(
-                widget.description,
+                description,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context)
                           .colorScheme
@@ -606,21 +622,19 @@ class _NutrientRowState extends State<_NutrientRow> {
               ),
             ),
           Semantics(
-            identifier: widget.identifier,
+            identifier: identifier,
             child: Slider(
-              min: widget.min,
-              max: widget.max,
+              min: min,
+              max: max,
               value: clamped,
-              divisions: widget.divisions,
+              divisions: divisions,
               onChanged: (v) {
-                _textEdited = false;
-                final step = (widget.max - widget.min) / widget.divisions;
-                final snapped =
-                    ((v - widget.min) / step).round() * step + widget.min;
-                widget.controller.text = widget.decimalStep
+                final step = (max - min) / divisions;
+                final snapped = ((v - min) / step).round() * step + min;
+                controller.text = decimalStep
                     ? snapped.toStringAsFixed(1)
                     : snapped.round().toString();
-                widget.onSliderChanged(snapped);
+                onSliderChanged(snapped);
               },
             ),
           ),

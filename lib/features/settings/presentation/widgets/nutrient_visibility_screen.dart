@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -43,6 +44,9 @@ class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
     setState(() => _visibility[key] = visible);
     await locator<AddConfigUsecase>()
         .setConfigNutrientPanelVisibility(_visibility);
+    // The Diary panel reads the map when it is rebuilt, which reloading the
+    // open day does.
+    reloadDiaryAndTrends();
   }
 
   String _labelFor(BuildContext context, String key) {
