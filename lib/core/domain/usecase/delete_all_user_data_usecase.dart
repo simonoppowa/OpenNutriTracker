@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Wipes the **active profile's** data, returning that profile to a
@@ -25,13 +26,16 @@ class DeleteAllUserDataUsecase {
   final NotificationService _notificationService;
   final ConfigRepository _configRepository;
   final AiCredentialStorage _aiCredentials;
+  final CalorieWidgetStore _calorieWidgetStore;
 
   DeleteAllUserDataUsecase(
     this._hiveDBProvider,
     this._notificationService,
     this._configRepository,
-    this._aiCredentials,
-  );
+    this._aiCredentials, {
+    CalorieWidgetStore? calorieWidgetStore,
+  }) : _calorieWidgetStore =
+           calorieWidgetStore ?? HomeWidgetCalorieStore();
 
   Future<void> deleteAll() async {
     _log.info('Clearing the active profile\'s Hive boxes on user request');
@@ -60,6 +64,16 @@ class DeleteAllUserDataUsecase {
       _hiveDBProvider.waterIntakeBox.clear(),
       _hiveDBProvider.fastingBox.clear(),
     ]);
+
+    // The iOS widget reads its own copy of today's figures from the App
+    // Group, not from Hive, so it would keep showing the deleted profile
+    // until the next day boundary. Best effort for the same reason as the
+    // reminder: a widget plugin failing must not keep the data.
+    await _bestEffort(
+      () => _calorieWidgetStore.clear(),
+      'Could not clear the home-screen widget; it may show the deleted '
+          'figures until the day ends',
+    );
 
     // The device-wide exception. This store is keyed by provider, not by
     // profile, so clearing it takes a credential the other profiles share —

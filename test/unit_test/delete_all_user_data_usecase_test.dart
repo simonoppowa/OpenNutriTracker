@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
@@ -15,6 +16,10 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 import '../helpers/hive_test_setup.dart';
 
@@ -85,6 +90,30 @@ class _SilentNotificationService extends NotificationService {
   Future<void> cancelAllScheduled() async {}
 }
 
+/// Records whether the wipe reached the iOS widget's copy of the figures,
+/// which lives in the App Group rather than in Hive.
+class _RecordingWidgetStore implements CalorieWidgetStore {
+  final bool fails;
+  int clears = 0;
+
+  _RecordingWidgetStore({this.fails = false});
+
+  @override
+  Future<void> write(
+    CalorieWidgetSnapshot snapshot,
+    CalorieWidgetLabels labels,
+  ) async {}
+
+  @override
+  Future<void> clear() async {
+    clears++;
+    if (fails) throw MissingPluginException('home_widget');
+  }
+
+  @override
+  Future<void> relabel(S s) async {}
+}
+
 class _TestHiveDBProvider extends HiveDBProvider {
   final Box<ConfigDBO> config;
   final Box<IntakeDBO> intake;
@@ -137,6 +166,7 @@ void main() {
   late DeleteAllUserDataUsecase sut;
   late Box<ConfigDBO> configBox;
   late Box<ConfigDBO> appConfigBox;
+  late _RecordingWidgetStore widgetStore;
 
   setUp(() async {
     Hive.init('.');
@@ -160,11 +190,13 @@ void main() {
 
     backing = _MemoryStorage();
     credentials = AiCredentialStorage(backing);
+    widgetStore = _RecordingWidgetStore();
     sut = DeleteAllUserDataUsecase(
       provider,
       _SilentNotificationService(),
       ConfigRepository(ConfigDataSource(provider)),
       credentials,
+      calorieWidgetStore: widgetStore,
     );
   });
 
@@ -228,6 +260,32 @@ void main() {
     await sut.deleteAll();
 
     expect(configBox.isEmpty, isTrue);
+  });
+
+  test('clears the home-screen widget', () async {
+    // The widget reads an App Group copy, not Hive, so without this it kept
+    // showing the deleted profile's intake and goal until the day ended.
+    await sut.deleteAll();
+
+    expect(widgetStore.clears, 1);
+  });
+
+  test('a widget that cannot be cleared does not keep the data', () async {
+    await configBox.put('ConfigKey', ConfigDBO.empty());
+    await credentials.setEnabled(true);
+    final failing = _RecordingWidgetStore(fails: true);
+
+    await DeleteAllUserDataUsecase(
+      provider,
+      _SilentNotificationService(),
+      ConfigRepository(ConfigDataSource(provider)),
+      credentials,
+      calorieWidgetStore: failing,
+    ).deleteAll();
+
+    expect(failing.clears, 1);
+    expect(configBox.isEmpty, isTrue);
+    expect(await credentials.isEnabled(), isFalse);
   });
 
   test('leaves the shared app settings alone', () async {
