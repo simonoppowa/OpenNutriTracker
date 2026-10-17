@@ -9,7 +9,6 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/retry_util.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -55,24 +54,46 @@ class SharedMealImporter {
 
   bool _busy = false;
 
-  Future<T> _withProgress<T>(Future<T> Function() action) async {
+  /// Runs [action] behind a progress dialog. A [cancellable] dialog can be
+  /// dismissed with Back, a tap outside or its Cancel button; that returns
+  /// null at once and the action's eventual result is ignored. Writes are
+  /// never cancellable, so a half-imported meal cannot be abandoned.
+  Future<T?> _withProgress<T>(
+    Future<T> Function() action, {
+    bool cancellable = false,
+  }) async {
     final navigator = Navigator.of(context);
     final route = DialogRoute<void>(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => const PopScope(
-        canPop: false,
+      barrierDismissible: cancellable,
+      builder: (dialogContext) => PopScope(
+        canPop: cancellable,
         child: AlertDialog(
-          content: SizedBox(
+          content: const SizedBox(
             height: 64,
             child: Center(child: CircularProgressIndicator()),
           ),
+          actions: [
+            if (cancellable)
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(S.of(dialogContext).dialogCancelLabel),
+              ),
+          ],
         ),
       ),
     );
-    unawaited(navigator.push(route));
+    final result = Completer<T?>();
+    unawaited(navigator.push(route).then((_) {
+      if (!result.isCompleted) result.complete(null);
+    }));
+    action().then((value) {
+      if (!result.isCompleted) result.complete(value);
+    }, onError: (Object e, StackTrace st) {
+      if (!result.isCompleted) result.completeError(e, st);
+    });
     try {
-      return await action();
+      return await result.future;
     } finally {
       if (route.isActive) navigator.removeRoute(route);
     }
@@ -82,12 +103,15 @@ class SharedMealImporter {
     if (_busy || !context.mounted) return false;
     _busy = true;
     try {
-      final (items, usesImperialUnits) = await _withProgress(() async => (
-            await _prepareItems(payload),
-            (await locator<GetConfigUsecase>().getConfig())
-                .usesImperialFoodUnits,
-          ));
-      if (!context.mounted) return false;
+      final prepared = await _withProgress(
+        () async => (
+          await _prepareItems(payload),
+          (await locator<GetConfigUsecase>().getConfig()).usesImperialFoodUnits,
+        ),
+        cancellable: true,
+      );
+      if (prepared == null || !context.mounted) return false;
+      final (items, usesImperialUnits) = prepared;
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (_) => SharedMealPreviewDialog(
@@ -98,7 +122,7 @@ class SharedMealImporter {
       );
       if (confirmed != true || !context.mounted) return false;
       final completed = await _withProgress(() => _importItems(items));
-      if (!completed || !context.mounted) return false;
+      if (completed != true || !context.mounted) return false;
       _refreshPages();
       return true;
     } finally {
@@ -135,8 +159,9 @@ class SharedMealImporter {
     final offItems = await Future.wait(payload.offRefs.map((ref) async {
       MealEntity? meal;
       try {
-        meal = await withRetry(() =>
-            _searchProductByBarcodeUseCase.searchProductByBarcode(ref.barcode));
+        // No retry here: OFFDataSource already makes three attempts.
+        meal = await _searchProductByBarcodeUseCase
+            .searchProductByBarcode(ref.barcode);
       } catch (_) {
         // Keep the failed reference visible so the user can review omissions.
       }

@@ -123,6 +123,7 @@ class _Barcode extends Fake implements SearchProductByBarcodeUseCase {
   Future<MealEntity> searchProductByBarcode(String barcode) async {
     calls.add(barcode);
     if (barcode == 'missing') throw StateError('unavailable');
+    if (barcode == 'stall') return Completer<MealEntity>().future;
     return meal('OFF food', unit: 'g');
   }
 }
@@ -450,17 +451,53 @@ void main() {
               child: const Text('start'),
             ))));
     await tester.tap(find.text('start'));
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
     expect(find.text('missing'), findsOneWidget);
     expect(find.text(l10nEn.sharedMealUnavailableLabel), findsOneWidget);
     await tester.tap(find.text(l10nEn.importAction));
     await tester.pumpAndSettle();
     expect(intakes.meals.length, 2);
-    expect(barcode.calls.length, 3);
+    // OFFDataSource retries on its own; the importer asks only once.
+    expect(barcode.calls, ['missing']);
   });
+
+  for (final viaBack in [true, false]) {
+    testWidgets(
+        'A stalled lookup can be cancelled and imports nothing '
+        '(${viaBack ? 'Back' : 'Cancel'})', (tester) async {
+      Future<bool>? result;
+      await tester.pumpWidget(app(Builder(
+          builder: (context) => TextButton(
+                onPressed: () => result = SharedMealImporter(
+                        context,
+                        IntakeTypeEntity.dinner,
+                        AddMealType.dinnerType,
+                        DateTime(2026, 1, 1))
+                    .importPayload(payload(refs: [
+                  const SharedMealOffRef(
+                      barcode: 'stall', amount: 50, unit: 'g'),
+                ])),
+                child: const Text('start'),
+              ))));
+      await tester.tap(find.text('start'));
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      if (viaBack) {
+        await tester.binding.handlePopRoute();
+      } else {
+        await tester.tap(find.text(l10nEn.dialogCancelLabel));
+      }
+      await tester.pumpAndSettle();
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byType(SharedMealPreviewDialog), findsNothing);
+      expect(await result, false);
+      expect(barcode.calls, ['stall']);
+      expect(meals.saved, isEmpty);
+      expect(recipes.saved, isEmpty);
+      expect(intakes.meals, isEmpty);
+      expect(home.refreshes, 0);
+    });
+  }
 
   testWidgets(
       'Recipe preview matches computed nutrition and is saved only on Import',
