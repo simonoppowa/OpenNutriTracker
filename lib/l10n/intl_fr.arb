@@ -915,7 +915,6 @@
   "recipeServingsCountLabel": "Nombre de portions (facultatif)",
   "recipeTagsHelper": "Étiquettes",
   "recipeTagsLabel": "Séparées par des virgules, par ex. « petit-déjeuner, végétalien »",
-  "recipeTotalWeightHelper": "Par défaut, le poids correspond à la somme des ingrédients. Les liquides sont approximés avec 1 ml ≈ 1 g.",
   "recipeTotalWeightLabel": "Poids total (g)",
   "recipesEmptyHint": "Créez un repas à partir de plusieurs ingrédients et réutilisez-le comme n'importe quel autre aliment.",
   "recipesEmptyLabel": "Aucune recette enregistrée",
