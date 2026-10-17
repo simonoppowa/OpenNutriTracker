@@ -569,30 +569,41 @@ class _NutrientRow extends StatelessWidget {
                 // Scale with the user's text setting so the value and unit
                 // suffix stay readable at large font scales.
                 width: MediaQuery.textScalerOf(context).scale(124),
-                child: TextField(
-                  controller: controller,
-                  keyboardType: TextInputType.numberWithOptions(
-                    decimal: decimalStep,
-                  ),
-                  inputFormatters: decimalStep
-                      ? [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d*'),
-                          ),
-                        ]
-                      : [FilteringTextInputFormatter.digitsOnly],
-                  textAlign: TextAlign.right,
-                  decoration: InputDecoration(
-                    suffixText: unit,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 12,
+                // Leaving the field applies a typed value, so the slider
+                // follows it once the keyboard closes: the iOS number pad
+                // has no return key, so a submit never comes (#1324).
+                // Untouched fields are skipped by the screen's _applyText.
+                child: Focus(
+                  canRequestFocus: false,
+                  skipTraversal: true,
+                  onFocusChange: (hasFocus) {
+                    if (!hasFocus) onTextSubmitted();
+                  },
+                  child: TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: decimalStep,
                     ),
+                    inputFormatters: decimalStep
+                        ? [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*'),
+                            ),
+                          ]
+                        : [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.right,
+                    decoration: InputDecoration(
+                      suffixText: unit,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: (_) => onTextEdited(controller),
+                    onSubmitted: (_) => onTextSubmitted(),
+                    onEditingComplete: onTextSubmitted,
                   ),
-                  onChanged: (_) => onTextEdited(controller),
-                  onSubmitted: (_) => onTextSubmitted(),
-                  onEditingComplete: onTextSubmitted,
                 ),
               ),
             ],

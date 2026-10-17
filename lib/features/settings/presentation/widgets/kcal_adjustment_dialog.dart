@@ -50,17 +50,29 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   /// 418 kJ), so re-parsing it would drift the stored value (#1371).
   bool _kcalTextEdited = false;
 
+  /// A typed value is also applied when the field loses focus, so the
+  /// slider follows it once the keyboard closes: the iOS number pad has no
+  /// return key, so a submit never comes (#1324).
+  late final FocusNode _kcalFocusNode;
+
   @override
   void initState() {
     super.initState();
     _kcalController = TextEditingController(text: '0');
+    _kcalFocusNode = FocusNode()..addListener(_onKcalFocusChanged);
     _load();
   }
 
   @override
   void dispose() {
     _kcalController.dispose();
+    _kcalFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onKcalFocusChanged() {
+    if (!mounted || _kcalFocusNode.hasFocus) return;
+    _applyKcalInput();
   }
 
   Future<void> _load() async {
@@ -253,6 +265,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                 identifier: 'kcal-adjustment-input',
                                 child: TextField(
                                   controller: _kcalController,
+                                  focusNode: _kcalFocusNode,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                     signed: true,
