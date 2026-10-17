@@ -42,7 +42,6 @@ class MealDetailNutrimentsTable extends StatelessWidget {
 
     final n = product.nutriments;
     final hasMicroData = n.hasMicronutrientData;
-    final showSection = showMicronutrients || hasMicroData;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +103,9 @@ class MealDetailNutrimentsTable extends StatelessWidget {
             ],
           ),
         ),
-        if (showSection) ...[
+        // The Settings switch decides whether the section exists at all
+        // (#1361); the data only decides whether it opens expanded.
+        if (showMicronutrients) ...[
           const SizedBox(height: Dimens.spacing8),
           Theme(
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),

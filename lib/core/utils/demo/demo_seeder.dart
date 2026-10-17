@@ -265,8 +265,10 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
     );
   }
 
-  await locator<IntakeRepository>().addAllIntakeDBOs(intakeDBOs);
-  await locator<UserActivityRepository>().addAllUserActivityDBOs(activityDBOs);
+  await locator<IntakeRepository>().upsertAllIntakeDBOs(intakeDBOs);
+  await locator<UserActivityRepository>().upsertAllUserActivityDBOs(
+    activityDBOs,
+  );
   await locator<TrackedDayRepository>().addAllTrackedDays(trackedDayDBOs);
   await locator<WaterIntakeRepository>().addAllEntries(waterIntakeDBOs);
   await locator<WeightLogRepository>().addAllEntries(
