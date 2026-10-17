@@ -129,25 +129,45 @@ class ImportWeightsUsecase {
     );
     if (!_stillOnProfile(profileId)) return 0;
 
-    final latestByDay = latestReadingPerDay(readings);
+    // The day each record id is already filed on. A reading keeps that day:
+    // re-read after the device's time zone changed, the same instant can
+    // fall on another local calendar day, and filing it there as well would
+    // log one weigh-in twice.
+    final filedDays = <String, DateTime>{
+      for (final entry in await _weightLogRepository.getAllEntries())
+        if (entry.externalId != null) entry.externalId!: entry.date,
+    };
+    final latestByDay = latestReadingPerDay(readings, filedDays: filedDays);
 
+    // [written] is what this run filed. [filed] adds the readings an earlier
+    // run already filed exactly, because both are candidates for the current
+    // weight: a run killed between filing its newest reading and updating the
+    // weight leaves only the second kind behind, and the retry finishes it.
     final written = <String, ExternalWeight>{};
+    final filed = <String, ExternalWeight>{};
     for (final MapEntry(key: day, value: reading) in latestByDay.entries) {
+      // Everything a write depends on is read fresh, right before it, rather
+      // than taken from before the platform read, which is long:
+      //
+      //  * the config, because "Delete all my data" clears it without
+      //    changing the profile id, and an import still on its way back must
+      //    not refill the wiped log — nor one the user just turned off;
+      //  * the tombstones in it, because a day deleted meanwhile would be
+      //    written straight back (`DeleteWeightLogUsecase` stores the
+      //    tombstone before it removes the row);
+      //  * the row itself, last, because a weight the user logged meanwhile
+      //    is a manual entry and must not be overwritten.
+      final current = await _configRepository.getConfig();
+      if (!_mayWrite(profileId, current)) return written.length;
+      if (current.healthDeletedExternalIds.contains(reading.id)) continue;
       final existing = await _weightLogRepository.getEntry(day);
+      if (!_stillOnProfile(profileId)) return written.length;
       if (existing != null && !existing.isImported) continue;
       if (existing?.externalId == reading.id &&
           existing?.weightKg == reading.weightKg) {
+        filed[reading.id] = reading;
         continue;
       }
-      // The tombstones are read here, as the last await before the write,
-      // rather than taken from the snapshot above: the platform read is long,
-      // and a day the user deleted while it ran would otherwise be written
-      // straight back. `DeleteWeightLogUsecase` stores the tombstone before
-      // it removes the row, so a deletion is visible here once it has begun.
-      final deletedIds = (await _configRepository.getConfig())
-          .healthDeletedExternalIds;
-      if (deletedIds.contains(reading.id)) continue;
-      if (!_stillOnProfile(profileId)) return written.length;
       await _weightLogRepository.addEntry(
         WeightLogEntity(
           date: day,
@@ -156,19 +176,19 @@ class ImportWeightsUsecase {
         ),
       );
       written[reading.id] = reading;
+      filed[reading.id] = reading;
     }
 
-    if (!_stillOnProfile(profileId)) return written.length;
-
-    if (written.isNotEmpty) await _updateCurrentWeight(profileId, written);
+    if (filed.isNotEmpty) await _updateCurrentWeight(profileId, filed);
 
     // Every write from here on resolves its box from whichever profile is
     // active at the moment of the call, so each is checked right before it
     // is made: a switch during the steps above must not hand this profile's
-    // watermark to another one, which would cost that one its backfill.
-    if (!_stillOnProfile(profileId)) return written.length;
+    // watermark to another one, which would cost that one its backfill, and
+    // a wipe must not get a config back with a watermark in it.
+    if (!await _mayStillWrite(profileId)) return written.length;
     await _configRepository.setConfigHealthWeightLastImportAt(to);
-    if (!_stillOnProfile(profileId)) return written.length;
+    if (!await _mayStillWrite(profileId)) return written.length;
     // Deleted weight readings share the workout tombstones, so the cutoff
     // has to keep every tombstone either import can still ask about. This
     // import's own window never reaches past the backfill floor (see
@@ -217,14 +237,19 @@ class ImportWeightsUsecase {
 
   /// Groups readings by the local calendar day they were taken on — the key
   /// the weight log itself uses — keeping the latest reading of each day.
+  ///
+  /// A reading whose id is in [filedDays] stays on the day it was filed on,
+  /// whatever day its instant falls on in the current time zone.
   @visibleForTesting
   static Map<DateTime, ExternalWeight> latestReadingPerDay(
-    List<ExternalWeight> readings,
-  ) {
+    List<ExternalWeight> readings, {
+    Map<String, DateTime> filedDays = const {},
+  }) {
     final latest = <DateTime, ExternalWeight>{};
     for (final reading in readings) {
       final local = reading.measuredAt.toLocal();
-      final day = DateTime(local.year, local.month, local.day);
+      final day =
+          filedDays[reading.id] ?? DateTime(local.year, local.month, local.day);
       final current = latest[day];
       if (current == null || reading.measuredAt.isAfter(current.measuredAt)) {
         latest[day] = reading;
@@ -245,19 +270,22 @@ class ImportWeightsUsecase {
   /// profiles, that moment is the upgrade — later than the weight itself, so
   /// the comparison errs toward keeping the user's weight.
   ///
+  /// [candidates] are the readings the log holds as this run left it, so the
+  /// result is the same however many times a run is retried.
+  ///
   /// Bound to [profileId]: each read and the write are checked against it
   /// right before they are made, so a switch mid-way cannot carry this
-  /// profile's weight into another.
+  /// profile's weight into another, nor a wipe bring a user back.
   Future<void> _updateCurrentWeight(
     String profileId,
-    Map<String, ExternalWeight> written,
+    Map<String, ExternalWeight> candidates,
   ) async {
     if (!await _userRepository.hasUserData()) return;
     if (!_stillOnProfile(profileId)) return;
     final entries = await _weightLogRepository.getAllEntries();
     if (entries.isEmpty) return;
     final newest = entries.reduce((a, b) => b.date.isAfter(a.date) ? b : a);
-    final reading = written[newest.externalId];
+    final reading = candidates[newest.externalId];
     if (reading == null) return;
     if (!entries.any((entry) => !entry.isImported)) {
       final enteredBy = _hiveDBProvider.profileBox.get(profileId)?.createdAt;
@@ -267,9 +295,29 @@ class ImportWeightsUsecase {
     final user = await _userRepository.getUserData();
     if (user.weightKG == newest.weightKg) return;
     user.weightKG = newest.weightKg;
+    if (!await _mayStillWrite(profileId)) return;
+    if (!await _userRepository.hasUserData()) return;
     if (!_stillOnProfile(profileId)) return;
     await _userRepository.updateUserData(user);
   }
+
+  /// Whether the run that started under [profileId] may still write: the
+  /// profile is still active and weight import is still on for it. The flag
+  /// also goes when "Delete all my data" clears the profile's config, which
+  /// leaves the profile id as it was.
+  bool _mayWrite(String profileId, ConfigEntity config) {
+    if (!_stillOnProfile(profileId)) return false;
+    if (config.healthWeightImportEnabled) return true;
+    _log.info(
+      'Abandoning the weight import: weight import was turned off or the '
+      'profile was wiped mid-run',
+    );
+    return false;
+  }
+
+  /// [_mayWrite] against the config as it is now.
+  Future<bool> _mayStillWrite(String profileId) async =>
+      _mayWrite(profileId, await _configRepository.getConfig());
 
   bool _stillOnProfile(String profileId) {
     if (_hiveDBProvider.activeProfileId == profileId) return true;

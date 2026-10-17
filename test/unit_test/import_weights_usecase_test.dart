@@ -15,6 +15,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
@@ -60,6 +61,23 @@ class _SwitchingUserRepository extends UserRepository {
     final user = await super.getUserData();
     provider.activeProfileId = 'profile-b';
     return user;
+  }
+}
+
+/// Runs [onGetConfig] once, the first time the use case reads the config
+/// inside its filing loop, to land a write between its reads.
+class _HookedConfigRepository extends ConfigRepository {
+  Future<void> Function()? onGetConfig;
+  int _calls = 0;
+
+  _HookedConfigRepository(super.configDataSource);
+
+  @override
+  Future<ConfigEntity> getConfig() async {
+    final config = await super.getConfig();
+    // The first read is the run's own snapshot; the second is the loop's.
+    if (++_calls == 2) await onGetConfig?.call();
+    return config;
   }
 }
 
@@ -213,6 +231,62 @@ void main() {
       expect(await usecase.importNow(), equals(0));
     });
 
+    test('a weight logged by hand during the run is not overwritten', () async {
+      final hooked = _HookedConfigRepository(configDataSource);
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        hooked,
+        weightLogRepository,
+        userRepository,
+        provider,
+      );
+      hooked.onGetConfig = () => weightLogRepository.addEntry(
+        WeightLogEntity(date: today, weightKg: 79.0),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
+
+      expect(await usecase.importNow(), equals(0));
+
+      final entry = await weightLogRepository.getEntry(today);
+      expect(entry!.weightKg, equals(79.0));
+      expect(entry.isImported, isFalse);
+    });
+
+    test('a record already filed on another day is not filed again', () async {
+      // As after a time-zone change: the same instant now falls on today,
+      // but an earlier run filed it under yesterday.
+      await weightLogRepository.addEntry(
+        WeightLogEntity(date: yesterday, weightKg: 80.2, externalId: 'c'),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
+
+      expect(await usecase.importNow(), equals(0));
+
+      expect(await weightLogRepository.getEntry(today), isNull);
+      expect(await weightLogRepository.getAllEntries(), hasLength(1));
+    });
+
+    test('a wipe during the platform read leaves nothing behind', () async {
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+      healthService.readGate = Completer<void>();
+
+      final run = usecase.importNow();
+      await Future<void>.delayed(Duration.zero);
+      // What "Delete all my data" does to the profile's boxes; the profile
+      // id stays the same.
+      await Future.wait([
+        configBox.clear(),
+        weightLogBox.clear(),
+        userBox.clear(),
+      ]);
+      healthService.readGate!.complete();
+
+      expect(await run, equals(0));
+      expect(weightLogBox.isEmpty, isTrue);
+      expect(configBox.isEmpty, isTrue);
+      expect(userBox.isEmpty, isTrue);
+    });
+
     test('reads nothing while weight import is off', () async {
       await configDataSource.setConfigHealthWeightImportEnabled(false);
       healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
@@ -228,6 +302,18 @@ void main() {
       healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
 
       await usecase.importNow();
+
+      expect((await userRepository.getUserData()).weightKG, equals(78.5));
+    });
+
+    test('a retry finishes a run killed before the current weight', () async {
+      // The earlier run filed today's reading and died before the update.
+      await weightLogRepository.addEntry(
+        WeightLogEntity(date: today, weightKg: 78.5, externalId: 'c'),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+
+      expect(await usecase.importNow(), equals(0));
 
       expect((await userRepository.getUserData()).weightKG, equals(78.5));
     });
@@ -492,6 +578,14 @@ void main() {
       expect(grouped.keys, containsAll([yesterday, today]));
       expect(grouped[yesterday]!.id, 'a');
       expect(grouped[today]!.id, 'b');
+    });
+
+    test('keeps a filed record on the day it was filed on', () {
+      final grouped = ImportWeightsUsecase.latestReadingPerDay(
+        [_reading('b', DateTime(2026, 5, 23, 0, 1), 81)],
+        filedDays: {'b': yesterday},
+      );
+      expect(grouped.keys, [yesterday]);
     });
   });
 }
