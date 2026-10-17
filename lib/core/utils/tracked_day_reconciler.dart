@@ -198,12 +198,20 @@ TrackedDayDBO? _newRow(
   double Function(String key) burnedOn,
   TrackedDayGoals? currentGoals,
 ) {
+  // Counted in calendar days, not hours: the keys parse to local
+  // midnights, and across a daylight-saving change two of those are 23 or
+  // 25 hours apart, which would break the tie between rows a day either
+  // side.
+  int dayNumber(DateTime day) =>
+      DateTime.utc(day.year, day.month, day.day).millisecondsSinceEpoch ~/
+      Duration.millisecondsPerDay;
+  final target = dayNumber(date);
   String? nearestKey;
   int? nearestDistance;
   for (final key in rows.keys) {
     final rowDate = key is String ? DateTime.tryParse(key) : null;
     if (rowDate == null) continue;
-    final distance = rowDate.difference(date).inHours.abs();
+    final distance = (dayNumber(rowDate) - target).abs();
     // Ties go to the earlier day.
     if (nearestDistance == null ||
         distance < nearestDistance ||

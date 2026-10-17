@@ -443,6 +443,28 @@ void main() {
     });
   });
 
+  group('a day that lists entries but has no row', () {
+    test('takes its goal from the earlier of two rows a calendar day '
+        'either side, across a daylight-saving change', () async {
+      // Where summer time ends on 25 Oct 2026 (Europe), the 25th's
+      // midnight is 25 hours before the 26th's and the 27th's 24 after.
+      // Counted in hours, the later row would win the tie.
+      await trackedDayBox.put(
+        '2026-10-25',
+        legacyRow(DateTime(2026, 10, 25), kcal: 0)..calorieGoal = 1700,
+      );
+      await trackedDayBox.put(
+        '2026-10-27',
+        legacyRow(DateTime(2026, 10, 27), kcal: 0)..calorieGoal = 1900,
+      );
+      await addLoggedIntake('toast', DateTime(2026, 10, 26, 12));
+
+      await reconcile();
+
+      expect(trackedDayBox.get('2026-10-26')!.calorieGoal, 1700);
+    });
+  });
+
   group('moving the day boundary', () {
     late SetDayBoundaryUsecase setDayBoundary;
 
