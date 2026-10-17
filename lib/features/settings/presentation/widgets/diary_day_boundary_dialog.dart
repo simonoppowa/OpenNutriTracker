@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// #139: Configurable diary day boundary with minute-level granularity.
@@ -58,10 +60,13 @@ class _DiaryDayBoundaryDialogState extends State<DiaryDayBoundaryDialog> {
     // Refresh anywhere day rollover affects what's shown: the home
     // dashboard's totals and the calendar day view both partition
     // intake by day boundary, and the calendar's markers follow the
-    // tracked-day rows that moved with it (#1317).
+    // tracked-day rows that moved with it (#1317). Trends charts those
+    // rows by date, and stays loaded in the main IndexedStack; the
+    // refresh keeps the range the user picked.
     widget.homeBloc.add(const LoadItemsEvent());
     widget.diaryBloc.add(const LoadDiaryYearEvent());
     widget.calendarDayBloc.add(RefreshCalendarDayEvent());
+    locator<TrendsBloc>().add(const RefreshTrendsEvent());
     if (!mounted) return;
     Navigator.of(context).pop();
   }
