@@ -506,5 +506,26 @@ void main() {
         isNull,
       );
     });
+
+    test('drops a reading outside the bounds manual entry enforces', () {
+      for (final (value, unit) in [
+        (1.0, HealthDataUnit.KILOGRAM),
+        (800.0, HealthDataUnit.KILOGRAM),
+        (1500.0, HealthDataUnit.POUND),
+        (1500.0, HealthDataUnit.GRAM),
+      ]) {
+        expect(
+          HealthPackageService.weightFromPoint(weightPoint(value, unit)),
+          isNull,
+          reason: '$value $unit',
+        );
+      }
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(640, HealthDataUnit.KILOGRAM),
+        ),
+        isNotNull,
+      );
+    });
   });
 }

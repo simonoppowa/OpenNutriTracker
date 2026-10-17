@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/data/data_source/health/external_weight.da
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
+import 'package:opennutritracker/core/utils/bounds/validator.dart';
 
 /// Which platform's health store rules apply.
 ///
@@ -357,7 +358,14 @@ class HealthPackageService implements HealthService {
       return null;
     }
     final weightKg = _weightInKg(value.numericValue, point.unit);
-    if (weightKg == null || !weightKg.isFinite || weightKg <= 0) return null;
+    if (weightKg == null || !weightKg.isFinite) return null;
+    // The same hard bounds a weight typed into the app has to pass. A reading
+    // outside them is a scale or sync fault, and filing it would make it the
+    // weight BMI and the calorie goal are worked out from.
+    if (ValueValidator.parseWeightInKg(weightKg) == null) {
+      _log.warning('Skipping health point ${point.uuid}: weight out of range');
+      return null;
+    }
     return ExternalWeight(
       id: point.uuid,
       measuredAt: point.dateFrom,
