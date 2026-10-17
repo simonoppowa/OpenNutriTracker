@@ -210,6 +210,21 @@ void main() {
     PhysicalActivityFixtures.moderateBicycling,
   );
 
+  /// A walk the health import filed, which it marks with the platform's
+  /// record id.
+  UserActivityEntity importedActivityAt(DateTime at) => UserActivityEntity(
+    'import-${at.microsecondsSinceEpoch}',
+    30,
+    150,
+    at,
+    PhysicalActivityFixtures.moderateBicycling,
+    externalId: 'hc-${at.microsecondsSinceEpoch}',
+  );
+
+  /// The boundary, in minutes, the profile's rows are on record as keyed by.
+  int? recordedOffset() =>
+      ConfigDataSource(db).getConfigNow().trackedDaysOffsetMinutes;
+
   group('without a day boundary', () {
     test('food added to a past Diary day gets that day\'s row', () async {
       // table_calendar hands the Diary a UTC midnight for the cell.
@@ -414,6 +429,53 @@ void main() {
       expect(day.row!.caloriesTracked, 200);
       expect(totalTracked(), 200);
     });
+
+    test('a row holding only an activity\'s goal credit moves with the '
+        'activity, which is credited once', () async {
+      // Logged from the activity screen at 02:00: listed on the 4th, but
+      // the old keying raised the goal of a row for the 5th, which counts
+      // no calories.
+      final at = DateTime(2026, 10, 5, 2);
+      await activityRepository.addUserActivity(activityAt(at));
+      await trackedDayBox.put(
+        '2026-10-05',
+        legacyRow(at, kcal: 0)
+          ..calorieGoal += 150
+          ..carbsGoal = 225 + MacroCalc.getTotalCarbsGoal(150),
+      );
+
+      expect(await reconcile(), 2);
+
+      expect(
+        trackedDayBox.containsKey('2026-10-05'),
+        isFalse,
+        reason: 'nothing is listed on the 5th',
+      );
+      final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
+      expect(day.activities, 1);
+      expect(day.row!.calorieGoal, 1950, reason: '1800 plus the walk, once');
+      expect(day.row!.carbsGoal, 225 + MacroCalc.getTotalCarbsGoal(150));
+      expect(totalTracked(), 0);
+      expect(recordedOffset(), 240);
+    });
+
+    test('an imported workout\'s credit stays where the import put it, on '
+        'the day it is listed under', () async {
+      // Unlike the other writers, the import credited a workout's logical
+      // day on older builds too.
+      final at = DateTime(2026, 10, 5, 2);
+      await activityRepository.addUserActivity(importedActivityAt(at));
+      await addLoggedIntake('toast', DateTime(2026, 10, 4, 12));
+      await trackedDayBox.put(
+        '2026-10-04',
+        legacyRow(DateTime(2026, 10, 4))..calorieGoal += 150,
+      );
+
+      expect(await reconcile(), 0);
+
+      expect(trackedDayBox.get('2026-10-04')!.calorieGoal, 1950);
+      expect(trackedDayBox.length, 1);
+    });
   });
 
   group('a profile an older build left without any row', () {
@@ -440,6 +502,34 @@ void main() {
     test('a day with nothing logged stays without a row', () async {
       await reconcile(currentGoals: currentGoals);
       expect(trackedDayBox.isEmpty, isTrue);
+    });
+  });
+
+  group('a profile that was not active when the boundary moved', () {
+    test('has its activity energy moved on activation, not credited '
+        'twice', () async {
+      // Activated under the 00:00 boundary, which goes on record.
+      await reconcile();
+      expect(recordedOffset(), 0);
+      final at = DateTime(2026, 10, 5, 2);
+      await addFood(DateTime(2026, 10, 4, 12));
+      await logActivity.logActivity(activityAt(at), day: at);
+      // Another profile moves the app-wide boundary; these rows stay put.
+      await setBoundary(4);
+
+      expect(await reconcile(), 2);
+
+      final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
+      expect(day.activities, 1);
+      expect(day.row!.calorieGoal, 2150, reason: '2000 plus the walk, once');
+      expect(day.row!.caloriesTracked, 200);
+      expect(
+        (await diaryDay(DateTime.utc(2026, 10, 5), boundaryHours: 4)).row,
+        isNull,
+        reason: 'the 5th has nothing listed, so no marker',
+      );
+      expect(recordedOffset(), 240);
+      expect(await reconcile(), 0);
     });
   });
 
@@ -490,6 +580,8 @@ void main() {
       expect(nextDay.intakes, 0);
       expect(nextDay.row, isNull);
       expect(totalTracked(), 400);
+      expect(recordedOffset(), 240);
+      expect(await reconcile(), 0, reason: 'activation finds nothing to do');
     });
 
     test('moves the energy an activity burned with it, and back', () async {
