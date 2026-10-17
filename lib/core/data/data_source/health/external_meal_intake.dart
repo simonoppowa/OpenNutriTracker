@@ -171,10 +171,16 @@ class ExternalMealIntake {
       name: (name != null && name.isNotEmpty) ? name : null,
       mealTypeName: mealTypeString,
       dateTime: intake.dateTime,
-      calories: intake.totalKcal,
-      carbohydrates: intake.totalCarbsGram,
-      protein: intake.totalProteinsGram,
-      fatTotal: intake.totalFatsGram,
+      // The entity's totals read an unknown value as 0; a food that lists no
+      // energy or macro must omit it, not export a false zero.
+      calories: nutriments.energyPerUnit == null ? null : intake.totalKcal,
+      carbohydrates: nutriments.carbohydratesPerUnit == null
+          ? null
+          : intake.totalCarbsGram,
+      protein: nutriments.proteinsPerUnit == null
+          ? null
+          : intake.totalProteinsGram,
+      fatTotal: nutriments.fatPerUnit == null ? null : intake.totalFatsGram,
       fiber: scaleGrams(nutriments.fiber100),
       sugar: scaleGrams(nutriments.sugars100),
       fatSaturated: scaleGrams(nutriments.saturatedFat100),

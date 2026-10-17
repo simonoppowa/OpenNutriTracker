@@ -144,6 +144,44 @@ void main() {
       // Micrograms to grams conversion
       expect(external.vitaminD, closeTo(3e-6, 1e-8));
     });
+
+    // #1393 review: IntakeEntity's totals read a missing value as 0.
+    test('omits calories and macros the food does not list', () {
+      final unknown = IntakeEntity(
+        id: 'intake-unknown',
+        unit: 'g',
+        amount: 150,
+        type: IntakeTypeEntity.snack,
+        dateTime: mealDate,
+        meal: const MealEntity(
+          code: null,
+          name: 'Mystery bar',
+          url: null,
+          mealQuantity: '100',
+          mealUnit: 'g',
+          servingQuantity: null,
+          servingUnit: 'g',
+          servingSize: '100 g',
+          source: MealSourceEntity.custom,
+          nutriments: MealNutrimentsEntity(
+            energyKcal100: null,
+            carbohydrates100: 30,
+            fat100: null,
+            proteins100: null,
+            sugars100: null,
+            saturatedFat100: null,
+            fiber100: null,
+          ),
+        ),
+      );
+
+      final external = ExternalMealIntake.fromIntake(unknown);
+
+      expect(external.calories, isNull);
+      expect(external.fatTotal, isNull);
+      expect(external.protein, isNull);
+      expect(external.carbohydrates, closeTo(45.0, 0.01));
+    });
   });
 
   group('ExportMealIntakeUsecase', () {
