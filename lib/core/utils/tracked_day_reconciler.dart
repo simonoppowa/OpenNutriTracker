@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
 
 final _log = Logger('TrackedDayReconciler');
 
@@ -303,6 +304,29 @@ Future<int> ensureTrackedDaysMatchEntries(
     );
   }
   return changed;
+}
+
+/// The tracked-day repairs every profile activation runs — startup and a
+/// profile switch — before anything reads the rows (#1317, #1254).
+///
+/// The reconciliation has to go first. The NaN repair sums a broken row's
+/// totals from the entries listed on its day, so on a stale row — keyed
+/// to a day that lists none of its entries — it writes zeros, and the
+/// reconciliation would then keep that row as a day whose entries were
+/// all deleted, calendar marker and all. Run first, the reconciliation
+/// counts the NaN as calories and removes the stale row, and rewrites the
+/// totals of a broken row whose day does list entries.
+Future<void> ensureTrackedDaysRepaired(
+  HiveDBProvider db,
+  ConfigDataSource configDataSource, {
+  Future<TrackedDayGoals> Function()? currentGoals,
+}) async {
+  await ensureTrackedDaysMatchEntries(
+    db,
+    configDataSource,
+    currentGoals: currentGoals,
+  );
+  await ensureTrackedDayTotalsFinite(db, configDataSource);
 }
 
 /// Moves the day boundary to [hours]:[minutes] and the active profile's

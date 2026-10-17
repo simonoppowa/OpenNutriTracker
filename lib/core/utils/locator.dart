@@ -73,7 +73,6 @@ import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecas
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
-import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
@@ -648,12 +647,10 @@ Future<void> initLocator() async {
   // Before any screen reads the intake log: brings Open Food Facts rows a
   // released build wrote in raw grams into the app's units (#1152).
   await ensureOffMicronutrientsRepaired(hiveDBProvider);
-  // Before Diary and Trends read the day totals: rebuilds any day a NaN
-  // intake left with a NaN total from its intakes (#1254).
-  await ensureTrackedDayTotalsFinite(hiveDBProvider, locator());
   // Before Diary and Trends read the day rows: brings each in line with
-  // the entries the Diary lists on its day (#1317).
-  await ensureTrackedDaysMatchEntries(
+  // the entries the Diary lists on its day (#1317), then rebuilds any
+  // total a NaN intake left NaN (#1254).
+  await ensureTrackedDaysRepaired(
     hiveDBProvider,
     locator(),
     currentGoals: _currentTrackedDayGoals,

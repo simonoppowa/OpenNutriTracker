@@ -392,6 +392,28 @@ void main() {
       expect(await reconcile(), 0);
       expect(trackedDayBox.get('2026-09-30')!.calorieGoal, 1800);
     });
+
+    test('a stale row that also holds a NaN total is removed by the '
+        'activation repairs, not zeroed and kept', () async {
+      await logAsOlderBuild();
+      // A NaN intake (#1254) also reached the stale row's running total.
+      trackedDayBox.get('2026-10-05')!
+        ..caloriesTracked = double.nan
+        ..carbsTracked = double.nan;
+      await trackedDayBox.get('2026-10-05')!.save();
+
+      // What startup and a profile switch run.
+      await ensureTrackedDaysRepaired(db, ConfigDataSource(db));
+
+      expect(
+        trackedDayBox.containsKey('2026-10-05'),
+        isFalse,
+        reason: 'the 5th lists nothing; a zeroed row would keep its marker',
+      );
+      final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
+      expect(day.row!.caloriesTracked, 200);
+      expect(totalTracked(), 200);
+    });
   });
 
   group('a profile an older build left without any row', () {
