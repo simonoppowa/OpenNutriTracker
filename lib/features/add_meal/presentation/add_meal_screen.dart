@@ -368,6 +368,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           return ErrorDialog(
                             errorText: S.of(context).errorFetchingSearchResults,
                             onRefreshPressed: _onAllSourcesRefreshButtonPressed,
+                            retryIdentifier: 'search-all-retry',
                           );
                         }
                         // Exactly one source failed: the other genuinely has
