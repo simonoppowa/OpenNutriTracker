@@ -32,29 +32,15 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
       (event, emit) => _loadFood(event.searchString, emit),
       transformer: debounceRestartable(searchDebounceDuration),
     );
+    // Retry re-runs the last query through the normal path, so the result
+    // carries the unit preference and provider-failure flag like any other
+    // search. Blank to the spinner first: Retry needs visible feedback even
+    // when the failed results are still on screen.
     on<RefreshFoodEvent>((event, emit) async {
-      if (_searchString.trim().isEmpty) {
-        _completedQuery = null;
-        emit(FoodInitial());
-        return;
+      if (_searchString.trim().length >= minQueryLength) {
+        emit(FoodLoadingState());
       }
-      emit(FoodLoadingState());
-      try {
-        final result = await _searchProductUseCase.searchFDCFoodByString(
-          _searchString,
-        );
-        if (emit.isDone) return;
-        emit(FoodLoadedState(
-          food: result.meals,
-          remoteSourceEmpty: result.remoteSourceEmpty,
-          query: _searchString,
-        ));
-        _completedQuery = _searchString;
-      } catch (error) {
-        log.severe(error);
-        _completedQuery = null;
-        emit(FoodFailedState());
-      }
+      await _loadFood(_searchString, emit, force: true);
     });
   }
 
@@ -93,6 +79,7 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
           food: result.meals,
           usesImperialUnits: config.usesImperialFoodUnits,
           remoteSourceEmpty: result.remoteSourceEmpty,
+          remoteSourceFailed: result.remoteSourceFailed,
           query: searchString,
         ),
       );

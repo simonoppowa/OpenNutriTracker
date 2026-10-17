@@ -550,6 +550,8 @@
   "noResultsSubtitle": "No foods matched that search. Try a different name, scan the barcode, or create your own.",
   "noResultsScanBarcode": "Scan barcode",
   "noResultsCreateCustomFood": "Create custom food",
+  "partialResultsNotice": "One food source didn't respond. Some results might be missing.",
+  "partialResultsAllSourcesDownNotice": "No online food source responded. Showing your saved foods only.",
   "notAvailableLabel": "N/A",
   "nothingAddedLabel": "Nothing added",
   "notificationsDailyReminderBody": "Don't forget to log your meals today!",
