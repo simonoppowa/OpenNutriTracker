@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
@@ -123,6 +125,33 @@ void main() {
       '5 ${l10nEn.proteinLabelShort}';
 
   String headerKcalOnly() => '200 ${l10nEn.kcalLabel}';
+
+  testWidgets('passes macro sort to rows and drag feedback', (tester) async {
+    await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
+      day: DateTime(2026, 1, 1),
+      title: 'Breakfast',
+      listIcon: Icons.bakery_dining_outlined,
+      addMealType: AddMealType.breakfastType,
+      intakeList: intakes,
+      usesImperialUnits: false,
+      showMealMacros: false,
+      sortType: DiarySortType.protein,
+      onDeleteIntakeCallback: (_, _) {},
+    )));
+    await tester.pump();
+    final card = find.byType(IntakeCard);
+    expect(find.text('5.0 g protein'), findsOneWidget);
+    final gesture = await tester.startGesture(tester.getCenter(card));
+    await tester.pump(const Duration(milliseconds: 600));
+    await gesture.moveBy(const Offset(0, 20));
+    await tester.pump();
+    expect(find.text('5.0 g protein'), findsOneWidget);
+    expect(tester.widget<IntakeCard>(find.byType(IntakeCard)).sortType,
+        DiarySortType.protein);
+    await gesture.cancel();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'shows kcal + macro breakdown when showMealMacros is true',
