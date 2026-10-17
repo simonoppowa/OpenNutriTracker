@@ -222,37 +222,30 @@ class CsvDataExporter {
     for (var i = 1; i < rows.length; i++) {
       final row = _zip(header, rows[i]);
       final nutriments = MealNutrimentsDBO(
-        energyKcal100: CsvRowParser.parseDoubleOrNull(row['kcal_per_100g']),
-        carbohydrates100: CsvRowParser.parseDoubleOrNull(row['carbs_per_100g']),
-        fat100: CsvRowParser.parseDoubleOrNull(row['fat_per_100g']),
-        proteins100: CsvRowParser.parseDoubleOrNull(row['protein_per_100g']),
-        sugars100: CsvRowParser.parseDoubleOrNull(row['sugars_per_100g']),
-        saturatedFat100:
-            CsvRowParser.parseDoubleOrNull(row['saturated_fat_per_100g']),
-        fiber100: CsvRowParser.parseDoubleOrNull(row['fiber_per_100g']),
-        monounsaturatedFat100:
-            CsvRowParser.parseDoubleOrNull(row['monounsaturated_fat_per_100g']),
-        polyunsaturatedFat100:
-            CsvRowParser.parseDoubleOrNull(row['polyunsaturated_fat_per_100g']),
-        transFat100: CsvRowParser.parseDoubleOrNull(row['trans_fat_per_100g']),
-        cholesterol100:
-            CsvRowParser.parseDoubleOrNull(row['cholesterol_per_100g']),
-        sodium100: CsvRowParser.parseDoubleOrNull(row['sodium_per_100g']),
-        potassium100: CsvRowParser.parseDoubleOrNull(row['potassium_per_100g']),
-        magnesium100: CsvRowParser.parseDoubleOrNull(row['magnesium_per_100g']),
-        calcium100: CsvRowParser.parseDoubleOrNull(row['calcium_per_100g']),
-        iron100: CsvRowParser.parseDoubleOrNull(row['iron_per_100g']),
-        zinc100: CsvRowParser.parseDoubleOrNull(row['zinc_per_100g']),
-        phosphorus100:
-            CsvRowParser.parseDoubleOrNull(row['phosphorus_per_100g']),
-        vitaminA100: CsvRowParser.parseDoubleOrNull(row['vitamin_a_per_100g']),
-        vitaminC100: CsvRowParser.parseDoubleOrNull(row['vitamin_c_per_100g']),
-        vitaminD100: CsvRowParser.parseDoubleOrNull(row['vitamin_d_per_100g']),
-        vitaminB6100:
-            CsvRowParser.parseDoubleOrNull(row['vitamin_b6_per_100g']),
-        vitaminB12100:
-            CsvRowParser.parseDoubleOrNull(row['vitamin_b12_per_100g']),
-        niacin100: CsvRowParser.parseDoubleOrNull(row['niacin_per_100g']),
+        energyKcal100: _double(row['kcal_per_100g']),
+        carbohydrates100: _double(row['carbs_per_100g']),
+        fat100: _double(row['fat_per_100g']),
+        proteins100: _double(row['protein_per_100g']),
+        sugars100: _double(row['sugars_per_100g']),
+        saturatedFat100: _double(row['saturated_fat_per_100g']),
+        fiber100: _double(row['fiber_per_100g']),
+        monounsaturatedFat100: _double(row['monounsaturated_fat_per_100g']),
+        polyunsaturatedFat100: _double(row['polyunsaturated_fat_per_100g']),
+        transFat100: _double(row['trans_fat_per_100g']),
+        cholesterol100: _double(row['cholesterol_per_100g']),
+        sodium100: _double(row['sodium_per_100g']),
+        potassium100: _double(row['potassium_per_100g']),
+        magnesium100: _double(row['magnesium_per_100g']),
+        calcium100: _double(row['calcium_per_100g']),
+        iron100: _double(row['iron_per_100g']),
+        zinc100: _double(row['zinc_per_100g']),
+        phosphorus100: _double(row['phosphorus_per_100g']),
+        vitaminA100: _double(row['vitamin_a_per_100g']),
+        vitaminC100: _double(row['vitamin_c_per_100g']),
+        vitaminD100: _double(row['vitamin_d_per_100g']),
+        vitaminB6100: _double(row['vitamin_b6_per_100g']),
+        vitaminB12100: _double(row['vitamin_b12_per_100g']),
+        niacin100: _double(row['niacin_per_100g']),
       );
       final meal = MealDBO(
         code: _nullable(row['meal_code']),
@@ -263,21 +256,18 @@ class CsvDataExporter {
         url: _nullable(row['meal_url']),
         mealQuantity: _nullable(row['meal_quantity']),
         mealUnit: _nullable(row['meal_unit']),
-        servingQuantity:
-            CsvRowParser.parseDoubleOrNull(row['meal_serving_quantity']),
+        servingQuantity: _double(row['meal_serving_quantity']),
         servingUnit: _nullable(row['meal_serving_unit']),
         servingSize: _nullable(row['meal_serving_size']),
         source: _parseMealSource(row['meal_source']),
         nutriments: nutriments,
-        dataVersion: CsvRowParser.parseDoubleOrNull(
-          row['meal_data_version'],
-        )?.toInt(),
+        dataVersion: _double(row['meal_data_version'])?.toInt(),
       );
       out.add(
         IntakeDBO(
           id: row['id'] ?? '',
           unit: row['unit'] ?? '',
-          amount: CsvRowParser.parseDoubleOrNull(row['amount']) ?? 0,
+          amount: _double(row['amount']) ?? 0,
           type: _parseIntakeType(row['type']),
           meal: meal,
           dateTime: DateTime.parse(row['date_time'] ?? ''),
@@ -303,21 +293,20 @@ class CsvDataExporter {
         row['activity_code'] ?? '',
         row['specific_activity'] ?? '',
         row['description'] ?? '',
-        CsvRowParser.parseDoubleOrNull(row['mets']) ?? 0,
+        _double(row['mets']) ?? 0,
         tags,
         _parsePhysicalActivityType(row['type']),
       );
       out.add(
         UserActivityDBO(
           row['id'] ?? '',
-          CsvRowParser.parseDoubleOrNull(row['duration']) ?? 0,
-          CsvRowParser.parseDoubleOrNull(row['burned_kcal']) ?? 0,
+          _double(row['duration']) ?? 0,
+          _double(row['burned_kcal']) ?? 0,
           DateTime.parse(row['date'] ?? ''),
           pa,
-          userKcal: CsvRowParser.parseDoubleOrNull(row['user_kcal']),
+          userKcal: _double(row['user_kcal']),
           externalId: _nullable(row['external_id']),
-          sourceReportedKcal:
-              CsvRowParser.parseDoubleOrNull(row['source_reported_kcal']),
+          sourceReportedKcal: _double(row['source_reported_kcal']),
         ),
       );
     }
@@ -335,15 +324,14 @@ class CsvDataExporter {
       out.add(
         TrackedDayDBO(
           day: DateTime.parse(row['day'] ?? ''),
-          calorieGoal: CsvRowParser.parseDoubleOrNull(row['calorie_goal']) ?? 0,
-          caloriesTracked:
-              CsvRowParser.parseDoubleOrNull(row['calories_tracked']) ?? 0,
-          carbsGoal: CsvRowParser.parseDoubleOrNull(row['carbs_goal']),
-          carbsTracked: CsvRowParser.parseDoubleOrNull(row['carbs_tracked']),
-          fatGoal: CsvRowParser.parseDoubleOrNull(row['fat_goal']),
-          fatTracked: CsvRowParser.parseDoubleOrNull(row['fat_tracked']),
-          proteinGoal: CsvRowParser.parseDoubleOrNull(row['protein_goal']),
-          proteinTracked: CsvRowParser.parseDoubleOrNull(row['protein_tracked']),
+          calorieGoal: _double(row['calorie_goal']) ?? 0,
+          caloriesTracked: _double(row['calories_tracked']) ?? 0,
+          carbsGoal: _double(row['carbs_goal']),
+          carbsTracked: _double(row['carbs_tracked']),
+          fatGoal: _double(row['fat_goal']),
+          fatTracked: _double(row['fat_tracked']),
+          proteinGoal: _double(row['protein_goal']),
+          proteinTracked: _double(row['protein_tracked']),
         ),
       );
     }
@@ -382,10 +370,11 @@ class CsvDataExporter {
     return '"$escaped"';
   }
 
-  /// Render a nullable numeric cell. Null and NaN become empty so the
-  /// importer can round-trip them back to null via parseDoubleOrNull.
+  /// Render a nullable numeric cell. Null and non-finite values (NaN, and
+  /// an infinity a build before [_double] could store) become empty, so
+  /// the importer reads them back as null instead of refusing the file.
   static String _num(double? value) {
-    if (value == null || value.isNaN) return '';
+    if (value == null || !value.isFinite) return '';
     // Drop trailing `.0` for whole numbers so the CSV is easier to read
     // in a spreadsheet — `1.0` becomes `1` — without losing precision
     // (parseDoubleOrNull happily accepts either form).
@@ -393,6 +382,19 @@ class CsvDataExporter {
       return value.toInt().toString();
     }
     return value.toString();
+  }
+
+  /// [CsvRowParser.parseDoubleOrNull], but a value that parses to a
+  /// non-finite number (`Infinity`, `NaN`) is an error rather than a
+  /// number: Dart parses those words, yet no export writes them, and
+  /// stored on the device one would make the next JSON export throw. The
+  /// import rejects the whole archive for it, before writing anything.
+  static double? _double(String? raw) {
+    final value = CsvRowParser.parseDoubleOrNull(raw);
+    if (value != null && !value.isFinite) {
+      throw FormatException('Not a finite number', raw);
+    }
+    return value;
   }
 
   static String? _nullable(String? cell) {

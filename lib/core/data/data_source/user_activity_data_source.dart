@@ -21,18 +21,47 @@ class UserActivityDataSource {
   /// Upserts by [UserActivityDBO.id]: an activity whose id is already
   /// stored replaces it, so importing a bundle twice leaves one copy
   /// (#1357). Where a bundle holds an id twice the last row wins — the old
-  /// edit deleted the first copy and appended the edited one. A blank id
-  /// is no identity: that row is always added.
+  /// edit deleted the first copy and appended the edited one. A row with a
+  /// blank id gets one derived from its content first ([withContentIds]).
   Future<void> upsertAllUserActivities(
     List<UserActivityDBO> userActivityDBOList,
   ) async {
     log.fine('Upserting user activities into db');
     await _userActivityBox.upsertAllBy(
-      userActivityDBOList,
-      (dbo) => dbo.id.isEmpty ? null : dbo.id,
+      withContentIds(
+        userActivityDBOList,
+        idOf: (dbo) => dbo.id,
+        contentOf: _contentOf,
+        withId: (dbo, id) => UserActivityDBO(
+          id,
+          dbo.duration,
+          dbo.burnedKcal,
+          dbo.date,
+          dbo.physicalActivityDBO,
+          userKcal: dbo.userKcal,
+          externalId: dbo.externalId,
+          sourceReportedKcal: dbo.sourceReportedKcal,
+        ),
+      ),
+      (dbo) => isBlankId(dbo.id) ? null : dbo.id,
       winner: UpsertWinner.last,
     );
   }
+
+  /// What a blank-id activity's derived id is made of: when, which
+  /// activity, for how long and for how many kcal. These fields are in
+  /// every export ever written; the optional ones added later (`userKcal`,
+  /// `externalId`, `sourceReportedKcal`) are left out so a backup reads
+  /// the same before and after them. Changing this list moves every
+  /// derived id, and re-importing an old backup would then duplicate its
+  /// blank-id rows.
+  static List<String?> _contentOf(UserActivityDBO dbo) => [
+    dbo.date.toIso8601String(),
+    dbo.physicalActivityDBO.code,
+    dbo.physicalActivityDBO.specificActivity,
+    contentNumber(dbo.duration),
+    contentNumber(dbo.burnedKcal),
+  ];
 
   /// Rewrites every stored copy of [id], so an install the old import
   /// doubled (#1357) ends up with copies that agree. The fields an edit
