@@ -550,6 +550,7 @@
   "noResultsSubtitle": "No foods matched that search. Try a different name, scan the barcode, or create your own.",
   "noResultsScanBarcode": "Scan barcode",
   "noResultsCreateCustomFood": "Create custom food",
+  "noResultsSearchAll": "Search all",
   "notAvailableLabel": "N/A",
   "nothingAddedLabel": "Nothing added",
   "notificationsDailyReminderBody": "Don't forget to log your meals today!",
