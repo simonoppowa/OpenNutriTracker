@@ -161,7 +161,7 @@ class DayInfoWidget extends StatelessWidget {
               usesImperialUnits: usesImperialUnits,
               trackedDayEntity: trackedDayEntity,
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 48.0),
           ],
         )
       ],
