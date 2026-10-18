@@ -34,6 +34,7 @@ import 'package:opennutritracker/core/data/repository/user_activity_repository.d
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
@@ -325,4 +326,121 @@ void main() {
 
     expect(archive.findFile(ExportImportBloc.favouriteJsonFileName), isNull);
   });
+
+  Future<Archive> exportFrom(FavouriteMealRepository favourites) =>
+      ExportDataUsecase(
+        _EmptyUserActivityRepository(),
+        _EmptyIntakeRepository(),
+        _EmptyTrackedDayRepository(),
+        _EmptyRecipeRepository(),
+        _EmptyCustomMealDataSource(),
+        _EmptyWeightLogRepository(),
+        _EmptyTemplateRepository(),
+        _EmptyConfigRepository(),
+        favourites,
+      ).assembleArchive(
+        format: ExportFormat.json,
+        userActivityJsonFileName: ExportImportBloc.userActivityJsonFileName,
+        userIntakeJsonFileName: ExportImportBloc.userIntakeJsonFileName,
+        trackedDayJsonFileName: ExportImportBloc.trackedDayJsonFileName,
+        recipeJsonFileName: ExportImportBloc.recipeJsonFileName,
+        weightLogJsonFileName: ExportImportBloc.weightLogJsonFileName,
+        customActivityTemplateJsonFileName:
+            ExportImportBloc.customActivityTemplateJsonFileName,
+        favouriteJsonFileName: ExportImportBloc.favouriteJsonFileName,
+      );
+
+  Future<bool> importInto(
+    FavouriteMealRepository favourites,
+    File zip, {
+    UserActivityRepository? activities,
+  }) => ImportDataUsecase(
+    activities ?? _EmptyUserActivityRepository(),
+    _EmptyIntakeRepository(),
+    _EmptyTrackedDayRepository(),
+    _EmptyRecipeRepository(),
+    _EmptyWeightLogRepository(),
+    _EmptyTemplateRepository(),
+    _EmptyConfigRepository(),
+    favourites,
+    pickFile: () async => _PickedFile('backup.zip', zip.uri),
+  ).importData(
+    ExportImportBloc.userActivityJsonFileName,
+    ExportImportBloc.userIntakeJsonFileName,
+    ExportImportBloc.trackedDayJsonFileName,
+    ExportImportBloc.recipeJsonFileName,
+    ExportImportBloc.weightLogJsonFileName,
+    ExportImportBloc.customActivityTemplateJsonFileName,
+    favouriteJsonFileName: ExportImportBloc.favouriteJsonFileName,
+  );
+
+  test('importing the same bundle again keeps one entry per food', () async {
+    final exporting = repositoryOver(sourceBox);
+    await exporting.addFavourite(
+      _meal('3017620422003', 'Nutella', MealSourceEntity.off),
+    );
+    await exporting.addFavourite(
+      _meal('c1', 'Lunchbox', MealSourceEntity.custom),
+    );
+    final zip = File('${tempRoot.path}/backup.zip')
+      ..writeAsBytesSync(ZipEncoder().encode(await exportFrom(exporting)));
+
+    // Back onto the install the bundle came from, twice.
+    expect(await importInto(exporting, zip), isTrue);
+    expect(await importInto(exporting, zip), isTrue);
+    expect(sourceBox.keys, unorderedEquals(['off:3017620422003', 'custom:c1']));
+
+    // Onto one that already stars one of the foods, and another the bundle
+    // lacks, which stays.
+    final importing = repositoryOver(targetBox);
+    await importing.addFavourite(
+      _meal('3017620422003', 'Nutella', MealSourceEntity.off),
+    );
+    await importing.addFavourite(_meal('9', 'Pear', MealSourceEntity.fdc));
+    expect(await importInto(importing, zip), isTrue);
+    expect(await importInto(importing, zip), isTrue);
+    expect(
+      targetBox.keys,
+      unorderedEquals(['off:3017620422003', 'custom:c1', 'fdc:9']),
+    );
+    expect(await importing.getAllFavourites(), hasLength(3));
+  });
+
+  test(
+    'a malformed favourites file rejects the zip before anything is written',
+    () async {
+      final importing = repositoryOver(targetBox);
+      await importing.addFavourite(_meal('9', 'Pear', MealSourceEntity.fdc));
+      final archive = await exportFrom(repositoryOver(sourceBox));
+      final bad = utf8.encode('[{"meal": "not a meal"}]');
+      archive.addFile(
+        ArchiveFile(ExportImportBloc.favouriteJsonFileName, bad.length, bad),
+      );
+      final zip = File('${tempRoot.path}/backup.zip')
+        ..writeAsBytesSync(ZipEncoder().encode(archive));
+      final activities = _RecordingUserActivityRepository();
+
+      await expectLater(
+        importInto(importing, zip, activities: activities),
+        throwsA(
+          isA<ExportImportFailure>().having(
+            (f) => f.reason,
+            'reason',
+            ExportImportFailureReason.unreadableOrWrongFormat,
+          ),
+        ),
+      );
+      expect(activities.writes, 0);
+      expect(targetBox.keys, ['fdc:9']);
+    },
+  );
+}
+
+class _RecordingUserActivityRepository extends _EmptyUserActivityRepository {
+  int writes = 0;
+
+  @override
+  Future<void> upsertAllUserActivityDBOs(List<UserActivityDBO> dbos) async {
+    writes++;
+  }
 }
