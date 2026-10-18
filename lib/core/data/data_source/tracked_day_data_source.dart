@@ -245,6 +245,15 @@ class TrackedDayDataSource {
   // default reference". Units follow the convention documented on
   // TrackedDayDBO: g for fibre/satFat/sugars; mg for sodium, calcium,
   // iron, potassium, magnesium, B12; µg for vitamin D.
+  //
+  // [clearAll] (#1349): by default null means "leave this column
+  // untouched" — needed for callers that only ever send a partial
+  // delta. A caller that always holds a *complete* snapshot of every
+  // field (e.g. a form screen that loads all ten values up front) has
+  // no way to express "write null here" with that contract — Reset +
+  // Save could never actually clear a custom goal back to the
+  // default. When true, every argument is written verbatim, nulls
+  // included, bypassing the per-field null-skip below.
   Future<void> updateDayNutrientGoals(
     DateTime day, {
     double? fibreGoal,
@@ -257,10 +266,25 @@ class TrackedDayDataSource {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async {
     log.fine('Updating tracked day nutrient goals');
     final updateDay = await getTrackedDay(day);
     if (updateDay != null) {
+      if (clearAll) {
+        updateDay.fibreGoal = fibreGoal;
+        updateDay.satFatGoal = satFatGoal;
+        updateDay.sugarsGoal = sugarsGoal;
+        updateDay.sodiumGoal = sodiumGoal;
+        updateDay.calciumGoal = calciumGoal;
+        updateDay.ironGoal = ironGoal;
+        updateDay.potassiumGoal = potassiumGoal;
+        updateDay.vitaminDGoal = vitaminDGoal;
+        updateDay.vitaminB12Goal = vitaminB12Goal;
+        updateDay.magnesiumGoal = magnesiumGoal;
+        await updateDay.save();
+        return;
+      }
       if (fibreGoal != null) {
         updateDay.fibreGoal = fibreGoal;
       }

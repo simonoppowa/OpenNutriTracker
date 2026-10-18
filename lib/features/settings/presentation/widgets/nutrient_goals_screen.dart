@@ -276,6 +276,13 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
       magnesiumGoal: _magnesium,
       vitaminDGoal: _vitaminD,
       vitaminB12Goal: _vitaminB12,
+      // This screen always holds a complete snapshot of every field
+      // (loaded from disk, then patched by edits/Reset), never a
+      // partial delta — so every value here, including a null left
+      // by Reset, should be written as-is. See the data-source doc
+      // comment on updateDayNutrientGoals for why this needs to
+      // bypass the default null-means-untouched contract (#1349).
+      clearAll: true,
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
