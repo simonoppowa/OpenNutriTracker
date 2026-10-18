@@ -15,6 +15,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/vertical_list_popup_menu_selections.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
@@ -420,13 +421,17 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
   }
 
   Future<void> _onItemDropped(IntakeEntity entity) async {
-    // Both writes can wait for the tracked-day lock (#1317), so the
-    // refreshes below wait for them: otherwise Home could reload with the
-    // moved entry in both meals.
-    await _mealDetailBloc.addIntake(context, entity.unit,
-        entity.amount.toString(), widget.addMealType.getIntakeType(),
-        entity.meal, entity.dateTime);
-    await _homeBloc.deleteIntakeItem(entity);
+    // One move under one tracked-day lock (#1317): taken apart, a profile
+    // switch queued during the add could run before the delete, which
+    // would then debit the incoming profile and leave the outgoing one
+    // with the entry in both meals. The refreshes below wait for both,
+    // so Home does not reload with the entry in both meals either.
+    await withTrackedDayLock(() async {
+      await _mealDetailBloc.addIntake(context, entity.unit,
+          entity.amount.toString(), widget.addMealType.getIntakeType(),
+          entity.meal, entity.dateTime);
+      await _homeBloc.deleteIntakeItem(entity);
+    });
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());
