@@ -17,3 +17,11 @@ class LoadTrendsEvent extends TrendsEvent {
   @override
   List<Object?> get props => [rangeDays];
 }
+
+/// Reloads with the range of the last [LoadTrendsEvent]. For callers outside
+/// the page that changed something Trends reads — a goal, a setting, a
+/// weight entry. Does nothing before the page's first load, which reads
+/// fresh data anyway.
+class RefreshTrendsEvent extends TrendsEvent {
+  const RefreshTrendsEvent();
+}

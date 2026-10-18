@@ -48,7 +48,7 @@ class LogUserActivityUsecase {
       final kcalGoal = await _getKcalGoalUsecase.getKcalGoal(
         totalKcalActivitiesParam: 0,
       );
-      await _addTrackedDayUsecase.addNewTrackedDay(
+      await _addTrackedDayUsecase.addNewTrackedDayIfAbsent(
         day,
         kcalGoal,
         await _getMacroGoalUsecase.getCarbsGoal(kcalGoal),
