@@ -17,6 +17,7 @@ import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
@@ -180,8 +181,10 @@ void main() {
     credentials = AiCredentialStorage(backing);
     sut = DeleteAllUserDataUsecase(
       provider,
-      _SilentNotificationService(),
-      ConfigRepository(ConfigDataSource(provider)),
+      DailyReminderScheduler(
+        ConfigRepository(ConfigDataSource(provider)),
+        _SilentNotificationService(),
+      ),
       credentials,
     );
   });
@@ -228,8 +231,10 @@ void main() {
     final export = _FakeExportMealIntakeUsecase(provider.intake);
     final wipe = DeleteAllUserDataUsecase(
       provider,
-      _SilentNotificationService(),
-      ConfigRepository(ConfigDataSource(provider)),
+      DailyReminderScheduler(
+        ConfigRepository(ConfigDataSource(provider)),
+        _SilentNotificationService(),
+      ),
       credentials,
       export,
     );

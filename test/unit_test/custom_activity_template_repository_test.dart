@@ -123,9 +123,9 @@ void main() {
       expect(templates.map((t) => t.name).toList(), equals(['Yoga class']));
     });
 
-    test('addAllTemplateDBOs round-trips through the import path', () async {
+    test('upsertAllTemplateDBOs round-trips through the import path', () async {
       // The export bundle writes raw DBOs to JSON. The matching import
-      // path adds them back via addAllTemplateDBOs, so a user moving
+      // path adds them back via upsertAllTemplateDBOs, so a user moving
       // between devices keeps their saved templates intact.
       final box = await Hive.openBox<CustomActivityTemplateDBO>(
         'template_test',
@@ -144,7 +144,7 @@ void main() {
         ),
       ];
 
-      await repo.addAllTemplateDBOs(imported);
+      await repo.upsertAllTemplateDBOs(imported);
 
       final templates = await repo.allTemplates();
       expect(templates, hasLength(2));

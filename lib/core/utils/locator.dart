@@ -87,6 +87,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_phot
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
@@ -190,8 +191,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
     () => DeleteAllUserDataUsecase(
       locator(),
-      locator(),
-      locator(),
+      locator<DailyReminderScheduler>(),
       locator<AiCredentialStorage>(),
       locator<ExportMealIntakeUsecase>(),
     ),
@@ -212,6 +212,12 @@ Future<void> initLocator() async {
   // Notification service (#312)
   locator.registerLazySingleton<NotificationService>(
     () => NotificationService(),
+  );
+  locator.registerLazySingleton<DailyReminderScheduler>(
+    () => DailyReminderScheduler(
+      locator<ConfigRepository>(),
+      locator<NotificationService>(),
+    ),
   );
 
   // Cache manager
@@ -293,6 +299,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(), // SettingsBloc: today's goals after an import (#1363)
     ),
   );
   // Lazy singleton: shared between RecipesPage's Custom Meals tab and the
@@ -414,7 +421,7 @@ Future<void> initLocator() async {
     () => ExportMealIntakeUsecase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
-    () => GetIntakeUsecase(locator()),
+    () => GetIntakeUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<AddIntakeUsecase>(
     () => AddIntakeUsecase(locator(), locator()),
@@ -503,10 +510,12 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
     ),
   );
   locator.registerLazySingleton(
     () => ImportDataUsecase(
+      locator(),
       locator(),
       locator(),
       locator(),

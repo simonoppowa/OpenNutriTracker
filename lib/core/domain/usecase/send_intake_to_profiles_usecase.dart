@@ -115,7 +115,7 @@ class SendIntakeToProfilesUsecase {
         final day = copy.dateTime;
         if (!await addTrackedDay.hasTrackedDay(day)) {
           final kcalGoal = await getKcalGoal.getKcalGoal();
-          await addTrackedDay.addNewTrackedDay(
+          await addTrackedDay.addNewTrackedDayIfAbsent(
             day,
             kcalGoal,
             await getMacroGoal.getCarbsGoal(kcalGoal),

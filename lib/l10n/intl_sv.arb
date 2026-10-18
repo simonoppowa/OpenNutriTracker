@@ -1,10 +1,10 @@
 {
-  "activityExample": "t.ex. löpning, cykling, yoga ...",
+  "activityExample": "t.ex. löpning, cykling, yoga …",
   "activityLabel": "Aktivitet",
-  "addItemLabel": "Lägg till:",
+  "addItemLabel": "Lägg till ny post:",
   "addLabel": "Lägg till",
-  "additionalInfoLabelCompendium2011": "Information tillhandahållen\nav\n'Kompendium av\nFysisk Aktivitet 2024'",
-  "additionalInfoLabelCustom": "Egen mat",
+  "additionalInfoLabelCompendium2011": "Uppgifter från\n'2024 Compendium\nof Physical Activities'",
+  "additionalInfoLabelCustom": "Eget livsmedel",
   "additionalInfoLabelFDC": "Mer information på\nFoodData Central",
   "additionalInfoLabelSource": "Mer information på\n{sourceName}",
   "@additionalInfoLabelSource": {
@@ -15,5 +15,1645 @@
     }
   },
   "foodSourcesAlwaysEnabledLabel": "Alltid aktiverad",
-  "foodSourcesHelpText": "Sökresultat kommer från dessa livsmedelsdatabaser. Open Food Facts driver produkten och streckkodsökningen och är alltid aktiverad."
+  "foodSourcesHelpText": "Sökresultaten hämtas från dessa livsmedelsdatabaser. Open Food Facts används för produkt- och streckkodssökning och är alltid aktiverad.",
+  "machineTranslatedNameHint": "Namnet har översatts automatiskt",
+  "measureUnitBar": "{count, plural, one{bar} other{bars}}",
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitBottle": "{count, plural, one{flaska} other{flaskor}}",
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCan": "{count, plural, one{burk} other{burkar}}",
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCup": "{count, plural, one{cup} other{cups}}",
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitEgg": "{count, plural, one{ägg} other{ägg}}",
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPackage": "{count, plural, one{förpackning} other{förpackningar}}",
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPiece": "{count, plural, one{styck} other{stycken}}",
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPortion": "{count, plural, one{portion} other{portioner}}",
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitServing": "{count, plural, one{portion} other{portioner}}",
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitSlice": "{count, plural, one{skiva} other{skivor}}",
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTablespoon": "{count, plural, one{matsked} other{matskedar}}",
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTeaspoon": "{count, plural, one{tesked} other{teskedar}}",
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "settingsFoodSourcesLabel": "Livsmedelsdatabaser",
+  "settingsFoodSourcesSubtitle": "Välj vilka källor som används vid livsmedelssökning",
+  "onboardingOtherOptionsLabel": "Övriga alternativ",
+  "onboardingOtherOptionsSubtitle": "Anpassa appen – du kan ändra allt senare i inställningarna",
+  "additionalInfoLabelOFF": "Mer information på\nOpen Food Facts",
+  "additionalInfoLabelRecipe": "Eget recept",
+  "additionalInfoLabelUnknown": "Okänt livsmedel",
+  "ageLabel": "Ålder",
+  "allItemsLabel": "Alla",
+  "alphaVersionName": "[Alfa]",
+  "appDescription": "OpenNutriTracker är en kostnadsfri app med öppen källkod som hjälper dig att följa ditt kalori- och näringsintag och respekterar din integritet.",
+  "appLicenseLabel": "GPL-3.0-licens",
+  "appTitle": "OpenNutriTracker",
+  "appVersionName": "Version {versionNumber}",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "barcodeInvalidEan13CheckDigit": "Den här 13-siffriga streckkoden verkar vara felskriven: den sista siffran stämmer inte med resten",
+  "baseQuantityLabel": "Näringsvärden anges per",
+  "bmiInfo": "Kroppsmasseindex (BMI) är ett mått som används för att klassificera övervikt och fetma hos vuxna. Det beräknas genom att vikten i kilogram delas med längden i meter i kvadrat (kg/m²).\n\nBMI skiljer inte mellan fett- och muskelmassa och kan vara missvisande för vissa personer.",
+  "bmiInfoClassificationSection": "WHO:s klassificering",
+  "bmiInfoFormulaSection": "Formel",
+  "bmiInfoScreenTitle": "Så beräknas ditt BMI",
+  "bmiLabel": "BMI",
+  "breakfastExample": "t.ex. flingor, mjölk, kaffe …",
+  "breakfastLabel": "Frukost",
+  "burnedLabel": "förbränt",
+  "buttonNextLabel": "NÄSTA",
+  "buttonResetLabel": "Återställ",
+  "buttonSaveLabel": "Spara",
+  "buttonStartLabel": "STARTA",
+  "buttonYesLabel": "JA",
+  "calciumLabel": "kalcium",
+  "calculationsMacronutrientsDistributionLabel": "Fördelning av makronäringsämnen",
+  "calculationsMacrosDistribution": "{pctCarbs} % kolhydrater, {pctFats} % fett, {pctProteins} % protein",
+  "@calculationsMacrosDistribution": {
+    "placeholders": {
+      "pctCarbs": {},
+      "pctFats": {},
+      "pctProteins": {}
+    }
+  },
+  "calculationsRecommendedLabel": "(rekommenderas)",
+  "calculationsTDEEIOM2006Label": "Ekvation från Institute of Medicine (2005)",
+  "calculationsTDEELabel": "Ekvation för total daglig energiförbrukning (TDEE)",
+  "caloriesProfileAveragedLabel": "Genomsnitt av referensvärdena (standard)",
+  "caloriesProfileEstrogenTypicalLabel": "Referensvärde för typisk östrogenprofil",
+  "caloriesProfileInfoBody": "Det finns inget publicerat grundvärde för kaloribehov hos icke-binära personer – referensekvationerna bygger på grupper av män respektive kvinnor. Som standard använder vi ett genomsnitt av de två, en neutral utgångspunkt som inte kräver att du lämnar fler uppgifter om din kropp. Du kan alltid finjustera värdet med kcal-reglaget i inställningarna. Det är en utgångspunkt, ingen exakt uppskattning.",
+  "caloriesProfileInfoTitle": "Referensvärde för kaloribehov",
+  "caloriesProfileTestosteroneTypicalLabel": "Referensvärde för typisk testosteronprofil",
+  "carbohydrateLabel": "kolhydrater",
+  "carbsLabel": "kolhydrater",
+  "carbsLabelShort": "k",
+  "cholesterolLabel": "kolesterol",
+  "chooseWeeklyWeightGoalLabel": "Viktförändring per vecka",
+  "chooseWeightGoalLabel": "Välj viktmål",
+  "clearOffCacheConfirmContent": "Tar bort lokalt cachelagrade sök- och skanningsresultat från Open Food Facts och FDC. Cachen byggs automatiskt upp igen när du söker efter och skannar produkter. Dina egna livsmedel påverkas inte.",
+  "clearOffCacheConfirmTitle": "Rensa cachelagrade poster?",
+  "clearOffCacheLabel": "Rensa cachelagrade poster",
+  "clearOffCacheSubtitle": "Antal poster: {count} · {size}",
+  "@clearOffCacheSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "cmLabel": "cm",
+  "codeCopiedLabel": "Koden har kopierats",
+  "copyCodeLabel": "Kopiera kod",
+  "copyDialogTitle": "Vilken måltidstyp vill du kopiera till?",
+  "copyOrDeleteTimeDialogContent": "Med ”Kopiera till i dag” kan du kopiera måltiden till dagens datum. Med ”RADERA” kan du radera måltiden.",
+  "copyOrDeleteTimeDialogTitle": "Vad vill du göra?",
+  "createCustomDialogContent": "Vill du skapa ett eget livsmedel?",
+  "createCustomDialogTitle": "Skapa eget livsmedel?",
+  "createRecipeTitle": "Skapa recept",
+  "csvImportContributeOffAndroidLink": "Android",
+  "csvImportContributeOffIosLink": "iOS",
+  "csvImportContributeOffPrefix": "Har du en streckkod? Hjälp andra genom att lägga till produkten i Open Food Facts:",
+  "csvImportErrorLabel": "Kunde inte läsa CSV-filen. Kontrollera formatet och försök igen.",
+  "csvImportPartialLabel": "Importerade livsmedel: {imported}. Överhoppade rader på grund av ogiltiga data: {skipped}.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "csvImportSuccessLabel": "Importerade livsmedel: {count}.",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customActivityDescription": "Ange förbrända kalorier direkt för träningspass som saknas i listan eller för värden från en aktivitetsmätare",
+  "customActivityDescriptionKj": "Ange förbränd energi i kilojoule direkt för träningspass som saknas i listan eller för värden från en aktivitetsmätare",
+  "customActivityKcalHint": "t.ex. 250",
+  "customActivityKcalLabel": "Förbrända kalorier",
+  "customActivityName": "Egen aktivitet",
+  "customActivityNameFieldHint": "t.ex. Cykeltur hem från jobbet",
+  "customActivityNameFieldLabel": "Namn (valfritt)",
+  "customActivityPickFromTemplate": "Välj bland sparade mallar",
+  "customActivitySaveAsTemplate": "Spara som mall till nästa gång",
+  "customActivityTemplatesEmpty": "Du har inte sparat några mallar ännu. Markera ”Spara som mall till nästa gång” för att spara en egen aktivitet för senare användning.",
+  "customMealBarcodeHint": "Skanna eller skriv en streckkod för att hitta det här livsmedlet igen senare",
+  "customMealBarcodeInvalid": "Streckkoden måste bestå av 8 till 14 siffror",
+  "customMealBarcodeLabel": "Streckkod",
+  "customMealBarcodeScanButton": "Skanna streckkod",
+  "customMealFormAdvanced": "Avancerat",
+  "customMealFormAdvancedHelp": "Ange storlekar och värden per 100 enheter för exakt omräkning.",
+  "customMealFormModeLabel": "Formulärvy",
+  "customMealFormSimple": "Enkelt",
+  "customMealFormSimpleHelp": "Ange totalvärdena för en portion.",
+  "customMealFormSimpleFieldHelper": "{unit} i en portion",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsDeleteConfirmContent": "Alla dagboksposter som använder det här livsmedlet tas också bort.",
+  "customMealsDeleteConfirmTitle": "Radera eget livsmedel?",
+  "customMealsEmptyLabel": "Inga egna livsmedel har sparats ännu.",
+  "dailyKcalAdjustmentLabel": "Daglig justering i kcal:",
+  "dailyKjAdjustmentLabel": "Daglig justering i kJ:",
+  "dataCollectionLabel": "Skicka kraschrapporter för att hjälpa till att åtgärda fel. Inga uppgifter om dina måltider eller din vikt ingår.",
+  "deleteAllLabel": "Radera allt",
+  "settingsDeleteAllDataLabel": "Återställ profildata",
+  "settingsDeleteAllDataSubtitle": "Profil, måltider, aktiviteter, vikthistorik och fasteperioder",
+  "settingsDeleteAllDataConfirmTitle": "Återställa profildata?",
+  "settingsDeleteAllDataConfirmContent": "Detta tar bort profil, måltider, aktiviteter, vikthistorik och fasteperioder endast för den aktuella profilen. Även eventuell nyckel till AI-leverantören och serveradress tas bort. Dessa delas av alla profiler på den här enheten. Gemensamt innehåll (egna livsmedel, recept och aktivitetsmallar) samt katalogerna från Open Food Facts och USDA Food Data Central påverkas inte. Detta kan inte ångras.",
+  "policyChangeNoticeTitle": "Vi har uppdaterat integritetspolicyn",
+  "policyChangeNoticeBody": "Appens funktioner har inte ändrats. Vi har däremot blivit tydligare med hur de fungerar.\n\nTjänsterna som alltid har tagit emot dina sökningar namnges nu. Ett nytt avsnitt om hälsodata beskriver importen av träningspass som du kan aktivera. Vi informerar nu också om den ungefärliga plats som vår server för livsmedelssökning registrerar tillsammans med en förfrågan och sparar i 24 timmar.\n\nDin dagbok stannar på din enhet, precis som tidigare.",
+  "policyChangeNoticeReadAction": "Läs policyn",
+  "policyChangeNoticeDismissAction": "Jag förstår",
+  "settingsDeleteAllDataConfirmAction": "Återställ profil",
+  "lowKcalWarningTitle": "Det här dagsmålet är ganska lågt",
+  "lowKcalWarningBody": "De flesta vuxna bör inte äta mindre än {threshold} kcal per dag under någon längre tid utan medicinsk vägledning. Överväg att prata med hälso- och sjukvårdspersonal innan du fortsätter med ett så lågt mål.",
+  "@lowKcalWarningBody": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "lowKcalWarningViewDisclaimer": "Visa ansvarsfriskrivning",
+  "deleteSelectedRecipesConfirmTitle": "Radera {count} recept?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteTimeDialogContent": "Vill du radera den valda posten?",
+  "deleteTimeDialogPluralContent": "Vill du radera alla poster i den här måltiden?",
+  "deleteTimeDialogPluralTitle": "Radera poster?",
+  "deleteTimeDialogTitle": "Radera post?",
+  "dialogCancelLabel": "AVBRYT",
+  "dialogCopyLabel": "Kopiera till i dag",
+  "dialogDeleteLabel": "RADERA",
+  "dialogOKLabel": "OK",
+  "diaryFutureDateWarning": "Du redigerar ett framtida datum",
+  "diaryLabel": "Dagbok",
+  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "@diaryMealKcalConsumedOfTarget": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "diaryNutrientPanelDataDisclaimer": "Här summeras endast näringsämnen som har registrerats för dina måltider. Om ett värde saknas för en måltid räknas den inte med för det näringsämnet. Summorna kan därför vara för låga.",
+  "diaryNutrientPanelTitle": "Dagens näringsintag",
+  "driPanelInfoTitle": "Referensintag",
+  "driPanelInfoBody": "Dessa referensvärden kommer från IOM:s Dietary Reference Intakes för vuxna och varierar med ålder och kön. De är jämförelsevärden, inte mål – dina egna behov kan vara annorlunda.",
+  "driPanelInfoLinkLabel": "Källa: IOM Dietary Reference Intakes",
+  "driPanelReferenceLabel": "ref. {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diarySortByCarbs": "Kolhydrater (mest först)",
+  "diarySortByFat": "Fett (mest först)",
+  "diarySortByKcal": "Kalorier (flest först)",
+  "diarySortByLabel": "Sortera efter",
+  "diarySortByProtein": "Protein (mest först)",
+  "diarySortByTime": "Tidpunkt då posten lades till",
+  "dinnerExample": "t.ex. soppa, kyckling, vin …",
+  "dinnerLabel": "Middag",
+  "discardChangesConfirmLabel": "Förkasta",
+  "discardChangesContent": "Dina osparade ändringar går förlorade.",
+  "discardChangesTitle": "Förkasta ändringar?",
+  "disclaimerAcknowledgeLabel": "Jag förstår",
+  "disclaimerText": "OpenNutriTracker är inte en medicinsk app. Uppgifterna som tillhandahålls är inte validerade och bör användas med försiktighet. Eftersträva en hälsosam livsstil och kontakta hälso- och sjukvårdspersonal om du har problem. Användning vid sjukdom, graviditet eller amning rekommenderas inte. Tryck på informationsikonen på startsidan eller profilsidan för att se de vetenskapligt granskade källorna bakom varje beräkning.",
+  "downloadSampleCsvAction": "Exempellivsmedel (csv)",
+  "downloadSampleJsonAction": "Exempellivsmedel (json)",
+  "downloadSampleRecipesCsvAction": "Exempelrecept (csv)",
+  "downloadSampleRecipesJsonAction": "Exempelrecept (json)",
+  "duplicateMealDialogContent": "Det här livsmedlet har redan lagts till i den här måltiden i dag. Vill du lägga till det igen?",
+  "duplicateRecipeLabel": "Duplicera",
+  "duplicateRecipeNameSuffix": "(kopia)",
+  "editItemDialogTitle": "Redigera post",
+  "editMealLabel": "Redigera måltid",
+  "editRecipeTitle": "Redigera recept",
+  "energyLabel": "energi",
+  "energyLeftLabel": "kvar",
+  "energyTooMuchLabel": "för mycket",
+  "energyUnitKcalLabel": "Kilokalorier (kcal)",
+  "energyUnitKjLabel": "Kilojoule (kJ)",
+  "errorFetchingProductData": "Kunde inte hämta produktuppgifter",
+  "errorLoadingActivities": "Kunde inte läsa in aktiviteter",
+  "errorMealSave": "Kunde inte spara måltiden. Har du angett rätt måltidsuppgifter?",
+  "errorOpeningBrowser": "Kunde inte öppna webbläsaren",
+  "errorOpeningEmail": "Kunde inte öppna e-postappen",
+  "errorProductNotFound": "Produkten hittades inte",
+  "exportAction": "Exportera",
+  "exportImportAppDataLabel": "Exportera/importera appdata",
+  "exportImportCsvRecipesNote": "CSV bevarar dina aktiviteter, din måltidslogg och dina registrerade dagar. Recept och bifogade foton kan bara sparas i JSON-format – välj JSON om du vill ha med dem i säkerhetskopian.",
+  "exportImportDescription": "Du kan exportera appdata till en zip-fil och importera dem senare. Det är användbart om du vill säkerhetskopiera dina data eller flytta dem till en annan enhet.\n\nAppen använder ingen molntjänst för att lagra dina data.",
+  "exportImportErrorLabel": "Exporten/importen misslyckades",
+  "exportImportErrorUnreadableLabel": "Den valda filen kunde inte läsas. Välj säkerhetskopian i zip-format som exporterades från OpenNutriTracker.",
+  "exportImportErrorWriteFailedLabel": "Filen kunde inte sparas på den valda platsen. Försök med en annan mapp.",
+  "exportImportSuccessLabel": "Exporten/importen slutfördes",
+  "fatLabel": "fett",
+  "fatLabelShort": "f",
+  "fiberLabel": "fiber",
+  "flOzUnit": "fl.oz",
+  "ftLabel": "ft",
+  "inLabel": "in",
+  "genderFemaleLabel": "kvinna",
+  "genderLabel": "Kön",
+  "genderMaleLabel": "man",
+  "genderNonBinaryLabel": "icke-binär",
+  "goalGainWeight": "Gå upp i vikt",
+  "goalLabel": "Mål",
+  "goalLoseWeight": "Gå ner i vikt",
+  "goalMaintainWeight": "Behålla vikten",
+  "gramMilliliterUnit": "g/ml",
+  "gramUnit": "g",
+  "heightLabel": "Längd",
+  "homeLabel": "Hem",
+  "homeFirstMealHint": "Tryck på + för att registrera din första måltid eller aktivitet",
+  "homeDemoBannerLabel": "Du visar exempeldata",
+  "homeDemoBannerAction": "Ställ in din profil",
+  "homeDemoBannerConfirmTitle": "Ställa in din egen profil?",
+  "homeDemoBannerConfirmContent": "Exempeldata rensas och du får ställa in din egen profil. Detta kan inte ångras.",
+  "homeDemoBannerConfirmAction": "Fortsätt",
+  "trendsDailyAverageLabel": "Dagsgenomsnitt",
+  "trendsLabel": "Trender",
+  "youLabel": "Du",
+  "trendsCaloriesLabel": "Kalorier",
+  "trendsDaysOnTrack": "dagar inom målintervallet den här veckan",
+  "trendsDayStreakLabel": "dagar i rad",
+  "trendsBestStreakLabel": "rekord",
+  "trendsPerWeekSuffix": "/vecka",
+  "trendsWeeksToGoalLabel": "veckor till målet",
+  "trendsWaterLabel": "Vatten",
+  "importAction": "Importera",
+  "importActivityConfirmContent": "Dessa aktiviteter läggs till för i dag.",
+  "importActivityConfirmTitle": "Importera aktiviteter ({count})?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importActivityLabel": "Importera delat träningspass",
+  "importActivitySuccessLabel": "Träningspasset har importerats",
+  "importCustomFoodDataDescription": "Importera dina egna livsmedel från en CSV-fil eller genom att klistra in JSON. Hämta en exempelfil för att se formatet och vilka fält som krävs.",
+  "importCustomFoodDataLabel": "Importera egna livsmedelsdata",
+  "importMealConfirmContent": "Dessa livsmedel läggs till i din måltid: {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "importMealConfirmTitle": "Importera {count} livsmedel?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importMealErrorLabel": "Ogiltig QR-kod",
+  "importMealLabel": "Importera delad måltid",
+  "importMealSuccessLabel": "Måltiden har importerats",
+  "importMealsCsvAction": "Importera livsmedel (csv)",
+  "importMealsJsonAction": "Importera livsmedel (json)",
+  "importOffFetchFailedLabel": "Antal livsmedel som inte kunde hämtas från Open Food Facts: {count}.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRecipeConfirmContent": "Importera det här receptet? Antal ingredienser: {count}.",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRecipeErrorLabel": "Kunde inte tolka receptkoden",
+  "importRecipeLabel": "Importera recept",
+  "importRecipeSuccessLabel": "Receptet har importerats",
+  "importRecipesCsvAction": "Importera recept (csv)",
+  "importRecipesJsonAction": "Importera recept (json)",
+  "inconsistentNutritionWarningBody": "Värdena stämmer inte riktigt överens – kalorierna du har angett motsvarar inte energin i kolhydraterna, fettet och proteinet nedan. Vill du spara ändå eller kontrollera en gång till?",
+  "inconsistentNutritionWarningEdit": "Kontrollera igen",
+  "inconsistentNutritionWarningSaveAnyway": "Spara ändå",
+  "inconsistentNutritionWarningTitle": "Värdena stämmer inte riktigt överens",
+  "infoAddedActivityLabel": "Ny aktivitet tillagd",
+  "infoAddedIntakeLabel": "Nytt intag tillagt",
+  "ironLabel": "järn",
+  "itemDeletedSnackbar": "Posten har raderats",
+  "itemUpdatedSnackbar": "Posten har uppdaterats",
+  "kcalGoalInfoActivityExplanation": "Kalorier som förbränns genom registrerade aktiviteter läggs till i ditt mål så att ditt planerade underskott eller överskott är detsamma även på träningsdagar.",
+  "kcalGoalInfoActivitySection": "Steg 4 · Dagens träning",
+  "kcalGoalInfoAdjustmentExplanationFlat": "Ditt viktmål ger en fast daglig justering: −500 kcal för att gå ner i vikt, +500 kcal för att gå upp i vikt och 0 för att behålla vikten.",
+  "kcalGoalInfoAdjustmentExplanationWeekly": "Din valda viktförändring per vecka avgör den dagliga justeringen. 1 kg kroppsfett innehåller cirka 7 700 kcal, så varje kg per vecka ändrar målet med cirka 1 100 kcal per dag.",
+  "kcalGoalInfoAdjustmentSection": "Steg 2 · Justering för viktmål",
+  "kcalGoalInfoAppliedAdjustmentLabel": "Tillämpad justering",
+  "kcalGoalInfoAveragedNote": "Med det genomsnittliga referensvärdet blir din totala dagliga energiförbrukning (TDEE) medelvärdet av resultaten för män respektive kvinnor.",
+  "kcalGoalInfoBaseAdjustmentLabel": "Justering för mål",
+  "kcalGoalInfoEstimateNote": "Alla formler ger uppskattningar på befolkningsnivå – individuella behov varierar. Ditt mål är en utgångspunkt, inte medicinsk rådgivning.",
+  "kcalGoalInfoFemaleReferenceLabel": "Referensvärde för kvinnor",
+  "kcalGoalInfoInputsSection": "Dina angivna värden",
+  "kcalGoalInfoIntro": "Ditt dagliga energimål beräknas med publicerade vetenskapliga ekvationer och enbart de värden som visas nedan. Den här sidan visar alla värden som ingår i dagens mål.",
+  "kcalGoalInfoLearnMoreLabel": "Fullständig dokumentation av beräkningarna",
+  "kcalGoalInfoMacroExplanation": "Ditt energimål fördelas mellan kolhydrater, fett och protein enligt din valda fördelning av makronäringsämnen (standard: 60 % kolhydrater, 25 % fett och 15 % protein – kan ändras i inställningarna). Målen i gram beräknas utifrån energiinnehållet: kolhydrater och protein ger 4 kcal per gram, fett ger 9 kcal per gram.",
+  "kcalGoalInfoMacroSection": "Fördelning av makronäringsämnen",
+  "kcalGoalInfoMaleReferenceLabel": "Referensvärde för män",
+  "kcalGoalInfoManualExplanation": "En fast justering som du själv anger i inställningarna när du vet att dina behov skiljer sig från uppskattningen.",
+  "kcalGoalInfoManualSection": "Steg 3 · Manuell justering",
+  "kcalGoalInfoPaRowLabel": "Aktivitetskoefficient (PA)",
+  "kcalGoalInfoPalRowLabel": "Fysisk aktivitetsnivå (PAL)",
+  "kcalGoalInfoResultSection": "Dagens energimål",
+  "kcalGoalInfoTaperNote": "Eftersom nedtrappningen nära målvikten är aktiverad minskas justeringen när du närmar dig målvikten (full effekt vid mer än 5 kg kvar och viktbalans inom 1 kg).",
+  "kcalGoalInfoTdeeExplanation": "Din totala dagliga energiförbrukning (TDEE) – den energi du använder under en vanlig dag – uppskattas med IOM:s ekvation från 2005 utifrån din ålder, vikt, längd och aktivitetsnivå.",
+  "kcalGoalInfoTdeeResultLabel": "Din totala dagliga energiförbrukning (TDEE)",
+  "kcalGoalInfoTdeeSection": "Steg 1 · Energi för viktbalans (TDEE)",
+  "kcalLabel": "kcal",
+  "kcalLeftLabel": "kcal kvar",
+  "kcalTooMuchLabel": "kcal för mycket",
+  "kgLabel": "kg",
+  "kjLabel": "kJ",
+  "lbsLabel": "lbs",
+  "stLabel": "st",
+  "lunchExample": "t.ex. pizza, sallad, ris …",
+  "lunchLabel": "Lunch",
+  "macroDistributionLabel": "Fördelning av makronäringsämnen:",
+  "magnesiumLabel": "magnesium",
+  "mealBrandsLabel": "Varumärken",
+  "mealCarbsLabel": "Kolhydrater",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal från aktuellt val)",
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "mealDetailDayTotalLabel": "Totalt för dagen: {consumed} / {goal}",
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "mealEnergyLabel": "Energi",
+  "mealFatLabel": "Fett",
+  "mealImageLabel": "Lägg till ett foto",
+  "mealImagePickFromGallery": "Välj från galleriet",
+  "mealImageRemove": "Ta bort foto",
+  "mealImageReplace": "Byt foto",
+  "mealImageTakePhoto": "Ta foto",
+  "mealKcalLabel": "kcal",
+  "mealNameLabel": "Livsmedlets namn",
+  "mealNameValidationError": "Livsmedlets namn måste innehålla minst en bokstav",
+  "mealNutrientsPerQtyLabel": "Per {qty} {unit}",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNutrientsTotalLabel": "Total mängd",
+  "mealPatternFiveSmall": "Fem små måltider",
+  "mealPatternMediterranean": "Medelhav",
+  "mealPatternOmad": "OMAD",
+  "mealPatternPresetsLabel": "Snabbval",
+  "mealPatternStandard": "Standard",
+  "mealPatternTwoMeal": "Två måltider",
+  "mealProteinLabel": "Protein",
+  "mealSizeLabel": "Förpackningsstorlek",
+  "mealSizeLabelImperial": "Förpackningsstorlek (oz/fl oz)",
+  "mealUnitLabel": "Livsmedlets enhet",
+  "micronutrientsLabel": "Mikronäringsämnen",
+  "milliliterUnit": "ml",
+  "missingProductInfo": "Produkten saknar obligatoriska uppgifter om kalorier eller makronäringsämnen",
+  "monounsaturatedFatLabel": "enkelomättat fett",
+  "newCustomMealLabel": "Nytt eget livsmedel",
+  "niacinLabel": "niacin (B3)",
+  "noActivityRecentlyAddedLabel": "Ingen aktivitet har lagts till nyligen",
+  "noMealsRecentlyAddedLabel": "Inga måltider har lagts till nyligen",
+  "noResultsFound": "Inga resultat hittades",
+  "noResultsSubtitle": "Inga livsmedel matchade sökningen. Prova ett annat namn, skanna streckkoden eller skapa ett eget livsmedel.",
+  "noResultsScanBarcode": "Skanna streckkod",
+  "noResultsCreateCustomFood": "Skapa eget livsmedel",
+  "notAvailableLabel": "Ej tillgängligt",
+  "nothingAddedLabel": "Inget tillagt",
+  "notificationsDailyReminderBody": "Glöm inte att registrera dina måltider i dag!",
+  "notificationsDailyReminderChannelName": "Dagliga påminnelser",
+  "notificationsDailyReminderChannelDescription": "Daglig påminnelse om att registrera måltider",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "notificationsPermissionDeniedSnack": "Tillstånd att visa aviseringar nekades.",
+  "nutrientPanelAllHiddenLabel": "Alla näringsämnen är dolda – aktivera några under Inställningar → Näringsämnen.",
+  "nutrientPanelLimitLabel": "gräns",
+  "nutrientPanelDayLabel": "Dag",
+  "nutrientPanelWeekLabel": "Vecka",
+  "nutritionInfoLabel": "Näringsinformation",
+  "nutritionalStatusNormalWeight": "Normalvikt",
+  "nutritionalStatusObeseClassI": "Fetma grad I",
+  "nutritionalStatusObeseClassII": "Fetma grad II",
+  "nutritionalStatusObeseClassIII": "Fetma grad III",
+  "nutritionalStatusPreObesity": "Övervikt",
+  "nutritionalStatusRiskAverage": "Genomsnittlig",
+  "nutritionalStatusRiskIncreased": "Ökad",
+  "nutritionalStatusRiskLabel": "Risk för följdsjukdomar: {riskValue}",
+  "@nutritionalStatusRiskLabel": {
+    "placeholders": {
+      "riskValue": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionalStatusRiskLow": "Låg\n(men ökad risk för andra\nhälsoproblem)",
+  "nutritionalStatusRiskModerate": "Måttlig",
+  "nutritionalStatusRiskSevere": "Hög",
+  "nutritionalStatusRiskVerySevere": "Mycket hög",
+  "nutritionalStatusUnderweight": "Undervikt",
+  "offDisclaimer": "Uppgifterna i den här appen hämtas från databasen Open Food Facts. Inga garantier lämnas för att informationen är korrekt, fullständig eller tillförlitlig. Uppgifterna tillhandahålls i befintligt skick, och den ursprungliga datakällan (Open Food Facts) ansvarar inte för skador som uppstår till följd av att uppgifterna används.",
+  "onboardingActivityQuestionSubtitle": "Hur aktiv är du? (utan träningspass)",
+  "onboardingAdultEquationNotice": "Energimålen beräknas med referensekvationer för vuxna. Är du under 19 år, kontrollera resultatet med en läkare eller dietist.",
+  "onboardingBirthdayHint": "Ange datum",
+  "onboardingBirthdayQuestionSubtitle": "När är du född?",
+  "onboardingBlockedActivitySnack": "Välj din aktivitetsnivå för att fortsätta",
+  "onboardingBlockedBodySnack": "Ange giltiga värden för längd och vikt för att fortsätta",
+  "onboardingBlockedDemoPolicySnack": "Godkänn integritetspolicyn för att prova demon",
+  "onboardingBlockedGoalSnack": "Välj ditt viktmål för att fortsätta",
+  "onboardingBlockedOverviewSnack": "Vissa uppgifter saknas. Gå tillbaka och slutför de föregående stegen.",
+  "onboardingBlockedPolicySnack": "Godkänn integritetspolicyn för att fortsätta",
+  "onboardingBlockedProfileSnack": "Välj ditt kön och ange ditt födelsedatum för att fortsätta",
+  "onboardingEnterBirthdayLabel": "Födelsedatum",
+  "onboardingGenderQuestionSubtitle": "Vilket kön har du?",
+  "onboardingGoalQuestionSubtitle": "Vad är ditt nuvarande viktmål?",
+  "onboardingFoodSourcesEnabledCount": "{enabled} av {total} aktiverade",
+  "@onboardingFoodSourcesEnabledCount": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingGoalSuggestedBadge": "Föreslaget",
+  "onboardingGoalSuggestionBmi": "Ditt BMI är {bmi} – WHO: {status}.",
+  "@onboardingGoalSuggestionBmi": {
+    "placeholders": {
+      "bmi": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingGoalSuggestionTarget": "Baserat på den målvikt du angav.",
+  "onboardingHeightExampleHintCm": "t.ex. 170",
+  "onboardingHeightExampleHintFt": "t.ex. 5,8",
+  "onboardingHeightQuestionSubtitle": "Hur lång är du?",
+  "onboardingHealthyRangeApply": "Använd {weight}",
+  "@onboardingHealthyRangeApply": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeLabel": "Hälsosamt viktintervall för {height}: {range}",
+  "@onboardingHealthyRangeLabel": {
+    "placeholders": {
+      "height": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeSource": "WHO, BMI 18,5–24,9",
+  "onboardingImplausibleChange": "Ändra",
+  "onboardingImplausibleHeightBody": "{value} är en ovanlig längd. Vill du behålla värdet?",
+  "@onboardingImplausibleHeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingImplausibleKeep": "Behåll",
+  "onboardingImplausibleTitle": "Kontrollera värdet en gång till",
+  "onboardingImplausibleWeightBody": "{value} är en ovanlig vikt. Vill du behålla värdet?",
+  "@onboardingImplausibleWeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingIntroDescription": "För att komma igång behöver appen några uppgifter om dig för att beräkna ditt dagliga energimål.\nAlla uppgifter om dig lagras säkert på din enhet.",
+  "onboardingIntroSourcesLinkLabel": "Läs källorna till våra medicinska beräkningar",
+  "onboardingKcalPerDayLabel": "kcal per dag",
+  "onboardingKjPerDayLabel": "kJ per dag",
+  "onboardingNonBinaryDisclaimer": "Det finns inga publicerade referensvärden för kaloribehov hos icke-binära personer. Därför använder vi som standard ett medelvärde av formlerna för män och kvinnor – en utgångspunkt, inte en exakt uppskattning. Du kan när som helst finjustera detta under Inställningar → Beräkningar.",
+  "onboardingOverviewLabel": "Översikt",
+  "onboardingSaveUserError": "Felaktiga uppgifter, försök igen",
+  "onboardingTargetWeightHintOptional": "Valfritt",
+  "onboardingTargetWeightSubtitle": "Har du en vikt som du vill nå? Du kan lämna fältet tomt eller ändra det senare under Profil.",
+  "onboardingTryDemoLabel": "Prova demon",
+  "onboardingTryDemoSubtitle": "Hoppa över inställningarna och utforska appen med exempeldata. Godkänn integritetspolicyn först.",
+  "onboardingTryDemoDisclaimer": "Endast fiktiva exempeldata används. Kraschrapporter är avstängda om du inte aktiverar dem senare. Exempelbilder och livsmedelssökningar kan använda nätverket.",
+  "onboardingTryDemoError": "Det gick inte att förbereda demon. Försök igen.",
+  "onboardingWeightExampleHintKg": "t.ex. 60",
+  "onboardingWeightExampleHintLbs": "t.ex. 132",
+  "onboardingWeightQuestionSubtitle": "Vad väger du just nu?",
+  "onboardingFoodUnitsSubtitle": "Hur du registrerar mat och dryck",
+  "onboardingWelcomeLabel": "Välkommen till",
+  "onboardingWrongHeightLabel": "Ange en giltig längd",
+  "onboardingWrongWeightLabel": "Ange en giltig vikt",
+  "onboardingYourGoalLabel": "Ditt energimål:",
+  "onboardingYourMacrosGoalLabel": "Dina mål för makronäringsämnen:",
+  "ozUnit": "oz",
+  "paActiveVideoGames": "aktiva tv-spel",
+  "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, allmänt",
+  "paAmericanFootballGeneral": "amerikansk fotboll",
+  "paAmericanFootballGeneralDesc": "touchfotboll, flaggfotboll, allmänt",
+  "paArcheryGeneral": "bågskytte",
+  "paArcheryGeneralDesc": "utan jakt",
+  "paAutoRacing": "bilsport",
+  "paAutoRacingDesc": "formelbilar",
+  "paBackpackingGeneral": "vandring med ryggsäck",
+  "paBackpackingGeneralDesc": "allmänt",
+  "paBadmintonGeneral": "badminton",
+  "paBadmintonGeneralDesc": "singel och dubbel på motionsnivå, allmänt",
+  "paBasketballGeneral": "basket",
+  "paBasketballGeneralDesc": "allmänt",
+  "paBicyclingGeneral": "cykling",
+  "paBicyclingGeneralDesc": "allmänt",
+  "paBicyclingMountainGeneral": "mountainbikecykling",
+  "paBicyclingMountainGeneralDesc": "allmänt",
+  "paBicyclingStationaryGeneral": "motionscykling",
+  "paBicyclingStationaryGeneralDesc": "allmänt",
+  "paBilliardsGeneral": "biljard",
+  "paBilliardsGeneralDesc": "allmänt",
+  "paBowlingGeneral": "bowling",
+  "paBowlingGeneralDesc": "allmänt",
+  "paBoxingBag": "boxning",
+  "paBoxingBagDesc": "träning med boxningssäck",
+  "paBoxingGeneral": "boxning",
+  "paBoxingGeneralDesc": "i ring, allmänt",
+  "paBroomball": "broomball",
+  "paBroomballDesc": "allmänt",
+  "paCalisthenicsGeneral": "kroppsviktsträning",
+  "paCalisthenicsGeneralDesc": "lätt eller måttlig ansträngning, allmänt (t.ex. ryggövningar)",
+  "paCanoeingGeneral": "kanotpaddling",
+  "paCanoeingGeneralDesc": "rodd på fritiden, allmänt",
+  "paCatch": "amerikansk fotboll eller baseboll",
+  "paCatchDesc": "kasta och fånga boll",
+  "paCheerleading": "cheerleading",
+  "paCheerleadingDesc": "gymnastiska rörelser, tävling",
+  "paChildrenGame": "barnlekar",
+  "paChildrenGameDesc": "(t.ex. hoppa hage, four square, dodgeball, lekredskap, teeboll, tetherball, kulspel, arkadspel), måttlig ansträngning",
+  "paClimbingHillsNoLoadGeneral": "gång i uppförsbackar utan packning",
+  "paClimbingHillsNoLoadGeneralDesc": "utan packning",
+  "paCricket": "cricket",
+  "paCricketDesc": "slag, kast och fältspel",
+  "paCroquet": "krocket",
+  "paCroquetDesc": "allmänt",
+  "paCrossCountrySkiing": "längdskidåkning",
+  "paCrossCountrySkiingDesc": "längdskidåkning, allmänt",
+  "paCurling": "curling",
+  "paCurlingDesc": "allmänt",
+  "paDancingAerobicGeneral": "aerobics",
+  "paDancingAerobicGeneralDesc": "allmänt",
+  "paDancingGeneral": "dans",
+  "paDancingGeneralDesc": "t.ex. disco, folkdans, irländsk stepdans, linedance, polka, kontradans, countrydans",
+  "paDartsWall": "dart",
+  "paDartsWallDesc": "på vägg eller gräsmatta",
+  "paDivingGeneral": "dykning",
+  "paDivingGeneralDesc": "fridykning, apparatdykning, allmänt",
+  "paDivingSpringboardPlatform": "simhopp från svikt eller plattform",
+  "paDivingSpringboardPlatformDesc": "från svikt eller plattform",
+  "paFencing": "fäktning",
+  "paFencingDesc": "allmänt",
+  "paFrisbee": "frisbeespel",
+  "paFrisbeeDesc": "allmänt",
+  "paGeneralDesc": "allmänt",
+  "paGolfGeneral": "golf",
+  "paGolfGeneralDesc": "allmänt",
+  "paGymnasticsGeneral": "gymnastik",
+  "paGymnasticsGeneralDesc": "allmänt",
+  "paHackySack": "hacky sack",
+  "paHackySackDesc": "allmänt",
+  "paHandballGeneral": "amerikansk handboll",
+  "paHandballGeneralDesc": "allmänt",
+  "paHangGliding": "hängflygning",
+  "paHangGlidingDesc": "allmänt",
+  "paHeadingBicycling": "cykling",
+  "paHeadingConditionalExercise": "fysisk träning",
+  "paHeadingDancing": "dans",
+  "paHeadingRunning": "löpning",
+  "paHeadingSports": "idrott",
+  "paHeadingWalking": "gång",
+  "paHeadingWaterActivities": "vattenaktiviteter",
+  "paHeadingWinterActivities": "vinteraktiviteter",
+  "paHighIntensityIntervalExercise": "högintensiv intervallträning",
+  "paHighIntensityIntervalExerciseDesc": "måttlig ansträngning",
+  "paHighIntensityIntervalExerciseVigorous": "högintensiv intervallträning",
+  "paHighIntensityIntervalExerciseVigorousDesc": "burpees, mountain climbers, upphopp från knäböj, tabata, hög intensitet",
+  "paHikingCrossCountry": "vandring",
+  "paHikingCrossCountryDesc": "i terräng",
+  "paHockeyField": "landhockey",
+  "paHockeyFieldDesc": "allmänt",
+  "paHorseRidingGeneral": "ridning",
+  "paHorseRidingGeneralDesc": "allmänt",
+  "paIceHockeyGeneral": "ishockey",
+  "paIceHockeyGeneralDesc": "allmänt",
+  "paIceSkatingGeneral": "skridskoåkning",
+  "paIceSkatingGeneralDesc": "allmänt",
+  "paJaiAlai": "jai alai",
+  "paJaiAlaiDesc": "allmänt",
+  "paJoggingGeneral": "joggning",
+  "paJoggingGeneralDesc": "allmänt",
+  "paJuggling": "jonglering",
+  "paJugglingDesc": "allmänt",
+  "paKayakingModerate": "kajakpaddling",
+  "paKayakingModerateDesc": "måttlig ansträngning",
+  "paKickball": "kickball",
+  "paKickballDesc": "allmänt",
+  "paLacrosse": "lacrosse",
+  "paLacrosseDesc": "allmänt",
+  "paLawnBowling": "bowls",
+  "paLawnBowlingDesc": "boccia utomhus",
+  "paMartialArtsModerate": "kampsport",
+  "paMartialArtsModerateDesc": "olika typer, måttligt tempo (t.ex. judo, jujutsu, karate, kickboxning, taekwondo, tai-bo, thaiboxning)",
+  "paMartialArtsSlower": "kampsport",
+  "paMartialArtsSlowerDesc": "olika typer, långsammare tempo, nybörjare, övning",
+  "paMotoCross": "motocross",
+  "paMotoCrossDesc": "motorsport i terräng, terrängfordon, allmänt",
+  "paMountainClimbing": "klättring",
+  "paMountainClimbingDesc": "klipp- eller bergsklättring",
+  "paNordicWalking": "stavgång",
+  "paOrienteering": "orientering",
+  "paOrienteeringDesc": "allmänt",
+  "paPaddleBoarding": "paddling på SUP-bräda",
+  "paPaddleBoardingDesc": "stående",
+  "paPaddleBoat": "trampbåt",
+  "paPaddleBoatDesc": "allmänt",
+  "paPaddleball": "paddleball",
+  "paPaddleballDesc": "på motionsnivå, allmänt",
+  "paPickleball": "pickleball",
+  "paPilates": "pilates",
+  "paPoloHorse": "polo",
+  "paPoloHorseDesc": "till häst",
+  "paRacquetball": "racquetball",
+  "paRacquetballDesc": "allmänt",
+  "paResistanceTraining": "styrketräning",
+  "paResistanceTrainingDesc": "träning med vikter, fria vikter, Nautilus- eller Universal-maskiner",
+  "paResistanceTrainingVigorous": "styrketräning (hög intensitet)",
+  "paResistanceTrainingVigorousDesc": "hög intensitet, styrkelyft eller kroppsbyggning",
+  "paRodeoSportGeneralModerate": "rodeo",
+  "paRodeoSportGeneralModerateDesc": "allmänt, måttlig ansträngning",
+  "paRollerbladingLight": "inlinesåkning",
+  "paRollerbladingLightDesc": "åkning på inlines",
+  "paRopeJumpingGeneral": "hopprep",
+  "paRopeJumpingGeneralDesc": "måttligt tempo, 100–120 hopp/min, allmänt, enkla jämfotahopp",
+  "paRopeSkippingGeneral": "hopprep",
+  "paRopeSkippingGeneralDesc": "allmänt",
+  "paRugbyCompetitive": "rugby",
+  "paRugbyCompetitiveDesc": "rugby union, lagspel, tävling",
+  "paRugbyNonCompetitive": "rugby",
+  "paRugbyNonCompetitiveDesc": "touchrugby, utan tävling",
+  "paRunningGeneral": "löpning",
+  "paRunningGeneralDesc": "allmänt",
+  "paSailingGeneral": "segling",
+  "paSailingGeneralDesc": "segling med båt eller bräda, vindsurfing, issegling, allmänt",
+  "paShuffleboard": "shuffleboard",
+  "paShuffleboardDesc": "allmänt",
+  "paSkateboardingGeneral": "skateboardåkning",
+  "paSkateboardingGeneralDesc": "allmänt, måttlig ansträngning",
+  "paSkatingRoller": "rullskridskoåkning",
+  "paSkatingRollerDesc": "allmänt",
+  "paSkiingGeneral": "skidåkning",
+  "paSkiingGeneralDesc": "allmänt",
+  "paSkiingWaterWakeboarding": "vattenskidåkning",
+  "paSkiingWaterWakeboardingDesc": "vattenskidor eller wakeboard",
+  "paSkydiving": "fallskärmshoppning",
+  "paSkydivingDesc": "fallskärmshoppning, basehoppning, bungyjump",
+  "paSnorkeling": "snorkling",
+  "paSnorkelingDesc": "allmänt",
+  "paSnowShovingModerate": "snöskottning",
+  "paSnowShovingModerateDesc": "för hand, måttlig ansträngning",
+  "paSnowshoeing": "snöskovandring",
+  "paSoccerGeneral": "fotboll",
+  "paSoccerGeneralDesc": "på motionsnivå, allmänt",
+  "paSoftballBaseballGeneral": "softboll/baseboll",
+  "paSoftballBaseballGeneralDesc": "snabba eller långsamma kast, allmänt",
+  "paSquashGeneral": "squash",
+  "paSquashGeneralDesc": "allmänt",
+  "paStretching": "stretchning",
+  "paStretchingDesc": "lätt, allmänt",
+  "paSurfing": "surfning",
+  "paSurfingDesc": "med kroppen eller på bräda, allmänt",
+  "paSwimmingGeneral": "simning",
+  "paSwimmingGeneralDesc": "trampa vatten, måttlig ansträngning, allmänt",
+  "paTableTennisGeneral": "bordtennis",
+  "paTableTennisGeneralDesc": "bordtennis, pingis",
+  "paTaiChiQiGongGeneral": "tai chi, qigong",
+  "paTaiChiQiGongGeneralDesc": "allmänt",
+  "paTennisGeneral": "tennis",
+  "paTennisGeneralDesc": "allmänt",
+  "paTrackField1Desc": "(t.ex. kulstötning, diskus, släggkastning)",
+  "paTrackField2Desc": "(t.ex. höjdhopp, längdhopp, tresteg, spjutkastning, stavhopp)",
+  "paTrackField3Desc": "(t.ex. hinderlöpning, häcklöpning)",
+  "paTrampolineLight": "studsmatta",
+  "paTrampolineLightDesc": "på fritiden",
+  "paTreadmillRunning": "löpning på löpband",
+  "paTreadmillRunningDesc": "på löpband, allmänt",
+  "paUnicyclingGeneral": "enhjulingscykling",
+  "paUnicyclingGeneralDesc": "allmänt",
+  "paVolleyballGeneral": "volleyboll",
+  "paVolleyballGeneralDesc": "utan tävling, lag med 6–9 spelare, allmänt",
+  "paWalkingForPleasure": "promenad",
+  "paWalkingForPleasureDesc": "på fritiden",
+  "paWalkingTheDog": "hundpromenad",
+  "paWalkingTheDogDesc": "allmänt",
+  "paWallyball": "wallyball",
+  "paWallyballDesc": "allmänt",
+  "paWaterAerobics": "vattenträning",
+  "paWaterAerobicsDesc": "vattenaerobics, vattengymnastik",
+  "paWaterPolo": "vattenpolo",
+  "paWaterPoloDesc": "allmänt",
+  "paWaterVolleyball": "vattenvolleyboll",
+  "paWaterVolleyballDesc": "allmänt",
+  "paWateraerobicsCalisthenics": "vattenaerobics",
+  "paWateraerobicsCalisthenicsDesc": "vattenaerobics, vattengymnastik",
+  "paWrestling": "brottning",
+  "paWrestlingDesc": "allmänt",
+  "palActiveDescriptionLabel": "Mestadels stående eller gående arbete och fysiskt aktiva fritidssysselsättningar",
+  "palActiveLabel": "Aktiv",
+  "palLowActiveDescriptionLabel": "T.ex. sittande eller stående arbete och lätt fysisk aktivitet på fritiden",
+  "palLowLActiveLabel": "Lätt aktiv",
+  "palSedentaryDescriptionLabel": "T.ex. kontorsarbete och mestadels stillasittande fritidssysselsättningar",
+  "palSedentaryLabel": "Stillasittande",
+  "palVeryActiveDescriptionLabel": "Arbete där du oftast går, springer eller bär tungt och fysiskt aktiva fritidssysselsättningar",
+  "palVeryActiveLabel": "Mycket aktiv",
+  "pasteCodeHint": "Klistra in koden för den delade måltiden här",
+  "pasteCodeLabel": "Klistra in kod",
+  "per100gmlLabel": "Per 100 g/ml",
+  "perServingLabel": "Per portion",
+  "phosphorusLabel": "fosfor",
+  "polyunsaturatedFatLabel": "fleromättat fett",
+  "potassiumLabel": "kalium",
+  "privacyPolicyLabel": "Integritetspolicy",
+  "profileLabel": "Profil",
+  "profileTargetWeightClearAction": "Rensa",
+  "profileTargetWeightLabel": "Målvikt",
+  "profileTargetWeightNotSetLabel": "Inte angiven",
+  "profileTargetWeightReached": "Du har nått din målvikt",
+  "profileTargetWeightToGo": "{value} kvar till din målvikt",
+  "@profileTargetWeightToGo": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "profileWeightHistoryTitle": "Vikthistorik",
+  "proteinLabel": "protein",
+  "proteinLabelShort": "p",
+  "quantityLabel": "Mängd",
+  "quickAddAddedSnack": "Tillagt i {mealType}",
+  "@quickAddAddedSnack": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "quickAddBottomSheetTitle": "Snabbregistrering",
+  "quickAddCardLabel": "Snabbregistrering",
+  "quickAddCarbsHint": "Kolhydrater (g, valfritt)",
+  "quickAddDefaultName": "Snabbregistrering",
+  "quickAddEnergyLabelKcal": "Energi (kcal)",
+  "quickAddEnergyLabelKj": "Energi (kJ)",
+  "quickAddFatHint": "Fett (g, valfritt)",
+  "quickAddProteinHint": "Protein (g, valfritt)",
+  "quickAddSubmitLabel": "Lägg till",
+  "quickAddTitleHint": "Titel",
+  "readLabel": "Jag har läst och godkänner integritetspolicyn.",
+  "recentlyAddedLabel": "Senaste",
+  "recipeAddIngredientLabel": "Lägg till ingrediens",
+  "recipeDeleteConfirmContent": "Tidigare dagboksregistreringar från det här receptet sparas.",
+  "recipeDeleteConfirmTitle": "Ta bort receptet?",
+  "recipeDescriptionLabel": "Beskrivning (valfritt)",
+  "recipeImageLabel": "Lägg till ett foto",
+  "recipeImagePickFromGallery": "Välj från galleriet",
+  "recipeImageRemove": "Ta bort foto",
+  "recipeImageReplace": "Byt foto",
+  "recipeImageTakePhoto": "Ta foto",
+  "recipeIngredientAmountLabel": "Mängd",
+  "recipeIngredientCountLabel": "Ingredienser: {count}",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recipeIngredientUnitLabel": "Enhet",
+  "recipeIngredientsLabel": "Ingredienser",
+  "recipeInvalidTotalWeightLabel": "Den totala vikten måste vara större än noll",
+  "recipeLogCtaLabel": "Registrera det här receptet",
+  "recipeNameLabel": "Receptnamn",
+  "recipeNameRequiredLabel": "Receptet behöver ett namn",
+  "recipeNeedsIngredientsLabel": "Lägg till minst en ingrediens",
+  "recipeNoIngredientsLabel": "Inga ingredienser ännu",
+  "recipeNutritionPer100Label": "Per 100 g",
+  "recipeNutritionPreviewLabel": "Näringsinnehåll (totalt)",
+  "recipeSaveErrorLabel": "Det gick inte att spara receptet.",
+  "recipeSaveForLaterDescription": "Aktivera för att spara måltiden i din lista till nästa gång. Låt vara avstängt om det är en engångsmåltid som du inte kommer att äta igen.",
+  "recipeSaveForLaterLabel": "Spara till nästa gång",
+  "recipeSaveLabel": "Spara recept",
+  "recipeServingsCountHelper": "Gör att du kan registrera receptet i portioner i stället för gram.",
+  "recipeServingsCountLabel": "Antal portioner (valfritt)",
+  "recipeTagsHelper": "Avgränsa med kommatecken, t.ex. ”frukost, veganskt”",
+  "recipeTagsLabel": "Taggar",
+  "recipeTotalWeightLabel": "Total vikt (g)",
+  "recipesEmptyHint": "Skapa en måltid av flera ingredienser och återanvänd den som vilket annat livsmedel som helst.",
+  "recipesEmptyLabel": "Inga recept ännu",
+  "recipesFilterAllLabel": "Alla",
+  "recipesLabel": "Recept",
+  "recipesLoadErrorLabel": "Det gick inte att läsa in recepten. Försök igen senare.",
+  "reportErrorDialogText": "Vill du rapportera ett fel till utvecklaren?",
+  "retryLabel": "Försök igen",
+  "saturatedFatLabel": "mättat fett",
+  "scanProductLabel": "Skanna produkt",
+  "scannerManualEntryButton": "Ange koden manuellt",
+  "scannerManualEntryCancel": "Avbryt",
+  "scannerManualEntryDialogTitle": "Ange streckkod",
+  "scannerManualEntryFieldHint": "8 till 14 siffror",
+  "scannerManualEntryInvalid": "Streckkoden verkar inte vara giltig. Kontrollera siffrorna och försök igen.",
+  "scannerManualEntrySubmit": "Sök",
+  "searchDefaultLabel": "Ange ett sökord",
+  "searchFoodPage": "Livsmedel",
+  "searchLabel": "Sök",
+  "searchProductsPage": "Produkter",
+  "searchResultsLabel": "Sökresultat",
+  "selectGenderDialogLabel": "Välj kön",
+  "selectHeightDialogLabel": "Ange längd",
+  "selectPalCategoryLabel": "Välj aktivitetsnivå",
+  "selectWeightDialogLabel": "Ange vikt",
+  "selectionCountLabel": "Valda: {count}",
+  "@selectionCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sendCrashReports": "Skicka kraschrapporter",
+  "servingLabel": "Portion",
+  "servingSizeLabelImperial": "En portion (oz/fl oz)",
+  "servingSizeLabelMetric": "En portion",
+  "settingAboutLabel": "Om",
+  "settingFeedbackLabel": "Återkoppling",
+  "settingsCalciumGoalDescription": "Dagligt mål för kalcium i milligram. Standardvärdet är 1 000 mg.",
+  "settingsCalciumGoalLabel": "Kalciummål",
+  "settingsCaloriesTaperDescription": "Minskar det dagliga energiunderskottet gradvis så att det inte känns lika svårt att gå ner de sista kilona.",
+  "settingsCaloriesTaperLabel": "Justera energimålet när du närmar dig målvikten",
+  "settingsCustomMealsLabel": "Egna livsmedel",
+  "settingsDayStartDescription": "Välj klockslaget då din dag börjar. Måltider och aktiviteter som registreras före detta klockslag räknas till föregående dag – praktiskt om du arbetar på natten eller äter sent.",
+  "settingsDayStartHourLabel": "{hour}:00",
+  "@settingsDayStartHourLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDayStartHoursPickerLabel": "Timmar",
+  "settingsDayStartLabel": "Dagen börjar kl.",
+  "settingsDayStartMinutesPickerLabel": "Minuter",
+  "settingsDayStartTimeLabel": "{hour}:{minute}",
+  "@settingsDayStartTimeLabel": {
+    "placeholders": {
+      "hour": {
+        "type": "int"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsDisclaimerLabel": "Ansvarsfriskrivning",
+  "settingsDistanceLabel": "Avstånd",
+  "settingsEnergyUnitLabel": "Energienhet",
+  "settingsFibreGoalDescription": "Dagligt mål för fiber i gram. Standardvärdet är 30 g.",
+  "settingsFibreGoalLabel": "Fibermål",
+  "settingsImperialLabel": "Brittiska måttenheter (lbs, ft, oz)",
+  "settingsKcalAdjustmentLabel": "Daglig justering i kcal",
+  "settingsKcalGoalInfoLabel": "Så beräknas ditt mål",
+  "settingsIronGoalDescription": "Dagligt mål för järn i milligram. Standardvärdet varierar med kön (8 mg för män, 18 mg för kvinnor, annars 14 mg).",
+  "settingsIronGoalLabel": "Järnmål",
+  "settingsCategoryAbout": "Om",
+  "settingsCategoryAppearance": "Utseende",
+  "settingsCategoryData": "Data",
+  "settingsCategoryDisplay": "Visning",
+  "settingsCategoryGoals": "Mål och näring",
+  "settingsCategoryUnits": "Enheter och energi",
+  "settingsLabel": "Inställningar",
+  "settingsLanguageLabel": "Språk",
+  "settingsMaterialYouTitle": "Använd systemets färger",
+  "settingsMaterialYouSubtitle": "Matcha bakgrundsbildens accentfärg i Android 12 och senare.",
+  "settingsAccentColourTitle": "Accentfärg",
+  "settingsAccentSubtitleMaterialYou": "Material You",
+  "settingsAccentSubtitleCustom": "Egen",
+  "settingsAccentSubtitleDefault": "Standard",
+  "settingsAccentPresetsHeader": "Välj en färg",
+  "settingsAccentCustomColour": "Egen färg…",
+  "settingsAccentCustomSubtitle": "Öppna nyansväljaren för ett exakt färgval",
+  "settingsAccentHexLabel": "Hexkod",
+  "settingsAccentHexInvalid": "Hexkoden verkar inte stämma. Den ska bestå av sex tecken: 0–9 och A–F.",
+  "settingsAccentHueTitle": "Accentfärg",
+  "settingsAccentHueDisabledHint": "Stäng av systemets färger för att välja en egen accentfärg.",
+  "settingsAccentHueReset": "Återställ",
+  "settingsMacroSplitLabel": "Fördelning av makronäringsämnen",
+  "settingsLicensesLabel": "Licenser",
+  "settingsMagnesiumGoalDescription": "Dagligt mål för magnesium i milligram. Standardvärdet varierar med kön (400 mg för män, 310 mg för kvinnor, annars 355 mg).",
+  "settingsMagnesiumGoalLabel": "Magnesiummål",
+  "settingsMassLabel": "Massa",
+  "settingsMetricLabel": "Metriska måttenheter (kg, cm, ml)",
+  "settingsNotificationsLabel": "Daglig påminnelse",
+  "settingsNotificationsTimeLabel": "Tid för påminnelse: {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNutrientGoalsHint": "Personliga mål för varje näringsämne i dagsöversikten. När du anger ett eget mål använder dagboken det i stället för det dagliga standardvärdet.",
+  "settingsNutrientGoalsLabel": "Näringsmål",
+  "settingsNutrientsHelp": "Välj vilka näringsämnen som ska visas i dagsöversikten. Du kan när som helst visa dolda näringsämnen igen.",
+  "settingsNutrientsLabel": "Näringsämnen",
+  "settingsNutrientsSubtitle": "Välj vilka näringsämnen som visas i dagboksöversikten",
+  "settingsPerMealKcalShareBreakfast": "Frukost",
+  "settingsPerMealKcalShareDescription": "Fördela ditt dagliga energimål mellan frukost, lunch, middag och mellanmål. Andelarna måste bli 100 % tillsammans.",
+  "settingsPerMealKcalShareDinner": "Middag",
+  "settingsPerMealKcalShareLabel": "Andel av energimålet per måltid",
+  "settingsPerMealKcalShareLunch": "Lunch",
+  "settingsPerMealKcalShareSnack": "Mellanmål",
+  "settingsPotassiumGoalDescription": "Dagligt mål för kalium i milligram. Standardvärdet är 3 500 mg.",
+  "settingsPotassiumGoalLabel": "Kaliummål",
+  "settingsPrivacySettings": "Integritetsinställningar",
+  "settingsDemoPrivacyNote": "Kraschrapportering är inte tillgänglig när du visar exempeldata. Skapa din egen profil först.",
+  "settingsReportErrorLabel": "Rapportera fel",
+  "settingsSaturatedFatGoalDescription": "Daglig övre gräns för mättat fett i gram. Standardvärdet är 20 g.",
+  "settingsSaturatedFatGoalLabel": "Mål för mättat fett",
+  "settingsShowActivityTracking": "Visa aktivitetsregistrering",
+  "settingsShowMealMacros": "Visa måltidernas makronäringsämnen",
+  "settingsShowMicronutrientsLabel": "Visa mikronäringsämnen",
+  "settingsDefaultToRawFoodUnitsLabel": "Använd vikt eller volym som standard i stället för portioner",
+  "settingsDefaultToRawFoodUnitsSubtitle": "Registrera livsmedel med en angiven portionsstorlek i vikt eller volym i stället. Du kan fortfarande välja portioner i listan över enheter.",
+  "settingsSodiumGoalDescription": "Daglig övre gräns för natrium i milligram. Standardvärdet är 2 300 mg.",
+  "settingsSodiumGoalLabel": "Natriummål",
+  "settingsSourceCodeLabel": "Källkod",
+  "settingsSourcesLabel": "Källor och referenser",
+  "settingsSugarsGoalDescription": "Daglig övre gräns för sockerarter i gram. Standardvärdet är 50 g.",
+  "settingsSugarsGoalLabel": "Mål för sockerarter",
+  "settingsSystemLabel": "System",
+  "settingsThemeDarkLabel": "Mörkt",
+  "settingsThemeLabel": "Tema",
+  "settingsThemeLightLabel": "Ljust",
+  "settingsThemeSystemDefaultLabel": "Systemstandard",
+  "settingsUnitsLabel": "Enheter",
+  "settingsFoodUnitsLabel": "Enheter för livsmedel",
+  "settingsHeightUnitsLabel": "Enheter för kroppslängd",
+  "settingsBodyWeightUnitLabel": "Enhet för kroppsvikt",
+  "settingsFoodUnitsMetric": "Metriska måttenheter (g, kg, ml, l)",
+  "settingsFoodUnitsImperial": "Brittiska måttenheter (lbs, oz, fl oz)",
+  "settingsHeightUnitsMetric": "Metriska måttenheter (mm, cm, m)",
+  "settingsHeightUnitsImperial": "Brittiska måttenheter (ft, in)",
+  "settingsVitaminB12GoalDescription": "Dagligt mål för vitamin B12 i mikrogram. Standardvärdet är 2,4 µg.",
+  "settingsVitaminB12GoalLabel": "Mål för vitamin B12",
+  "settingsVitaminDGoalDescription": "Dagligt mål för vitamin D i mikrogram. Standardvärdet är 15 µg.",
+  "settingsVitaminDGoalLabel": "Mål för vitamin D",
+  "settingsVolumeLabel": "Volym",
+  "shareActivityLabel": "Dela träningspass",
+  "shareCodeLabel": "Dela kod",
+  "shareMealLabel": "Dela måltid",
+  "shareRecipeLabel": "Dela recept",
+  "snackExample": "t.ex. äpple, glass, choklad …",
+  "snackLabel": "Mellanmål",
+  "sodiumLabel": "natrium",
+  "sourcesActivityDescription": "Kaloriförbrukningen under en aktivitet uppskattas som MET × kroppsvikt (kg) × varaktighet (timmar), med värden från Adult Compendium of Physical Activities.",
+  "sourcesActivityTitle": "Aktiviteternas kaloriförbrukning (MET-värden)",
+  "sourcesBmiDescription": "BMI beräknas som vikten (kg) dividerad med längden i kvadrat (m²). Hälsokategorierna (undervikt, normalvikt, övervikt, fetma grad I–III) följer Världshälsoorganisationens BMI-klassificering för vuxna.",
+  "sourcesBmiTitle": "Kroppsmasseindex (BMI)",
+  "sourcesEnergyDescription": "Dagliga energimål, basalmetabolism och koefficienter för fysisk aktivitet beräknas med formler från Institute of Medicine. Källa: Institute of Medicine (2005). Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids, kapitel 5 och tabell 5-5.",
+  "sourcesEnergyTitle": "Energibehov (TDEE, BMR och aktivitetsnivå)",
+  "sourcesIconTooltip": "Visa källor",
+  "sourcesMacrosDescription": "Standardfördelningen med 60 % kolhydrater, 25 % fett och 15 % protein ligger inom de intervall för befolkningens näringsintag som WHO har publicerat. Du kan justera fördelningen under Inställningar → Beräkningar. Källa: WHO Technical Report Series 916 (2003), Diet, Nutrition and the Prevention of Chronic Diseases.",
+  "sourcesMacrosTitle": "Fördelning av makronäringsämnen",
+  "sourcesNonBinaryDescription": "Forskning om energiförbrukning har historiskt utgått från två könskategorier. Det finns därför ingen enskild validerad formel för total daglig energiförbrukning (TDEE) för icke-binära personer. I OpenNutriTracker kan du därför välja mellan ett genomsnittligt referensvärde, ett referensvärde för typisk östrogenprofil eller ett referensvärde för typisk testosteronprofil under Inställningar → Beräkningar. Om ett exakt värde har betydelse för din vård bör du tala med vårdpersonal som känner till din hormonstatus.",
+  "sourcesNutrientReferenceTitle": "Referensvärden för näringsintag",
+  "sourcesNutrientReferenceDescription": "De dagliga referensvärdena i dagbokens näringsöversikt kommer från sammanfattningen av Dietary Reference Intakes från Institute of Medicine, som anger mål för vuxna för respektive näringsämne.",
+  "sourcesNonBinaryTitle": "Uppskattning av kaloribehov för icke-binära",
+  "sourcesOpenSourceLabel": "Visa källa",
+  "sourcesScreenIntro": "OpenNutriTracker använder väletablerade, vetenskapligt granskade metoder för alla beräkningar som visas. Referenserna nedan länkar till originalkällorna så att du själv kan kontrollera varje värde.",
+  "sugarLabel": "sockerarter",
+  "suggestedLabel": "Föreslaget",
+  "suppliedLabel": "tillfört",
+  "transFatLabel": "transfett",
+  "unitLabel": "Enhet",
+  "vitaminALabel": "vitamin A",
+  "vitaminB12Label": "vitamin B12",
+  "vitaminB6Label": "vitamin B6",
+  "vitaminCLabel": "vitamin C",
+  "vitaminDLabel": "vitamin D",
+  "warningLabel": "Varning",
+  "weeklyWeightGoalKgPerWeek": "{rate} kg/vecka",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyWeightGoalLabel": "Viktförändring per vecka",
+  "weeklyWeightGoalLbsPerWeek": "{rate} lbs/vecka",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyWeightGoalNoneLabel": "Inte angivet",
+  "weightHistoryAddEntry": "Lägg till registrering",
+  "weightHistoryChartEmptyState": "Registrera vikten under minst två dagar för att se din trend.",
+  "weightHistoryDateLabel": "Datum",
+  "weightHistoryNoEntries": "Inga viktmätningar ännu. Lägg till din första för att börja följa trenden.",
+  "weightHistoryNoteLabel": "Anteckning (valfritt)",
+  "weightHistoryWeightLabel": "Vikt",
+  "weightLabel": "Vikt",
+  "yearsLabel": "{age} år",
+  "@yearsLabel": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "logWaterAmountLabel": "Lägg till {amount} ml",
+  "@logWaterAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "logWaterDialogTitle": "Registrera vattenintag",
+  "logWaterNothingToUndoLabel": "Inget att ångra",
+  "logWaterUndoLabel": "Ångra senaste",
+  "mlLabel": "ml",
+  "settingsWaterGoalDescription": "Används av vattenindikatorn på startskärmen.",
+  "settingsWaterGoalLabel": "Dagligt mål för vattenintag",
+  "waterChipLabel": "{current} / {goal} ml",
+  "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "zincLabel": "zink",
+  "profileFastingEntry": "Fastetimer",
+  "fastingTitle": "Fastetimer",
+  "fastingSubtitle": "En enkel timer för att följa tiden mellan måltiderna. Inga sviter att hålla igång, inga mål, bara klockan.",
+  "fastingWarningTitle": "Innan du börjar",
+  "fastingWarningBody": "Att följa tiden du fastar kan vara till hjälp för vissa och påfrestande för andra, särskilt om du har haft problem med ätandet. Om det gäller dig, sätt ditt välmående först. Stöd finns hos BEAT (Storbritannien) och NEDA (USA).",
+  "fastingWarningDecline": "Inget för mig",
+  "fastingWarningAccept": "Jag förstår, aktivera timern",
+  "fastingPresetCustom": "Egen",
+  "fastingStart": "Starta timern",
+  "fastingCancel": "Avsluta fastan",
+  "fastingCancelConfirmTitle": "Avsluta fastan nu?",
+  "fastingCancelConfirmBody": "Detta avslutar den pågående fasteperioden.",
+  "fastingComplete": "Fasteperioden är avslutad",
+  "fastingLinkBeat": "BEAT (Storbritannien)",
+  "fastingLinkNeda": "NEDA (USA)",
+  "fastingElapsedLabel": "Förfluten tid",
+  "fastingRemainingValue": "{value} kvar",
+  "@fastingRemainingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingTargetValue": "Mål: {value}",
+  "@fastingTargetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLabel": "timmar",
+  "dialogCloseLabel": "Stäng",
+  "customMealsRowMoreTooltip": "Fler åtgärder",
+  "customMealsMergeAction": "Slå ihop med ett annat eget livsmedel",
+  "customMealsMergePickerTitle": "Välj det egna livsmedel som du vill slå ihop med",
+  "customMealsMergeChooseSurvivorTitle": "Vilket ska behållas?",
+  "customMealsMergeContinueAction": "Fortsätt",
+  "customMealsMergeConfirmTitle": "Slå ihop egna livsmedel?",
+  "customMealsMergeConfirmContent": "Alla registreringar med {loser} ändras så att de visar {winner} i stället, och {loser} tas bort från dina egna livsmedel. Detta kan inte ångras.",
+  "@customMealsMergeConfirmContent": {
+    "placeholders": {
+      "loser": {
+        "type": "String"
+      },
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsMergeConfirmAction": "Slå ihop",
+  "customMealsMergeSuccessSnackbarOne": "Sammanslagningen är klar – {winner} har nu 1 registrering.",
+  "@customMealsMergeSuccessSnackbarOne": {
+    "placeholders": {
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsMergeSuccessSnackbarOther": "Sammanslagningen är klar – {winner} har nu {count} registreringar.",
+  "@customMealsMergeSuccessSnackbarOther": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "winner": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingHomeChipBody": "Fasta · {remaining} kvar",
+  "@fastingHomeChipBody": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "fastingNotificationChannelName": "Fastetimer",
+  "fastingNotificationChannelDescription": "Enstaka aviseringar när en fasteperiod når den inställda tiden.",
+  "fastingNotificationCompleteTitle": "Fasteperioden är avslutad",
+  "fastingNotificationCompleteBody": "Din inställda tid har uppnåtts.",
+  "profileImageLabel": "Lägg till ett foto",
+  "profileImageReplace": "Byt foto",
+  "profileImageRemove": "Ta bort foto",
+  "switchProfileLabel": "Byt profil",
+  "addProfileLabel": "Lägg till profil",
+  "manageProfilesLabel": "Hantera profiler",
+  "editProfileTitle": "Redigera profil",
+  "profileNameLabel": "Namn",
+  "profileNameHint": "Profilnamn",
+  "defaultProfileName": "Profil 1",
+  "profileActiveLabel": "Aktiv",
+  "deleteProfileConfirmTitle": "Ta bort profilen?",
+  "deleteProfileConfirmContent": "Detta tar permanent bort profilen och alla dess data och kan inte ångras.",
+  "copyToProfileLabel": "Kopiera till profil",
+  "copiedToProfileSnackbar": "Måltiden har kopierats till profilen",
+  "copyActionLabel": "Kopiera",
+  "quickAddActivityTitleLabel": "Snabbregistrering av aktivitet",
+  "quickAddActivityDurationLabel": "Varaktighet (min, valfritt)",
+  "quickAddActivityEnergyLabelKcal": "Förbrukad energi (kcal)",
+  "quickAddActivityEnergyLabelKj": "Förbrukad energi (kJ)",
+  "quickAddActivityAddedSnack": "Aktiviteten har lagts till",
+  "quickAddActivityNameLabel": "Namn (valfritt)",
+  "scannerLockOrientationTooltip": "Lås till stående läge",
+  "scannerUnlockOrientationTooltip": "Tillåt rotation",
+  "bulkAddTitle": "Lägg till flera livsmedel",
+  "bulkAddInputHint": "2 ägg, 100 g rostat bröd, svart kaffe",
+  "bulkAddParseLabel": "Hitta livsmedel",
+  "bulkAddSubmitLabel": "Registrera {count} livsmedel",
+  "@bulkAddSubmitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddNoMatchLabel": "Det gick inte att hitta ett matchande livsmedel",
+  "bulkAddUncertainLabel": "Kontrollera den här träffen",
+  "bulkAddSkipLabel": "Hoppa över",
+  "bulkAddIncludeLabel": "Ta med",
+  "bulkAddChooseFoodLabel": "Välj ett annat livsmedel",
+  "bulkAddNothingToLogLabel": "Inget att registrera ännu",
+  "bulkAddSearchFailedLabel": "Det gick inte att söka efter dessa livsmedel",
+  "bulkAddCheckAmountLabel": "Kontrollera enheten för den här mängden",
+  "bulkAddDefaultAmountLabel": "Mängd saknas",
+  "bulkAddErrorInvalidName": "Livsmedel {number}: ogiltigt livsmedelsnamn",
+  "@bulkAddErrorInvalidName": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddErrorQuantityTooSmall": "Livsmedel {number}: mängden måste vara större än 0",
+  "@bulkAddErrorQuantityTooSmall": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddErrorQuantityTooLarge": "Livsmedel {number}: mängden får vara högst {bound}",
+  "@bulkAddErrorQuantityTooLarge": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddRowQuantityInvalid": "Ange ett tal med högst två decimaler",
+  "bulkAddRowQuantityTooSmall": "Mängden måste vara större än 0",
+  "bulkAddRowQuantityTooLarge": "Mängden får vara högst {bound}",
+  "@bulkAddRowQuantityTooLarge": {
+    "placeholders": {
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAiAssistLabel": "AI-hjälp för måltider",
+  "settingsAiAssistNotConfiguredLabel": "Av – ingen nyckel sparad",
+  "settingsAiAssistOnLabel": "På",
+  "settingsAiAssistPausedLabel": "Pausad – nyckel sparad",
+  "settingsAiAssistEnabledLabel": "Använd AI-hjälp",
+  "aiAssistExperimentalLabel": "Experimentell",
+  "aiAssistExperimentalNote": "Funktionen kan ändras eller tas bort, och tillgängliga leverantörer och modeller kan ändras samtidigt.",
+  "aiConsentTitle": "Innan du aktiverar funktionen",
+  "bulkAddModelHintLabel": "En modell kan tolka detta åt dig",
+  "bulkAddModelHintKeyLabel": "Med din egen API-nyckel",
+  "aiConsentChangeProviderNote": "Du kan byta leverantör senare. Varje leverantörs villkor visas i Inställningar, och inget du skriver eller fotograferar skickas förrän du använder funktionen.",
+  "aiConsentOwnServerCheckNote": "När du sparar serveradressen tillfrågas servern också om vilka modeller den erbjuder, och en inställningskontroll körs med en förutbestämd exempelrad och ett exempelfoto från oss – aldrig något av ditt material.",
+  "aiConsentAgreeLabel": "JAG FÖRSTÅR",
+  "aiAssistDisclosureCommon": "Din dagbok och din profil skickas aldrig. Näringsvärden kommer alltid från livsmedelsdatabaserna, aldrig från modellen. Nyckeln sparas endast på den här enheten: OpenNutriTracker får aldrig se den och betalar inte för användningen.",
+  "aiAssistDisclosureAnthropic": "När en nyckel har sparats skickas texten som du skriver på skärmen för att lägga till flera livsmedel – och eventuella foton som du väljer att tolka där – till Anthropic. Foton skickas för den enskilda förfrågan och sparas aldrig.",
+  "aiAssistDisclosureOpenRouter": "När en nyckel har sparats skickas texten som du skriver på skärmen för att lägga till flera livsmedel – och eventuella foton som du väljer att tolka där – till OpenRouter, som vidarebefordrar materialet till leverantören som kör din valda modell. OpenRouter vidarebefordrar också en kontoknuten identitet till leverantören vid varje förfrågan, och detta kan inte stängas av. OpenRouter sparar inte ditt innehåll utöver vad som behövs för att förmedla förfrågan, utom när det krävs för att upptäcka missbruk, för säkerhet eller fakturering eller för att följa lagen. Leverantören som kör modellen sparar det den tar emot enligt sin egen policy.",
+  "aiAssistDisclosureOpenAI": "När en nyckel har sparats skickas texten som du skriver på skärmen för att lägga till flera livsmedel – och eventuella foton som du väljer att tolka där – till OpenAI. OpenAI sparar det du skickar i upp till 30 dagar för att övervaka missbruk, och längre om lagen kräver det eller om det skäligen behövs för att skydda tjänsterna eller en tredje part från skada.",
+  "aiAssistProviderOwnServerLabel": "Din egen server",
+  "aiAssistEndpointFieldLabel": "Serveradress",
+  "aiAssistModelFieldLabel": "Modellnamn",
+  "aiAssistDisclosureOwnServerSecure": "När en adress har sparats skickas texten som du skriver på skärmen för att lägga till flera livsmedel, och eventuella foton som du väljer att tolka där, till {host} – en server som du driver. Ingen tredje part tar emot materialet, och projektet har ingen koppling till den datorn och kan inte lova något om vad den sparar. Anslutningen är krypterad.",
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistDisclosureOwnServerPlaintext": "När en adress har sparats skickas texten som du skriver på skärmen för att lägga till flera livsmedel, och eventuella foton som du väljer att tolka där, till {host} – en server som du driver. Ingen tredje part tar emot materialet, och projektet har ingen koppling till den datorn och kan inte lova något om vad den sparar. Adressen använder vanlig HTTP, så anslutningen är inte krypterad: enheter längs nätverksvägen mellan den här telefonen och servern kan läsa det som skickas.",
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistEndpointInvalidLabel": "Ange en adress som börjar med http:// eller https://",
+  "aiAssistModelRequiredLabel": "Ange namnet på modellen som servern ska använda.",
+  "aiAssistEndpointPublicPlaintextLabel": "Adressen är offentlig och okrypterad, så förfrågningar till den nekas. Använd https eller en privat adress.",
+  "aiAssistProbeSectionLabel": "Inställningskontroll",
+  "aiAssistProbeRunningLabel": "Kontrollerar servern. De två kontrollerna körs efter varandra, så det kan ta upp till {minutes, plural, one{en minut} other{{minutes} minuter}}. Du kan stänga detta; svaret finns här när du kommer tillbaka.",
+  "@aiAssistProbeRunningLabel": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "aiAssistProbeCheckLabel": "Kontrollera servern",
+  "aiAssistProbeTextLabel": "Måltidstext",
+  "aiAssistProbePhotoLabel": "Foton",
+  "aiAssistProbePassedLabel": "Kontrollerad – servern svarade med livsmedel.",
+  "aiAssistProbeUnknownLabel": "Inte kontrollerad ännu.",
+  "aiAssistProbeNoAnswerLabel": "Kontrollerad – inget svar kom, så kontrollen gav ingen information om servern. Försök igen när den är igång och går att nå.",
+  "aiAssistProbeTextFailedLabel": "Kontrollerad – modellen svarade utan livsmedel. Den lokala texttolkningen fungerar fortfarande för inskrivna måltider, och du kan fortfarande prova modellen.",
+  "aiAssistProbePhotoFailedLabel": "Kontrollerad – modellen svarade utan livsmedel för ett foto, så fototolkning är inte tillgänglig för den här servern.",
+  "aiAssistLoadModelsLabel": "Läs in modeller",
+  "aiAssistPickModelLabel": "Välj en modell",
+  "aiAssistModelsUnreachableLabel": "Det gick inte att nå {host}. Servern kan vara i viloläge, på ett annat nätverk eller bakom ett VPN. Ange modellnamnet manuellt i stället.",
+  "@aiAssistModelsUnreachableLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsEmptyLabel": "{host} svarade men listar inga modeller. Ange modellnamnet manuellt i stället.",
+  "@aiAssistModelsEmptyLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsRejectedLabel": "{host} svarade, men inte med en modellista. Kontrollera adressen eller ange modellnamnet manuellt i stället.",
+  "@aiAssistModelsRejectedLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsInsecureLabel": "Inget skickades: adressen är offentlig och okrypterad. Använd https eller ange modellnamnet manuellt i stället.",
+  "aiAssistProviderLabel": "Leverantör",
+  "aiAssistModelLabel": "Modell",
+  "aiAssistServedByLabel": "Körs av {provider}",
+  "@aiAssistServedByLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelRecommendedLabel": "Rekommenderad",
+  "aiAssistModelCheaperLabel": "Billigare och sämre på foton av låg kvalitet",
+  "aiAssistModelMoreItemsLabel": "Identifierar fler livsmedel i ett foto",
+  "aiAssistModelCheapestLabel": "Billigast i den här listan",
+  "aiAssistNoKeyForProviderLabel": "Ingen nyckel har sparats för den här leverantören.",
+  "aiAssistKeyFieldLabel": "API-nyckel för {provider}",
+  "@aiAssistKeyFieldLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistKeySavedLabel": "Nyckeln har sparats",
+  "aiAssistRemoveKeyLabel": "Ta bort nyckel",
+  "bulkAddReadByModelLabel": "Tolkat av AI – kontrollera varje rad",
+  "bulkAddModelKeyRejectedLabel": "AI-tolkningen kördes inte: din API-nyckel avvisades.",
+  "bulkAddModelUnsupportedLabel": "AI-tolkningen kördes inte: den valda modellen kunde inte användas.",
+  "bulkAddModelNoCreditLabel": "AI-tolkningen kördes inte: saldot på ditt konto hos leverantören är slut.",
+  "bulkAddModelInsecureServerLabel": "AI-tolkningen kördes inte: adressen är offentlig och okrypterad.",
+  "bulkAddModelTimedOutLabel": "AI-tolkningen kördes inte: servern svarade inte i tid.",
+  "bulkAddWaitElapsedLabel": "Väntar på servern · {seconds} s",
+  "@bulkAddWaitElapsedLabel": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddWaitModelLoadingLabel": "Servern kan hålla på att läsa in modellen. Den första förfrågan efter en tids uppehåll kan ta en eller två minuter. Det är normalt.",
+  "bulkAddWaitCancelLabel": "Avbryt",
+  "bulkAddPhotoLabel": "Tolka ett foto",
+  "bulkAddPhotoDisclosureCommon": "OpenNutriTracker sparar ingen egen kopia, och fotot tas aldrig med i dina exporter.",
+  "bulkAddPhotoDisclosureAnthropic": "Fotot skickas till Anthropic för att identifiera livsmedlen i det.",
+  "bulkAddPhotoDisclosureOpenRouter": "Fotot skickas till OpenRouter, som vidarebefordrar det till {provider} för att identifiera livsmedlen i det.",
+  "@bulkAddPhotoDisclosureOpenRouter": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddPhotoDisclosureOpenAI": "Fotot skickas till OpenAI för att identifiera livsmedlen i det. OpenAI sparar fotot i upp till 30 dagar för att övervaka missbruk, och längre om lagen kräver det eller om det skäligen behövs för att skydda tjänsterna eller en tredje part från skada.",
+  "bulkAddPhotoDisclosureOwnServer": "Fotot skickas till {host} för att identifiera livsmedlen i det.",
+  "@bulkAddPhotoDisclosureOwnServer": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddReadFromPhotoLabel": "Tolkat från ett foto – kontrollera varje livsmedel och mängd",
+  "bulkAddPhotoUnavailableLabel": "Aktivera AI-hjälp för måltider i Inställningar för att tolka foton",
+  "bulkAddPhotoKeyRejectedLabel": "Din API-nyckel avvisades. Kontrollera den i Inställningar.",
+  "bulkAddPhotoCameraFailedLabel": "Det gick inte att öppna kameran. Kontrollera kamerabehörigheten och försök igen.",
+  "bulkAddPhotoFailedLabel": "Det gick inte att tolka fotot. Kontrollera anslutningen och försök igen.",
+  "bulkAddPhotoUnreadableLabel": "Det gick inte att använda bilden. Prova ett annat foto.",
+  "bulkAddPhotoUnsupportedLabel": "Modellen kan inte tolka foton. Välj en annan i Inställningar eller skriv in livsmedlen i stället.",
+  "bulkAddPhotoNoCreditLabel": "Förfrågan kunde inte betalas: saldot på ditt konto hos leverantören är slut. Fyll på saldot hos leverantören eller skriv in livsmedlen i stället.",
+  "bulkAddPhotoNoFoodLabel": "Inga livsmedel hittades i fotot. Prova ett annat foto eller skriv in livsmedlen i stället.",
+  "settingsHealthSyncSubtitle": "Importera träningspass",
+  "healthSyncAutoImportLabel": "Importera träningspass automatiskt från {platform}",
+  "@healthSyncAutoImportLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncKcalMultiplierLabel": "Tillgodoräknade träningskalorier",
+  "healthSyncKcalMultiplierSubtitle": "Kroppen kompenserar vanligtvis för träning genom att förbruka färre kalorier resten av dagen. Med 100 % räknas varje träningskalori till godo i ditt dagliga mål.",
+  "healthSyncKcalMultiplierValueLabel": "{percent} %",
+  "@healthSyncKcalMultiplierValueLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncSuggestedLabel": "Föreslaget för dig: {percent} %",
+  "@healthSyncSuggestedLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncImportNowLabel": "Importera nu",
+  "healthSyncLastImportLabel": "Senaste import: {time}",
+  "@healthSyncLastImportLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncNeverImportedLabel": "Inga träningspass har importerats ännu",
+  "healthSyncImportedCountLabel": "{count, plural, =0{Inga nya träningspass} one{1 träningspass har importerats} other{{count} träningspass har importerats}}",
+  "@healthSyncImportedCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "healthSyncPermissionDeniedLabel": "Åtkomst till {platform} beviljades inte. Tillåt OpenNutriTracker att läsa träningspass för att kunna importera dem.",
+  "@healthSyncPermissionDeniedLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureTitle": "Importera träningspass från {platform}?",
+  "@healthSyncDisclosureTitle": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureBody": "OpenNutriTracker läser dina avslutade träningspass från {platform}: typen av träning, när passen ägde rum, hur länge de varade och den angivna energiförbrukningen.\n\nTräningspassen sparas i dagboken som aktiviteter som du kan redigera eller ta bort. Den angivna energiförbrukningen höjer dagens energimål med en andel som du väljer.",
+  "@healthSyncDisclosureBody": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker läser också den senast registrerade kroppsfettprocenten i {platform}. Värdet används för att föreslå hur stor andelen ska vara.",
+  "@healthSyncDisclosureBodyFatAddendum": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureFooter": "Inget skrivs tillbaka till {platform}, och inget skickas någonstans – allt stannar på den här enheten.\n\nDu kan stänga av funktionen när som helst. Då slutar appen läsa in uppgifter.",
+  "@healthSyncDisclosureFooter": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureContinueAction": "Fortsätt",
+  "healthSyncUnavailableLabel": "Hälsodata är inte tillgängliga på den här enheten. Import av träningspass kräver Health Connect på Android eller Apple Health på iOS.",
+  "sourcesEnergyCompensationTitle": "Tillgodoräknade träningskalorier",
+  "sourcesEnergyCompensationDescription": "För importerade träningspass räknas en mindre energimängd till godo än den som enheten anger. Människor kompenserar för träning genom att förbruka färre kalorier under resten av dagen – ungefär 28 % i genomsnitt, och mer vid högre kroppsfettprocent. Den föreslagna andelen bygger på denna forskning och kan ändras under Inställningar → Hälsosynkronisering. Själva energiförbrukningen anges av appen eller enheten som registrerade träningspasset och beräknas inte med appens MET-formel."
 }
