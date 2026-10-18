@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
@@ -157,14 +159,43 @@ void main() {
     expect(saved.code, isNot('4006381333931'));
     expect(previous?.code, equals('4006381333931'));
   });
+
+  testWidgets('a second tap on Save while the first is saving does nothing',
+      (tester) async {
+    await pumpEditor(tester, customMeal(code: '4006381333931', name: 'Oats'));
+    await tester.enterText(
+      find.widgetWithText(TextFormField, l10nEn.customMealBarcodeLabel),
+      '',
+    );
+    dataSource.gate = Completer<void>();
+
+    final saveButton =
+        find.widgetWithText(FilledButton, l10nEn.buttonSaveLabel);
+    await tester.tap(saveButton);
+    await tester.pump();
+    await tester.tap(saveButton);
+    await tester.pump();
+
+    dataSource.gate!.complete();
+    await tester.pumpAndSettle();
+
+    // Each run clears the barcode to a fresh id with the same pre-edit meal
+    // as `previous`, so a second save would match no entry and add a copy.
+    expect(dataSource.saves, hasLength(1));
+    expect(find.text('custom meals'), findsOneWidget);
+  });
 }
 
 class _RecordingCustomMealDataSource implements CustomMealDataSource {
   final saves = <(MealDBO, MealDBO?)>[];
 
+  /// When set, every save waits for it, standing in for a slow disk write.
+  Completer<void>? gate;
+
   @override
   Future<void> saveCustomMeal(MealDBO mealDBO, {MealDBO? previous}) async {
     saves.add((mealDBO, previous));
+    await gate?.future;
   }
 
   @override
