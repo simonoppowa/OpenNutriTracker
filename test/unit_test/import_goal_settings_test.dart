@@ -43,6 +43,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
@@ -99,6 +100,8 @@ final class _PickedFile extends PlatformFile {
 }
 
 class _UnusedSearchCache extends Fake implements RemoteSearchCacheDataSource {}
+
+class _UnusedSetDayBoundary extends Fake implements SetDayBoundaryUsecase {}
 
 class _UnusedImportMealsCsv extends Fake implements ImportMealsCsvUsecase {}
 
@@ -255,6 +258,7 @@ void main() {
       macroGoal,
       _UnusedSearchCache(),
       GetTrackedDayUsecase(trackedDays),
+      _UnusedSetDayBoundary(),
     );
     exportImportBloc = ExportImportBloc(
       exporter,
