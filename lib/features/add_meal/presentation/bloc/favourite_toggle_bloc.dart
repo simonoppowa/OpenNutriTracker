@@ -4,6 +4,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_favourite_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -39,12 +40,16 @@ class FavouriteToggleBloc
     // so a double tap run side by side would read before the first write
     // landed and star the meal twice instead of starring and unstarring it.
     on<ToggleFavouriteEvent>((event, emit) async {
-      _meal = event.meal;
+      _meal ??= event.meal;
       try {
         final isFavourite = await _toggleFavouriteMealUsecase.toggle(
           event.meal,
         );
-        emit(FavouriteToggleState(isFavourite: isFavourite));
+        // A recycled row may have been handed another food while the write
+        // was pending; that food's own load says how its star shows.
+        if (_isBound(event.meal)) {
+          emit(FavouriteToggleState(isFavourite: isFavourite));
+        }
       } catch (error) {
         log.severe(error);
       }
@@ -60,10 +65,22 @@ class FavouriteToggleBloc
     if (meal == null) return;
     try {
       final isFavourite = await _getFavouriteMealsUsecase.isFavourite(meal);
-      emit(FavouriteToggleState(isFavourite: isFavourite));
+      // Dropped when the row was rebound during the read.
+      if (_isBound(meal)) {
+        emit(FavouriteToggleState(isFavourite: isFavourite));
+      }
     } catch (error) {
       log.severe(error);
     }
+  }
+
+  /// Whether [meal] is the food this star shows now, compared by favourite
+  /// key as the button compares a recycled row's food.
+  bool _isBound(MealEntity meal) {
+    final bound = _meal;
+    return bound != null &&
+        FavouriteMealRepository.keyOf(bound) ==
+            FavouriteMealRepository.keyOf(meal);
   }
 
   @override

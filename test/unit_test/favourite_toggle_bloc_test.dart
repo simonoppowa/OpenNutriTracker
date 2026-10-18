@@ -79,6 +79,30 @@ void main() {
     expect(bloc.state.isFavourite, isFalse);
   });
 
+  test('a row rebound during a pending toggle shows its new food', () async {
+    // The write for A lands a turn later; meanwhile the recycled row is
+    // handed B, which is not a favourite. A's result must not show on B.
+    favourites.slowWrites = true;
+    final shown = <bool>[];
+    final sub = bloc.stream.listen((state) => shown.add(state.isFavourite));
+    final a = _meal('7');
+    final b = _meal('8');
+    bloc.add(LoadFavouriteStatusEvent(a));
+    await settle();
+
+    bloc
+      ..add(ToggleFavouriteEvent(a))
+      ..add(LoadFavouriteStatusEvent(b));
+    for (var i = 0; i < 5; i++) {
+      await settle();
+    }
+    await sub.cancel();
+
+    expect(favourites.contains(a), isTrue);
+    expect(bloc.state.isFavourite, isFalse);
+    expect(shown, isNot(contains(true)));
+  });
+
   test('follows a toggle made by another star', () async {
     final meal = _meal('3');
     bloc.add(LoadFavouriteStatusEvent(meal));
