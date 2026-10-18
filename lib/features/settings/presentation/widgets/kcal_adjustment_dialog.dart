@@ -137,8 +137,10 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
     // Done key first) silently saved the slider's last value instead.
     // Same fix as the macro split dialog (#525).
     _applyKcalInput();
+    // round(), not toInt(): a kJ slider step converts to kcal with float
+    // noise (209.2 / 4.184 = 49.999…) that truncation turns into 49.
     await widget.settingsBloc.setKcalAdjustment(
-      _kcalAdjustment.toInt().toDouble(),
+      _kcalAdjustment.round().toDouble(),
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
@@ -159,7 +161,9 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
         children: [
           Expanded(
             child: Text(
-              s.settingsKcalAdjustmentLabel,
+              context.watch<EnergyUnitProvider>().usesKilojoules
+                  ? s.settingsKjAdjustmentLabel
+                  : s.settingsKcalAdjustmentLabel,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

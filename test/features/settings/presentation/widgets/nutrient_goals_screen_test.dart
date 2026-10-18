@@ -18,6 +18,7 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   int setNutrientGoalsCalls = 0;
   double? savedFibre;
   double? savedIron;
+  bool? savedClearAll;
   Map<String, double?> savedGoals = {};
 
   /// Today's row as the screen loads it; null means no row yet.
@@ -44,10 +45,12 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async {
     setNutrientGoalsCalls++;
     savedFibre = fibreGoal;
     savedIron = ironGoal;
+    savedClearAll = clearAll;
     savedGoals = {
       'fibre': fibreGoal,
       'satFat': satFatGoal,
@@ -248,6 +251,31 @@ void main() {
 
       expect(settingsBloc.savedGoals.values, everyElement(isNull));
     });
+  });
+
+  // #1349: Reset then Save has to clear goals already stored on today's
+  // row. The data source skips null columns unless clearAll is set, so
+  // the screen must pass it with every goal null.
+  testWidgets('Reset then Save clears stored goals with clearAll', (
+    tester,
+  ) async {
+    final settingsBloc = _FakeSettingsBloc()
+      ..today = TrackedDayEntity(
+        day: DateTime(2026, 10, 14),
+        calorieGoal: 2000,
+        caloriesTracked: 0,
+        fibreGoal: 32,
+        ironGoal: 12.5,
+      );
+    await openScreen(tester, settingsBloc);
+
+    await tester.tap(find.text(l10nEn.buttonResetLabel));
+    await tester.pumpAndSettle();
+    await tapSave(tester);
+
+    expect(settingsBloc.setNutrientGoalsCalls, 1);
+    expect(settingsBloc.savedClearAll, isTrue);
+    expect(settingsBloc.savedGoals.values, everyElement(isNull));
   });
 
   // #1324: the iOS number pad has no return key. Once the keyboard is

@@ -132,14 +132,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
   }
 
-  void setNotificationsEnabled(bool enabled) {
-    _addConfigUsecase.setNotificationsEnabled(enabled);
-  }
-
-  void setNotificationTime(int hour, int minute) {
-    _addConfigUsecase.setNotificationTime(hour, minute);
-  }
-
   void setSelectedLocale(String? locale) {
     _addConfigUsecase.setSelectedLocale(locale);
   }
