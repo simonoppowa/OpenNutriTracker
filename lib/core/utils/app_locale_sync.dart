@@ -91,6 +91,37 @@ Future<String?> reconcileAppLocale({
   return null;
 }
 
+/// The in-app picker's write-through to Android's per-app setting, with the
+/// same observation [reconcileAppLocale] makes after its own push.
+///
+/// Without it the picker's push leaves the seeded marker as it was, and only
+/// a `didChangeLocales` callback would record it -- which never comes when
+/// the choice leaves the platform's locale list unchanged. Pick, close the
+/// app, clear the override in Android's Settings, launch: the marker would
+/// still be unset, and the launch would push the cleared language back.
+///
+/// So the tag is read back: an override observed there records seeded; none
+/// observed (a "System default" pick, or a push that did not take) consumes
+/// it, since the OS holds no override a later absence could be the clear of,
+/// and a failed push is then retried on the next launch rather than read as
+/// a clear. A failed read decides nothing.
+Future<void> pushInAppLocaleChoice({
+  required String? localeCode,
+  required Future<void> Function(String? languageTag) pushToSystem,
+  required Future<({String? tag, bool readFailed})> Function() readSystemTag,
+  required Future<void> Function() markLocaleSyncSeeded,
+  required Future<void> Function() clearLocaleSyncSeeded,
+}) async {
+  await pushToSystem(localeCode);
+  final verify = await readSystemTag();
+  if (verify.readFailed) return;
+  if (verify.tag != null && verify.tag!.isNotEmpty) {
+    await markLocaleSyncSeeded();
+  } else {
+    await clearLocaleSyncSeeded();
+  }
+}
+
 /// The supported language code behind a platform language tag, or null when
 /// there is no tag or the app does not ship that language.
 ///

@@ -55,11 +55,24 @@ class _Device {
   bool pushTakes = true;
   final pushed = <String?>[];
 
-  /// The in-app picker: saves the choice and pushes it to the OS.
-  void pickInApp(String? code) {
+  /// The in-app picker: saves the choice and pushes it to the OS through
+  /// [pushInAppLocaleChoice], as the Settings dialog does. No locale-change
+  /// callback follows, the case where the choice leaves the platform's
+  /// locale list as it was.
+  Future<void> pickInApp(String? code) {
     saved = code;
-    pushed.add(code);
-    if (pushTakes) osTag = code;
+    return pushInAppLocaleChoice(
+      localeCode: code,
+      pushToSystem: _push,
+      readSystemTag: () async => (tag: osTag, readFailed: false),
+      markLocaleSyncSeeded: () async => seeded = true,
+      clearLocaleSyncSeeded: () async => seeded = false,
+    );
+  }
+
+  Future<void> _push(String? tag) async {
+    pushed.add(tag);
+    if (pushTakes) osTag = tag;
   }
 
   Future<String?> launch() => reconcileAppLocale(
@@ -69,10 +82,7 @@ class _Device {
     localeSyncSeeded: seeded,
     supportedLocales: _supported,
     persistSelectedLocale: (code) async => saved = code,
-    pushToSystem: (tag) async {
-      pushed.add(tag);
-      if (pushTakes) osTag = tag;
-    },
+    pushToSystem: _push,
     readSystemTag: () async => (tag: osTag, readFailed: false),
     markLocaleSyncSeeded: () async => seeded = true,
     clearLocaleSyncSeeded: () async => seeded = false,
@@ -103,19 +113,14 @@ void main() {
     test('the system override wins and is saved', () async {
       final recorder = _Recorder();
 
-      final result = await _reconcile(recorder, saved: 'de', system: 'pl');
+      final result =
+          await _reconcile(recorder, saved: 'de', system: 'pl');
 
       expect(result, 'pl');
-      expect(
-        recorder.persisted,
-        ['pl'],
-        reason: 'Settings should show what the OS picker holds',
-      );
-      expect(
-        recorder.pushed,
-        isEmpty,
-        reason: 'the OS already has this value; writing it back is noise',
-      );
+      expect(recorder.persisted, ['pl'],
+          reason: 'Settings should show what the OS picker holds');
+      expect(recorder.pushed, isEmpty,
+          reason: 'the OS already has this value; writing it back is noise');
       expect(
         recorder.seededMarks,
         1,
@@ -237,7 +242,7 @@ void main() {
       expect(device.saved, isNull);
 
       device.pushTakes = false;
-      device.pickInApp('de');
+      await device.pickInApp('de');
 
       final result = await device.launch();
 
@@ -261,7 +266,7 @@ void main() {
       device.osTag = null;
       await device.launch();
       device.pushTakes = false;
-      device.pickInApp('de');
+      await device.pickInApp('de');
       await device.launch();
 
       device.pushTakes = true;
@@ -297,11 +302,8 @@ void main() {
     test('a script-and-region tag resolves the same way', () async {
       final recorder = _Recorder();
 
-      final result = await _reconcile(
-        recorder,
-        saved: null,
-        system: 'zh-Hans-CN',
-      );
+      final result =
+          await _reconcile(recorder, saved: null, system: 'zh-Hans-CN');
 
       expect(result, 'zh');
       expect(recorder.persisted, ['zh']);
@@ -394,6 +396,95 @@ void main() {
       expect(recorder.persisted, isEmpty);
       expect(recorder.seededMarks, 0);
       expect(recorder.seededClears, 0);
+    });
+  });
+
+  group('pushInAppLocaleChoice', () {
+    Future<_Recorder> pick(
+      String? code, {
+      String? readBack,
+      bool failed = false,
+    }) async {
+      final recorder = _Recorder();
+      await pushInAppLocaleChoice(
+        localeCode: code,
+        pushToSystem: recorder.push,
+        readSystemTag: () async => (tag: readBack, readFailed: failed),
+        markLocaleSyncSeeded: recorder.markSeeded,
+        clearLocaleSyncSeeded: recorder.clearSeeded,
+      );
+      return recorder;
+    }
+
+    test('a pick the OS reads back records seeded', () async {
+      final recorder = await pick('de', readBack: 'de');
+
+      expect(recorder.pushed, ['de']);
+      expect(recorder.seededMarks, 1);
+      expect(recorder.seededClears, 0);
+    });
+
+    test('System default consumes the marker', () async {
+      final recorder = await pick(null);
+
+      expect(recorder.pushed, [null]);
+      expect(recorder.seededMarks, 0);
+      expect(recorder.seededClears, 1);
+    });
+
+    test('a push that did not take consumes the marker', () async {
+      final recorder = await pick('de');
+
+      expect(recorder.seededMarks, 0);
+      expect(
+        recorder.seededClears,
+        1,
+        reason: 'the next launch retries the push instead of reading a clear',
+      );
+    });
+
+    test('a failed read decides nothing', () async {
+      final recorder = await pick('de', failed: true);
+
+      expect(recorder.pushed, ['de']);
+      expect(recorder.seededMarks, 0);
+      expect(recorder.seededClears, 0);
+    });
+
+    // Copilot on #1230: the picker used to push without recording anything,
+    // so a pick that fired no locale-change callback left the marker unset.
+    // An OS clear before the next launch then read as never-seeded, and the
+    // launch pushed the cleared language back.
+    test('pick, no callback, OS clear, launch: the clear is honoured',
+        () async {
+      final device = _Device();
+
+      await device.pickInApp('de');
+      device.osTag = null; // System default in Android's picker
+
+      expect(await device.launch(), isNull);
+      expect(device.saved, isNull);
+      expect(
+        device.pushed,
+        ['de'],
+        reason: 'the cleared language must not be pushed back',
+      );
+      expect(device.osTag, isNull);
+    });
+
+    test('a failed pick after an unseen OS clear is retried, not deleted',
+        () async {
+      final device = _Device(saved: 'pl', osTag: 'pl', seeded: true);
+      device.osTag = null; // cleared while the app ran, no callback seen
+
+      device.pushTakes = false;
+      await device.pickInApp('de');
+      device.pushTakes = true;
+
+      expect(await device.launch(), 'de');
+      expect(device.saved, 'de');
+      expect(device.osTag, 'de');
+      expect(device.seeded, isTrue);
     });
   });
 
