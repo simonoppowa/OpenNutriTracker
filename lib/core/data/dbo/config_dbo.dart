@@ -187,6 +187,17 @@ class ConfigDBO extends HiveObject {
   // user opts out, matching every install that predates the field.
   @HiveField(39)
   bool? defaultToRawFoodUnits;
+  // #1317: the day boundary, in minutes, this profile's tracked-day rows
+  // are keyed by. Per-profile: the boundary is app-wide, but only the
+  // active profile's rows move with it, so a profile that was inactive
+  // when it changed still has its rows keyed by the old one. Activation
+  // moves them from here and records the boundary they are keyed by now.
+  // Null means no build since #1317 has touched the rows, which is every
+  // profile that predates the field. Those builds keyed a row by the
+  // wall-clock date of whatever logged it, so null reads as 0 (the
+  // workout import aside; see `ensureTrackedDaysMatchEntries`).
+  @HiveField(40)
+  int? trackedDaysOffsetMinutes;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -226,6 +237,7 @@ class ConfigDBO extends HiveObject {
     this.policyNoticeRevisionSeen,
     this.healthDeletedWorkouts,
     this.defaultToRawFoodUnits,
+    this.trackedDaysOffsetMinutes,
   });
 
   factory ConfigDBO.empty() =>
