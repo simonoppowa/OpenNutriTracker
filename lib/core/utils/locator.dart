@@ -72,7 +72,6 @@ import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecas
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
-import 'package:opennutritracker/core/utils/env.dart';
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
@@ -92,6 +91,7 @@ import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.d
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/offline_sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
@@ -133,7 +133,6 @@ import 'package:opennutritracker/features/settings/domain/usecase/import_recipes
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 final locator = GetIt.instance;
 
@@ -191,18 +190,6 @@ Future<void> initLocator() async {
       locator<AiCredentialStorage>(),
     ),
   );
-
-  // Backend
-  await Supabase.initialize(
-    url: Env.supabaseProjectUrl,
-    publishableKey: Env.supabaseProjectAnonKey,
-    // In debug builds supabase_flutter attaches its own printer to the
-    // shared root log stream (hierarchical logging is off), duplicating
-    // every app log line in a second format. LoggerConfig already prints
-    // everything — including supabase records — once.
-    debug: false,
-  );
-  locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
   // Notification service (#312)
   locator.registerLazySingleton<NotificationService>(
@@ -599,7 +586,9 @@ Future<void> initLocator() async {
     () => PhysicalActivityDataSource(),
   );
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
-  locator.registerLazySingleton<SpFoodDataSource>(() => SpFoodDataSource());
+  locator.registerLazySingleton<SpFoodDataSource>(
+    () => OfflineSpFoodDataSource(),
+  );
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));
   locator.registerLazySingleton<WeightLogDataSource>(
     () => WeightLogDataSource(hiveDBProvider),
