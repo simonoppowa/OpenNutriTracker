@@ -86,15 +86,23 @@ class _HookedConfigRepository extends ConfigRepository {
 class _EditingUserRepository extends UserRepository {
   int _hasUserDataCalls = 0;
 
-  _EditingUserRepository(super.userDataSource);
+  /// The edit; defaults to a new height.
+  Future<void> Function(UserRepository users)? edit;
+
+  _EditingUserRepository(super.userDataSource, {this.edit});
 
   @override
   Future<bool> hasUserData() async {
     final has = await super.hasUserData();
     if (++_hasUserDataCalls == 2) {
-      final user = await super.getUserData();
-      user.heightCM = 192;
-      await super.updateUserData(user);
+      final edit = this.edit;
+      if (edit != null) {
+        await edit(this);
+      } else {
+        final user = await super.getUserData();
+        user.heightCM = 192;
+        await super.updateUserData(user);
+      }
     }
     return has;
   }
@@ -352,6 +360,33 @@ void main() {
       final user = await userRepository.getUserData();
       expect(user.weightKG, equals(78.5));
       expect(user.heightCM, equals(192));
+    });
+
+    test('a weight entered by hand during the guards stays current', () async {
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        configRepository,
+        weightLogRepository,
+        _EditingUserRepository(
+          UserDataSource(provider),
+          // What AddWeightLogUsecase does for today: the row, then the user.
+          edit: (users) async {
+            await weightLogRepository.addEntry(
+              WeightLogEntity(date: today, weightKg: 79.0),
+            );
+            final user = await users.getUserData();
+            user.weightKG = 79.0;
+            await users.updateUserData(user);
+          },
+        ),
+        provider,
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+
+      await usecase.importNow();
+
+      expect((await userRepository.getUserData()).weightKG, equals(79.0));
+      expect((await weightLogRepository.getEntry(today))!.isImported, isFalse);
     });
 
     test(

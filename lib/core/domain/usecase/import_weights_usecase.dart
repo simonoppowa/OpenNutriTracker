@@ -301,6 +301,18 @@ class ImportWeightsUsecase {
     if (!await _mayStillWrite(profileId)) return;
     if (!await _userRepository.hasUserData()) return;
     if (!_stillOnProfile(profileId)) return;
+    // The log again, after the guards: a weight the user entered while they
+    // ran is now the newest entry, and has already become the current
+    // weight. Writing the imported one over it would leave the profile at
+    // odds with the history.
+    final latest = await _weightLogRepository.getAllEntries();
+    if (latest.isEmpty) return;
+    final current = latest.reduce((a, b) => b.date.isAfter(a.date) ? b : a);
+    if (current.externalId != newest.externalId ||
+        current.weightKg != newest.weightKg) {
+      return;
+    }
+    if (!_stillOnProfile(profileId)) return;
     // Read last, right before the save, and only the weight changed: the
     // save writes the whole user, so a copy read before the guards above
     // would undo a profile edit (height, goal, activity level) that landed
