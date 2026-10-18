@@ -327,7 +327,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             value: VerticalListPopupMenuSelections.onImportCode,
                             child: Semantics(
                               identifier: 'intake-import-meal-code',
-                              child: Text(S.of(context).importMealCodeLabel),
+                              child: Text(S.of(context).pasteCodeLabel),
                             ),
                           ),
                         ])),

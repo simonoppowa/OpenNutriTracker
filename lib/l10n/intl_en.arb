@@ -457,7 +457,6 @@
   "importMealConfirmTitle": "Import {count} items?",
   "importMealErrorLabel": "Invalid QR code",
   "importMealLabel": "Import shared meal",
-  "importMealCodeLabel": "Import shared meal (code)",
   "sharedMealParseLabel": "Parse",
   "sharedMealInvalidCodeLabel": "Enter a valid shared meal code.",
   "sharedMealUnnamedLabel": "Unnamed food",
