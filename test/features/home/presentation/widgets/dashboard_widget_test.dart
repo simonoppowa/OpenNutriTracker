@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../fixture/user_entity_fixtures.dart';
@@ -55,6 +56,35 @@ void main() {
     GetIt.instance.reset();
   });
 
+  DashboardWidget dashboardWidget({required double totalKcalLeft}) {
+    return DashboardWidget(
+      totalKcalSupplied: 2800,
+      totalKcalBurned: 200,
+      totalKcalDaily: 2500,
+      totalKcalLeft: totalKcalLeft,
+      totalCarbsIntake: 100,
+      totalFatsIntake: 30,
+      totalProteinsIntake: 60,
+      totalCarbsGoal: 375,
+      totalFatsGoal: 69,
+      totalProteinsGoal: 93,
+    );
+  }
+
+  testWidgets(
+    'kcal gauge uses the error color when intake exceeds the daily goal',
+    (tester) async {
+      await tester.pumpWidget(_wrap(dashboardWidget(totalKcalLeft: -300)));
+      await tester.pumpAndSettle();
+
+      final gauge = tester.widget<CircularPercentIndicator>(
+        find.byType(CircularPercentIndicator),
+      );
+
+      expect(gauge.progressColor, ThemeData().colorScheme.error);
+    },
+  );
+
   testWidgets(
     'kcal gauge exposes a semantic tap action that opens the goal screen '
     '(regression: excludeSemantics stripped the GestureDetector tap, so '
@@ -64,19 +94,13 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(500, 1600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(_wrap(const DashboardWidget(
-        totalKcalSupplied: 800,
-        totalKcalBurned: 200,
-        totalKcalDaily: 2500,
-        totalKcalLeft: 1900,
-        totalCarbsIntake: 100,
-        totalFatsIntake: 30,
-        totalProteinsIntake: 60,
-        totalCarbsGoal: 375,
-        totalFatsGoal: 69,
-        totalProteinsGoal: 93,
-      )));
+      await tester.pumpWidget(_wrap(dashboardWidget(totalKcalLeft: 1900)));
       await tester.pumpAndSettle();
+
+      final gauge = tester.widget<CircularPercentIndicator>(
+        find.byType(CircularPercentIndicator),
+      );
+      expect(gauge.progressColor, ThemeData().colorScheme.primary);
 
       final gaugeFinder = find.byWidgetPredicate(
         (widget) =>

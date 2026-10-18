@@ -83,6 +83,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textTheme = Theme.of(context).textTheme;
+    final progressColor = widget.totalKcalLeft < 0
+        ? Theme.of(context).colorScheme.error
+        : Theme.of(context).colorScheme.primary;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(Dimens.spacing16, Dimens.spacing8, Dimens.spacing16, Dimens.spacing4),
@@ -155,7 +158,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                         curve: AppMotion.emphasized,
                         circularStrokeCap: CircularStrokeCap.round,
                         backgroundColor: palette.surfaceMuted,
-                        progressColor: Theme.of(context).colorScheme.primary,
+                        progressColor: progressColor,
                         center: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
