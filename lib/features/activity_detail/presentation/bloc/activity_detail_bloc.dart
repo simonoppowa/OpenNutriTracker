@@ -101,7 +101,10 @@ class ActivityDetailBloc
     await _addCustomActivityTemplateUsecase.addTemplate(entity);
   }
 
-  void persistActivity(
+  /// Completes once the activity and its goal credit are stored, so a
+  /// caller refreshes after it: the write can wait for the tracked-day
+  /// lock behind a reconciliation, a profile switch or an import (#1317).
+  Future<void> persistActivity(
     String quantityText,
     double totalKcalBurned,
     PhysicalActivityEntity activityEntity,

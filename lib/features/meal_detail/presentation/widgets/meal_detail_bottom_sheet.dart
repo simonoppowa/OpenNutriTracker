@@ -327,7 +327,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
       if (shouldAdd != true) return;
     }
 
-    widget.mealDetailBloc.addIntake(
+    // The refreshes below only see the intake once it is stored, which
+    // can wait for the tracked-day lock (#1317).
+    await widget.mealDetailBloc.addIntake(
       context,
       widget.mealDetailBloc.state.selectedUnit,
       widget.mealDetailBloc.state.totalQuantityConverted,
@@ -343,6 +345,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(const RefreshCalendarDayEvent());
 
+    if (!context.mounted) return;
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(
       context,

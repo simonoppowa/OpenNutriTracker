@@ -247,7 +247,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     } else {
       finalType = type.getIntakeType();
     }
-    _mealDetailBloc.addIntake(
+    await _mealDetailBloc.addIntake(
       context,
       intakeEntity.unit,
       intakeEntity.amount.toString(),
@@ -269,7 +269,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       // kcal figure through unchanged so a copied entry keeps its calories.
       final kcal =
           userActivityEntity.userKcal ?? userActivityEntity.burnedKcal;
-      _activityDetailBloc.persistActivity(
+      await _activityDetailBloc.persistActivity(
         kcal.toString(),
         kcal,
         activity,
@@ -282,7 +282,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
         activity,
         userActivityEntity.duration,
       );
-      _activityDetailBloc.persistActivity(
+      await _activityDetailBloc.persistActivity(
         userActivityEntity.duration.toString(),
         burnedKcal,
         activity,

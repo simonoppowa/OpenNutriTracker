@@ -419,10 +419,14 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
         arguments: AddMealScreenArguments(widget.addMealType, widget.day));
   }
 
-  void _onItemDropped(IntakeEntity entity) {
-    _mealDetailBloc.addIntake(context, entity.unit, entity.amount.toString(),
-        widget.addMealType.getIntakeType(), entity.meal, entity.dateTime);
-    _homeBloc.deleteIntakeItem(entity);
+  Future<void> _onItemDropped(IntakeEntity entity) async {
+    // Both writes can wait for the tracked-day lock (#1317), so the
+    // refreshes below wait for them: otherwise Home could reload with the
+    // moved entry in both meals.
+    await _mealDetailBloc.addIntake(context, entity.unit,
+        entity.amount.toString(), widget.addMealType.getIntakeType(),
+        entity.meal, entity.dateTime);
+    await _homeBloc.deleteIntakeItem(entity);
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());
