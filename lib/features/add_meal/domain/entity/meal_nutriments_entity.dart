@@ -324,8 +324,8 @@ class MealNutrimentsEntity extends Equatable {
 /// Outcome of running the three physical-plausibility checks against a
 /// [MealNutrimentsEntity] parsed from a remote source (FDC via Supabase, OFF,
 /// or the direct FDC API). When [isConsistent] is false, [failureReason]
-/// names the first rule that tripped — that is the value to attach to a
-/// Sentry breadcrumb so we can spot systematic upstream problems.
+/// names the first rule that tripped, which is what the caller logs so
+/// systematic upstream problems show up.
 ///
 /// The rules come from issue #222 and are deliberately conservative: they
 /// only fire on data that is physically impossible on a 100g basis, so a
@@ -365,8 +365,8 @@ bool isNutrimentsConsistent(MealNutrimentsEntity nutriments) =>
     validateNutriments(nutriments).isConsistent;
 
 /// Full validation result. Use this when you need the failing rule name —
-/// for example, to log a Sentry breadcrumb at the call site that dropped the
-/// item from search results.
+/// for example, to log it at the call site that dropped the item from search
+/// results.
 NutrimentsValidationResult validateNutriments(MealNutrimentsEntity nutriments) {
   final sugars = nutriments.sugars100;
   final carbs = nutriments.carbohydrates100;

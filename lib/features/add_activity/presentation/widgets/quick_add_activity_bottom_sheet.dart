@@ -16,7 +16,6 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Fast path for logging an activity by typing the time spent and the
 /// calories burned directly, for people whose tracker (a step counter,
@@ -117,7 +116,6 @@ class _QuickAddActivityBottomSheetState
       scaffoldMessenger.showSnackBar(SnackBar(content: Text(addedMessage)));
     } catch (e, st) {
       _log.severe('Quick Add activity save failed', e, st);
-      Sentry.captureException(e, stackTrace: st);
       if (!mounted) return;
       setState(() => _saving = false);
     }

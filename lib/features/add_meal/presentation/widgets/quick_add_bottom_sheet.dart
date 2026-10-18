@@ -19,7 +19,6 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class QuickAddBottomSheet extends StatefulWidget {
   final IntakeTypeEntity intakeType;
@@ -126,7 +125,6 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
       );
     } catch (e, st) {
       _log.severe('Quick Add save failed', e, st);
-      Sentry.captureException(e, stackTrace: st);
       if (!mounted) return;
       setState(() => _saving = false);
     }

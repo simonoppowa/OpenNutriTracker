@@ -37,7 +37,6 @@ class SettingsLoadedState extends SettingsState {
   final bool useMaterialYou; // #415
   final int? accentColor; // #415 follow-up
   /// True while the active profile holds Try Demo / dev sample data.
-  /// Privacy settings lock Sentry opt-in for that session.
   final bool isDemoData;
 
   /// Whether workouts are imported from Health Connect / Apple Health, and

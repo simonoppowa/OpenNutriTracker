@@ -40,7 +40,6 @@ import 'package:opennutritracker/features/settings/presentation/widgets/ai_assis
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/diary_day_boundary_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_adjustment_dialog.dart';
@@ -562,16 +561,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _SettingsGroup(
                 palette: palette,
                 tiles: [
-                  _SettingsTile(
-                    palette: palette,
-                    icon: Icons.policy_rounded,
-                    title: S.of(context).settingsPrivacySettings,
-                    onTap: () => _showPrivacyDialog(
-                      context,
-                      state.sendAnonymousData,
-                      isDemoData: state.isDemoData,
-                    ),
-                  ),
                   _SettingsTile(
                     palette: palette,
                     icon: Icons.description_rounded,
@@ -1353,77 +1342,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
-  }
-
-  void _showPrivacyDialog(
-    BuildContext context,
-    bool hasAcceptedAnonymousData, {
-    required bool isDemoData,
-  }) async {
-    // Crash reporting is not meaningful on synthetic demo data and would
-    // still attach release diagnostics to a session that holds no real
-    // user profile — keep the control off and locked while isDemoData.
-    bool switchActive = isDemoData ? false : hasAcceptedAnonymousData;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(S.of(context).settingsPrivacySettings),
-          content: StatefulBuilder(
-            builder:
-                (
-                  BuildContext context,
-                  void Function(void Function()) setState,
-                ) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(S.of(context).sendCrashReports),
-                        value: switchActive,
-                        onChanged: isDemoData
-                            ? null
-                            : (bool value) {
-                                setState(() {
-                                  switchActive = value;
-                                });
-                              },
-                      ),
-                      if (isDemoData) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          S.of(context).settingsDemoPrivacyNote,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ],
-                  );
-                },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            TextButton(
-              onPressed: () async {
-                final accepted = isDemoData ? false : switchActive;
-                await _settingsBloc.setHasAcceptedAnonymousData(accepted);
-                if (!accepted) Sentry.close();
-                _settingsBloc.add(LoadSettingsEvent());
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogOKLabel),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _showAboutDialog(BuildContext context) async {

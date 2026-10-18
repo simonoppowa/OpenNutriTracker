@@ -3,7 +3,6 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Wipes the **active profile's** data, returning that profile to a
 /// fresh, un-onboarded state. Used by the Settings "delete all my data"
@@ -40,11 +39,6 @@ class DeleteAllUserDataUsecase {
     // the reminder alive. #764 watched an 08:00 ping survive a delete-all,
     // where only uninstalling the app removed it.
     await _stopScheduledNotifications();
-
-    // Closing Sentry before the clear stops any in-flight queue from
-    // referencing boxes mid-clear. The user can re-enable crash reporting later from
-    // Settings; nothing here re-opens the SDK on its own.
-    await Sentry.close();
 
     // Only the active profile's own data is cleared. The shared content
     // libraries (custom meals, recipes, activity templates) and the shared

@@ -11,7 +11,6 @@ import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_response_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_word_response_dto.dart';
 import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OFFDataSource {
   static const _timeoutDuration = Duration(seconds: 60);
@@ -79,9 +78,8 @@ class OFFDataSource {
           OFFConst.getOffLegacyWordSearchUrl(searchString),
         );
       });
-    } catch (exception, stacktrace) {
+    } catch (exception) {
       log.severe('Exception while getting OFF word search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
       return Future.error(exception);
     }
   }
@@ -128,9 +126,8 @@ class OFFDataSource {
         },
         shouldRetry: (e) => e is! ProductNotFoundException,
       );
-    } catch (exception, stacktrace) {
+    } catch (exception) {
       log.severe('Exception while getting OFF barcode search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
       return Future.error(exception);
     }
   }

@@ -30,7 +30,8 @@ class OnboardingIntroPageBody extends StatefulWidget {
 
 class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   late bool _acceptedPolicy = widget.initialAcceptedPolicy;
-  late bool _acceptedDataCollection = widget.initialAcceptedDataCollection;
+  late final bool _acceptedDataCollection =
+      widget.initialAcceptedDataCollection;
   bool _seedingDemo = false;
 
   @override
@@ -91,21 +92,6 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                           _togglePolicy();
                         }
                       },
-                    ),
-                  ),
-                ),
-                ListTile(
-                  onTap: () => _toggleDataCollection(),
-                  title: Text(
-                    S.of(context).dataCollectionLabel,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  leading: Semantics(
-                    identifier: 'onboarding-checkbox-data',
-                    child: Checkbox(
-                      value: _acceptedDataCollection,
-                      onChanged: (value) => _toggleDataCollection(),
                     ),
                   ),
                 ),
@@ -176,12 +162,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
     });
   }
 
-  void _toggleDataCollection() {
-    setState(() {
-      _acceptedDataCollection = !_acceptedDataCollection;
-      widget.setPageContent(_acceptedPolicy, _acceptedDataCollection);
-    });
-  }
+
 
   void _openSources(BuildContext context) {
     Navigator.of(

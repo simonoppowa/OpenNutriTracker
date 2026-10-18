@@ -14,7 +14,6 @@ import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
 import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart'
     show noPortionsPenalty;
 import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Searches the Supabase multi-source food backend (`food_summary` view,
@@ -93,9 +92,8 @@ class SpFoodDataSource {
           log.fine('App language changed mid-search; repeating once');
         }
       });
-    } catch (exception, stacktrace) {
+    } catch (exception) {
       log.severe('Exception while getting Supabase food search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
       return Future.error(exception);
     }
   }

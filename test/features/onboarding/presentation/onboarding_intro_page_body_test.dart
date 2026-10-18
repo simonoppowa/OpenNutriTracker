@@ -137,13 +137,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('renders both checkboxes unchecked initially', (tester) async {
+  testWidgets('renders only the policy checkbox, unchecked', (tester) async {
     await pumpIntroPage(tester, onSetPageContent: (_, _) {});
 
     final checkboxes = tester.widgetList<Checkbox>(find.byType(Checkbox)).toList();
-    expect(checkboxes, hasLength(2));
-    expect(checkboxes[0].value, isFalse, reason: 'policy checkbox starts unchecked');
-    expect(checkboxes[1].value, isFalse, reason: 'data-collection checkbox starts unchecked');
+    expect(checkboxes, hasLength(1), reason: 'crash reporting was removed (#19)');
+    expect(checkboxes.single.value, isFalse, reason: 'policy checkbox starts unchecked');
   });
 
   testWidgets('tapping the policy checkbox reports (true, false) and checks the box',
@@ -164,43 +163,6 @@ void main() {
       tester.widget<Checkbox>(find.byType(Checkbox).first).value,
       isTrue,
     );
-  });
-
-  testWidgets('tapping the data-collection checkbox reports (false, true)',
-      (tester) async {
-    bool? lastPolicy;
-    bool? lastData;
-    await pumpIntroPage(tester, onSetPageContent: (policy, data) {
-      lastPolicy = policy;
-      lastData = data;
-    });
-
-    await tester.tap(find.byType(Checkbox).last);
-    await tester.pump();
-
-    expect(lastPolicy, isFalse);
-    expect(lastData, isTrue);
-    expect(
-      tester.widget<Checkbox>(find.byType(Checkbox).last).value,
-      isTrue,
-    );
-  });
-
-  testWidgets('tapping both checkboxes reports (true, true)', (tester) async {
-    bool? lastPolicy;
-    bool? lastData;
-    await pumpIntroPage(tester, onSetPageContent: (policy, data) {
-      lastPolicy = policy;
-      lastData = data;
-    });
-
-    await tester.tap(find.byType(Checkbox).first);
-    await tester.pump();
-    await tester.tap(find.byType(Checkbox).last);
-    await tester.pump();
-
-    expect(lastPolicy, isTrue);
-    expect(lastData, isTrue);
   });
 
   testWidgets('tapping the policy checkbox twice toggles it back off',

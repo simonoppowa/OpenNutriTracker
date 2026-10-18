@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
@@ -18,11 +17,9 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/app_locale_sync.dart';
-import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
-import 'package:opennutritracker/core/utils/sentry_config.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
@@ -50,7 +47,6 @@ import 'package:opennutritracker/features/settings/presentation/widgets/health_s
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// The locales the app resolves against: gen-l10n's list narrowed to the
 /// shipped languages, computed once (WidgetsApp compares the list by
@@ -68,12 +64,11 @@ Future<void> _bootstrapApp() async {
   try {
     await initLocator();
   } on HiveStorageIntegrityException catch (error, stackTrace) {
-    // Consent (and thus Sentry) lives in the encrypted Config Hive box, so it
-    // cannot be read on this path. Keep diagnostics local and preserve the
-    // database files while giving the user a safe, retryable recovery screen.
+    // Keep diagnostics local and preserve the database files while giving the
+    // user a safe, retryable recovery screen.
     log.severe(
       'Local database integrity failure during bootstrap '
-      '(code=${error.code}). Not reporting to Sentry before consent.',
+      '(code=${error.code}).',
       error,
       stackTrace,
     );
@@ -127,56 +122,19 @@ Future<void> _bootstrapApp() async {
       channelDescription: s.notificationsDailyReminderChannelDescription,
     );
   }
-  final hasAcceptedAnonymousData = await configRepo
-      .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
   final savedUsesKilojoules = config.usesKilojoules;
   final savedUseMaterialYou = config.useMaterialYou;
   final savedAccentColor = config.accentColor;
 
-  // If the user has accepted anonymous data collection, run the app with
-  // sentry enabled, else run without it
-  if (kReleaseMode && hasAcceptedAnonymousData) {
-    log.info('Starting App with Sentry enabled ...');
-    _runAppWithSentryReporting(
-      isUserInitialized,
-      savedAppTheme,
-      savedLocale,
-      savedUsesKilojoules,
-      savedUseMaterialYou,
-      savedAccentColor,
-    );
-  } else {
-    log.info('Starting App ...');
-    runAppWithChangeNotifiers(
-      isUserInitialized,
-      savedAppTheme,
-      savedLocale,
-      savedUsesKilojoules,
-      savedUseMaterialYou,
-      savedAccentColor,
-    );
-  }
-}
-
-void _runAppWithSentryReporting(
-  bool isUserInitialized,
-  AppThemeEntity savedAppTheme,
-  Locale? savedLocale,
-  bool savedUsesKilojoules,
-  bool savedUseMaterialYou,
-  int? savedAccentColor,
-) async {
-  await SentryFlutter.init(
-    (options) => configureSentryOptions(options, dsn: Env.sentryDns),
-    appRunner: () => runAppWithChangeNotifiers(
-      isUserInitialized,
-      savedAppTheme,
-      savedLocale,
-      savedUsesKilojoules,
-      savedUseMaterialYou,
-      savedAccentColor,
-    ),
+  log.info('Starting App ...');
+  runAppWithChangeNotifiers(
+    isUserInitialized,
+    savedAppTheme,
+    savedLocale,
+    savedUsesKilojoules,
+    savedUseMaterialYou,
+    savedAccentColor,
   );
 }
 

@@ -17,7 +17,6 @@ import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'meal_detail_event.dart';
 
@@ -85,7 +84,6 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         );
       } catch (e) {
         log.severe('Error calculating kcal: $e');
-        Sentry.captureException(e);
       }
     });
 
@@ -110,7 +108,6 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         }
       } catch (e) {
         log.severe('Error loading daily totals: $e');
-        Sentry.captureException(e);
       }
     });
 
