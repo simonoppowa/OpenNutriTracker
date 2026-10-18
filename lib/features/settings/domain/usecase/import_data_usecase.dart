@@ -93,6 +93,7 @@ class ImportDataUsecase {
     String customActivityTemplateJsonFileName, {
     String goalSettingsJsonFileName = 'goal_settings.json',
   }) async {
+    final startedOn = ProfileStamp.now();
     final archive = await _pickAndDecodeArchive();
 
     // Decode every entry before writing anything (#1357): the upserts
@@ -159,60 +160,57 @@ class ImportDataUsecase {
       TrackedDayBoundaryRecord.fromJson,
     );
 
-    await _writeEntriesAndRows(
-      userActivityDBOs,
-      intakeDBOs,
-      trackedDayDBOs,
-      keyedBy,
-    );
-    if (recipeDBOs != null) {
-      await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
-    }
-    if (weightLogDBOs != null) {
-      await _weightLogRepository.addAllEntries(weightLogDBOs);
-    }
-    if (templateDBOs != null) {
-      await _customActivityTemplateRepository.upsertAllTemplateDBOs(
-        templateDBOs,
+    final imported = await withTrackedDayLockOnProfile(() async {
+      await _writeEntriesAndRows(
+        userActivityDBOs,
+        intakeDBOs,
+        trackedDayDBOs,
+        keyedBy,
       );
-    }
-    if (goalSettings != null) {
-      // The backup's goals replace the device's, as a restore should; a
-      // null in the file puts that goal back to the app default.
-      await _configRepository.setConfigGoalSettings(
-        kcalAdjustment: goalSettings.kcalAdjustment,
-        carbGoalPct: goalSettings.carbGoalPct,
-        proteinGoalPct: goalSettings.proteinGoalPct,
-        fatGoalPct: goalSettings.fatGoalPct,
-        mealKcalSharesPct: goalSettings.mealKcalSharesPct,
-        dailyWaterGoalMl: goalSettings.dailyWaterGoalMl,
+      if (recipeDBOs != null) {
+        await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
+      }
+      if (weightLogDBOs != null) {
+        await _weightLogRepository.addAllEntries(weightLogDBOs);
+      }
+      if (templateDBOs != null) {
+        await _customActivityTemplateRepository.upsertAllTemplateDBOs(
+          templateDBOs,
+        );
+      }
+      if (goalSettings != null) {
+        await _configRepository.setConfigGoalSettings(
+          kcalAdjustment: goalSettings.kcalAdjustment,
+          carbGoalPct: goalSettings.carbGoalPct,
+          proteinGoalPct: goalSettings.proteinGoalPct,
+          fatGoalPct: goalSettings.fatGoalPct,
+          mealKcalSharesPct: goalSettings.mealKcalSharesPct,
+          dailyWaterGoalMl: goalSettings.dailyWaterGoalMl,
+        );
+      }
+
+      final recipeDir = await UserImageStorage.ensureDirectory(
+        UserImageKind.recipe,
       );
-    }
+      final mealDir = await UserImageStorage.ensureDirectory(
+        UserImageKind.meal,
+      );
+      for (final entry in archive.files) {
+        if (!entry.isFile) continue;
+        final sanitized = UserImageStorage.sanitizeRelative(entry.name);
+        if (sanitized == null) continue;
+        final parts = sanitized.split('/');
+        final targetDir = parts[0] == UserImageKind.recipe.subdir
+            ? recipeDir
+            : mealDir;
+        final destPath = '${targetDir.path}/${parts[1]}';
+        final destFile = File(destPath);
+        await destFile.writeAsBytes(entry.content as List<int>, flush: true);
+      }
 
-    // Restore any user-attached photos — recipes under `recipe_images/`
-    // and custom meals under `meal_images/`. Each archive entry's name
-    // already matches the relative slug we stored on the matching DBO,
-    // so we just write the bytes back into the right private documents
-    // subdirectory. Anything outside those known prefixes is skipped by
-    // the sanitiser, so a hostile zip can't escape into other folders.
-    final recipeDir = await UserImageStorage.ensureDirectory(
-      UserImageKind.recipe,
-    );
-    final mealDir = await UserImageStorage.ensureDirectory(UserImageKind.meal);
-    for (final entry in archive.files) {
-      if (!entry.isFile) continue;
-      final sanitized = UserImageStorage.sanitizeRelative(entry.name);
-      if (sanitized == null) continue;
-      final parts = sanitized.split('/');
-      final targetDir = parts[0] == UserImageKind.recipe.subdir
-          ? recipeDir
-          : mealDir;
-      final destPath = '${targetDir.path}/${parts[1]}';
-      final destFile = File(destPath);
-      await destFile.writeAsBytes(entry.content as List<int>, flush: true);
-    }
-
-    return true;
+      return true;
+    }, startedOn: startedOn);
+    return imported ?? false;
   }
 
   /// Symmetric CSV counterpart to [importData]. Reads a zip produced by
@@ -229,6 +227,7 @@ class ImportDataUsecase {
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
   }) async {
+    final startedOn = ProfileStamp.now();
     final archive = await _pickAndDecodeArchive();
 
     // Decode all three before writing any, as in [importData] (#1357).
@@ -252,9 +251,16 @@ class ImportDataUsecase {
       TrackedDayBoundaryRecord.fromCsv,
     );
 
-    await _writeEntriesAndRows(activityDBOs, intakeDBOs, trackedDayDBOs, keyedBy);
-
-    return true;
+    final imported = await withTrackedDayLockOnProfile(
+      () => _writeEntriesAndRows(
+        activityDBOs,
+        intakeDBOs,
+        trackedDayDBOs,
+        keyedBy,
+      ).then((_) => true),
+      startedOn: startedOn,
+    );
+    return imported ?? false;
   }
 
   /// Writes the entries and the rows, then moves the rows from the

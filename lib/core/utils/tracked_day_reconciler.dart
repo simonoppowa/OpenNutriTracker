@@ -49,6 +49,7 @@ String _activityKey(
   importOffsetMinutes != null && activity.externalId != null
       ? importOffsetMinutes
       : offsetMinutes,
+  clockReading: activity.externalId != null,
 );
 
 /// Groups every intake and activity under the key of the row for the day

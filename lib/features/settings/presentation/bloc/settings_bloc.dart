@@ -276,25 +276,27 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     double? vitaminB12Goal,
     double? magnesiumGoal,
   }) async {
-    await _addTrackedDayUsecase.updateDayNutrientGoals(
-      day,
-      fibreGoal: fibreGoal,
-      satFatGoal: satFatGoal,
-      sugarsGoal: sugarsGoal,
-      sodiumGoal: sodiumGoal,
-      calciumGoal: calciumGoal,
-      ironGoal: ironGoal,
-      potassiumGoal: potassiumGoal,
-      vitaminDGoal: vitaminDGoal,
-      vitaminB12Goal: vitaminB12Goal,
-      magnesiumGoal: magnesiumGoal,
+    await withTrackedDayLockOnProfile(
+      () => _addTrackedDayUsecase.updateDayNutrientGoals(
+        day,
+        fibreGoal: fibreGoal,
+        satFatGoal: satFatGoal,
+        sugarsGoal: sugarsGoal,
+        sodiumGoal: sodiumGoal,
+        calciumGoal: calciumGoal,
+        ironGoal: ironGoal,
+        potassiumGoal: potassiumGoal,
+        vitaminDGoal: vitaminDGoal,
+        vitaminB12Goal: vitaminB12Goal,
+        magnesiumGoal: magnesiumGoal,
+      ),
     );
   }
 
   Future<void> updateTrackedDay(DateTime day) =>
       // The goal counts the day's activities, so it is read and written
       // with no boundary move between (#1317).
-      withTrackedDayLock(() async {
+      withTrackedDayLockOnProfile(() async {
         final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
         final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
           totalKcalGoal,
@@ -306,7 +308,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           totalKcalGoal,
         );
 
-    final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
+        final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
 
         if (hasTrackedDay) {
           await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);

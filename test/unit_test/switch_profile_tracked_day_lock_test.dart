@@ -99,4 +99,27 @@ void main() {
     await switched;
     expect(log, ['entry stored', 'row updated', 'box swap']);
   });
+
+  test('a UI write queued behind a profile switch is abandoned', () async {
+    final startedOn = ProfileStamp.now();
+    final switching = Completer<void>();
+    final releaseSwitch = Completer<void>();
+    final switchFuture = withProfileSwitchLock(() async {
+      switching.complete();
+      await releaseSwitch.future;
+    });
+    await switching.future;
+
+    var wrote = false;
+    final write = withTrackedDayLockOnProfile(() async {
+      wrote = true;
+    }, startedOn: startedOn);
+    await pumpEventQueue();
+    expect(wrote, isFalse);
+
+    releaseSwitch.complete();
+    await switchFuture;
+    expect(await write, isNull);
+    expect(wrote, isFalse);
+  });
 }

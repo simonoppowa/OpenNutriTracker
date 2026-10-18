@@ -98,7 +98,9 @@ class ActivityDetailBloc
   Future<void> saveCustomActivityTemplate(
     CustomActivityTemplateEntity entity,
   ) async {
-    await _addCustomActivityTemplateUsecase.addTemplate(entity);
+    await withTrackedDayLockOnProfile(
+      () => _addCustomActivityTemplateUsecase.addTemplate(entity),
+    );
   }
 
   /// Completes once the activity and its goal credit are stored, so a
@@ -129,7 +131,7 @@ class ActivityDetailBloc
 
     // The entry and its goal credit together, so no reconciliation or
     // boundary move lands between them (#1317).
-    await withTrackedDayLock(() async {
+    await withTrackedDayLockOnProfile(() async {
       await _addUserActivityUsecase.addUserActivity(userActivityEntity);
       await _updateTrackedDay(day, burnedKcal);
     });

@@ -130,6 +130,7 @@ class UserActivityDataSource {
             day,
             activity.date,
             totalMinutes,
+            clockReading: activity.externalId != null,
           ),
         )
         .toList();
@@ -150,14 +151,13 @@ class UserActivityDataSource {
         .toSet();
   }
 
-  Future<List<UserActivityDBO>> getRecentlyAddedUserActivity(
-      {int number = 100}) async {
+  Future<List<UserActivityDBO>> getRecentlyAddedUserActivity({
+    int number = 100,
+  }) async {
     final userActivities = _userActivityBox.values.toList();
 
     //  sort list by date descending and filter unique activities
-    userActivities.sort(
-      (a, b) => b.date.compareTo(a.date),
-    );
+    userActivities.sort((a, b) => b.date.compareTo(a.date));
 
     final filterActivityCodes = <String>{};
     final uniqueUserActivities = userActivities

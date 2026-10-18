@@ -66,17 +66,25 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   /// kcal-goal calc on today's tracked day so the saved goal reflects
   /// the new value immediately rather than waiting for the next day.
   Future<void> setCaloriesTaperEnabled(bool enabled) async {
+    final startedOn = ProfileStamp.now();
     final user = await _getUserUsecase.getUserData();
     user.caloriesTaperEnabled = enabled;
-    await updateUser(user);
+    await _updateUser(user, startedOn);
   }
 
-  Future<void> updateUser(UserEntity userEntity) async {
-    // Update user in DB
-    await _addUserUsecase.addUser(userEntity);
+  Future<void> updateUser(UserEntity userEntity) =>
+      _updateUser(userEntity, ProfileStamp.now());
 
-    // Update Tracked Day
-    await _updateTrackedDayCalorieGoal(userEntity, DateTime.now());
+  Future<void> _updateUser(
+    UserEntity userEntity,
+    ProfileStamp startedOn,
+  ) async {
+    final updated = await withTrackedDayLockOnProfile(() async {
+      await _addUserUsecase.addUser(userEntity);
+      await _updateTrackedDayCalorieGoal(userEntity, DateTime.now());
+      return true;
+    }, startedOn: startedOn);
+    if (updated != true) return;
 
     // Refresh Profile
     add(LoadProfileEvent());

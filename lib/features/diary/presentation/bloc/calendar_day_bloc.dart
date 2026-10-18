@@ -127,14 +127,18 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     final dailyKcalGoal = trackedDayEntity?.calorieGoal ?? 0;
     final breakfastKcalTarget = dailyKcalGoal > 0
         ? configData.targetKcalForMeal(
-            ConfigEntity.mealKeyBreakfast, dailyKcalGoal)
+            ConfigEntity.mealKeyBreakfast,
+            dailyKcalGoal,
+          )
         : 0.0;
     final lunchKcalTarget = dailyKcalGoal > 0
         ? configData.targetKcalForMeal(ConfigEntity.mealKeyLunch, dailyKcalGoal)
         : 0.0;
     final dinnerKcalTarget = dailyKcalGoal > 0
         ? configData.targetKcalForMeal(
-            ConfigEntity.mealKeyDinner, dailyKcalGoal)
+            ConfigEntity.mealKeyDinner,
+            dailyKcalGoal,
+          )
         : 0.0;
     final snackKcalTarget = dailyKcalGoal > 0
         ? configData.targetKcalForMeal(ConfigEntity.mealKeySnack, dailyKcalGoal)
@@ -177,7 +181,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   ) async {
     day = _dateLabel(day);
     // The entry and its row together (#1317).
-    await withTrackedDayLock(() async {
+    await withTrackedDayLockOnProfile(() async {
       await _deleteIntakeUsecase.deleteIntake(intakeEntity);
       await _addTrackedDayUsecase.removeDayCaloriesTracked(
         day,
@@ -199,7 +203,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   ) async {
     day = _dateLabel(day);
     // The entry and its row together (#1317).
-    await withTrackedDayLock(() async {
+    await withTrackedDayLockOnProfile(() async {
       final oldIntake = await _getIntakeUsecase.getIntakeById(intakeId);
       assert(oldIntake != null);
       final newIntake = await _updateIntakeUsecase.updateIntake(
@@ -242,18 +246,20 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   ) async {
     day = _dateLabel(day);
     // The entry and its goal together (#1317).
-    await withTrackedDayLock(() async {
+    await withTrackedDayLockOnProfile(() async {
       await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
       await _addTrackedDayUsecase.reduceDayCalorieGoal(
         day,
         activityEntity.burnedKcal,
       );
 
-    final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);
-    final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
-    final proteinAmount = MacroCalc.getTotalProteinsGoal(
-      activityEntity.burnedKcal,
-    );
+      final carbsAmount = MacroCalc.getTotalCarbsGoal(
+        activityEntity.burnedKcal,
+      );
+      final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
+      final proteinAmount = MacroCalc.getTotalProteinsGoal(
+        activityEntity.burnedKcal,
+      );
 
       await _addTrackedDayUsecase.reduceDayMacroGoals(
         day,
@@ -272,7 +278,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   ) async {
     day = _dateLabel(day);
     // The entry and its goal together (#1317).
-    await withTrackedDayLock(() async {
+    await withTrackedDayLockOnProfile(() async {
       final newActivity = await _updateUserActivityUsecase.updateUserActivity(
         activityEntity,
         newDuration,

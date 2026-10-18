@@ -44,17 +44,17 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
     on<DeleteCustomMealEvent>((event, emit) async {
       emit(CustomMealsLoadingState());
       try {
-        // Remove the template from the dedicated custom meal box.
-        await _customMealDataSource.deleteCustomMeal(event.mealKey);
+        final deleted = await withTrackedDayLockOnProfile(() async {
+          await _customMealDataSource.deleteCustomMeal(event.mealKey);
 
-        // Cascade: remove all diary entries that used this custom meal.
-        final allCustom = await _getIntakeUsecase.getCustomMealIntakes();
-        final toDelete = allCustom
-            .where((intake) => (intake.meal.code ?? intake.meal.name) == event.mealKey)
-            .toList();
-        for (final intake in toDelete) {
-          // The entry and its row together (#1317).
-          await withTrackedDayLock(() async {
+          final allCustom = await _getIntakeUsecase.getCustomMealIntakes();
+          final toDelete = allCustom
+              .where(
+                (intake) =>
+                    (intake.meal.code ?? intake.meal.name) == event.mealKey,
+              )
+              .toList();
+          for (final intake in toDelete) {
             await _deleteIntakeUsecase.deleteIntake(intake);
             await _addTrackedDayUsecase.removeDayCaloriesTracked(
               intake.dateTime,
@@ -66,8 +66,10 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
               fatTracked: intake.totalFatsGram,
               proteinTracked: intake.totalProteinsGram,
             );
-          });
-        }
+          }
+          return true;
+        });
+        if (deleted != true) return;
         add(LoadCustomMealsEvent());
       } catch (error) {
         log.severe(error);
@@ -78,10 +80,12 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
     on<MergeCustomMealsEvent>((event, emit) async {
       emit(CustomMealsLoadingState());
       try {
-        final result = await _mergeCustomMealsUseCase.merge(
-          loserKey: event.loserKey,
-          winnerKey: event.winnerKey,
+        final result = await withTrackedDayLockOnProfile(
+          () => _mergeCustomMealsUseCase
+              .merge(loserKey: event.loserKey, winnerKey: event.winnerKey)
+              .then((result) => result),
         );
+        if (result == null) return;
         final meals = _customMealDataSource
             .getAllCustomMeals()
             .map(MealEntity.fromMealDBO)

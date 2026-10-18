@@ -65,7 +65,10 @@ class DayBoundaryCalc {
   ///
   /// Out-of-range values (negative, or ≥ 24 h) are treated as 0 — the
   /// same defensive behaviour as the hours-only overload.
-  static DateTime logicalDayOfMinutes(DateTime moment, int? offsetTotalMinutes) {
+  static DateTime logicalDayOfMinutes(
+    DateTime moment,
+    int? offsetTotalMinutes,
+  ) {
     return _logicalDayOfTotalMinutes(
       moment,
       _sanitiseTotalMinutes(offsetTotalMinutes),
@@ -104,9 +107,14 @@ class DayBoundaryCalc {
   static bool isMomentInLogicalDayMinutes(
     DateTime dayLabel,
     DateTime moment,
-    int? offsetTotalMinutes,
-  ) {
-    final momentDay = dayLabelOf(moment, offsetTotalMinutes);
+    int? offsetTotalMinutes, {
+    bool clockReading = false,
+  }) {
+    final momentDay = dayLabelOf(
+      moment,
+      offsetTotalMinutes,
+      clockReading: clockReading,
+    );
     return momentDay.year == dayLabel.year &&
         momentDay.month == dayLabel.month &&
         momentDay.day == dayLabel.day;
@@ -120,18 +128,25 @@ class DayBoundaryCalc {
   /// A [moment] that is already a label is returned as-is: rolling it
   /// back would file it a day early. See [isDayLabel] for who writes
   /// them.
-  static DateTime dayLabelOf(DateTime moment, int? offsetTotalMinutes) =>
-      isDayLabel(moment)
-          ? moment
-          : logicalDayOfMinutes(moment, offsetTotalMinutes);
+  static DateTime dayLabelOf(
+    DateTime moment,
+    int? offsetTotalMinutes, {
+    bool clockReading = false,
+  }) => !clockReading && isDayLabel(moment)
+      ? moment
+      : logicalDayOfMinutes(moment, offsetTotalMinutes);
 
   /// The date of [dayLabelOf] as `yyyy-MM-dd`, the key of the tracked-day
   /// row holding [moment]'s entry, without building the label: a local
   /// midnight costs a time-zone lookup, and the pass that checks every
   /// logged entry against its row (#1317) spent most of its time on it.
   /// Shifting [moment] lands on the same date.
-  static String dayKeyOf(DateTime moment, int? offsetTotalMinutes) {
-    final day = isDayLabel(moment)
+  static String dayKeyOf(
+    DateTime moment,
+    int? offsetTotalMinutes, {
+    bool clockReading = false,
+  }) {
+    final day = !clockReading && isDayLabel(moment)
         ? moment
         : moment.subtract(
             Duration(minutes: _sanitiseTotalMinutes(offsetTotalMinutes)),

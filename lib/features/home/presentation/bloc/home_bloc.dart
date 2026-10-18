@@ -271,7 +271,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     // The day, the entry and its row under one lock, so no boundary move
     // or reconciliation lands between them (#1317).
-    final dateTime = await withTrackedDayLock(() async {
+    final dateTime = await withTrackedDayLockOnProfile(() async {
       final dateTime = await _currentLogicalDay();
       // Get old intake values
       final oldIntakeObject = await _getIntakeUsecase.getIntakeById(intakeId);
@@ -330,7 +330,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<void> deleteIntakeItem(IntakeEntity intakeEntity) async {
     // Held across the day, the entry and its row (#1317).
-    final dateTime = await withTrackedDayLock(() async {
+    final dateTime = await withTrackedDayLockOnProfile(() async {
       final dateTime = await _currentLogicalDay();
       await _deleteIntakeUsecase.deleteIntake(intakeEntity);
       await _addTrackedDayUseCase.removeDayCaloriesTracked(
@@ -346,12 +346,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       return dateTime;
     });
 
+    if (dateTime == null) return;
     _updateDiaryPage(dateTime);
   }
 
   Future<void> deleteUserActivityItem(UserActivityEntity activityEntity) async {
     // Held across the day, the entry and its goal (#1317).
-    final dateTime = await withTrackedDayLock(() async {
+    final dateTime = await withTrackedDayLockOnProfile(() async {
       final dateTime = await _currentLogicalDay();
       await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
       await _addTrackedDayUseCase.reduceDayCalorieGoal(
@@ -359,11 +360,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         activityEntity.burnedKcal,
       );
 
-    final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);
-    final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
-    final proteinAmount = MacroCalc.getTotalProteinsGoal(
-      activityEntity.burnedKcal,
-    );
+      final carbsAmount = MacroCalc.getTotalCarbsGoal(
+        activityEntity.burnedKcal,
+      );
+      final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
+      final proteinAmount = MacroCalc.getTotalProteinsGoal(
+        activityEntity.burnedKcal,
+      );
 
       await _addTrackedDayUseCase.reduceDayMacroGoals(
         dateTime,
@@ -373,6 +376,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       return dateTime;
     });
+    if (dateTime == null) return;
     _updateDiaryPage(dateTime);
     add(
       const LoadItemsEvent(),
@@ -384,7 +388,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     double newDuration,
   ) async {
     // Held across the day, the entry and its goal (#1317).
-    final dateTime = await withTrackedDayLock(() async {
+    final dateTime = await withTrackedDayLockOnProfile(() async {
       final dateTime = await _currentLogicalDay();
       final newActivity = await _updateUserActivityUsecase.updateUserActivity(
         activityEntity,
@@ -414,6 +418,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
       return dateTime;
     });
+    if (dateTime == null) return;
     _updateDiaryPage(dateTime);
   }
 

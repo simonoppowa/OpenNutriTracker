@@ -64,6 +64,7 @@ class ImportMealsJsonUsecase {
   /// Returns null when the user cancelled the file picker (mirroring the
   /// CSV importer contract).
   Future<ImportMealsJsonResult?> importFromPickedFile() async {
+    final startedOn = ProfileStamp.now();
     final picked = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
@@ -73,12 +74,19 @@ class ImportMealsJsonUsecase {
     }
     final file = File(picked.path!);
     final content = await file.readAsString(encoding: utf8);
-    return importFromJsonString(content);
+    return _importFromJsonString(content, startedOn);
   }
 
   /// Parse [jsonContent] and write any successfully-parsed entries. The
   /// return value is null only when [jsonContent] is empty/whitespace.
   Future<ImportMealsJsonResult> importFromJsonString(String jsonContent) async {
+    return _importFromJsonString(jsonContent, ProfileStamp.now());
+  }
+
+  Future<ImportMealsJsonResult> _importFromJsonString(
+    String jsonContent,
+    ProfileStamp startedOn,
+  ) async {
     final parsed = JsonMealImporter.parse(jsonContent);
 
     // Pre-compute the names already in the custom-meals box (lower-cased)
@@ -94,9 +102,9 @@ class ImportMealsJsonUsecase {
 
     var savedAsCustomMeals = 0;
 
+    var imported = 0;
     for (final intake in parsed.intakes) {
-      // The entry and its row together (#1317).
-      await withTrackedDayLock(() async {
+      final written = await withTrackedDayLockOnProfile(() async {
         await _addIntakeUsecase.addIntake(intake);
         await _ensureTrackedDay(intake.dateTime);
         await _addTrackedDayUsecase.addDayCaloriesTracked(
@@ -109,22 +117,25 @@ class ImportMealsJsonUsecase {
           fatTracked: intake.totalFatsGram,
           proteinTracked: intake.totalProteinsGram,
         );
-      });
-
-      final mealName = intake.meal.name?.trim() ?? '';
-      if (mealName.isEmpty) continue;
-      final nameKey = mealName.toLowerCase();
-      if (existingNames.contains(nameKey)) continue;
-
-      await _customMealDataSource.saveCustomMeal(
-        MealDBO.fromMealEntity(intake.meal),
-      );
-      existingNames.add(nameKey);
-      savedAsCustomMeals++;
+        final mealName = intake.meal.name?.trim() ?? '';
+        if (mealName.isNotEmpty) {
+          final nameKey = mealName.toLowerCase();
+          if (!existingNames.contains(nameKey)) {
+            await _customMealDataSource.saveCustomMeal(
+              MealDBO.fromMealEntity(intake.meal),
+            );
+            existingNames.add(nameKey);
+            savedAsCustomMeals++;
+          }
+        }
+        return true;
+      }, startedOn: startedOn);
+      if (written != true) break;
+      imported++;
     }
 
     return ImportMealsJsonResult(
-      imported: parsed.intakes.length,
+      imported: imported,
       savedAsCustomMeals: savedAsCustomMeals,
       errorMessages: parsed.errors,
     );

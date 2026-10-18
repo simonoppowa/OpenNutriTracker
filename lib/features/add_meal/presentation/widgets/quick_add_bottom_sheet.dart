@@ -104,10 +104,15 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
       );
       // The entry and its row together, so no reconciliation counts the
       // entry before the row has it (#1317).
-      await withTrackedDayLock(() async {
+      final saved = await withTrackedDayLockOnProfile(() async {
         await locator<AddIntakeUsecase>().addIntake(intake);
         await _updateTrackedDay(intake);
+        return true;
       });
+      if (saved != true) {
+        if (mounted) setState(() => _saving = false);
+        return;
+      }
 
       locator<HomeBloc>().add(const LoadItemsEvent());
       locator<DiaryBloc>().add(const LoadDiaryYearEvent());

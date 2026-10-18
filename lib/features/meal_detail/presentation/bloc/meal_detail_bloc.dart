@@ -179,7 +179,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // the cache update means the next search shows the freshest data.
     // The entry and its row together, so no reconciliation counts the
     // entry before the row has it (#1317).
-    await withTrackedDayLock(() async {
+    await withTrackedDayLockOnProfile(() async {
       await _addIntakeUseCase.addIntake(intakeEntity);
       await _updateTrackedDay(intakeEntity, day);
     });

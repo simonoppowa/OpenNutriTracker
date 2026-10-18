@@ -222,4 +222,24 @@ void main() {
       expect(intakeBox.isEmpty, isTrue);
     },
   );
+
+  test(
+    'a delete from the outgoing profile is abandoned after a switch',
+    () async {
+      final releaseSwitch = Completer<void>();
+      final switching = withProfileSwitchLock(() => releaseSwitch.future);
+      await pumpEventQueue();
+
+      final deleting = bloc.deleteIntakeItem(_toast);
+      await pumpEventQueue();
+      expect(intakeBox.values, hasLength(1));
+      expect(trackedDayBox.get('2026-10-05')!.caloriesTracked, 200);
+
+      releaseSwitch.complete();
+      await switching;
+      await deleting;
+      expect(intakeBox.values, hasLength(1));
+      expect(trackedDayBox.get('2026-10-05')!.caloriesTracked, 200);
+    },
+  );
 }

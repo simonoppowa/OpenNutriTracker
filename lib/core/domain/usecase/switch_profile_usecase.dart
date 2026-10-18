@@ -31,9 +31,10 @@ class SwitchProfileUsecase {
   /// call, so a writer paused between storing an entry and adding it to
   /// its row would otherwise resume after the swap and add the outgoing
   /// profile's entry to the incoming profile's row. Waiting for the lock
-  /// lets every such writer finish on the profile it started on.
+  /// lets every such writer finish on the profile it started on; UI writes
+  /// queued behind this switch are discarded by [withProfileSwitchLock].
   Future<void> switchProfile(ProfileEntity profile) =>
-      withTrackedDayLock(() => _switchProfile(profile));
+      withProfileSwitchLock(() => _switchProfile(profile));
 
   Future<void> _switchProfile(ProfileEntity profile) async {
     await _hiveDBProvider.switchProfile(profile.id, profile.boxSuffix);

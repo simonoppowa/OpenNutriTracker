@@ -33,6 +33,7 @@ import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
+import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 
 import '../fixture/user_entity_fixtures.dart';
 import '../helpers/fake_hive_db_provider.dart';
@@ -204,6 +205,69 @@ void main() {
   });
 
   group('ImportWorkoutsUsecase budget invariant', () {
+    test(
+      'an exact-midnight workout is listed on its credited logical day',
+      () async {
+        await configDataSource.setConfigDayStartOffsetHours(4);
+        healthService.workouts = [_workout(start: DateTime(2026, 5, 23))];
+        final base = await getKcalGoalUsecase.getKcalGoal(
+          totalKcalActivitiesParam: 0,
+        );
+
+        expect(await usecase.importNow(), 1);
+        expect(
+          await userActivityRepository.getAllUserActivityByDate(
+            DateTime(2026, 5, 22),
+            dayStartOffsetHours: 4,
+          ),
+          hasLength(1),
+        );
+        expect(
+          await userActivityRepository.getAllUserActivityByDate(
+            DateTime(2026, 5, 23),
+            dayStartOffsetHours: 4,
+          ),
+          isEmpty,
+        );
+        expect(
+          (await trackedDayRepository.getTrackedDay(
+            DateTime(2026, 5, 22),
+          ))!.calorieGoal,
+          closeTo(base + 500, 0.001),
+        );
+      },
+    );
+
+    test(
+      'reconciliation never credits an exact-midnight workout twice',
+      () async {
+        await configDataSource.setConfigDayStartOffsetHours(4);
+        healthService.workouts = [_workout(start: DateTime(2026, 5, 23))];
+        final base = await getKcalGoalUsecase.getKcalGoal(
+          totalKcalActivitiesParam: 0,
+        );
+        await usecase.importNow();
+
+        for (var pass = 0; pass < 2; pass++) {
+          await ensureTrackedDaysMatchEntries(provider, configDataSource);
+          expect(trackedDayBox.keys, ['2026-05-22']);
+          expect(
+            trackedDayBox.get('2026-05-22')!.calorieGoal,
+            closeTo(base + 500, 0.001),
+          );
+        }
+        await SetDayBoundaryUsecase(
+          provider,
+          configDataSource,
+        ).setDayBoundary(0, 0);
+        expect(trackedDayBox.keys, ['2026-05-23']);
+        expect(
+          trackedDayBox.get('2026-05-23')!.calorieGoal,
+          closeTo(base + 500, 0.001),
+        );
+      },
+    );
+
     test(
       'an imported workout becomes an activity and raises the day goal',
       () async {

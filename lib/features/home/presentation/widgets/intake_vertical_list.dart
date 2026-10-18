@@ -37,7 +37,7 @@ class IntakeVerticalList extends StatefulWidget {
   final bool usesImperialUnits;
   final bool showMealMacros;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
-      onDeleteIntakeCallback;
+  onDeleteIntakeCallback;
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
   final Function(BuildContext, IntakeEntity, bool)? onItemTappedCallback;
@@ -426,7 +426,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
     // would then debit the incoming profile and leave the outgoing one
     // with the entry in both meals. The refreshes below wait for both,
     // so Home does not reload with the entry in both meals either.
-    await withTrackedDayLock(() async {
+    await withTrackedDayLockOnProfile(() async {
       await _mealDetailBloc.addIntake(context, entity.unit,
           entity.amount.toString(), widget.addMealType.getIntakeType(),
           entity.meal, entity.dateTime);
