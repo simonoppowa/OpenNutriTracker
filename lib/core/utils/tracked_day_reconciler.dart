@@ -1,4 +1,5 @@
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/box_upsert.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
@@ -454,7 +455,9 @@ Future<void> ensureTrackedDaysRepaired(
 /// at the archive's boundary, and the device's own rows credit the
 /// activities that were on file before [write]. An archive's activity
 /// that lands on a device row's day raises that row's goal, and a device
-/// activity whose row the archive replaced gets its credit back.
+/// activity whose row the archive replaced gets its credit back. The
+/// archive's activities count as the import stores them: one per id, the
+/// last, while each with a blank id is its own.
 ///
 /// Records the configured boundary as the one this profile's rows are
 /// keyed by now. Runs under [withTrackedDayLock], so no writer changes
@@ -472,8 +475,14 @@ Future<int> restoreTrackedDays(
   await write();
   final keyedBy = keyedByOffsetMinutes ?? 0;
   final importKeyedBy = keyedByOffsetMinutes == null ? offset : null;
+  // Keyed like the upsert: a repeated id is stored once, as its last
+  // occurrence, and a blank id gets its own id from the import.
+  final stored = <Object, UserActivityDBO>{
+    for (final (index, activity) in importedActivities.indexed)
+      isBlankId(activity.id) ? index : activity.id: activity,
+  };
   final archiveCredit = _burnedByDay(
-    importedActivities,
+    stored.values,
     keyedBy,
     importOffsetMinutes: importKeyedBy,
   );

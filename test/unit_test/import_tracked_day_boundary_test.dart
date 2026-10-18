@@ -391,6 +391,65 @@ void main() {
     expect(trackedDayBox.get('2026-10-06')?.calorieGoal, 2150);
   });
 
+  /// A bundle from before the boundary record, holding [rides] and [rows].
+  void writeLegacyArchive(
+    List<UserActivityEntity> rides,
+    List<TrackedDayDBO> rows,
+  ) {
+    final archive = Archive();
+    void add(String name, String content) {
+      final bytes = utf8.encode(content);
+      archive.addFile(ArchiveFile(name, bytes.length, bytes));
+    }
+
+    add(
+      ExportImportBloc.userActivityJsonFileName,
+      jsonEncode([
+        for (final ride in rides)
+          UserActivityDBO.fromUserActivityEntity(ride).toJson(),
+      ]),
+    );
+    add(ExportImportBloc.userIntakeJsonFileName, '[]');
+    add(
+      ExportImportBloc.trackedDayJsonFileName,
+      jsonEncode([for (final row in rows) row.toJson()]),
+    );
+    writeArchive(archive);
+  }
+
+  // #1317 review: the import stores one activity per id, so the archive's
+  // credit has to count one too.
+  test('a ride repeated under one id in a backup is credited once', () async {
+    await boundary(0);
+    final ride = rideAt(DateTime(2026, 10, 5, 12));
+    writeLegacyArchive([ride, ride], [rideRow(DateTime(2026, 10, 5))]);
+
+    expect(await import(ExportFormat.json), isTrue);
+
+    expect(activityBox.length, 1);
+    expect(trackedDayBox.get('2026-10-05')?.calorieGoal, 2150);
+  });
+
+  test('rides with a blank id in a backup are each credited', () async {
+    await boundary(0);
+    UserActivityEntity blankRide() => UserActivityEntity(
+      '',
+      30,
+      150,
+      DateTime(2026, 10, 5, 12),
+      PhysicalActivityFixtures.moderateBicycling,
+    );
+    writeLegacyArchive(
+      [blankRide(), blankRide()],
+      [rideRow(DateTime(2026, 10, 5))..calorieGoal = 2300],
+    );
+
+    expect(await import(ExportFormat.json), isTrue);
+
+    expect(activityBox.length, 2);
+    expect(trackedDayBox.get('2026-10-05')?.calorieGoal, 2300);
+  });
+
   test('an archive from before the record is read as keyed by the '
       'wall-clock date, and the device\'s own rows stay put', () async {
     await boundary(4);
