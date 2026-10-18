@@ -280,7 +280,10 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
     // from the Recipes tab) and create an intake from the recipe-as-meal.
     for (final recipeItem in payload.recipes) {
       final recipe = recipeItem.recipe.toRecipeEntity();
-      final saved = await saveRecipeUseCase.save(recipe);
+      final saved = await saveRecipeUseCase.save(
+        recipe,
+        totalWeightOverridden: recipeItem.recipe.totalWeightOverridden,
+      );
       if (!mounted) return;
       _mealDetailBloc.addIntake(
         context,

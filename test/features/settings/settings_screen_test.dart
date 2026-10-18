@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -37,19 +39,42 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
 
   @override
   void add(SettingsEvent event) {}
+
+  /// Held open by the tests, so a reload sent before the flag is stored
+  /// shows up. Made on the call, inside the test's fake-async zone; one
+  /// made in setUp would complete outside it.
+  Completer<void>? mealMacrosSaved;
+
+  @override
+  Future<void> setShowMealMacros(bool showMealMacros) =>
+      (mealMacrosSaved = Completer<void>()).future;
 }
 
 /// The screen resolves these in `initState` and only calls them from
 /// controls no test here touches.
 class _FakeProfileBloc extends Fake implements ProfileBloc {}
 
-class _FakeHomeBloc extends Fake implements HomeBloc {}
+class _FakeHomeBloc extends Fake implements HomeBloc {
+  @override
+  void add(HomeEvent event) {}
+}
 
-class _FakeDiaryBloc extends Fake implements DiaryBloc {}
+class _FakeDiaryBloc extends Fake implements DiaryBloc {
+  final List<DiaryEvent> added = [];
 
-class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {}
+  @override
+  void add(DiaryEvent event) => added.add(event);
+}
 
-class _FakeTrendsBloc extends Fake implements TrendsBloc {}
+class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
+  @override
+  void add(CalendarDayEvent event) {}
+}
+
+class _FakeTrendsBloc extends Fake implements TrendsBloc {
+  @override
+  void add(TrendsEvent event) {}
+}
 
 /// Nothing is configured, which is the state a user arrives in from a
 /// rejected key or a refused destination.
@@ -296,5 +321,30 @@ void main() {
       lessThanOrEqualTo(actions.top),
       reason: 'the row must sit above the buttons, not under them',
     );
+  });
+
+  testWidgets('toggling Show Meal Macros reloads the Diary, whose meal '
+      'headers read the flag from DiaryBloc (#1359)', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final tile = find.text(l10nEn.settingsShowMealMacros);
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    // Not before the flag is stored, or the Diary reads the old one back.
+    final diaryBloc = locator<DiaryBloc>() as _FakeDiaryBloc;
+    expect(diaryBloc.added, isEmpty);
+
+    final settingsBloc = locator<SettingsBloc>() as _FakeSettingsBloc;
+    settingsBloc.mealMacrosSaved!.complete();
+    await tester.pumpAndSettle();
+
+    expect(diaryBloc.added, contains(isA<LoadDiaryYearEvent>()));
   });
 }
