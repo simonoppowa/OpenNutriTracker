@@ -351,6 +351,44 @@ void main() {
       expect(find.byType(NoResultsWidget), findsOneWidget);
     });
 
+    testWidgets(
+        'both providers down on a landscape phone: the error scrolls instead '
+        'of overflowing, and Retry stays reachable', (tester) async {
+      // 800 x 360 logical: a phone on its side, where the space left under
+      // the search field, chips and header is shorter than the error.
+      tester.view.physicalSize = const Size(2400, 1080);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await _register();
+      _repository
+        ..offThrows = true
+        ..fdcThrows = true;
+
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      // The empty-history Recent hint the screen opens on doesn't fit this
+      // height either. That is older than this state and outside it, so
+      // drop its report and judge only what the search renders.
+      tester.takeException();
+      await _search(tester, 'apple');
+
+      expect(tester.takeException(), isNull,
+          reason: 'the error must not overflow the results area');
+      final retry = find.bySemanticsIdentifier('search-all-retry');
+      await tester.scrollUntilVisible(
+        retry,
+        50,
+        scrollable: find.byType(Scrollable).last,
+      );
+      _repository
+        ..offThrows = false
+        ..fdcThrows = false
+        ..fdcResults = [_meal('Apple, raw', MealSourceEntity.fdc)];
+      await tester.tap(retry);
+      await tester.pumpAndSettle();
+      expect(_card('Apple, raw'), findsOneWidget);
+    });
+
     testWidgets('both providers down: an error with an identified Retry', (
       tester,
     ) async {

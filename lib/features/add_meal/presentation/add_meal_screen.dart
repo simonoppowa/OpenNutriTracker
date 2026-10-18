@@ -398,10 +398,18 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           return const DefaultsResultsWidget();
                         }
                         if (productsFailed && foodFailed) {
-                          return ErrorDialog(
-                            errorText: S.of(context).errorFetchingProductData,
-                            onRefreshPressed: _onAllSourcesRefreshButtonPressed,
-                            retryIdentifier: 'search-all-retry',
+                          // Scrollable for the same reason as the partial
+                          // branch below: on a landscape phone the space
+                          // left in this Expanded is shorter than the error,
+                          // which would overflow and push Retry off screen.
+                          return SingleChildScrollView(
+                            child: ErrorDialog(
+                              errorText:
+                                  S.of(context).errorFetchingProductData,
+                              onRefreshPressed:
+                                  _onAllSourcesRefreshButtonPressed,
+                              retryIdentifier: 'search-all-retry',
+                            ),
                           );
                         }
                         // Exactly one source failed: the other genuinely has
