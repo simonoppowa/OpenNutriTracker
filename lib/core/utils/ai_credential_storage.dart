@@ -914,8 +914,52 @@ class AiCredentialStorage {
   Future<AiEndpointProbe> readProbe({AiProvider? provider}) async {
     final target = await _target(provider);
     if (target == null) return AiEndpointProbe.unknown;
-    return AiEndpointProbe.decode(
-      await _storage.read(key: _probeSlotTag(target)),
+    return (await _storedProbe(target)).probe;
+  }
+
+  /// Appended to a verdict recorded against Google's Gemini host by a build
+  /// that asks it the way #1257 does.
+  ///
+  /// Before #1257 the check reached Gemini with `tool_choice: "required"` and,
+  /// from Google's documented base, at the base rather than the chat route.
+  /// A `failed` from then is a fact about those requests, not about the
+  /// model, and the camera stays hidden on it. A verdict without this mark on
+  /// that host is from then.
+  static const _geminiProbeMark = 'g';
+
+  /// The verdict stored for [target], and whether it is held against Gemini.
+  ///
+  /// On Gemini, an unmarked verdict keeps its passes — the new request only
+  /// insists harder on the tool call — and reads its failures as not yet
+  /// known, so the next check decides them. Every other destination is read
+  /// exactly as before: nothing here can discount a verdict they hold.
+  Future<({AiEndpointProbe probe, bool gemini})> _storedProbe(
+    AiProvider target,
+  ) async {
+    final raw = await _storage.read(key: _probeSlotTag(target));
+    final endpoint = target == AiProvider.ownServer
+        ? await readEndpoint(provider: target)
+        : null;
+    final uri = endpoint == null ? null : Uri.tryParse(endpoint);
+    if (uri == null || !isGeminiEndpoint(uri)) {
+      return (probe: AiEndpointProbe.decode(raw), gemini: false);
+    }
+    if (raw != null && raw.endsWith(_geminiProbeMark)) {
+      return (
+        probe: AiEndpointProbe.decode(raw.substring(0, raw.length - 1)),
+        gemini: true,
+      );
+    }
+    final old = AiEndpointProbe.decode(raw);
+    AiCapability kept(AiCapability c) =>
+        c == AiCapability.failed ? AiCapability.unknown : c;
+    return (
+      probe: AiEndpointProbe(
+        text: kept(old.text),
+        photo: kept(old.photo),
+        checked: old.checked,
+      ),
+      gemini: true,
     );
   }
 
@@ -973,9 +1017,9 @@ class AiCredentialStorage {
   });
 
   Future<void> _writeProbe(AiEndpointProbe probe, AiProvider target) async {
-    final stored = AiEndpointProbe.decode(
-      await _storage.read(key: _probeSlotTag(target)),
-    );
+    // Merged against the verdict as it reads, so a pre-#1257 Gemini failure
+    // that this check left unknown is not carried forward under the mark.
+    final (probe: stored, :gemini) = await _storedProbe(target);
     final merged = AiEndpointProbe(
       text: probe.text == AiCapability.unknown ? stored.text : probe.text,
       photo: probe.photo == AiCapability.unknown ? stored.photo : probe.photo,
@@ -991,7 +1035,10 @@ class AiCredentialStorage {
       await _storage.delete(key: _probeSlotTag(target));
       return;
     }
-    await _storage.write(key: _probeSlotTag(target), value: merged.encode());
+    await _storage.write(
+      key: _probeSlotTag(target),
+      value: '${merged.encode()}${gemini ? _geminiProbeMark : ''}',
+    );
   }
 
   /// The stored key for [provider], defaulting to the active one, or null

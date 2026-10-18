@@ -1126,6 +1126,91 @@ void main() {
       );
     });
 
+    group('a Gemini verdict recorded before #1257', () {
+      // Before #1257 the check asked Gemini with `tool_choice: "required"`
+      // and, from Google's documented base, at the base itself. A `failed`
+      // from then hides the camera on the strength of a request this build
+      // no longer sends.
+      const probeSlot = 'AiProbeTag.ownServer';
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      Future<void> configure(String endpoint) async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        await storage.writeOwnServerConfiguration(
+          endpoint: endpoint,
+          model: 'some-model',
+          provider: AiProvider.ownServer,
+        );
+      }
+
+      test('keeps its passes and forgets its failures', () async {
+        await configure(gemini);
+        // What the old build wrote: text passed, photo failed, checked.
+        backing.store[probeSlot] = 'pfc';
+
+        final probe = await storage.readProbe(provider: AiProvider.ownServer);
+
+        expect(probe.text, AiCapability.passed);
+        expect(probe.photo, AiCapability.unknown);
+        expect(probe.checked, isTrue);
+      });
+
+      test('a failure this build records still counts', () async {
+        await configure(gemini);
+        backing.store[probeSlot] = 'pfc';
+
+        await storage.writeProbe(
+          const AiEndpointProbe(
+            text: AiCapability.passed,
+            photo: AiCapability.failed,
+            checked: true,
+          ),
+          provider: AiProvider.ownServer,
+        );
+
+        expect(backing.store[probeSlot], 'pfcg');
+        final probe = await storage.readProbe(provider: AiProvider.ownServer);
+        expect(probe.photo, AiCapability.failed);
+      });
+
+      test('an old failure is not carried into a new record', () async {
+        // A new check whose photo leg learned nothing must not merge the old
+        // failure back in under the new mark.
+        await configure(gemini);
+        backing.store[probeSlot] = 'pfc';
+
+        await storage.writeProbe(
+          const AiEndpointProbe(
+            text: AiCapability.passed,
+            photo: AiCapability.unknown,
+            checked: true,
+          ),
+          provider: AiProvider.ownServer,
+        );
+
+        final probe = await storage.readProbe(provider: AiProvider.ownServer);
+        expect(probe.photo, AiCapability.unknown);
+      });
+
+      test('every other server keeps its verdict exactly', () async {
+        await configure('http://192.168.1.5:11434');
+        backing.store[probeSlot] = 'pfc';
+
+        final probe = await storage.readProbe(provider: AiProvider.ownServer);
+
+        expect(probe.photo, AiCapability.failed);
+        await storage.writeProbe(
+          const AiEndpointProbe(
+            text: AiCapability.passed,
+            photo: AiCapability.unknown,
+            checked: true,
+          ),
+          provider: AiProvider.ownServer,
+        );
+        expect(backing.store[probeSlot], 'pfc', reason: 'no mark, no change');
+      });
+    });
+
     test('the destination is named without the credential in it', () async {
       // `Uri.authority` is `userInfo@host:port`, so a server behind basic
       // auth put the password into the disclosure paragraph and onto the
