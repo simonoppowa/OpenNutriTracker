@@ -1061,6 +1061,71 @@ void main() {
       );
     });
 
+    test('a Gemini base stored before the fix is requested at the chat '
+        'route, without saving again', () async {
+      // Installs that saved Google's base before #1257 hold `/v1beta/openai`
+      // verbatim. Set up as a working configuration, then put the old form
+      // back in the slot the way the old resolver left it.
+      await storage.setActiveProvider(AiProvider.ownServer);
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        model: 'gemini-3.1-pro',
+        provider: AiProvider.ownServer,
+      );
+      const slot = 'AiEndpointTag.ownServer';
+      backing.store[slot] =
+          'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      final selection = await storage.readSelection();
+      final client = _UrlCapturingClient();
+      await mealItemsApiFor(client, selection!).requestItems(
+        content: const MealTextContent('toast'),
+        system: 'system',
+      );
+
+      expect(
+        client.url.toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(selection.endpoint!)
+            .toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/models',
+      );
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(backing.store[slot]!)
+            .toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/models',
+        reason: 'the old stored form derives the same model-list route',
+      );
+
+      // Saving the same base again stores the completed form, and is not
+      // read as a new address that forgets the model.
+      await storage.writeEndpoint(
+        'https://generativelanguage.googleapis.com/v1beta/openai/',
+        provider: AiProvider.ownServer,
+      );
+      expect(
+        backing.store[slot],
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+      expect(
+        await storage.readModel(provider: AiProvider.ownServer),
+        'gemini-3.1-pro',
+      );
+    });
+
+    test('a stored address on any other host is read as it was stored', () {
+      // The read-side completion is Gemini-only, like the rule it mirrors.
+      // Stored by hand so nothing at write time can have touched it.
+      backing.store['AiEndpointTag.ownServer'] =
+          'https://proxy.example.com/openai';
+      return expectLater(
+        storage.readEndpoint(provider: AiProvider.ownServer),
+        completion('https://proxy.example.com/openai'),
+      );
+    });
+
     test('the destination is named without the credential in it', () async {
       // `Uri.authority` is `userInfo@host:port`, so a server behind basic
       // auth put the password into the disclosure paragraph and onto the

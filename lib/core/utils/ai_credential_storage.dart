@@ -626,7 +626,27 @@ class AiCredentialStorage {
     final target = await _target(provider);
     if (target == null) return null;
     final value = await _storage.read(key: _endpointSlotTag(target));
-    return (value == null || value.isEmpty) ? null : value;
+    if (value == null || value.isEmpty) return null;
+    return _completeStoredGemini(value);
+  }
+
+  /// [value] as stored, except a Gemini base saved before #1257 taught
+  /// [resolveEndpoint] to complete it.
+  ///
+  /// Those installs hold `…/v1beta/openai`, which every meal was POSTed to.
+  /// Completed on read rather than rewritten in storage: [readEndpoint] runs
+  /// inside the configuration lock, which is not reentrant, and a rewrite
+  /// through [_writeEndpointLocked] would read as a new address and forget the
+  /// model and the setup check. Every reader goes through here — the request,
+  /// the row, the probe identity check — so they all see the one form, and
+  /// the next save stores it.
+  ///
+  /// Gemini only, like the rule it mirrors: anything else is returned exactly
+  /// as it was stored.
+  static String _completeStoredGemini(String value) {
+    final uri = Uri.tryParse(value);
+    if (uri == null || !isGeminiEndpoint(uri)) return value;
+    return resolveEndpoint(value)?.toString() ?? value;
   }
 
   /// Points [provider] at [endpoint] with [model], **as one act**, and
@@ -746,7 +766,10 @@ class AiCredentialStorage {
   /// takes it. That rules out `clear`, which is why the empty-address branch
   /// stays with the caller.
   Future<void> _writeEndpointLocked(String value, AiProvider target) async {
-    final previous = await _storage.read(key: _endpointSlotTag(target));
+    final stored = await _storage.read(key: _endpointSlotTag(target));
+    // Compared in the form it is read in, so storing the completed form of a
+    // Gemini base saved before #1257 is not mistaken for a new address.
+    final previous = stored == null ? null : _completeStoredGemini(stored);
     if (previous != value) {
       await _storage.delete(key: _modelSlotTag(target));
       // And what the probe found, for the same reason and one step further:
