@@ -54,9 +54,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         policyNoticeRevisionSeen: (fields[37] as num?)?.toInt(),
         healthDeletedWorkouts: (fields[38] as Map?)?.cast<String, DateTime>(),
         defaultToRawFoodUnits: fields[39] as bool?,
-        healthExportEnabled: fields[40] as bool?,
-        healthPendingExportWindows: (fields[41] as List?)?.cast<DateTime>(),
-        healthPendingRecordDeletes: (fields[42] as List?)?.cast<String>(),
+        healthExportEnabled: fields[44] as bool?,
+        healthPendingExportWindows: (fields[45] as List?)?.cast<DateTime>(),
+        healthPendingRecordDeletes: (fields[46] as List?)?.cast<String>(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -147,11 +147,11 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..write(obj.healthDeletedWorkouts)
       ..writeByte(39)
       ..write(obj.defaultToRawFoodUnits)
-      ..writeByte(40)
+      ..writeByte(44)
       ..write(obj.healthExportEnabled)
-      ..writeByte(41)
+      ..writeByte(45)
       ..write(obj.healthPendingExportWindows)
-      ..writeByte(42)
+      ..writeByte(46)
       ..write(obj.healthPendingRecordDeletes);
   }
 

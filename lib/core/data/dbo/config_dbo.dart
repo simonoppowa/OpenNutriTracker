@@ -190,17 +190,17 @@ class ConfigDBO extends HiveObject {
   // Opt-in nutrition export to Health Connect (Android) / Apple Health (iOS).
   // Null means the user has never enabled it, which reads as off — no meal
   // data is written to the health store until they opt in.
-  @HiveField(40)
+  @HiveField(44)
   bool? healthExportEnabled;
   // HealthKit meal windows whose last rewrite did not complete, replayed by
   // the next export and on app start (#1393). Device-wide, like HealthKit
   // itself, so it is read from and written to the shared app box only.
-  @HiveField(41)
+  @HiveField(45)
   List<DateTime>? healthPendingExportWindows;
   // Health Connect client record ids still to delete, written before a
   // profile wipe discards the diary that holds them (#1393), and replayed
   // until each delete succeeds. Device-wide, kept in the shared app box.
-  @HiveField(42)
+  @HiveField(46)
   List<String>? healthPendingRecordDeletes;
 
   ConfigDBO(
