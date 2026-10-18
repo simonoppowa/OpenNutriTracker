@@ -42,6 +42,7 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async {
     savedFibre = fibreGoal;
   }

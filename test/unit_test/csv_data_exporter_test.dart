@@ -96,6 +96,23 @@ void main() {
       expect(parsed.meal.nutriments.iron100, isNull);
     });
 
+    // A build before the reader refused `Infinity` could store one; its
+    // export must still be a file the reader takes back.
+    test('a stored non-finite value is exported blank, so the CSV parses '
+        'again', () {
+      final intake = _intake(
+        amount: double.infinity,
+        meal: _meal(nutriments: _nutriments(kcal: double.negativeInfinity)),
+      );
+
+      final csv = CsvDataExporter.intakesToCsv([intake]);
+      final parsed = CsvDataExporter.parseIntakesFromCsv(csv).single;
+
+      expect(csv, isNot(contains('Infinity')));
+      expect(parsed.amount, 0);
+      expect(parsed.meal.nutriments.energyKcal100, isNull);
+    });
+
     test('exported CSV starts with the documented header row', () {
       final csv = CsvDataExporter.intakesToCsv([]);
       final header = csv.split('\n').first;
