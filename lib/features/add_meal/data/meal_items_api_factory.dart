@@ -76,6 +76,18 @@ ToolChoiceMode ownServerToolChoice(Uri endpoint) =>
     ? ToolChoiceMode.namedFunction
     : ToolChoiceMode.anyTool;
 
+/// What a Gemini error body says that its status does not.
+///
+/// Google answers a mistyped key with **HTTP 400** and `API_KEY_INVALID` in
+/// the body's `details`. Read by status alone that is a rejected request,
+/// which the text path keeps quiet about and the photo path calls an
+/// unreadable picture, so the one fix that works — replacing the key — was
+/// never suggested. Matched as a substring because the OpenAI-compatible
+/// layer sometimes wraps the error object in a list. Anything else is left
+/// to the status.
+MealInterpreterFailure? geminiFailureFromBody(String body) =>
+    body.contains('API_KEY_INVALID') ? MealInterpreterFailure.auth : null;
+
 /// Turns a stored selection into the client that will carry it.
 ///
 /// [timeout] overrides the per-provider default. It exists for the probe,
@@ -134,6 +146,9 @@ MealItemsApi mealItemsApiFor(
       model: modelId,
       endpoint: Uri.parse(selection.endpoint!),
       toolChoice: ownServerToolChoice(Uri.parse(selection.endpoint!)),
+      failureFromBody: isGeminiEndpoint(Uri.parse(selection.endpoint!))
+          ? geminiFailureFromBody
+          : null,
       // The two halves of #774, and they only make sense together. The
       // longer budget is what stops a cold model load being reported as a
       // failure at all; the classification is what stops the failures that

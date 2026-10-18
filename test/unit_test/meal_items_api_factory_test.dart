@@ -69,6 +69,22 @@ class CapturingClient extends http.BaseClient {
   }
 }
 
+/// Answers every request with [status] and [body].
+class _ErrorClient extends http.BaseClient {
+  final int status;
+  final String body;
+
+  _ErrorClient(this.status, this.body);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async =>
+      http.StreamedResponse(
+        Stream.value(utf8.encode(body)),
+        status,
+        request: request,
+      );
+}
+
 Future<CapturingClient> send(AiSelection selection) async {
   final client = CapturingClient();
   await mealItemsApiFor(
@@ -431,6 +447,75 @@ void main() {
       expect(
         ownServerToolChoice(Uri.parse('http://localhost:11434/v1')),
         ToolChoiceMode.anyTool,
+      );
+    });
+  });
+
+  group('a bad Gemini key is reported as a key problem', () {
+    // #1257: Google answers a mistyped key with a 400, the status read
+    // everywhere else as a rejected request — which the text path keeps quiet
+    // about and the photo path calls an unreadable picture.
+    const gemini =
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+    // The shape Google's OpenAI-compatible layer returns, list-wrapped.
+    final badKey = jsonEncode([
+      {
+        'error': {
+          'code': 400,
+          'message': 'API key not valid. Please pass a valid API key.',
+          'status': 'INVALID_ARGUMENT',
+          'details': [
+            {
+              '@type': 'type.googleapis.com/google.rpc.ErrorInfo',
+              'reason': 'API_KEY_INVALID',
+            },
+          ],
+        },
+      },
+    ]);
+
+    Future<MealInterpreterFailure> failureFrom(
+      String endpoint,
+      String body,
+    ) async {
+      final api = mealItemsApiFor(
+        _ErrorClient(400, body),
+        AiSelection(
+          provider: AiProvider.ownServer,
+          apiKey: 'wrong',
+          endpoint: endpoint,
+          modelId: 'some-model',
+        ),
+      );
+      try {
+        await api.requestItems(
+          content: const MealTextContent('toast'),
+          system: 'system',
+        );
+      } on MealInterpreterException catch (e) {
+        return e.failure;
+      }
+      fail('the request did not fail');
+    }
+
+    test('on Gemini, API_KEY_INVALID is auth', () async {
+      expect(await failureFrom(gemini, badKey), MealInterpreterFailure.auth);
+    });
+
+    test('any other Gemini 400 is still a rejected request', () async {
+      expect(
+        await failureFrom(gemini, '{"error":{"code":400}}'),
+        MealInterpreterFailure.rejected,
+      );
+    });
+
+    test('other servers read the status alone, as before', () async {
+      expect(
+        await failureFrom(
+          'https://llama.example.org/v1/chat/completions',
+          badKey,
+        ),
+        MealInterpreterFailure.rejected,
       );
     });
   });
