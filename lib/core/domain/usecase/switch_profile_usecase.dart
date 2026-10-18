@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 
 /// Makes [profile] the active profile: swaps the open box-set, persists
@@ -25,7 +26,16 @@ class SwitchProfileUsecase {
     Future<TrackedDayGoals> Function()? currentTrackedDayGoals,
   }) : _currentTrackedDayGoals = currentTrackedDayGoals;
 
-  Future<void> switchProfile(ProfileEntity profile) async {
+  /// Held under [withTrackedDayLock] from the box swap to the last repair
+  /// (#1317). Data sources resolve their box through the provider on every
+  /// call, so a writer paused between storing an entry and adding it to
+  /// its row would otherwise resume after the swap and add the outgoing
+  /// profile's entry to the incoming profile's row. Waiting for the lock
+  /// lets every such writer finish on the profile it started on.
+  Future<void> switchProfile(ProfileEntity profile) =>
+      withTrackedDayLock(() => _switchProfile(profile));
+
+  Future<void> _switchProfile(ProfileEntity profile) async {
     await _hiveDBProvider.switchProfile(profile.id, profile.boxSuffix);
     await _secureAppStorageProvider.setActiveProfileId(profile.id);
     await ensureConfigInitialized(_configDataSource);
