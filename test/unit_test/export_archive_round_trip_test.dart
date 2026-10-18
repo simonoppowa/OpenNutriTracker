@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
@@ -11,6 +12,7 @@ import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
@@ -21,6 +23,7 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
@@ -100,6 +103,13 @@ class _StubTemplateRepository extends CustomActivityTemplateRepository {
 
   @override
   Future<List<CustomActivityTemplateDBO>> allTemplateDBOs() async => [];
+}
+
+class _StubConfigRepository extends ConfigRepository {
+  _StubConfigRepository() : super(ConfigDataSource(FakeHiveDBProvider()));
+
+  @override
+  Future<ConfigDBO> getConfigDBO() async => ConfigDBO.empty();
 }
 
 class _StubFavouriteMealRepository extends FavouriteMealRepository {
@@ -205,6 +215,7 @@ void main() {
         _StubCustomMealDataSource([]),
         _StubWeightLogRepository(),
         _StubTemplateRepository(),
+        _StubConfigRepository(),
         _StubFavouriteMealRepository(),
       );
 
@@ -275,6 +286,7 @@ void main() {
       _StubCustomMealDataSource([]),
       _StubWeightLogRepository(),
       _StubTemplateRepository(),
+      _StubConfigRepository(),
       _StubFavouriteMealRepository(),
     );
 

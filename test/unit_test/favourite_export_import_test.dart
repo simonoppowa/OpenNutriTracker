@@ -6,6 +6,7 @@ import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
@@ -16,12 +17,14 @@ import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.d
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
@@ -87,7 +90,7 @@ class _EmptyUserActivityRepository extends UserActivityRepository {
   Future<List<UserActivityDBO>> getAllUserActivityDBO() async => [];
 
   @override
-  Future<void> addAllUserActivityDBOs(List<UserActivityDBO> dbos) async {}
+  Future<void> upsertAllUserActivityDBOs(List<UserActivityDBO> dbos) async {}
 }
 
 class _EmptyIntakeRepository extends IntakeRepository {
@@ -97,7 +100,7 @@ class _EmptyIntakeRepository extends IntakeRepository {
   Future<List<IntakeDBO>> getAllIntakesDBO() async => [];
 
   @override
-  Future<void> addAllIntakeDBOs(List<IntakeDBO> intakeDBOs) async {}
+  Future<void> upsertAllIntakeDBOs(List<IntakeDBO> intakeDBOs) async {}
 }
 
 class _EmptyTrackedDayRepository extends TrackedDayRepository {
@@ -145,9 +148,26 @@ class _EmptyTemplateRepository extends CustomActivityTemplateRepository {
   Future<List<CustomActivityTemplateDBO>> allTemplateDBOs() async => [];
 
   @override
-  Future<void> addAllTemplateDBOs(
+  Future<void> upsertAllTemplateDBOs(
     List<CustomActivityTemplateDBO> templates,
   ) async {}
+}
+
+class _EmptyConfigRepository extends ConfigRepository {
+  _EmptyConfigRepository() : super(ConfigDataSource(_boxless));
+
+  @override
+  Future<ConfigDBO> getConfigDBO() async => ConfigDBO.empty();
+
+  @override
+  Future<void> setConfigGoalSettings({
+    required double? kcalAdjustment,
+    required double? carbGoalPct,
+    required double? proteinGoalPct,
+    required double? fatGoalPct,
+    required Map<String, int>? mealKcalSharesPct,
+    required int? dailyWaterGoalMl,
+  }) async {}
 }
 
 MealEntity _meal(String code, String name, MealSourceEntity source) =>
@@ -223,6 +243,7 @@ void main() {
             _EmptyCustomMealDataSource(),
             _EmptyWeightLogRepository(),
             _EmptyTemplateRepository(),
+            _EmptyConfigRepository(),
             exporting,
           ).assembleArchive(
             format: ExportFormat.json,
@@ -252,6 +273,7 @@ void main() {
             _EmptyRecipeRepository(),
             _EmptyWeightLogRepository(),
             _EmptyTemplateRepository(),
+            _EmptyConfigRepository(),
             importing,
             pickFile: () async => _PickedFile('backup.zip', zip.uri),
           ).importData(
@@ -288,6 +310,7 @@ void main() {
           _EmptyCustomMealDataSource(),
           _EmptyWeightLogRepository(),
           _EmptyTemplateRepository(),
+          _EmptyConfigRepository(),
           repositoryOver(sourceBox),
         ).assembleArchive(
           format: ExportFormat.csv,

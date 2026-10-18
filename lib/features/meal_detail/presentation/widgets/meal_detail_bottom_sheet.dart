@@ -26,6 +26,10 @@ class MealDetailBottomSheet extends StatefulWidget {
 
   final String selectedUnit;
 
+  /// Whether the user chose imperial food units, which the serving entry's
+  /// label follows like every other amount on the screen.
+  final bool usesImperialUnits;
+
   final Function(String?, String?) onQuantityOrUnitChanged;
 
   const MealDetailBottomSheet({
@@ -37,6 +41,7 @@ class MealDetailBottomSheet extends StatefulWidget {
     required this.onQuantityOrUnitChanged,
     required this.mealDetailBloc,
     required this.selectedUnit,
+    this.usesImperialUnits = false,
   });
 
   @override
@@ -415,9 +420,13 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     final servingSize = widget.product.servingSize;
     // Serving labels are stored in English (see MealEntity._spServingLabel);
     // translate the common household units at display time.
-    final servingText = (servingSize != null && servingSize.trim().isNotEmpty)
+    final servingLabel = (servingSize != null && servingSize.trim().isNotEmpty)
         ? localizeServingLabel(S.of(context), servingSize)
         : '${S.of(context).servingLabel} (${widget.product.servingQuantity} ${widget.product.servingUnit})';
+    // The label is the food's own text, in grams or millilitres (#1368).
+    final servingText = widget.usesImperialUnits
+        ? imperialServingLabel(S.of(context), servingLabel)
+        : servingLabel;
     return DropdownMenuItem(
       value: UnitDropdownItem.serving.toString(),
       child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 1),
