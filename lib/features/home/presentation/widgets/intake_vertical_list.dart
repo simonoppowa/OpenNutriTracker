@@ -82,6 +82,16 @@ class IntakeVerticalList extends StatefulWidget {
     this.onSortTypeChanged,
   });
 
+  /// Whether a meal section is rendered on Home and in the Diary. A 0 % share
+  /// hides an empty section the user opted out of (OMAD, two-meal), but one
+  /// that already holds intakes always shows: otherwise those entries count
+  /// toward the day's totals with no way to see, edit or delete them (#1305).
+  static bool isShown({
+    required int sharePct,
+    required List<IntakeEntity> intakes,
+  }) =>
+      sharePct > 0 || intakes.isNotEmpty;
+
   @override
   State<IntakeVerticalList> createState() => _IntakeVerticalListState();
 }
@@ -348,6 +358,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             intake: intakeEntity,
                             firstListElement: false,
                             usesImperialUnits: widget.usesImperialUnits,
+                            sortType: widget.sortType,
                           ),
                         ),
                       ),
@@ -376,6 +387,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       onItemTapped: widget.onItemTappedCallback,
                       firstListElement: false,
                       usesImperialUnits: widget.usesImperialUnits,
+                      sortType: widget.sortType,
                     ),
                   ),
                 PlaceholderCard(

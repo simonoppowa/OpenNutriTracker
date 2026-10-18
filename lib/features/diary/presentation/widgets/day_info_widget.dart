@@ -40,8 +40,8 @@ class DayInfoWidget extends StatefulWidget {
   final double dinnerKcalTarget;
   final double snackKcalTarget;
   // #150 follow-up: per-meal share percentages. A 0% share hides the section
-  // entirely — useful for OMAD / two-meal users who don't want an empty meal
-  // slot they've explicitly opted out of staring back at them.
+  // while it is empty — useful for OMAD / two-meal users who don't want an
+  // empty meal slot they've explicitly opted out of staring back at them.
   final int breakfastSharePct;
   final int lunchSharePct;
   final int dinnerSharePct;
@@ -283,11 +283,14 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                             widget.onCopyActivity(activity, widget.trackedDayEntity),
               ),
             ],
-            // #150 follow-up: a 0% share hides the section entirely so OMAD
-            // users (and anyone else who's set a meal slot to 0%) don't see
-            // a meal type they explicitly opted out of. Logged intakes for a
-            // hidden section still count toward the day's totals.
-            if (widget.breakfastSharePct > 0)
+            // #150 follow-up: a 0% share hides an empty section so OMAD users
+            // (and anyone else who's set a meal slot to 0%) don't see a meal
+            // type they explicitly opted out of. A section that holds intakes
+            // always shows, so they stay editable and deletable (#1305).
+            if (IntakeVerticalList.isShown(
+              sharePct: widget.breakfastSharePct,
+              intakes: widget.breakfastIntake,
+            ))
               IntakeVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).breakfastLabel,
@@ -310,7 +313,10 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.breakfast, sort),
               ),
-            if (widget.lunchSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: widget.lunchSharePct,
+              intakes: widget.lunchIntake,
+            ))
               IntakeVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).lunchLabel,
@@ -333,7 +339,10 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.lunch, sort),
               ),
-            if (widget.dinnerSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: widget.dinnerSharePct,
+              intakes: widget.dinnerIntake,
+            ))
               IntakeVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).dinnerLabel,
@@ -355,7 +364,10 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.dinner, sort),
               ),
-            if (widget.snackSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: widget.snackSharePct,
+              intakes: widget.snackIntake,
+            ))
               IntakeVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).snackLabel,

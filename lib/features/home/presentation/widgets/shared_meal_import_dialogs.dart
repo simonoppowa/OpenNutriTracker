@@ -72,6 +72,10 @@ class _SharedMealCodeDialogState extends State<SharedMealCodeDialog> {
 class SharedMealPreviewItem {
   final MealEntity? meal;
   final RecipeEntity? recipe;
+
+  /// Whether [recipe]'s total weight was entered by hand on the sender's
+  /// side (#1194). Passed to SaveRecipeUseCase.save so the import keeps it.
+  final bool totalWeightOverridden;
   final double amount;
   final String unit;
   final String? barcode;
@@ -81,6 +85,7 @@ class SharedMealPreviewItem {
     required this.amount,
     required this.unit,
     this.recipe,
+    this.totalWeightOverridden = false,
     this.barcode,
   });
 

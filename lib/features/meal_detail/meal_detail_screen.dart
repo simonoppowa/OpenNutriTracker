@@ -290,6 +290,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               day: _day,
               intakeTypeEntity: intakeTypeEntity,
               selectedUnit: selectedUnit,
+              usesImperialUnits: _usesImperialUnits,
               mealDetailBloc: _mealDetailBloc,
               quantityTextController: quantityTextController,
               onQuantityOrUnitChanged: onQuantityOrUnitChanged,

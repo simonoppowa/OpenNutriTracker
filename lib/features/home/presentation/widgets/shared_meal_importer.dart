@@ -145,9 +145,14 @@ class SharedMealImporter {
     ];
     for (final item in payload.recipes) {
       final recipe = item.recipe.toRecipeEntity();
-      // Match SaveRecipeUseCase's calculation before showing the preview.
-      final nutrition =
-          locator<ComputeRecipeNutritionUseCase>().compute(recipe.ingredients);
+      final totalWeightOverridden = item.recipe.totalWeightOverridden;
+      // Match SaveRecipeUseCase's calculation before showing the preview,
+      // keeping a hand-entered total weight (#1194).
+      final nutrition = locator<ComputeRecipeNutritionUseCase>().compute(
+        recipe.ingredients,
+        totalWeightOverride:
+            totalWeightOverridden ? recipe.totalWeightG : null,
+      );
       final prepared = recipe.copyWith(
         totalWeightG: nutrition.totalWeightG,
         aggregatedNutrimentsPer100: nutrition.perHundredG,
@@ -155,6 +160,7 @@ class SharedMealImporter {
       items.add(SharedMealPreviewItem(
         meal: prepared.toMealEntity(),
         recipe: prepared,
+        totalWeightOverridden: totalWeightOverridden,
         amount: item.amount,
         unit: item.unit,
       ));
@@ -184,7 +190,10 @@ class SharedMealImporter {
       final meal = item.meal;
       if (meal == null) continue;
       if (item.recipe != null) {
-        await locator<SaveRecipeUseCase>().save(item.recipe!);
+        await locator<SaveRecipeUseCase>().save(
+          item.recipe!,
+          totalWeightOverridden: item.totalWeightOverridden,
+        );
       } else if (item.barcode == null) {
         if (meal.source == MealSourceEntity.fdc) {
           await locator<RemoteSearchCacheDataSource>()
