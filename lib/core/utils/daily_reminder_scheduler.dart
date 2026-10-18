@@ -34,9 +34,9 @@ class DailyReminderScheduler {
   /// Schedules the reminder at the saved time, with its text in the language
   /// of [locale] — or, for "System default" (null), the language
   /// `MaterialApp` resolves from [deviceLocales]. While reminders are off it
-  /// cancels the reminder instead: "off" is saved before the OS is told, so
-  /// if that cancel failed, start-up or the next language change is where
-  /// the surviving alarm gets removed.
+  /// cancels the reminder instead, which is how an alarm left behind by a
+  /// [setEnabled] that failed twice over is removed at the next start-up or
+  /// language change.
   Future<void> reschedule({
     required Locale? locale,
     List<Locale>? deviceLocales,
@@ -56,19 +56,64 @@ class DailyReminderScheduler {
   }
 
   /// Turns the reminder on or off and saves that choice; [locale] is the
-  /// language the app currently shows. "On" is saved only once the OS holds
-  /// the reminder, so a failed schedule throws and leaves the switch off.
+  /// language the app currently shows.
+  ///
+  /// Saving the flag and telling the OS are two steps, and either can fail
+  /// after the other has happened. If one does, the first is undone before
+  /// the error is rethrown, so a failed call leaves the saved switch and the
+  /// alarm agreeing as they did before it (#1389):
+  ///
+  /// - on: "on" is saved only once the OS holds the reminder. If saving
+  ///   fails, an alarm that was not there before is cancelled again.
+  /// - off: "off" is saved first. If the cancel then fails, the alarm is
+  ///   still set, so a switch that was on is put back to on.
+  ///
+  /// Should the undo fail as well, the switch reads off with an alarm still
+  /// set, which the next [reschedule] cancels.
   Future<void> setEnabled(bool enabled, {required Locale locale}) =>
       _serialized(() async {
+        final config = await _configRepository.getConfig();
+        final wasEnabled = config.notificationsEnabled;
         if (enabled) {
-          final config = await _configRepository.getConfig();
           await _schedule(config, locale, null);
-          await _configRepository.setNotificationsEnabled(true);
+          await _undoIfFails(
+            () => _configRepository.setNotificationsEnabled(true),
+            undo: wasEnabled ? null : _notificationService.cancelDailyReminder,
+          );
         } else {
           await _configRepository.setNotificationsEnabled(false);
-          await _notificationService.cancelDailyReminder();
+          await _undoIfFails(
+            _notificationService.cancelDailyReminder,
+            undo: wasEnabled
+                ? () => _configRepository.setNotificationsEnabled(true)
+                : null,
+          );
         }
       });
+
+  /// Runs [step]; if it throws, runs [undo] and rethrows what [step] threw.
+  /// A failing [undo] is logged rather than allowed to hide that error.
+  Future<void> _undoIfFails(
+    Future<void> Function() step, {
+    required Future<void> Function()? undo,
+  }) async {
+    try {
+      await step();
+    } catch (_) {
+      if (undo != null) {
+        try {
+          await undo();
+        } catch (error, stackTrace) {
+          _log.warning(
+            'Could not undo a partial daily reminder change',
+            error,
+            stackTrace,
+          );
+        }
+      }
+      rethrow;
+    }
+  }
 
   /// Saves a new reminder time and reschedules at it.
   Future<void> setTime(int hour, int minute, {required Locale locale}) =>

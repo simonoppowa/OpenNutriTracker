@@ -23,6 +23,9 @@ class FakeNotificationPlatform {
   /// When set, the next `zonedSchedule` fails, as a platform error would.
   bool failNextSchedule = false;
 
+  /// When set, the next `cancel` fails and what was pending stays.
+  bool failNextCancel = false;
+
   TestDefaultBinaryMessenger get _messenger =>
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
@@ -44,6 +47,10 @@ class FakeNotificationPlatform {
           final arguments = call.arguments as Map<Object?, Object?>;
           pending[arguments['id']! as int] = arguments;
         case 'cancel':
+          if (failNextCancel) {
+            failNextCancel = false;
+            throw PlatformException(code: 'cancel_failed');
+          }
           final arguments = call.arguments as Map<Object?, Object?>;
           pending.remove(arguments['id']);
         case 'cancelAll':

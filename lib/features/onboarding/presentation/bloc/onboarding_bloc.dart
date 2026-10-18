@@ -157,9 +157,11 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   /// Schedules or cancels the reminder and saves the choice, through the
   /// scheduler so that a start-up or language refresh still in flight cannot
   /// cancel the alarm between the two (#1389). It schedules at the saved
-  /// time, 8:00 on a first run. "On" is saved only once the OS holds the
-  /// alarm; if scheduling fails the reminder stays off, as Settings shows,
-  /// and onboarding still finishes.
+  /// time, 8:00 on a first run. A failure is logged and onboarding still
+  /// finishes: the scheduler undoes whichever half of the change it had
+  /// made, so Settings reads the reminder the way the OS holds it — off
+  /// after a failed schedule or save of "on", still on after a failed
+  /// cancel.
   Future<void> _setDailyReminder(bool enabled, Locale locale) async {
     try {
       await _reminderScheduler.setEnabled(enabled, locale: locale);

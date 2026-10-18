@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -31,8 +32,13 @@ class _Config implements ConfigRepository {
     return read;
   }
 
+  /// Each value in here fails once when saved, as a full disk would, and
+  /// leaves the saved config as it was.
+  final failSaving = <bool>{};
+
   @override
   Future<void> setNotificationsEnabled(bool enabled) async {
+    if (failSaving.remove(enabled)) throw StateError('config write failed');
     config = _config(enabled: enabled);
   }
 
@@ -192,14 +198,30 @@ void main() {
       expect(notifications.pending, isNull);
     });
 
-    test('a cancel that failed is retried by the next refresh', () async {
+    test('a cancel that fails leaves the switch on with its alarm', () async {
       final config = _Config(_config(enabled: true));
       final scheduler = DailyReminderScheduler(config, notifications);
       await scheduler.reschedule(locale: const Locale('en'));
 
       // "Off" is saved before the OS is told, and the OS call fails: the
-      // alarm survives a switch that now reads off.
+      // alarm survives, so the switch goes back to reading on (#1389).
       notifications.failNextCancel = true;
+      await expectLater(
+        scheduler.setEnabled(false, locale: const Locale('en')),
+        throwsStateError,
+      );
+      expect(config.config.notificationsEnabled, isTrue);
+      expect(notifications.pending, isNotNull);
+    });
+
+    test('an alarm a failed undo left goes at the next refresh', () async {
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, notifications);
+      await scheduler.reschedule(locale: const Locale('en'));
+
+      // The cancel fails, and so does putting "on" back.
+      notifications.failNextCancel = true;
+      config.failSaving.add(true);
       await expectLater(
         scheduler.setEnabled(false, locale: const Locale('en')),
         throwsStateError,
@@ -330,6 +352,52 @@ void main() {
         platform.pending[0]?['body'],
         lookupS(const Locale('it')).notificationsDailyReminderBody,
       );
+    });
+
+    test('saving "on" that fails takes back the alarm it set', () async {
+      final config = _Config(_config(enabled: false));
+      final scheduler = DailyReminderScheduler(config, NotificationService());
+
+      config.failSaving.add(true);
+      await expectLater(
+        scheduler.setEnabled(true, locale: const Locale('en')),
+        throwsStateError,
+      );
+
+      // The switch still reads off, so no alarm may fire either.
+      expect(config.config.notificationsEnabled, isFalse);
+      expect(platform.pending, isEmpty);
+    });
+
+    test('saving "on" that fails when it was on keeps the alarm', () async {
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, NotificationService());
+      await scheduler.refresh(locale: const Locale('en'));
+
+      config.failSaving.add(true);
+      await expectLater(
+        scheduler.setEnabled(true, locale: const Locale('en')),
+        throwsStateError,
+      );
+
+      expect(config.config.notificationsEnabled, isTrue);
+      expect(platform.pending.keys, [0]);
+    });
+
+    test('a cancel that fails after saving "off" puts "on" back', () async {
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, NotificationService());
+      await scheduler.refresh(locale: const Locale('en'));
+
+      platform.failNextCancel = true;
+      await expectLater(
+        scheduler.setEnabled(false, locale: const Locale('en')),
+        throwsA(isA<PlatformException>()),
+      );
+
+      // The alarm is still set, so the switch must read on with it.
+      expect(platform.pending.keys, [0]);
+      expect(config.config.notificationsEnabled, isTrue);
     });
 
     test('turning reminders off still cancels the alarm', () async {

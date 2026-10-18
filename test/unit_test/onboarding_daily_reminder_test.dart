@@ -47,8 +47,15 @@ class _Config implements ConfigRepository {
     return read;
   }
 
+  /// When set, saving "on" fails once and leaves the config as it was.
+  bool failSavingOn = false;
+
   @override
   Future<void> setNotificationsEnabled(bool enabled) async {
+    if (enabled && failSavingOn) {
+      failSavingOn = false;
+      throw StateError('config write failed');
+    }
     notificationsEnabled = enabled;
   }
 
@@ -166,5 +173,31 @@ void main() {
         );
       },
     );
+
+    test('saving "on" that fails leaves no alarm behind', () async {
+      final config = _Config(notificationsEnabled: false)..failSavingOn = true;
+      final (:bloc, scheduler: _) = build(config);
+
+      await finishOnboarding(bloc, dailyReminderEnabled: true);
+
+      // Settings will read off, so nothing may fire.
+      expect(config.notificationsEnabled, isFalse);
+      expect(platform.pending, isEmpty);
+      expect(config.writes, contains(#setIsDemoData));
+    });
+
+    test('a cancel that fails leaves it on, as the alarm still is', () async {
+      // Onboarding a second profile, with the reminder already set.
+      final config = _Config(notificationsEnabled: true);
+      final (:bloc, :scheduler) = build(config);
+      await scheduler.refresh(locale: const Locale('en'));
+
+      platform.failNextCancel = true;
+      await finishOnboarding(bloc, dailyReminderEnabled: false);
+
+      expect(platform.pending.keys, [0]);
+      expect(config.notificationsEnabled, isTrue);
+      expect(config.writes, contains(#setIsDemoData));
+    });
   });
 }
