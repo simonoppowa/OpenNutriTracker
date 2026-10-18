@@ -54,8 +54,8 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         policyNoticeRevisionSeen: (fields[37] as num?)?.toInt(),
         healthDeletedWorkouts: (fields[38] as Map?)?.cast<String, DateTime>(),
         defaultToRawFoodUnits: fields[39] as bool?,
-        healthWeightImportEnabled: fields[40] as bool?,
-        healthWeightLastImportAt: fields[41] as DateTime?,
+        healthWeightImportEnabled: fields[42] as bool?,
+        healthWeightLastImportAt: fields[43] as DateTime?,
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -146,9 +146,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..write(obj.healthDeletedWorkouts)
       ..writeByte(39)
       ..write(obj.defaultToRawFoodUnits)
-      ..writeByte(40)
+      ..writeByte(42)
       ..write(obj.healthWeightImportEnabled)
-      ..writeByte(41)
+      ..writeByte(43)
       ..write(obj.healthWeightLastImportAt);
   }
 

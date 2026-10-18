@@ -192,12 +192,12 @@ class ConfigDBO extends HiveObject {
   // weight log. Separate from [healthImportEnabled] because it asks the
   // platform for a different permission, and a user can want one without the
   // other. Null means never enabled, which reads as off.
-  @HiveField(40)
+  @HiveField(42)
   bool? healthWeightImportEnabled;
   // Watermark for the weight import, kept apart from [healthLastImportAt] so
   // switching weight import on later still backfills rather than starting
   // from wherever the workout import had got to.
-  @HiveField(41)
+  @HiveField(43)
   DateTime? healthWeightLastImportAt;
 
   ConfigDBO(
