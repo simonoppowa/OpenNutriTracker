@@ -15,6 +15,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/vertical_list_popup_menu_selections.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
@@ -36,7 +37,7 @@ class IntakeVerticalList extends StatefulWidget {
   final bool usesImperialUnits;
   final bool showMealMacros;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
-      onDeleteIntakeCallback;
+  onDeleteIntakeCallback;
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
   final Function(BuildContext, IntakeEntity, bool)? onItemTappedCallback;
@@ -421,10 +422,18 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
         arguments: AddMealScreenArguments(widget.addMealType, widget.day));
   }
 
-  void _onItemDropped(IntakeEntity entity) {
-    _mealDetailBloc.addIntake(context, entity.unit, entity.amount.toString(),
-        widget.addMealType.getIntakeType(), entity.meal, entity.dateTime);
-    _homeBloc.deleteIntakeItem(entity);
+  Future<void> _onItemDropped(IntakeEntity entity) async {
+    // One move under one tracked-day lock (#1317): taken apart, a profile
+    // switch queued during the add could run before the delete, which
+    // would then debit the incoming profile and leave the outgoing one
+    // with the entry in both meals. The refreshes below wait for both,
+    // so Home does not reload with the entry in both meals either.
+    await withTrackedDayLockOnProfile(() async {
+      await _mealDetailBloc.addIntake(context, entity.unit,
+          entity.amount.toString(), widget.addMealType.getIntakeType(),
+          entity.meal, entity.dateTime);
+      await _homeBloc.deleteIntakeItem(entity);
+    });
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());

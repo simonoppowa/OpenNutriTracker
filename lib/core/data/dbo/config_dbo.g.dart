@@ -54,6 +54,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         policyNoticeRevisionSeen: (fields[37] as num?)?.toInt(),
         healthDeletedWorkouts: (fields[38] as Map?)?.cast<String, DateTime>(),
         defaultToRawFoodUnits: fields[39] as bool?,
+        trackedDaysOffsetMinutes: (fields[40] as num?)?.toInt(),
         healthExportEnabled: fields[44] as bool?,
         healthPendingExportWindows: (fields[45] as List?)?.cast<DateTime>(),
         healthPendingRecordDeletes: (fields[46] as List?)?.cast<String>(),
@@ -66,7 +67,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(43)
+      ..writeByte(44)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -147,6 +148,8 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..write(obj.healthDeletedWorkouts)
       ..writeByte(39)
       ..write(obj.defaultToRawFoodUnits)
+      ..writeByte(40)
+      ..write(obj.trackedDaysOffsetMinutes)
       ..writeByte(44)
       ..write(obj.healthExportEnabled)
       ..writeByte(45)
@@ -227,6 +230,8 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
               (k, e) => MapEntry(k, DateTime.parse(e as String)),
             ),
         defaultToRawFoodUnits: json['defaultToRawFoodUnits'] as bool?,
+        trackedDaysOffsetMinutes: (json['trackedDaysOffsetMinutes'] as num?)
+            ?.toInt(),
         healthExportEnabled: json['healthExportEnabled'] as bool?,
         healthPendingExportWindows:
             (json['healthPendingExportWindows'] as List<dynamic>?)
@@ -284,6 +289,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   ),
   'policyNoticeRevisionSeen': instance.policyNoticeRevisionSeen,
   'defaultToRawFoodUnits': instance.defaultToRawFoodUnits,
+  'trackedDaysOffsetMinutes': instance.trackedDaysOffsetMinutes,
   'healthExportEnabled': instance.healthExportEnabled,
   'healthPendingExportWindows': instance.healthPendingExportWindows
       ?.map((e) => e.toIso8601String())

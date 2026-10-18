@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
@@ -176,8 +177,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // (up to 60 s timeout) before seeing their item logged. Stale meal
     // data in the intake is fine; nutrition values rarely change, and
     // the cache update means the next search shows the freshest data.
-    await _addIntakeUseCase.addIntake(intakeEntity);
-    await _updateTrackedDay(intakeEntity, day);
+    // The entry and its row together, so no reconciliation counts the
+    // entry before the row has it (#1317).
+    await withTrackedDayLockOnProfile(() async {
+      await _addIntakeUseCase.addIntake(intakeEntity);
+      await _updateTrackedDay(intakeEntity, day);
+    });
     unawaited(_refreshCacheForSelectedMeal(meal));
   }
 

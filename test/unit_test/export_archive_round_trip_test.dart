@@ -1,8 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
@@ -28,12 +31,17 @@ import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
+import 'package:opennutritracker/features/settings/domain/tracked_day_boundary_record.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
+import '../helpers/hive_test_setup.dart';
+import '../fixture/physical_activity_entity_fixtures.dart';
 
 class _FakePathProvider extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
@@ -69,6 +77,22 @@ class _StubTrackedDayRepository extends TrackedDayRepository {
 
   @override
   Future<List<TrackedDayDBO>> getAllTrackedDaysDBO() async => [];
+}
+
+class _GatedTrackedDayRepository extends TrackedDayRepository {
+  _GatedTrackedDayRepository(FakeHiveDBProvider db)
+    : super(TrackedDayDataSource(db));
+
+  final captured = Completer<void>();
+  final release = Completer<void>();
+
+  @override
+  Future<List<TrackedDayDBO>> getAllTrackedDaysDBO() async {
+    final rows = await super.getAllTrackedDaysDBO();
+    captured.complete();
+    await release.future;
+    return rows;
+  }
 }
 
 class _StubRecipeRepository extends RecipeRepository {
@@ -172,6 +196,124 @@ void main() {
       await tempRoot.delete(recursive: true);
     }
   });
+
+  for (final format in ExportFormat.values) {
+    test('${format.name} export keeps rows and their boundary together '
+        'when a boundary move queues after rows are captured', () async {
+      Hive.init(tempRoot.path);
+      registerHiveAdaptersOnce();
+      final configBox = await Hive.openBox<ConfigDBO>('export_config');
+      final intakeBox = await Hive.openBox<IntakeDBO>('export_intakes');
+      final activityBox = await Hive.openBox<UserActivityDBO>(
+        'export_activity',
+      );
+      final dayBox = await Hive.openBox<TrackedDayDBO>('export_days');
+      final db = FakeHiveDBProvider(
+        configBox: configBox,
+        intakeBox: intakeBox,
+        userActivityBox: activityBox,
+        trackedDayBox: dayBox,
+      );
+      final configs = ConfigDataSource(db);
+      await configs.initializeConfig();
+      await configs.setConfigDayStartOffset(4, 0);
+      await configs.setConfigTrackedDaysOffsetMinutes(240);
+      await activityBox.put(
+        'ride',
+        UserActivityDBO.fromUserActivityEntity(
+          UserActivityEntity(
+            'ride',
+            30,
+            150,
+            DateTime(2026, 10, 5, 2),
+            PhysicalActivityFixtures.moderateBicycling,
+          ),
+        ),
+      );
+      await dayBox.put(
+        '2026-10-04',
+        TrackedDayDBO(
+          day: DateTime(2026, 10, 4),
+          calorieGoal: 2150,
+          caloriesTracked: 0,
+          carbsGoal: 250,
+          carbsTracked: 0,
+          fatGoal: 70,
+          fatTracked: 0,
+          proteinGoal: 100,
+          proteinTracked: 0,
+        ),
+      );
+      final days = _GatedTrackedDayRepository(db);
+      try {
+        final exporting =
+            ExportDataUsecase(
+              UserActivityRepository(UserActivityDataSource(db)),
+              IntakeRepository(IntakeDataSource(db)),
+              days,
+              _StubRecipeRepository(),
+              _StubCustomMealDataSource([]),
+              _StubWeightLogRepository(),
+              _StubTemplateRepository(),
+              ConfigRepository(configs),
+            ).assembleArchive(
+              format: format,
+              userActivityJsonFileName: 'user_activity.json',
+              userIntakeJsonFileName: 'user_intake.json',
+              trackedDayJsonFileName: 'user_tracked_day.json',
+              recipeJsonFileName: 'user_recipes.json',
+              weightLogJsonFileName: 'weight_log.json',
+              customActivityTemplateJsonFileName:
+                  'custom_activity_templates.json',
+            );
+        await days.captured.future;
+        var moved = false;
+        final moving = SetDayBoundaryUsecase(
+          db,
+          configs,
+        ).setDayBoundary(0, 0).then((_) => moved = true);
+        await Future<void>.delayed(Duration.zero);
+        final movedDuringExport = moved;
+        days.release.complete();
+        final archive = await exporting;
+        await moving;
+
+        String contents(String name) =>
+            utf8.decode(archive.findFile(name)!.content as List<int>);
+        if (format == ExportFormat.json) {
+          expect(
+            TrackedDayBoundaryRecord.fromJson(
+              contents(TrackedDayBoundaryRecord.jsonFileName),
+            ),
+            240,
+          );
+          final rows = jsonDecode(contents('user_tracked_day.json')) as List;
+          expect(rows, hasLength(1));
+          expect(DateTime.parse(rows.single['day'] as String).day, 4);
+          expect(rows.single['calorieGoal'], 2150);
+        } else {
+          expect(
+            TrackedDayBoundaryRecord.fromCsv(
+              contents(TrackedDayBoundaryRecord.csvFileName),
+            ),
+            240,
+          );
+          expect(contents('user_tracked_day.csv'), contains('2026-10-04'));
+          expect(
+            contents('user_tracked_day.csv'),
+            isNot(contains('2026-10-05')),
+          );
+        }
+        expect(movedDuringExport, isFalse);
+        expect(configs.getConfigNow().trackedDaysOffsetMinutes, 0);
+        expect(dayBox.get('2026-10-05')!.calorieGoal, 2150);
+        expect(dayBox.containsKey('2026-10-04'), isFalse);
+      } finally {
+        if (!days.release.isCompleted) days.release.complete();
+        await Hive.close();
+      }
+    });
+  }
 
   test(
     'JSON export includes a one-off custom meal photo and import restores it',

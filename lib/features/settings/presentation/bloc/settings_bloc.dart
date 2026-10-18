@@ -11,7 +11,9 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 part 'settings_event.dart';
 
@@ -30,6 +32,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   // fibre / sat-fat / sugar sliders with the user's existing per-day
   // overrides rather than always starting from defaults.
   final GetTrackedDayUsecase _getTrackedDayUsecase;
+  final SetDayBoundaryUsecase _setDayBoundaryUsecase;
 
   SettingsBloc(
     this._getConfigUsecase,
@@ -39,6 +42,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     this._getMacroGoalUsecase,
     this._cachedOffMealDataSource,
     this._getTrackedDayUsecase,
+    this._setDayBoundaryUsecase,
   ) : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
@@ -170,20 +174,17 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     await _addConfigUsecase.setDiarySortPreference(mealKey, sortIndex);
   }
 
-  // #139: persist the configurable diary day boundary (0-23).
-  Future<void> setDayStartOffsetHours(int hours) async {
-    await _addConfigUsecase.setConfigDayStartOffsetHours(hours);
+  // #139: persist the configurable diary day boundary — hours 0-23 and,
+  // since the follow-up, minutes 0-59 so shift workers on 04:30 (or
+  // 03:45) can be exact. One write that also moves the tracked-day rows
+  // onto the days their entries are now listed under (#1317).
+  Future<void> setDayStartOffset(int hours, int minutes) async {
+    await _setDayBoundaryUsecase.setDayBoundary(hours, minutes);
   }
 
   Future<int> getDayStartOffsetHours() async {
     final config = await _getConfigUsecase.getConfig();
     return config.dayStartOffsetHours;
-  }
-
-  // #139 follow-up: persist the minute component (0-59) of the diary
-  // day boundary so shift workers on 04:30 (or 03:45) can be exact.
-  Future<void> setDayStartOffsetMinutes(int minutes) async {
-    await _addConfigUsecase.setConfigDayStartOffsetMinutes(minutes);
   }
 
   Future<int> getDayStartOffsetMinutes() async {
@@ -273,58 +274,65 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     double? magnesiumGoal,
     bool clearAll = false,
   }) async {
-    await _addTrackedDayUsecase.updateDayNutrientGoals(
-      day,
-      fibreGoal: fibreGoal,
-      satFatGoal: satFatGoal,
-      sugarsGoal: sugarsGoal,
-      sodiumGoal: sodiumGoal,
-      calciumGoal: calciumGoal,
-      ironGoal: ironGoal,
-      potassiumGoal: potassiumGoal,
-      vitaminDGoal: vitaminDGoal,
-      vitaminB12Goal: vitaminB12Goal,
-      magnesiumGoal: magnesiumGoal,
-      clearAll: clearAll,
+    await withTrackedDayLockOnProfile(
+      () => _addTrackedDayUsecase.updateDayNutrientGoals(
+        day,
+        fibreGoal: fibreGoal,
+        satFatGoal: satFatGoal,
+        sugarsGoal: sugarsGoal,
+        sodiumGoal: sodiumGoal,
+        calciumGoal: calciumGoal,
+        ironGoal: ironGoal,
+        potassiumGoal: potassiumGoal,
+        vitaminDGoal: vitaminDGoal,
+        vitaminB12Goal: vitaminB12Goal,
+        magnesiumGoal: magnesiumGoal,
+        clearAll: clearAll,
+      ),
     );
   }
 
-  Future<void> updateTrackedDay(DateTime day) async {
-    final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-    final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
-      totalKcalGoal,
-    );
-    final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-    final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
-      totalKcalGoal,
-    );
+  Future<void> updateTrackedDay(DateTime day) =>
+      // The goal counts the day's activities, so it is read and written
+      // with no boundary move between (#1317).
+      withTrackedDayLockOnProfile(() async {
+        final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
+        final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+          totalKcalGoal,
+        );
+        final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(
+          totalKcalGoal,
+        );
+        final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
+          totalKcalGoal,
+        );
 
-    final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
+        final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
 
-    if (hasTrackedDay) {
-      await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
-      await _addTrackedDayUsecase.updateDayMacroGoals(
-        day,
-        carbsGoal: totalCarbsGoal,
-        fatGoal: totalFatGoal,
-        proteinGoal: totalProteinGoal,
-      );
-    } else {
-      // No diary entry yet for this day (e.g. first thing in the
-      // morning, or right after onboarding). Create the row from the
-      // current goals, as callers rely on: without it, follow-up
-      // writes like setTodayNutrientGoals find no row and are
-      // silently skipped (#1348). Same creation pattern as
-      // MealDetailBloc/ActivityDetailBloc.
-      await _addTrackedDayUsecase.addNewTrackedDay(
-        day,
-        totalKcalGoal,
-        totalCarbsGoal,
-        totalFatGoal,
-        totalProteinGoal,
-      );
-    }
-  }
+        if (hasTrackedDay) {
+          await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
+          await _addTrackedDayUsecase.updateDayMacroGoals(
+            day,
+            carbsGoal: totalCarbsGoal,
+            fatGoal: totalFatGoal,
+            proteinGoal: totalProteinGoal,
+          );
+        } else {
+          // No diary entry yet for this day (e.g. first thing in the
+          // morning, or right after onboarding). Create the row from the
+          // current goals, as callers rely on: without it, follow-up
+          // writes like setTodayNutrientGoals find no row and are
+          // silently skipped (#1348). Same creation pattern as
+          // MealDetailBloc/ActivityDetailBloc.
+          await _addTrackedDayUsecase.addNewTrackedDay(
+            day,
+            totalKcalGoal,
+            totalCarbsGoal,
+            totalFatGoal,
+            totalProteinGoal,
+          );
+        }
+      });
 }
 
 enum SystemDropDownType { metric, imperial }
