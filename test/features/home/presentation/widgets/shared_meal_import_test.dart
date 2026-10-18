@@ -74,7 +74,7 @@ SharedMealPayload payload(
       recipes: recipes,
     );
 
-SharedMealRecipeItem recipeItem() {
+SharedMealRecipeItem recipeItem({double totalWeightG = 100}) {
   final recipe = RecipeEntity(
     id: 'r',
     name: 'Recipe',
@@ -87,7 +87,7 @@ SharedMealRecipeItem recipeItem() {
           unit: 'g',
           convertedAmountG: 100)
     ],
-    totalWeightG: 100,
+    totalWeightG: totalWeightG,
     aggregatedNutrimentsPer100: MealNutrimentsEntity.empty(),
     createdAt: DateTime(2026),
     updatedAt: DateTime(2026),
@@ -153,10 +153,12 @@ class _Config extends Fake implements GetConfigUsecase {
 
 class _Recipes extends Fake implements SaveRecipeUseCase {
   final saved = <RecipeEntity>[];
+  final overridden = <bool>[];
   @override
   Future<RecipeEntity> save(RecipeEntity recipe,
       {bool totalWeightOverridden = false}) async {
     saved.add(recipe);
+    overridden.add(totalWeightOverridden);
     return recipe;
   }
 }
@@ -512,6 +514,20 @@ void main() {
     await tester.tap(find.text(l10nEn.importAction));
     await tester.pumpAndSettle();
     expect(recipes.saved.length, 1);
+    expect(recipes.overridden, [false]);
     expect(intakes.meals.last.nutriments.energyKcal100, 200);
+  });
+
+  testWidgets(
+      'An embedded recipe keeps its hand-entered total weight through '
+      'preview and save (#1194)', (tester) async {
+    // 100 g of ingredients cooked down to 80 g: 200 kcal over 80 g.
+    await start(tester, payload(recipes: [recipeItem(totalWeightG: 80)]));
+    expect(find.text('125 kcal'), findsOneWidget);
+    await tester.tap(find.text(l10nEn.importAction));
+    await tester.pumpAndSettle();
+    expect(recipes.overridden, [true]);
+    expect(recipes.saved.single.totalWeightG, 80);
+    expect(intakes.meals.last.nutriments.energyKcal100, 250);
   });
 }
