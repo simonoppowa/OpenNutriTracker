@@ -140,6 +140,23 @@ void main() {
     expect(previous?.code, isNull);
     expect(previous?.name, equals('Banana'));
   });
+
+  testWidgets('blanking the barcode field removes the barcode',
+      (tester) async {
+    await pumpEditor(tester, customMeal(code: '4006381333931', name: 'Oats'));
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, l10nEn.customMealBarcodeLabel),
+      '',
+    );
+    await save(tester);
+
+    expect(dataSource.saves, hasLength(1));
+    final (saved, previous) = dataSource.saves.single;
+    expect(saved.code, isNotNull);
+    expect(saved.code, isNot('4006381333931'));
+    expect(previous?.code, equals('4006381333931'));
+  });
 }
 
 class _RecordingCustomMealDataSource implements CustomMealDataSource {

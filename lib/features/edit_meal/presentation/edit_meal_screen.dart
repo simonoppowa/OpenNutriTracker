@@ -726,7 +726,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           _simpleFieldOrZero(_carbsTextController.text),
           _simpleFieldOrZero(_fatTextController.text),
           _simpleFieldOrZero(_proteinTextController.text),
-          barcodeOverride: rawBarcode.isEmpty ? null : rawBarcode,
+          barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
         );
@@ -889,7 +889,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           magnesiumText: magnesiumText,
           vitaminDText: vitaminDText,
           vitaminB12Text: vitaminB12Text,
-          barcodeOverride: rawBarcode.isEmpty ? null : rawBarcode,
+          barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
         );
