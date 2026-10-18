@@ -1,5 +1,6 @@
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
@@ -25,13 +26,15 @@ class DeleteAllUserDataUsecase {
   final NotificationService _notificationService;
   final ConfigRepository _configRepository;
   final AiCredentialStorage _aiCredentials;
+  final ExportMealIntakeUsecase? _exportMealIntakeUsecase;
 
   DeleteAllUserDataUsecase(
     this._hiveDBProvider,
     this._notificationService,
     this._configRepository,
-    this._aiCredentials,
-  );
+    this._aiCredentials, [
+    this._exportMealIntakeUsecase,
+  ]);
 
   Future<void> deleteAll() async {
     _log.info('Clearing the active profile\'s Hive boxes on user request');
@@ -45,6 +48,14 @@ class DeleteAllUserDataUsecase {
     // referencing boxes mid-clear. The user can re-enable crash reporting later from
     // Settings; nothing here re-opens the SDK on its own.
     await Sentry.close();
+
+    // The meals this profile exported to Health Connect / Apple Health are
+    // addressed by the ids and times about to be cleared, so they are read
+    // now and their deletion queued. Never throws, so it cannot stop the
+    // wipe; the deletions finish in the background.
+    await _exportMealIntakeUsecase?.forgetProfile(
+      _hiveDBProvider.activeProfileId,
+    );
 
     // Only the active profile's own data is cleared. The shared content
     // libraries (custom meals, recipes, activity templates) and the shared

@@ -184,7 +184,7 @@ void main() {
 
     expect(snapshot.exported.map((intake) => intake.id), {'a1', 'b1'});
     // c never opted in, so nothing of it was ever exported.
-    expect(snapshot.hasOptedOutEntries, isFalse);
+    expect(snapshot.optedOut, isEmpty);
   });
 
   test('an entry of a profile that opted out again is flagged', () async {
@@ -196,7 +196,29 @@ void main() {
       const Duration(minutes: 1),
     );
 
-    expect(snapshot.hasOptedOutEntries, isTrue);
+    expect(snapshot.optedOut.map((intake) => intake.id), ['d1']);
+  });
+
+  // #1393 review: a wipe has to read the whole diary before it is cleared.
+  test('a profile is read whole, active or not', () async {
+    final active = await repository.readProfile('a');
+    final inactive = await repository.readProfile('b');
+
+    expect(active!.exportEnabled, isTrue);
+    expect(active.intakes.map((intake) => intake.id), ['a1', 'a2']);
+    expect(inactive!.intakes.map((intake) => intake.id), ['b1']);
+    expect(await repository.readProfile('unknown'), isNull);
+    expect(Hive.isBoxOpen(boxName(HiveDBProvider.intakeBoxName, 'b')), isFalse);
+  });
+
+  test('a profile being wiped is left out without opening it', () async {
+    final snapshot = await repository.snapshotWindows(
+      {at},
+      const Duration(minutes: 1),
+      exceptProfile: 'b',
+    );
+
+    expect(snapshot.exported.map((intake) => intake.id), ['a1']);
   });
 
   test('other profiles\' boxes are closed, the active ones not', () async {

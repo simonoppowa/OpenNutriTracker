@@ -193,6 +193,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator<AiCredentialStorage>(),
+      locator<ExportMealIntakeUsecase>(),
     ),
   );
 
@@ -382,7 +383,7 @@ Future<void> initLocator() async {
     () => UpdateProfileUsecase(locator()),
   );
   locator.registerLazySingleton<DeleteProfileUsecase>(
-    () => DeleteProfileUsecase(locator(), locator(), locator()),
+    () => DeleteProfileUsecase(locator(), locator(), locator(), locator()),
   );
   locator.registerLazySingleton<SendIntakeToProfilesUsecase>(
     () => SendIntakeToProfilesUsecase(locator()),
@@ -410,7 +411,7 @@ Future<void> initLocator() async {
     () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<ExportMealIntakeUsecase>(
-    () => ExportMealIntakeUsecase(locator(), locator()),
+    () => ExportMealIntakeUsecase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
     () => GetIntakeUsecase(locator()),

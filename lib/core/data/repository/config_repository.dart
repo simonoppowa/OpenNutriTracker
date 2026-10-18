@@ -196,6 +196,13 @@ class ConfigRepository {
     await _configDataSource.setConfigHealthExportEnabled(enabled);
   }
 
+  Future<Set<DateTime>> getHealthPendingExportWindows() async =>
+      _configDataSource.getHealthPendingExportWindows().toSet();
+
+  Future<void> setHealthPendingExportWindows(Set<DateTime> windows) async {
+    await _configDataSource.setHealthPendingExportWindows(windows.toList());
+  }
+
   Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
     await _configDataSource.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }

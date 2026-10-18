@@ -353,6 +353,25 @@ class ConfigDataSource {
     await _update((c) => c.healthExportEnabled = enabled);
   }
 
+  /// HealthKit windows still waiting for a complete rewrite. Device-wide, so
+  /// read from the shared app box alone: unlike the merged reads, this works
+  /// while a profile switch has the per-profile boxes closed.
+  List<DateTime> getHealthPendingExportWindows() => List.of(
+    _appBox.get(_configKey)?.healthPendingExportWindows ?? const <DateTime>[],
+  );
+
+  /// Stores [windows] in the shared app box alone, for the same reason.
+  /// Every merged write copies the app box's value along, so it survives
+  /// other settings changes.
+  Future<void> setHealthPendingExportWindows(List<DateTime> windows) async {
+    final stored = _appBox.get(_configKey);
+    final config = stored == null
+        ? ConfigDBO.empty()
+        : ConfigDBO.fromJson(stored.toJson());
+    config.healthPendingExportWindows = windows.isEmpty ? null : windows;
+    await _appBox.put(_configKey, config);
+  }
+
   Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
     await _update((c) => c.healthWorkoutKcalMultiplier = multiplier);
   }

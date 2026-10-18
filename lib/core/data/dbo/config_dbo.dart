@@ -192,6 +192,11 @@ class ConfigDBO extends HiveObject {
   // data is written to the health store until they opt in.
   @HiveField(40)
   bool? healthExportEnabled;
+  // HealthKit meal windows whose last rewrite did not complete, replayed by
+  // the next export and on app start (#1393). Device-wide, like HealthKit
+  // itself, so it is read from and written to the shared app box only.
+  @HiveField(41)
+  List<DateTime>? healthPendingExportWindows;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -232,6 +237,7 @@ class ConfigDBO extends HiveObject {
     this.healthDeletedWorkouts,
     this.defaultToRawFoodUnits,
     this.healthExportEnabled,
+    this.healthPendingExportWindows,
   });
 
   factory ConfigDBO.empty() =>

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_export_diary_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
@@ -25,6 +26,9 @@ class _FakeHealthExportRepository extends Fake
   /// A record id whose write throws.
   String? throwFor;
 
+  /// How many more times each record id's write reports failure.
+  final Map<String, int> failingWrites = {};
+
   /// While set, writes wait for it: holds an operation in flight.
   Completer<void>? writeGate;
 
@@ -41,6 +45,11 @@ class _FakeHealthExportRepository extends Fake
       throw Exception('Platform channel error');
     }
     await writeGate?.future;
+    final failuresLeft = failingWrites[intake.id] ?? 0;
+    if (failuresLeft > 0) {
+      failingWrites[intake.id] = failuresLeft - 1;
+      return false;
+    }
     writtenMeals.add(intake);
     ops.add('write ${intake.id}');
     return true;
@@ -78,27 +87,52 @@ class _FakeDiaryRepository extends Fake
   Future<bool> isExportEnabled(String profileId) async =>
       optIn[profileId] ?? false;
 
+  /// Makes [readProfile] fail.
+  bool failReadProfile = false;
+
+  @override
+  Future<ProfileDiary?> readProfile(String profileId) async {
+    if (failReadProfile) throw StateError('box closed');
+    if (!diaries.containsKey(profileId)) return null;
+    return ProfileDiary(
+      exportEnabled: optIn[profileId],
+      intakes: List.of(diaries[profileId]!),
+    );
+  }
+
   @override
   Future<ExportWindowSnapshot> snapshotWindows(
     Set<DateTime> starts,
-    Duration length,
-  ) async {
+    Duration length, {
+    String? exceptProfile,
+  }) async {
     if (switchDuringSnapshot) throw StateError('profile switched');
     bool inside(IntakeEntity intake) => starts.any(
       (start) =>
           !intake.dateTime.isBefore(start) &&
           intake.dateTime.isBefore(start.add(length)),
     );
+    List<IntakeEntity> entriesWhere(bool? flag) => [
+      for (final MapEntry(key: id, value: entries) in diaries.entries)
+        if (id != exceptProfile && optIn[id] == flag) ...entries.where(inside),
+    ];
     return ExportWindowSnapshot(
-      exported: [
-        for (final MapEntry(key: id, value: entries) in diaries.entries)
-          if (optIn[id] == true) ...entries.where(inside),
-      ],
-      hasOptedOutEntries: diaries.entries.any(
-        (entry) => optIn[entry.key] == false && entry.value.any(inside),
-      ),
+      exported: entriesWhere(true),
+      optedOut: entriesWhere(false),
     );
   }
+}
+
+/// The persisted pending-window set, in memory.
+class _FakeConfigRepository extends Fake implements ConfigRepository {
+  Set<DateTime> pending = {};
+
+  @override
+  Future<Set<DateTime>> getHealthPendingExportWindows() async => {...pending};
+
+  @override
+  Future<void> setHealthPendingExportWindows(Set<DateTime> windows) async =>
+      pending = {...windows};
 }
 
 class _FakeIntakeRepository extends Fake implements IntakeRepository {
@@ -255,12 +289,19 @@ void main() {
 
   late _FakeHealthExportRepository healthRepo;
   late _FakeDiaryRepository diary;
+  late _FakeConfigRepository config;
   late ExportMealIntakeUsecase usecase;
 
   setUp(() {
     healthRepo = _FakeHealthExportRepository();
     diary = _FakeDiaryRepository();
-    usecase = ExportMealIntakeUsecase(healthRepo, diary);
+    config = _FakeConfigRepository();
+    usecase = ExportMealIntakeUsecase(
+      healthRepo,
+      diary,
+      config,
+      retryDelay: Duration.zero,
+    );
   });
 
   group('ExportMealIntakeUsecase on Health Connect', () {
@@ -290,6 +331,20 @@ void main() {
         'delete ont_intake_intake-123',
       ]);
       expect(healthRepo.writtenMeals.last.calories, closeTo(400.0, 0.01));
+    });
+
+    test('a failed write is retried', () async {
+      healthRepo.failingWrites['ont_intake_intake-123'] = 1;
+
+      expect(await usecase.exportIntake(testIntake), isTrue);
+
+      expect(healthRepo.ops, ['write ont_intake_intake-123']);
+    });
+
+    test('there is nothing to replay on app start', () async {
+      expect(await usecase.replayPendingWindows(), isTrue);
+
+      expect(healthRepo.ops, isEmpty);
     });
 
     test('a platform error is reported as false without throwing', () async {
@@ -454,6 +509,66 @@ void main() {
       expect(await usecase.exportUpdatedIntake(testIntake, after), isFalse);
 
       expect(healthRepo.writtenMeals, isEmpty);
+      expect(config.pending, {mealDate});
+    });
+
+    // #1393 review: the window delete had already removed a meal whose
+    // rewrite then failed, and nothing ever tried again.
+    group('a failed rewrite', () {
+      test('is retried until it lands', () async {
+        diary.diaries['a'] = [testIntake];
+        healthRepo.failingWrites['ont_intake_intake-123'] = 2;
+
+        expect(await usecase.exportIntake(testIntake), isTrue);
+
+        expect(healthRepo.ops, [
+          'delete window $mealDate',
+          'write ont_intake_intake-123',
+        ]);
+        expect(config.pending, isEmpty);
+      });
+
+      test('keeps its window pending for the next operation', () async {
+        final elsewhere = mealDate.add(const Duration(hours: 3));
+        final other = edit(testIntake, id: 'other', dateTime: elsewhere);
+        diary.diaries['a'] = [testIntake, other];
+        healthRepo.failingWrites['ont_intake_intake-123'] = 3;
+
+        expect(await usecase.exportIntake(testIntake), isFalse);
+        expect(config.pending, {mealDate});
+
+        healthRepo.ops.clear();
+        expect(await usecase.exportIntake(other), isTrue);
+
+        expect(healthRepo.ops, [
+          'delete window $elsewhere',
+          'write ont_intake_other',
+          'delete window $mealDate',
+          'write ont_intake_intake-123',
+        ]);
+        expect(config.pending, isEmpty);
+      });
+
+      test('is replayed on app start', () async {
+        diary.diaries['a'] = [testIntake];
+        config.pending = {mealDate};
+
+        expect(await usecase.replayPendingWindows(), isTrue);
+
+        expect(healthRepo.ops, [
+          'delete window $mealDate',
+          'write ont_intake_intake-123',
+        ]);
+        expect(config.pending, isEmpty);
+      });
+
+      test('a failed read keeps the windows pending', () async {
+        diary.switchDuringSnapshot = true;
+
+        expect(await usecase.exportIntake(testIntake), isFalse);
+
+        expect(config.pending, {mealDate});
+      });
     });
 
     group('across profiles', () {
@@ -499,6 +614,79 @@ void main() {
     });
   });
 
+  // #1393 review: a wipe or a profile deletion takes the ids and times that
+  // address the exported records with it.
+  group('forgetProfile', () {
+    final first = edit(testIntake, id: 'first');
+    final second = edit(
+      testIntake,
+      id: 'second',
+      dateTime: mealDate.add(const Duration(hours: 3)),
+    );
+
+    test('on Health Connect deletes each record by id', () async {
+      diary.diaries['a'] = [first, second];
+
+      await usecase.forgetProfile('a');
+      await usecase.replayPendingWindows(); // waits for the queue
+
+      expect(healthRepo.ops, [
+        'delete ont_intake_first',
+        'delete ont_intake_second',
+      ]);
+    });
+
+    test('an opted-out profile still has its records removed', () async {
+      diary.optIn['a'] = false;
+      diary.diaries['a'] = [first];
+
+      await usecase.forgetProfile('a');
+      await usecase.replayPendingWindows();
+
+      expect(healthRepo.ops, ['delete ont_intake_first']);
+    });
+
+    test('a profile that never opted in touches nothing', () async {
+      diary.optIn.remove('a');
+      diary.diaries['a'] = [first];
+
+      await usecase.forgetProfile('a');
+      await usecase.replayPendingWindows();
+
+      expect(healthRepo.ops, isEmpty);
+    });
+
+    test('on HealthKit clears the windows, keeping other profiles', () async {
+      healthRepo.identity = false;
+      final neighbour = edit(
+        testIntake,
+        id: 'b1',
+        dateTime: mealDate.add(const Duration(seconds: 30)),
+      );
+      // Still on disk when the queue gets to it: the wipe has not run yet.
+      diary.diaries['a'] = [first, second];
+      diary.optIn['b'] = true;
+      diary.diaries['b'] = [neighbour];
+
+      await usecase.forgetProfile('a');
+      await usecase.replayPendingWindows();
+
+      expect(healthRepo.ops, [
+        'delete window $mealDate',
+        'write ont_intake_b1',
+        'delete window ${second.dateTime}',
+      ]);
+    });
+
+    test('a failed read does not throw', () async {
+      diary.failReadProfile = true;
+
+      await usecase.forgetProfile('a');
+
+      expect(healthRepo.ops, isEmpty);
+    });
+  });
+
   group('Intake usecases live export triggers', () {
     late _FakeIntakeRepository intakeRepo;
 
@@ -534,7 +722,7 @@ void main() {
       ]);
     });
 
-    test('DeleteIntakeUsecase deletes and triggers the health delete', () async {
+    test('DeleteIntakeUsecase deletes and triggers a health delete', () async {
       final deleteUsecase = DeleteIntakeUsecase(intakeRepo, usecase);
 
       await deleteUsecase.deleteIntake(testIntake);

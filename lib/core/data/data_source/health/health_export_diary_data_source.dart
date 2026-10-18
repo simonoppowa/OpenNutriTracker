@@ -45,19 +45,37 @@ class HealthExportDiaryDataSource {
     return _read(profile, (config, _) => _exportFlag(config));
   }
 
+  /// [profileId]'s opt-in and its whole diary, or null when the profile is
+  /// not registered.
+  Future<ProfileDiaryEntries?> readProfile(String profileId) async {
+    final profile = _db.profileBox.get(profileId);
+    if (profile == null) return null;
+    return _read(
+      profile,
+      (config, intakes) => ProfileDiaryEntries(
+        profileId: profile.id,
+        exportEnabled: _exportFlag(config),
+        intakes: intakes.values.toList(),
+      ),
+    );
+  }
+
   /// Every registered profile's opt-in and the entries whose start time
-  /// satisfies [startsInside].
+  /// satisfies [startsInside]. [exceptProfile] is skipped without opening
+  /// its boxes, for a profile whose storage is being wiped or deleted.
   ///
   /// Throws a [StateError] when a profile switch is under way or lands while
   /// reading: the per-profile boxes move underneath it, so the result could
   /// file one profile's entries under another's consent.
   Future<List<ProfileDiaryEntries>> readAllProfiles(
-    bool Function(DateTime start) startsInside,
-  ) async {
+    bool Function(DateTime start) startsInside, {
+    String? exceptProfile,
+  }) async {
     final activeAtStart = _db.activeProfileId;
     _ensureSettled(activeAtStart);
     final result = <ProfileDiaryEntries>[];
     for (final profile in _db.profileBox.values.toList()) {
+      if (profile.id == exceptProfile) continue;
       result.add(
         await _read(
           profile,

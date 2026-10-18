@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/data/repository/profile_repository.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
@@ -8,12 +9,14 @@ class DeleteProfileUsecase {
   final ProfileRepository _profileRepository;
   final HiveDBProvider _hiveDBProvider;
   final SwitchProfileUsecase _switchProfileUsecase;
+  final ExportMealIntakeUsecase? _exportMealIntakeUsecase;
 
   DeleteProfileUsecase(
     this._profileRepository,
     this._hiveDBProvider,
-    this._switchProfileUsecase,
-  );
+    this._switchProfileUsecase, [
+    this._exportMealIntakeUsecase,
+  ]);
 
   /// Removes [profile] and its entire box-set from disk.
   ///
@@ -25,6 +28,11 @@ class DeleteProfileUsecase {
     if (all.length <= 1) {
       throw StateError('Cannot delete the last remaining profile.');
     }
+
+    // Read before anything moves: the meals this profile exported are
+    // addressed by the diary its box-set is about to take with it. Never
+    // throws; the deletions are queued and finish in the background.
+    await _exportMealIntakeUsecase?.forgetProfile(profile.id);
 
     if (_hiveDBProvider.activeProfileId == profile.id) {
       final fallback = all.firstWhere((p) => p.id != profile.id);

@@ -9,7 +9,11 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
@@ -83,6 +87,20 @@ class _MemoryStorage implements FlutterSecureStorage {
 class _SilentNotificationService extends NotificationService {
   @override
   Future<void> cancelAllScheduled() async {}
+}
+
+/// Records what the diary held when the wipe asked for its health records.
+class _FakeExportMealIntakeUsecase extends Fake
+    implements ExportMealIntakeUsecase {
+  final Box<IntakeDBO> diary;
+  final List<(String, int)> forgotten = [];
+
+  _FakeExportMealIntakeUsecase(this.diary);
+
+  @override
+  Future<void> forgetProfile(String profileId) async {
+    forgotten.add((profileId, diary.length));
+  }
 }
 
 class _TestHiveDBProvider extends HiveDBProvider {
@@ -170,6 +188,56 @@ void main() {
 
   tearDown(() async {
     await Hive.deleteFromDisk();
+  });
+
+  // #1393 review: the exported Health records are addressed by the ids and
+  // times this wipe clears, so they have to be read out first.
+  test('hands the diary to the health export before clearing it', () async {
+    await provider.intake.add(
+      IntakeDBO(
+        id: 'i1',
+        unit: 'g',
+        amount: 100,
+        type: IntakeTypeDBO.lunch,
+        meal: MealDBO(
+          code: 'm',
+          name: 'm',
+          brands: null,
+          thumbnailImageUrl: null,
+          mainImageUrl: null,
+          url: null,
+          mealQuantity: '100',
+          mealUnit: 'g',
+          servingQuantity: null,
+          servingUnit: 'g',
+          servingSize: null,
+          nutriments: MealNutrimentsDBO(
+            energyKcal100: 100,
+            carbohydrates100: 10,
+            fat100: 2,
+            proteins100: 5,
+            sugars100: null,
+            saturatedFat100: null,
+            fiber100: null,
+          ),
+          source: MealSourceDBO.custom,
+        ),
+        dateTime: DateTime(2026, 6, 15, 12, 30),
+      ),
+    );
+    final export = _FakeExportMealIntakeUsecase(provider.intake);
+    final wipe = DeleteAllUserDataUsecase(
+      provider,
+      _SilentNotificationService(),
+      ConfigRepository(ConfigDataSource(provider)),
+      credentials,
+      export,
+    );
+
+    await wipe.deleteAll();
+
+    expect(export.forgotten, [(provider.activeProfileId, 1)]);
+    expect(provider.intake.isEmpty, isTrue);
   });
 
   test('takes the AI credentials with it', () async {
