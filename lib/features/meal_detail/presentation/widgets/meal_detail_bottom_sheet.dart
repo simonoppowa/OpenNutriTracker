@@ -46,6 +46,12 @@ class MealDetailBottomSheet extends StatefulWidget {
 class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   final _quantityFocusNode = FocusNode();
 
+  /// Set from the first tap on Add until its submission ends. The save can
+  /// wait for the tracked-day lock (#1317) with the sheet still open, and
+  /// a second tap would pass the duplicate check again and log the meal
+  /// twice.
+  bool _submitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -237,7 +243,8 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         child: SizedBox(
                           width: double.infinity, // Make button full width
                           child: FilledButton.icon(
-                            onPressed: !productMissingRequiredInfo
+                            onPressed:
+                                !productMissingRequiredInfo && !_submitting
                                 ? () {
                                     onAddButtonPressed(context);
                                   }
@@ -288,6 +295,20 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   }
 
   Future<void> onAddButtonPressed(BuildContext context) async {
+    // Checked here, not only through the disabled button: a second tap
+    // can land before the rebuild that disables it.
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      await _submit(context);
+    } finally {
+      // A save that succeeds leaves the sheet; a rejected quantity, a
+      // cancelled duplicate or a failed save lets the user try again.
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _submit(BuildContext context) async {
     // Validate quantity (#209, #210)
     final quantityText = widget.quantityTextController.text.replaceAll(
       ',',
