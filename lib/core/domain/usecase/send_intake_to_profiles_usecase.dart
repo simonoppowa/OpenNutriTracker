@@ -55,23 +55,23 @@ class SendIntakeToProfilesUsecase {
     if (target.id == _hiveDBProvider.activeProfileId) return;
 
     final scoped = ScopedHiveDBProvider(
-      intakeBox: await _hiveDBProvider.openScopedBox<IntakeDBO>(
+      intakeBox: await _hiveDBProvider.leaseScopedBox<IntakeDBO>(
         HiveDBProvider.intakeBoxName,
         suffix,
       ),
-      trackedDayBox: await _hiveDBProvider.openScopedBox<TrackedDayDBO>(
+      trackedDayBox: await _hiveDBProvider.leaseScopedBox<TrackedDayDBO>(
         HiveDBProvider.trackedDayBoxName,
         suffix,
       ),
-      userBox: await _hiveDBProvider.openScopedBox<UserDBO>(
+      userBox: await _hiveDBProvider.leaseScopedBox<UserDBO>(
         HiveDBProvider.userBoxName,
         suffix,
       ),
-      configBox: await _hiveDBProvider.openScopedBox<ConfigDBO>(
+      configBox: await _hiveDBProvider.leaseScopedBox<ConfigDBO>(
         HiveDBProvider.configBoxName,
         suffix,
       ),
-      userActivityBox: await _hiveDBProvider.openScopedBox<UserActivityDBO>(
+      userActivityBox: await _hiveDBProvider.leaseScopedBox<UserActivityDBO>(
         HiveDBProvider.userActivityBoxName,
         suffix,
       ),
@@ -141,20 +141,23 @@ class SendIntakeToProfilesUsecase {
   }
 
   Future<void> _closeScoped(String suffix) => Future.wait([
-    _hiveDBProvider.closeScopedBox<IntakeDBO>(
+    _hiveDBProvider.releaseScopedBox<IntakeDBO>(
       HiveDBProvider.intakeBoxName,
       suffix,
     ),
-    _hiveDBProvider.closeScopedBox<TrackedDayDBO>(
+    _hiveDBProvider.releaseScopedBox<TrackedDayDBO>(
       HiveDBProvider.trackedDayBoxName,
       suffix,
     ),
-    _hiveDBProvider.closeScopedBox<UserDBO>(HiveDBProvider.userBoxName, suffix),
-    _hiveDBProvider.closeScopedBox<ConfigDBO>(
+    _hiveDBProvider.releaseScopedBox<UserDBO>(
+      HiveDBProvider.userBoxName,
+      suffix,
+    ),
+    _hiveDBProvider.releaseScopedBox<ConfigDBO>(
       HiveDBProvider.configBoxName,
       suffix,
     ),
-    _hiveDBProvider.closeScopedBox<UserActivityDBO>(
+    _hiveDBProvider.releaseScopedBox<UserActivityDBO>(
       HiveDBProvider.userActivityBoxName,
       suffix,
     ),

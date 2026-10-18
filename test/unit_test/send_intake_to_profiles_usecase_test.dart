@@ -225,4 +225,37 @@ void main() {
       });
     },
   );
+
+  // #1393 review: the health export reads inactive profiles' boxes too, and
+  // Hive hands both flows the same instance. Whichever finishes first must
+  // not close a box the other is still using.
+  test('a box another flow still holds is not closed with the copy', () async {
+    final target = ProfileEntity(
+      id: 'target',
+      name: 'Target',
+      createdAt: DateTime(2026, 1, 1),
+      boxSuffix: 'target',
+    );
+    await provider.leaseScopedBox<IntakeDBO>(
+      HiveDBProvider.intakeBoxName,
+      'target',
+    );
+
+    await sut.copyToProfiles([buildIntake()], [target]);
+
+    expect(
+      provider.closedBoxes,
+      isNot(contains((HiveDBProvider.intakeBoxName, 'target'))),
+    );
+    expect(provider.closedBoxes, hasLength(4));
+
+    await provider.releaseScopedBox<IntakeDBO>(
+      HiveDBProvider.intakeBoxName,
+      'target',
+    );
+    expect(
+      provider.closedBoxes,
+      contains((HiveDBProvider.intakeBoxName, 'target')),
+    );
+  });
 }

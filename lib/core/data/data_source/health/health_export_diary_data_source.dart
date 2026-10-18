@@ -28,9 +28,9 @@ class ProfileDiaryEntries {
 /// HealthKit has no way to tell one profile's meals from another's, so an
 /// iOS window delete removes every profile's meals in that minute, and the
 /// export has to know what each profile still holds there. The active
-/// profile is read from its open boxes; any other profile's boxes are opened
-/// scoped for the read and closed again, as `SendIntakeToProfilesUsecase`
-/// does.
+/// profile is read from its open boxes; any other profile's boxes are leased
+/// for the read ([HiveDBProvider.leaseScopedBox]), as
+/// `SendIntakeToProfilesUsecase` does, so neither closes them on the other.
 class HealthExportDiaryDataSource {
   final HiveDBProvider _db;
 
@@ -93,40 +93,31 @@ class HealthExportDiaryDataSource {
       return read(_db.configBox, _db.intakeBox);
     }
 
+    // Leased, not opened: another flow may be working on this profile's
+    // boxes at the same time, and only the last lease closes them.
     final suffix = profile.boxSuffix;
-    final configWasOpen = Hive.isBoxOpen(
-      HiveDBProvider.boxNameFor(HiveDBProvider.configBoxName, suffix),
-    );
-    final intakesWereOpen = Hive.isBoxOpen(
-      HiveDBProvider.boxNameFor(HiveDBProvider.intakeBoxName, suffix),
+    final config = await _db.leaseScopedBox<ConfigDBO>(
+      HiveDBProvider.configBoxName,
+      suffix,
     );
     try {
-      final config = await _db.openScopedBox<ConfigDBO>(
-        HiveDBProvider.configBoxName,
-        suffix,
-      );
-      final intakes = await _db.openScopedBox<IntakeDBO>(
+      final intakes = await _db.leaseScopedBox<IntakeDBO>(
         HiveDBProvider.intakeBoxName,
         suffix,
       );
-      return read(config, intakes);
-    } finally {
-      // Leave open whatever was open already, and never close a box-set a
-      // switch has just made, or is making, the active one.
-      if (profile.id != _db.activeProfileId && !_db.isSwitching) {
-        if (!configWasOpen) {
-          await _db.closeScopedBox<ConfigDBO>(
-            HiveDBProvider.configBoxName,
-            suffix,
-          );
-        }
-        if (!intakesWereOpen) {
-          await _db.closeScopedBox<IntakeDBO>(
-            HiveDBProvider.intakeBoxName,
-            suffix,
-          );
-        }
+      try {
+        return read(config, intakes);
+      } finally {
+        await _db.releaseScopedBox<IntakeDBO>(
+          HiveDBProvider.intakeBoxName,
+          suffix,
+        );
       }
+    } finally {
+      await _db.releaseScopedBox<ConfigDBO>(
+        HiveDBProvider.configBoxName,
+        suffix,
+      );
     }
   }
 }

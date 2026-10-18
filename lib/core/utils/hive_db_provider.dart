@@ -116,6 +116,10 @@ class HiveDBProvider extends ChangeNotifier {
   String _activeBoxSuffix = '';
   bool _switching = false;
 
+  /// Outstanding [leaseScopedBox] leases, by lower-cased box name: Hive
+  /// lower-cases every name, so that is what [Box.name] reports.
+  final Map<String, int> _scopedLeases = {};
+
   String get activeProfileId => _activeProfileId;
 
   /// Whether a profile switch is closing one box-set and opening another
@@ -236,15 +240,24 @@ class HiveDBProvider extends ChangeNotifier {
   }
 
   Future<void> _closeActiveProfileBoxes() async {
+    // A box someone holds a scoped lease on stays open; the last release
+    // closes it, now that it no longer belongs to the active profile.
+    Future<void> close(Box<dynamic>? box) async {
+      if (box == null || _scopedLeases.containsKey(box.name.toLowerCase())) {
+        return;
+      }
+      await box.close();
+    }
+
     await Future.wait([
-      if (_configBox != null) _configBox!.close(),
-      if (_intakeBox != null) _intakeBox!.close(),
-      if (_userActivityBox != null) _userActivityBox!.close(),
-      if (_userBox != null) _userBox!.close(),
-      if (_trackedDayBox != null) _trackedDayBox!.close(),
-      if (_weightLogBox != null) _weightLogBox!.close(),
-      if (_waterIntakeBox != null) _waterIntakeBox!.close(),
-      if (_fastingBox != null) _fastingBox!.close(),
+      close(_configBox),
+      close(_intakeBox),
+      close(_userActivityBox),
+      close(_userBox),
+      close(_trackedDayBox),
+      close(_weightLogBox),
+      close(_waterIntakeBox),
+      close(_fastingBox),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -300,6 +313,44 @@ class HiveDBProvider extends ChangeNotifier {
     if (Hive.isBoxOpen(name)) {
       await Hive.box<E>(name).close();
     }
+  }
+
+  /// Opens [baseName] for [boxSuffix] like [openScopedBox], and takes a lease
+  /// on it. Hive hands every caller the same instance of an open box, so two
+  /// flows working on one inactive profile at once share it, and whichever
+  /// closed it first would pull it from under the other. Leases are counted:
+  /// the box closes on the last [releaseScopedBox], and never while it
+  /// belongs to the active profile (or the one a switch is opening).
+  Future<Box<E>> leaseScopedBox<E>(String baseName, String boxSuffix) async {
+    final name = boxNameFor(baseName, boxSuffix).toLowerCase();
+    // Counted before the await, so a release landing meanwhile cannot close
+    // the box this caller is about to get.
+    _scopedLeases[name] = (_scopedLeases[name] ?? 0) + 1;
+    try {
+      return await openScopedBox<E>(baseName, boxSuffix);
+    } catch (_) {
+      _dropScopedLease(name);
+      rethrow;
+    }
+  }
+
+  /// Gives back a lease from [leaseScopedBox], closing the box with the last.
+  Future<void> releaseScopedBox<E>(String baseName, String boxSuffix) async {
+    final name = boxNameFor(baseName, boxSuffix).toLowerCase();
+    if (!_dropScopedLease(name)) return;
+    if (boxSuffix == _activeBoxSuffix) return;
+    await closeScopedBox<E>(baseName, boxSuffix);
+  }
+
+  /// Whether that was the last lease on [name].
+  bool _dropScopedLease(String name) {
+    final remaining = (_scopedLeases[name] ?? 1) - 1;
+    if (remaining > 0) {
+      _scopedLeases[name] = remaining;
+      return false;
+    }
+    _scopedLeases.remove(name);
+    return true;
   }
 
   /// Permanently removes the box-set belonging to [boxSuffix] from disk.

@@ -212,12 +212,35 @@ void main() {
     }
   });
 
-  test('a box someone else had open stays open', () async {
-    await Hive.openBox<IntakeDBO>(boxName(HiveDBProvider.intakeBoxName, 'b'));
+  // #1393 review: Hive hands both flows the same box instance, so a snapshot
+  // closing it after its own read pulled it from under a profile copy that
+  // was still writing to it.
+  test('a box another flow has leased stays open until it lets go', () async {
+    final name = boxName(HiveDBProvider.intakeBoxName, 'b');
+    // What SendIntakeToProfilesUsecase holds while it copies into b.
+    final copying = await db.leaseScopedBox<IntakeDBO>(
+      HiveDBProvider.intakeBoxName,
+      'export_b',
+    );
 
     await repository.snapshotWindows({at}, const Duration(minutes: 1));
 
-    expect(Hive.isBoxOpen(boxName(HiveDBProvider.intakeBoxName, 'b')), isTrue);
+    expect(Hive.isBoxOpen(name), isTrue);
+    await copying.add(_intake('b2', elsewhere));
+    await db.releaseScopedBox<IntakeDBO>(
+      HiveDBProvider.intakeBoxName,
+      'export_b',
+    );
+    expect(Hive.isBoxOpen(name), isFalse);
+  });
+
+  test('two snapshots at once leave no box closed under the other', () async {
+    await Future.wait([
+      repository.snapshotWindows({at}, const Duration(minutes: 1)),
+      repository.snapshotWindows({at}, const Duration(minutes: 1)),
+    ]);
+
+    expect(Hive.isBoxOpen(boxName(HiveDBProvider.intakeBoxName, 'b')), isFalse);
   });
 
   test('a profile switch landing mid-read fails the snapshot', () async {
