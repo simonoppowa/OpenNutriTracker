@@ -124,16 +124,30 @@ class _FakeDiaryRepository extends Fake
   }
 }
 
-/// The persisted pending-window set, in memory.
+/// The persisted pending sets, in memory.
 class _FakeConfigRepository extends Fake implements ConfigRepository {
   Set<DateTime> pending = {};
+  Set<String> pendingDeletes = {};
 
   @override
   Future<Set<DateTime>> getHealthPendingExportWindows() async => {...pending};
 
   @override
-  Future<void> setHealthPendingExportWindows(Set<DateTime> windows) async =>
-      pending = {...windows};
+  Future<void> updateHealthPendingExportWindows({
+    Set<DateTime> add = const {},
+    Set<DateTime> remove = const {},
+  }) async => pending = {...pending, ...add}..removeAll(remove);
+
+  @override
+  Future<Set<String>> getHealthPendingRecordDeletes() async => {
+    ...pendingDeletes,
+  };
+
+  @override
+  Future<void> updateHealthPendingRecordDeletes({
+    Set<String> add = const {},
+    Set<String> remove = const {},
+  }) async => pendingDeletes = {...pendingDeletes, ...add}..removeAll(remove);
 }
 
 class _FakeIntakeRepository extends Fake implements IntakeRepository {
@@ -516,7 +530,7 @@ void main() {
     // #1393 review: the window delete had already removed a meal whose
     // rewrite then failed, and nothing ever tried again.
     group('a failed rewrite', () {
-      test('is retried until it lands', () async {
+      test('is retried, window and all, until it lands', () async {
         diary.diaries['a'] = [testIntake];
         healthRepo.failingWrites['ont_intake_intake-123'] = 2;
 
@@ -524,9 +538,33 @@ void main() {
 
         expect(healthRepo.ops, [
           'delete window $mealDate',
+          'delete window $mealDate',
+          'delete window $mealDate',
           'write ont_intake_intake-123',
         ]);
         expect(config.pending, isEmpty);
+      });
+
+      // #1393 review: a HealthKit write that failed may have saved part of
+      // the meal, so writing it again alone could double it.
+      test('a retry clears the window again before rewriting it', () async {
+        final sibling = edit(
+          testIntake,
+          id: 'sibling',
+          dateTime: mealDate.add(const Duration(seconds: 10)),
+        );
+        diary.diaries['a'] = [testIntake, sibling];
+        healthRepo.failingWrites['ont_intake_sibling'] = 1;
+
+        expect(await usecase.exportIntake(testIntake), isTrue);
+
+        expect(healthRepo.ops, [
+          'delete window $mealDate',
+          'write ont_intake_intake-123',
+          'delete window $mealDate',
+          'write ont_intake_intake-123',
+          'write ont_intake_sibling',
+        ]);
       });
 
       test('keeps its window pending for the next operation', () async {
@@ -604,6 +642,44 @@ void main() {
         expect(healthRepo.ops, isEmpty);
       });
 
+      // #1393 review: dropping the window lost the recovery work for good.
+      test('a blocked window stays pending until consent allows it', () async {
+        diary.optIn['b'] = false;
+        diary.diaries['b'] = [edit(testIntake, id: 'b1', dateTime: sameMinute)];
+        diary.diaries['a'] = [testIntake];
+        config.pending = {mealDate};
+
+        expect(await usecase.replayPendingWindows(), isFalse);
+        expect(healthRepo.ops, isEmpty);
+        expect(config.pending, {mealDate});
+
+        diary.optIn['b'] = true;
+        expect(await usecase.replayPendingWindows(), isTrue);
+
+        expect(healthRepo.ops.first, 'delete window $mealDate');
+        expect(
+          healthRepo.ops.skip(1),
+          unorderedEquals([
+            'write ont_intake_intake-123',
+            'write ont_intake_b1',
+          ]),
+        );
+        expect(config.pending, isEmpty);
+      });
+
+      test('a blocked window is rebuilt once its entries are gone', () async {
+        diary.optIn['b'] = false;
+        diary.diaries['b'] = [edit(testIntake, id: 'b1', dateTime: sameMinute)];
+        config.pending = {mealDate};
+        await usecase.replayPendingWindows();
+
+        diary.diaries['b'] = [];
+        expect(await usecase.replayPendingWindows(), isTrue);
+
+        expect(healthRepo.ops, ['delete window $mealDate']);
+        expect(config.pending, isEmpty);
+      });
+
       test('a profile switch while reading deletes nothing', () async {
         diary.diaries['a'] = [testIntake];
         diary.switchDuringSnapshot = true;
@@ -677,6 +753,60 @@ void main() {
         'write ont_intake_b1',
         'delete window ${second.dateTime}',
       ]);
+    });
+
+    // #1393 review: the ids lived only in the queued closure, so a failed
+    // delete or a process exit left the records with nothing to find them.
+    test('stores the record ids before the wipe can discard them', () async {
+      diary.diaries['a'] = [first, second];
+      // Something else is still in flight, so the deletions wait.
+      healthRepo.writeGate = Completer<void>();
+      final held = usecase.exportIntake(testIntake);
+
+      await usecase.forgetProfile('a');
+
+      expect(config.pendingDeletes, {
+        'ont_intake_first',
+        'ont_intake_second',
+      });
+      healthRepo.writeGate!.complete();
+      await held;
+      await usecase.replayPendingWindows();
+      expect(config.pendingDeletes, isEmpty);
+    });
+
+    test('a record whose delete fails stays pending until it goes', () async {
+      diary.diaries['a'] = [first];
+      healthRepo.deleteResult = false;
+
+      await usecase.forgetProfile('a');
+      // The wipe clears the diary straight after.
+      diary.diaries['a'] = [];
+      await usecase.replayPendingWindows();
+      expect(config.pendingDeletes, {'ont_intake_first'});
+
+      healthRepo.deleteResult = true;
+      healthRepo.ops.clear();
+      await usecase.exportIntake(testIntake);
+
+      expect(healthRepo.ops, [
+        'delete ont_intake_first',
+        'write ont_intake_intake-123',
+      ]);
+      expect(config.pendingDeletes, isEmpty);
+    });
+
+    test('on HealthKit stores the windows before the wipe', () async {
+      healthRepo.identity = false;
+      diary.diaries['a'] = [first, second];
+      healthRepo.writeGate = Completer<void>();
+      final held = usecase.exportIntake(testIntake);
+
+      await usecase.forgetProfile('a');
+
+      expect(config.pending, containsAll([mealDate, second.dateTime]));
+      healthRepo.writeGate!.complete();
+      await held;
     });
 
     test('a failed read does not throw', () async {

@@ -152,6 +152,26 @@ void main() {
       expect(config.healthLastImportAt, isNull);
     });
 
+    // #1393 review: what is left for the health store to redo is
+    // device-wide, and has to outlive whichever profile is active and every
+    // later settings write.
+    test('pending health work is shared and outlives other writes', () async {
+      final profileA = sourceFor(profileABox);
+      await profileA.initializeConfig();
+      final window = DateTime(2026, 6, 15, 12, 30);
+      await profileA.updateHealthPendingExportWindows(add: [window]);
+      await profileA.updateHealthPendingRecordDeletes(add: ['a', 'b']);
+      await profileA.setConfigHealthExportEnabled(true);
+      await profileA.updateHealthPendingRecordDeletes(remove: ['a']);
+
+      final profileB = sourceFor(profileBBox);
+      expect(profileB.getHealthPendingExportWindows(), [window]);
+      expect(profileB.getHealthPendingRecordDeletes(), ['b']);
+
+      await profileB.updateHealthPendingExportWindows(remove: [window]);
+      expect(profileA.getHealthPendingExportWindows(), isEmpty);
+    });
+
     test('each profile keeps its own settings and watermark', () async {
       final profileA = sourceFor(profileABox);
       await profileA.initializeConfig();

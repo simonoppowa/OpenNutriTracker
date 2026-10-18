@@ -197,6 +197,11 @@ class ConfigDBO extends HiveObject {
   // itself, so it is read from and written to the shared app box only.
   @HiveField(41)
   List<DateTime>? healthPendingExportWindows;
+  // Health Connect client record ids still to delete, written before a
+  // profile wipe discards the diary that holds them (#1393), and replayed
+  // until each delete succeeds. Device-wide, kept in the shared app box.
+  @HiveField(42)
+  List<String>? healthPendingRecordDeletes;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -238,6 +243,7 @@ class ConfigDBO extends HiveObject {
     this.defaultToRawFoodUnits,
     this.healthExportEnabled,
     this.healthPendingExportWindows,
+    this.healthPendingRecordDeletes,
   });
 
   factory ConfigDBO.empty() =>

@@ -360,16 +360,45 @@ class ConfigDataSource {
     _appBox.get(_configKey)?.healthPendingExportWindows ?? const <DateTime>[],
   );
 
-  /// Stores [windows] in the shared app box alone, for the same reason.
-  /// Every merged write copies the app box's value along, so it survives
-  /// other settings changes.
-  Future<void> setHealthPendingExportWindows(List<DateTime> windows) async {
+  /// Adds [add] to and drops [remove] from the stored windows, in the shared
+  /// app box alone, for the same reason.
+  Future<void> updateHealthPendingExportWindows({
+    Iterable<DateTime> add = const [],
+    Iterable<DateTime> remove = const [],
+  }) => _updateAppOnly((config) {
+    final windows = {...?config.healthPendingExportWindows, ...add}
+      ..removeAll(remove);
+    config.healthPendingExportWindows = windows.isEmpty
+        ? null
+        : windows.toList();
+  });
+
+  /// Health Connect record ids still waiting to be deleted. Device-wide, so
+  /// kept in the shared app box alone, like the windows above.
+  List<String> getHealthPendingRecordDeletes() => List.of(
+    _appBox.get(_configKey)?.healthPendingRecordDeletes ?? const <String>[],
+  );
+
+  Future<void> updateHealthPendingRecordDeletes({
+    Iterable<String> add = const [],
+    Iterable<String> remove = const [],
+  }) => _updateAppOnly((config) {
+    final ids = {...?config.healthPendingRecordDeletes, ...add}
+      ..removeAll(remove);
+    config.healthPendingRecordDeletes = ids.isEmpty ? null : ids.toList();
+  });
+
+  /// Changes the shared app box's record alone. The read and the start of
+  /// the write happen in one synchronous step, so two updates cannot lose
+  /// each other's changes; and every merged write copies the app box's value
+  /// along, so these fields survive other settings changes.
+  Future<void> _updateAppOnly(void Function(ConfigDBO config) mutate) {
     final stored = _appBox.get(_configKey);
     final config = stored == null
         ? ConfigDBO.empty()
         : ConfigDBO.fromJson(stored.toJson());
-    config.healthPendingExportWindows = windows.isEmpty ? null : windows;
-    await _appBox.put(_configKey, config);
+    mutate(config);
+    return _appBox.put(_configKey, config);
   }
 
   Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
