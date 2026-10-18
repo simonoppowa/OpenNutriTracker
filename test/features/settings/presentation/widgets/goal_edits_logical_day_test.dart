@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -106,10 +107,7 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   Future<int> getDayStartOffsetMinutes() async => 0;
 
   @override
-  Future<void> setDayStartOffsetHours(int hours) async {}
-
-  @override
-  Future<void> setDayStartOffsetMinutes(int minutes) async {}
+  Future<void> setDayStartOffset(int hours, int minutes) async {}
 
   @override
   void add(SettingsEvent event) {}
@@ -184,6 +182,7 @@ void main() {
       _UnusedGetMacroGoalUsecase(),
       _UnusedRemoteSearchCacheDataSource(),
       _UnusedGetTrackedDayUsecase(),
+      _UnusedSetDayBoundaryUsecase(),
     );
     addTearDown(bloc.close);
 
@@ -295,3 +294,6 @@ class _UnusedRemoteSearchCacheDataSource extends Fake
 
 class _UnusedGetTrackedDayUsecase extends Fake
     implements GetTrackedDayUsecase {}
+
+class _UnusedSetDayBoundaryUsecase extends Fake
+    implements SetDayBoundaryUsecase {}

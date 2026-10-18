@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -101,8 +102,17 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
         protein: protein,
         title: title,
       );
-      await locator<AddIntakeUsecase>().addIntake(intake);
-      await _updateTrackedDay(intake);
+      // The entry and its row together, so no reconciliation counts the
+      // entry before the row has it (#1317).
+      final saved = await withTrackedDayLockOnProfile(() async {
+        await locator<AddIntakeUsecase>().addIntake(intake);
+        await _updateTrackedDay(intake);
+        return true;
+      });
+      if (saved != true) {
+        if (mounted) setState(() => _saving = false);
+        return;
+      }
 
       locator<HomeBloc>().add(const LoadItemsEvent());
       locator<DiaryBloc>().add(const LoadDiaryYearEvent());

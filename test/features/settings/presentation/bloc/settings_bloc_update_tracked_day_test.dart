@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 
 class _FakeAddTrackedDayUsecase extends Fake implements AddTrackedDayUsecase {
@@ -82,6 +83,9 @@ class _FakeRemoteSearchCacheDataSource extends Fake
 
 class _FakeGetTrackedDayUsecase extends Fake implements GetTrackedDayUsecase {}
 
+class _FakeSetDayBoundaryUsecase extends Fake
+    implements SetDayBoundaryUsecase {}
+
 SettingsBloc _bloc(AddTrackedDayUsecase addTrackedDayUsecase) => SettingsBloc(
   _FakeGetConfigUsecase(),
   _FakeAddConfigUsecase(),
@@ -90,6 +94,7 @@ SettingsBloc _bloc(AddTrackedDayUsecase addTrackedDayUsecase) => SettingsBloc(
   _FakeGetMacroGoalUsecase(),
   _FakeRemoteSearchCacheDataSource(),
   _FakeGetTrackedDayUsecase(),
+  _FakeSetDayBoundaryUsecase(),
 );
 
 void main() {

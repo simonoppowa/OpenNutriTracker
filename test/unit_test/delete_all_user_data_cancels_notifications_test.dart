@@ -185,7 +185,7 @@ void main() {
         reason: 'nothing told the OS to drop the alarm, so it still fires at '
             '08:00 for a profile that no longer exists',
       );
-      expect(configBox.isEmpty, isTrue, reason: 'the wipe must still happen');
+      expect(userBox.isEmpty, isTrue, reason: 'the wipe must still happen');
     });
 
     test('cancelled before the data it belongs to is wiped', () async {
@@ -273,7 +273,7 @@ void main() {
       // can still be uninstalled, data kept against an explicit request
       // cannot be un-kept.
       expect(
-        configBox.isEmpty,
+        userBox.isEmpty,
         isTrue,
         reason: 'the data survived because cancelling an alarm failed',
       );
