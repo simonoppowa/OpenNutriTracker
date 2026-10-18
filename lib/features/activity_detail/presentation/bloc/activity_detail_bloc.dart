@@ -144,7 +144,7 @@ class ActivityDetailBloc
         totalKcalGoal,
       );
 
-      await _addTrackedDayUsecase.addNewTrackedDay(
+      await _addTrackedDayUsecase.addNewTrackedDayIfAbsent(
         day,
         totalKcalGoal,
         totalCarbsGoal,

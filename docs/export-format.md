@@ -28,6 +28,7 @@ next to its CSV counterpart will not find one.
 | `user_recipes.json`              | Recipes only. Nested-ingredient shape, no CSV counterpart. |
 | `weight_log.json`                | Weight history.                                          |
 | `custom_activity_templates.json` | Saved custom activities — name and typical kcal.         |
+| `goal_settings.json`             | The profile's goal settings. See [below](#goal_settingsjson). |
 
 **CSV bundle**
 
@@ -50,9 +51,37 @@ JSON for anything you intend to restore from.
 
 The **profile box** — height, birthday, PAL, goal — is intentionally not
 included; see `lib/core/data/data_source/user_data_source.dart`. Note this is the
-profile only: your logged **weight history** *is* exported, as `weight_log.json`.
+profile only: your logged **weight history** *is* exported, as `weight_log.json`,
+and so are the **goal settings** you set under Settings → Calculations, as
+`goal_settings.json` ([#1363](https://github.com/simonoppowa/OpenNutriTracker/issues/1363)).
 
 The user can re-import the same zip via **Settings → Import**, in either format.
+Import merges into what is on the device: an intake, activity or recipe whose
+`id` is already stored is replaced by the imported row, as is a Custom activity
+template with the same name, and tracked days and weight-log points replace by
+day. Entries the zip does not carry are kept, and importing the same zip twice
+changes nothing. Where the zip holds one `id` (or template name) more than
+once — an install hit by #1357 exports two copies — the copy edited before
+the fix wins: the first row for intakes, the last row for activities and
+templates, matching where those older builds wrote an edit. An edit on a
+current build rewrites every copy, so the copies agree. A row with a blank
+(empty or whitespace-only) `id` is given one derived from a fixed set of its
+fields — for an intake its time, meal slot, amount, unit and the food's
+source, code, name and brands; for an activity its date, activity code and
+name, duration and kcal — so importing the same zip twice still changes
+nothing, on this build or a later one, and two identical rows both stay. Those
+fields are compared trimmed, with an empty one the same as a missing one, so a
+row's JSON and CSV copies get the same id; and a derived id never repeats an
+`id` another row in the same file already has. The
+goal settings in `goal_settings.json`, when the zip has one, replace the active
+profile's. After
+any import, today's kcal and macro goals are worked out again from the
+profile and goal settings now on the device, as Home shows them. This applies
+to today's row whether it was already on the device or came in the zip. Past
+days keep the goals they were logged with. A zip missing a required file, or
+with any file that does not parse, is rejected before anything on the device
+changes; in a CSV file, a number written as `Infinity` or `NaN` counts as not
+parsing.
 The CSV files also exist so a spreadsheet, a Syncthing-style backup, or external
 tooling can read the same data without going through Hive.
 
@@ -193,6 +222,56 @@ Array of per-day calorie/macro totals:
   }
 ]
 ```
+
+### `goal_settings.json`
+
+A single object holding the active profile's goal settings. Zips from builds
+that predate it have no such file and import as they always did: the device
+keeps its own goals. Those older builds ignore the file when they meet it.
+
+```jsonc
+{
+  "version": 1,                     // format version, see below
+  "kcalAdjustment": -300.0,         // kcal added to the daily goal, -1000..1000
+  "carbGoalPct": 0.4,               // macro split as fractions of the kcal goal:
+  "proteinGoalPct": 0.3,            //   all three set and adding up to 1
+  "fatGoalPct": 0.3,                //   (± 0.05), or all three null
+  "mealKcalSharesPct": {            // per-meal share of the kcal goal in percent:
+    "breakfast": 25,                //   all four meals, adding up to 100 (± 2)
+    "lunch": 35,
+    "dinner": 30,
+    "snack": 10
+  },
+  "dailyWaterGoalMl": 2600          // 100..10000
+}
+```
+
+`null`, or a missing key, means the app default — no kcal adjustment, the
+60 / 15 / 25 carbs / protein / fat split, the 30 / 40 / 20 / 10 meal shares,
+the water goal seeded from the profile — and importing it puts that goal back
+to the default. A file with a value outside the ranges above, or a number
+that is not finite, is rejected, and
+the whole zip with it, before anything on the device changes. The tolerances
+allow for rounding in older builds. `version` goes up only for a change an
+older build would misread; a build that meets a newer version skips this file
+and imports the rest. Unknown keys are ignored.
+
+Only goals that belong to a profile are in the file:
+
+- **Per-nutrient goals** (fibre, sodium, the vitamins …) are not settings
+  today but columns of each day in `user_tracked_day.json`, and travel there.
+  They belong in this file once they apply beyond the day they were set on
+  ([#1316](https://github.com/simonoppowa/OpenNutriTracker/issues/1316)).
+- **Device-wide preferences** — theme, accent colour, language, units, kJ /
+  kcal, reminders, the diary day boundary, view toggles, food sources — are
+  shared by every profile on the device, so a restore into one profile should
+  not change them for the others. Reminders also need the system's permission
+  on the new device, and the privacy consents must be given there, not
+  carried over in a file. They survive a profile reset; after a reinstall they
+  are set once by hand.
+- **Workout import** settings from Health Connect / Apple Health are left out:
+  switching it on needs the system's permission on the new device, and the
+  multiplier is suggested again when it is.
 
 ### `user_recipes.json`
 

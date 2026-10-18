@@ -182,6 +182,25 @@ void main() {
       expect(store.relabelled.single.trendsCaloriesLabel, german.title);
     });
 
+    test('a device language change relabels it under System default', () async {
+      final store = _RecordingStore();
+      final provider = LocaleProvider(calorieWidgetStore: store);
+
+      provider.systemLocalesChanged();
+      await pumpEventQueue();
+      expect(store.relabelled, hasLength(1));
+
+      provider.updateLocale(const Locale('de'));
+      await pumpEventQueue();
+      provider.systemLocalesChanged();
+      await pumpEventQueue();
+      expect(
+        store.relabelled,
+        hasLength(2),
+        reason: 'a chosen language does not follow the device',
+      );
+    });
+
     test('a launch into onboarding relabels the widget itself', () async {
       // Home never runs on this launch, so nothing else would bring the
       // labels a wipe kept into a language changed while the app was shut.
