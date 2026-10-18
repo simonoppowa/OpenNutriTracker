@@ -518,6 +518,13 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      reconcileImportedTrackedDays: (importedDayKeys, keyedByOffsetMinutes) =>
+          reconcileImportedTrackedDays(
+            hiveDBProvider,
+            locator(),
+            importedDayKeys: importedDayKeys,
+            keyedByOffsetMinutes: keyedByOffsetMinutes,
+          ),
     ),
   );
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));

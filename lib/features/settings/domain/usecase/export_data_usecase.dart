@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/utils/export_write_verifier.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
+import 'package:opennutritracker/features/settings/domain/tracked_day_boundary_record.dart';
 
 /// The two export shapes available from Settings → Export / Import App Data.
 /// JSON is the canonical backup-and-restore format the app re-imports from;
@@ -192,6 +193,23 @@ class ExportDataUsecase {
         CsvDataExporter.trackedDaysToCsv(fullTrackedDay),
       );
       archive.addFile(ArchiveFile(trackedDayCsvFileName, bytes.length, bytes));
+    }
+
+    // The boundary those rows are keyed by (#1317), so a restore under
+    // another one can move them. Left out while this profile's rows have
+    // none on record, which reads the same as a bundle from before it.
+    final keyedBy = (await _configRepository.getConfigDBO())
+        .trackedDaysOffsetMinutes;
+    if (keyedBy != null) {
+      final bytes = utf8.encode(
+        format == ExportFormat.json
+            ? TrackedDayBoundaryRecord.toJson(keyedBy)
+            : TrackedDayBoundaryRecord.toCsv(keyedBy),
+      );
+      final name = format == ExportFormat.json
+          ? TrackedDayBoundaryRecord.jsonFileName
+          : TrackedDayBoundaryRecord.csvFileName;
+      archive.addFile(ArchiveFile(name, bytes.length, bytes));
     }
 
     // Recipes, photos, weight log and Custom activity templates — JSON

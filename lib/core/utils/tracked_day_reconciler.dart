@@ -113,7 +113,10 @@ bool _hasConsumed(TrackedDayDBO row) =>
 /// raises them. [previousImportOffsetMinutes], when given, is where
 /// imported workouts were credited instead: builds before #1317 keyed a
 /// row by the wall-clock date of whatever logged it, except the workout
-/// import, which credited the workout's logical day.
+/// import, which credited the workout's logical day. [previousKeys], when
+/// given, limits both to those rows: every other row is keyed by
+/// [offsetMinutes] already, as after a restore wrote only the rows of its
+/// archive.
 ///
 /// A new row takes the base goals of the nearest row by date — the goal
 /// of that period, where the current goal reflects today's weight and
@@ -138,6 +141,7 @@ Future<int> reconcileTrackedDays(
   required int offsetMinutes,
   int? previousOffsetMinutes,
   int? previousImportOffsetMinutes,
+  Set<String>? previousKeys,
   TrackedDayGoals? currentGoals,
 }) {
   final rows = db.trackedDayBox;
@@ -153,8 +157,12 @@ Future<int> reconcileTrackedDays(
           previousOffsetMinutes,
           importOffsetMinutes: previousImports,
         );
+  // What each row was keyed by: the previous boundary, or for a row
+  // outside [previousKeys] the current one.
+  Map<String, _ListedDay>? before(Object? key) =>
+      previousKeys == null || previousKeys.contains(key) ? listedBefore : null;
   // The burned energy each row's goal includes as it stands.
-  double burnedOn(String key) => (listedBefore ?? listed)[key]?.burned ?? 0;
+  double burnedOn(String key) => (before(key) ?? listed)[key]?.burned ?? 0;
 
   final written = <dynamic, TrackedDayDBO>{};
   final removed = <dynamic>[];
@@ -180,7 +188,7 @@ Future<int> reconcileTrackedDays(
   for (final MapEntry(:key, value: row) in existing.entries) {
     final day = listed[key];
     if (day == null) {
-      if (_hasConsumed(row) || listedBefore?[key] != null) removed.add(key);
+      if (_hasConsumed(row) || before(key)?[key] != null) removed.add(key);
       continue;
     }
     var changed = false;
@@ -389,6 +397,38 @@ Future<void> ensureTrackedDaysRepaired(
   );
   await ensureTrackedDayTotalsFinite(db, configDataSource);
 }
+
+/// Brings the rows a restore just wrote, under [importedDayKeys], onto the
+/// configured boundary (#1317).
+///
+/// An archive's rows are keyed by the boundary of the profile that
+/// exported it, [keyedByOffsetMinutes], which the bundle records. This
+/// profile's own rows are keyed by the configured boundary already, so
+/// only the imported ones move, taking their activity credit with them.
+/// A bundle that records no boundary predates the record and with it
+/// #1317, so its rows are read the way activation reads a profile with
+/// no record: keyed by the wall-clock date, imported workouts aside.
+/// Records the configured boundary as the one this profile's rows are
+/// keyed by now.
+Future<int> reconcileImportedTrackedDays(
+  HiveDBProvider db,
+  ConfigDataSource configDataSource, {
+  required Set<String> importedDayKeys,
+  required int? keyedByOffsetMinutes,
+}) => withTrackedDayLock(() async {
+  final offset = _offsetMinutesNow(configDataSource);
+  final rowsWritten = reconcileTrackedDays(
+    db,
+    offsetMinutes: offset,
+    previousOffsetMinutes: keyedByOffsetMinutes ?? 0,
+    previousImportOffsetMinutes: keyedByOffsetMinutes == null ? offset : null,
+    previousKeys: importedDayKeys,
+  );
+  final recorded = configDataSource.setConfigTrackedDaysOffsetMinutes(offset);
+  final changed = await rowsWritten;
+  await recorded;
+  return changed;
+});
 
 /// Moves the day boundary to [hours]:[minutes] and the active profile's
 /// tracked-day rows with it (#1317).
