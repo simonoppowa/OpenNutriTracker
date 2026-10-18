@@ -202,10 +202,10 @@ class SharedMealPreviewDialog extends StatelessWidget {
   /// Without the food we cannot tell its base unit from the meal, so derive
   /// it from the unit the amount was entered in.
   static String _baseUnit(BuildContext context, String unit) {
-    switch (unit) {
-      case 'g' || 'oz':
+    switch (sharedBaseUnitOf(unit)) {
+      case 'g':
         return S.of(context).gramUnit;
-      case 'ml' || 'fl oz' || 'fl.oz':
+      case 'ml':
         return S.of(context).milliliterUnit;
       default:
         return S.of(context).gramMilliliterUnit;

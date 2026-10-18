@@ -368,6 +368,40 @@ void main() {
     expect(find.text('4 oz'), findsOneWidget);
   });
 
+  for (final imperial in [false, true]) {
+    testWidgets(
+        'Pasted custom items keep their base unit (imperial=$imperial)',
+        (tester) async {
+      SharedMealItem entered(String name, String unit, double amount) =>
+          SharedMealItem.fromIntakeEntity(IntakeEntity(
+            id: name,
+            unit: unit,
+            amount: amount,
+            type: IntakeTypeEntity.dinner,
+            meal: meal(name, unit: unit == 'oz' ? 'g' : 'ml'),
+            dateTime: DateTime(2026, 1, 1),
+          ));
+      config.imperial = imperial;
+      await start(
+          tester,
+          SharedMealPayload(
+            version: 2,
+            offRefs: const [],
+            items: [
+              entered('Steak', 'oz', 113.398),
+              entered('Milk', 'fl.oz', 236.588),
+            ],
+            recipes: const [],
+          ));
+      expect(find.text(imperial ? '4 oz' : '113.4 g'), findsOneWidget);
+      expect(find.text(imperial ? '8 fl.oz' : '236.6 ml'), findsOneWidget);
+      expect(find.textContaining('g/ml'), findsNothing);
+      await tester.tap(find.text(l10nEn.importAction));
+      await tester.pumpAndSettle();
+      expect(meals.saved.map((m) => m.mealUnit), ['g', 'ml']);
+    });
+  }
+
   testWidgets('Cancelling preview saves no meals, recipes or intakes',
       (tester) async {
     await start(
