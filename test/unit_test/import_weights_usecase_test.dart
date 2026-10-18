@@ -423,6 +423,60 @@ void main() {
       expect(await weightLogRepository.getEntry(yesterday), isNull);
     });
 
+    test(
+      'an earlier reading from a deleted day stays out once the deleted one '
+      'leaves the health store',
+      () async {
+        healthService.weights = [
+          _reading('c', DateTime(2026, 5, 22, 7), 80.9),
+          _reading('d', DateTime(2026, 5, 22, 11), 81.0),
+        ];
+        await usecase.importNow();
+        await deleteUsecase.deleteEntry(yesterday);
+
+        expect(
+          (await configRepository.getConfig()).deletedWeightDayCutoff(
+            yesterday,
+          ),
+          equals(DateTime(2026, 5, 22, 11)),
+        );
+
+        // The user also removed 'd' from the health store.
+        healthService.weights = [
+          _reading('c', DateTime(2026, 5, 22, 7), 80.9),
+        ];
+        ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+
+        expect(await usecase.importNow(), equals(0));
+        expect(await weightLogRepository.getEntry(yesterday), isNull);
+
+        // A reading taken after the deleted one is still welcome.
+        healthService.weights = [
+          _reading('c', DateTime(2026, 5, 22, 7), 80.9),
+          _reading('e', DateTime(2026, 5, 22, 20), 80.7),
+        ];
+        ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 2));
+
+        expect(await usecase.importNow(), equals(1));
+        expect((await weightLogRepository.getEntry(yesterday))!.externalId, 'e');
+      },
+    );
+
+    test('a day cutoff is pruned like a tombstone', () async {
+      await configDataSource.setConfigHealthLastImportAt(now);
+      final longAgo = DateTime(2026, 4, 1);
+      await configDataSource.addConfigHealthDeletedWorkout(
+        ConfigEntity.deletedWeightDayKey(longAgo),
+        DateTime(2026, 4, 1, 7),
+      );
+
+      await usecase.importNow();
+
+      final config = await configRepository.getConfig();
+      expect(config.deletedWeightDayCutoff(longAgo), isNull);
+      expect(config.healthDeletedWorkouts, isEmpty);
+    });
+
     test('a newer reading on a deleted day is still filed', () async {
       healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
       await usecase.importNow();

@@ -18,12 +18,17 @@ class WeightLogDBO extends HiveObject {
   // overwrites an entry without one.
   @HiveField(3)
   String? externalId;
+  // When an imported reading was taken; null for a manual entry. Deleting
+  // the entry keeps every reading of that day up to this instant out.
+  @HiveField(4)
+  DateTime? measuredAt;
 
   WeightLogDBO({
     required this.date,
     required this.weightKg,
     this.note,
     this.externalId,
+    this.measuredAt,
   });
 
   factory WeightLogDBO.fromWeightLogEntity(WeightLogEntity entity) {
@@ -32,6 +37,7 @@ class WeightLogDBO extends HiveObject {
       weightKg: entity.weightKg,
       note: entity.note,
       externalId: entity.externalId,
+      measuredAt: entity.measuredAt,
     );
   }
 

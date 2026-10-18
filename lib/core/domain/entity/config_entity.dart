@@ -141,9 +141,30 @@ class ConfigEntity extends Equatable {
 
   /// Every id the importer must skip, dated or not. All its dedupe set needs.
   Set<String> get healthDeletedExternalIds => {
-    ...healthDeletedWorkouts.keys,
+    for (final key in healthDeletedWorkouts.keys)
+      if (!key.startsWith(_deletedWeightDayPrefix)) key,
     ...legacyHealthDeletedExternalIds,
   };
+
+  static const _deletedWeightDayPrefix = 'weight-day:';
+
+  /// The key under which [healthDeletedWorkouts] holds a deleted weight
+  /// day's cutoff: the instant its newest imported reading was taken.
+  ///
+  /// Kept in the same map as the record tombstones so it is pruned by the
+  /// same rule — once the cutoff falls behind every window a future import
+  /// can ask for, no reading at or before it can come back anyway.
+  static String deletedWeightDayKey(DateTime day) =>
+      '$_deletedWeightDayPrefix'
+      '${day.year}-${day.month.toString().padLeft(2, '0')}-'
+      '${day.day.toString().padLeft(2, '0')}';
+
+  /// Readings on [day] taken at or before this instant stay out of the
+  /// weight log: the user deleted the day's newest reading, and an earlier
+  /// one from the same day must not take its place. Null when nothing on
+  /// that day was deleted.
+  DateTime? deletedWeightDayCutoff(DateTime day) =>
+      healthDeletedWorkouts[deletedWeightDayKey(day)];
 
   /// The earliest instant any future import could ask the platform about, and
   /// therefore the point before which a tombstone is dead weight rather than

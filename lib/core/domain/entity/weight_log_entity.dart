@@ -9,11 +9,15 @@ class WeightLogEntity extends Equatable {
   /// Platform record id of an imported reading, null for a manual entry.
   final String? externalId;
 
+  /// When an imported reading was taken, null for a manual entry.
+  final DateTime? measuredAt;
+
   const WeightLogEntity({
     required this.date,
     required this.weightKg,
     this.note,
     this.externalId,
+    this.measuredAt,
   });
 
   bool get isImported => externalId != null;
@@ -24,9 +28,10 @@ class WeightLogEntity extends Equatable {
       weightKg: dbo.weightKg,
       note: dbo.note,
       externalId: dbo.externalId,
+      measuredAt: dbo.measuredAt,
     );
   }
 
   @override
-  List<Object?> get props => [date, weightKg, note, externalId];
+  List<Object?> get props => [date, weightKg, note, externalId, measuredAt];
 }

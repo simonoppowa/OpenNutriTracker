@@ -160,6 +160,12 @@ class ImportWeightsUsecase {
       final current = await _configRepository.getConfig();
       if (!_mayWrite(profileId, current)) return written.length;
       if (current.healthDeletedExternalIds.contains(reading.id)) continue;
+      // An earlier reading from a deleted day, which the health store hands
+      // back once the deleted newest one is gone from it too.
+      final deletedUpTo = current.deletedWeightDayCutoff(day);
+      if (deletedUpTo != null && !reading.measuredAt.isAfter(deletedUpTo)) {
+        continue;
+      }
       final existing = await _weightLogRepository.getEntry(day);
       if (!_stillOnProfile(profileId)) return written.length;
       if (existing != null && !existing.isImported) continue;
@@ -173,6 +179,7 @@ class ImportWeightsUsecase {
           date: day,
           weightKg: reading.weightKg,
           externalId: reading.id,
+          measuredAt: reading.measuredAt,
         ),
       );
       written[reading.id] = reading;

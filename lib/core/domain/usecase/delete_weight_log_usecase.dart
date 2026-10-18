@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 
 class DeleteWeightLogUsecase {
   final WeightLogRepository _weightLogRepository;
@@ -25,9 +26,20 @@ class DeleteWeightLogUsecase {
       // time checks the tombstones right before it writes, and must not
       // find the day empty while the tombstone is still missing.
       final day = entry!.date;
+      final endOfDay = DateTime(day.year, day.month, day.day + 1);
       await _configRepository.addConfigHealthDeletedWorkout(
         externalId,
-        DateTime(day.year, day.month, day.day + 1),
+        endOfDay,
+      );
+      // The id alone is not enough: the entry holds only the day's newest
+      // reading, and if that one also leaves the health store, the next read
+      // returns an earlier one from the same day. The day's cutoff keeps
+      // every reading up to the deleted one out, and lets a newer one in.
+      // An entry filed before readings carried their time blocks the whole
+      // day instead, which errs toward keeping the deletion.
+      await _configRepository.addConfigHealthDeletedWorkout(
+        ConfigEntity.deletedWeightDayKey(day),
+        entry.measuredAt ?? endOfDay,
       );
     }
     await _weightLogRepository.deleteEntry(date);
