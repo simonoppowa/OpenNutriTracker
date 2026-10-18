@@ -417,6 +417,21 @@ Future<int> ensureTrackedDaysMatchEntries(
   return changed;
 }
 
+/// Records the configured boundary as the one the active profile's rows
+/// are keyed by, for a profile that has just been emptied (#1317).
+///
+/// [ensureTrackedDaysMatchEntries] reads a missing record as a legacy
+/// history keyed at midnight. A reset profile has no such history, but
+/// the boundary is app-wide and survives the reset, so rows it writes
+/// next are keyed by that boundary. Left unrecorded, the next activation
+/// would move them as if they were midnight-keyed and credit an activity
+/// before the boundary a second time. Must run inside the tracked-day
+/// lock that emptied the rows, so nothing is written between the two.
+Future<void> recordTrackedDayBoundary(ConfigDataSource configDataSource) =>
+    configDataSource.setConfigTrackedDaysOffsetMinutes(
+      _offsetMinutesNow(configDataSource),
+    );
+
 /// The tracked-day repairs every profile activation runs — startup and a
 /// profile switch — before anything reads the rows (#1317, #1254).
 ///
