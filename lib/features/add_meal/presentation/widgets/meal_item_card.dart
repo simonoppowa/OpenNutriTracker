@@ -85,8 +85,9 @@ class MealItemCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: Dimens.spacing8),
-            // No identifier: this card is a builder child (AGENTS.md,
-            // "Dynamic lists").
+            // A builder row leaves the identifier out and its list carries
+            // one (AGENTS.md, "Dynamic lists"); the add-item sheet's fixed
+            // recent rows pass their own.
             FavouriteToggleButton(
               meal: mealEntity,
               semanticsIdentifier: favouriteSemanticsIdentifier,
