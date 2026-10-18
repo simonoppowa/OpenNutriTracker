@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
@@ -667,6 +668,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     SettingsLoadedState state,
   ) async {
     final l10n = S.of(context);
+    final locale = Localizations.localeOf(context);
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
     if (enabled) {
@@ -679,18 +681,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
         return;
       }
-      await notificationService.scheduleDailyReminder(
-        hour: state.notificationHour,
-        minute: state.notificationMinute,
-        title: l10n.notificationsDailyReminderTitle,
-        body: l10n.notificationsDailyReminderBody,
-        channelName: l10n.notificationsDailyReminderChannelName,
-        channelDescription: l10n.notificationsDailyReminderChannelDescription,
-      );
-    } else {
-      await notificationService.cancelDailyReminder();
     }
-    _settingsBloc.setNotificationsEnabled(enabled);
+    // Saves the choice and schedules or cancels in one step, in turn with
+    // any language-change refresh still running.
+    await locator<DailyReminderScheduler>().setEnabled(
+      enabled,
+      locale: locale,
+    );
     _settingsBloc.add(LoadSettingsEvent());
   }
 
@@ -698,18 +695,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     BuildContext context,
     TimeOfDay current,
   ) async {
-    final l10n = S.of(context);
+    final locale = Localizations.localeOf(context);
     final picked = await showTimePicker(context: context, initialTime: current);
     if (picked == null) return;
-    _settingsBloc.setNotificationTime(picked.hour, picked.minute);
-    final notificationService = locator<NotificationService>();
-    await notificationService.scheduleDailyReminder(
-      hour: picked.hour,
-      minute: picked.minute,
-      title: l10n.notificationsDailyReminderTitle,
-      body: l10n.notificationsDailyReminderBody,
-      channelName: l10n.notificationsDailyReminderChannelName,
-      channelDescription: l10n.notificationsDailyReminderChannelDescription,
+    await locator<DailyReminderScheduler>().setTime(
+      picked.hour,
+      picked.minute,
+      locale: locale,
     );
     _settingsBloc.add(LoadSettingsEvent());
   }
