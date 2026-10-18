@@ -286,6 +286,10 @@ differently under another boundary. On import, the rows from the bundle are move
 from this boundary to the device's, and so is the energy an activity added to a
 day's goal. The device's own rows are not touched.
 
+Export serializes the entries, tracked days and boundary record under the same
+lock, so a boundary change or profile switch cannot split the snapshot. Photo
+file reads and the save dialog run after that lock is released.
+
 ```jsonc
 {
   "version": 1,                     // format version, as in goal_settings.json
