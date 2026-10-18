@@ -98,6 +98,24 @@ class ConfigRepository {
     await _configDataSource.setConfigFatGoalPct(fat);
   }
 
+  Future<void> setConfigGoalSettings({
+    required double? kcalAdjustment,
+    required double? carbGoalPct,
+    required double? proteinGoalPct,
+    required double? fatGoalPct,
+    required Map<String, int>? mealKcalSharesPct,
+    required int? dailyWaterGoalMl,
+  }) async {
+    await _configDataSource.setConfigGoalSettings(
+      kcalAdjustment: kcalAdjustment,
+      carbGoalPct: carbGoalPct,
+      proteinGoalPct: proteinGoalPct,
+      fatGoalPct: fatGoalPct,
+      mealKcalSharesPct: mealKcalSharesPct,
+      dailyWaterGoalMl: dailyWaterGoalMl,
+    );
+  }
+
   Future<void> setNotificationsEnabled(bool enabled) async {
     await _configDataSource.setNotificationsEnabled(enabled);
   }

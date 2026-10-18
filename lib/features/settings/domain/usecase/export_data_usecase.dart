@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.d
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
@@ -19,6 +20,7 @@ import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 import 'package:opennutritracker/core/utils/export_write_verifier.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
+import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
 
 /// The two export shapes available from Settings → Export / Import App Data.
 /// JSON is the canonical backup-and-restore format the app re-imports from;
@@ -33,6 +35,7 @@ class ExportDataUsecase {
   final CustomMealDataSource _customMealDataSource;
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
+  final ConfigRepository _configRepository;
 
   ExportDataUsecase(
     this._userActivityRepository,
@@ -42,18 +45,19 @@ class ExportDataUsecase {
     this._customMealDataSource,
     this._weightLogRepository,
     this._customActivityTemplateRepository,
+    this._configRepository,
   );
 
   /// Exports user activity, intake, tracked day, recipe, weight-log and
-  /// Custom activity template data to a zip at a user-specified location,
-  /// in the [format] the user picked.
+  /// Custom activity template data, plus the profile's goal settings, to a
+  /// zip at a user-specified location, in the [format] the user picked.
   ///
   /// JSON export contains JSON files only and is what the app re-imports
   /// from. CSV export contains CSV files only and is intended for
-  /// opening in a spreadsheet — recipes, photos, the weight log and
-  /// Custom activity templates are omitted from CSV because their shape
-  /// doesn't flatten cleanly. A user who wants both can run the export
-  /// twice. See `docs/export-format.md` for the schema.
+  /// opening in a spreadsheet — recipes, photos, the weight log, Custom
+  /// activity templates and goal settings are omitted from CSV because
+  /// their shape doesn't flatten cleanly. A user who wants both can run
+  /// the export twice. See `docs/export-format.md` for the schema.
   Future<bool> exportData(
     String exportZipFileName,
     String userActivityJsonFileName,
@@ -66,6 +70,7 @@ class ExportDataUsecase {
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
+    String goalSettingsJsonFileName = 'goal_settings.json',
   }) async {
     final archive = await assembleArchive(
       format: format,
@@ -75,6 +80,7 @@ class ExportDataUsecase {
       recipeJsonFileName: recipeJsonFileName,
       weightLogJsonFileName: weightLogJsonFileName,
       customActivityTemplateJsonFileName: customActivityTemplateJsonFileName,
+      goalSettingsJsonFileName: goalSettingsJsonFileName,
       userActivityCsvFileName: userActivityCsvFileName,
       userIntakeCsvFileName: userIntakeCsvFileName,
       trackedDayCsvFileName: trackedDayCsvFileName,
@@ -136,6 +142,7 @@ class ExportDataUsecase {
     required String recipeJsonFileName,
     required String weightLogJsonFileName,
     required String customActivityTemplateJsonFileName,
+    String goalSettingsJsonFileName = 'goal_settings.json',
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
@@ -239,6 +246,20 @@ class ExportDataUsecase {
           customActivityTemplateJsonFileName,
           templatesBytes.length,
           templatesBytes,
+        ),
+      );
+
+      // The profile's goal settings (#1363), so a restore after a reset or
+      // a reinstall brings back the goals and not just the diary.
+      final goalSettings = GoalSettingsBackup.fromConfigDBO(
+        await _configRepository.getConfigDBO(),
+      );
+      final goalSettingsBytes = utf8.encode(jsonEncode(goalSettings.toJson()));
+      archive.addFile(
+        ArchiveFile(
+          goalSettingsJsonFileName,
+          goalSettingsBytes.length,
+          goalSettingsBytes,
         ),
       );
     }

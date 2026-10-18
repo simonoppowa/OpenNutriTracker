@@ -9,8 +9,10 @@ import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/weight_history_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import '../../../helpers/fake_reload_blocs.dart';
 import '../../../helpers/test_l10n.dart';
 
 class _FakeGetWeightLogUsecase extends Fake implements GetWeightLogUsecase {
@@ -183,6 +185,27 @@ void main() {
         findsNothing,
       );
     });
+  });
+
+  testWidgets('deleting an entry reloads Trends so its weight card drops '
+      'the reading (#1359)', (tester) async {
+    final recorder = ReloadRecorder()..register();
+    addTearDown(locator.reset);
+    final today = DateTime.now();
+    final entries = [
+      WeightLogEntity(
+        date: DateTime(today.year, today.month, today.day),
+        weightKg: 72.0,
+      ),
+    ];
+
+    await tester.pumpWidget(_wrap(_buildScreen(entries)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+
+    expect(recorder.trendsReloaded, isTrue);
   });
 
   group('WeightHistoryScreen entry tiles', () {
