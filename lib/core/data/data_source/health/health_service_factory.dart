@@ -26,6 +26,8 @@ Future<HealthService> createHealthService() async {
       error,
       stackTrace,
     );
-    return const NoopHealthService();
+    // Keeps HealthKit's semantics on iOS so failed meal exports are kept as
+    // pending windows rather than lost.
+    return NoopHealthService(hasRecordIdentity: !Platform.isIOS);
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
+import 'package:opennutritracker/core/data/data_source/health/noop_health_service.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_export_diary_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
@@ -684,6 +685,31 @@ void main() {
       await usecase.forgetProfile('a');
 
       expect(healthRepo.ops, isEmpty);
+    });
+  });
+
+  // #1393 review: a HealthKit plugin that failed to start fell back to a
+  // service claiming Health Connect's record ids, so iOS edits and deletes
+  // kept nothing to recover once the plugin worked again.
+  group('with the no-op fallback service', () {
+    test('standing in for HealthKit, failures stay pending', () async {
+      final fallback = ExportMealIntakeUsecase(
+        HealthExportRepository(
+          const NoopHealthService(hasRecordIdentity: false),
+        ),
+        diary,
+        config,
+        retryDelay: Duration.zero,
+      );
+      diary.diaries['a'] = [];
+
+      expect(await fallback.deleteIntake(testIntake), isFalse);
+
+      expect(config.pending, {mealDate});
+    });
+
+    test('by default it keeps Health Connect semantics', () {
+      expect(const NoopHealthService().hasRecordIdentity, isTrue);
     });
   });
 

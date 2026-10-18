@@ -9,7 +9,15 @@ import 'package:opennutritracker/core/data/data_source/health/health_service.dar
 /// settings screen can say why the feature is off instead of silently doing
 /// nothing when the user flips the switch.
 class NoopHealthService implements HealthService {
-  const NoopHealthService();
+  /// Standing in for HealthKit, pass false: the meal export then treats
+  /// every failed write or delete as a HealthKit window, which it keeps
+  /// pending until the plugin works again on a later launch. Reporting Health
+  /// Connect's record ids there would send edits and deletes down a path that
+  /// keeps nothing to recover.
+  const NoopHealthService({this.hasRecordIdentity = true});
+
+  @override
+  final bool hasRecordIdentity;
 
   @override
   Future<bool> isAvailable() async => false;
@@ -28,9 +36,6 @@ class NoopHealthService implements HealthService {
 
   @override
   Future<double?> readLatestBodyFatPercent() async => null;
-
-  @override
-  bool get hasRecordIdentity => true;
 
   @override
   Future<bool> writeMeal(ExternalMealIntake intake) async => false;
