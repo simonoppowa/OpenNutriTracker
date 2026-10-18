@@ -54,6 +54,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         policyNoticeRevisionSeen: (fields[37] as num?)?.toInt(),
         healthDeletedWorkouts: (fields[38] as Map?)?.cast<String, DateTime>(),
         defaultToRawFoodUnits: fields[39] as bool?,
+        trackedDaysOffsetMinutes: (fields[40] as num?)?.toInt(),
         healthWeightImportEnabled: fields[42] as bool?,
         healthWeightLastImportAt: fields[43] as DateTime?,
       )
@@ -65,7 +66,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(42)
+      ..writeByte(43)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -146,6 +147,8 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..write(obj.healthDeletedWorkouts)
       ..writeByte(39)
       ..write(obj.defaultToRawFoodUnits)
+      ..writeByte(40)
+      ..write(obj.trackedDaysOffsetMinutes)
       ..writeByte(42)
       ..write(obj.healthWeightImportEnabled)
       ..writeByte(43)
@@ -224,6 +227,8 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
               (k, e) => MapEntry(k, DateTime.parse(e as String)),
             ),
         defaultToRawFoodUnits: json['defaultToRawFoodUnits'] as bool?,
+        trackedDaysOffsetMinutes: (json['trackedDaysOffsetMinutes'] as num?)
+            ?.toInt(),
         healthWeightImportEnabled: json['healthWeightImportEnabled'] as bool?,
         healthWeightLastImportAt: json['healthWeightLastImportAt'] == null
             ? null
@@ -276,6 +281,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   ),
   'policyNoticeRevisionSeen': instance.policyNoticeRevisionSeen,
   'defaultToRawFoodUnits': instance.defaultToRawFoodUnits,
+  'trackedDaysOffsetMinutes': instance.trackedDaysOffsetMinutes,
   'healthWeightImportEnabled': instance.healthWeightImportEnabled,
   'healthWeightLastImportAt': instance.healthWeightLastImportAt
       ?.toIso8601String(),

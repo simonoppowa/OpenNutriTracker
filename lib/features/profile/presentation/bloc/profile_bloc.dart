@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/bmi_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -65,29 +66,44 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   /// kcal-goal calc on today's tracked day so the saved goal reflects
   /// the new value immediately rather than waiting for the next day.
   Future<void> setCaloriesTaperEnabled(bool enabled) async {
+    final startedOn = ProfileStamp.now();
     final user = await _getUserUsecase.getUserData();
     user.caloriesTaperEnabled = enabled;
-    await updateUser(user);
+    await _updateUser(user, startedOn);
   }
 
-  Future<void> updateUser(UserEntity userEntity) async {
-    // Update user in DB
-    await _addUserUsecase.addUser(userEntity);
-    await _propagateUserChange(userEntity);
-  }
+  Future<void> updateUser(UserEntity userEntity) =>
+      _updateUser(userEntity, ProfileStamp.now());
 
   /// Runs what saving a weight change sets off — today's calorie goal and
   /// every screen that reads the user — for a weight that reached the user
   /// record without going through [updateUser]. The health weight import
   /// writes the current weight itself and calls this afterwards.
   Future<void> reloadAfterWeightImport() async {
-    await _propagateUserChange(await _getUserUsecase.getUserData());
+    final startedOn = ProfileStamp.now();
+    final user = await _getUserUsecase.getUserData();
+    final updated = await withTrackedDayLockOnProfile(() async {
+      await _updateTrackedDayCalorieGoal(user, DateTime.now());
+      return true;
+    }, startedOn: startedOn);
+    if (updated != true) return;
+    _reloadAfterUserChange();
   }
 
-  Future<void> _propagateUserChange(UserEntity userEntity) async {
-    // Update Tracked Day
-    await _updateTrackedDayCalorieGoal(userEntity, DateTime.now());
+  Future<void> _updateUser(
+    UserEntity userEntity,
+    ProfileStamp startedOn,
+  ) async {
+    final updated = await withTrackedDayLockOnProfile(() async {
+      await _addUserUsecase.addUser(userEntity);
+      await _updateTrackedDayCalorieGoal(userEntity, DateTime.now());
+      return true;
+    }, startedOn: startedOn);
+    if (updated != true) return;
+    _reloadAfterUserChange();
+  }
 
+  void _reloadAfterUserChange() {
     // Refresh Profile
     add(LoadProfileEvent());
     // Refresh Home Page
@@ -104,17 +120,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     trendsBloc.add(LoadTrendsEvent(rangeDays: rangeDays));
   }
 
-  Future<void> _updateTrackedDayCalorieGoal(
-    UserEntity user,
-    DateTime day,
-  ) async {
-    final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
-    if (hasTrackedDay) {
-      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-        userEntity: user,
-      );
+  Future<void> _updateTrackedDayCalorieGoal(UserEntity user, DateTime day) =>
+      // The goal counts the day's activities, so it is read and written
+      // with no boundary move between (#1317).
+      withTrackedDayLock(() async {
+        final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
+        if (hasTrackedDay) {
+          final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+            userEntity: user,
+          );
 
-      await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
-    }
-  }
+          await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
+        }
+      });
 }
