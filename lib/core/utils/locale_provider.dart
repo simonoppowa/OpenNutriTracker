@@ -12,9 +12,18 @@ class LocaleProvider extends ChangeNotifier {
   Locale? locale;
   final CalorieWidgetStore _calorieWidgetStore;
 
-  LocaleProvider({this.locale, CalorieWidgetStore? calorieWidgetStore})
-    : _calorieWidgetStore = calorieWidgetStore ?? HomeWidgetCalorieStore() {
+  /// [relabelCalorieWidget] is for a launch that goes to onboarding, where
+  /// Home never writes the widget's labels: if the device language changed
+  /// while the app was closed, the widget would otherwise keep the old one.
+  /// A launch into Home leaves it off, since Home writes the labels with
+  /// today's figures and a second write could race it.
+  LocaleProvider({
+    this.locale,
+    CalorieWidgetStore? calorieWidgetStore,
+    bool relabelCalorieWidget = false,
+  }) : _calorieWidgetStore = calorieWidgetStore ?? HomeWidgetCalorieStore() {
     AppLocale.select(locale?.toString());
+    if (relabelCalorieWidget) unawaited(_relabelCalorieWidget());
   }
 
   void updateLocale(Locale? newLocale) {

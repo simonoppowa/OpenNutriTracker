@@ -182,6 +182,20 @@ void main() {
       expect(store.relabelled.single.trendsCaloriesLabel, german.title);
     });
 
+    test('a launch into onboarding relabels the widget itself', () async {
+      // Home never runs on this launch, so nothing else would bring the
+      // labels a wipe kept into a language changed while the app was shut.
+      final store = _RecordingStore();
+      LocaleProvider(
+        locale: const Locale('de'),
+        calorieWidgetStore: store,
+        relabelCalorieWidget: true,
+      );
+      await pumpEventQueue();
+
+      expect(store.relabelled.single.trendsCaloriesLabel, german.title);
+    });
+
     test('a widget that cannot be relabelled does not block it', () async {
       final provider = LocaleProvider(
         locale: const Locale('en'),

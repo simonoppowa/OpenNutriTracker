@@ -198,7 +198,10 @@ void runAppWithChangeNotifiers(
         ),
       ),
       ChangeNotifierProvider(
-        create: (_) => LocaleProvider(locale: savedLocale),
+        create: (_) => LocaleProvider(
+          locale: savedLocale,
+          relabelCalorieWidget: !userInitialized,
+        ),
       ),
       ChangeNotifierProvider(
         create: (_) => EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
