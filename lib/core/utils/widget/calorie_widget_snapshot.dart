@@ -39,20 +39,27 @@ class CalorieWidgetSnapshot {
   /// [consumedKcal] is today's supplied intake and [goalKcal] is the
   /// daily goal, both already computed by Home. A goal of zero, or a
   /// negative goal, means there is no profile figure to show.
+  ///
+  /// [logicalDay] is the day the figures were read for. Home passes the
+  /// one its load started on, so a load that crosses the day boundary does
+  /// not stamp the old day's figures with the new day. Without it, the
+  /// logical day of [now] is used.
   factory CalorieWidgetSnapshot.fromHome({
     required double consumedKcal,
     required double goalKcal,
     required int offsetMinutes,
+    DateTime? logicalDay,
     DateTime? now,
   }) {
     final offset = sanitiseOffsetMinutes(offsetMinutes);
-    final moment = now ?? DateTime.now();
-    final logicalDay = DayBoundaryCalc.logicalDayOfMinutes(moment, offset);
+    final day =
+        logicalDay ??
+        DayBoundaryCalc.logicalDayOfMinutes(now ?? DateTime.now(), offset);
     final goal = goalKcal.round();
     final hasData = goal > 0;
     return CalorieWidgetSnapshot(
       hasData: hasData,
-      dayId: formatDayId(logicalDay),
+      dayId: formatDayId(day),
       offsetMinutes: offset,
       consumedKcal: hasData ? consumedKcal.round() : 0,
       goalKcal: hasData ? goal : 0,

@@ -87,9 +87,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       // detection on app resume respects the user's configured boundary.
       // The follow-up to #139 routes the boundary through total minutes
       // so a 04:30 setting is honoured exactly.
-      currentDay = DayBoundaryCalc.currentLogicalDayMinutes(
+      final loadDay = DayBoundaryCalc.currentLogicalDayMinutes(
         configData.dayStartOffsetTotalMinutes,
       );
+      currentDay = loadDay;
       final usesImperialUnits = configData.usesImperialFoodUnits;
       final bodyWeightUnit = configData.bodyWeightUnit;
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
@@ -256,6 +257,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         consumedKcal: totalKcalIntake,
         goalKcal: totalKcalGoal,
         offsetMinutes: configData.dayStartOffsetTotalMinutes,
+        logicalDay: loadDay,
       );
     });
   }
@@ -264,11 +266,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required double consumedKcal,
     required double goalKcal,
     required int offsetMinutes,
+    required DateTime logicalDay,
   }) async {
     final snapshot = CalorieWidgetSnapshot.fromHome(
       consumedKcal: consumedKcal,
       goalKcal: goalKcal,
       offsetMinutes: offsetMinutes,
+      // The day this load read, not the one it finishes in: a load that
+      // crosses the day boundary publishes the old day's figures under the
+      // old day, which the extension expires at once instead of showing
+      // them as the new day's.
+      logicalDay: logicalDay,
     );
     try {
       await _calorieWidgetStore.write(
