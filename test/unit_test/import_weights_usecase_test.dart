@@ -389,6 +389,68 @@ void main() {
       expect((await weightLogRepository.getEntry(today))!.isImported, isFalse);
     });
 
+    test('a filed reading outside the read window still reconciles', () async {
+      // Filed by a run that died before the update, and the app was not
+      // opened again until long after the backfill window.
+      await weightLogRepository.addEntry(
+        WeightLogEntity(
+          date: DateTime(2026, 4, 10),
+          weightKg: 77.9,
+          externalId: 'old',
+          measuredAt: DateTime(2026, 4, 10, 7),
+        ),
+      );
+
+      expect(await usecase.importNow(), equals(0));
+
+      expect((await userRepository.getUserData()).weightKG, equals(77.9));
+    });
+
+    test('a reconciliation-only change still signals', () async {
+      await weightLogRepository.addEntry(
+        WeightLogEntity(
+          date: today,
+          weightKg: 78.5,
+          externalId: 'c',
+          measuredAt: DateTime(2026, 5, 23, 7),
+        ),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+      var events = 0;
+      final subscription = usecase.weightsImported.listen((_) => events++);
+      addTearDown(subscription.cancel);
+
+      expect(await usecase.importNow(), equals(0));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(events, equals(1));
+    });
+
+    test('imported entries are ordered by when they were taken', () async {
+      // After a move west: 'old' kept the day it was filed on, and the
+      // later reading landed on the now-earlier local date.
+      await weightLogRepository.addEntry(
+        WeightLogEntity(
+          date: today,
+          weightKg: 81.0,
+          externalId: 'old',
+          measuredAt: DateTime(2026, 5, 23, 7),
+        ),
+      );
+      await weightLogRepository.addEntry(
+        WeightLogEntity(
+          date: yesterday,
+          weightKg: 79.5,
+          externalId: 'new',
+          measuredAt: DateTime(2026, 5, 23, 12),
+        ),
+      );
+
+      await usecase.importNow();
+
+      expect((await userRepository.getUserData()).weightKG, equals(79.5));
+    });
+
     test(
       'a late-synced older reading leaves the current weight alone',
       () async {
@@ -640,6 +702,24 @@ void main() {
       healthService.throwOnRead = true;
 
       expect(usecase.importNow(), throwsStateError);
+    });
+
+    test('switching away and back joins the run still in flight', () async {
+      healthService.readGate = Completer<void>();
+
+      final first = usecase.importNow();
+      await Future<void>.delayed(Duration.zero);
+      provider.activeProfileId = 'profile-b';
+      final other = usecase.importNow();
+      await Future<void>.delayed(Duration.zero);
+      provider.activeProfileId = 'profile-a';
+      final again = usecase.importNow();
+      await Future<void>.delayed(Duration.zero);
+
+      // One read for profile A, one for B — not a second one for A.
+      expect(healthService.readWeightsCalls, equals(2));
+      healthService.readGate!.complete();
+      await Future.wait([first, other, again]);
     });
 
     test('a profile switch during the read files nothing', () async {

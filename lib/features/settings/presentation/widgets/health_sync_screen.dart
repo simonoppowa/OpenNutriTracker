@@ -18,7 +18,6 @@ import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -257,9 +256,9 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     try {
       final imported = await locator<ImportWeightsUsecase>().importNow();
       await _reloadWatermark();
-      // The same refresh a manual weight change gets: today's calorie goal,
-      // Home, Profile, Diary and Trends.
-      if (imported > 0) await locator<ProfileBloc>().reloadAfterWeightImport();
+      // The refresh a weight change sets off — today's calorie goal, Home,
+      // Profile, Diary and Trends — runs from the Home page underneath,
+      // which listens to `ImportWeightsUsecase.weightsImported`.
       if (!mounted || !reportCount) return null;
       return S.of(context).healthSyncWeightImportedCountLabel(imported);
     } catch (error, stackTrace) {

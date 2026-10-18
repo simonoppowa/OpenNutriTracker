@@ -48,13 +48,20 @@ class ImportWeightsUsecase {
 
   final _log = Logger('ImportWeightsUsecase');
 
-  Future<int>? _inFlight;
-  String? _inFlightProfileId;
+  /// The run in flight for each profile. Keyed by profile rather than kept
+  /// in one slot: a switch away and back while a run is still reading must
+  /// join that run, not start a second one for the same profile whose older
+  /// snapshot could then land after the newer run's writes.
+  final _inFlight = <String, Future<int>>{};
 
   final _weightsImported = StreamController<void>.broadcast();
 
-  /// Fires after a run that wrote weight-log entries, for screens that keep
-  /// their own copy of the log, such as the weight history.
+  /// Fires after a run that changed the weight data: it filed readings, or
+  /// it moved the user's current weight. Screens that keep their own copy of
+  /// the log, and the refresh a weight change sets off, listen to it. The
+  /// count a run returns does not cover the second case — a retry that only
+  /// finishes an interrupted run files nothing — so callers should not rely
+  /// on it for that.
   Stream<void> get weightsImported => _weightsImported.stream;
 
   final HealthImportRepository _healthImportRepository;
@@ -75,11 +82,8 @@ class ImportWeightsUsecase {
   /// recent. Logs and swallows failures — nobody is waiting on the answer.
   Future<int> importIfDue() async {
     try {
-      final inFlight = _inFlight;
-      if (inFlight != null &&
-          _inFlightProfileId == _hiveDBProvider.activeProfileId) {
-        return await inFlight;
-      }
+      final inFlight = _inFlight[_hiveDBProvider.activeProfileId];
+      if (inFlight != null) return await inFlight;
       final config = await _configRepository.getConfig();
       if (!config.healthWeightImportEnabled) return 0;
       final lastImportAt = config.healthWeightLastImportAt;
@@ -99,16 +103,12 @@ class ImportWeightsUsecase {
   /// off, and throws whatever the health store throws.
   Future<int> importNow() {
     final profileId = _hiveDBProvider.activeProfileId;
-    final inFlight = _inFlight;
-    if (inFlight != null && _inFlightProfileId == profileId) return inFlight;
+    final inFlight = _inFlight[profileId];
+    if (inFlight != null) return inFlight;
     final run = _import();
-    _inFlight = run;
-    _inFlightProfileId = profileId;
+    _inFlight[profileId] = run;
     return run.whenComplete(() {
-      if (identical(_inFlight, run)) {
-        _inFlight = null;
-        _inFlightProfileId = null;
-      }
+      if (identical(_inFlight[profileId], run)) _inFlight.remove(profileId);
     });
   }
 
@@ -139,12 +139,7 @@ class ImportWeightsUsecase {
     };
     final latestByDay = latestReadingPerDay(readings, filedDays: filedDays);
 
-    // [written] is what this run filed. [filed] adds the readings an earlier
-    // run already filed exactly, because both are candidates for the current
-    // weight: a run killed between filing its newest reading and updating the
-    // weight leaves only the second kind behind, and the retry finishes it.
     final written = <String, ExternalWeight>{};
-    final filed = <String, ExternalWeight>{};
     for (final MapEntry(key: day, value: reading) in latestByDay.entries) {
       // Everything a write depends on is read fresh, right before it, rather
       // than taken from before the platform read, which is long:
@@ -171,7 +166,6 @@ class ImportWeightsUsecase {
       if (existing != null && !existing.isImported) continue;
       if (existing?.externalId == reading.id &&
           existing?.weightKg == reading.weightKg) {
-        filed[reading.id] = reading;
         continue;
       }
       await _weightLogRepository.addEntry(
@@ -183,10 +177,13 @@ class ImportWeightsUsecase {
         ),
       );
       written[reading.id] = reading;
-      filed[reading.id] = reading;
     }
 
-    if (filed.isNotEmpty) await _updateCurrentWeight(profileId, filed);
+    // Every run, not only one that filed something: the current weight is
+    // derived from the log as it stands, so a run killed between filing its
+    // newest reading and updating the weight is finished by the next one,
+    // however long that takes to come.
+    final weightChanged = await _updateCurrentWeight(profileId);
 
     // Every write from here on resolves its box from whichever profile is
     // active at the moment of the call, so each is checked right before it
@@ -216,8 +213,8 @@ class ImportWeightsUsecase {
         'Imported ${written.length} weight reading(s) from the platform '
         'health store',
       );
-      _weightsImported.add(null);
     }
+    if (written.isNotEmpty || weightChanged) _weightsImported.add(null);
     return written.length;
   }
 
@@ -265,64 +262,96 @@ class ImportWeightsUsecase {
     return latest;
   }
 
-  /// Makes the newest reading the user's current weight — but only when it
-  /// is newer than the weight the user gave. A reading from last week that
-  /// synced late must not overwrite a weight the user entered today.
+  /// Makes the newest imported entry in the log the user's current weight —
+  /// but only when it is newer than the weight the user gave. A reading from
+  /// last week that synced late must not overwrite a weight entered today.
+  /// Returns whether the current weight changed.
   ///
-  /// A weight entered in the app lands in the log as a manual entry, and the
-  /// newest entry wins. A weight given at onboarding never reaches the log,
-  /// though, so a profile without a manual entry is measured against the
-  /// moment the profile was created instead: only a reading taken after that
-  /// can replace it. For the default profile of an install that predates
-  /// profiles, that moment is the upgrade — later than the weight itself, so
-  /// the comparison errs toward keeping the user's weight.
+  /// Imported entries are ordered by when they were taken, not by the day
+  /// they are filed under: an entry keeps its day across a time-zone change,
+  /// so a later reading can sit on an earlier date. Against a manual entry,
+  /// which has only a day, the imported one has to be on a later day.
   ///
-  /// [candidates] are the readings the log holds as this run left it, so the
-  /// result is the same however many times a run is retried.
+  /// A profile with no manual entry has its weight from onboarding, which
+  /// onboarding also logs as a manual entry from now on. Profiles onboarded
+  /// before that are measured against the moment the profile was created:
+  /// only a reading taken after it can replace the weight. For the default
+  /// profile of an install that predates profiles, that moment is the
+  /// upgrade — later than the weight itself, so this errs toward keeping it.
   ///
   /// Bound to [profileId]: each read and the write are checked against it
   /// right before they are made, so a switch mid-way cannot carry this
   /// profile's weight into another, nor a wipe bring a user back.
-  Future<void> _updateCurrentWeight(
-    String profileId,
-    Map<String, ExternalWeight> candidates,
-  ) async {
-    if (!await _userRepository.hasUserData()) return;
-    if (!_stillOnProfile(profileId)) return;
-    final entries = await _weightLogRepository.getAllEntries();
-    if (entries.isEmpty) return;
-    final newest = entries.reduce((a, b) => b.date.isAfter(a.date) ? b : a);
-    final reading = candidates[newest.externalId];
-    if (reading == null) return;
-    if (!entries.any((entry) => !entry.isImported)) {
-      final enteredBy = _hiveDBProvider.profileBox.get(profileId)?.createdAt;
-      if (enteredBy != null && !reading.measuredAt.isAfter(enteredBy)) return;
-    }
-    if (!await _mayStillWrite(profileId)) return;
-    if (!await _userRepository.hasUserData()) return;
-    if (!_stillOnProfile(profileId)) return;
+  Future<bool> _updateCurrentWeight(String profileId) async {
+    if (!await _userRepository.hasUserData()) return false;
+    if (!_stillOnProfile(profileId)) return false;
+    final candidate = _currentWeightCandidate(
+      await _weightLogRepository.getAllEntries(),
+      _hiveDBProvider.profileBox.get(profileId)?.createdAt,
+    );
+    if (candidate == null) return false;
+    if (!await _mayStillWrite(profileId)) return false;
+    if (!await _userRepository.hasUserData()) return false;
+    if (!_stillOnProfile(profileId)) return false;
     // The log again, after the guards: a weight the user entered while they
     // ran is now the newest entry, and has already become the current
     // weight. Writing the imported one over it would leave the profile at
     // odds with the history.
-    final latest = await _weightLogRepository.getAllEntries();
-    if (latest.isEmpty) return;
-    final current = latest.reduce((a, b) => b.date.isAfter(a.date) ? b : a);
-    if (current.externalId != newest.externalId ||
-        current.weightKg != newest.weightKg) {
-      return;
-    }
-    if (!_stillOnProfile(profileId)) return;
+    final current = _currentWeightCandidate(
+      await _weightLogRepository.getAllEntries(),
+      _hiveDBProvider.profileBox.get(profileId)?.createdAt,
+    );
+    if (current != candidate) return false;
+    if (!_stillOnProfile(profileId)) return false;
     // Read last, right before the save, and only the weight changed: the
     // save writes the whole user, so a copy read before the guards above
     // would undo a profile edit (height, goal, activity level) that landed
     // while they ran.
     final user = await _userRepository.getUserData();
-    if (user.weightKG == newest.weightKg) return;
-    user.weightKG = newest.weightKg;
-    if (!_stillOnProfile(profileId)) return;
+    if (user.weightKG == candidate.weightKg) return false;
+    user.weightKG = candidate.weightKg;
+    if (!_stillOnProfile(profileId)) return false;
     await _userRepository.updateUserData(user);
+    return true;
   }
+
+  /// The imported entry that should be the current weight, or null when the
+  /// user's own weight is newer. See [_updateCurrentWeight].
+  static WeightLogEntity? _currentWeightCandidate(
+    List<WeightLogEntity> entries,
+    DateTime? profileCreatedAt,
+  ) {
+    WeightLogEntity? newestImported;
+    WeightLogEntity? newestManual;
+    for (final entry in entries) {
+      if (entry.isImported) {
+        if (newestImported == null ||
+            _takenAt(entry).isAfter(_takenAt(newestImported))) {
+          newestImported = entry;
+        }
+      } else if (newestManual == null ||
+          entry.date.isAfter(newestManual.date)) {
+        newestManual = entry;
+      }
+    }
+    if (newestImported == null) return null;
+    if (newestManual != null) {
+      return newestImported.date.isAfter(newestManual.date)
+          ? newestImported
+          : null;
+    }
+    if (profileCreatedAt != null &&
+        !_takenAt(newestImported).isAfter(profileCreatedAt)) {
+      return null;
+    }
+    return newestImported;
+  }
+
+  /// When an imported entry's reading was taken. An entry filed before that
+  /// was recorded counts as the start of its day, the earliest it can have
+  /// been — which errs toward keeping a weight the user gave.
+  static DateTime _takenAt(WeightLogEntity entry) =>
+      entry.measuredAt ?? entry.date;
 
   /// Whether the run that started under [profileId] may still write: the
   /// profile is still active and weight import is still on for it. The flag

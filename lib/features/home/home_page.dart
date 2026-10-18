@@ -48,11 +48,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   bool _isIntakeDragging = false;
   bool _isActivityDragging = false;
   bool get _isDragging => _isIntakeDragging || _isActivityDragging;
+  StreamSubscription<void>? _weightsImportedSubscription;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = locator<HomeBloc>();
+    // A weight import can change the current weight, and with it today's
+    // calorie goal and BMI; Trends charts the log itself. Whichever entry
+    // point ran it — launch, resume, or the settings screen, which is pushed
+    // over this page — this gets the refresh a manual weight change gets.
+    // Driven by the use case's signal rather than the count a run returns,
+    // because a retry that only finishes an interrupted run files nothing
+    // and still moves the weight.
+    if (locator.isRegistered<ImportWeightsUsecase>()) {
+      _weightsImportedSubscription = locator<ImportWeightsUsecase>()
+          .weightsImported
+          .listen((_) => locator<ProfileBloc>().reloadAfterWeightImport());
+    }
     // Workouts and weight readings that landed in the health store while the
     // app was closed. Run from here rather than from bootstrap so a launch
     // import reaches the same refresh a resume import does.
@@ -63,6 +76,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _weightsImportedSubscription?.cancel();
     super.dispose();
   }
 
@@ -557,21 +571,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// serialized and opt-in inside each use case, so this costs nothing on an
   /// ordinary resume; screens only reload when something actually came in.
   /// Failures are swallowed by the `importIfDue` entry points: there is no
-  /// user waiting on this and nowhere to show an error.
+  /// user waiting on this and nowhere to show an error. A weight import
+  /// refreshes through [_weightsImportedSubscription].
   Future<void> _importHealthData() async {
-    final (workouts, weights) = await (
+    final (workouts, _) = await (
       locator<ImportWorkoutsUsecase>().importIfDue(),
       locator<ImportWeightsUsecase>().importIfDue(),
     ).wait;
-    if (!mounted || (workouts == 0 && weights == 0)) return;
-    if (weights > 0) {
-      // A new reading can change the current weight, and with it today's
-      // calorie goal and BMI; Trends charts the log itself. This is the
-      // refresh a manual weight change gets, and it reloads Home and the
-      // Diary too, which covers any workouts imported alongside.
-      await locator<ProfileBloc>().reloadAfterWeightImport();
-      return;
-    }
+    if (!mounted || workouts == 0) return;
     _homeBloc.add(const LoadItemsEvent());
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
