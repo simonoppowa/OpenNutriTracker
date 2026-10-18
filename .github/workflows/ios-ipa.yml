@@ -1,0 +1,79 @@
+name: iOS IPA (unsigned, for sideloading)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or SHA to build
+        required: false
+        default: personal
+  push:
+    branches:
+      - personal
+  pull_request:
+    branches:
+      - personal
+
+concurrency:
+  group: ios-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup Flutter + cache packages
+        uses: ./.github/actions/setup-flutter-cache
+
+      - name: Disable Swift Package Manager
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Generate stub .env
+        run: cp .env.example .env
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Pod install
+        run: .github/scripts/pod_install_with_targeted_fallback.sh
+
+      - name: Build iOS (no codesign)
+        run: flutter build ios --no-codesign --release --flavor full --build-number ${{ github.run_number }}
+
+      - name: Wrap .app into unsigned .ipa
+        run: |
+          set -euo pipefail
+          app_dir=build/ios/iphoneos/Runner.app
+          staging=build/ios/ipa-unsigned
+          rm -rf "$staging"
+          mkdir -p "$staging/Payload"
+          cp -R "$app_dir" "$staging/Payload/"
+          (cd "$staging" && zip -qry NutriTracker-unsigned.ipa Payload)
+          ls -lh "$staging/NutriTracker-unsigned.ipa"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nutritracker-ipa-unsigned-${{ github.run_number }}
+          path: build/ios/ipa-unsigned/NutriTracker-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
