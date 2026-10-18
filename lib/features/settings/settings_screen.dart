@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
@@ -128,6 +129,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _settingsBloc.add(LoadSettingsEvent());
   }
 
+  /// Whether a route was covering this screen's own the last time we looked.
+  bool _wasCovered = false;
+
+  /// Reloads when the user comes back to this screen from a route pushed
+  /// over it.
+  ///
+  /// `initState` covers the pushed form, which is built fresh on every visit,
+  /// but the embedded form lives on in the You tab: the search and scan
+  /// screens that fill the cache are pushed over it and popped, and nothing
+  /// rebuilt it, so the "Clear cached items" count stayed at what it was
+  /// when Settings was first expanded (#1368). `isCurrentOf` makes this run
+  /// again whenever the route stops or starts being the top one.
+  void _reloadOnReturn() {
+    final isCurrent = ModalRoute.isCurrentOf(context) ?? true;
+    if (isCurrent && _wasCovered) _settingsBloc.add(LoadSettingsEvent());
+    _wasCovered = !isCurrent;
+  }
+
   /// Acts on what the caller asked the settings route for — see
   /// [SettingsScreenArguments].
   ///
@@ -136,6 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _reloadOnReturn();
     if (_routeRequestHandled || widget.embedded) return;
     _routeRequestHandled = true;
     final arguments = ModalRoute.of(context)?.settings.arguments;
@@ -154,6 +174,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final Widget body = BlocBuilder<SettingsBloc, SettingsState>(
       bloc: _settingsBloc,
+      // Every save and toggle reloads, and the reload starts with a loading
+      // state. Swapping the list for a spinner then threw its scroll position
+      // away and put the user back at the top, out of sight of the row they
+      // just changed (#1368). Only the first load shows the spinner; a reload
+      // keeps the list until the fresh values arrive.
+      buildWhen: (previous, current) =>
+          !(previous is SettingsLoadedState && current is SettingsLoadingState),
       builder: (context, state) {
         if (state is SettingsInitial) {
           _settingsBloc.add(LoadSettingsEvent());
@@ -290,7 +317,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     identifier: 'settings-kcal-adjustment',
                     palette: palette,
                     icon: Icons.calculate_rounded,
-                    title: S.of(context).settingsKcalAdjustmentLabel,
+                    title: state.usesKilojoules
+                        ? S.of(context).settingsKjAdjustmentLabel
+                        : S.of(context).settingsKcalAdjustmentLabel,
                     onTap: () => _showKcalAdjustmentDialog(context),
                   ),
                   _SettingsTile(
@@ -667,6 +696,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     SettingsLoadedState state,
   ) async {
     final l10n = S.of(context);
+    final locale = Localizations.localeOf(context);
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
     if (enabled) {
@@ -679,18 +709,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
         return;
       }
-      await notificationService.scheduleDailyReminder(
-        hour: state.notificationHour,
-        minute: state.notificationMinute,
-        title: l10n.notificationsDailyReminderTitle,
-        body: l10n.notificationsDailyReminderBody,
-        channelName: l10n.notificationsDailyReminderChannelName,
-        channelDescription: l10n.notificationsDailyReminderChannelDescription,
-      );
-    } else {
-      await notificationService.cancelDailyReminder();
     }
-    _settingsBloc.setNotificationsEnabled(enabled);
+    // Saves the choice and schedules or cancels in one step, in turn with
+    // any language-change refresh still running.
+    await locator<DailyReminderScheduler>().setEnabled(
+      enabled,
+      locale: locale,
+    );
     _settingsBloc.add(LoadSettingsEvent());
   }
 
@@ -698,18 +723,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     BuildContext context,
     TimeOfDay current,
   ) async {
-    final l10n = S.of(context);
+    final locale = Localizations.localeOf(context);
     final picked = await showTimePicker(context: context, initialTime: current);
     if (picked == null) return;
-    _settingsBloc.setNotificationTime(picked.hour, picked.minute);
-    final notificationService = locator<NotificationService>();
-    await notificationService.scheduleDailyReminder(
-      hour: picked.hour,
-      minute: picked.minute,
-      title: l10n.notificationsDailyReminderTitle,
-      body: l10n.notificationsDailyReminderBody,
-      channelName: l10n.notificationsDailyReminderChannelName,
-      channelDescription: l10n.notificationsDailyReminderChannelDescription,
+    await locator<DailyReminderScheduler>().setTime(
+      picked.hour,
+      picked.minute,
+      locale: locale,
     );
     _settingsBloc.add(LoadSettingsEvent());
   }

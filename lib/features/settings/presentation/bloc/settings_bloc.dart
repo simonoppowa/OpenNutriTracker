@@ -136,14 +136,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
   }
 
-  void setNotificationsEnabled(bool enabled) {
-    _addConfigUsecase.setNotificationsEnabled(enabled);
-  }
-
-  void setNotificationTime(int hour, int minute) {
-    _addConfigUsecase.setNotificationTime(hour, minute);
-  }
-
   void setSelectedLocale(String? locale) {
     _addConfigUsecase.setSelectedLocale(locale);
   }
@@ -275,6 +267,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async {
     await withTrackedDayLockOnProfile(
       () => _addTrackedDayUsecase.updateDayNutrientGoals(
@@ -289,6 +282,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         vitaminDGoal: vitaminDGoal,
         vitaminB12Goal: vitaminB12Goal,
         magnesiumGoal: magnesiumGoal,
+        clearAll: clearAll,
       ),
     );
   }
