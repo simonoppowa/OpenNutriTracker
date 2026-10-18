@@ -412,13 +412,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
                               _onCustomAddButtonPressed(imperial),
                         );
                       }
-                      return ListView.builder(
-                        itemCount: merged.length,
-                        itemBuilder: (context, index) => MealItemCard(
-                          day: _day,
-                          mealEntity: merged[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: imperial,
+                      return Semantics(
+                        identifier: 'add-meal-all-list',
+                        container: true,
+                        child: ListView.builder(
+                          itemCount: merged.length,
+                          itemBuilder: (context, index) => MealItemCard(
+                            day: _day,
+                            mealEntity: merged[index],
+                            addMealType: _mealType,
+                            usesImperialUnits: imperial,
+                          ),
                         ),
                       );
                     },
@@ -456,21 +460,25 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     );
                   }
                   return Flexible(
-                    child: ListView.builder(
-                      itemCount:
-                          state.products.length +
-                          (state.remoteSourceEmpty ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == state.products.length) {
-                          return const NoResultsWidget();
-                        }
-                        return MealItemCard(
-                          day: _day,
-                          mealEntity: state.products[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: state.usesImperialUnits,
-                        );
-                      },
+                    child: Semantics(
+                      identifier: 'add-meal-products-list',
+                      container: true,
+                      child: ListView.builder(
+                        itemCount:
+                            state.products.length +
+                            (state.remoteSourceEmpty ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == state.products.length) {
+                            return const NoResultsWidget();
+                          }
+                          return MealItemCard(
+                            day: _day,
+                            mealEntity: state.products[index],
+                            addMealType: _mealType,
+                            usesImperialUnits: state.usesImperialUnits,
+                          );
+                        },
+                      ),
                     ),
                   );
                 } else if (state is ProductsFailedState) {
@@ -512,20 +520,24 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     );
                   }
                   return Flexible(
-                    child: ListView.builder(
-                      itemCount:
+                    child: Semantics(
+                      identifier: 'add-meal-food-list',
+                      container: true,
+                      child: ListView.builder(
+                        itemCount:
                           state.food.length + (state.remoteSourceEmpty ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == state.food.length) {
-                          return const NoResultsWidget();
-                        }
-                        return MealItemCard(
-                          day: _day,
-                          mealEntity: state.food[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: state.usesImperialUnits,
-                        );
-                      },
+                        itemBuilder: (context, index) {
+                          if (index == state.food.length) {
+                            return const NoResultsWidget();
+                          }
+                          return MealItemCard(
+                            day: _day,
+                            mealEntity: state.food[index],
+                            addMealType: _mealType,
+                            usesImperialUnits: state.usesImperialUnits,
+                          );
+                        },
+                      ),
                     ),
                   );
                 } else if (state is FoodFailedState) {
@@ -555,16 +567,20 @@ class _AddMealScreenState extends State<AddMealScreen> {
               );
             } else if (state is RecentMealLoadedState) {
               if (state.recentMeals.isNotEmpty) {
-                return ListView.builder(
-                  itemCount: state.recentMeals.length,
-                  itemBuilder: (context, index) {
-                    return MealItemCard(
-                      day: _day,
-                      mealEntity: state.recentMeals[index],
-                      addMealType: _mealType,
-                      usesImperialUnits: state.usesImperialUnits,
-                    );
-                  },
+                return Semantics(
+                  identifier: 'add-meal-recent-list',
+                  container: true,
+                  child: ListView.builder(
+                    itemCount: state.recentMeals.length,
+                    itemBuilder: (context, index) {
+                      return MealItemCard(
+                        day: _day,
+                        mealEntity: state.recentMeals[index],
+                        addMealType: _mealType,
+                        usesImperialUnits: state.usesImperialUnits,
+                      );
+                    },
+                  ),
                 );
               }
               if (query.trim().isEmpty) {

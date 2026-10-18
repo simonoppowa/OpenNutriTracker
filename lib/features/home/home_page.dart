@@ -390,7 +390,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
 
     if (deleteIntake != null) {
-      _homeBloc.deleteUserActivityItem(activityEntity);
+      await _homeBloc.deleteUserActivityItem(activityEntity);
       _homeBloc.add(const LoadItemsEvent());
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -410,7 +410,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
 
     if (deleteIntake != null) {
-      _homeBloc.deleteIntakeItem(intakeEntity);
+      // The write can wait for the tracked-day lock (#1317), and Home
+      // reloads only once it is stored, so it does not show the old totals.
+      await _homeBloc.deleteIntakeItem(intakeEntity);
       _homeBloc.add(const LoadItemsEvent());
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -468,7 +470,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       ),
     );
     if (changeIntakeAmount != null) {
-      _homeBloc.updateIntakeItem(intakeEntity.id, {
+      await _homeBloc.updateIntakeItem(intakeEntity.id, {
         'amount': changeIntakeAmount,
       });
       _homeBloc.add(const LoadItemsEvent());
@@ -480,8 +482,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  void onDeleteIntake(IntakeEntity intake, TrackedDayEntity? trackedDayEntity) {
-    _homeBloc.deleteIntakeItem(intake);
+  Future<void> onDeleteIntake(
+    IntakeEntity intake,
+    TrackedDayEntity? trackedDayEntity,
+  ) async {
+    await _homeBloc.deleteIntakeItem(intake);
     _homeBloc.add(const LoadItemsEvent());
   }
 
@@ -508,7 +513,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       builder: (context) => const DeleteDialog(),
     );
     if (delete == true) {
-      _homeBloc.deleteUserActivityItem(activity);
+      await _homeBloc.deleteUserActivityItem(activity);
       _homeBloc.add(const LoadItemsEvent());
     }
     setState(() {

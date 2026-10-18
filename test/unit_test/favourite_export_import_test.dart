@@ -171,19 +171,31 @@ class _EmptyConfigRepository extends ConfigRepository {
   }) async {}
 }
 
-MealEntity _meal(String code, String name, MealSourceEntity source) =>
-    MealEntity(
-      code: code,
-      name: name,
-      url: null,
-      mealQuantity: '100',
-      mealUnit: 'g',
-      servingQuantity: null,
-      servingUnit: null,
-      servingSize: null,
-      nutriments: MealNutrimentsEntity.empty(),
-      source: source,
-    );
+MealEntity _meal(
+  String code,
+  String name,
+  MealSourceEntity source, {
+  double kcal = 0,
+}) => MealEntity(
+  code: code,
+  name: name,
+  url: null,
+  mealQuantity: '100',
+  mealUnit: 'g',
+  servingQuantity: null,
+  servingUnit: null,
+  servingSize: null,
+  nutriments: MealNutrimentsEntity(
+    energyKcal100: kcal,
+    carbohydrates100: null,
+    fat100: null,
+    proteins100: null,
+    sugars100: null,
+    saturatedFat100: null,
+    fiber100: null,
+  ),
+  source: source,
+);
 
 /// #1307: favourites ride along in the JSON bundle and come back on import.
 void main() {
@@ -193,12 +205,21 @@ void main() {
   late PathProviderPlatform originalPathProvider;
   late Box<FavouriteMealDBO> sourceBox;
   late Box<FavouriteMealDBO> targetBox;
+  late Box<MealDBO> customMealBox;
 
-  FavouriteMealRepository repositoryOver(Box<FavouriteMealDBO> box) {
-    final provider = FakeHiveDBProvider(favouriteMealBox: box);
+  FavouriteMealRepository repositoryOver(
+    Box<FavouriteMealDBO> box, {
+    Box<MealDBO>? customMeals,
+  }) {
+    final provider = FakeHiveDBProvider(
+      favouriteMealBox: box,
+      customMealBox: customMeals,
+    );
     return FavouriteMealRepository(
       FavouriteMealDataSource(provider),
-      _EmptyCustomMealDataSource(),
+      customMeals == null
+          ? _EmptyCustomMealDataSource()
+          : CustomMealDataSource(provider),
       RecipeDataSource(provider),
     );
   }
@@ -215,12 +236,14 @@ void main() {
     final tag = DateTime.now().microsecondsSinceEpoch;
     sourceBox = await Hive.openBox<FavouriteMealDBO>('fav_export_$tag');
     targetBox = await Hive.openBox<FavouriteMealDBO>('fav_import_$tag');
+    customMealBox = await Hive.openBox<MealDBO>('fav_custom_$tag');
   });
 
   tearDown(() async {
     PathProviderPlatform.instance = originalPathProvider;
     await sourceBox.deleteFromDisk();
     await targetBox.deleteFromDisk();
+    await customMealBox.deleteFromDisk();
     if (await tempRoot.exists()) await tempRoot.delete(recursive: true);
   });
 
@@ -354,24 +377,65 @@ void main() {
     FavouriteMealRepository favourites,
     File zip, {
     UserActivityRepository? activities,
-  }) => ImportDataUsecase(
-    activities ?? _EmptyUserActivityRepository(),
-    _EmptyIntakeRepository(),
-    _EmptyTrackedDayRepository(),
-    _EmptyRecipeRepository(),
-    _EmptyWeightLogRepository(),
-    _EmptyTemplateRepository(),
-    _EmptyConfigRepository(),
-    favourites,
-    pickFile: () async => _PickedFile('backup.zip', zip.uri),
-  ).importData(
-    ExportImportBloc.userActivityJsonFileName,
-    ExportImportBloc.userIntakeJsonFileName,
-    ExportImportBloc.trackedDayJsonFileName,
-    ExportImportBloc.recipeJsonFileName,
-    ExportImportBloc.weightLogJsonFileName,
-    ExportImportBloc.customActivityTemplateJsonFileName,
-    favouriteJsonFileName: ExportImportBloc.favouriteJsonFileName,
+  }) =>
+      ImportDataUsecase(
+        activities ?? _EmptyUserActivityRepository(),
+        _EmptyIntakeRepository(),
+        _EmptyTrackedDayRepository(),
+        _EmptyRecipeRepository(),
+        _EmptyWeightLogRepository(),
+        _EmptyTemplateRepository(),
+        _EmptyConfigRepository(),
+        favourites,
+        pickFile: () async => _PickedFile('backup.zip', zip.uri),
+      ).importData(
+        ExportImportBloc.userActivityJsonFileName,
+        ExportImportBloc.userIntakeJsonFileName,
+        ExportImportBloc.trackedDayJsonFileName,
+        ExportImportBloc.recipeJsonFileName,
+        ExportImportBloc.weightLogJsonFileName,
+        ExportImportBloc.customActivityTemplateJsonFileName,
+        favouriteJsonFileName: ExportImportBloc.favouriteJsonFileName,
+      );
+
+  test(
+    'a JSON restore keeps an edited custom-meal snapshot after template deletion',
+    () async {
+      final provider = FakeHiveDBProvider(customMealBox: customMealBox);
+      final customMeals = CustomMealDataSource(provider);
+      final exporting = repositoryOver(sourceBox, customMeals: customMealBox);
+      final original = _meal(
+        'c1',
+        'Overnight oats',
+        MealSourceEntity.custom,
+        kcal: 150,
+      );
+      await customMeals.saveCustomMeal(MealDBO.fromMealEntity(original));
+      await exporting.addFavourite(original);
+
+      final edited = _meal(
+        'c1',
+        'Updated overnight oats',
+        MealSourceEntity.custom,
+        kcal: 180,
+      );
+      await customMeals.saveCustomMeal(MealDBO.fromMealEntity(edited));
+      await exporting.moveFavourite(original, edited);
+      await customMeals.deleteCustomMeal('c1');
+
+      final zip = File('${tempRoot.path}/edited-favourite.zip')
+        ..writeAsBytesSync(ZipEncoder().encode(await exportFrom(exporting)));
+      final importing = repositoryOver(targetBox);
+      expect(await importInto(importing, zip), isTrue);
+
+      final restored = await importing.getAllFavourites();
+      expect(restored.single.name, 'Updated overnight oats');
+      expect(restored.single.nutriments.energyKcal100, 180);
+      expect(
+        targetBox.get('custom:c1')!.addedAt,
+        sourceBox.get('custom:c1')!.addedAt,
+      );
+    },
   );
 
   test('importing the same bundle again keeps one entry per food', () async {

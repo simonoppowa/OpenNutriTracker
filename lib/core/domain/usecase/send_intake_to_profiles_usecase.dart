@@ -21,6 +21,8 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/scoped_hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
+import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 
 /// Copies logged intakes into one or more *other* profiles.
 ///
@@ -101,42 +103,68 @@ class SendIntakeToProfilesUsecase {
       );
       final getMacroGoal = GetMacroGoalUsecase(configRepository);
 
-      for (final intake in intakes) {
-        final copy = IntakeEntity(
-          id: IdGenerator.getUniqueID(),
-          unit: intake.unit,
-          amount: intake.amount,
-          type: intake.type,
-          meal: intake.meal,
-          dateTime: intake.dateTime,
+      // The target's rows may still be keyed by the boundary of its last
+      // activation, while the rows written below go by the current one.
+      // Moving them over first, as activating it would, keeps its
+      // recorded boundary true; otherwise the next activation moves an
+      // activity's credit onto a row this copy created with the credit
+      // already in its goal, and counts it twice (#1317). Held across the
+      // copies too, so no boundary move lands in between.
+      await withTrackedDayLock(() async {
+        await ensureTrackedDaysMatchEntries(scoped, ConfigDataSource(scoped));
+        await _copyIntakes(
+          intakes,
+          intakeRepository,
+          addTrackedDay,
+          getKcalGoal,
+          getMacroGoal,
         );
-        await intakeRepository.addIntake(copy);
-
-        final day = copy.dateTime;
-        if (!await addTrackedDay.hasTrackedDay(day)) {
-          final kcalGoal = await getKcalGoal.getKcalGoal();
-          await addTrackedDay.addNewTrackedDayIfAbsent(
-            day,
-            kcalGoal,
-            await getMacroGoal.getCarbsGoal(kcalGoal),
-            await getMacroGoal.getFatsGoal(kcalGoal),
-            await getMacroGoal.getProteinsGoal(kcalGoal),
-          );
-        }
-        await addTrackedDay.addDayCaloriesTracked(day, copy.totalKcal);
-        await addTrackedDay.addDayMacrosTracked(
-          day,
-          carbsTracked: copy.totalCarbsGram,
-          fatTracked: copy.totalFatsGram,
-          proteinTracked: copy.totalProteinsGram,
-        );
-      }
+      });
     } finally {
       // These boxes were opened solely for this copy — close them so they
       // don't stay resident (memory/file handles) for the rest of the app's
       // lifetime, mirroring how switching profiles closes the outgoing
       // box-set. The shared appConfigBox is left untouched.
       await _closeScoped(suffix);
+    }
+  }
+
+  Future<void> _copyIntakes(
+    List<IntakeEntity> intakes,
+    IntakeRepository intakeRepository,
+    AddTrackedDayUsecase addTrackedDay,
+    GetKcalGoalUsecase getKcalGoal,
+    GetMacroGoalUsecase getMacroGoal,
+  ) async {
+    for (final intake in intakes) {
+      final copy = IntakeEntity(
+        id: IdGenerator.getUniqueID(),
+        unit: intake.unit,
+        amount: intake.amount,
+        type: intake.type,
+        meal: intake.meal,
+        dateTime: intake.dateTime,
+      );
+      await intakeRepository.addIntake(copy);
+
+      final day = copy.dateTime;
+      if (!await addTrackedDay.hasTrackedDay(day)) {
+        final kcalGoal = await getKcalGoal.getKcalGoal();
+        await addTrackedDay.addNewTrackedDayIfAbsent(
+          day,
+          kcalGoal,
+          await getMacroGoal.getCarbsGoal(kcalGoal),
+          await getMacroGoal.getFatsGoal(kcalGoal),
+          await getMacroGoal.getProteinsGoal(kcalGoal),
+        );
+      }
+      await addTrackedDay.addDayCaloriesTracked(day, copy.totalKcal);
+      await addTrackedDay.addDayMacrosTracked(
+        day,
+        carbsTracked: copy.totalCarbsGram,
+        fatTracked: copy.totalFatsGram,
+        proteinTracked: copy.totalProteinsGram,
+      );
     }
   }
 

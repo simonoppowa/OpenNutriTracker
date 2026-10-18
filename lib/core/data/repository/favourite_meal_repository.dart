@@ -40,16 +40,12 @@ class FavouriteMealRepository {
     await _favouriteMealDataSource.deleteFavourite(keyOf(meal));
   }
 
-  /// Keeps [previous] starred as [updated] when an edit changed its
-  /// [keyOf] — a custom meal given a barcode, or one saved without a code
-  /// renamed. The favourite moves to the new key with its `addedAt`, so it
-  /// keeps its place on the list, and the old key does not linger as a
-  /// stale star. Nothing happens when the key is unchanged or [previous]
-  /// was not starred.
+  /// Refreshes the saved snapshot after an edit and moves the favourite to a
+  /// new key when needed. Keeping the latest snapshot means it remains current
+  /// if the custom meal is later deleted from its library.
   Future<void> moveFavourite(MealEntity previous, MealEntity updated) async {
     final oldKey = keyOf(previous);
     final newKey = keyOf(updated);
-    if (oldKey == newKey) return;
     final existing = _favouriteMealDataSource.getFavourite(oldKey);
     if (existing == null) return;
     await _favouriteMealDataSource.addFavourite(
@@ -58,7 +54,9 @@ class FavouriteMealRepository {
         addedAt: existing.addedAt,
       ),
     );
-    await _favouriteMealDataSource.deleteFavourite(oldKey);
+    if (oldKey != newKey) {
+      await _favouriteMealDataSource.deleteFavourite(oldKey);
+    }
   }
 
   /// Every favourite, the most recently starred first.
@@ -69,25 +67,43 @@ class FavouriteMealRepository {
   /// snapshot stands in once the library entry is gone, the same way a logged
   /// custom meal outlives its template in the Recently list.
   Future<List<MealEntity>> getAllFavourites() async {
-    final customMeals = {
-      for (final meal in _customMealDataSource.getAllCustomMeals())
-        FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name): meal,
-    };
+    final customMeals = _customMealsByKey();
+    return _favouriteMealDataSource
+        .getAllFavourites()
+        .map((favourite) => _resolveFavourite(favourite, customMeals))
+        .toList();
+  }
+
+  /// Exports the current custom-meal or recipe version while preserving the
+  /// favourite's original timestamp and identity.
+  Future<List<FavouriteMealDBO>> getAllFavouritesDBO() async {
+    final customMeals = _customMealsByKey();
     return _favouriteMealDataSource.getAllFavourites().map((favourite) {
-      final snapshot = favourite.meal;
-      if (snapshot.source == MealSourceDBO.recipe && snapshot.code != null) {
-        final recipe = _recipeDataSource.getRecipeById(snapshot.code!);
-        if (recipe != null) {
-          return RecipeEntity.fromDBO(recipe).toMealEntity();
-        }
-      }
-      final custom = customMeals[favourite.mealKey];
-      return MealEntity.fromMealDBO(custom ?? snapshot);
+      final currentMeal = _resolveFavourite(favourite, customMeals);
+      return FavouriteMealDBO(
+        meal: MealDBO.fromMealEntity(currentMeal),
+        addedAt: favourite.addedAt,
+      );
     }).toList();
   }
 
-  Future<List<FavouriteMealDBO>> getAllFavouritesDBO() async =>
-      _favouriteMealDataSource.getAllFavourites();
+  Map<String, MealDBO> _customMealsByKey() => {
+    for (final meal in _customMealDataSource.getAllCustomMeals())
+      FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name): meal,
+  };
+
+  MealEntity _resolveFavourite(
+    FavouriteMealDBO favourite,
+    Map<String, MealDBO> customMeals,
+  ) {
+    final snapshot = favourite.meal;
+    if (snapshot.source == MealSourceDBO.recipe && snapshot.code != null) {
+      final recipe = _recipeDataSource.getRecipeById(snapshot.code!);
+      if (recipe != null) return RecipeEntity.fromDBO(recipe).toMealEntity();
+    }
+    final custom = customMeals[favourite.mealKey];
+    return MealEntity.fromMealDBO(custom ?? snapshot);
+  }
 
   Future<void> addAllFavouriteDBOs(List<FavouriteMealDBO> favourites) async {
     await _favouriteMealDataSource.addAllFavourites(favourites);

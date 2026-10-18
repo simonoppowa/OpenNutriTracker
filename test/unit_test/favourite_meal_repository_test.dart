@@ -289,7 +289,7 @@ void main() {
       expect(favouriteBox.keys, ['custom:4006381333931']);
     });
 
-    test('an edit that keeps the code leaves the favourite alone', () async {
+    test('an edit that keeps the code refreshes the snapshot', () async {
       final meal = _meal(code: 'c1', source: MealSourceEntity.custom);
       await repository.addFavourite(meal);
       final starredAt = favouriteBox.get('custom:c1')!.addedAt;
@@ -305,6 +305,43 @@ void main() {
 
       expect(favouriteBox.keys, ['custom:c1']);
       expect(favouriteBox.get('custom:c1')!.addedAt, starredAt);
+      expect(favouriteBox.get('custom:c1')!.meal.nutriments.energyKcal100, 5);
+    });
+
+    test('a deleted custom meal keeps its latest edited snapshot', () async {
+      final original = _meal(
+        code: 'c1',
+        name: 'Overnight oats',
+        source: MealSourceEntity.custom,
+        kcal: 150,
+      );
+      await customMealBox.add(MealDBO.fromMealEntity(original));
+      await repository.addFavourite(original);
+      final edited = _meal(
+        code: 'c1',
+        name: 'Updated overnight oats',
+        source: MealSourceEntity.custom,
+        kcal: 180,
+      );
+      final bloc = EditMealBloc(
+        _FakeGetConfigUsecase(),
+        CustomMealDataSource(FakeHiveDBProvider(customMealBox: customMealBox)),
+        _FakeConfigRepository(),
+        repository,
+      );
+      await bloc.saveCustomMeal(edited, previous: original);
+      await bloc.close();
+
+      await CustomMealDataSource(
+        FakeHiveDBProvider(customMealBox: customMealBox),
+      ).deleteCustomMeal('c1');
+
+      final restored = await repository.getAllFavourites();
+      expect(restored.single.name, 'Updated overnight oats');
+      expect(restored.single.nutriments.energyKcal100, 180);
+      final exported = await repository.getAllFavouritesDBO();
+      expect(exported.single.meal.name, 'Updated overnight oats');
+      expect(exported.single.meal.nutriments.energyKcal100, 180);
     });
 
     test('a custom meal deleted from the library stays on the list', () async {
