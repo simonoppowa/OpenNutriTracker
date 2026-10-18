@@ -209,18 +209,14 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     }
   }
 
-  void _onDeleteIntakeItem(
-    IntakeEntity intakeEntity,
-    TrackedDayEntity? trackedDayEntity,
-  ) async {
-    // The selected day, not `trackedDayEntity?.day ?? DateTime.now()`: on
-    // a past day with no tracked-day row that fallback debited today's row
-    // for an entry of another day (#1317).
-    await _calendarDayBloc.deleteIntakeItem(
-      context,
-      intakeEntity,
-      _selectedDate,
-    );
+  void _onDeleteIntakeItem(IntakeEntity intakeEntity, DateTime day) async {
+    // The day the entry was listed under when it was long-pressed, not
+    // `trackedDayEntity?.day ?? DateTime.now()`: on a past day with no
+    // tracked-day row that fallback debited today's row for an entry of
+    // another day (#1317). Not the current selection either, which moves
+    // on with "today" if the boundary passes while the dialog is open
+    // (#1360).
+    await _calendarDayBloc.deleteIntakeItem(context, intakeEntity, day);
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
     _diaryBloc.updateHomePage();
@@ -233,14 +229,14 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   void _onDeleteActivityItem(
     UserActivityEntity userActivityEntity,
-    TrackedDayEntity? trackedDayEntity,
+    DateTime day,
   ) async {
-    // The selected day, for the same reason as _onDeleteIntakeItem: the
+    // The entry's day, for the same reasons as _onDeleteIntakeItem: the
     // fallback lowered today's goal for a past day's activity (#1317).
     await _calendarDayBloc.deleteUserActivityItem(
       context,
       userActivityEntity,
-      _selectedDate,
+      day,
     );
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
@@ -313,6 +309,9 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     IntakeEntity intakeEntity,
     bool usesImperialUnits,
   ) async {
+    // The day the entry is listed under now: "today" can move on while
+    // the dialog is open (#1360), and the row to adjust is this one.
+    final day = _selectedDate;
     final changeIntakeAmount = await showDialog<double>(
       context: context,
       builder: (context) => EditDialog(
@@ -324,7 +323,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       await _calendarDayBloc.updateIntakeItem(
         intakeEntity.id,
         {'amount': changeIntakeAmount},
-        _selectedDate,
+        day,
       );
       _diaryBloc.add(const LoadDiaryYearEvent());
       _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
@@ -341,6 +340,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     BuildContext context,
     UserActivityEntity activityEntity,
   ) async {
+    // As in _onEditIntakeItem: the entry's day, captured before the dialog.
+    final day = _selectedDate;
     final newDuration = await showDialog<double>(
       context: context,
       builder: (context) =>
@@ -350,7 +351,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       await _calendarDayBloc.updateUserActivityItem(
         activityEntity,
         newDuration,
-        _selectedDate,
+        day,
       );
       _diaryBloc.add(const LoadDiaryYearEvent());
       _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));

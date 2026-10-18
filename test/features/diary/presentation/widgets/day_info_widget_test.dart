@@ -4,7 +4,6 @@ import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
-import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -74,8 +73,7 @@ final _dinner = _intake(IntakeTypeEntity.dinner, 'Dinner Stew');
 Future<void> _pumpOmadDay(
   WidgetTester tester, {
   required List<IntakeEntity> breakfastIntake,
-  void Function(IntakeEntity intake, TrackedDayEntity? trackedDay)?
-      onDeleteIntake,
+  void Function(IntakeEntity intake, DateTime day)? onDeleteIntake,
 }) async {
   await tester.pumpWidget(ChangeNotifierProvider<EnergyUnitProvider>(
     create: (_) => EnergyUnitProvider(),

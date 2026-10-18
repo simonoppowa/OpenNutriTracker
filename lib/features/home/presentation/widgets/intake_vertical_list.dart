@@ -217,6 +217,12 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                     shape: Dimens.shapeM,
                     onSelected:
                         (VerticalListPopupMenuSelections selection) async {
+                      // The section as it was when the menu was used: the
+                      // Diary can move on to another day while a dialog is
+                      // open (#1360), rebuilding this list for that day.
+                      final intakes = widget.intakeList;
+                      final onDeleteIntake = widget.onDeleteIntakeCallback;
+                      final trackedDay = widget.trackedDayEntity;
                       switch (selection) {
                         case VerticalListPopupMenuSelections.onCopy:
                           final copyDialog =
@@ -226,7 +232,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                                   context: context,
                                   builder: (context) => copyDialog);
                           if (selectedMealType != null) {
-                            for (IntakeEntity intake in widget.intakeList) {
+                            for (IntakeEntity intake in intakes) {
                               widget.onCopyIntakeCallback!(
                                   intake, null, selectedMealType);
                             }
@@ -237,9 +243,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                               context: context,
                               builder: (context) => const DeleteAllDialog());
                           if (shouldDeleteIntakes != null) {
-                            for (IntakeEntity intake in widget.intakeList) {
-                              widget.onDeleteIntakeCallback(
-                                  intake, widget.trackedDayEntity);
+                            for (IntakeEntity intake in intakes) {
+                              onDeleteIntake(intake, trackedDay);
                             }
                             break;
                           }

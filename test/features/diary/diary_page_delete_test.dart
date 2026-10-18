@@ -35,6 +35,7 @@ import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
@@ -69,8 +70,6 @@ class _FakeHomeBloc extends Fake implements HomeBloc {
   @override
   void add(HomeEvent event) {}
 }
-
-class _FakeUpdateIntake extends Fake implements UpdateIntakeUsecase {}
 
 class _FakeUpdateActivity extends Fake implements UpdateUserActivityUsecase {}
 
@@ -147,7 +146,10 @@ void main() {
   /// registers what the page resolves through the locator. Yesterday
   /// lists a 200 kcal toast and a 150 kcal ride; today has a row of its
   /// own holding 500 kcal against a 2000 kcal goal.
-  Future<void> setUpDiary({required bool yesterdayHasRow}) async {
+  Future<void> setUpDiary({
+    required bool yesterdayHasRow,
+    bool entriesToday = false,
+  }) async {
     final tag = boxTag++;
     final configBox = await Hive.openBox<ConfigDBO>(
       'diary_delete_config_$tag',
@@ -192,7 +194,7 @@ void main() {
         amount: 100,
         type: IntakeTypeEntity.breakfast,
         meal: _meal,
-        dateTime: yesterday,
+        dateTime: entriesToday ? today : yesterday,
       ),
     );
     await activityRepository.addUserActivity(
@@ -200,7 +202,7 @@ void main() {
         'ride',
         30,
         150,
-        yesterday,
+        entriesToday ? today : yesterday,
         PhysicalActivityFixtures.moderateBicycling,
       ),
     );
@@ -230,7 +232,7 @@ void main() {
           DeleteUserActivityUsecase(activityRepository, configRepository),
           getTrackedDay,
           AddTrackedDayUsecase(trackedDayRepository),
-          _FakeUpdateIntake(),
+          UpdateIntakeUsecase(intakeRepository),
           _FakeUpdateActivity(),
           getConfig,
           AddConfigUsecase(configRepository),
@@ -248,9 +250,7 @@ void main() {
     }
   }
 
-  /// Pumps the Diary on today, then swipes the day's detail back to
-  /// yesterday, as a user would.
-  Future<void> openYesterday(WidgetTester tester) async {
+  Future<void> pumpDiary(WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 4000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -270,6 +270,12 @@ void main() {
       ),
     );
     await settle(tester);
+  }
+
+  /// Pumps the Diary on today, then swipes the day's detail back to
+  /// yesterday, as a user would.
+  Future<void> openYesterday(WidgetTester tester) async {
+    await pumpDiary(tester);
     expect(find.text('Toast'), findsNothing, reason: 'today lists nothing');
 
     await tester.fling(find.byType(DayInfoWidget), const Offset(400, 0), 1500);
@@ -328,5 +334,78 @@ void main() {
     expect(activityBox.isEmpty, isTrue);
     expect(rowOf(today)!.calorieGoal, 2000, reason: 'was lowered to 1850');
     expect(rowOf(yesterday), isNull);
+  });
+
+  group('#1360: "today" moving on while a dialog is open', () {
+    late DateTime tomorrow;
+
+    /// Opens the Diary on today, which lists the toast and the ride.
+    Future<void> openToday(WidgetTester tester) async {
+      await setUpDiary(yesterdayHasRow: false, entriesToday: true);
+      tomorrow = DateUtils.addDaysToDate(today, 1);
+      addTearDown(() => DayBoundaryCalc.clock = DateTime.now);
+      await pumpDiary(tester);
+      expect(find.text('Toast'), findsOneWidget);
+    }
+
+    /// Midnight passes and the Diary reloads, as a resume does: it
+    /// follows "today" on to tomorrow, which lists nothing.
+    Future<void> passMidnight(WidgetTester tester) async {
+      DayBoundaryCalc.clock = () =>
+          DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 30);
+      locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+      await settle(tester);
+      expect(find.text('Toast'), findsNothing, reason: 'followed today');
+    }
+
+    testWidgets('an edit adjusts the row of the day the entry is on', (
+      tester,
+    ) async {
+      await openToday(tester);
+
+      await tester.tap(find.text('Toast'));
+      await settle(tester);
+      await tester.enterText(find.byType(TextFormField), '50');
+      await passMidnight(tester);
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await settle(tester);
+
+      expect(intakeBox.values.single.amount, 50);
+      expect(rowOf(today)!.caloriesTracked, 400, reason: 'was left at 500');
+      expect(rowOf(tomorrow), isNull);
+    });
+
+    testWidgets('a delete debits the row of the day the entry is on', (
+      tester,
+    ) async {
+      await openToday(tester);
+
+      await tester.longPress(find.text('Toast'));
+      await settle(tester);
+      await passMidnight(tester);
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await settle(tester);
+
+      expect(intakeBox.isEmpty, isTrue);
+      expect(rowOf(today)!.caloriesTracked, 300, reason: 'was left at 500');
+      expect(rowOf(tomorrow), isNull);
+    });
+
+    testWidgets('an activity delete lowers the goal of its own day', (
+      tester,
+    ) async {
+      await openToday(tester);
+
+      await tester.ensureVisible(find.byType(ActivityCard));
+      await tester.longPress(find.byType(ActivityCard));
+      await settle(tester);
+      await passMidnight(tester);
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await settle(tester);
+
+      expect(activityBox.isEmpty, isTrue);
+      expect(rowOf(today)!.calorieGoal, 1850, reason: 'was left at 2000');
+      expect(rowOf(tomorrow), isNull);
+    });
   });
 }

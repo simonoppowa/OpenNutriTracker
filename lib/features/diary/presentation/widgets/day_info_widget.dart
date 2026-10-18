@@ -57,12 +57,13 @@ class DayInfoWidget extends StatefulWidget {
   // [DiarySortType] enum indices. Null when the user has never picked a
   // sort, in which case every section starts on [DiarySortType.timeAdded].
   final Map<String, int>? diarySortPreferences;
-  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
-      onDeleteIntake;
-  final Function(
-    UserActivityEntity userActivityEntity,
-    TrackedDayEntity? trackedDayEntity,
-  ) onDeleteActivity;
+  // The delete callbacks get the day the entry was listed under when the
+  // user long-pressed it. [selectedDay] can move while the dialogs are
+  // open (the Diary follows "today" across a day boundary, #1360), and the
+  // row to debit is the entry's day, not the one shown afterwards.
+  final Function(IntakeEntity intake, DateTime day) onDeleteIntake;
+  final Function(UserActivityEntity userActivityEntity, DateTime day)
+      onDeleteActivity;
   final Function(
     IntakeEntity intake,
     TrackedDayEntity? trackedDayEntity,
@@ -298,7 +299,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 addMealType: AddMealType.breakfastType,
                 intakeList: _sortByMeal[IntakeTypeEntity.breakfast]!
                     .apply(widget.breakfastIntake),
-                onDeleteIntakeCallback: widget.onDeleteIntake,
+                onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
                 onCopyIntakeCallback:
@@ -324,7 +325,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 addMealType: AddMealType.lunchType,
                 intakeList: _sortByMeal[IntakeTypeEntity.lunch]!
                     .apply(widget.lunchIntake),
-                onDeleteIntakeCallback: widget.onDeleteIntake,
+                onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
                 usesImperialUnits: widget.usesImperialUnits,
@@ -350,7 +351,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 addMealType: AddMealType.dinnerType,
                 intakeList: _sortByMeal[IntakeTypeEntity.dinner]!
                     .apply(widget.dinnerIntake),
-                onDeleteIntakeCallback: widget.onDeleteIntake,
+                onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
                 onCopyIntakeCallback:
@@ -375,7 +376,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 addMealType: AddMealType.snackType,
                 intakeList: _sortByMeal[IntakeTypeEntity.snack]!
                     .apply(widget.snackIntake),
-                onDeleteIntakeCallback: widget.onDeleteIntake,
+                onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
                 usesImperialUnits: widget.usesImperialUnits,
@@ -421,9 +422,17 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     return '$displayActual/$displayGoal $unit';
   }
 
+  /// A section's "delete all" deletes on the day it was listed under, so
+  /// the callback is bound to that day per build.
+  Function(IntakeEntity, TrackedDayEntity?) get _deleteIntakeOnShownDay {
+    final day = widget.selectedDay;
+    return (intake, _) => widget.onDeleteIntake(intake, day);
+  }
+
   void showCopyOrDeleteIntakeDialog(
     BuildContext context,
     IntakeEntity intakeEntity,
+    DateTime day,
   ) async {
     final copyOrDelete = await showDialog<bool>(
       context: context,
@@ -431,7 +440,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     );
     if (context.mounted) {
       if (copyOrDelete != null && !copyOrDelete) {
-        showDeleteIntakeDialog(context, intakeEntity);
+        showDeleteIntakeDialog(context, intakeEntity, day);
       } else if (copyOrDelete != null && copyOrDelete) {
         showCopyDialog(context, intakeEntity);
       }
@@ -461,13 +470,14 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
   void showDeleteIntakeDialog(
     BuildContext context,
     IntakeEntity intakeEntity,
+    DateTime day,
   ) async {
     final shouldDeleteIntake = await showDialog<bool>(
       context: context,
       builder: (context) => const DeleteDialog(),
     );
     if (shouldDeleteIntake != null) {
-      widget.onDeleteIntake(intakeEntity, widget.trackedDayEntity);
+      widget.onDeleteIntake(intakeEntity, day);
     }
   }
 
@@ -475,10 +485,11 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     BuildContext context,
     IntakeEntity intakeEntity,
   ) async {
-    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
-      showDeleteIntakeDialog(context, intakeEntity);
+    final day = widget.selectedDay;
+    if (DateUtils.isSameDay(day, DateTime.now())) {
+      showDeleteIntakeDialog(context, intakeEntity, day);
     } else {
-      showCopyOrDeleteIntakeDialog(context, intakeEntity);
+      showCopyOrDeleteIntakeDialog(context, intakeEntity, day);
     }
   }
 
@@ -486,13 +497,14 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     BuildContext context,
     UserActivityEntity activityEntity,
   ) async {
-    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
+    final day = widget.selectedDay;
+    if (DateUtils.isSameDay(day, DateTime.now())) {
       final shouldDelete = await showDialog<bool>(
         context: context,
         builder: (context) => const DeleteDialog(),
       );
       if (shouldDelete != null) {
-        widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
+        widget.onDeleteActivity(activityEntity, day);
       }
     } else {
       final copyOrDelete = await showDialog<bool>(
@@ -501,7 +513,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
       );
       if (context.mounted) {
         if (copyOrDelete == false) {
-          widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
+          widget.onDeleteActivity(activityEntity, day);
         } else if (copyOrDelete == true) {
           widget.onCopyActivity(activityEntity, widget.trackedDayEntity);
         }
