@@ -50,6 +50,10 @@ class _Config implements ConfigRepository {
   /// When set, saving "on" fails once and leaves the config as it was.
   bool failSavingOn = false;
 
+  /// When set, saving "on" reaches the shared box, which the flag is read
+  /// from, and then fails on the profile box.
+  bool failAfterSavingOn = false;
+
   @override
   Future<void> setNotificationsEnabled(bool enabled) async {
     if (enabled && failSavingOn) {
@@ -57,6 +61,10 @@ class _Config implements ConfigRepository {
       throw StateError('config write failed');
     }
     notificationsEnabled = enabled;
+    if (enabled && failAfterSavingOn) {
+      failAfterSavingOn = false;
+      throw StateError('profile config write failed');
+    }
   }
 
   @override
@@ -183,6 +191,19 @@ void main() {
       // Settings will read off, so nothing may fire.
       expect(config.notificationsEnabled, isFalse);
       expect(platform.pending, isEmpty);
+      expect(config.writes, contains(#setIsDemoData));
+    });
+
+    test('saving "on" that half-fails keeps the alarm it reads', () async {
+      final config = _Config(notificationsEnabled: false)
+        ..failAfterSavingOn = true;
+      final (:bloc, scheduler: _) = build(config);
+
+      await finishOnboarding(bloc, dailyReminderEnabled: true);
+
+      // Settings will read on, so the alarm must be there.
+      expect(config.notificationsEnabled, isTrue);
+      expect(platform.pending.keys, [0]);
       expect(config.writes, contains(#setIsDemoData));
     });
 

@@ -36,10 +36,17 @@ class _Config implements ConfigRepository {
   /// leaves the saved config as it was.
   final failSaving = <bool>{};
 
+  /// Each value in here is saved once and then fails, as a write that
+  /// reached the shared box but not the profile box would.
+  final failAfterSaving = <bool>{};
+
   @override
   Future<void> setNotificationsEnabled(bool enabled) async {
     if (failSaving.remove(enabled)) throw StateError('config write failed');
     config = _config(enabled: enabled);
+    if (failAfterSaving.remove(enabled)) {
+      throw StateError('profile config write failed');
+    }
   }
 
   @override
@@ -382,6 +389,36 @@ void main() {
 
       expect(config.config.notificationsEnabled, isTrue);
       expect(platform.pending.keys, [0]);
+    });
+
+    test('saving "on" that fails after it reads on keeps the alarm', () async {
+      final config = _Config(_config(enabled: false));
+      final scheduler = DailyReminderScheduler(config, NotificationService());
+
+      config.failAfterSaving.add(true);
+      await expectLater(
+        scheduler.setEnabled(true, locale: const Locale('en')),
+        throwsStateError,
+      );
+
+      // Settings reads on, so the alarm must still be there.
+      expect(config.config.notificationsEnabled, isTrue);
+      expect(platform.pending.keys, [0]);
+    });
+
+    test('saving "off" that fails after it reads off cancels', () async {
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, NotificationService());
+      await scheduler.refresh(locale: const Locale('en'));
+
+      config.failAfterSaving.add(false);
+      await expectLater(
+        scheduler.setEnabled(false, locale: const Locale('en')),
+        throwsStateError,
+      );
+
+      expect(config.config.notificationsEnabled, isFalse);
+      expect(platform.pending, isEmpty);
     });
 
     test('a cancel that fails after saving "off" puts "on" back', () async {

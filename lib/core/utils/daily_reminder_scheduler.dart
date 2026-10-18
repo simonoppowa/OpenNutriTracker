@@ -59,59 +59,70 @@ class DailyReminderScheduler {
   /// language the app currently shows.
   ///
   /// Saving the flag and telling the OS are two steps, and either can fail
-  /// after the other has happened. If one does, the first is undone before
-  /// the error is rethrown, so a failed call leaves the saved switch and the
-  /// alarm agreeing as they did before it (#1389):
+  /// after the other has happened. A save can even fail half-way: the
+  /// config is written to the shared and the profile box separately, and
+  /// the flag is read from the shared one. So when any step fails, the
+  /// saved flag is read back and the two are brought into line before the
+  /// error is rethrown (#1389):
   ///
-  /// - on: "on" is saved only once the OS holds the reminder. If saving
-  ///   fails, an alarm that was not there before is cancelled again.
-  /// - off: "off" is saved first. If the cancel then fails, the alarm is
-  ///   still set, so a switch that was on is put back to on.
+  /// - the flag reads on: an alarm is set (or was never replaced), so it
+  ///   stays.
+  /// - the flag reads off while an alarm may be set: the alarm is
+  ///   cancelled, or, if the OS refuses that, the flag is put back to on.
   ///
-  /// Should the undo fail as well, the switch reads off with an alarm still
+  /// Should that fail as well, the switch reads off with an alarm still
   /// set, which the next [reschedule] cancels.
   Future<void> setEnabled(bool enabled, {required Locale locale}) =>
       _serialized(() async {
         final config = await _configRepository.getConfig();
-        final wasEnabled = config.notificationsEnabled;
-        if (enabled) {
-          await _schedule(config, locale, null);
-          await _undoIfFails(
-            () => _configRepository.setNotificationsEnabled(true),
-            undo: wasEnabled ? null : _notificationService.cancelDailyReminder,
-          );
-        } else {
-          await _configRepository.setNotificationsEnabled(false);
-          await _undoIfFails(
-            _notificationService.cancelDailyReminder,
-            undo: wasEnabled
-                ? () => _configRepository.setNotificationsEnabled(true)
-                : null,
-          );
+        // Whether the OS holds the reminder, as far as this call knows.
+        var alarmSet = config.notificationsEnabled;
+        var cancelFailed = false;
+        try {
+          if (enabled) {
+            await _schedule(config, locale, null);
+            alarmSet = true;
+            await _configRepository.setNotificationsEnabled(true);
+          } else {
+            await _configRepository.setNotificationsEnabled(false);
+            cancelFailed = true;
+            await _notificationService.cancelDailyReminder();
+          }
+        } catch (_) {
+          await _reconcile(alarmSet: alarmSet, cancelFailed: cancelFailed);
+          rethrow;
         }
       });
 
-  /// Runs [step]; if it throws, runs [undo] and rethrows what [step] threw.
-  /// A failing [undo] is logged rather than allowed to hide that error.
-  Future<void> _undoIfFails(
-    Future<void> Function() step, {
-    required Future<void> Function()? undo,
+  /// Makes the alarm follow the saved flag after a [setEnabled] step
+  /// failed, or the flag follow the alarm when the OS will not cancel it.
+  /// A failure here is logged rather than allowed to hide the first error.
+  Future<void> _reconcile({
+    required bool alarmSet,
+    required bool cancelFailed,
   }) async {
     try {
-      await step();
-    } catch (_) {
-      if (undo != null) {
+      final saved = (await _configRepository.getConfig()).notificationsEnabled;
+      if (saved || !alarmSet) return;
+      if (!cancelFailed) {
         try {
-          await undo();
+          await _notificationService.cancelDailyReminder();
+          return;
         } catch (error, stackTrace) {
           _log.warning(
-            'Could not undo a partial daily reminder change',
+            'Could not cancel the daily reminder',
             error,
             stackTrace,
           );
         }
       }
-      rethrow;
+      await _configRepository.setNotificationsEnabled(true);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not reconcile a partial daily reminder change',
+        error,
+        stackTrace,
+      );
     }
   }
 
