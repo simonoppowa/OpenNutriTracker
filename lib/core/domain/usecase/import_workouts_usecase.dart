@@ -185,7 +185,11 @@ class ImportWorkoutsUsecase {
       // profile; abandoning here leaves the watermark unmoved, so the next
       // run re-reads the same window and the external-id dedupe absorbs it.
       if (!_stillOnProfile(profileId)) return imported;
-      await withTrackedDayLock(() async {
+      final logged = await withTrackedDayLock(() async {
+        // Checked again once the lock is held: a profile switch holds it
+        // from the box swap on, so a workout waiting behind one would
+        // otherwise be filed into the profile it switched to (#1317).
+        if (!_stillOnProfile(profileId)) return false;
         // The boundary is read again under the lock, not taken from the
         // config this run started with: a boundary move in between would
         // otherwise credit the day the workout was listed under before
@@ -202,7 +206,9 @@ class ImportWorkoutsUsecase {
             offsetMinutes,
           ),
         );
+        return true;
       });
+      if (!logged) return imported;
       imported++;
     }
 

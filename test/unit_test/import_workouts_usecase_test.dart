@@ -32,6 +32,7 @@ import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 import '../fixture/user_entity_fixtures.dart';
 import '../helpers/fake_hive_db_provider.dart';
@@ -469,6 +470,25 @@ void main() {
         await userActivityRepository.getAllUserActivityDBO(),
         hasLength(1),
       );
+    });
+
+    test('a switch while the workout waits for the tracked-day lock files '
+        'nothing', () async {
+      // #1317 review: the switch holds the lock from the box swap on, so
+      // the run gets past its own profile check and then waits for it.
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+      final switchDone = Completer<void>();
+      final switching = withTrackedDayLock(() => switchDone.future);
+
+      final run = usecase.importNow();
+      await pumpEventQueue();
+      provider.activeProfileId = 'profile-b';
+      switchDone.complete();
+      await switching;
+
+      expect(await run, equals(0));
+      expect(await userActivityRepository.getAllUserActivityDBO(), isEmpty);
+      expect(trackedDayBox.isEmpty, isTrue);
     });
 
     test(
