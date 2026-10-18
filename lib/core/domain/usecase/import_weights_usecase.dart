@@ -291,12 +291,16 @@ class ImportWeightsUsecase {
       final enteredBy = _hiveDBProvider.profileBox.get(profileId)?.createdAt;
       if (enteredBy != null && !reading.measuredAt.isAfter(enteredBy)) return;
     }
+    if (!await _mayStillWrite(profileId)) return;
+    if (!await _userRepository.hasUserData()) return;
     if (!_stillOnProfile(profileId)) return;
+    // Read last, right before the save, and only the weight changed: the
+    // save writes the whole user, so a copy read before the guards above
+    // would undo a profile edit (height, goal, activity level) that landed
+    // while they ran.
     final user = await _userRepository.getUserData();
     if (user.weightKG == newest.weightKg) return;
     user.weightKG = newest.weightKg;
-    if (!await _mayStillWrite(profileId)) return;
-    if (!await _userRepository.hasUserData()) return;
     if (!_stillOnProfile(profileId)) return;
     await _userRepository.updateUserData(user);
   }

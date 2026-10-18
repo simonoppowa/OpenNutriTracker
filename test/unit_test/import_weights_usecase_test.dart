@@ -81,6 +81,25 @@ class _HookedConfigRepository extends ConfigRepository {
   }
 }
 
+/// Saves a profile edit (a new height) while the use case runs its last
+/// guard before saving the current weight.
+class _EditingUserRepository extends UserRepository {
+  int _hasUserDataCalls = 0;
+
+  _EditingUserRepository(super.userDataSource);
+
+  @override
+  Future<bool> hasUserData() async {
+    final has = await super.hasUserData();
+    if (++_hasUserDataCalls == 2) {
+      final user = await super.getUserData();
+      user.heightCM = 192;
+      await super.updateUserData(user);
+    }
+    return has;
+  }
+}
+
 ExternalWeight _reading(String id, DateTime at, double kg) => ExternalWeight(
   id: id,
   measuredAt: at,
@@ -316,6 +335,23 @@ void main() {
       expect(await usecase.importNow(), equals(0));
 
       expect((await userRepository.getUserData()).weightKG, equals(78.5));
+    });
+
+    test('a profile edit saved during the guards is kept', () async {
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        configRepository,
+        weightLogRepository,
+        _EditingUserRepository(UserDataSource(provider)),
+        provider,
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+
+      await usecase.importNow();
+
+      final user = await userRepository.getUserData();
+      expect(user.weightKG, equals(78.5));
+      expect(user.heightCM, equals(192));
     });
 
     test(
