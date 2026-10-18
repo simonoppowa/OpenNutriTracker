@@ -518,11 +518,18 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
-      reconcileImportedTrackedDays: (importedDayKeys, keyedByOffsetMinutes) =>
-          reconcileImportedTrackedDays(
+      restoreTrackedDays:
+          (
+            write, {
+            required importedDayKeys,
+            required importedActivities,
+            required keyedByOffsetMinutes,
+          }) => restoreTrackedDays(
             hiveDBProvider,
             locator(),
+            write: write,
             importedDayKeys: importedDayKeys,
+            importedActivities: importedActivities,
             keyedByOffsetMinutes: keyedByOffsetMinutes,
           ),
     ),

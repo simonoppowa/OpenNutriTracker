@@ -31,14 +31,17 @@ typedef PickImportFile = Future<PlatformFile?> Function();
 
 Future<PlatformFile?> _pickAnyFile() => FilePicker.pickFile(type: FileType.any);
 
-/// Moves the tracked-day rows an import wrote, keyed [importedDayKeys],
-/// from the boundary the archive recorded (null: none recorded) onto the
-/// configured one — `reconcileImportedTrackedDays` (#1317).
-typedef ReconcileImportedTrackedDays =
+/// Runs an import's [write] of entries and rows, then moves the rows it
+/// wrote, keyed [importedDayKeys], from the boundary the archive recorded
+/// (null: none recorded) onto the configured one, with the credit of the
+/// archive's [importedActivities] — `restoreTrackedDays` (#1317).
+typedef RestoreTrackedDays =
     Future<void> Function(
-      Set<String> importedDayKeys,
-      int? keyedByOffsetMinutes,
-    );
+      Future<void> Function() write, {
+      required Set<String> importedDayKeys,
+      required List<UserActivityDBO> importedActivities,
+      required int? keyedByOffsetMinutes,
+    });
 
 class ImportDataUsecase {
   final UserActivityRepository _userActivityRepository;
@@ -55,7 +58,7 @@ class ImportDataUsecase {
   final PickImportFile _pickFile;
 
   /// Null only in tests that do not look at the rows' keys.
-  final ReconcileImportedTrackedDays? _reconcileImportedTrackedDays;
+  final RestoreTrackedDays? _restoreTrackedDays;
 
   ImportDataUsecase(
     this._userActivityRepository,
@@ -66,9 +69,9 @@ class ImportDataUsecase {
     this._customActivityTemplateRepository,
     this._configRepository, {
     PickImportFile pickFile = _pickAnyFile,
-    ReconcileImportedTrackedDays? reconcileImportedTrackedDays,
+    RestoreTrackedDays? restoreTrackedDays,
   }) : _pickFile = pickFile,
-       _reconcileImportedTrackedDays = reconcileImportedTrackedDays;
+       _restoreTrackedDays = restoreTrackedDays;
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
   /// weight log, Custom activity template and goal settings data from a
@@ -264,12 +267,20 @@ class ImportDataUsecase {
     List<TrackedDayDBO> trackedDays,
     int? keyedBy,
   ) => withTrackedDayLock(() async {
-    await _userActivityRepository.upsertAllUserActivityDBOs(activities);
-    await _intakeRepository.upsertAllIntakeDBOs(intakes);
-    await _trackedDayRepository.addAllTrackedDays(trackedDays);
-    await _reconcileImportedTrackedDays?.call({
-      for (final day in trackedDays) day.day.toParsedDay(),
-    }, keyedBy);
+    Future<void> write() async {
+      await _userActivityRepository.upsertAllUserActivityDBOs(activities);
+      await _intakeRepository.upsertAllIntakeDBOs(intakes);
+      await _trackedDayRepository.addAllTrackedDays(trackedDays);
+    }
+
+    final restore = _restoreTrackedDays;
+    if (restore == null) return write();
+    await restore(
+      write,
+      importedDayKeys: {for (final day in trackedDays) day.day.toParsedDay()},
+      importedActivities: activities,
+      keyedByOffsetMinutes: keyedBy,
+    );
   });
 
   /// The boundary the archive's rows are keyed by, from [entry], or null

@@ -29,8 +29,12 @@ import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/tracked_day_boundary_record.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
@@ -90,6 +94,7 @@ void main() {
   late Box<UserActivityDBO> activityBox;
   late ConfigDataSource config;
   late UserActivityRepository activities;
+  late IntakeRepository intakes;
   late ExportDataUsecase exporter;
   late ImportDataUsecase importer;
 
@@ -140,7 +145,7 @@ void main() {
     await config.initializeConfig();
 
     activities = UserActivityRepository(UserActivityDataSource(provider));
-    final intakes = IntakeRepository(IntakeDataSource(provider));
+    intakes = IntakeRepository(IntakeDataSource(provider));
     final trackedDays = TrackedDayRepository(TrackedDayDataSource(provider));
     final recipes = RecipeRepository(RecipeDataSource(provider));
     final weightLog = WeightLogRepository(WeightLogDataSource(provider));
@@ -168,12 +173,19 @@ void main() {
       configRepository,
       pickFile: () async =>
           _PickedFile('backup.zip', File('${tempDir.path}/backup.zip').uri),
-      reconcileImportedTrackedDays: (keys, keyedBy) =>
-          reconcileImportedTrackedDays(
+      restoreTrackedDays:
+          (
+            write, {
+            required importedDayKeys,
+            required importedActivities,
+            required keyedByOffsetMinutes,
+          }) => restoreTrackedDays(
             provider,
             config,
-            importedDayKeys: keys,
-            keyedByOffsetMinutes: keyedBy,
+            write: write,
+            importedDayKeys: importedDayKeys,
+            importedActivities: importedActivities,
+            keyedByOffsetMinutes: keyedByOffsetMinutes,
           ),
     );
   });
@@ -212,6 +224,48 @@ void main() {
     fatTracked: 0,
     proteinGoal: 100,
     proteinTracked: 0,
+  );
+
+  /// 100 g of a 200 kcal-per-100 g toast.
+  IntakeEntity toastAt(DateTime at) => IntakeEntity(
+    id: 'toast-${at.toIso8601String()}',
+    unit: 'g',
+    amount: 100,
+    type: IntakeTypeEntity.breakfast,
+    meal: MealEntity(
+      code: null,
+      name: 'Toast',
+      url: null,
+      mealQuantity: '100',
+      mealUnit: 'g',
+      servingQuantity: 100,
+      servingUnit: 'g',
+      servingSize: null,
+      nutriments: MealNutrimentsEntity(
+        energyKcal100: 200,
+        carbohydrates100: 40,
+        fat100: 2,
+        proteins100: 6,
+        sugars100: null,
+        saturatedFat100: null,
+        fiber100: null,
+      ),
+      source: MealSourceEntity.custom,
+    ),
+    dateTime: at,
+  );
+
+  /// A row holding the toast on a 2000 kcal goal, no activity credited.
+  TrackedDayDBO toastRow(DateTime day) => TrackedDayDBO(
+    day: day,
+    calorieGoal: 2000,
+    caloriesTracked: 200,
+    carbsGoal: 250,
+    carbsTracked: 40,
+    fatGoal: 70,
+    fatTracked: 2,
+    proteinGoal: 100,
+    proteinTracked: 6,
   );
 
   void writeArchive(Archive archive) => File(
@@ -270,6 +324,72 @@ void main() {
       expect(trackedDayBox.get('2026-10-05')?.calorieGoal, 2150);
     });
   }
+
+  // #1317 review: a row the archive does not replace never credited the
+  // archive's activities, even when they are listed on its day now.
+  for (final format in ExportFormat.values) {
+    test('a ${format.name} backup made under 04:00 restored under 00:00 '
+        'credits the ride on the device\'s own row for its day', () async {
+      await boundary(4);
+      await activities.addUserActivity(rideAt(DateTime(2026, 10, 5, 2)));
+      await trackedDayBox.put('2026-10-04', rideRow(DateTime(2026, 10, 4)));
+      writeArchive(await export(format));
+
+      // The device runs on midnight days, with its own toast on the 5th.
+      await trackedDayBox.clear();
+      await activityBox.clear();
+      await boundary(0);
+      await intakes.addIntake(toastAt(DateTime(2026, 10, 5, 12)));
+      await trackedDayBox.put('2026-10-05', toastRow(DateTime(2026, 10, 5)));
+
+      expect(await import(format), isTrue);
+
+      expect(trackedDayBox.containsKey('2026-10-04'), isFalse);
+      final row = trackedDayBox.get('2026-10-05');
+      expect(row?.calorieGoal, 2150);
+      expect(row?.caloriesTracked, 200);
+    });
+  }
+
+  test('a backup made under 00:00 restored under 04:00 credits the ride on '
+      'the device\'s own row for its day', () async {
+    await boundary(0);
+    await activities.addUserActivity(rideAt(DateTime(2026, 10, 5, 2)));
+    await trackedDayBox.put('2026-10-05', rideRow(DateTime(2026, 10, 5)));
+    writeArchive(await export(ExportFormat.json));
+
+    // At 04:00 the ride is listed on the 4th, where the device has a row.
+    await trackedDayBox.clear();
+    await activityBox.clear();
+    await boundary(4);
+    await intakes.addIntake(toastAt(DateTime(2026, 10, 4, 12)));
+    await trackedDayBox.put('2026-10-04', toastRow(DateTime(2026, 10, 4)));
+
+    expect(await import(ExportFormat.json), isTrue);
+
+    expect(trackedDayBox.containsKey('2026-10-05'), isFalse);
+    expect(trackedDayBox.get('2026-10-04')?.calorieGoal, 2150);
+  });
+
+  test('a device ride whose row the archive replaces keeps its credit, '
+      'on the same boundary too', () async {
+    // The backup holds the 6th with only the toast on it.
+    await boundary(0);
+    await intakes.addIntake(toastAt(DateTime(2026, 10, 6, 8)));
+    await trackedDayBox.put('2026-10-06', toastRow(DateTime(2026, 10, 6)));
+    writeArchive(await export(ExportFormat.json));
+
+    // The device logged a ride on the 6th after the backup was made.
+    await activities.addUserActivity(rideAt(DateTime(2026, 10, 6, 18)));
+    await trackedDayBox.put(
+      '2026-10-06',
+      toastRow(DateTime(2026, 10, 6))..calorieGoal = 2150,
+    );
+
+    expect(await import(ExportFormat.json), isTrue);
+
+    expect(trackedDayBox.get('2026-10-06')?.calorieGoal, 2150);
+  });
 
   test('an archive from before the record is read as keyed by the '
       'wall-clock date, and the device\'s own rows stay put', () async {

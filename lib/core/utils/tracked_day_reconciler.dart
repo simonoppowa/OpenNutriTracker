@@ -1,5 +1,6 @@
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -33,6 +34,22 @@ class _ListedDay {
   var burned = 0.0;
 }
 
+double _finiteOrZero(double value) => value.isFinite ? value : 0;
+
+/// The key of the row for the day the Diary lists [activity] under at
+/// [offsetMinutes], or at [importOffsetMinutes] for an imported workout
+/// when that is given; see [reconcileTrackedDays].
+String _activityKey(
+  UserActivityDBO activity,
+  int offsetMinutes,
+  int? importOffsetMinutes,
+) => DayBoundaryCalc.dayKeyOf(
+  activity.date,
+  importOffsetMinutes != null && activity.externalId != null
+      ? importOffsetMinutes
+      : offsetMinutes,
+);
+
 /// Groups every intake and activity under the key of the row for the day
 /// the Diary lists it under at [offsetMinutes] — the
 /// [DayBoundaryCalc.dayLabelOf] rule the listing and
@@ -45,7 +62,6 @@ Map<String, _ListedDay> _listedDays(
   int offsetMinutes, {
   int? importOffsetMinutes,
 }) {
-  double finiteOrZero(double value) => value.isFinite ? value : 0;
   String keyOf(DateTime moment) =>
       DayBoundaryCalc.dayKeyOf(moment, offsetMinutes);
 
@@ -53,20 +69,33 @@ Map<String, _ListedDay> _listedDays(
   for (final dbo in db.intakeBox.values) {
     final intake = IntakeEntity.fromIntakeDBO(dbo);
     days.putIfAbsent(keyOf(intake.dateTime), _ListedDay.new)
-      ..kcal += finiteOrZero(intake.totalKcal)
-      ..carbs += finiteOrZero(intake.totalCarbsGram)
-      ..fat += finiteOrZero(intake.totalFatsGram)
-      ..protein += finiteOrZero(intake.totalProteinsGram);
+      ..kcal += _finiteOrZero(intake.totalKcal)
+      ..carbs += _finiteOrZero(intake.totalCarbsGram)
+      ..fat += _finiteOrZero(intake.totalFatsGram)
+      ..protein += _finiteOrZero(intake.totalProteinsGram);
   }
   for (final activity in db.userActivityBox.values) {
-    final key = importOffsetMinutes != null && activity.externalId != null
-        ? DayBoundaryCalc.dayKeyOf(activity.date, importOffsetMinutes)
-        : keyOf(activity.date);
-    days.putIfAbsent(key, _ListedDay.new).burned += finiteOrZero(
+    final key = _activityKey(activity, offsetMinutes, importOffsetMinutes);
+    days.putIfAbsent(key, _ListedDay.new).burned += _finiteOrZero(
       activity.burnedKcal,
     );
   }
   return days;
+}
+
+/// The energy [activities] burned, by the key of the row for the day each
+/// is listed under, by the [_activityKey] rule.
+Map<String, double> _burnedByDay(
+  Iterable<UserActivityDBO> activities,
+  int offsetMinutes, {
+  int? importOffsetMinutes,
+}) {
+  final burned = <String, double>{};
+  for (final activity in activities) {
+    final key = _activityKey(activity, offsetMinutes, importOffsetMinutes);
+    burned[key] = (burned[key] ?? 0) + _finiteOrZero(activity.burnedKcal);
+  }
+  return burned;
 }
 
 /// True unless [stored] is [value] within [_epsilon]; NaN never is.
@@ -118,6 +147,13 @@ bool _hasConsumed(TrackedDayDBO row) =>
 /// [offsetMinutes] already, as after a restore wrote only the rows of its
 /// archive.
 ///
+/// [creditedBurned], when given, is the burned energy each row's goal
+/// includes, for when the entries on file cannot tell: after a restore an
+/// archive's activities are listed on the device's rows too, which never
+/// credited them. Each row's goal then changes by the burned energy
+/// listed on it minus its entry there (none: nothing), whatever the
+/// boundaries.
+///
 /// A new row takes the base goals of the nearest row by date — the goal
 /// of that period, where the current goal reflects today's weight and
 /// settings — plus its own activities, and its per-nutrient goals. Only
@@ -142,6 +178,7 @@ Future<int> reconcileTrackedDays(
   int? previousOffsetMinutes,
   int? previousImportOffsetMinutes,
   Set<String>? previousKeys,
+  Map<String, double>? creditedBurned,
   TrackedDayGoals? currentGoals,
 }) {
   final rows = db.trackedDayBox;
@@ -162,7 +199,10 @@ Future<int> reconcileTrackedDays(
   Map<String, _ListedDay>? before(Object? key) =>
       previousKeys == null || previousKeys.contains(key) ? listedBefore : null;
   // The burned energy each row's goal includes as it stands.
-  double burnedOn(String key) => (before(key) ?? listed)[key]?.burned ?? 0;
+  double burnedOn(String key) => creditedBurned != null
+      ? creditedBurned[key] ?? 0
+      : (before(key) ?? listed)[key]?.burned ?? 0;
+  final movesCredit = listedBefore != null || creditedBurned != null;
 
   final written = <dynamic, TrackedDayDBO>{};
   final removed = <dynamic>[];
@@ -204,7 +244,7 @@ Future<int> reconcileTrackedDays(
       changed = true;
     }
     final burnedMoved = day.burned - burnedOn(key);
-    if (listedBefore != null && burnedMoved.abs() > _epsilon) {
+    if (movesCredit && burnedMoved.abs() > _epsilon) {
       row
         ..calorieGoal += burnedMoved
         ..carbsGoal =
@@ -398,31 +438,56 @@ Future<void> ensureTrackedDaysRepaired(
   await ensureTrackedDayTotalsFinite(db, configDataSource);
 }
 
-/// Brings the rows a restore just wrote, under [importedDayKeys], onto the
-/// configured boundary (#1317).
+/// Runs a restore's [write] of entries and rows, then brings the rows it
+/// wrote, under [importedDayKeys], onto the configured boundary (#1317).
 ///
 /// An archive's rows are keyed by the boundary of the profile that
 /// exported it, [keyedByOffsetMinutes], which the bundle records. This
 /// profile's own rows are keyed by the configured boundary already, so
-/// only the imported ones move, taking their activity credit with them.
-/// A bundle that records no boundary predates the record and with it
-/// #1317, so its rows are read the way activation reads a profile with
-/// no record: keyed by the wall-clock date, imported workouts aside.
+/// only the imported ones move. A bundle that records no boundary
+/// predates the record and with it #1317, so its rows are read the way
+/// activation reads a profile with no record: keyed by the wall-clock
+/// date, imported workouts aside.
+///
+/// Activity credit is tracked per row, not read off the entries: an
+/// imported row credits the archive's [importedActivities] listed on it
+/// at the archive's boundary, and the device's own rows credit the
+/// activities that were on file before [write]. An archive's activity
+/// that lands on a device row's day raises that row's goal, and a device
+/// activity whose row the archive replaced gets its credit back.
+///
 /// Records the configured boundary as the one this profile's rows are
-/// keyed by now.
-Future<int> reconcileImportedTrackedDays(
+/// keyed by now. Runs under [withTrackedDayLock], so no writer changes
+/// the rows between the snapshot, the write and the reconciliation.
+Future<int> restoreTrackedDays(
   HiveDBProvider db,
   ConfigDataSource configDataSource, {
+  required Future<void> Function() write,
   required Set<String> importedDayKeys,
+  required Iterable<UserActivityDBO> importedActivities,
   required int? keyedByOffsetMinutes,
 }) => withTrackedDayLock(() async {
   final offset = _offsetMinutesNow(configDataSource);
+  final deviceCredit = _burnedByDay(db.userActivityBox.values, offset);
+  await write();
+  final keyedBy = keyedByOffsetMinutes ?? 0;
+  final importKeyedBy = keyedByOffsetMinutes == null ? offset : null;
+  final archiveCredit = _burnedByDay(
+    importedActivities,
+    keyedBy,
+    importOffsetMinutes: importKeyedBy,
+  );
   final rowsWritten = reconcileTrackedDays(
     db,
     offsetMinutes: offset,
-    previousOffsetMinutes: keyedByOffsetMinutes ?? 0,
-    previousImportOffsetMinutes: keyedByOffsetMinutes == null ? offset : null,
+    previousOffsetMinutes: keyedBy,
+    previousImportOffsetMinutes: importKeyedBy,
     previousKeys: importedDayKeys,
+    creditedBurned: {
+      for (final MapEntry(:key, :value) in deviceCredit.entries)
+        if (!importedDayKeys.contains(key)) key: value,
+      for (final key in importedDayKeys) key: archiveCredit[key] ?? 0,
+    },
   );
   final recorded = configDataSource.setConfigTrackedDaysOffsetMinutes(offset);
   final changed = await rowsWritten;
