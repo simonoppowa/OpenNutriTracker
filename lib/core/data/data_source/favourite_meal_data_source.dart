@@ -14,6 +14,9 @@ class FavouriteMealDataSource {
 
   bool isFavourite(String mealKey) => _favouriteMealBox.containsKey(mealKey);
 
+  FavouriteMealDBO? getFavourite(String mealKey) =>
+      _favouriteMealBox.get(mealKey);
+
   /// Upserts by meal key: starring a food that is already on the list
   /// replaces its snapshot rather than adding a second row.
   Future<void> addFavourite(FavouriteMealDBO favourite) async {

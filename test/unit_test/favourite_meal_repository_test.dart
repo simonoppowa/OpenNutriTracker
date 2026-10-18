@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
@@ -6,6 +8,7 @@ import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -17,9 +20,16 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
 import '../helpers/hive_test_setup.dart';
+
+class _FakeConfigRepository implements ConfigRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
   @override
@@ -230,6 +240,71 @@ void main() {
 
       final all = await repository.getAllFavourites();
       expect(all.single.nutriments.energyKcal100, 180);
+    });
+
+    test('a custom meal given a barcode in an edit stays starred', () async {
+      final original = _meal(
+        code: 'c1',
+        name: 'Overnight oats',
+        source: MealSourceEntity.custom,
+        kcal: 150,
+      );
+      await customMealBox.add(MealDBO.fromMealEntity(original));
+      await repository.addFavourite(original);
+      final starredAt = favouriteBox.get('custom:c1')!.addedAt;
+
+      // The edit form swaps the code for the barcode the user typed.
+      final edited = _meal(
+        code: '4006381333931',
+        name: 'Overnight oats',
+        source: MealSourceEntity.custom,
+        kcal: 180,
+      );
+      final bloc = EditMealBloc(
+        _FakeGetConfigUsecase(),
+        CustomMealDataSource(FakeHiveDBProvider(customMealBox: customMealBox)),
+        _FakeConfigRepository(),
+        repository,
+      );
+      await bloc.saveCustomMeal(edited, previous: original);
+      await bloc.close();
+
+      expect(favouriteBox.keys, ['custom:4006381333931']);
+      expect(favouriteBox.get('custom:4006381333931')!.addedAt, starredAt);
+      expect(await repository.isFavourite(edited), isTrue);
+      expect(await repository.isFavourite(original), isFalse);
+      final all = await repository.getAllFavourites();
+      expect(all.single.code, '4006381333931');
+      expect(all.single.nutriments.energyKcal100, 180);
+
+      // An export taken now, imported back twice, keeps the one entry.
+      final exported = [
+        for (final f in await repository.getAllFavouritesDBO())
+          FavouriteMealDBO.fromJson(
+            jsonDecode(jsonEncode(f.toJson())) as Map<String, dynamic>,
+          ),
+      ];
+      await repository.addAllFavouriteDBOs(exported);
+      await repository.addAllFavouriteDBOs(exported);
+      expect(favouriteBox.keys, ['custom:4006381333931']);
+    });
+
+    test('an edit that keeps the code leaves the favourite alone', () async {
+      final meal = _meal(code: 'c1', source: MealSourceEntity.custom);
+      await repository.addFavourite(meal);
+      final starredAt = favouriteBox.get('custom:c1')!.addedAt;
+
+      await repository.moveFavourite(
+        meal,
+        _meal(code: 'c1', source: MealSourceEntity.custom, kcal: 5),
+      );
+      await repository.moveFavourite(
+        _meal(code: 'c9', source: MealSourceEntity.custom),
+        _meal(code: 'c10', source: MealSourceEntity.custom),
+      );
+
+      expect(favouriteBox.keys, ['custom:c1']);
+      expect(favouriteBox.get('custom:c1')!.addedAt, starredAt);
     });
 
     test('a custom meal deleted from the library stays on the list', () async {

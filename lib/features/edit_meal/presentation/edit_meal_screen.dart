@@ -901,7 +901,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
       final shouldPersistTemplate = _editOnly || _saveForLater;
       if (newMealEntity.source == MealSourceEntity.custom &&
           shouldPersistTemplate) {
-        await _editMealBloc.saveCustomMeal(newMealEntity);
+        await _editMealBloc.saveCustomMeal(
+          newMealEntity,
+          previous: _mealEntity,
+        );
       }
 
       if (!mounted) return;

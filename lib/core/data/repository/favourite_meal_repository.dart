@@ -40,6 +40,27 @@ class FavouriteMealRepository {
     await _favouriteMealDataSource.deleteFavourite(keyOf(meal));
   }
 
+  /// Keeps [previous] starred as [updated] when an edit changed its
+  /// [keyOf] — a custom meal given a barcode, or one saved without a code
+  /// renamed. The favourite moves to the new key with its `addedAt`, so it
+  /// keeps its place on the list, and the old key does not linger as a
+  /// stale star. Nothing happens when the key is unchanged or [previous]
+  /// was not starred.
+  Future<void> moveFavourite(MealEntity previous, MealEntity updated) async {
+    final oldKey = keyOf(previous);
+    final newKey = keyOf(updated);
+    if (oldKey == newKey) return;
+    final existing = _favouriteMealDataSource.getFavourite(oldKey);
+    if (existing == null) return;
+    await _favouriteMealDataSource.addFavourite(
+      FavouriteMealDBO(
+        meal: MealDBO.fromMealEntity(updated),
+        addedAt: existing.addedAt,
+      ),
+    );
+    await _favouriteMealDataSource.deleteFavourite(oldKey);
+  }
+
   /// Every favourite, the most recently starred first.
   ///
   /// A custom meal or recipe is read from its library when it is still there,

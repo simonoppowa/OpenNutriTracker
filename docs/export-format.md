@@ -302,7 +302,9 @@ The file is optional on import, so zips from before the list existed still
 restore, and it goes into the profile that is active when you import. A
 favourite has no `id`: its identity is the food's, the meal's `source` plus
 its `code` — or its `name` when it has no code, as for a custom meal saved by
-an older build — the same key the star in the app uses. An imported favourite
+an older build — the same key the star in the app uses. Giving a saved custom
+meal a barcode changes its `code`, and the app moves its favourite to the new
+key, so an export taken afterwards carries it once. An imported favourite
 replaces the one already on the list for that food, `addedAt` included, so
 importing the same zip twice leaves one entry per food; favourites the zip
 does not carry stay on the list. Where the file lists one food more than once
