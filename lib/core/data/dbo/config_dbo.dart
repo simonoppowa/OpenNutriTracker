@@ -199,7 +199,7 @@ class ConfigDBO extends HiveObject {
   // in the app afterwards whose push silently failed is retried rather than
   // read as a second clear. Device-wide, like selectedLocale: it is a fact
   // about the device.
-  @HiveField(40)
+  @HiveField(41)
   bool? localeSyncSeeded;
 
   ConfigDBO(
