@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/data/data_source/favourite_meal_data_sourc
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -59,6 +60,27 @@ class FavouriteMealRepository {
     }
   }
 
+  /// Writes the library's current version of the custom meal stored under
+  /// [libraryKey] (its `code ?? name`, the key the library deletes by) into
+  /// the favourite on it, keeping `addedAt`. Called before the meal is
+  /// deleted from the library, so the favourite that outlives it shows and
+  /// logs the meal as it last was, whichever path last changed it — the
+  /// edit form, a meal import, the scanner.
+  Future<void> keepLatestCustomMealSnapshot(String libraryKey) async {
+    for (final meal in _customMealDataSource.getAllCustomMeals()) {
+      if ((meal.code ?? meal.name) != libraryKey) continue;
+      final key = FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name);
+      final existing = _favouriteMealDataSource.getFavourite(key);
+      if (existing == null) continue;
+      await _favouriteMealDataSource.addFavourite(
+        FavouriteMealDBO(
+          meal: MealDBO.fromMealEntity(MealEntity.fromMealDBO(meal)),
+          addedAt: existing.addedAt,
+        ),
+      );
+    }
+  }
+
   /// Every favourite, the most recently starred first.
   ///
   /// A custom meal or recipe is read from its library when it is still there,
@@ -67,42 +89,24 @@ class FavouriteMealRepository {
   /// snapshot stands in once the library entry is gone, the same way a logged
   /// custom meal outlives its template in the Recently list.
   Future<List<MealEntity>> getAllFavourites() async {
-    final customMeals = _customMealsByKey();
+    final library = _Library.read(_customMealDataSource, _recipeDataSource);
     return _favouriteMealDataSource
         .getAllFavourites()
-        .map((favourite) => _resolveFavourite(favourite, customMeals))
+        .map(library.resolve)
         .toList();
   }
 
   /// Exports the current custom-meal or recipe version while preserving the
   /// favourite's original timestamp and identity.
   Future<List<FavouriteMealDBO>> getAllFavouritesDBO() async {
-    final customMeals = _customMealsByKey();
+    final library = _Library.read(_customMealDataSource, _recipeDataSource);
     return _favouriteMealDataSource.getAllFavourites().map((favourite) {
-      final currentMeal = _resolveFavourite(favourite, customMeals);
+      final currentMeal = library.resolve(favourite);
       return FavouriteMealDBO(
         meal: MealDBO.fromMealEntity(currentMeal),
         addedAt: favourite.addedAt,
       );
     }).toList();
-  }
-
-  Map<String, MealDBO> _customMealsByKey() => {
-    for (final meal in _customMealDataSource.getAllCustomMeals())
-      FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name): meal,
-  };
-
-  MealEntity _resolveFavourite(
-    FavouriteMealDBO favourite,
-    Map<String, MealDBO> customMeals,
-  ) {
-    final snapshot = favourite.meal;
-    if (snapshot.source == MealSourceDBO.recipe && snapshot.code != null) {
-      final recipe = _recipeDataSource.getRecipeById(snapshot.code!);
-      if (recipe != null) return RecipeEntity.fromDBO(recipe).toMealEntity();
-    }
-    final custom = customMeals[favourite.mealKey];
-    return MealEntity.fromMealDBO(custom ?? snapshot);
   }
 
   Future<void> addAllFavouriteDBOs(List<FavouriteMealDBO> favourites) async {
@@ -116,4 +120,39 @@ class FavouriteMealRepository {
     _customMealDataSource.watch(),
     _recipeDataSource.watch(),
   ]);
+}
+
+/// The custom meals and recipes a load resolves favourites against, each
+/// read once and indexed, so a load is linear in the library rather than a
+/// scan of the recipe box per starred recipe. Recipes are read on the first
+/// starred recipe only.
+class _Library {
+  _Library.read(this._customMeals, this._recipes);
+
+  final CustomMealDataSource _customMeals;
+  final RecipeDataSource _recipes;
+
+  late final Map<String, MealDBO> _customMealsByKey = {
+    for (final meal in _customMeals.getAllCustomMeals())
+      FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name): meal,
+  };
+
+  late final Map<String, RecipeDBO> _recipesById = () {
+    // The first recipe with an id wins, as `getRecipeById` picks it.
+    final byId = <String, RecipeDBO>{};
+    for (final recipe in _recipes.getAllRecipes()) {
+      byId.putIfAbsent(recipe.id, () => recipe);
+    }
+    return byId;
+  }();
+
+  MealEntity resolve(FavouriteMealDBO favourite) {
+    final snapshot = favourite.meal;
+    if (snapshot.source == MealSourceDBO.recipe && snapshot.code != null) {
+      final recipe = _recipesById[snapshot.code!];
+      if (recipe != null) return RecipeEntity.fromDBO(recipe).toMealEntity();
+    }
+    final custom = _customMealsByKey[favourite.mealKey];
+    return MealEntity.fromMealDBO(custom ?? snapshot);
+  }
 }

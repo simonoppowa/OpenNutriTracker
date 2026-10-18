@@ -438,6 +438,45 @@ void main() {
     },
   );
 
+  test(
+    'the export carries the saved meal as it is now, not as it was starred',
+    () async {
+      // Edited outside the edit form (a meal import), so the stored
+      // snapshot is still the star-time one; a fresh install has no custom
+      // meal library to read the edit from.
+      final customMeals = CustomMealDataSource(
+        FakeHiveDBProvider(customMealBox: customMealBox),
+      );
+      final exporting = repositoryOver(sourceBox, customMeals: customMealBox);
+      final original = _meal(
+        'c1',
+        'Overnight oats',
+        MealSourceEntity.custom,
+        kcal: 150,
+      );
+      await customMeals.saveCustomMeal(MealDBO.fromMealEntity(original));
+      await exporting.addFavourite(original);
+      await customMeals.saveCustomMeal(
+        MealDBO.fromMealEntity(
+          _meal('c1', 'Overnight oats', MealSourceEntity.custom, kcal: 180),
+        ),
+      );
+      expect(sourceBox.get('custom:c1')!.meal.nutriments.energyKcal100, 150);
+
+      final zip = File('${tempRoot.path}/live-favourite.zip')
+        ..writeAsBytesSync(ZipEncoder().encode(await exportFrom(exporting)));
+      final importing = repositoryOver(targetBox);
+      expect(await importInto(importing, zip), isTrue);
+
+      final restored = await importing.getAllFavourites();
+      expect(restored.single.nutriments.energyKcal100, 180);
+      expect(
+        targetBox.get('custom:c1')!.addedAt,
+        sourceBox.get('custom:c1')!.addedAt,
+      );
+    },
+  );
+
   test('importing the same bundle again keeps one entry per food', () async {
     final exporting = repositoryOver(sourceBox);
     await exporting.addFavourite(

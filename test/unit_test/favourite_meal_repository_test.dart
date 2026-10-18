@@ -344,6 +344,74 @@ void main() {
       expect(exported.single.meal.nutriments.energyKcal100, 180);
     });
 
+    test(
+      'a library delete keeps the version an import last wrote, not the star-time one',
+      () async {
+        final original = _meal(
+          code: 'c1',
+          name: 'Overnight oats',
+          source: MealSourceEntity.custom,
+          kcal: 150,
+        );
+        final library = CustomMealDataSource(
+          FakeHiveDBProvider(customMealBox: customMealBox),
+        );
+        await library.saveCustomMeal(MealDBO.fromMealEntity(original));
+        await repository.addFavourite(original);
+        final starredAt = favouriteBox.get('custom:c1')!.addedAt;
+
+        // A meal import overwrites the saved meal without the edit form, so
+        // the favourite's snapshot is still the one from starring it.
+        await library.saveCustomMeal(
+          MealDBO.fromMealEntity(
+            _meal(
+              code: 'c1',
+              name: 'Imported oats',
+              source: MealSourceEntity.custom,
+              kcal: 210,
+            ),
+          ),
+        );
+        expect(favouriteBox.get('custom:c1')!.meal.name, 'Overnight oats');
+
+        // What the custom-meals screen runs before deleting it.
+        await repository.keepLatestCustomMealSnapshot('c1');
+        await library.deleteCustomMeal('c1');
+
+        final restored = await repository.getAllFavourites();
+        expect(restored.single.name, 'Imported oats');
+        expect(restored.single.nutriments.energyKcal100, 210);
+        expect(favouriteBox.get('custom:c1')!.addedAt, starredAt);
+      },
+    );
+
+    test('a library delete of an unstarred meal stars nothing', () async {
+      final library = CustomMealDataSource(
+        FakeHiveDBProvider(customMealBox: customMealBox),
+      );
+      await library.saveCustomMeal(
+        MealDBO.fromMealEntity(
+          _meal(code: 'c3', source: MealSourceEntity.custom),
+        ),
+      );
+
+      await repository.keepLatestCustomMealSnapshot('c3');
+
+      expect(favouriteBox.isEmpty, isTrue);
+    });
+
+    test('several starred recipes each resolve from the library', () async {
+      for (final id in ['r1', 'r2', 'r3']) {
+        await recipeBox.add(_recipe(id: id, name: 'Recipe $id').toDBO());
+        await repository.addFavourite(
+          _meal(code: id, name: 'Old $id', source: MealSourceEntity.recipe),
+        );
+      }
+
+      final names = (await repository.getAllFavourites()).map((m) => m.name);
+      expect(names, unorderedEquals(['Recipe r1', 'Recipe r2', 'Recipe r3']));
+    });
+
     test('a custom meal deleted from the library stays on the list', () async {
       final meal = _meal(
         code: 'c2',

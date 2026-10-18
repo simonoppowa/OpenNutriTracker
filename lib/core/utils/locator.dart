@@ -310,7 +310,14 @@ Future<void> initLocator() async {
   // same instance so the list refreshes after a new entry is created.
   locator.registerLazySingleton<CustomMealsBloc>(
     () =>
-        CustomMealsBloc(locator(), locator(), locator(), locator(), locator()),
+        CustomMealsBloc(
+          locator(),
+          locator(),
+          locator(),
+          locator(),
+          locator(),
+          locator(),
+        ),
   );
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
