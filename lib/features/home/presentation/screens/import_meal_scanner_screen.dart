@@ -266,7 +266,7 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
         await customMealDataSource.saveCustomMeal(MealDBO.fromMealEntity(meal));
       }
       if (!mounted) return;
-      _mealDetailBloc.addIntake(
+      await _mealDetailBloc.addIntake(
         context,
         item.unit,
         item.amount.toString(),
@@ -285,7 +285,7 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
         totalWeightOverridden: recipeItem.recipe.totalWeightOverridden,
       );
       if (!mounted) return;
-      _mealDetailBloc.addIntake(
+      await _mealDetailBloc.addIntake(
         context,
         recipeItem.unit,
         recipeItem.amount.toString(),
@@ -313,8 +313,9 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen>
     var skipped = 0;
     for (final r in offResults) {
       if (r != null) {
-        _mealDetailBloc.addIntake(context, r.ref.unit, r.ref.amount.toString(),
-            _intakeTypeEntity, r.meal, _day);
+        if (!mounted) return;
+        await _mealDetailBloc.addIntake(context, r.ref.unit,
+            r.ref.amount.toString(), _intakeTypeEntity, r.meal, _day);
       } else {
         skipped++;
       }

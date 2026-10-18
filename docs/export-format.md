@@ -29,6 +29,7 @@ next to its CSV counterpart will not find one.
 | `weight_log.json`                | Weight history.                                          |
 | `custom_activity_templates.json` | Saved custom activities — name and typical kcal.         |
 | `goal_settings.json`             | The profile's goal settings. See [below](#goal_settingsjson). |
+| `tracked_day_boundary.json`      | The day boundary the tracked days are keyed by. See [below](#tracked_day_boundaryjson--tracked_day_boundarycsv). |
 
 **CSV bundle**
 
@@ -37,6 +38,7 @@ next to its CSV counterpart will not find one.
 | `user_intake.csv`       | Same rows as the JSON, with the meal and its nutriments flattened. |
 | `user_activity.csv`     | Flat activities.                                             |
 | `user_tracked_day.csv`  | Flat tracked days — **lossy, see [Round-trip guarantee](#round-trip-guarantee)**. |
+| `tracked_day_boundary.csv` | The day boundary the tracked days are keyed by. See [below](#tracked_day_boundaryjson--tracked_day_boundarycsv). |
 
 **Photos travel with the JSON bundle only.** User-attached photos are added under
 `recipe_images/` and `meal_images/` when you export as JSON, gathered from three places: recipes,
@@ -272,6 +274,42 @@ Only goals that belong to a profile are in the file:
 - **Workout import** settings from Health Connect / Apple Health are left out:
   switching it on needs the system's permission on the new device, and the
   multiplier is suggested again when it is.
+
+### `tracked_day_boundary.json` / `tracked_day_boundary.csv`
+
+The "Day starts at" boundary, in minutes after midnight, that the bundle's
+tracked days are keyed by
+([#1317](https://github.com/simonoppowa/OpenNutriTracker/issues/1317)). A
+tracked day sits on the day its entries are listed under, and an entry logged
+before the boundary is listed under the day before, so the same history is keyed
+differently under another boundary. On import, the rows from the bundle are moved
+from this boundary to the device's, and so is the energy an activity added to a
+day's goal. The device's own rows are not touched.
+
+Export serializes the entries, tracked days and boundary record under the same
+lock, so a boundary change or profile switch cannot split the snapshot. Photo
+file reads and the save dialog run after that lock is released.
+
+```jsonc
+{
+  "version": 1,                     // format version, as in goal_settings.json
+  "dayStartOffsetMinutes": 240      // 0..1439; 240 is a day starting at 04:00
+}
+```
+
+The CSV bundle carries the same value as a header and one row:
+
+```csv
+day_start_offset_minutes
+240
+```
+
+A value outside 0..1439 rejects the whole zip before anything on the device
+changes. A JSON file with a newer `version` is treated as missing. Zips from
+builds that predate the file don't have one. Those builds keyed each day by the
+wall-clock date of the entry that created it, or by the logical day for an
+imported workout, and the import reads them that way. Older builds ignore the
+file.
 
 ### `user_recipes.json`
 
