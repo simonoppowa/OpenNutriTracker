@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -26,6 +27,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../fixture/user_entity_fixtures.dart';
+import '../../../../helpers/fake_reload_blocs.dart';
 import '../../../../helpers/test_l10n.dart';
 
 /// #1360: with "Day starts at" later than the current time, today is
@@ -72,6 +74,7 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async => nutrientGoalWrites.add(day);
 
   @override
@@ -164,6 +167,11 @@ Widget _openerApp(Widget Function() dialog) => ChangeNotifierProvider(
 );
 
 void main() {
+  // The kcal and macro dialogs reload the Diary and Trends through the
+  // locator after saving (#1359).
+  setUp(() => ReloadRecorder().register());
+  tearDown(() async => locator.reset());
+
   test('getCurrentLogicalDay resolves the configured boundary', () async {
     DayBoundaryCalc.clock = () => _now;
     addTearDown(() => DayBoundaryCalc.clock = DateTime.now);

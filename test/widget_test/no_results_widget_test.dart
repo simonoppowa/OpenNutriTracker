@@ -64,5 +64,23 @@ void main() {
       expect(find.text('Scan barcode'), findsOneWidget);
       expect(find.text('Create custom food'), findsNothing);
     });
+
+    testWidgets('shows and wires the search-all button when provided', (
+      tester,
+    ) async {
+      var searchAllTaps = 0;
+
+      await tester.pumpWidget(
+        _wrap(NoResultsWidget(onSearchAll: () => searchAllTaps++)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Search all'), findsOneWidget);
+
+      await tester.tap(find.text('Search all'));
+      await tester.pump();
+
+      expect(searchAllTaps, 1);
+    });
   });
 }

@@ -79,12 +79,23 @@ class PhysicalActivityEntity extends Equatable {
     if (isCustom && specificActivity.isNotEmpty && specificActivity != 'custom') {
       return specificActivity;
     }
-    final physicalActivityMap = {
+    return nameByCode(context)[code] ?? type.getName(context);
+  }
+
+  /// The English-keyed name of every Compendium row the picker lists, by
+  /// code. A row absent here renders its section heading, which is the
+  /// state #1200 found six rows in; the test that keeps every row named
+  /// reads this map rather than guessing from the rendered string, because
+  /// "bicycling, general" legitimately renders the same word as its heading.
+  @visibleForTesting
+  static Map<String, String> nameByCode(BuildContext context) => {
       "01015": S.of(context).paBicyclingGeneral,
       "01009": S.of(context).paBicyclingMountainGeneral,
       "01070": S.of(context).paUnicyclingGeneral,
       "02010": S.of(context).paBicyclingStationaryGeneral,
+      "02020": S.of(context).paCalisthenicsVigorous,
       "02030": S.of(context).paCalisthenicsGeneral,
+      "02040": S.of(context).paCircuitTraining,
       "02050": S.of(context).paResistanceTraining,
       "02055": S.of(context).paResistanceTrainingVigorous,
       "02165": S.of(context).paPilates,
@@ -92,7 +103,11 @@ class PhysicalActivityEntity extends Equatable {
       "02210": S.of(context).paHighIntensityIntervalExercise,
       "02214": S.of(context).paHighIntensityIntervalExerciseVigorous,
       "02068": S.of(context).paRopeSkippingGeneral,
+      "02080": S.of(context).paRowingMachine,
+      "02090": S.of(context).paEllipticalTrainer,
+      "02095": S.of(context).paStairTreadmillErgometer,
       "02120": S.of(context).paWaterAerobics,
+      "02160": S.of(context).paYoga,
       "03015": S.of(context).paDancingAerobicGeneral,
       "12020": S.of(context).paJoggingGeneral,
       "12150": S.of(context).paRunningGeneral,
@@ -155,9 +170,9 @@ class PhysicalActivityEntity extends Equatable {
       "15710": S.of(context).paVolleyballGeneral,
       "15730": S.of(context).paWrestling,
       "15731": S.of(context).paWallyball,
-      "15732": S.of(context).paTrackField,
-      "15733": S.of(context).paTrackField,
-      "15734": S.of(context).paTrackField,
+      "15732": S.of(context).paTrackField1,
+      "15733": S.of(context).paTrackField2,
+      "15734": S.of(context).paTrackField3,
       "15740": S.of(context).paPickleball,
       "15750": S.of(context).paActiveVideoGames,
       "17010": S.of(context).paBackpackingGeneral,
@@ -176,7 +191,7 @@ class PhysicalActivityEntity extends Equatable {
       "18220": S.of(context).paSurfing,
       "18225": S.of(context).paPaddleBoarding,
       "18350": S.of(context).paSwimmingGeneral,
-      "18355": S.of(context).paWaterAerobics,
+      "18355": S.of(context).paWateraerobicsCalisthenics,
       "18360": S.of(context).paWaterPolo,
       "19030": S.of(context).paIceSkatingGeneral,
       "19075": S.of(context).paSkiingGeneral,
@@ -185,16 +200,20 @@ class PhysicalActivityEntity extends Equatable {
       "19260": S.of(context).paSnowshoeing,
       "99999": S.of(context).customActivityName,
     };
-    return physicalActivityMap[code] ?? type.getName(context);
-  }
 
-  String getDescription(BuildContext context) {
-    final physicalActivityMap = {
+  String getDescription(BuildContext context) =>
+      descriptionByCode(context)[code] ?? type.getName(context);
+
+  /// Same shape as [nameByCode], for the description line.
+  @visibleForTesting
+  static Map<String, String> descriptionByCode(BuildContext context) => {
       "01009": S.of(context).paBicyclingMountainGeneralDesc,
       "01015": S.of(context).paBicyclingGeneralDesc,
       "01070": S.of(context).paUnicyclingGeneralDesc,
       "02010": S.of(context).paBicyclingStationaryGeneralDesc,
+      "02020": S.of(context).paCalisthenicsVigorousDesc,
       "02030": S.of(context).paCalisthenicsGeneralDesc,
+      "02040": S.of(context).paCircuitTrainingDesc,
       "02050": S.of(context).paResistanceTrainingDesc,
       "02055": S.of(context).paResistanceTrainingVigorousDesc,
       "02165": S.of(context).paGeneralDesc,
@@ -202,7 +221,14 @@ class PhysicalActivityEntity extends Equatable {
       "02210": S.of(context).paHighIntensityIntervalExerciseDesc,
       "02214": S.of(context).paHighIntensityIntervalExerciseVigorousDesc,
       "02068": S.of(context).paRopeSkippingGeneralDesc,
+      // Both rows describe themselves as "moderate effort", the string
+      // paHighIntensityIntervalExerciseDesc already carries; one unit for
+      // one phrasing rather than a third key saying the same thing.
+      "02080": S.of(context).paHighIntensityIntervalExerciseDesc,
+      "02090": S.of(context).paHighIntensityIntervalExerciseDesc,
+      "02095": S.of(context).paGeneralDesc,
       "02120": S.of(context).paWaterAerobicsDesc,
+      "02160": S.of(context).paYogaDesc,
       "03015": S.of(context).paDancingAerobicGeneralDesc,
       "12020": S.of(context).paJoggingGeneralDesc,
       "12150": S.of(context).paRunningGeneralDesc,
@@ -286,7 +312,7 @@ class PhysicalActivityEntity extends Equatable {
       "18220": S.of(context).paSurfingDesc,
       "18225": S.of(context).paPaddleBoardingDesc,
       "18350": S.of(context).paSwimmingGeneralDesc,
-      "18355": S.of(context).paWaterAerobicsDesc,
+      "18355": S.of(context).paWateraerobicsCalisthenicsDesc,
       "18360": S.of(context).paWaterPoloDesc,
       "19030": S.of(context).paIceSkatingGeneralDesc,
       "19075": S.of(context).paSkiingGeneralDesc,
@@ -295,13 +321,11 @@ class PhysicalActivityEntity extends Equatable {
       "19260": S.of(context).paGeneralDesc,
       "99999": _customActivityDescription(context),
     };
-    return physicalActivityMap[code] ?? type.getName(context);
-  }
 
   /// The Custom activity's description mentions the energy unit by name,
   /// so when the user reads in kJ (#177) we swap in the kJ-phrased
   /// variant. Everywhere else the description is unit-agnostic.
-  String _customActivityDescription(BuildContext context) {
+  static String _customActivityDescription(BuildContext context) {
     final usesKj =
         Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
     return usesKj

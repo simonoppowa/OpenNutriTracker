@@ -129,16 +129,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _addConfigUsecase.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }
 
-  void setShowMealMacros(bool showMealMacros) {
-    _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
-  }
-
-  void setNotificationsEnabled(bool enabled) {
-    _addConfigUsecase.setNotificationsEnabled(enabled);
-  }
-
-  void setNotificationTime(int hour, int minute) {
-    _addConfigUsecase.setNotificationTime(hour, minute);
+  Future<void> setShowMealMacros(bool showMealMacros) {
+    return _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
   }
 
   void setSelectedLocale(String? locale) {
@@ -291,6 +283,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async {
     await _addTrackedDayUsecase.updateDayNutrientGoals(
       day,
@@ -304,6 +297,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       vitaminDGoal: vitaminDGoal,
       vitaminB12Goal: vitaminB12Goal,
       magnesiumGoal: magnesiumGoal,
+      clearAll: clearAll,
     );
   }
 
@@ -326,6 +320,20 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         carbsGoal: totalCarbsGoal,
         fatGoal: totalFatGoal,
         proteinGoal: totalProteinGoal,
+      );
+    } else {
+      // No diary entry yet for this day (e.g. first thing in the
+      // morning, or right after onboarding). Create the row from the
+      // current goals, as callers rely on: without it, follow-up
+      // writes like setTodayNutrientGoals find no row and are
+      // silently skipped (#1348). Same creation pattern as
+      // MealDetailBloc/ActivityDetailBloc.
+      await _addTrackedDayUsecase.addNewTrackedDay(
+        day,
+        totalKcalGoal,
+        totalCarbsGoal,
+        totalFatGoal,
+        totalProteinGoal,
       );
     }
   }

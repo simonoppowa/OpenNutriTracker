@@ -16,8 +16,8 @@ class IntakeRepository {
     await _intakeDataSource.addIntake(intakeDBO);
   }
 
-  Future<void> addAllIntakeDBOs(List<IntakeDBO> intakeDBOs) async {
-    await _intakeDataSource.addAllIntakes(intakeDBOs);
+  Future<void> upsertAllIntakeDBOs(List<IntakeDBO> intakeDBOs) async {
+    await _intakeDataSource.upsertAllIntakes(intakeDBOs);
   }
 
   Future<void> deleteIntake(IntakeEntity intakeEntity) async {
