@@ -65,7 +65,10 @@ class DayBoundaryCalc {
   ///
   /// Out-of-range values (negative, or ≥ 24 h) are treated as 0 — the
   /// same defensive behaviour as the hours-only overload.
-  static DateTime logicalDayOfMinutes(DateTime moment, int? offsetTotalMinutes) {
+  static DateTime logicalDayOfMinutes(
+    DateTime moment,
+    int? offsetTotalMinutes,
+  ) {
     return _logicalDayOfTotalMinutes(
       moment,
       _sanitiseTotalMinutes(offsetTotalMinutes),
@@ -104,17 +107,52 @@ class DayBoundaryCalc {
   static bool isMomentInLogicalDayMinutes(
     DateTime dayLabel,
     DateTime moment,
-    int? offsetTotalMinutes,
-  ) {
-    // Some stored entries are themselves labels rather than clock
-    // readings, and must be compared as-is: rolling them back would file
-    // them a day early. See [_isDayLabel] for who writes them.
-    final momentDay = _isDayLabel(moment)
-        ? moment
-        : logicalDayOfMinutes(moment, offsetTotalMinutes);
+    int? offsetTotalMinutes, {
+    bool clockReading = false,
+  }) {
+    final momentDay = dayLabelOf(
+      moment,
+      offsetTotalMinutes,
+      clockReading: clockReading,
+    );
     return momentDay.year == dayLabel.year &&
         momentDay.month == dayLabel.month &&
         momentDay.day == dayLabel.day;
+  }
+
+  /// The day label the Diary files [moment] under, given
+  /// [offsetTotalMinutes] — the one rule both the listing above and the
+  /// tracked-day row keying go through, so an entry and the row holding
+  /// its calories can never name different days (#1317).
+  ///
+  /// A [moment] that is already a label is returned as-is: rolling it
+  /// back would file it a day early. See [isDayLabel] for who writes
+  /// them.
+  static DateTime dayLabelOf(
+    DateTime moment,
+    int? offsetTotalMinutes, {
+    bool clockReading = false,
+  }) => !clockReading && isDayLabel(moment)
+      ? moment
+      : logicalDayOfMinutes(moment, offsetTotalMinutes);
+
+  /// The date of [dayLabelOf] as `yyyy-MM-dd`, the key of the tracked-day
+  /// row holding [moment]'s entry, without building the label: a local
+  /// midnight costs a time-zone lookup, and the pass that checks every
+  /// logged entry against its row (#1317) spent most of its time on it.
+  /// Shifting [moment] lands on the same date.
+  static String dayKeyOf(
+    DateTime moment,
+    int? offsetTotalMinutes, {
+    bool clockReading = false,
+  }) {
+    final day = !clockReading && isDayLabel(moment)
+        ? moment
+        : moment.subtract(
+            Duration(minutes: _sanitiseTotalMinutes(offsetTotalMinutes)),
+          );
+    String pad(int value, int width) => '$value'.padLeft(width, '0');
+    return '${pad(day.year, 4)}-${pad(day.month, 2)}-${pad(day.day, 2)}';
   }
 
   /// True when [a] and [b] resolve to the same logical day under
@@ -157,7 +195,7 @@ class DayBoundaryCalc {
   /// exactly 00:00:00.000000 local stays on its wall-clock day instead
   /// of rolling back; `DateTime.now()` carries microseconds, so that is
   /// a rounding error against mis-filing every import.
-  static bool _isDayLabel(DateTime value) =>
+  static bool isDayLabel(DateTime value) =>
       value.hour == 0 &&
       value.minute == 0 &&
       value.second == 0 &&

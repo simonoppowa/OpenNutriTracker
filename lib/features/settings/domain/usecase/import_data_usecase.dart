@@ -17,16 +17,31 @@ import 'package:opennutritracker/core/data/repository/tracked_day_repository.dar
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
+import 'package:opennutritracker/features/settings/domain/tracked_day_boundary_record.dart';
 
 /// Opens the system file picker for a single file of any type and resolves
 /// to the pick, or to null when the user dismissed the picker.
 typedef PickImportFile = Future<PlatformFile?> Function();
 
 Future<PlatformFile?> _pickAnyFile() => FilePicker.pickFile(type: FileType.any);
+
+/// Runs an import's [write] of entries and rows, then moves the rows it
+/// wrote, keyed [importedDayKeys], from the boundary the archive recorded
+/// (null: none recorded) onto the configured one, with the credit of the
+/// archive's [importedActivities] — `restoreTrackedDays` (#1317).
+typedef RestoreTrackedDays =
+    Future<void> Function(
+      Future<void> Function() write, {
+      required Set<String> importedDayKeys,
+      required List<UserActivityDBO> importedActivities,
+      required int? keyedByOffsetMinutes,
+    });
 
 class ImportDataUsecase {
   final UserActivityRepository _userActivityRepository;
@@ -42,6 +57,9 @@ class ImportDataUsecase {
   /// path, a pick of the wrong file) can only be driven from here.
   final PickImportFile _pickFile;
 
+  /// Null only in tests that do not look at the rows' keys.
+  final RestoreTrackedDays? _restoreTrackedDays;
+
   ImportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
@@ -51,7 +69,9 @@ class ImportDataUsecase {
     this._customActivityTemplateRepository,
     this._configRepository, {
     PickImportFile pickFile = _pickAnyFile,
-  }) : _pickFile = pickFile;
+    RestoreTrackedDays? restoreTrackedDays,
+  }) : _pickFile = pickFile,
+       _restoreTrackedDays = restoreTrackedDays;
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
   /// weight log, Custom activity template and goal settings data from a
@@ -73,6 +93,7 @@ class ImportDataUsecase {
     String customActivityTemplateJsonFileName, {
     String goalSettingsJsonFileName = 'goal_settings.json',
   }) async {
+    final startedOn = ProfileStamp.now();
     final archive = await _pickAndDecodeArchive();
 
     // Decode every entry before writing anything (#1357): the upserts
@@ -134,57 +155,62 @@ class ImportDataUsecase {
             ),
           );
 
-    await _userActivityRepository.upsertAllUserActivityDBOs(userActivityDBOs);
-    await _intakeRepository.upsertAllIntakeDBOs(intakeDBOs);
-    await _trackedDayRepository.addAllTrackedDays(trackedDayDBOs);
-    if (recipeDBOs != null) {
-      await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
-    }
-    if (weightLogDBOs != null) {
-      await _weightLogRepository.addAllEntries(weightLogDBOs);
-    }
-    if (templateDBOs != null) {
-      await _customActivityTemplateRepository.upsertAllTemplateDBOs(
-        templateDBOs,
-      );
-    }
-    if (goalSettings != null) {
-      // The backup's goals replace the device's, as a restore should; a
-      // null in the file puts that goal back to the app default.
-      await _configRepository.setConfigGoalSettings(
-        kcalAdjustment: goalSettings.kcalAdjustment,
-        carbGoalPct: goalSettings.carbGoalPct,
-        proteinGoalPct: goalSettings.proteinGoalPct,
-        fatGoalPct: goalSettings.fatGoalPct,
-        mealKcalSharesPct: goalSettings.mealKcalSharesPct,
-        dailyWaterGoalMl: goalSettings.dailyWaterGoalMl,
-      );
-    }
-
-    // Restore any user-attached photos — recipes under `recipe_images/`
-    // and custom meals under `meal_images/`. Each archive entry's name
-    // already matches the relative slug we stored on the matching DBO,
-    // so we just write the bytes back into the right private documents
-    // subdirectory. Anything outside those known prefixes is skipped by
-    // the sanitiser, so a hostile zip can't escape into other folders.
-    final recipeDir = await UserImageStorage.ensureDirectory(
-      UserImageKind.recipe,
+    final keyedBy = _decodeBoundary(
+      archive.findFile(TrackedDayBoundaryRecord.jsonFileName),
+      TrackedDayBoundaryRecord.fromJson,
     );
-    final mealDir = await UserImageStorage.ensureDirectory(UserImageKind.meal);
-    for (final entry in archive.files) {
-      if (!entry.isFile) continue;
-      final sanitized = UserImageStorage.sanitizeRelative(entry.name);
-      if (sanitized == null) continue;
-      final parts = sanitized.split('/');
-      final targetDir = parts[0] == UserImageKind.recipe.subdir
-          ? recipeDir
-          : mealDir;
-      final destPath = '${targetDir.path}/${parts[1]}';
-      final destFile = File(destPath);
-      await destFile.writeAsBytes(entry.content as List<int>, flush: true);
-    }
 
-    return true;
+    final imported = await withTrackedDayLockOnProfile(() async {
+      await _writeEntriesAndRows(
+        userActivityDBOs,
+        intakeDBOs,
+        trackedDayDBOs,
+        keyedBy,
+      );
+      if (recipeDBOs != null) {
+        await _recipeRepository.addAllRecipeDBOs(recipeDBOs);
+      }
+      if (weightLogDBOs != null) {
+        await _weightLogRepository.addAllEntries(weightLogDBOs);
+      }
+      if (templateDBOs != null) {
+        await _customActivityTemplateRepository.upsertAllTemplateDBOs(
+          templateDBOs,
+        );
+      }
+      if (goalSettings != null) {
+        await _configRepository.setConfigGoalSettings(
+          kcalAdjustment: goalSettings.kcalAdjustment,
+          carbGoalPct: goalSettings.carbGoalPct,
+          proteinGoalPct: goalSettings.proteinGoalPct,
+          fatGoalPct: goalSettings.fatGoalPct,
+          mealKcalSharesPct: goalSettings.mealKcalSharesPct,
+          dailyWaterGoalMl: goalSettings.dailyWaterGoalMl,
+        );
+      }
+
+      final recipeDir = await UserImageStorage.ensureDirectory(
+        UserImageKind.recipe,
+      );
+      final mealDir = await UserImageStorage.ensureDirectory(
+        UserImageKind.meal,
+      );
+      for (final entry in archive.files) {
+        if (!entry.isFile) continue;
+        final sanitized = UserImageStorage.sanitizeRelative(entry.name);
+        if (sanitized == null) continue;
+        final parts = sanitized.split('/');
+        final targetDir = parts[0] == UserImageKind.recipe.subdir
+            ? recipeDir
+            : mealDir;
+        final destPath = '${targetDir.path}/${parts[1]}';
+        final destFile = File(destPath);
+        await destFile.writeAsBytes(entry.content as List<int>, flush: true);
+      }
+
+      return true;
+    }, startedOn: startedOn);
+    return imported ?? false;
   }
 
   /// Symmetric CSV counterpart to [importData]. Reads a zip produced by
@@ -201,6 +227,7 @@ class ImportDataUsecase {
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
   }) async {
+    final startedOn = ProfileStamp.now();
     final archive = await _pickAndDecodeArchive();
 
     // Decode all three before writing any, as in [importData] (#1357).
@@ -219,11 +246,59 @@ class ImportDataUsecase {
       CsvDataExporter.parseTrackedDaysFromCsv,
     );
 
-    await _userActivityRepository.upsertAllUserActivityDBOs(activityDBOs);
-    await _intakeRepository.upsertAllIntakeDBOs(intakeDBOs);
-    await _trackedDayRepository.addAllTrackedDays(trackedDayDBOs);
+    final keyedBy = _decodeBoundary(
+      archive.findFile(TrackedDayBoundaryRecord.csvFileName),
+      TrackedDayBoundaryRecord.fromCsv,
+    );
 
-    return true;
+    final imported = await withTrackedDayLockOnProfile(
+      () => _writeEntriesAndRows(
+        activityDBOs,
+        intakeDBOs,
+        trackedDayDBOs,
+        keyedBy,
+      ).then((_) => true),
+      startedOn: startedOn,
+    );
+    return imported ?? false;
+  }
+
+  /// Writes the entries and the rows, then moves the rows from the
+  /// boundary the archive recorded, [keyedBy], onto the configured one
+  /// (#1317). Under the tracked-day lock, so no writer adds an entry to a
+  /// row between the import writing it and the move.
+  Future<void> _writeEntriesAndRows(
+    List<UserActivityDBO> activities,
+    List<IntakeDBO> intakes,
+    List<TrackedDayDBO> trackedDays,
+    int? keyedBy,
+  ) => withTrackedDayLock(() async {
+    Future<void> write() async {
+      await _userActivityRepository.upsertAllUserActivityDBOs(activities);
+      await _intakeRepository.upsertAllIntakeDBOs(intakes);
+      await _trackedDayRepository.addAllTrackedDays(trackedDays);
+    }
+
+    final restore = _restoreTrackedDays;
+    if (restore == null) return write();
+    await restore(
+      write,
+      importedDayKeys: {for (final day in trackedDays) day.day.toParsedDay()},
+      importedActivities: activities,
+      keyedByOffsetMinutes: keyedBy,
+    );
+  });
+
+  /// The boundary the archive's rows are keyed by, from [entry], or null
+  /// when the archive records none (#1317). A record that is not a
+  /// boundary rejects the archive, like any other unreadable entry.
+  int? _decodeBoundary(ArchiveFile? entry, int? Function(String) parse) {
+    if (entry == null) return null;
+    return ExportImportFailure.guardSync(
+      ExportImportFailureReason.unreadableOrWrongFormat,
+      'Could not parse ${entry.name}',
+      () => parse(utf8.decode(entry.content as List<int>)),
+    );
   }
 
   /// Lets the user pick a file and decodes it as a zip.

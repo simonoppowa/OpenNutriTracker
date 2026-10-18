@@ -197,10 +197,13 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     IntakeEntity intakeEntity,
     TrackedDayEntity? trackedDayEntity,
   ) async {
+    // The selected day, not `trackedDayEntity?.day ?? DateTime.now()`: on
+    // a past day with no tracked-day row that fallback debited today's row
+    // for an entry of another day (#1317).
     await _calendarDayBloc.deleteIntakeItem(
       context,
       intakeEntity,
-      trackedDayEntity?.day ?? DateTime.now(),
+      _selectedDate,
     );
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
@@ -216,10 +219,12 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     UserActivityEntity userActivityEntity,
     TrackedDayEntity? trackedDayEntity,
   ) async {
+    // The selected day, for the same reason as _onDeleteIntakeItem: the
+    // fallback lowered today's goal for a past day's activity (#1317).
     await _calendarDayBloc.deleteUserActivityItem(
       context,
       userActivityEntity,
-      trackedDayEntity?.day ?? DateTime.now(),
+      _selectedDate,
     );
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
@@ -242,7 +247,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     } else {
       finalType = type.getIntakeType();
     }
-    _mealDetailBloc.addIntake(
+    await _mealDetailBloc.addIntake(
       context,
       intakeEntity.unit,
       intakeEntity.amount.toString(),
@@ -264,7 +269,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       // kcal figure through unchanged so a copied entry keeps its calories.
       final kcal =
           userActivityEntity.userKcal ?? userActivityEntity.burnedKcal;
-      _activityDetailBloc.persistActivity(
+      await _activityDetailBloc.persistActivity(
         kcal.toString(),
         kcal,
         activity,
@@ -277,7 +282,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
         activity,
         userActivityEntity.duration,
       );
-      _activityDetailBloc.persistActivity(
+      await _activityDetailBloc.persistActivity(
         userActivityEntity.duration.toString(),
         burnedKcal,
         activity,

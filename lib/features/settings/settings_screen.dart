@@ -1050,6 +1050,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => DiaryDayBoundaryDialog(
         settingsBloc: _settingsBloc,
         homeBloc: _homeBloc,
+        diaryBloc: _diaryBloc,
         calendarDayBloc: _calendarDayBloc,
       ),
     );
