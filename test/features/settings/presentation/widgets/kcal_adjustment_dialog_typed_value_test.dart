@@ -164,4 +164,43 @@ void main() {
 
     expect(settingsBloc.savedAdjustments, [100]);
   });
+
+  testWidgets('clamps a typed adjustment to the slider range on OK', (
+    tester,
+  ) async {
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField), '5000');
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedAdjustments, [1000]);
+  });
+
+  testWidgets('keeps the stored adjustment when the typed value is empty', (
+    tester,
+  ) async {
+    settingsBloc.storedAdjustment = 100;
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField), '');
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedAdjustments, [100]);
+  });
+
+  testWidgets('a slider-set value in kJ mode is saved exactly', (tester) async {
+    await openDialog(tester, usesKilojoules: true);
+
+    // 209.2 kJ is a slider step (5 × 41.84) = 50 kcal, but the division
+    // gives 49.999…, which truncation would save as 49.
+    tester.widget<Slider>(find.byType(Slider)).onChanged!(209.2);
+    await tester.pump();
+    expect(find.widgetWithText(TextField, '209'), findsOneWidget);
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(settingsBloc.savedAdjustments, [50]);
+  });
 }
