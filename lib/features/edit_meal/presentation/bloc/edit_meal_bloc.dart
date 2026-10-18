@@ -158,7 +158,17 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   }
 
   /// Persist custom meal template so it appears in Recent Meals before first log (#267)
-  Future<void> saveCustomMeal(MealEntity mealEntity) async {
-    await _customMealDataSource.saveCustomMeal(MealDBO.fromMealEntity(mealEntity));
+  ///
+  /// [previous] is the meal as it was before the edit: its library entry is
+  /// the one replaced, even when the edit changed the barcode or the name
+  /// the meal is found by (#1403).
+  Future<void> saveCustomMeal(
+    MealEntity mealEntity, {
+    MealEntity? previous,
+  }) async {
+    await _customMealDataSource.saveCustomMeal(
+      MealDBO.fromMealEntity(mealEntity),
+      previous: previous == null ? null : MealDBO.fromMealEntity(previous),
+    );
   }
 }
