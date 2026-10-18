@@ -93,6 +93,9 @@ class _FakeProber implements AiEndpointProber {
 
   int calls = 0;
 
+  /// What the last check was asked about, so a test can see what it held.
+  AiSelection? lastSelection;
+
   _FakeProber(this.result);
 
   @override
@@ -101,6 +104,7 @@ class _FakeProber implements AiEndpointProber {
     String? localeCode,
   }) async {
     calls++;
+    lastSelection = selection;
     if (gate != null) await gate!.future;
     return result;
   }
@@ -2086,6 +2090,24 @@ void main() {
           'http://192.168.1.5:11434/v1/chat/completions',
         );
         expect(prober.calls, 1, reason: 'and it really did start one');
+      });
+
+      testWidgets('a key saved with the address is the key the check uses', (
+        tester,
+      ) async {
+        // #1257: the check started before the key was written, so a first
+        // save of address, model and key together probed without the key,
+        // a server that needs one refused it, and the camera stayed hidden.
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-key-field'),
+          'secret-key',
+        );
+        await fillAndSave(tester);
+
+        expect(prober.calls, 1);
+        expect(prober.lastSelection?.apiKey, 'secret-key');
       });
 
       testWidgets('the text result and the photo result are separate', (

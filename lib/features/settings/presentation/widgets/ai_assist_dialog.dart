@@ -603,6 +603,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // would end up in the slot of a provider the user tapped on the way past.
     final provider = _provider;
     var changed = _changed;
+    var probe = false;
 
     if (provider == AiProvider.ownServer) {
       // The address is this provider's credential, and the model is part of
@@ -680,10 +681,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
         // different — a runtime restarted with another model pulled under the
         // same tag is the ordinary case — and the runner joins a check
         // already running, so pressing OK twice costs nothing.
-        final runner = widget.probeRunner;
-        if (runner != null) {
-          unawaited(runner.start(provider, localeCode: localeCode));
-        }
+        //
+        // Started below, once the key is stored, not here: the runner reads
+        // the selection when it starts, so a first save of address, model
+        // and key together probed without the key, a server that needs one
+        // refused it, and the camera stayed hidden (#1257).
+        probe = true;
       }
     }
 
@@ -695,6 +698,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       if (!await _agreedBeforeAnythingIsStored(provider)) return;
       await widget.storage.writeApiKey(typed, provider: provider);
       changed = true;
+    }
+
+    final runner = widget.probeRunner;
+    if (probe && runner != null) {
+      unawaited(runner.start(provider, localeCode: localeCode));
     }
 
     if (!mounted) return;
