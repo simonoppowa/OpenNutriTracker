@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 import '../fixture/user_entity_fixtures.dart';
 import '../helpers/fake_hive_db_provider.dart';
@@ -624,6 +625,43 @@ void main() {
 
       expect(
         (await configRepository.getConfig()).healthDeletedWorkouts,
+        isEmpty,
+      );
+    });
+
+    test('a profile switch waits for a deletion under way', () async {
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
+      await usecase.importNow();
+      bool? deletedBeforeSwitch;
+
+      final deletion = deleteUsecase.deleteEntry(today);
+      final switching = withProfileSwitchLock(() async {
+        deletedBeforeSwitch = await weightLogRepository.getEntry(today) == null;
+        provider.activeProfileId = 'profile-b';
+      });
+      await Future.wait([deletion, switching]);
+
+      expect(deletedBeforeSwitch, isTrue);
+      expect(await weightLogRepository.getEntry(today), isNull);
+      expect(
+        (await configRepository.getConfig()).healthDeletedExternalIds,
+        contains('c'),
+      );
+    });
+
+    test('a deletion queued behind a profile switch is dropped', () async {
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
+      await usecase.importNow();
+      final release = Completer<void>();
+
+      final switching = withProfileSwitchLock(() => release.future);
+      final deletion = deleteUsecase.deleteEntry(today);
+      release.complete();
+      await Future.wait([switching, deletion]);
+
+      expect(await weightLogRepository.getEntry(today), isNotNull);
+      expect(
+        (await configRepository.getConfig()).healthDeletedExternalIds,
         isEmpty,
       );
     });

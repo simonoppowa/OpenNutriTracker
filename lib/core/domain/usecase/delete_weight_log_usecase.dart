@@ -1,6 +1,7 @@
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 class DeleteWeightLogUsecase {
   final WeightLogRepository _weightLogRepository;
@@ -8,7 +9,21 @@ class DeleteWeightLogUsecase {
 
   DeleteWeightLogUsecase(this._weightLogRepository, this._configRepository);
 
+  /// Deletes the entry on [date] from the profile active at the call.
+  ///
+  /// Every repository below resolves its box from whichever profile is
+  /// active when it is called, so the whole deletion runs under the lock a
+  /// profile switch takes: a switch requested meanwhile waits for it, and a
+  /// deletion queued behind a switch is dropped rather than applied to the
+  /// profile switched to — its row, and the other profile's tombstones.
   Future<void> deleteEntry(DateTime date) async {
+    await withTrackedDayLockOnProfile(
+      () => _deleteEntry(date),
+      startedOn: ProfileStamp.now(),
+    );
+  }
+
+  Future<void> _deleteEntry(DateTime date) async {
     final entry = await _weightLogRepository.getEntry(date);
     final externalId = entry?.externalId;
     if (externalId != null) {
