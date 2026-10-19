@@ -124,6 +124,7 @@ import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detai
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:opennutritracker/features/scanner/data/text_recognizer.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
@@ -660,6 +661,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<ProfileDataSource>(
     () => ProfileDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<TextRecognizer>(
+    () => const VisionTextRecognizer(),
   );
   // Probed once here rather than per call: resolving the platform health
   // store needs an await, and a plugin that can't initialise falls back to a
