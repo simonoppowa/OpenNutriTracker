@@ -136,9 +136,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
   }
 
-  void setSelectedLocale(String? locale) {
-    _addConfigUsecase.setSelectedLocale(locale);
-  }
+  Future<void> setSelectedLocale(String? locale) =>
+      _addConfigUsecase.setSelectedLocale(locale);
 
   void setShowMicronutrients(bool show) {
     _addConfigUsecase.setConfigShowMicronutrients(show);

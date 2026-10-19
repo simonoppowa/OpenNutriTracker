@@ -270,7 +270,8 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
     try {
       do {
         _adoptSystemLocaleQueued = false;
-        await _reconcileAndAdoptLocale();
+        // Shared with the in-app picker: see [LocaleSyncLock].
+        await localeSyncLock.run(_reconcileAndAdoptLocale);
       } while (_adoptSystemLocaleQueued);
     } finally {
       _adoptingSystemLocale = false;

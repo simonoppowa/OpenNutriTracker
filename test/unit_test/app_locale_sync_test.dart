@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -64,7 +65,7 @@ class _Device {
     return pushInAppLocaleChoice(
       localeCode: code,
       pushToSystem: _push,
-      readSystemTag: () async => (tag: osTag, readFailed: false),
+      readSystemTag: _read,
       markLocaleSyncSeeded: () async => seeded = true,
       clearLocaleSyncSeeded: () async => seeded = false,
     );
@@ -74,6 +75,9 @@ class _Device {
     pushed.add(tag);
     if (pushTakes) osTag = tag;
   }
+
+  Future<({String? tag, bool readFailed})> _read() async =>
+      (tag: osTag, readFailed: false);
 
   Future<String?> launch() => reconcileAppLocale(
     savedLocaleCode: saved,
@@ -485,6 +489,83 @@ void main() {
       expect(device.saved, 'de');
       expect(device.osTag, 'de');
       expect(device.seeded, isTrue);
+    });
+  });
+
+  group('in-app picker against runtime reconciliation', () {
+    // Copilot on #1230: the runtime guard serialized reconciliation only, so
+    // a pick could run while an OS-clear reconciliation was paused on its
+    // write. Resumed, the older run cleared the pick's marker and adopted
+    // null; with no locale-change callback to repair it, a later OS clear
+    // then read as never-seeded and the cleared language was pushed back.
+    test('a pick during an OS-clear reconciliation keeps its marker', () async {
+      final device = _Device(saved: 'pl', osTag: 'pl', seeded: true);
+      final lock = LocaleSyncLock();
+      final shown = <String?>[];
+      final reachedPersist = Completer<void>();
+      final persistGate = Completer<void>();
+
+      device.osTag = null; // System default in Android's picker, app alive
+      final runtime = lock.run(() async {
+        final code = await reconcileAppLocale(
+          savedLocaleCode: device.saved,
+          systemLocaleTag: device.osTag,
+          systemTagReadFailed: false,
+          localeSyncSeeded: device.seeded,
+          supportedLocales: _supported,
+          persistSelectedLocale: (code) async {
+            reachedPersist.complete();
+            await persistGate.future;
+            device.saved = code;
+          },
+          pushToSystem: device._push,
+          readSystemTag: device._read,
+          markLocaleSyncSeeded: () async => device.seeded = true,
+          clearLocaleSyncSeeded: () async => device.seeded = false,
+        );
+        shown.add(code);
+      });
+      await reachedPersist.future;
+
+      final pick = applyInAppLocaleChoice(
+        lock: lock,
+        localeCode: 'de',
+        persistSelectedLocale: (code) async => device.saved = code,
+        applyToApp: () => shown.add('de'),
+        pushToSystem: device._push,
+        readSystemTag: device._read,
+        markLocaleSyncSeeded: () async => device.seeded = true,
+        clearLocaleSyncSeeded: () async => device.seeded = false,
+      );
+      // Let the pick get as far as it can before the reconciliation resumes.
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      persistGate.complete();
+      await Future.wait([runtime, pick]);
+
+      expect(shown, [null, 'de'], reason: 'the pick lands after the clear');
+      expect(device.saved, 'de');
+      expect(device.osTag, 'de');
+      expect(device.seeded, isTrue, reason: 'the older run must not clear it');
+
+      device.osTag = null; // a later clear in Android's picker
+      expect(await device.launch(), isNull);
+      expect(
+        device.pushed,
+        ['de'],
+        reason: 'the cleared language must not be pushed back',
+      );
+    });
+
+    test('a task that throws does not stall the next one', () async {
+      final lock = LocaleSyncLock();
+
+      await expectLater(
+        lock.run<void>(() async => throw StateError('channel')),
+        throwsStateError,
+      );
+      expect(await lock.run(() async => 'next'), 'next');
     });
   });
 

@@ -122,6 +122,50 @@ Future<void> pushInAppLocaleChoice({
   }
 }
 
+/// Runs locale-sync work one task at a time, in the order it arrives.
+///
+/// Runtime reconciliation and the in-app picker both read and write the
+/// saved language, the OS override and the seeded marker. Interleaved, an
+/// older reconciliation of an OS clear could resume after a pick had saved
+/// and recorded a new language, then clear that marker and adopt null; a
+/// pick that fires no locale-change callback leaves nothing to repair it.
+class LocaleSyncLock {
+  Future<void> _tail = Future.value();
+
+  Future<T> run<T>(Future<T> Function() task) {
+    final result = _tail.then((_) => task());
+    _tail = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
+    return result;
+  }
+}
+
+/// The one lock the app's runtime reconciliation and in-app picker share.
+/// Start-up reconciliation runs before either can, so it needs none.
+final localeSyncLock = LocaleSyncLock();
+
+/// The in-app picker's whole write, under [lock]: save the choice, show it
+/// ([applyToApp]), then push it to the OS through [pushInAppLocaleChoice].
+Future<void> applyInAppLocaleChoice({
+  required LocaleSyncLock lock,
+  required String? localeCode,
+  required Future<void> Function(String? localeCode) persistSelectedLocale,
+  required void Function() applyToApp,
+  required Future<void> Function(String? languageTag) pushToSystem,
+  required Future<({String? tag, bool readFailed})> Function() readSystemTag,
+  required Future<void> Function() markLocaleSyncSeeded,
+  required Future<void> Function() clearLocaleSyncSeeded,
+}) => lock.run(() async {
+  await persistSelectedLocale(localeCode);
+  applyToApp();
+  await pushInAppLocaleChoice(
+    localeCode: localeCode,
+    pushToSystem: pushToSystem,
+    readSystemTag: readSystemTag,
+    markLocaleSyncSeeded: markLocaleSyncSeeded,
+    clearLocaleSyncSeeded: clearLocaleSyncSeeded,
+  );
+});
+
 /// The supported language code behind a platform language tag, or null when
 /// there is no tag or the app does not ship that language.
 ///

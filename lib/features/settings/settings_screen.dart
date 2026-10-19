@@ -1310,28 +1310,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () {
                 final locale = selectedCode.isEmpty ? null : selectedCode;
-                _settingsBloc.setSelectedLocale(locale);
+                final localeProvider = Provider.of<LocaleProvider>(
+                  context,
+                  listen: false,
+                );
+                final configRepo = locator<ConfigRepository>();
                 // Keep Android's per-app language picker in step, so someone
                 // who later looks there finds the language they chose here
                 // rather than a stale one. A no-op off Android and below
                 // API 33. The pushed value is read back and recorded, so a
                 // later clear in Android's picker is honoured even if this
-                // pick never fires a locale-change callback.
-                final configRepo = locator<ConfigRepository>();
+                // pick never fires a locale-change callback. The whole write
+                // shares the lock runtime reconciliation runs under, so an
+                // OS clear being reconciled cannot undo it halfway.
                 unawaited(
-                  pushInAppLocaleChoice(
+                  applyInAppLocaleChoice(
+                    lock: localeSyncLock,
                     localeCode: locale,
+                    persistSelectedLocale: _settingsBloc.setSelectedLocale,
+                    applyToApp: () {
+                      _settingsBloc.add(LoadSettingsEvent());
+                      localeProvider.updateLocale(
+                        locale != null ? Locale(locale) : null,
+                      );
+                    },
                     pushToSystem: AppLocaleService.setApplicationLocale,
                     readSystemTag: AppLocaleService.getApplicationLocale,
                     markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
                     clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
                   ),
                 );
-                _settingsBloc.add(LoadSettingsEvent());
-                Provider.of<LocaleProvider>(
-                  context,
-                  listen: false,
-                ).updateLocale(locale != null ? Locale(locale) : null);
                 Navigator.of(context).pop();
               },
               child: Text(S.of(context).dialogOKLabel),
