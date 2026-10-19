@@ -26,6 +26,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/off_contribution/presentation/off_contribution_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/auto_backup_screen.dart';
@@ -519,6 +520,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const AutoBackupScreen(),
+                      ),
+                    ),
+                  ),
+                  _SettingsTile(
+                    identifier: 'settings-off-contribution',
+                    palette: palette,
+                    icon: Icons.volunteer_activism_rounded,
+                    title: S.of(context).offContributionTitle,
+                    subtitle: S.of(context).offContributionSubtitle,
+                    showChevron: true,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const OffContributionScreen(),
                       ),
                     ),
                   ),

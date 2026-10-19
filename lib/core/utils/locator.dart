@@ -69,6 +69,7 @@ import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
+import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
@@ -117,6 +118,9 @@ import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:opennutritracker/features/off_contribution/data/off_contribution_client.dart';
+import 'package:opennutritracker/features/off_contribution/data/off_contribution_settings.dart';
+import 'package:opennutritracker/features/off_contribution/presentation/off_contribution_flow.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
@@ -669,6 +673,15 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   locator.registerLazySingleton(() => StoreBarcodeCheck(locator()));
+  locator.registerLazySingleton(
+    () => OffContributionSettingsStore(SecureAppStorageProvider.secureAppStorage),
+  );
+  locator.registerLazySingleton(
+    () => OffContributionFlow(
+      locator(),
+      OffContributionClient(userAgent: AppConst.offContributionUserAgent),
+    ),
+  );
   // Probed once here rather than per call: resolving the platform health
   // store needs an await, and a plugin that can't initialise falls back to a
   // service that reports itself unavailable instead of failing startup.

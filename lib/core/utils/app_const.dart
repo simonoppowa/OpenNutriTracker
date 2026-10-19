@@ -9,6 +9,11 @@ class AppConst {
   static const sourceCodeUrl =
       "https://github.com/simonoppowa/OpenNutriTracker";
 
+  /// Who writes to Open Food Facts when a user contributes values (#81), in
+  /// the `AppName/Version (contact)` form Open Food Facts asks for.
+  static const offContributionUserAgent =
+      'NutriTrackerPersonal/1.0 (https://github.com/theoleuthardt/OpenNutriTracker)';
+
   static Future<String> getVersionNumber() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     return packageInfo.version;

@@ -29,6 +29,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/off_contribution/presentation/off_contribution_flow.dart';
 import 'package:opennutritracker/features/scanner/data/nutrition_label_scanner.dart';
 import 'package:opennutritracker/features/scanner/data/text_recognizer.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
@@ -116,6 +117,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
   /// Fields a nutrition table scan filled in that the user should check.
   Set<String> _uncertainFields = {};
   bool _scanningLabel = false;
+
+  /// Whether the values came from a table scan, which is when saving offers
+  /// to send them to Open Food Facts (#81) – except for store-internal
+  /// codes, which name other products in other shops (#83).
+  bool _labelScanned = false;
 
   @override
   void initState() {
@@ -789,6 +795,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
 
     final kcal = values.energyKcal;
     setState(() {
+      _labelScanned = true;
       _formMode = CustomMealFormMode.advanced;
       _formModeHydrated = true;
       selectedUnit = values.basis;
@@ -1098,6 +1105,17 @@ class _EditMealScreenState extends State<EditMealScreen> {
       }
 
       if (!mounted) return;
+      if (_labelScanned &&
+          rawBarcode.isNotEmpty &&
+          !isStoreInternalBarcode(rawBarcode)) {
+        try {
+          await locator<OffContributionFlow>()
+              .offer(context, rawBarcode, newMealEntity.nutriments);
+        } catch (error, stackTrace) {
+          log.warning('Open Food Facts upload offer failed', error, stackTrace);
+        }
+        if (!mounted) return;
+      }
       if (_editOnly) {
         Navigator.of(context).pop();
       } else {

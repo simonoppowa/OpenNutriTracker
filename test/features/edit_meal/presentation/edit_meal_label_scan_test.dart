@@ -13,8 +13,10 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/off_contribution/presentation/off_contribution_flow.dart';
 import 'package:opennutritracker/features/scanner/data/nutrition_label_scanner.dart';
 import 'package:opennutritracker/features/scanner/data/text_recognizer.dart';
 import 'package:opennutritracker/features/scanner/util/nutrition_label_parser.dart';
@@ -297,6 +299,96 @@ void main() {
     );
   });
 
+  Future<void> scanAndSave(
+    WidgetTester tester,
+    String barcode,
+    List<(String, double?)> offers,
+  ) async {
+    registerScanner(label);
+    getIt.registerLazySingleton<OffContributionFlow>(
+      () => _RecordingFlow(offers),
+    );
+    await pumpEditMeal(
+      tester,
+      EditMealScreenArguments(
+        DateTime(2026, 10, 19),
+        MealEntity.empty(),
+        IntakeTypeEntity.snack,
+        false,
+        barcode: barcode,
+        scanLabelOnOpen: true,
+      ),
+    );
+    await tester.tap(find.text(l10nEn.labelScanCamera));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text(l10nEn.mealNameLabel),
+          matching: find.byType(TextFormField),
+        ),
+        matching: find.byType(TextField),
+      ),
+      'Studenten-Futter',
+    );
+    await tester.tap(find.text(l10nEn.buttonSaveLabel));
+    await tester.pumpAndSettle();
+
+    expect(find.text('meal-detail'), findsOneWidget);
+  }
+
+  testWidgets('saving a scanned food with a barcode offers the upload', (
+    tester,
+  ) async {
+    final offers = <(String, double?)>[];
+    await scanAndSave(tester, '4056489123453', offers);
+
+    expect(offers, [('4056489123453', 250.0)]);
+  });
+
+  testWidgets('a store-internal code is never offered for upload', (
+    tester,
+  ) async {
+    final offers = <(String, double?)>[];
+    await scanAndSave(tester, '20697112', offers);
+
+    expect(offers, isEmpty);
+  });
+
+  testWidgets('a food typed in by hand is never offered for upload', (
+    tester,
+  ) async {
+    final offers = <(String, double?)>[];
+    getIt.registerLazySingleton<OffContributionFlow>(
+      () => _RecordingFlow(offers),
+    );
+    await pumpEditMeal(
+      tester,
+      EditMealScreenArguments(
+        DateTime(2026, 10, 19),
+        MealEntity.empty(),
+        IntakeTypeEntity.snack,
+        false,
+        barcode: '4056489123453',
+      ),
+    );
+    await tester.enterText(
+      find.descendant(
+        of: find.ancestor(
+          of: find.text(l10nEn.mealNameLabel),
+          matching: find.byType(TextFormField),
+        ),
+        matching: find.byType(TextField),
+      ),
+      'Studenten-Futter',
+    );
+    await tester.tap(find.text(l10nEn.buttonSaveLabel));
+    await tester.pumpAndSettle();
+
+    expect(find.text('meal-detail'), findsOneWidget);
+    expect(offers, isEmpty);
+  });
+
   group('barcode check digit on save', () {
     Future<void> saveWithBarcode(WidgetTester tester, String code) async {
       final meal = MealEntity.empty();
@@ -398,4 +490,17 @@ class _FakeCacheManager implements CacheManager {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+class _RecordingFlow implements OffContributionFlow {
+  final List<(String, double?)> offers;
+
+  _RecordingFlow(this.offers);
+
+  @override
+  Future<void> offer(
+    BuildContext context,
+    String barcode,
+    MealNutrimentsEntity nutriments,
+  ) async => offers.add((barcode, nutriments.energyKcal100));
 }

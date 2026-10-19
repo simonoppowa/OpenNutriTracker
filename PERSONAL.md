@@ -28,6 +28,7 @@ vervollständigt.
 | Scanner | Nährwerttabelle fotografieren: Texterkennung auf dem Gerät (Apple Vision, `ios/Runner/NutritionTextRecognizer.swift`), Parser für deutsche Tabellen, vorausgefülltes Formular mit markierten unsicheren Feldern; Einstiege im Dialog „Eigenes Lebensmittel“, im Formular, bei OFF-Produkten ohne Nährwerte und bei unstimmigen Werten. Das Foto wird nach der Erkennung gelöscht | #60–#63 |
 | Scanner | 8-stellige Händlercodes mit Präfix 2 (Lidl, Penny …) sind nicht eindeutig: Rückfrage „Ist das dein Produkt?“ einmal pro Code; „Nein“ legt ein eigenes Lebensmittel mit dem Code an (Tabellen-Scan), das beim nächsten Scan gewinnt. Bestätigte Codes: ConfigDBO-Feld 102, im Backup (`app_settings.json`) | #83 |
 | Scanner | Nach einem Tabellen-Scan ohne Barcode bietet der Hinweis „Barcode scannen“ an; beim Speichern wird die Prüfziffer aller Barcode-Längen (EAN-8, UPC-A, EAN-13, GTIN-14) geprüft | #64 |
+| Open Food Facts | Opt-in „Beiträge an Open Food Facts“: nach dem Speichern eines gescannten Lebensmittels mit Barcode Vorschau der Nährwerte, Senden nur nach Bestätigung, nie über vorhandene Werte; Zugangsdaten nur in der Keychain; Testserver standardmäßig an. Bewusste Ausnahme von „keine externen Dienste“ | #81 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
@@ -125,6 +126,9 @@ Onboarding (#100).
 ## Datenquellen
 
 - **Open Food Facts**: online, Text- und Barcode-Suche.
+  Schreiben nur per Opt-in (#81, Einstellungen → Beiträge an Open Food Facts):
+  zuerst mit eingeschaltetem Testserver (`world.openfoodfacts.net`) einen Upload
+  ausprobieren, erst danach den Schalter für die echte Datenbank umlegen.
 - **BLS 4.0** (Bundeslebensmittelschlüssel, © Max Rubner-Institut,
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)): liegt als
   `assets/bls/bls_4_0.json.gz` in der App (7.140 Lebensmittel, 38 Nährstofffelder,
