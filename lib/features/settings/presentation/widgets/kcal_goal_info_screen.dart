@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
+import 'package:opennutritracker/features/goals/presentation/own_goals_note.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -74,6 +75,7 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: Dimens.spacing16),
+              if (widget.breakdown == null) const OwnGoalsNote(),
               _InputsCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing12),
               _TdeeCard(breakdown: breakdown),

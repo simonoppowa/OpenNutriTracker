@@ -1537,5 +1537,11 @@
   "autoTrainingDayAutomatic": "Switch",
   "trainingDaySuggestion": "Activity logged. Make this a training day?",
   "trainingDaySuggestionAction": "Training day",
-  "trainingDaySwitched": "This is a training day now"
+  "trainingDaySwitched": "This is a training day now",
+  "ownGoalsNoteTitle": "Your own goals apply",
+  "ownGoalsNoteTrainingTitle": "Your training day goals apply",
+  "ownGoalsNoteBody": "The calculation below is shown for comparison. Change your goals under Settings → Goals.",
+  "ownGoalsNoteFixedKcal": "Fixed goal",
+  "ownGoalsNoteTotal": "Goal today",
+  "ownGoalsNoteGramsOnlyBody": "Your calorie goal is calculated as shown below; only the macros are set in grams. Change your goals under Settings → Goals."
 }

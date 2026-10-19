@@ -1486,5 +1486,11 @@
   "autoTrainingDayAutomatic": "Umschalten",
   "trainingDaySuggestion": "Aktivität eingetragen. Zum Trainingstag machen?",
   "trainingDaySuggestionAction": "Trainingstag",
-  "trainingDaySwitched": "Das ist jetzt ein Trainingstag"
+  "trainingDaySwitched": "Das ist jetzt ein Trainingstag",
+  "ownGoalsNoteTitle": "Es gelten deine eigenen Ziele",
+  "ownGoalsNoteTrainingTitle": "Es gelten deine Trainingstag-Ziele",
+  "ownGoalsNoteBody": "Die Berechnung unten dient zum Vergleich. Ziele änderst du unter Einstellungen → Ziele.",
+  "ownGoalsNoteFixedKcal": "Festes Ziel",
+  "ownGoalsNoteTotal": "Ziel heute",
+  "ownGoalsNoteGramsOnlyBody": "Dein Kalorienziel wird wie unten berechnet, nur die Makros sind in Gramm festgelegt. Ziele änderst du unter Einstellungen → Ziele."
 }
