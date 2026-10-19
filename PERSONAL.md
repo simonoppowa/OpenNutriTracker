@@ -27,6 +27,7 @@ vervollständigt.
 | Backup | Wasser, eigene Lebensmittel, Profil, Einstellungen, Fasten und alle Profile im JSON-Backup; „Alles ersetzen“; Hinweis auf alte Backups; automatisches WebDAV-Backup | #23–#28, #77, #78 |
 | Scanner | Nährwerttabelle fotografieren: Texterkennung auf dem Gerät (Apple Vision, `ios/Runner/NutritionTextRecognizer.swift`), Parser für deutsche Tabellen, vorausgefülltes Formular mit markierten unsicheren Feldern; Einstiege im Dialog „Eigenes Lebensmittel“, im Formular, bei OFF-Produkten ohne Nährwerte und bei unstimmigen Werten. Das Foto wird nach der Erkennung gelöscht | #60–#63 |
 | Scanner | 8-stellige Händlercodes mit Präfix 2 (Lidl, Penny …) sind nicht eindeutig: Rückfrage „Ist das dein Produkt?“ einmal pro Code; „Nein“ legt ein eigenes Lebensmittel mit dem Code an (Tabellen-Scan), das beim nächsten Scan gewinnt. Bestätigte Codes: ConfigDBO-Feld 102, im Backup (`app_settings.json`) | #83 |
+| Scanner | Nach einem Tabellen-Scan ohne Barcode bietet der Hinweis „Barcode scannen“ an; beim Speichern wird die Prüfziffer aller Barcode-Längen (EAN-8, UPC-A, EAN-13, GTIN-14) geprüft | #64 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

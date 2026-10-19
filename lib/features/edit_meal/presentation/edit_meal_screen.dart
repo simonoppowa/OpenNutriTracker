@@ -31,6 +31,7 @@ import 'package:opennutritracker/features/edit_meal/presentation/widgets/default
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/scanner/data/nutrition_label_scanner.dart';
 import 'package:opennutritracker/features/scanner/data/text_recognizer.dart';
+import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/features/scanner/util/nutrition_label_parser.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -732,6 +733,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _scanningLabel = true);
     String? message;
+    var filled = false;
     try {
       final values = await locator<NutritionLabelScanner>().scan(source);
       if (!mounted || values == null) return;
@@ -739,6 +741,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
         message = s.labelScanNothingFound;
       } else {
         _applyLabel(values);
+        filled = true;
         message = s.labelScanFilled(
           values.basis == 'ml' ? s.milliliterUnit : s.gramUnit,
         );
@@ -753,7 +756,18 @@ class _EditMealScreenState extends State<EditMealScreen> {
     } finally {
       if (mounted) setState(() => _scanningLabel = false);
     }
-    messenger.showSnackBar(SnackBar(content: Text(message)));
+    final offerBarcode = filled && _barcodeTextController.text.trim().isEmpty;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: offerBarcode
+            ? SnackBarAction(
+                label: s.customMealBarcodeScanButton,
+                onPressed: _scanBarcodeIntoField,
+              )
+            : null,
+      ),
+    );
   }
 
   /// Puts scanned per-100 values into the Advanced form, which is where
@@ -858,6 +872,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
         if (!isEan13CheckDigitValid(rawBarcode)) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(S.of(context).barcodeInvalidEan13CheckDigit)));
+          return;
+        }
+        if (const {8, 12, 14}.contains(rawBarcode.length) &&
+            !isValidBarcodeCheckDigit(rawBarcode)) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(S.of(context).barcodeInvalidCheckDigit)));
           return;
         }
       }

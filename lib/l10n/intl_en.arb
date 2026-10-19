@@ -1465,5 +1465,6 @@
   "storeCodeConfirmBody": "Codes starting with 2 are assigned by each retailer, so the same code can be a different product in another shop.",
   "storeCodeConfirmYes": "Yes, that's it",
   "storeCodeConfirmNo": "No, a different one",
-  "storeCodeRejectedInPicker": "Save it as your own food first to use it here."
+  "storeCodeRejectedInPicker": "Save it as your own food first to use it here.",
+  "barcodeInvalidCheckDigit": "This barcode looks miskeyed: its last digit doesn't match the rest"
 }

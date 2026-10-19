@@ -4,6 +4,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -41,6 +42,7 @@ void main() {
 
   setUp(() {
     photosTaken = 0;
+    _FakeCustomMealDataSource.saved.clear();
     getIt.registerFactory<EditMealBloc>(
       () => EditMealBloc(
         _FakeGetConfigUsecase(),
@@ -66,13 +68,19 @@ void main() {
         child: MaterialApp(
           localizationsDelegates: const [S.delegate],
           supportedLocales: S.supportedLocales,
-          onGenerateRoute: (settings) => MaterialPageRoute<void>(
-            settings: RouteSettings(
-              name: NavigationOptions.editMealRoute,
-              arguments: arguments,
-            ),
-            builder: (_) => const EditMealScreen(),
-          ),
+          onGenerateRoute: (settings) =>
+              settings.name == NavigationOptions.mealDetailRoute
+              ? MaterialPageRoute<void>(
+                  settings: settings,
+                  builder: (_) => const Scaffold(body: Text('meal-detail')),
+                )
+              : MaterialPageRoute<void>(
+                  settings: RouteSettings(
+                    name: NavigationOptions.editMealRoute,
+                    arguments: arguments,
+                  ),
+                  builder: (_) => const EditMealScreen(),
+                ),
         ),
       ),
     );
@@ -263,6 +271,80 @@ void main() {
     expect(fieldText(tester, l10nEn.customMealBarcodeLabel), '4056489123456');
     expect(fieldText(tester, l10nEn.mealEnergyLabel), '250');
   });
+
+  testWidgets('after a scan without a barcode it offers to scan one', (
+    tester,
+  ) async {
+    registerScanner(label);
+    await pumpEditMeal(
+      tester,
+      EditMealScreenArguments(
+        DateTime(2026, 10, 19),
+        MealEntity.empty(),
+        IntakeTypeEntity.snack,
+        false,
+      ),
+    );
+
+    await tester.tap(find.text(l10nEn.labelScanAction));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.labelScanCamera));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.widgetWithText(SnackBarAction, l10nEn.customMealBarcodeScanButton),
+      findsOneWidget,
+    );
+  });
+
+  group('barcode check digit on save', () {
+    Future<void> saveWithBarcode(WidgetTester tester, String code) async {
+      final meal = MealEntity.empty();
+      await pumpEditMeal(
+        tester,
+        EditMealScreenArguments(
+          DateTime(2026, 10, 19),
+          meal,
+          IntakeTypeEntity.snack,
+          false,
+          barcode: code,
+        ),
+      );
+      await tester.enterText(
+        find.descendant(
+          of: find.ancestor(
+            of: find.text(l10nEn.mealNameLabel),
+            matching: find.byType(TextFormField),
+          ),
+          matching: find.byType(TextField),
+        ),
+        'Studenten-Futter',
+      );
+      await tester.tap(find.text(l10nEn.buttonSaveLabel));
+      await tester.pumpAndSettle();
+    }
+
+    for (final code in ['40084016', '036000291453', '14056489123459']) {
+      testWidgets('rejects $code, whose last digit does not match', (
+        tester,
+      ) async {
+        await saveWithBarcode(tester, code);
+
+        expect(find.text(l10nEn.barcodeInvalidCheckDigit), findsOneWidget);
+        expect(_FakeCustomMealDataSource.saved, isEmpty);
+      });
+    }
+
+    for (final code in ['40084015', '036000291452', '20697112']) {
+      testWidgets('accepts $code', (tester) async {
+        await saveWithBarcode(tester, code);
+
+        expect(find.text(l10nEn.barcodeInvalidCheckDigit), findsNothing);
+        expect(_FakeCustomMealDataSource.saved.single.code, code);
+        expect(find.text('meal-detail'), findsOneWidget);
+      });
+    }
+  });
 }
 
 OcrLine _line(String text, double y) =>
@@ -302,6 +384,11 @@ class _FakeConfigRepository implements ConfigRepository {
 }
 
 class _FakeCustomMealDataSource implements CustomMealDataSource {
+  static final saved = <MealDBO>[];
+
+  @override
+  Future<void> saveCustomMeal(MealDBO mealDBO) async => saved.add(mealDBO);
+
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');

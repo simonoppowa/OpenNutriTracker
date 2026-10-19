@@ -1422,5 +1422,6 @@
   "storeCodeConfirmBody": "Codes, die mit 2 beginnen, vergibt jeder Händler selbst. Derselbe Code kann in einem anderen Laden ein anderes Produkt sein.",
   "storeCodeConfirmYes": "Ja, das ist es",
   "storeCodeConfirmNo": "Nein, ein anderes",
-  "storeCodeRejectedInPicker": "Lege es zuerst als eigenes Lebensmittel an, um es hier zu verwenden."
+  "storeCodeRejectedInPicker": "Lege es zuerst als eigenes Lebensmittel an, um es hier zu verwenden.",
+  "barcodeInvalidCheckDigit": "Dieser Barcode scheint einen Tippfehler zu haben: die letzte Ziffer passt nicht zu den übrigen"
 }
