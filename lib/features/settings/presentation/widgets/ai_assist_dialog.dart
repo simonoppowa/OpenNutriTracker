@@ -503,12 +503,18 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // None of the four runtimes wants one by default; a reverse proxy in
     // front of one will. Typed beats stored, so a key entered in this dialog
     // is usable before OK commits it.
+    //
+    // The stored one only goes to the server it was saved for. Typing a new
+    // address and leaving the field asks *that* machine for its models, and
+    // falling back to the stored key sent a Gemini user's Google key to it
+    // as a bearer, before any save and even if the dialog was then cancelled
+    // (#1257).
     final typedKey = _apiKeyController.text.trim();
     final result = await _modelList.list(
       url,
       apiKey: typedKey.isNotEmpty
           ? typedKey
-          : await widget.storage.readApiKey(provider: provider),
+          : await _storedKeyFor(typed, provider),
     );
 
     // Dropping this one loses nothing: a newer request writes every field it
@@ -519,6 +525,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _modelIds = result.failure == null ? result.ids : null;
       _modelListFailure = result.failure;
     });
+  }
+
+  /// The key stored for [provider], but only while [typed] names the server
+  /// it was stored with; null for any other address.
+  Future<String?> _storedKeyFor(String typed, AiProvider provider) async {
+    final stored = await widget.storage.readEndpoint(provider: provider);
+    if (stored == null || !AiCredentialStorage.sameServer(stored, typed)) {
+      return null;
+    }
+    return widget.storage.readApiKey(provider: provider);
   }
 
   Future<void> _selectProvider(AiProvider provider) async {

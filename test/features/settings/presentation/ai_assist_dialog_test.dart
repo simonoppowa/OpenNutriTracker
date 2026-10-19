@@ -124,6 +124,9 @@ class _FakeProber implements AiEndpointProber {
 
 class _Server {
   final requests = <Uri>[];
+
+  /// The `authorization` header of each request, null where none was sent.
+  final authorizations = <String?>[];
   final http.Response Function(Uri url) _respond;
 
   /// Answers held open, per host, until the test releases them.
@@ -173,6 +176,7 @@ class _Server {
   late final AiModelListApi api = AiModelListApi(
     client: MockClient((request) async {
       requests.add(request.url);
+      authorizations.add(request.headers['authorization']);
       final held = gates[request.url.host];
       if (held != null) await held.future;
       return _respond(request.url);
@@ -1144,6 +1148,37 @@ void main() {
         l10nEn.aiAssistModelsRejectedLabel(host),
         l10nEn.aiAssistModelsInsecureLabel,
       ];
+
+      testWidgets('a stored key goes only to the server it was saved for', (
+        tester,
+      ) async {
+        // #1257: typing a new address and leaving the field asks that machine
+        // for its models, and the stored key used to go with it — a Gemini
+        // key sent as a bearer to whatever answered, before any save.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+          model: 'gemini-3.1-pro',
+          provider: AiProvider.ownServer,
+        );
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+        await commitEndpoint(tester, 'https://other.example.org/v1');
+        await tester.pumpAndSettle();
+        await commitEndpoint(
+          tester,
+          'https://generativelanguage.googleapis.com/v1beta/openai/',
+        );
+        await tester.pumpAndSettle();
+
+        expect(server.requests.map((u) => u.host), [
+          'other.example.org',
+          'generativelanguage.googleapis.com',
+        ]);
+        expect(server.authorizations, [null, 'Bearer google-key']);
+      });
 
       testWidgets('opening the dialog asks the server nothing', (tester) async {
         // The promise the README is built on is about what leaves the device

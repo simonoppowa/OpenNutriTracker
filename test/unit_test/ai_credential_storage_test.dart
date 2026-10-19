@@ -1126,6 +1126,65 @@ void main() {
       );
     });
 
+    group('a key belongs to the server it was saved for (#1257)', () {
+      Future<void> configure(String endpoint) async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        await storage.writeOwnServerConfiguration(
+          endpoint: endpoint,
+          model: 'some-model',
+          provider: AiProvider.ownServer,
+        );
+      }
+
+      test('moving to another host forgets it', () async {
+        // Kept, every meal would carry a Google key as a bearer to whatever
+        // answers at the new address.
+        await configure(
+          'https://generativelanguage.googleapis.com/v1beta/openai/',
+        );
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        await configure('https://other.example.org/v1');
+
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          isNull,
+        );
+      });
+
+      test('another port on the same host is another server', () async {
+        await configure('http://192.168.1.5:11434');
+        await storage.writeApiKey('key', provider: AiProvider.ownServer);
+
+        await configure('http://192.168.1.5:8080');
+
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          isNull,
+        );
+      });
+
+      test('a changed route on the same server keeps it', () async {
+        await configure('http://192.168.1.5:11434');
+        await storage.writeApiKey('key', provider: AiProvider.ownServer);
+
+        await configure('http://192.168.1.5:11434/proxy/v1');
+
+        expect(await storage.readApiKey(provider: AiProvider.ownServer), 'key');
+      });
+
+      test('a key saved with the new address is the one kept', () async {
+        // The dialog's order: the address first, then the key typed with it.
+        await configure('https://old.example.org/v1');
+        await storage.writeApiKey('old', provider: AiProvider.ownServer);
+
+        await configure('https://new.example.org/v1');
+        await storage.writeApiKey('new', provider: AiProvider.ownServer);
+
+        expect(await storage.readApiKey(provider: AiProvider.ownServer), 'new');
+      });
+    });
+
     group('a Gemini verdict recorded before #1257', () {
       // Before #1257 the check asked Gemini with `tool_choice: "required"`
       // and, from Google's documented base, at the base itself. A `failed`

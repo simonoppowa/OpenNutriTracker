@@ -593,6 +593,21 @@ class AiCredentialStorage {
     return '$host:${uri.port}';
   }
 
+  /// Whether [a] and [b] reach the same server: the same host on the same
+  /// port, whatever the route.
+  ///
+  /// What a key stored for this provider is bound to. It was typed for one
+  /// server, and handing it to another — a request for the model list, a
+  /// setup check, a meal — sends someone's credential to a machine it was
+  /// never meant for (#1257). Unparseable means "not the same", so the doubt
+  /// falls on the side of withholding the key.
+  static bool sameServer(String a, String b) {
+    final x = Uri.tryParse(a.trim());
+    final y = Uri.tryParse(b.trim());
+    if (x == null || y == null || x.host.isEmpty) return false;
+    return x.host == y.host && x.port == y.port;
+  }
+
   /// Whether [provider] has what it needs to be used at all.
   ///
   /// The generalisation #755 exists for. The rule was never really about
@@ -776,6 +791,14 @@ class AiCredentialStorage {
       // "photos work here" was a fact about a machine, and this is a
       // different machine. #779.
       await _storage.delete(key: _probeSlotTag(target));
+    }
+    // And the key, when the address names another machine. It is the
+    // credential for the server it was typed for — a Gemini key is Google's —
+    // and kept, every meal would carry it as a bearer to whatever answers at
+    // the new address (#1257). A changed route on the same host and port is
+    // the same server and keeps it.
+    if (previous != null && !sameServer(previous, value)) {
+      await _storage.delete(key: _slotTag(target));
     }
     await _storage.write(key: _endpointSlotTag(target), value: value);
 
