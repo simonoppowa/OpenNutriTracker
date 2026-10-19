@@ -61,22 +61,21 @@ class DailyReminderScheduler {
   /// Saving the flag and telling the OS are two steps, and either can fail
   /// after the other has happened. A save can even fail half-way: the
   /// config is written to the shared and the profile box separately, and
-  /// the flag is read from the shared one. So when any step fails, the
-  /// saved flag is read back and the two are brought into line before the
-  /// error is rethrown (#1389):
+  /// the flag is read from the shared one. And an alarm can be set while
+  /// the flag reads off before this call starts, left by an earlier
+  /// failure such as a [stopAll] whose cancel failed. So whichever step
+  /// fails, the outcome is decided from what is saved and what the OS
+  /// holds, not from what this call meant to do (#1389):
   ///
-  /// - the flag reads on: an alarm is set (or was never replaced), so it
-  ///   stays.
-  /// - the flag reads off while an alarm may be set: the alarm is
-  ///   cancelled, or, if the OS refuses that, the flag is put back to on.
-  ///   A cancel that fails while the flag already read off is the one case
-  ///   where this call cannot know: an earlier failure, such as a [stopAll]
-  ///   whose cancel failed, may have left an alarm. The OS is asked, and
-  ///   the flag goes to on only if it holds one, so a reminder the user
-  ///   never had is not switched on.
+  /// - the flag reads on: it stays on, and any alarm with it; if none is
+  ///   set, the next [reschedule] sets it.
+  /// - the flag reads off: the OS is asked whether it holds the reminder.
+  ///   If it does, the reminder is cancelled, or, when the OS refuses that,
+  ///   the flag is put back to on. If the OS cannot be asked, what this
+  ///   call knows stands in: an alarm it set, or one the flag said was set.
   ///
-  /// Should that fail as well, the switch reads off with an alarm still
-  /// set, which the next [reschedule] cancels.
+  /// Only if all of that fails too does the switch read off with an alarm
+  /// still set, which the next [reschedule] cancels.
   Future<void> setEnabled(bool enabled, {required Locale locale}) =>
       _serialized(() async {
         final config = await _configRepository.getConfig();
@@ -99,9 +98,12 @@ class DailyReminderScheduler {
         }
       });
 
-  /// Makes the alarm follow the saved flag after a [setEnabled] step
-  /// failed, or the flag follow the alarm when the OS will not cancel it.
-  /// A failure here is logged rather than allowed to hide the first error.
+  /// After a [setEnabled] step failed: while the saved flag reads off, no
+  /// reminder may stay pending, so one that is gets cancelled — or, if the
+  /// OS refuses, the flag goes back to on to match it. [alarmSet] answers
+  /// for the OS when it cannot be asked; [cancelFailed] skips a second
+  /// cancel straight after one that failed. A failure here is logged rather
+  /// than allowed to hide the first error.
   Future<void> _reconcile({
     required bool alarmSet,
     required bool cancelFailed,
@@ -109,10 +111,8 @@ class DailyReminderScheduler {
     try {
       final saved = (await _configRepository.getConfig()).notificationsEnabled;
       if (saved) return;
-      if (cancelFailed) {
-        if (!alarmSet && !await _reminderPending()) return;
-      } else {
-        if (!alarmSet) return;
+      if (!await _reminderPending(orElse: alarmSet)) return;
+      if (!cancelFailed) {
         try {
           await _notificationService.cancelDailyReminder();
           return;
@@ -153,9 +153,8 @@ class DailyReminderScheduler {
     }
   });
 
-  /// Whether the OS holds the reminder; false if it cannot say, which
-  /// leaves an alarm, if there is one, to the next [reschedule].
-  Future<bool> _reminderPending() async {
+  /// Whether the OS holds the reminder, or [orElse] if it cannot say.
+  Future<bool> _reminderPending({required bool orElse}) async {
     try {
       return await _notificationService.isDailyReminderPending();
     } catch (error, stackTrace) {
@@ -164,7 +163,7 @@ class DailyReminderScheduler {
         error,
         stackTrace,
       );
-      return false;
+      return orElse;
     }
   }
 

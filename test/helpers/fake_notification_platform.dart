@@ -26,6 +26,9 @@ class FakeNotificationPlatform {
   /// When set, the next `cancel` fails and what was pending stays.
   bool failNextCancel = false;
 
+  /// When set, the next query for pending notifications fails.
+  bool failNextPendingQuery = false;
+
   TestDefaultBinaryMessenger get _messenger =>
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
 
@@ -56,6 +59,10 @@ class FakeNotificationPlatform {
         case 'cancelAll':
           pending.clear();
         case 'pendingNotificationRequests':
+          if (failNextPendingQuery) {
+            failNextPendingQuery = false;
+            throw PlatformException(code: 'query_failed');
+          }
           return [
             for (final arguments in pending.values)
               {

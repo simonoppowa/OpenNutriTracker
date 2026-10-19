@@ -484,6 +484,92 @@ void main() {
     });
   });
 
+  group('a failed setEnabled leaves the switch and the alarm agreeing', () {
+    late FakeNotificationPlatform platform;
+
+    setUp(() => (platform = FakeNotificationPlatform()).install());
+    tearDown(() => platform.uninstall());
+
+    // Where the call starts from: the saved flag, and whether the OS holds
+    // the reminder. "Off with an alarm" is what a delete-all whose cancel
+    // failed leaves behind.
+    const starts = {
+      'off': (enabled: false, alarm: false),
+      'off with a stale alarm': (enabled: false, alarm: true),
+      'on': (enabled: true, alarm: true),
+    };
+
+    const unknowable = 'the cancel fails and the OS cannot be asked';
+
+    // What goes wrong, singly and together.
+    final failures = <String, void Function(_Config, bool enabled)>{
+      'the schedule fails': (_, _) => platform.failNextSchedule = true,
+      'the save fails': (c, enabled) => c.failSaving.add(enabled),
+      'the save fails after it reads': (c, enabled) =>
+          c.failAfterSaving.add(enabled),
+      'the cancel fails': (_, _) => platform.failNextCancel = true,
+      'the save and the cancel fail': (c, enabled) {
+        c.failSaving.add(enabled);
+        platform.failNextCancel = true;
+      },
+      'the save half-fails and the cancel fails': (c, enabled) {
+        c.failAfterSaving.add(enabled);
+        platform.failNextCancel = true;
+      },
+      unknowable: (_, _) {
+        platform.failNextCancel = true;
+        platform.failNextPendingQuery = true;
+      },
+    };
+
+    for (final MapEntry(key: from, value: start) in starts.entries) {
+      for (final enabled in [true, false]) {
+        for (final MapEntry(key: what, value: inject) in failures.entries) {
+          test('${enabled ? 'on' : 'off'} from $from, when $what', () async {
+            final config = _Config(_config(enabled: start.alarm));
+            final scheduler = DailyReminderScheduler(
+              config,
+              NotificationService(),
+            );
+            await scheduler.refresh(locale: const Locale('en'));
+            config.config = _config(enabled: start.enabled);
+            expect(platform.pending.isNotEmpty, start.alarm);
+
+            inject(config, enabled);
+            try {
+              await scheduler.setEnabled(enabled, locale: const Locale('en'));
+            } catch (_) {}
+
+            if (start.alarm &&
+                !start.enabled &&
+                !enabled &&
+                what == unknowable) {
+              // Nothing says an alarm is set, and the OS can neither cancel
+              // it nor say whether it holds one: the user's "off" stands,
+              // and the next refresh, which cancels while off, removes it.
+              expect(config.config.notificationsEnabled, isFalse);
+              await scheduler.refresh(locale: const Locale('en'));
+              expect(platform.pending, isEmpty);
+              return;
+            }
+            expect(
+              config.config.notificationsEnabled,
+              platform.pending.isNotEmpty,
+              reason: 'Settings must read what the OS will fire',
+            );
+            if (!start.enabled && !start.alarm && !enabled) {
+              expect(
+                config.config.notificationsEnabled,
+                isFalse,
+                reason: 'a reminder the user never had must not switch on',
+              );
+            }
+          });
+        }
+      }
+    }
+  });
+
   group('LocaleProvider', () {
     test('reports a language change, including back to "System default"', () {
       final changes = <Locale?>[];
