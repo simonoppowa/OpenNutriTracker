@@ -44,11 +44,13 @@ class ProfileSwitchCoordinator {
 
     await _switchProfileUsecase.switchProfile(profile);
     final hasUserData = await _userRepository.hasUserData();
-    // The Home reload that would republish the widget is skipped for an
-    // empty profile, so the outgoing profile's figures would stay on the
-    // home screen until the day ended. Done before the mounted check: it
-    // is about the new active profile, not about this screen.
-    if (!hasUserData) await _clearCalorieWidget();
+    // The widget still shows the outgoing profile. For an empty profile
+    // nothing republishes it, and for an onboarded one only the Home
+    // reload below does, which an unmounted context skips. Done before the
+    // mounted check: it is about the new active profile, not this screen.
+    // A Home load already reading the outgoing profile is dropped by the
+    // store's generation check.
+    await _clearCalorieWidget();
     if (!context.mounted) return;
 
     if (hasUserData) {

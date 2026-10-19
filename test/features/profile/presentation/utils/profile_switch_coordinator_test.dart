@@ -24,6 +24,12 @@ class _EmptyUserRepository extends Fake implements UserRepository {
   Future<bool> hasUserData() async => false;
 }
 
+/// A profile that finished onboarding.
+class _OnboardedUserRepository extends Fake implements UserRepository {
+  @override
+  Future<bool> hasUserData() async => true;
+}
+
 class _FakeGetProfilesUsecase extends Fake implements GetProfilesUsecase {
   @override
   String get activeProfileId => 'outgoing';
@@ -123,5 +129,25 @@ void main() {
 
     expect(store.clears, 1);
     expect(find.text('onboarding'), findsOneWidget);
+  });
+
+  testWidgets('switching to an onboarded profile from a screen that closed '
+      'meanwhile still clears the calorie widget', (tester) async {
+    // The Home reload that would republish the widget for the new profile
+    // is skipped for an unmounted context, so without the clear the
+    // outgoing profile's figures would stay on the home screen.
+    final store = _RecordingWidgetStore();
+    final coordinator = ProfileSwitchCoordinator(
+      _FakeSwitchProfileUsecase(),
+      _OnboardedUserRepository(),
+      calorieWidgetStore: store,
+    );
+    final context = await pumpHost(tester);
+    await tester.pumpWidget(const SizedBox());
+    expect(context.mounted, isFalse, reason: 'setup');
+
+    await coordinator.switchTo(context, fresh);
+
+    expect(store.clears, 1);
   });
 }
