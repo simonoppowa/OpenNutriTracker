@@ -177,6 +177,11 @@ class ImportWeightsUsecase {
           existing?.weightKg == reading.weightKg) {
         continue;
       }
+      // A stored reading taken later than this one stays: it can only be
+      // missing from this read because it left the health store, and an
+      // earlier reading from the same day must not take its place.
+      final storedAt = existing?.measuredAt;
+      if (storedAt != null && storedAt.isAfter(reading.measuredAt)) continue;
       await _weightLogRepository.addEntry(
         WeightLogEntity(
           date: day,
@@ -334,37 +339,17 @@ class ImportWeightsUsecase {
     List<WeightLogEntity> entries,
     DateTime? profileCreatedAt,
   ) {
-    WeightLogEntity? newestImported;
-    WeightLogEntity? newestManual;
-    for (final entry in entries) {
-      if (entry.isImported) {
-        if (newestImported == null ||
-            _takenAt(entry).isAfter(_takenAt(newestImported))) {
-          newestImported = entry;
-        }
-      } else if (newestManual == null ||
-          entry.date.isAfter(newestManual.date)) {
-        newestManual = entry;
-      }
-    }
-    if (newestImported == null) return null;
-    if (newestManual != null) {
-      return newestImported.date.isAfter(newestManual.date)
-          ? newestImported
-          : null;
-    }
+    final newest = WeightLogEntity.newestOf(entries);
+    if (newest == null || !newest.isImported) return null;
+    // No manual entry at all: the weight came from an onboarding that did
+    // not log it yet, so the profile's creation stands in for its date.
     if (profileCreatedAt != null &&
-        !_takenAt(newestImported).isAfter(profileCreatedAt)) {
+        !entries.any((entry) => !entry.isImported) &&
+        !newest.takenAt.isAfter(profileCreatedAt)) {
       return null;
     }
-    return newestImported;
+    return newest;
   }
-
-  /// When an imported entry's reading was taken. An entry filed before that
-  /// was recorded counts as the start of its day, the earliest it can have
-  /// been — which errs toward keeping a weight the user gave.
-  static DateTime _takenAt(WeightLogEntity entry) =>
-      entry.measuredAt ?? entry.date;
 
   /// Whether the run that started under [profileId] may still write: the
   /// profile is still active and weight import is still on for it. The flag

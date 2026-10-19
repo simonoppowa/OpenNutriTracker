@@ -266,6 +266,22 @@ void main() {
       expect(entry.weightKg, equals(79.8));
     });
 
+    test('a stored later reading is not replaced by an earlier one', () async {
+      healthService.weights = [
+        _reading('c', DateTime(2026, 5, 23, 7), 80.2),
+        _reading('d', DateTime(2026, 5, 23, 11), 79.8),
+      ];
+      await usecase.importNow();
+
+      // 'd' left the health store; the overlapping read returns 'c' alone.
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
+      ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+
+      expect(await usecase.importNow(), equals(0));
+      expect((await weightLogRepository.getEntry(today))!.externalId, 'd');
+      expect((await userRepository.getUserData()).weightKG, equals(79.8));
+    });
+
     test('re-reading the same readings writes nothing', () async {
       healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
       await usecase.importNow();
@@ -724,6 +740,34 @@ void main() {
       expect(await deleteUsecase.deleteEntry(today), isTrue);
 
       expect((await userRepository.getUserData()).weightKG, equals(82.0));
+    });
+
+    test('deleting the current reading after a time-zone change restores the '
+        'one before it', () async {
+      // After a move west: 'old' kept the day it was filed on, and the
+      // later reading — the current weight — sits on the earlier date.
+      await weightLogRepository.addEntry(
+        WeightLogEntity(
+          date: today,
+          weightKg: 81.0,
+          externalId: 'old',
+          measuredAt: DateTime(2026, 5, 23, 7),
+        ),
+      );
+      await weightLogRepository.addEntry(
+        WeightLogEntity(
+          date: yesterday,
+          weightKg: 79.5,
+          externalId: 'new',
+          measuredAt: DateTime(2026, 5, 23, 12),
+        ),
+      );
+      await usecase.importNow();
+      expect((await userRepository.getUserData()).weightKG, equals(79.5));
+
+      expect(await deleteUsecase.deleteEntry(yesterday), isTrue);
+
+      expect((await userRepository.getUserData()).weightKG, equals(81.0));
     });
 
     test('deleting an older imported entry leaves the current weight', () async {

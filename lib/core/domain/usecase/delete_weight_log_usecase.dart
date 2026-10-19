@@ -80,18 +80,20 @@ class DeleteWeightLogUsecase {
   /// remaining entry, manual or imported, takes its place; with none left
   /// the current weight stays as it is.
   ///
-  /// Only an imported entry, the newest in the log, whose weight is the
-  /// current one counts as having set it. Deleting a manual entry leaves the
-  /// current weight alone, as it always has.
+  /// Only an imported entry that [WeightLogEntity.newestOf] picks — the
+  /// ordering the import promotes by — and whose weight is the current one
+  /// counts as having set it. Deleting a manual entry leaves the current
+  /// weight alone, as it always has.
   Future<bool> _replaceDeletedCurrentWeight(WeightLogEntity deleted) async {
     if (!await _userRepository.hasUserData()) return false;
     final remaining = await _weightLogRepository.getAllEntries();
-    if (remaining.any((e) => e.date.isAfter(deleted.date))) return false;
+    if (WeightLogEntity.newestOf([...remaining, deleted]) != deleted) {
+      return false;
+    }
     final user = await _userRepository.getUserData();
     if (user.weightKG != deleted.weightKg) return false;
-    if (remaining.isEmpty) return false;
-    final newest = remaining.reduce((a, b) => b.date.isAfter(a.date) ? b : a);
-    if (newest.weightKg == user.weightKG) return false;
+    final newest = WeightLogEntity.newestOf(remaining);
+    if (newest == null || newest.weightKg == user.weightKG) return false;
     user.weightKG = newest.weightKg;
     await _userRepository.updateUserData(user);
     return true;
