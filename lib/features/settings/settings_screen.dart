@@ -8,7 +8,6 @@ import 'package:opennutritracker/core/l10n/shipped_locales.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
-import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
 import 'package:opennutritracker/core/presentation/widgets/badged_title.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -88,14 +87,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late AiCredentialStorage _aiCredentials;
   late AiEndpointProbeRunner _aiProbeRunner;
 
-  /// Null until the first read completes; the tile shows no subtitle rather
-  /// than briefly claiming the feature is off.
-  bool? _aiConfigured;
-  String? _aiEndpoint;
-  bool _aiEnabled = false;
-  /// Null when the stored name is unrecognised — see #753.
-  AiProvider? _aiProvider;
-
   /// Whether the route's arguments have been acted on.
   ///
   /// `didChangeDependencies` runs again for anything this screen depends on —
@@ -115,7 +106,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _calendarDayBloc = locator<CalendarDayBloc>();
     _trendsBloc = locator<TrendsBloc>();
     super.initState();
-    _refreshAiAssistState();
     // SettingsBloc is registered as a singleton so the previous
     // SettingsLoadedState survives across screen visits. The cache
     // count and on-disk size in particular are written in the
@@ -504,15 +494,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: S.of(context).settingsHealthSyncSubtitle,
                     showChevron: true,
                     onTap: () => _openHealthSyncScreen(context),
-                  ),
-                  _SettingsTile(
-                    identifier: 'settings-ai-assist',
-                    palette: palette,
-                    icon: Icons.auto_awesome_rounded,
-                    title: S.of(context).settingsAiAssistLabel,
-                    subtitle: _aiAssistSubtitle(context),
-                    badge: S.of(context).aiAssistExperimentalLabel,
-                    onTap: () => _openAiAssistDialog(context),
                   ),
                   _SettingsTile(
                     identifier: 'settings-import-custom-food',
@@ -1035,41 +1016,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _refreshAiAssistState() async {
-    final summary = await _aiCredentials.readSummary();
-    if (!mounted) return;
-    setState(() {
-      _aiConfigured = summary.configured;
-      _aiEnabled = summary.enabled;
-      _aiEndpoint = summary.endpoint;
-      _aiProvider = summary.provider;
-    });
-  }
-
-  /// The tile is the only place the destination is visible without opening
-  /// the dialog, so the "on" state names it.
-  ///
-  /// The switch itself lives in [aiAssistSubtitle], shared with onboarding's
-  /// Other options page since #728 — one exhaustive site rather than two that
-  /// can disagree about who is being sent to.
-  String? _aiAssistSubtitle(BuildContext context) => aiAssistSubtitle(
-    S.of(context),
-    configured: _aiConfigured,
-    endpoint: _aiEndpoint,
-    enabled: _aiEnabled,
-    provider: _aiProvider,
-  );
-
   Future<void> _openAiAssistDialog(BuildContext context) async {
     await AiAssistDialog.show(
       context,
       _aiCredentials,
       probeRunner: _aiProbeRunner,
     );
-    // Unconditionally, not only when the dialog reports a change: the
-    // subtitle is cheap to recompute and a stale one misdescribes what
-    // leaves the device.
-    await _refreshAiAssistState();
   }
 
   void _openFoodSourcesScreen(BuildContext context) {
@@ -1510,9 +1462,6 @@ class _SettingsTile extends StatelessWidget {
   final Color? titleColor;
   final String title;
   final String? subtitle;
-
-  /// A short status word shown beside the title, e.g. "Experimental".
-  final String? badge;
   final Widget? trailing;
   final bool showChevron;
   final bool enabled;
@@ -1527,26 +1476,19 @@ class _SettingsTile extends StatelessWidget {
     this.iconColor,
     this.titleColor,
     this.subtitle,
-    this.badge,
     this.trailing,
     this.showChevron = false,
     this.enabled = true,
   });
 
-  /// The title, with [badge] beside it when one is set.
-  ///
-  /// The overflow discipline moved into [BadgedTitle] for #728, when
-  /// onboarding needed the same marker — it is a rule rather than a layout,
-  /// and re-deriving it at a second site was the obvious way to get it subtly
-  /// wrong. The typography stays here, so a settings row still looks like a
-  /// settings row.
+  /// The title, laid out by [BadgedTitle] so a settings row keeps the same
+  /// overflow discipline as onboarding.
   Widget _titleWithBadge(
     BuildContext context,
     TextTheme text,
     AppPalette palette,
   ) => BadgedTitle(
     title: title,
-    badge: badge,
     palette: palette,
     style: text.titleMedium?.copyWith(
       fontWeight: FontWeight.w700,

@@ -115,11 +115,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// has not failed to discover it, and this line exists for discovery. The
   /// rule is one sentence: it shows only for someone who has configured
   /// nothing. #844.
+  ///
+  /// This fork hides AI assistance (#20), so the hint is never offered.
   late Future<bool> _modelUnknown = _resolveModelUnknown();
 
-  Future<bool> _resolveModelUnknown() async {
-    return !await locator<AiCredentialStorage>().hasAnyUsableProvider();
-  }
+  Future<bool> _resolveModelUnknown() async => false;
 
   /// Where a photo would actually go, **and the name the sheet gives it**.
   ///

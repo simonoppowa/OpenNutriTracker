@@ -5,8 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:async';
-import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart';
-import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
@@ -379,27 +377,6 @@ class _AlwaysFailsInterpreter implements MealTextInterpreter {
   @override
   Future<MealTextParseResult> interpret(String input, {String? localeCode}) =>
       throw failure;
-}
-
-/// A prober held open, so a probe can be started, left in flight while the
-/// user comes back, and landed on demand. #1089.
-class _GatedProber implements AiEndpointProber {
-  _GatedProber(this.result);
-
-  AiEndpointProbe result;
-  final gate = Completer<void>();
-
-  @override
-  Future<AiEndpointProbe> probe(
-    AiSelection selection, {
-    String? localeCode,
-  }) async {
-    await gate.future;
-    return result;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MapStorage implements FlutterSecureStorage {
@@ -2248,22 +2225,6 @@ void main() {
       getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
     }
 
-    testWidgets('offered to someone who has configured nothing', (
-      tester,
-    ) async {
-      await useStorage(const {});
-      await openBulkAdd(tester);
-
-      expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsOneWidget);
-      // The qualifier keeps a standing offer from being a bait: this app
-      // ships no model, and the tap leads to a third-party signup.
-      expect(find.text(l10nEn.bulkAddModelHintKeyLabel), findsOneWidget);
-      expect(
-        find.textContaining(l10nEn.aiAssistExperimentalLabel),
-        findsWidgets,
-      );
-    });
-
     testWidgets('not offered to someone already configured', (tester) async {
       await useStorage(const {'AiApiKeyTag.anthropic': 'sk-test'});
       await openBulkAdd(tester);
@@ -2327,68 +2288,6 @@ void main() {
   // back found the camera still hidden — with nothing to suggest it had ever
   // been there, or that anything they had just done had taken effect.
   group('coming back from settings with a provider now configured', () {
-    testWidgets('the camera appears without leaving the screen', (
-      tester,
-    ) async {
-      await _register(const {});
-      getIt.unregister<AiCredentialStorage>();
-      // Held rather than passed by value: writing into it partway through is
-      // this test's stand-in for the user configuring a provider over in
-      // settings, and the screen reads the same instance throughout.
-      final stored = _MapStorage(const {});
-      getIt.registerLazySingleton<AiCredentialStorage>(
-        () => AiCredentialStorage(stored),
-      );
-
-      final pushed = <RouteSettings>[];
-      await tester.pumpWidget(_app(pushed: pushed));
-      await tester.pumpAndSettle();
-      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
-      navigator.pushNamed('/bulk');
-      await tester.pumpAndSettle();
-
-      final camera = find.bySemanticsIdentifier('bulk-add-photo');
-      final hint = find.bySemanticsIdentifier('bulk-add-model-hint');
-      expect(camera, findsNothing, reason: 'nothing is configured yet');
-      expect(hint, findsOneWidget);
-
-      await tester.tap(hint);
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('settings-stub')), findsOneWidget);
-
-      // #992: the hint asks for the AI dialog by name, as the failure notice
-      // has since #852. Of this screen's two audiences the one reading this
-      // line knows least about where it is going, and it used to get the
-      // longer way round — the top of a long Settings list.
-      expect(
-        pushed
-            .lastWhere((route) => route.name == NavigationOptions.settingsRoute)
-            .arguments,
-        isA<SettingsScreenArguments>().having(
-          (arguments) => arguments.openAiAssist,
-          'openAiAssist',
-          isTrue,
-        ),
-      );
-
-      stored.values['AiProviderTag'] = 'anthropic';
-      stored.values['AiApiKeyTag.anthropic'] = 'sk-test';
-
-      navigator.pop();
-      await tester.pumpAndSettle();
-
-      expect(
-        camera,
-        findsOneWidget,
-        reason:
-            'the answers are re-resolved when settings pops, so the camera '
-            'appears without leaving and re-entering the screen',
-      );
-      // And the line inviting them to set one up has done its job.
-      expect(hint, findsNothing);
-      expect(tester.takeException(), isNull);
-    });
-
     testWidgets('and from the failure notice, which lands in the same place', (
       tester,
     ) async {
@@ -2441,105 +2340,6 @@ void main() {
 
       expect(find.bySemanticsIdentifier('bulk-add-photo'), findsOneWidget);
       expect(tester.takeException(), isNull);
-    });
-  });
-
-  group('an own-server probe that lands after the user is back (#1089)', () {
-    /// Nothing configured, so the discovery hint is on screen and the route
-    /// out of it is the one this exercises.
-    Future<
-      ({_MapStorage stored, _GatedProber prober, AiEndpointProbeRunner runner})
-    >
-    arrange(WidgetTester tester, AiCapability photo) async {
-      await _register(const {});
-      getIt.unregister<AiCredentialStorage>();
-      final stored = _MapStorage(const {});
-      final storage = AiCredentialStorage(stored);
-      getIt.registerLazySingleton<AiCredentialStorage>(() => storage);
-
-      final prober = _GatedProber(
-        AiEndpointProbe(text: AiCapability.passed, photo: photo, checked: true),
-      );
-      final runner = AiEndpointProbeRunner(storage, prober);
-      getIt.registerLazySingleton<AiEndpointProbeRunner>(() => runner);
-      return (stored: stored, prober: prober, runner: runner);
-    }
-
-    /// What the user does over in settings: saves an address, which starts a
-    /// probe the dialog deliberately does not await (#780).
-    void configureOwnServerAndStartProbe(
-      _MapStorage stored,
-      AiEndpointProbeRunner runner,
-    ) {
-      stored.values['AiProviderTag'] = 'ownServer';
-      stored.values['AiEndpointTag.ownServer'] = 'http://192.168.1.5:11434';
-      stored.values['AiModelTag.ownServer'] = 'gemma3:4b';
-      unawaited(runner.start(AiProvider.ownServer));
-    }
-
-    testWidgets('the camera appears when the verdict arrives', (tester) async {
-      final it = await arrange(tester, AiCapability.passed);
-
-      await tester.pumpWidget(_app());
-      await tester.pumpAndSettle();
-      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
-      navigator.pushNamed('/bulk');
-      await tester.pumpAndSettle();
-
-      final camera = find.bySemanticsIdentifier('bulk-add-photo');
-      expect(camera, findsNothing, reason: 'nothing is configured yet');
-
-      await tester.tap(find.bySemanticsIdentifier('bulk-add-model-hint'));
-      await tester.pumpAndSettle();
-      configureOwnServerAndStartProbe(it.stored, it.runner);
-      await tester.pump();
-
-      navigator.pop();
-      await tester.pumpAndSettle();
-      expect(
-        camera,
-        findsNothing,
-        reason: 'the probe has not landed, so the verdict is still unknown',
-      );
-
-      it.prober.gate.complete();
-      await tester.pumpAndSettle();
-
-      expect(
-        camera,
-        findsOneWidget,
-        reason: 'the screen hears the verdict land without being re-entered',
-      );
-    });
-
-    testWidgets('a probe that finds no photo capability leaves it hidden', (
-      tester,
-    ) async {
-      // Text works, photographs do not — a real llama.cpp answer, and the
-      // reason the camera waits on a probe at all.
-      final it = await arrange(tester, AiCapability.failed);
-
-      await tester.pumpWidget(_app());
-      await tester.pumpAndSettle();
-      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
-      navigator.pushNamed('/bulk');
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.bySemanticsIdentifier('bulk-add-model-hint'));
-      await tester.pumpAndSettle();
-      configureOwnServerAndStartProbe(it.stored, it.runner);
-      await tester.pump();
-      navigator.pop();
-      await tester.pumpAndSettle();
-
-      it.prober.gate.complete();
-      await tester.pumpAndSettle();
-
-      expect(
-        find.bySemanticsIdentifier('bulk-add-photo'),
-        findsNothing,
-        reason: 'a landed verdict is not the same as a passing one',
-      );
     });
   });
 
