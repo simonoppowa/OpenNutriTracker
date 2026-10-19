@@ -500,7 +500,9 @@ Future<void> initLocator() async {
       extras: locator(),
     ),
   );
-  locator.registerLazySingleton(() => PersonalBackupExtras(locator()));
+  locator.registerLazySingleton(
+    () => PersonalBackupExtras(locator(), locator()),
+  );
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));
   locator.registerLazySingleton(() => ImportRecipesCsvUsecase(locator()));
   locator.registerLazySingleton(() => DownloadSampleCsvUsecase());

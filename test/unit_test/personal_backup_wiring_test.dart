@@ -88,6 +88,7 @@ void main() {
   late PathProviderPlatform originalPathProvider;
   late Box<IntakeDBO> intakeBox;
   late Box<WaterIntakeDBO> waterBox;
+  late Box<MealDBO> customMealBox;
   late ExportDataUsecase exporter;
   late ImportDataUsecase importer;
   final openedBoxes = <Box<dynamic>>[];
@@ -112,6 +113,7 @@ void main() {
 
     intakeBox = await open<IntakeDBO>('intake');
     waterBox = await open<WaterIntakeDBO>('water');
+    customMealBox = await open<MealDBO>('custom_meal');
     final provider = FakeHiveDBProvider(
       intakeBox: intakeBox,
       waterIntakeBox: waterBox,
@@ -122,11 +124,12 @@ void main() {
       customActivityTemplateBox: await open<CustomActivityTemplateDBO>(
         'template',
       ),
-      customMealBox: await open<MealDBO>('custom_meal'),
+      customMealBox: customMealBox,
       configBox: await open<ConfigDBO>('config'),
     );
     final extras = PersonalBackupExtras(
       WaterIntakeRepository(WaterIntakeDataSource(provider)),
+      CustomMealDataSource(provider),
     );
     final configRepository = ConfigRepository(ConfigDataSource(provider));
     exporter = ExportDataUsecase(
@@ -216,6 +219,34 @@ void main() {
     expect(await importJson(), isTrue);
 
     expect(waterBox.values.single.amountMl, 300);
+  });
+
+  test('a custom meal comes back with its photo', () async {
+    const slug = 'meal_images/studentenfutter.webp';
+    final photo = File('${tempDir.path}/$slug');
+    await photo.parent.create(recursive: true);
+    await photo.writeAsBytes([7, 7, 7], flush: true);
+    await customMealBox.add(
+      MealDBO.fromJson({
+        'code': '20697112',
+        'name': 'Naturgut Bio Studentenfutter',
+        'mealQuantity': '100',
+        'mealUnit': 'g',
+        'source': 'custom',
+        'localImagePath': slug,
+        'nutriments': {'energyKcal100': 485.0},
+      }),
+    );
+    saveZip(await exportJson());
+    await customMealBox.clear();
+    await photo.delete();
+
+    expect(await importJson(), isTrue);
+
+    final restored = customMealBox.values.single;
+    expect(restored.code, '20697112');
+    expect(restored.localImagePath, slug);
+    expect(await photo.readAsBytes(), [7, 7, 7]);
   });
 
   List<int> oneIntake() => utf8.encode(

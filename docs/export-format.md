@@ -30,6 +30,7 @@ next to its CSV counterpart will not find one.
 | `custom_activity_templates.json` | Saved custom activities — name and typical kcal.         |
 | `goal_settings.json`             | The profile's goal settings. See [below](#goal_settingsjson). |
 | `water_intake.json`              | Water log (fork addition). See [below](#water_intakejson). |
+| `custom_meals.json`              | Saved custom meals (fork addition). See [below](#custom_mealsjson). |
 
 **CSV bundle**
 
@@ -169,10 +170,10 @@ from every other source are never scaled. Tooling that writes `off` rows in
 app units should set the version to `1`, or the importer will scale them a
 second time. The same repair runs once over the on-device data on the first
 launch after the upgrade — the diary, the Open Food Facts cache, the saved
-custom meals and the recipe library. Saved custom meals are not part of the
-bundle, so they are repaired on the device only (the app itself never saves
-an `off` product for reuse, so that box is covered for completeness rather
-than for a known row).
+custom meals and the recipe library. Saved custom meals are repaired on the
+device; this fork's `custom_meals.json` carries them as the device holds them,
+already repaired (the app itself never saves an `off` product for reuse, so
+that box is covered for completeness rather than for a known row).
 
 ### `user_activity.json`
 
@@ -297,6 +298,14 @@ without touching the water log.
   }
 ]
 ```
+
+### `custom_meals.json`
+
+Added by this fork (`PersonalBackupExtras`). Every saved custom meal, in the
+same meal shape as the `meal` object of `user_intake.json`. Restored through
+`CustomMealDataSource.saveCustomMeal`, which replaces a meal with the same
+barcode (`code`), or with the same name when it has none, so importing twice
+adds nothing. Photos travel as `meal_images/` entries, like those of intakes.
 
 ## CSV schema
 
