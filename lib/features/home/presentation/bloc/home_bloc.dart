@@ -79,6 +79,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
        super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
+      // A profile switch or delete-all may clear the widget while this
+      // load is still reading; the store then drops what it read.
+      final widgetGeneration = _calorieWidgetStore.generation;
 
       final configData = await _getConfigUsecase.getConfig();
       final dayStartOffsetHours = configData.dayStartOffsetHours;
@@ -258,6 +261,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         goalKcal: totalKcalGoal,
         offsetMinutes: configData.dayStartOffsetTotalMinutes,
         logicalDay: loadDay,
+        generation: widgetGeneration,
       );
     });
   }
@@ -267,6 +271,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required double goalKcal,
     required int offsetMinutes,
     required DateTime logicalDay,
+    required int generation,
   }) async {
     final snapshot = CalorieWidgetSnapshot.fromHome(
       consumedKcal: consumedKcal,
@@ -282,6 +287,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       await _calorieWidgetStore.write(
         snapshot,
         CalorieWidgetLabels.forAppLocale(snapshot),
+        generation: generation,
       );
     } catch (_) {
       // A widget write must not block the home screen.

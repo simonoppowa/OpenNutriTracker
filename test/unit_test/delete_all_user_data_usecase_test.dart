@@ -104,10 +104,14 @@ class _RecordingWidgetStore implements CalorieWidgetStore {
   _RecordingWidgetStore({this.fails = false});
 
   @override
+  int get generation => 0;
+
+  @override
   Future<void> write(
     CalorieWidgetSnapshot snapshot,
-    CalorieWidgetLabels labels,
-  ) async {}
+    CalorieWidgetLabels labels, {
+    int? generation,
+  }) async {}
 
   @override
   Future<void> clear() async {

@@ -83,6 +83,33 @@ void main() {
     expect(stored, german.languagePayload());
   });
 
+  test('a write read before a clear is dropped, a fresh one is not', () async {
+    // Home read the outgoing profile's totals, then a profile switch or
+    // delete-all cleared the widget before Home published them.
+    final store = HomeWidgetCalorieStore(isIOS: false);
+    final readAt = store.generation;
+    await store.clear();
+
+    await store.write(snapshot, german, generation: readAt);
+    expect(stored.keys, isNot(contains(CalorieWidgetSnapshot.consumedKey)));
+
+    await store.write(snapshot, german, generation: store.generation);
+    expect(stored, containsPair(CalorieWidgetSnapshot.consumedKey, '180'));
+  });
+
+  test('a write and a clear issued together leave no figures', () async {
+    // They run one at a time, so the clear's removals cannot interleave
+    // with the write's keys and leave half a snapshot behind.
+    final store = HomeWidgetCalorieStore(isIOS: false);
+    await Future.wait([
+      store.write(snapshot, german, generation: store.generation),
+      store.clear(),
+    ]);
+
+    expect(stored.keys, isNot(contains(CalorieWidgetSnapshot.consumedKey)));
+    expect(stored.keys, isNot(contains(CalorieWidgetSnapshot.goalKey)));
+  });
+
   test('clear reloads the iOS widget so it drops the old figures', () async {
     final store = HomeWidgetCalorieStore(isIOS: true);
     await store.write(snapshot, german);
@@ -237,10 +264,14 @@ class _RecordingStore implements CalorieWidgetStore {
   _RecordingStore({this.fails = false});
 
   @override
+  int get generation => 0;
+
+  @override
   Future<void> write(
     CalorieWidgetSnapshot snapshot,
-    CalorieWidgetLabels labels,
-  ) async {}
+    CalorieWidgetLabels labels, {
+    int? generation,
+  }) async {}
 
   @override
   Future<void> clear() async {}

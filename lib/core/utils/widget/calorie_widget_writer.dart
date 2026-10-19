@@ -10,10 +10,17 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 /// Writes a [CalorieWidgetSnapshot] where the widget extension can read it.
 abstract class CalorieWidgetStore {
+  /// Bumped by every [clear]. A caller that read its figures before a
+  /// clear passes the generation it saw to [write], which then drops them,
+  /// so a wiped or switched-away profile cannot be written back.
+  int get generation;
+
+  /// Skipped when [generation] is given and a [clear] has run since.
   Future<void> write(
     CalorieWidgetSnapshot snapshot,
-    CalorieWidgetLabels labels,
-  );
+    CalorieWidgetLabels labels, {
+    int? generation,
+  });
 
   /// Removes the profile's figures and reloads the widget, so it stops
   /// showing a profile whose data was just deleted. The language-only
@@ -32,6 +39,8 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
   final bool _isIOS;
   final Future<String> Function() _bundleId;
   String? _appGroupId;
+  int _generation = 0;
+  Future<void> _last = Future.value();
 
   HomeWidgetCalorieStore({
     @visibleForTesting bool? isIOS,
@@ -43,27 +52,50 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
       (await PackageInfo.fromPlatform()).packageName;
 
   @override
+  int get generation => _generation;
+
+  /// Runs [operation] after every earlier one, so a write's keys never
+  /// interleave with a clear's and the generation check sees every clear
+  /// queued before it.
+  Future<void> _serially(Future<void> Function() operation) {
+    final next = _last.then((_) {}, onError: (_) {}).then((_) => operation());
+    _last = next;
+    return next;
+  }
+
+  @override
   Future<void> write(
     CalorieWidgetSnapshot snapshot,
-    CalorieWidgetLabels labels,
-  ) => _save({...snapshot.toPayload(), ...labels.toPayload()});
+    CalorieWidgetLabels labels, {
+    int? generation,
+  }) => _serially(() async {
+    if (generation != null && generation != _generation) return;
+    await _save({...snapshot.toPayload(), ...labels.toPayload()});
+  });
 
   /// A null value makes the plugin remove the key, which the extension
   /// reads as "no data yet" and answers with its placeholder.
   @override
-  Future<void> clear() => _save({
-    for (final key in [
-      ...CalorieWidgetSnapshot.keys,
-      ...CalorieWidgetLabels.figureKeys,
-    ])
-      key: null,
-  });
+  Future<void> clear() {
+    _generation++;
+    return _serially(
+      () => _save({
+        for (final key in [
+          ...CalorieWidgetSnapshot.keys,
+          ...CalorieWidgetLabels.figureKeys,
+        ])
+          key: null,
+      }),
+    );
+  }
 
   /// Without stored figures (before the first Home load, or after a wipe)
   /// only the language-only labels are written; the figure labels would
   /// describe numbers the widget does not have.
   @override
-  Future<void> relabel(S s) async {
+  Future<void> relabel(S s) => _serially(() => _relabel(s));
+
+  Future<void> _relabel(S s) async {
     final group = await _enterAppGroup();
     final consumed = await _readInt(group, CalorieWidgetSnapshot.consumedKey);
     final goal = await _readInt(group, CalorieWidgetSnapshot.goalKey);

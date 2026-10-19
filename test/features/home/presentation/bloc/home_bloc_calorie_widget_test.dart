@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -35,16 +36,19 @@ import '../../../../fixture/user_entity_fixtures.dart';
 import '../../../../helpers/fake_hive_db_provider.dart';
 import '../../../../helpers/hive_test_setup.dart';
 
-/// Today's intake, read meal by meal. The first read moves the clock past
-/// the day boundary, as a load that starts at 03:59:59 under a 04:00
-/// boundary and is still reading at 04:00 does.
-class _BoundaryCrossingIntake extends Fake implements GetIntakeUsecase {
+/// Today's intake, read meal by meal. [duringLoad] runs at the first read,
+/// standing in for whatever happens while the load is still reading.
+class _Intake extends Fake implements GetIntakeUsecase {
+  final void Function() duringLoad;
+
+  _Intake(this.duringLoad);
+
   @override
   Future<List<IntakeEntity>> getTodayBreakfastIntake({
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
   }) async {
-    DayBoundaryCalc.clock = () => DateTime(2026, 10, 5, 4, 0, 1);
+    duringLoad();
     return [];
   }
 
@@ -108,17 +112,25 @@ class _MacroGoal extends Fake implements GetMacroGoalUsecase {
   Future<double> getProteinsGoal(double totalCalorieGoal) async => 0;
 }
 
+/// Drops a write from before a clear, as [HomeWidgetCalorieStore] does.
 class _RecordingStore implements CalorieWidgetStore {
   final written = <CalorieWidgetSnapshot>[];
 
   @override
-  Future<void> write(
-    CalorieWidgetSnapshot snapshot,
-    CalorieWidgetLabels labels,
-  ) async => written.add(snapshot);
+  int generation = 0;
 
   @override
-  Future<void> clear() async {}
+  Future<void> write(
+    CalorieWidgetSnapshot snapshot,
+    CalorieWidgetLabels labels, {
+    int? generation,
+  }) async {
+    if (generation != null && generation != this.generation) return;
+    written.add(snapshot);
+  }
+
+  @override
+  Future<void> clear() async => generation++;
 
   @override
   Future<void> relabel(S s) async {}
@@ -129,12 +141,16 @@ void main() {
 
   tearDown(() => DayBoundaryCalc.clock = DateTime.now);
 
-  test('a load that crosses the day boundary stamps the widget with the day '
-      'it read, not the one it finished in', () async {
-    DayBoundaryCalc.clock = () => DateTime(2026, 10, 5, 3, 59, 59);
+  var boxTag = 0;
+
+  /// A Home whose load runs [duringLoad] at its first intake read.
+  Future<HomeBloc> home(
+    CalorieWidgetStore store, {
+    void Function()? duringLoad,
+  }) async {
     final db = FakeHiveDBProvider(
       configBox: await Hive.openBox<ConfigDBO>(
-        'home_widget_config',
+        'home_widget_config_${boxTag++}',
         bytes: Uint8List(0),
       ),
     );
@@ -142,12 +158,11 @@ void main() {
     await configs.initializeConfig();
     await configs.setConfigDayStartOffsetHours(4);
     final configRepository = ConfigRepository(configs);
-    final store = _RecordingStore();
 
     final bloc = HomeBloc(
       GetConfigUsecase(configRepository),
       AddConfigUsecase(configRepository),
-      _BoundaryCrossingIntake(),
+      _Intake(duringLoad ?? () {}),
       _UnusedDeleteIntakeUsecase(),
       _UnusedUpdateIntakeUsecase(),
       _NoActivities(),
@@ -163,10 +178,27 @@ void main() {
       calorieWidgetStore: store,
     );
     addTearDown(bloc.close);
+    return bloc;
+  }
 
+  Future<void> load(HomeBloc bloc) async {
     bloc.add(const LoadItemsEvent());
     await bloc.stream.firstWhere((state) => state is HomeLoadedState);
     await pumpEventQueue();
+  }
+
+  test('a load that crosses the day boundary stamps the widget with the day '
+      'it read, not the one it finished in', () async {
+    // Starts at 03:59:59 under a 04:00 boundary, still reading at 04:00.
+    DayBoundaryCalc.clock = () => DateTime(2026, 10, 5, 3, 59, 59);
+    final store = _RecordingStore();
+    final bloc = await home(
+      store,
+      duringLoad: () =>
+          DayBoundaryCalc.clock = () => DateTime(2026, 10, 5, 4, 0, 1),
+    );
+
+    await load(bloc);
 
     final snapshot = store.written.single;
     expect(snapshot.dayId, '2026-10-04');
@@ -175,6 +207,28 @@ void main() {
       isFalse,
       reason: 'the extension must expire it, not show it as the 5th',
     );
+  });
+
+  test('a load that read its figures before the widget was cleared does '
+      'not write them back', () async {
+    // An empty-profile switch or a delete-all clearing the widget while
+    // Home is still reading the outgoing profile's totals.
+    final store = _RecordingStore();
+    var cleared = false;
+    final bloc = await home(
+      store,
+      duringLoad: () {
+        if (cleared) return;
+        cleared = true;
+        unawaited(store.clear());
+      },
+    );
+
+    await load(bloc);
+    expect(store.written, isEmpty);
+
+    await load(bloc);
+    expect(store.written, hasLength(1), reason: 'the next load still writes');
   });
 }
 
