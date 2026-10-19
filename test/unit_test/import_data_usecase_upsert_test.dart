@@ -26,6 +26,8 @@ import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
@@ -70,6 +72,19 @@ final class _PickedFile extends PlatformFile {
 
   @override
   Stream<Uint8List> readAsByteStream() => File(path!).openRead().cast();
+}
+
+class _FakeExportMealIntakeUsecase extends Fake
+    implements ExportMealIntakeUsecase {
+  final List<List<(IntakeEntity, IntakeEntity)>> edits = [];
+
+  @override
+  Future<bool> exportUpdatedIntakes(
+    List<(IntakeEntity, IntakeEntity)> edits,
+  ) async {
+    this.edits.add(edits);
+    return true;
+  }
 }
 
 /// A `user_intake.json` row for a custom food, as the exporter writes it.
@@ -230,6 +245,55 @@ void main() {
       intakeBox.values.map((i) => i.id).toList()..sort();
   List<String> activityIds() =>
       activityBox.values.map((a) => a.id).toList()..sort();
+
+  // #1393 review: a replaced row bypassed the update export, so the health
+  // store kept the old payload. New rows are not handed over: an import
+  // does not backfill the store.
+  test('replaced rows that changed are handed to the health export', () async {
+    final export = _FakeExportMealIntakeUsecase();
+    final exporting = ImportDataUsecase(
+      UserActivityRepository(UserActivityDataSource(provider)),
+      IntakeRepository(IntakeDataSource(provider)),
+      TrackedDayRepository(TrackedDayDataSource(provider)),
+      RecipeRepository(RecipeDataSource(provider)),
+      WeightLogRepository(WeightLogDataSource(provider)),
+      CustomActivityTemplateRepository(
+        CustomActivityTemplateDataSource(provider),
+      ),
+      ConfigRepository(ConfigDataSource(provider)),
+      pickFile: () async =>
+          _PickedFile('backup.zip', File('${tempDir.path}/backup.zip').uri),
+      exportMealIntakeUsecase: export,
+    );
+    await intakeBox.addAll([
+      IntakeDBO.fromJson(_intakeJson('meal-a', amount: 50)),
+      IntakeDBO.fromJson(_intakeJson('meal-same')),
+    ]);
+    writeBundle(
+      intakes: [
+        _intakeJson('meal-a', amount: 80),
+        _intakeJson('meal-same'),
+        _intakeJson('meal-new'),
+      ],
+    );
+
+    expect(
+      await exporting.importData(
+        ExportImportBloc.userActivityJsonFileName,
+        ExportImportBloc.userIntakeJsonFileName,
+        ExportImportBloc.trackedDayJsonFileName,
+        ExportImportBloc.recipeJsonFileName,
+        ExportImportBloc.weightLogJsonFileName,
+        ExportImportBloc.customActivityTemplateJsonFileName,
+      ),
+      isTrue,
+    );
+
+    final edits = export.edits.single;
+    expect(edits.map((edit) => edit.$1.id), ['meal-a']);
+    expect(edits.single.$1.amount, 50);
+    expect(edits.single.$2.amount, 80);
+  });
 
   test('importing onto entries with the same ids replaces them instead of '
       'adding a second copy (#1357)', () async {

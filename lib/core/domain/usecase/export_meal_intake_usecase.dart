@@ -9,10 +9,16 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 
 /// Exports logged meals and their nutrients to Health Connect / Apple Health.
 ///
-/// Opt-in per profile: an operation runs only when the profile that changed
-/// its diary has [ConfigEntity.healthExportEnabled] set. The profile is the
-/// one active when the operation is requested, so a later switch does not
-/// move it under another profile's consent.
+/// Opt-in per profile: an operation runs only when the profile whose diary
+/// changed has [ConfigEntity.healthExportEnabled] set, both when the
+/// operation is requested and when it runs, so a switch, or an opt-out that
+/// is undone while the queue is busy, cannot move a change under consent it
+/// was made without.
+///
+/// Only new entries are written as such. Each profile keeps an export
+/// ledger of the entries the export has put in the store; edits, merges,
+/// imports and HealthKit window rewrites touch only ledger entries, so
+/// nothing logged before an opt-in is ever backfilled by the way.
 ///
 /// Operations run one at a time, in the order they were requested, so a
 /// delete or an edit can never overtake the write it follows. Callers do not
@@ -23,7 +29,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 /// writes or deletes that one record. HealthKit cannot, and its only delete
 /// removes every meal this app wrote in a one-minute window, from any
 /// profile. There every operation instead makes the windows it touches match
-/// the diaries: it reads what every profile still holds there, deletes the
+/// the diaries: it reads what every profile has exported there, deletes the
 /// window, and rewrites those entries. That is idempotent, so the order of
 /// completion no longer matters either.
 ///
@@ -31,9 +37,9 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 /// HealthKit the retry is the whole window, delete and rewrites together. A
 /// window that still does not come out whole — its delete failed, one of its
 /// rewrites failed, the diaries could not be read, or an opted-out profile
-/// blocks it — is kept in a persisted pending set, and so are the Health
-/// Connect records of a wiped profile until each delete succeeds. The next
-/// operation and the next app start ([replayPendingWindows]) take them up.
+/// blocks it — is kept in a persisted pending set, and so is every Health
+/// Connect delete that did not go through. The next operation and the next
+/// app start ([replayPendingWindows]) take them up.
 class ExportMealIntakeUsecase {
   // TODO: Implement "Export now" backfill for historical date ranges (follow-up to issue #1245)
   // TODO: Implement hydration / water intake export to Health Connect / Apple Health (follow-up to issue #1245)
@@ -60,18 +66,23 @@ class ExportMealIntakeUsecase {
     Duration retryDelay = const Duration(milliseconds: 500),
   }) : _retryDelay = retryDelay;
 
-  /// Exports a newly logged [intake]. Call after it has been stored.
-  Future<bool> exportIntake(IntakeEntity intake) {
-    final profileId = _diaryRepository.activeProfileId;
+  /// Exports a newly logged [intake] of [profileId], the active profile by
+  /// default. Call after it has been stored.
+  Future<bool> exportIntake(IntakeEntity intake, {String? profileId}) {
+    final owner = profileId ?? _diaryRepository.activeProfileId;
+    final consent = _consentNow(owner);
     return _serialized('export intake ${intake.id}', () async {
-      if (!await _diaryRepository.isExportEnabled(profileId)) return false;
+      if (!await _consents(owner, consent)) return false;
+      // Marked before the write: the ledger lists what the store should
+      // hold, so a write that fails is redone by the next edit or rewrite.
+      await _diaryRepository.updateLedger(owner, add: {intake.id});
       if (!_healthExportRepository.hasRecordIdentity) {
         return _replaceWindows({intake.dateTime});
       }
       await _drainRecordDeletes();
       return _retrying(
         () => _healthExportRepository.writeMeal(
-          ExternalMealIntake.fromIntake(intake),
+          ExternalMealIntake.fromIntake(intake, profileId: owner),
         ),
       );
     });
@@ -81,15 +92,25 @@ class ExportMealIntakeUsecase {
   Future<bool> exportUpdatedIntake(IntakeEntity before, IntakeEntity after) =>
       exportUpdatedIntakes([(before, after)]);
 
-  /// Re-exports a batch of stored edits, each as a (before, after) pair.
+  /// Re-exports a batch of stored edits of the active profile, each as a
+  /// (before, after) pair. Entries the store never received are skipped.
   Future<bool> exportUpdatedIntakes(List<(IntakeEntity, IntakeEntity)> edits) {
-    final profileId = _diaryRepository.activeProfileId;
+    final owner = _diaryRepository.activeProfileId;
+    final consent = _consentNow(owner);
     return _serialized('export ${edits.length} edited intakes', () async {
       if (edits.isEmpty) return false;
-      if (!await _diaryRepository.isExportEnabled(profileId)) return false;
+      if (!await _consents(owner, consent)) return false;
+      final exported = await _diaryRepository.exportedAmong(owner, {
+        for (final (_, after) in edits) after.id,
+      });
+      final relevant = [
+        for (final edit in edits)
+          if (exported.contains(edit.$2.id)) edit,
+      ];
+      if (relevant.isEmpty) return true;
       if (!_healthExportRepository.hasRecordIdentity) {
         return _replaceWindows({
-          for (final (before, after) in edits) ...[
+          for (final (before, after) in relevant) ...[
             before.dateTime,
             after.dateTime,
           ],
@@ -97,10 +118,10 @@ class ExportMealIntakeUsecase {
       }
       await _drainRecordDeletes();
       var allWritten = true;
-      for (final (_, after) in edits) {
+      for (final (_, after) in relevant) {
         final written = await _retrying(
           () => _healthExportRepository.writeMeal(
-            ExternalMealIntake.fromIntake(after),
+            ExternalMealIntake.fromIntake(after, profileId: owner),
           ),
         );
         allWritten = allWritten && written;
@@ -111,18 +132,27 @@ class ExportMealIntakeUsecase {
 
   /// Removes a deleted [intake]'s record. Call after it has left the diary.
   Future<bool> deleteIntake(IntakeEntity intake) {
-    final profileId = _diaryRepository.activeProfileId;
+    final owner = _diaryRepository.activeProfileId;
+    final consent = _consentNow(owner);
     return _serialized('delete intake ${intake.id}', () async {
-      if (!await _diaryRepository.isExportEnabled(profileId)) return false;
+      final wasExported = (await _diaryRepository.exportedAmong(owner, {
+        intake.id,
+      })).isNotEmpty;
+      await _diaryRepository.updateLedger(owner, remove: {intake.id});
+      if (!wasExported) return true;
+      if (!await _consents(owner, consent)) return false;
       if (!_healthExportRepository.hasRecordIdentity) {
         return _replaceWindows({intake.dateTime});
       }
       await _drainRecordDeletes();
-      return _retrying(
-        () => _healthExportRepository.deleteMeal(
-          ExternalMealIntake.recordIdOf(intake.id),
-        ),
+      final recordId = ExternalMealIntake.recordIdOf(owner, intake.id);
+      final deleted = await _retrying(
+        () => _healthExportRepository.deleteMeal(recordId),
       );
+      // The diary row is gone, so this id is the only way left to reach the
+      // record: keep it until a delete goes through.
+      if (!deleted) await _storePendingDeletes(add: {recordId});
+      return deleted;
     });
   }
 
@@ -131,46 +161,45 @@ class ExportMealIntakeUsecase {
   /// that address the records with it.
   ///
   /// Reads the diary right away and stores what has to go — Health Connect
-  /// record ids, or HealthKit windows — in the persisted pending sets, so
-  /// await this before destroying the boxes. The deletions then run on the
-  /// queue, and whatever does not succeed stays pending for the next health
-  /// operation or app start. Never throws: a health store problem must not
-  /// stand in the way of a wipe the user asked for.
+  /// record ids, or HealthKit windows — in the persisted pending sets, then
+  /// empties the profile's ledger, so await this before destroying the
+  /// boxes. The deletions run on the queue, and whatever does not succeed
+  /// stays pending for the next health operation or app start. Never throws:
+  /// a health store problem must not stand in the way of a wipe the user
+  /// asked for.
   Future<void> forgetProfile(String profileId) async {
     try {
       final diary = await _diaryRepository.readProfile(profileId);
-      // Never opted in: nothing of this profile is in the store.
-      if (diary == null || diary.exportEnabled == null) return;
-      final intakes = diary.intakes;
-      if (intakes.isEmpty) return;
+      final exported = diary?.exported ?? const <IntakeEntity>[];
+      if (exported.isEmpty) return;
 
       if (_healthExportRepository.hasRecordIdentity) {
         final ids = {
-          for (final intake in intakes)
-            ExternalMealIntake.recordIdOf(intake.id),
+          for (final intake in exported)
+            ExternalMealIntake.recordIdOf(profileId, intake.id),
         };
-        await _guarded(
-          () => _configRepository.updateHealthPendingRecordDeletes(add: ids),
-          'store the records of profile $profileId for deletion',
-        );
+        await _storePendingDeletes(add: ids);
         unawaited(
           _serialized(
             'remove the records of profile $profileId',
             () => _drainRecordDeletes(also: ids),
           ),
         );
-        return;
+      } else {
+        final windows = {for (final intake in exported) intake.dateTime};
+        await _storePendingWindows(add: windows);
+        unawaited(
+          _serialized(
+            'remove the records of profile $profileId',
+            // The wiped profile's entries may still be on disk when this
+            // runs, so it is left out of the rewrite explicitly.
+            () => _replaceWindows(windows, exceptProfile: profileId),
+          ),
+        );
       }
-
-      final windows = {for (final intake in intakes) intake.dateTime};
-      await _storePendingWindows(add: windows);
-      unawaited(
-        _serialized(
-          'remove the records of profile $profileId',
-          // The wiped profile's entries may still be on disk when this runs,
-          // so it is left out of the rewrite explicitly.
-          () => _replaceWindows(windows, exceptProfile: profileId),
-        ),
+      await _guarded(
+        () => _diaryRepository.clearLedger(profileId),
+        'clear the export ledger of profile $profileId',
       );
     } catch (error, stackTrace) {
       _log.warning(
@@ -192,6 +221,16 @@ class ExportMealIntakeUsecase {
         return _replaceWindows(const {});
       });
 
+  /// [owner]'s opt-in as stored right now. For the active profile the read
+  /// happens before this returns; a failed read counts as no consent.
+  Future<bool> _consentNow(String owner) =>
+      _diaryRepository.isExportEnabled(owner).catchError((Object _) => false);
+
+  /// Whether [owner] consented both when the operation was requested and
+  /// now, as it runs.
+  Future<bool> _consents(String owner, Future<bool> atRequest) async =>
+      await atRequest && await _diaryRepository.isExportEnabled(owner);
+
   /// Deletes every pending Health Connect record, plus [also], dropping each
   /// from the pending set only once its delete succeeded.
   Future<bool> _drainRecordDeletes({Set<String> also = const {}}) async {
@@ -209,13 +248,7 @@ class ExportMealIntakeUsecase {
         deleted.add(id);
       }
     }
-    await _guarded(
-      () => _configRepository.updateHealthPendingRecordDeletes(
-        add: ids.difference(deleted),
-        remove: deleted,
-      ),
-      'store pending record deletes',
-    );
+    await _storePendingDeletes(add: ids.difference(deleted), remove: deleted);
     return deleted.length == ids.length;
   }
 
@@ -250,8 +283,13 @@ class ExportMealIntakeUsecase {
   }
 
   /// Makes each HealthKit window opening at one of [requested], or still
-  /// pending from an earlier failure, hold exactly the exporting profiles'
-  /// diary entries that start in it. [exceptProfile]'s entries are left out.
+  /// pending from an earlier failure, hold exactly the exported diary
+  /// entries of exporting profiles that start in it. [exceptProfile]'s
+  /// entries are left out.
+  ///
+  /// The plugin deletes with HealthKit's `strictStartDate`, so a window's
+  /// delete takes only meals that start inside it; a meal that starts
+  /// earlier and runs into it is untouched, and so is not rewritten here.
   Future<bool> _replaceWindows(
     Set<DateTime> requested, {
     String? exceptProfile,
@@ -289,7 +327,7 @@ class ExportMealIntakeUsecase {
       bool inside(IntakeEntity intake) =>
           !intake.dateTime.isBefore(start) && intake.dateTime.isBefore(end);
 
-      if (snapshot.optedOut.any(inside)) {
+      if (snapshot.blocked.any(inside)) {
         // A profile that stopped exporting may still own a record in here,
         // and it cannot be rewritten without its consent. The window stays
         // pending, blocked, and is rebuilt by the first operation that finds
@@ -299,7 +337,10 @@ class ExportMealIntakeUsecase {
         continue;
       }
 
-      final entries = snapshot.exported.where(inside).toList();
+      final entries = [
+        for (final entry in snapshot.exported)
+          if (inside(entry.intake)) entry,
+      ];
       // Retried whole: a write that failed may have saved part of a meal,
       // and only deleting the window again keeps the retry from doubling it.
       final replaced = await _retrying(() => _replaceWindow(start, entries));
@@ -313,12 +354,12 @@ class ExportMealIntakeUsecase {
   /// into it, stopping at the first failure.
   Future<bool> _replaceWindow(
     DateTime start,
-    List<IntakeEntity> entries,
+    List<ProfileIntake> entries,
   ) async {
     if (!await _healthExportRepository.deleteMealWindow(start)) return false;
-    for (final intake in entries) {
+    for (final entry in entries) {
       final written = await _healthExportRepository.writeMeal(
-        ExternalMealIntake.fromIntake(intake),
+        ExternalMealIntake.fromIntake(entry.intake, profileId: entry.profileId),
       );
       if (!written) return false;
     }
@@ -334,6 +375,17 @@ class ExportMealIntakeUsecase {
       remove: remove,
     ),
     'store pending meal windows',
+  );
+
+  Future<void> _storePendingDeletes({
+    Set<String> add = const {},
+    Set<String> remove = const {},
+  }) => _guarded(
+    () => _configRepository.updateHealthPendingRecordDeletes(
+      add: add,
+      remove: remove,
+    ),
+    'store pending record deletes',
   );
 
   Future<Set<T>> _readOrEmpty<T>(

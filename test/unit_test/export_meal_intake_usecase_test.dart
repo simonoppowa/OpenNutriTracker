@@ -81,25 +81,63 @@ class _FakeDiaryRepository extends Fake
   final Map<String, bool?> optIn = {'a': true};
   final Map<String, List<IntakeEntity>> diaries = {'a': []};
 
+  /// Each profile's export ledger. A profile without one counts every entry
+  /// of its diary as exported, which is what most tests mean; a test about
+  /// the ledger sets one.
+  final Map<String, Set<String>> ledgers = {};
+
+  /// Ids a profile without a set ledger counts as exported on top of its
+  /// diary: entries already deleted from it, whose records are still out.
+  final Map<String, Set<String>> alsoExported = {};
+
   /// Makes a snapshot fail as a profile switch during it would.
   bool switchDuringSnapshot = false;
+
+  /// Makes [readProfile] fail.
+  bool failReadProfile = false;
+
+  Set<String> exportedOf(String profileId) =>
+      ledgers[profileId] ??
+      {
+        for (final intake in diaries[profileId] ?? const []) intake.id,
+        ...?alsoExported[profileId],
+      };
 
   @override
   Future<bool> isExportEnabled(String profileId) async =>
       optIn[profileId] ?? false;
 
-  /// Makes [readProfile] fail.
-  bool failReadProfile = false;
-
   @override
   Future<ProfileDiary?> readProfile(String profileId) async {
     if (failReadProfile) throw StateError('box closed');
     if (!diaries.containsKey(profileId)) return null;
+    final exported = exportedOf(profileId);
     return ProfileDiary(
       exportEnabled: optIn[profileId],
-      intakes: List.of(diaries[profileId]!),
+      exported: [
+        for (final intake in diaries[profileId]!)
+          if (exported.contains(intake.id)) intake,
+      ],
     );
   }
+
+  @override
+  Future<Set<String>> exportedAmong(
+    String profileId,
+    Iterable<String> intakeIds,
+  ) async => intakeIds.where(exportedOf(profileId).contains).toSet();
+
+  @override
+  Future<void> updateLedger(
+    String profileId, {
+    Set<String> add = const {},
+    Set<String> remove = const {},
+  }) async => ledgers[profileId] = {...exportedOf(profileId), ...add}
+    ..removeAll(remove.difference(add));
+
+  @override
+  Future<void> clearLedger(String profileId) async =>
+      ledgers[profileId] = {};
 
   @override
   Future<ExportWindowSnapshot> snapshotWindows(
@@ -113,14 +151,21 @@ class _FakeDiaryRepository extends Fake
           !intake.dateTime.isBefore(start) &&
           intake.dateTime.isBefore(start.add(length)),
     );
-    List<IntakeEntity> entriesWhere(bool? flag) => [
-      for (final MapEntry(key: id, value: entries) in diaries.entries)
-        if (id != exceptProfile && optIn[id] == flag) ...entries.where(inside),
-    ];
-    return ExportWindowSnapshot(
-      exported: entriesWhere(true),
-      optedOut: entriesWhere(false),
-    );
+    final exported = <ProfileIntake>[];
+    final blocked = <IntakeEntity>[];
+    for (final MapEntry(key: id, value: entries) in diaries.entries) {
+      if (id == exceptProfile) continue;
+      final ledger = exportedOf(id);
+      for (final intake in entries.where(inside)) {
+        if (!ledger.contains(intake.id)) continue;
+        if (optIn[id] == true) {
+          exported.add(ProfileIntake(id, intake));
+        } else {
+          blocked.add(intake);
+        }
+      }
+    }
+    return ExportWindowSnapshot(exported: exported, blocked: blocked);
   }
 }
 
@@ -227,9 +272,12 @@ void main() {
 
   group('ExternalMealIntake mapping', () {
     test('scales calories and converts micronutrient units properly', () {
-      final external = ExternalMealIntake.fromIntake(testIntake);
+      final external = ExternalMealIntake.fromIntake(
+        testIntake,
+        profileId: 'a',
+      );
 
-      expect(external.id, equals('ont_intake_intake-123'));
+      expect(external.id, equals('ont_intake_a_intake-123'));
       expect(external.name, equals('Granola & Yogurt'));
       expect(external.mealTypeName, equals('LUNCH'));
       expect(external.dateTime, equals(mealDate));
@@ -279,7 +327,7 @@ void main() {
         ),
       );
 
-      final external = ExternalMealIntake.fromIntake(unknown);
+      final external = ExternalMealIntake.fromIntake(unknown, profileId: 'a');
 
       expect(external.calories, isNull);
       expect(external.fatTotal, isNull);
@@ -310,6 +358,8 @@ void main() {
   setUp(() {
     healthRepo = _FakeHealthExportRepository();
     diary = _FakeDiaryRepository();
+    // The entry most tests delete was exported when it was logged.
+    diary.alsoExported['a'] = {testIntake.id};
     config = _FakeConfigRepository();
     usecase = ExportMealIntakeUsecase(
       healthRepo,
@@ -341,19 +391,19 @@ void main() {
       expect(await usecase.deleteIntake(after), isTrue);
 
       expect(healthRepo.ops, [
-        'write ont_intake_intake-123',
-        'write ont_intake_intake-123',
-        'delete ont_intake_intake-123',
+        'write ont_intake_a_intake-123',
+        'write ont_intake_a_intake-123',
+        'delete ont_intake_a_intake-123',
       ]);
       expect(healthRepo.writtenMeals.last.calories, closeTo(400.0, 0.01));
     });
 
     test('a failed write is retried', () async {
-      healthRepo.failingWrites['ont_intake_intake-123'] = 1;
+      healthRepo.failingWrites['ont_intake_a_intake-123'] = 1;
 
       expect(await usecase.exportIntake(testIntake), isTrue);
 
-      expect(healthRepo.ops, ['write ont_intake_intake-123']);
+      expect(healthRepo.ops, ['write ont_intake_a_intake-123']);
     });
 
     test('there is nothing to replay on app start', () async {
@@ -385,20 +435,20 @@ void main() {
       await Future.wait([write, delete]);
 
       expect(healthRepo.ops, [
-        'write ont_intake_intake-123',
-        'delete ont_intake_intake-123',
+        'write ont_intake_a_intake-123',
+        'delete ont_intake_a_intake-123',
       ]);
     });
 
     test('a failed operation does not stall the ones after it', () async {
-      healthRepo.throwFor = 'ont_intake_bad';
+      healthRepo.throwFor = 'ont_intake_a_bad';
 
       final failed = usecase.exportIntake(edit(testIntake, id: 'bad'));
       final next = usecase.exportIntake(testIntake);
 
       expect(await failed, isFalse);
       expect(await next, isTrue);
-      expect(healthRepo.ops, ['write ont_intake_intake-123']);
+      expect(healthRepo.ops, ['write ont_intake_a_intake-123']);
     });
 
     test('consent is the requesting profile\'s, not the next one\'s', () async {
@@ -413,8 +463,8 @@ void main() {
       await Future.wait([held, queued]);
 
       expect(healthRepo.ops, [
-        'write ont_intake_intake-123',
-        'write ont_intake_second',
+        'write ont_intake_a_intake-123',
+        'write ont_intake_a_second',
       ]);
       // And what the other profile asks for afterwards stays off.
       expect(await usecase.exportIntake(testIntake), isFalse);
@@ -433,7 +483,7 @@ void main() {
 
       expect(healthRepo.ops, [
         'delete window $mealDate',
-        'write ont_intake_intake-123',
+        'write ont_intake_a_intake-123',
       ]);
     });
 
@@ -450,7 +500,7 @@ void main() {
 
       expect(healthRepo.ops, [
         'delete window $mealDate',
-        'write ont_intake_sibling',
+        'write ont_intake_a_sibling',
       ]);
     });
 
@@ -462,7 +512,7 @@ void main() {
 
       expect(healthRepo.ops, [
         'delete window $mealDate',
-        'write ont_intake_intake-123',
+        'write ont_intake_a_intake-123',
       ]);
       expect(healthRepo.writtenMeals.single.calories, closeTo(400.0, 0.01));
     });
@@ -482,8 +532,8 @@ void main() {
       expect(
         healthRepo.ops.skip(1),
         unorderedEquals([
-          'write ont_intake_intake-123',
-          'write ont_intake_sibling',
+          'write ont_intake_a_intake-123',
+          'write ont_intake_a_sibling',
         ]),
       );
     });
@@ -509,10 +559,10 @@ void main() {
 
       expect(healthRepo.ops, [
         'delete window $mealDate',
-        'write ont_intake_old',
+        'write ont_intake_a_old',
         'delete window $moved',
-        'write ont_intake_intake-123',
-        'write ont_intake_new',
+        'write ont_intake_a_intake-123',
+        'write ont_intake_a_new',
       ]);
     });
 
@@ -532,7 +582,7 @@ void main() {
     group('a failed rewrite', () {
       test('is retried, window and all, until it lands', () async {
         diary.diaries['a'] = [testIntake];
-        healthRepo.failingWrites['ont_intake_intake-123'] = 2;
+        healthRepo.failingWrites['ont_intake_a_intake-123'] = 2;
 
         expect(await usecase.exportIntake(testIntake), isTrue);
 
@@ -540,7 +590,7 @@ void main() {
           'delete window $mealDate',
           'delete window $mealDate',
           'delete window $mealDate',
-          'write ont_intake_intake-123',
+          'write ont_intake_a_intake-123',
         ]);
         expect(config.pending, isEmpty);
       });
@@ -554,16 +604,16 @@ void main() {
           dateTime: mealDate.add(const Duration(seconds: 10)),
         );
         diary.diaries['a'] = [testIntake, sibling];
-        healthRepo.failingWrites['ont_intake_sibling'] = 1;
+        healthRepo.failingWrites['ont_intake_a_sibling'] = 1;
 
         expect(await usecase.exportIntake(testIntake), isTrue);
 
         expect(healthRepo.ops, [
           'delete window $mealDate',
-          'write ont_intake_intake-123',
+          'write ont_intake_a_intake-123',
           'delete window $mealDate',
-          'write ont_intake_intake-123',
-          'write ont_intake_sibling',
+          'write ont_intake_a_intake-123',
+          'write ont_intake_a_sibling',
         ]);
       });
 
@@ -571,7 +621,7 @@ void main() {
         final elsewhere = mealDate.add(const Duration(hours: 3));
         final other = edit(testIntake, id: 'other', dateTime: elsewhere);
         diary.diaries['a'] = [testIntake, other];
-        healthRepo.failingWrites['ont_intake_intake-123'] = 3;
+        healthRepo.failingWrites['ont_intake_a_intake-123'] = 3;
 
         expect(await usecase.exportIntake(testIntake), isFalse);
         expect(config.pending, {mealDate});
@@ -581,9 +631,9 @@ void main() {
 
         expect(healthRepo.ops, [
           'delete window $elsewhere',
-          'write ont_intake_other',
+          'write ont_intake_a_other',
           'delete window $mealDate',
-          'write ont_intake_intake-123',
+          'write ont_intake_a_intake-123',
         ]);
         expect(config.pending, isEmpty);
       });
@@ -596,7 +646,7 @@ void main() {
 
         expect(healthRepo.ops, [
           'delete window $mealDate',
-          'write ont_intake_intake-123',
+          'write ont_intake_a_intake-123',
         ]);
         expect(config.pending, isEmpty);
       });
@@ -621,12 +671,14 @@ void main() {
 
         expect(healthRepo.ops, [
           'delete window $mealDate',
-          'write ont_intake_b1',
+          'write ont_intake_b_b1',
         ]);
       });
 
       test('a profile that never opted in is not exported', () async {
         diary.diaries['c'] = [edit(testIntake, id: 'c1', dateTime: sameMinute)];
+        // Never opted in, so its ledger is empty.
+        diary.ledgers['c'] = {};
 
         await usecase.deleteIntake(testIntake);
 
@@ -660,8 +712,8 @@ void main() {
         expect(
           healthRepo.ops.skip(1),
           unorderedEquals([
-            'write ont_intake_intake-123',
-            'write ont_intake_b1',
+            'write ont_intake_a_intake-123',
+            'write ont_intake_b_b1',
           ]),
         );
         expect(config.pending, isEmpty);
@@ -693,6 +745,136 @@ void main() {
 
   // #1393 review: a wipe or a profile deletion takes the ids and times that
   // address the exported records with it.
+  // #1393 review: the export kept no record of what it had written, so an
+  // edit, a merge or a window rewrite could backfill entries logged before
+  // the opt-in.
+  group('the export ledger', () {
+    final preOptIn = edit(testIntake, id: 'early');
+
+    test('an edit of an entry the store never got is skipped', () async {
+      diary.diaries['a'] = [preOptIn];
+      diary.ledgers['a'] = {};
+
+      expect(
+        await usecase.exportUpdatedIntake(preOptIn, edit(preOptIn, amount: 9)),
+        isTrue,
+      );
+
+      expect(healthRepo.ops, isEmpty);
+    });
+
+    test('a new entry is marked, so its later edit is exported', () async {
+      diary.ledgers['a'] = {};
+
+      await usecase.exportIntake(testIntake);
+      await usecase.exportUpdatedIntake(
+        testIntake,
+        edit(testIntake, amount: 200),
+      );
+
+      expect(diary.ledgers['a'], {testIntake.id});
+      expect(healthRepo.ops, [
+        'write ont_intake_a_intake-123',
+        'write ont_intake_a_intake-123',
+      ]);
+    });
+
+    test('a deleted entry leaves the ledger', () async {
+      diary.ledgers['a'] = {testIntake.id};
+
+      await usecase.deleteIntake(testIntake);
+
+      expect(diary.ledgers['a'], isEmpty);
+    });
+
+    test('a HealthKit rewrite leaves out pre-opt-in siblings', () async {
+      healthRepo.identity = false;
+      diary.diaries['a'] = [testIntake, preOptIn];
+      diary.ledgers['a'] = {};
+
+      await usecase.exportIntake(testIntake);
+
+      expect(healthRepo.ops, [
+        'delete window $mealDate',
+        'write ont_intake_a_intake-123',
+      ]);
+    });
+
+    test('an opted-out profile blocks only with entries it exported', () async {
+      healthRepo.identity = false;
+      diary.diaries['a'] = [testIntake];
+      diary.optIn['b'] = false;
+      diary.diaries['b'] = [edit(testIntake, id: 'b1')];
+      diary.ledgers['b'] = {};
+
+      expect(await usecase.exportIntake(testIntake), isTrue);
+
+      expect(healthRepo.ops, [
+        'delete window $mealDate',
+        'write ont_intake_a_intake-123',
+      ]);
+    });
+  });
+
+  // #1393 review: consent was read only when the queued operation ran, so
+  // re-enabling export while the queue was busy authorised what was logged
+  // while it was off.
+  test('consent has to hold when requested, not only when run', () async {
+    healthRepo.writeGate = Completer<void>();
+    final held = usecase.exportIntake(testIntake);
+
+    diary.optIn['a'] = false;
+    final loggedWhileOff = usecase.exportIntake(edit(testIntake, id: 'off'));
+    diary.optIn['a'] = true;
+    healthRepo.writeGate!.complete();
+
+    expect(await held, isTrue);
+    expect(await loggedWhileOff, isFalse);
+    expect(healthRepo.ops, ['write ont_intake_a_intake-123']);
+  });
+
+  // #1393 review: a copy sent to another profile never reached the export,
+  // and the API could only name the active profile.
+  group('exporting for another profile', () {
+    test('uses that profile\'s consent, record id and ledger', () async {
+      diary.optIn['b'] = true;
+      diary.ledgers['b'] = {};
+
+      expect(await usecase.exportIntake(testIntake, profileId: 'b'), isTrue);
+
+      expect(healthRepo.ops, ['write ont_intake_b_intake-123']);
+      expect(diary.ledgers['b'], {testIntake.id});
+    });
+
+    test('skips a profile that has not opted in', () async {
+      expect(await usecase.exportIntake(testIntake, profileId: 'c'), isFalse);
+
+      expect(healthRepo.ops, isEmpty);
+    });
+  });
+
+  // #1393 review: one backup imported into two profiles keeps its intake
+  // ids in both, and the record id carried no profile.
+  test('the same intake id in two profiles makes two records', () {
+    expect(
+      ExternalMealIntake.fromIntake(testIntake, profileId: 'a').id,
+      isNot(ExternalMealIntake.fromIntake(testIntake, profileId: 'b').id),
+    );
+  });
+
+  // #1393 review: the diary row is gone once the delete is queued, so a
+  // failed delete was the last chance to reach the record.
+  test('a failed live delete is kept until it goes through', () async {
+    healthRepo.deleteResult = false;
+
+    expect(await usecase.deleteIntake(testIntake), isFalse);
+    expect(config.pendingDeletes, {'ont_intake_a_intake-123'});
+
+    healthRepo.deleteResult = true;
+    expect(await usecase.replayPendingWindows(), isTrue);
+    expect(config.pendingDeletes, isEmpty);
+  });
+
   group('forgetProfile', () {
     final first = edit(testIntake, id: 'first');
     final second = edit(
@@ -708,8 +890,8 @@ void main() {
       await usecase.replayPendingWindows(); // waits for the queue
 
       expect(healthRepo.ops, [
-        'delete ont_intake_first',
-        'delete ont_intake_second',
+        'delete ont_intake_a_first',
+        'delete ont_intake_a_second',
       ]);
     });
 
@@ -720,12 +902,13 @@ void main() {
       await usecase.forgetProfile('a');
       await usecase.replayPendingWindows();
 
-      expect(healthRepo.ops, ['delete ont_intake_first']);
+      expect(healthRepo.ops, ['delete ont_intake_a_first']);
     });
 
-    test('a profile that never opted in touches nothing', () async {
+    test('a profile that exported nothing touches nothing', () async {
       diary.optIn.remove('a');
       diary.diaries['a'] = [first];
+      diary.ledgers['a'] = {};
 
       await usecase.forgetProfile('a');
       await usecase.replayPendingWindows();
@@ -750,7 +933,7 @@ void main() {
 
       expect(healthRepo.ops, [
         'delete window $mealDate',
-        'write ont_intake_b1',
+        'write ont_intake_b_b1',
         'delete window ${second.dateTime}',
       ]);
     });
@@ -766,8 +949,8 @@ void main() {
       await usecase.forgetProfile('a');
 
       expect(config.pendingDeletes, {
-        'ont_intake_first',
-        'ont_intake_second',
+        'ont_intake_a_first',
+        'ont_intake_a_second',
       });
       healthRepo.writeGate!.complete();
       await held;
@@ -783,15 +966,15 @@ void main() {
       // The wipe clears the diary straight after.
       diary.diaries['a'] = [];
       await usecase.replayPendingWindows();
-      expect(config.pendingDeletes, {'ont_intake_first'});
+      expect(config.pendingDeletes, {'ont_intake_a_first'});
 
       healthRepo.deleteResult = true;
       healthRepo.ops.clear();
       await usecase.exportIntake(testIntake);
 
       expect(healthRepo.ops, [
-        'delete ont_intake_first',
-        'write ont_intake_intake-123',
+        'delete ont_intake_a_first',
+        'write ont_intake_a_intake-123',
       ]);
       expect(config.pendingDeletes, isEmpty);
     });
@@ -855,7 +1038,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(intakeRepo.addedIntakes, contains(testIntake));
-      expect(healthRepo.ops, ['write ont_intake_intake-123']);
+      expect(healthRepo.ops, ['write ont_intake_a_intake-123']);
     });
 
     test('UpdateIntakeUsecase hands over the entry as it was', () async {
@@ -874,7 +1057,7 @@ void main() {
       expect(healthRepo.ops, [
         'delete window $mealDate',
         'delete window $moved',
-        'write ont_intake_intake-123',
+        'write ont_intake_a_intake-123',
       ]);
     });
 
@@ -885,7 +1068,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(intakeRepo.deletedIntakes, contains(testIntake));
-      expect(healthRepo.ops, ['delete ont_intake_intake-123']);
+      expect(healthRepo.ops, ['delete ont_intake_a_intake-123']);
     });
   });
 }

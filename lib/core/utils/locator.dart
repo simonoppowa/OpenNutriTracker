@@ -403,7 +403,7 @@ Future<void> initLocator() async {
     () => DeleteProfileUsecase(locator(), locator(), locator(), locator()),
   );
   locator.registerLazySingleton<SendIntakeToProfilesUsecase>(
-    () => SendIntakeToProfilesUsecase(locator()),
+    () => SendIntakeToProfilesUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<ProfileSwitchCoordinator>(
     () => ProfileSwitchCoordinator(locator(), locator()),
@@ -546,6 +546,7 @@ Future<void> initLocator() async {
             importedActivities: importedActivities,
             keyedByOffsetMinutes: keyedByOffsetMinutes,
           ),
+      exportMealIntakeUsecase: locator(),
     ),
   );
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));

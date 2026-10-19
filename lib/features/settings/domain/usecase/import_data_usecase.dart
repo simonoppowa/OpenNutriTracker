@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -16,6 +17,8 @@ import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
@@ -60,6 +63,9 @@ class ImportDataUsecase {
   /// Null only in tests that do not look at the rows' keys.
   final RestoreTrackedDays? _restoreTrackedDays;
 
+  /// Re-exports entries a backup replaced, when the health store has them.
+  final ExportMealIntakeUsecase? _exportMealIntakeUsecase;
+
   ImportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
@@ -70,8 +76,10 @@ class ImportDataUsecase {
     this._configRepository, {
     PickImportFile pickFile = _pickAnyFile,
     RestoreTrackedDays? restoreTrackedDays,
+    ExportMealIntakeUsecase? exportMealIntakeUsecase,
   }) : _pickFile = pickFile,
-       _restoreTrackedDays = restoreTrackedDays;
+       _restoreTrackedDays = restoreTrackedDays,
+       _exportMealIntakeUsecase = exportMealIntakeUsecase;
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
   /// weight log, Custom activity template and goal settings data from a
@@ -275,7 +283,9 @@ class ImportDataUsecase {
   ) => withTrackedDayLock(() async {
     Future<void> write() async {
       await _userActivityRepository.upsertAllUserActivityDBOs(activities);
+      final replaced = await _storedVersionsOf(intakes);
       await _intakeRepository.upsertAllIntakeDBOs(intakes);
+      await _exportReplacements(replaced);
       await _trackedDayRepository.addAllTrackedDays(trackedDays);
     }
 
@@ -288,6 +298,38 @@ class ImportDataUsecase {
       keyedByOffsetMinutes: keyedBy,
     );
   });
+
+  /// The rows the import is about to replace, as stored now, by id. Brand-new
+  /// rows are not here: an import does not backfill the health store.
+  Future<Map<String, IntakeEntity>> _storedVersionsOf(
+    List<IntakeDBO> imported,
+  ) async {
+    if (_exportMealIntakeUsecase == null) return const {};
+    final ids = {for (final intake in imported) intake.id};
+    return {
+      for (final stored in await _intakeRepository.getAllIntakesDBO())
+        if (ids.contains(stored.id))
+          stored.id: IntakeEntity.fromIntakeDBO(stored),
+    };
+  }
+
+  /// Hands every replaced row that changed to the health export as an edit;
+  /// the export rewrites only those it had written (#1393).
+  Future<void> _exportReplacements(Map<String, IntakeEntity> before) async {
+    final export = _exportMealIntakeUsecase;
+    if (export == null || before.isEmpty) return;
+    final edits = <(IntakeEntity, IntakeEntity)>[];
+    for (final MapEntry(key: id, value: old) in before.entries) {
+      final now = await _intakeRepository.getIntakeById(id);
+      if (now == null || _sameContent(old, now)) continue;
+      edits.add((old, now));
+    }
+    if (edits.isNotEmpty) unawaited(export.exportUpdatedIntakes(edits));
+  }
+
+  static bool _sameContent(IntakeEntity a, IntakeEntity b) =>
+      jsonEncode(IntakeDBO.fromIntakeEntity(a).toJson()) ==
+      jsonEncode(IntakeDBO.fromIntakeEntity(b).toJson());
 
   /// The boundary the archive's rows are keyed by, from [entry], or null
   /// when the archive records none (#1317). A record that is not a

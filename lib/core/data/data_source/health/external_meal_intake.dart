@@ -14,8 +14,12 @@ class ExternalMealIntake {
   /// window, so callers working out what an iOS delete touches use it too.
   static const sampleDuration = Duration(minutes: 1);
 
-  /// The client record id a diary entry is exported under.
-  static String recordIdOf(String intakeId) => 'ont_intake_$intakeId';
+  /// The client record id [profileId]'s diary entry [intakeId] is exported
+  /// under. The profile is part of it: one backup imported into two profiles
+  /// keeps its intake ids in both, and Health Connect would otherwise take
+  /// either profile's copy for the other's.
+  static String recordIdOf(String profileId, String intakeId) =>
+      'ont_intake_${profileId}_$intakeId';
 
   /// Stable client record id used for deduplication / in-place updates.
   final String id;
@@ -129,7 +133,10 @@ class ExternalMealIntake {
   });
 
   /// Maps an [IntakeEntity] to an [ExternalMealIntake] ready for export.
-  factory ExternalMealIntake.fromIntake(IntakeEntity intake) {
+  factory ExternalMealIntake.fromIntake(
+    IntakeEntity intake, {
+    required String profileId,
+  }) {
     final nutriments = intake.meal.nutriments;
     final amount = intake.amount;
 
@@ -170,7 +177,7 @@ class ExternalMealIntake {
     final name = intake.meal.name?.trim();
 
     return ExternalMealIntake(
-      id: recordIdOf(intake.id),
+      id: recordIdOf(profileId, intake.id),
       name: (name != null && name.isNotEmpty) ? name : null,
       mealTypeName: mealTypeString,
       dateTime: intake.dateTime,

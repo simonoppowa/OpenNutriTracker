@@ -60,6 +60,10 @@ class HiveDBProvider extends ChangeNotifier {
   // intentionally keeps cancelled and completed sessions side by side with no
   // success/failure label on the record — see `FastingSessionDBO`.
   static const fastingBoxName = 'FastingBox';
+  // #1393: which diary entries the meal export has put in the health store,
+  // keyed by intake id. Per-profile, like the diary it mirrors, so a
+  // profile's box-set takes it along when the profile is deleted.
+  static const healthExportLedgerBoxName = 'HealthExportLedgerBox';
   // #471: registry of profiles. Global — shared across every profile so
   // the app can enumerate and switch profiles before any one of them is
   // active.
@@ -83,6 +87,7 @@ class HiveDBProvider extends ChangeNotifier {
     weightLogBoxName,
     waterIntakeBoxName,
     fastingBoxName,
+    healthExportLedgerBoxName,
   ];
 
   // Global boxes — opened once, never closed on a profile switch.
@@ -110,6 +115,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WeightLogDBO>? _weightLogBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
+  Box<bool>? _healthExportLedgerBox;
 
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
@@ -140,6 +146,8 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
       _requireBox(_fastingBox, fastingBoxName);
+  Box<bool> get healthExportLedgerBox =>
+      _requireBox(_healthExportLedgerBox, healthExportLedgerBoxName);
 
   Box<T> _requireBox<T>(Box<T>? box, String name) {
     if (_switching) {
@@ -237,6 +245,9 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(waterIntakeBoxName, suffix),
     );
     _fastingBox = await _openEncryptedBox(boxNameFor(fastingBoxName, suffix));
+    _healthExportLedgerBox = await _openEncryptedBox(
+      boxNameFor(healthExportLedgerBoxName, suffix),
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -258,6 +269,7 @@ class HiveDBProvider extends ChangeNotifier {
       close(_weightLogBox),
       close(_waterIntakeBox),
       close(_fastingBox),
+      close(_healthExportLedgerBox),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -267,6 +279,7 @@ class HiveDBProvider extends ChangeNotifier {
     _weightLogBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
+    _healthExportLedgerBox = null;
   }
 
   /// Opens (or returns the already-open) box for an arbitrary profile

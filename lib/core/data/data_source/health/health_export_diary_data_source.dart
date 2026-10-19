@@ -10,27 +10,35 @@ class ProfileDiaryEntries {
   final String profileId;
 
   /// The stored opt-in: null when the profile never opted in, so nothing of
-  /// it was ever exported; false when it opted out again, so records it
-  /// exported earlier may still be in the health store.
+  /// it was ever exported; false when it opted out again.
   final bool? exportEnabled;
 
   final List<IntakeDBO> intakes;
+
+  /// The ids among [intakes] the profile's export ledger marks as being in
+  /// the health store.
+  final Set<String> exportedIds;
 
   const ProfileDiaryEntries({
     required this.profileId,
     required this.exportEnabled,
     required this.intakes,
+    required this.exportedIds,
   });
 }
 
-/// Reads diaries across every profile for the meal export.
+/// Reads diaries and export ledgers across every profile for the meal
+/// export.
 ///
 /// HealthKit has no way to tell one profile's meals from another's, so an
 /// iOS window delete removes every profile's meals in that minute, and the
-/// export has to know what each profile still holds there. The active
-/// profile is read from its open boxes; any other profile's boxes are leased
-/// for the read ([HiveDBProvider.leaseScopedBox]), as
-/// `SendIntakeToProfilesUsecase` does, so neither closes them on the other.
+/// export has to know what each profile still holds there. The ledger
+/// ([HiveDBProvider.healthExportLedgerBoxName]) records which entries the
+/// export has put in the store, so nothing logged before an opt-in is ever
+/// written by a later rewrite. The active profile is read from its open
+/// boxes; any other profile's boxes are leased for the read
+/// ([HiveDBProvider.leaseScopedBox]), as `SendIntakeToProfilesUsecase` does,
+/// so neither closes them on the other.
 class HealthExportDiaryDataSource {
   final HiveDBProvider _db;
 
@@ -39,10 +47,13 @@ class HealthExportDiaryDataSource {
   String get activeProfileId => _db.activeProfileId;
 
   /// [profileId]'s stored opt-in, or null when the profile is not registered.
+  ///
+  /// For the active profile the boxes are read before this first suspends,
+  /// so the value is the one stored when it was called.
   Future<bool?> exportEnabledFor(String profileId) async {
     final profile = _db.profileBox.get(profileId);
     if (profile == null) return null;
-    return _read(profile, (config, _) => _exportFlag(config));
+    return _read(profile, (config, _, _) => _exportFlag(config));
   }
 
   /// [profileId]'s opt-in and its whole diary, or null when the profile is
@@ -52,10 +63,11 @@ class HealthExportDiaryDataSource {
     if (profile == null) return null;
     return _read(
       profile,
-      (config, intakes) => ProfileDiaryEntries(
-        profileId: profile.id,
-        exportEnabled: _exportFlag(config),
-        intakes: intakes.values.toList(),
+      (config, intakes, ledger) => _entries(
+        profile,
+        config,
+        intakes.values.toList(),
+        ledger,
       ),
     );
   }
@@ -79,12 +91,13 @@ class HealthExportDiaryDataSource {
       result.add(
         await _read(
           profile,
-          (config, intakes) => ProfileDiaryEntries(
-            profileId: profile.id,
-            exportEnabled: _exportFlag(config),
-            intakes: intakes.values
+          (config, intakes, ledger) => _entries(
+            profile,
+            config,
+            intakes.values
                 .where((intake) => startsInside(intake.dateTime))
                 .toList(),
+            ledger,
           ),
         ),
       );
@@ -93,49 +106,106 @@ class HealthExportDiaryDataSource {
     return result;
   }
 
+  /// The ids among [intakeIds] that [profileId]'s ledger marks as exported.
+  Future<Set<String>> exportedAmong(
+    String profileId,
+    Iterable<String> intakeIds,
+  ) async {
+    final profile = _db.profileBox.get(profileId);
+    if (profile == null) return {};
+    return _read(
+      profile,
+      (_, _, ledger) => intakeIds.where(ledger.containsKey).toSet(),
+    );
+  }
+
+  /// Marks [add] as exported in [profileId]'s ledger and [remove] as not.
+  Future<void> updateLedger(
+    String profileId, {
+    Set<String> add = const {},
+    Set<String> remove = const {},
+  }) async {
+    if (add.isEmpty && remove.isEmpty) return;
+    final profile = _db.profileBox.get(profileId);
+    if (profile == null) return;
+    await _read(profile, (_, _, ledger) async {
+      await ledger.putAll({for (final id in add) id: true});
+      await ledger.deleteAll(remove.difference(add));
+    });
+  }
+
+  /// Empties [profileId]'s ledger.
+  Future<void> clearLedger(String profileId) async {
+    final profile = _db.profileBox.get(profileId);
+    if (profile == null) return;
+    await _read(profile, (_, _, ledger) => ledger.clear());
+  }
+
   void _ensureSettled(String expectedActive) {
     if (_db.isSwitching || _db.activeProfileId != expectedActive) {
       throw StateError('A profile switch happened while reading diaries');
     }
   }
 
+  static ProfileDiaryEntries _entries(
+    ProfileDBO profile,
+    Box<ConfigDBO> config,
+    List<IntakeDBO> intakes,
+    Box<bool> ledger,
+  ) => ProfileDiaryEntries(
+    profileId: profile.id,
+    exportEnabled: _exportFlag(config),
+    intakes: intakes,
+    exportedIds: {
+      for (final intake in intakes)
+        if (ledger.containsKey(intake.id)) intake.id,
+    },
+  );
+
   static bool? _exportFlag(Box<ConfigDBO> config) =>
       config.get(ConfigDataSource.configKey)?.healthExportEnabled;
 
+  /// Runs [read] against [profile]'s config, diary and ledger boxes. A
+  /// future [read] returns has to be awaited by the caller before a scoped
+  /// box could close: [_read] releases its leases when [read] returns.
   Future<T> _read<T>(
     ProfileDBO profile,
-    T Function(Box<ConfigDBO> config, Box<IntakeDBO> intakes) read,
+    T Function(
+      Box<ConfigDBO> config,
+      Box<IntakeDBO> intakes,
+      Box<bool> ledger,
+    )
+    read,
   ) async {
     if (profile.id == _db.activeProfileId) {
       // These getters throw while a switch is under way.
-      return read(_db.configBox, _db.intakeBox);
+      return read(_db.configBox, _db.intakeBox, _db.healthExportLedgerBox);
     }
 
     // Leased, not opened: another flow may be working on this profile's
     // boxes at the same time, and only the last lease closes them.
     final suffix = profile.boxSuffix;
-    final config = await _db.leaseScopedBox<ConfigDBO>(
-      HiveDBProvider.configBoxName,
-      suffix,
-    );
+    final releases = <Future<void> Function()>[];
+    Future<Box<E>> lease<E>(String base) async {
+      final box = await _db.leaseScopedBox<E>(base, suffix);
+      releases.add(() => _db.releaseScopedBox<E>(base, suffix));
+      return box;
+    }
+
     try {
-      final intakes = await _db.leaseScopedBox<IntakeDBO>(
-        HiveDBProvider.intakeBoxName,
-        suffix,
+      final config = await lease<ConfigDBO>(HiveDBProvider.configBoxName);
+      final intakes = await lease<IntakeDBO>(HiveDBProvider.intakeBoxName);
+      final ledger = await lease<bool>(
+        HiveDBProvider.healthExportLedgerBoxName,
       );
-      try {
-        return read(config, intakes);
-      } finally {
-        await _db.releaseScopedBox<IntakeDBO>(
-          HiveDBProvider.intakeBoxName,
-          suffix,
-        );
-      }
+      final result = read(config, intakes, ledger);
+      // A write handed back as a future has to land before the release.
+      if (result is Future) await result;
+      return result;
     } finally {
-      await _db.releaseScopedBox<ConfigDBO>(
-        HiveDBProvider.configBoxName,
-        suffix,
-      );
+      for (final release in releases.reversed) {
+        await release();
+      }
     }
   }
 }

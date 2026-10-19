@@ -49,6 +49,14 @@ class _ProfilesProvider extends HiveDBProvider {
   );
 
   @override
+  Box<bool> get healthExportLedgerBox => Hive.box<bool>(
+    HiveDBProvider.boxNameFor(
+      HiveDBProvider.healthExportLedgerBoxName,
+      _activeSuffix,
+    ),
+  );
+
+  @override
   Future<Box<E>> openScopedBox<E>(String baseName, String boxSuffix) async {
     final box = await Hive.openBox<E>(
       HiveDBProvider.boxNameFor(baseName, boxSuffix),
@@ -101,11 +109,13 @@ void main() {
   String boxName(String base, String profile) =>
       HiveDBProvider.boxNameFor(base, 'export_$profile');
 
-  /// Stores [profile]'s opt-in and diary, leaving its boxes open.
+  /// Stores [profile]'s opt-in, diary and ledger, leaving its boxes open.
+  /// [exported] defaults to the whole diary when the profile has opted in.
   Future<void> seed(
     String profile, {
     required bool? optIn,
     List<IntakeDBO> intakes = const [],
+    Set<String>? exported,
   }) async {
     await db.profileBox.put(
       profile,
@@ -127,6 +137,13 @@ void main() {
       boxName(HiveDBProvider.intakeBoxName, profile),
     );
     await diary.addAll(intakes);
+    final ledger = await Hive.openBox<bool>(
+      boxName(HiveDBProvider.healthExportLedgerBoxName, profile),
+    );
+    final marked =
+        exported ??
+        (optIn == null ? const <String>{} : {for (final i in intakes) i.id});
+    await ledger.putAll({for (final id in marked) id: true});
   }
 
   /// Closes [profile]'s boxes, as for any profile that is not active.
@@ -136,6 +153,9 @@ void main() {
     ).close();
     await Hive.box<IntakeDBO>(
       boxName(HiveDBProvider.intakeBoxName, profile),
+    ).close();
+    await Hive.box<bool>(
+      boxName(HiveDBProvider.healthExportLedgerBoxName, profile),
     ).close();
   }
 
@@ -182,9 +202,10 @@ void main() {
       const Duration(minutes: 1),
     );
 
-    expect(snapshot.exported.map((intake) => intake.id), {'a1', 'b1'});
+    expect(snapshot.exported.map((entry) => entry.intake.id), {'a1', 'b1'});
+    expect(snapshot.exported.map((entry) => entry.profileId), {'a', 'b'});
     // c never opted in, so nothing of it was ever exported.
-    expect(snapshot.optedOut, isEmpty);
+    expect(snapshot.blocked, isEmpty);
   });
 
   test('an entry of a profile that opted out again is flagged', () async {
@@ -196,7 +217,7 @@ void main() {
       const Duration(minutes: 1),
     );
 
-    expect(snapshot.optedOut.map((intake) => intake.id), ['d1']);
+    expect(snapshot.blocked.map((intake) => intake.id), ['d1']);
   });
 
   // #1393 review: a wipe has to read the whole diary before it is cleared.
@@ -205,8 +226,8 @@ void main() {
     final inactive = await repository.readProfile('b');
 
     expect(active!.exportEnabled, isTrue);
-    expect(active.intakes.map((intake) => intake.id), ['a1', 'a2']);
-    expect(inactive!.intakes.map((intake) => intake.id), ['b1']);
+    expect(active.exported.map((intake) => intake.id), ['a1', 'a2']);
+    expect(inactive!.exported.map((intake) => intake.id), ['b1']);
     expect(await repository.readProfile('unknown'), isNull);
     expect(Hive.isBoxOpen(boxName(HiveDBProvider.intakeBoxName, 'b')), isFalse);
   });
@@ -218,7 +239,7 @@ void main() {
       exceptProfile: 'b',
     );
 
-    expect(snapshot.exported.map((intake) => intake.id), ['a1']);
+    expect(snapshot.exported.map((entry) => entry.intake.id), ['a1']);
   });
 
   test('other profiles\' boxes are closed, the active ones not', () async {
@@ -288,5 +309,49 @@ void main() {
     expect(await repository.isExportEnabled('b'), isTrue);
     expect(await repository.isExportEnabled('c'), isFalse);
     expect(await repository.isExportEnabled('unknown'), isFalse);
+  });
+
+  // #1393 review: only entries the export wrote may be rewritten, or a
+  // rewrite backfills what was logged before the opt-in.
+  group('the export ledger', () {
+    test('a snapshot leaves out entries the store never got', () async {
+      await seed(
+        'b',
+        optIn: true,
+        intakes: [_intake('b2', inWindow)],
+        exported: {'b1'},
+      );
+      await close('b');
+
+      final snapshot = await repository.snapshotWindows(
+        {at},
+        const Duration(minutes: 1),
+      );
+
+      expect(snapshot.exported.map((entry) => entry.intake.id), {'a1', 'b1'});
+    });
+
+    test('is read and written for an inactive profile too', () async {
+      await repository.updateLedger('b', add: {'b9'}, remove: {'b1'});
+
+      expect(await repository.exportedAmong('b', ['b1', 'b9']), {'b9'});
+      expect(
+        Hive.isBoxOpen(boxName(HiveDBProvider.healthExportLedgerBoxName, 'b')),
+        isFalse,
+      );
+
+      await repository.clearLedger('b');
+      expect(await repository.exportedAmong('b', ['b9']), isEmpty);
+    });
+
+    test('the active profile\'s ledger is its open box', () async {
+      await repository.updateLedger('a', remove: {'a1'});
+
+      expect(await repository.exportedAmong('a', ['a1', 'a2']), {'a2'});
+      expect(
+        Hive.isBoxOpen(boxName(HiveDBProvider.healthExportLedgerBoxName, 'a')),
+        isTrue,
+      );
+    });
   });
 }
