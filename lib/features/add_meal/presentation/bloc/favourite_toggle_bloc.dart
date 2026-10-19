@@ -54,6 +54,15 @@ class FavouriteToggleBloc
         log.severe(error);
       }
     }, transformer: sequential());
+    // In the same queue as the toggles, so a hydration and a tap on the
+    // star do not interleave their writes.
+    on<FavouriteMealHydratedEvent>((event, emit) async {
+      try {
+        await _toggleFavouriteMealUsecase.refreshDetailedSnapshot(event.meal);
+      } catch (error) {
+        log.severe(error);
+      }
+    }, transformer: sequential());
     on<_FavouritesChangedEvent>((event, emit) => _refresh(emit));
     _changes = _getFavouriteMealsUsecase.watchFavourites().listen(
       (_) => add(const _FavouritesChangedEvent()),

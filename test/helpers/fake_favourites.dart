@@ -29,6 +29,10 @@ class FakeFavourites {
   bool contains(MealEntity meal) =>
       _meals.containsKey(FavouriteMealRepository.keyOf(meal));
 
+  /// The snapshot stored for [meal]'s key, if it is starred.
+  MealEntity? stored(MealEntity meal) =>
+      _meals[FavouriteMealRepository.keyOf(meal)];
+
   void add(MealEntity meal) {
     _meals[FavouriteMealRepository.keyOf(meal)] = meal;
     _changes.add(null);
@@ -76,5 +80,10 @@ class _FakeToggleFavouriteMealUsecase implements ToggleFavouriteMealUsecase {
     }
     _store.add(meal);
     return true;
+  }
+
+  @override
+  Future<void> refreshDetailedSnapshot(MealEntity meal) async {
+    if (meal.detailed && _store.contains(meal)) _store.add(meal);
   }
 }

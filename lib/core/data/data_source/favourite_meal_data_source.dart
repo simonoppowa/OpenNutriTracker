@@ -21,6 +21,9 @@ class FavouriteMealDataSource {
   /// In every profile whose list has a favourite under [fromKey] — the
   /// active one and each other one in the registry — replaces its snapshot
   /// with [meal], under [meal]'s key, keeping `addedAt`. Stars nothing new.
+  /// When [meal]'s key is a different one that is already starred too (a
+  /// merge onto a starred meal), the two become one entry with the earlier
+  /// `addedAt`.
   ///
   /// The custom-meal and recipe libraries are shared by every profile while
   /// each has its own list, so an edit or delete in one profile changes the
@@ -53,7 +56,12 @@ class FavouriteMealDataSource {
   ) async {
     final existing = box.get(fromKey);
     if (existing == null) return;
-    final favourite = FavouriteMealDBO(meal: meal, addedAt: existing.addedAt);
+    final toKey = FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name);
+    final target = box.get(toKey);
+    final addedAt = target != null && target.addedAt.isBefore(existing.addedAt)
+        ? target.addedAt
+        : existing.addedAt;
+    final favourite = FavouriteMealDBO(meal: meal, addedAt: addedAt);
     log.fine('Rewriting favourite $fromKey as ${favourite.mealKey}');
     await box.put(favourite.mealKey, favourite);
     if (favourite.mealKey != fromKey) await box.delete(fromKey);

@@ -71,6 +71,38 @@ class FavouriteMealRepository {
     }
   }
 
+  /// Moves a favourite on the custom meal stored under [loserLibraryKey]
+  /// onto [winner] when the two are merged, in every profile that stars the
+  /// loser. A profile that stars both keeps one entry, starred at the
+  /// earlier time. Callers hold the tracked-day lock.
+  Future<void> mergeCustomMealFavourite(
+    String loserLibraryKey,
+    MealDBO winner,
+  ) async {
+    final winnerMeal = MealDBO.fromMealEntity(MealEntity.fromMealDBO(winner));
+    for (final meal in _customMealDataSource.getAllCustomMeals()) {
+      if ((meal.code ?? meal.name) != loserLibraryKey) continue;
+      await _favouriteMealDataSource.rewriteInEveryProfile(
+        FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name),
+        winnerMeal,
+      );
+    }
+  }
+
+  /// Replaces a starred food's thin snapshot with [meal] once its detail
+  /// page has fetched the full record (an Open Food Facts text-search result
+  /// carries no serving or full micronutrients), in every profile that
+  /// stars it, so the favourite logs and exports the full record offline.
+  /// Does nothing for a meal that is not [MealEntity.detailed]. Callers hold
+  /// the tracked-day lock.
+  Future<void> refreshDetailedSnapshot(MealEntity meal) async {
+    if (!meal.detailed) return;
+    await _favouriteMealDataSource.rewriteInEveryProfile(
+      keyOf(meal),
+      MealDBO.fromMealEntity(meal),
+    );
+  }
+
   /// [keepLatestCustomMealSnapshot] for the recipe with [recipeId]: every
   /// profile that stars it keeps the version it is deleted at.
   Future<void> keepLatestRecipeSnapshot(String recipeId) async {

@@ -146,6 +146,7 @@ void main() {
   final getIt = GetIt.instance;
   MealDetailBloc? bloc;
   late Completer<MealEntity> hydration;
+  late FakeFavourites favourites;
 
   setUp(() {
     bloc = null;
@@ -164,7 +165,7 @@ void main() {
     getIt.registerLazySingleton<GetIntakeUsecase>(_FakeGetIntakeUsecase.new);
     getIt.registerLazySingleton<CacheManager>(_FakeCacheManager.new);
     // #1307: the detail page's star.
-    final favourites = FakeFavourites();
+    favourites = FakeFavourites();
     getIt.registerFactory<FavouriteToggleBloc>(
       () => FavouriteToggleBloc(favourites.get, favourites.toggle),
     );
@@ -338,6 +339,36 @@ void main() {
       expect(find.textContaining(l10nEn.servingLabel), findsNothing);
     },
   );
+
+  // #1307: a food starred from its thin search result keeps the full record
+  // once its detail page hydrates it, so the favourite logs the serving and
+  // micronutrients offline and exports them.
+  testWidgets('hydration replaces a starred food\'s thin snapshot', (
+    tester,
+  ) async {
+    final thin = _thin(_seabrookCrispsSearchHit);
+    favourites.add(thin);
+    expect(favourites.stored(thin)!.detailed, isFalse);
+
+    await pumpMealDetail(tester, thin);
+    hydration.complete(_full(_seabrookCrispsProduct));
+    await tester.pumpAndSettle();
+
+    final stored = favourites.stored(thin)!;
+    expect(stored.detailed, isTrue);
+    expect(stored.scalableServingQuantity, closeTo(31.8, 0.01));
+    expect(favourites.all, hasLength(1));
+  });
+
+  testWidgets('hydration stars nothing that was not starred', (tester) async {
+    final thin = _thin(_seabrookCrispsSearchHit);
+
+    await pumpMealDetail(tester, thin);
+    hydration.complete(_full(_seabrookCrispsProduct));
+    await tester.pumpAndSettle();
+
+    expect(favourites.all, isEmpty);
+  });
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {

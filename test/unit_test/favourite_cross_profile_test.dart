@@ -4,17 +4,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
+import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -238,6 +246,94 @@ void main() {
       expect(shown.single.source, MealSourceEntity.recipe);
       expect(favourites['b']!.get('recipe:r1')!.meal.name, 'Chili con carne');
       expect(favourites['b']!.get('recipe:r1')!.addedAt, starredAt);
+      expect(favourites['c']!.isEmpty, isTrue);
+    },
+  );
+
+  test(
+    'merging a starred meal moves its favourite in every profile',
+    () async {
+      final tag = DateTime.now().microsecondsSinceEpoch;
+      final intakeBox = await Hive.openBox<IntakeDBO>('xprofile_intake_$tag');
+      final trackedBox = await Hive.openBox<TrackedDayDBO>(
+        'xprofile_tracked_$tag',
+      );
+      addTearDown(() async {
+        await intakeBox.deleteFromDisk();
+        await trackedBox.deleteFromDisk();
+      });
+      final library = CustomMealDataSource(provider);
+      final loser = _meal('L', name: 'Oats (dup)');
+      final winner = _meal('W', kcal: 160);
+      await library.saveCustomMeal(MealDBO.fromMealEntity(loser));
+      await library.saveCustomMeal(MealDBO.fromMealEntity(winner));
+      final earlier = DateTime(2026, 9, 1);
+      // A and B star the duplicate; B also stars the winner, later; C
+      // stars only the winner.
+      await favourites['a']!.put('custom:L', _favourite(loser, starredAt));
+      await favourites['b']!.put('custom:L', _favourite(loser, earlier));
+      await favourites['b']!.put('custom:W', _favourite(winner, starredAt));
+      await favourites['c']!.put('custom:W', _favourite(winner, starredAt));
+
+      await MergeCustomMealsUseCase(
+        library,
+        IntakeRepository(
+          IntakeDataSource(FakeHiveDBProvider(intakeBox: intakeBox)),
+        ),
+        AddTrackedDayUsecase(
+          TrackedDayRepository(
+            TrackedDayDataSource(FakeHiveDBProvider(trackedDayBox: trackedBox)),
+          ),
+        ),
+        repository,
+      ).merge(loserKey: 'L', winnerKey: 'W');
+
+      for (final id in ['a', 'b', 'c']) {
+        expect(favourites[id]!.keys, ['custom:W'], reason: id);
+        expect(
+          favourites[id]!.get('custom:W')!.meal.nutriments.energyKcal100,
+          160,
+          reason: id,
+        );
+      }
+      expect(favourites['a']!.get('custom:W')!.addedAt, starredAt);
+      expect(favourites['b']!.get('custom:W')!.addedAt, earlier);
+      expect(customMealBox.values.map((m) => m.code), ['W']);
+    },
+  );
+
+  test(
+    'a hydrated search result replaces the thin snapshot in every profile',
+    () async {
+      MealEntity off({required bool detailed}) => MealEntity(
+        code: '0080457761112',
+        name: 'Crisps',
+        url: null,
+        mealQuantity: detailed ? '25' : null,
+        mealUnit: detailed ? 'g' : null,
+        servingQuantity: detailed ? 31.8 : null,
+        servingUnit: detailed ? 'g' : null,
+        servingSize: null,
+        nutriments: MealNutrimentsEntity.empty(),
+        source: MealSourceEntity.off,
+        detailed: detailed,
+      );
+      final thin = off(detailed: false);
+      await favourites['a']!.put('off:0080457761112', _favourite(thin, starredAt));
+      await favourites['b']!.put('off:0080457761112', _favourite(thin, starredAt));
+
+      // A thin record never overwrites anything.
+      await withTrackedDayLock(() => repository.refreshDetailedSnapshot(thin));
+      await withTrackedDayLock(
+        () => repository.refreshDetailedSnapshot(off(detailed: true)),
+      );
+
+      for (final id in ['a', 'b']) {
+        final stored = favourites[id]!.get('off:0080457761112')!;
+        expect(stored.meal.detailed, isTrue, reason: id);
+        expect(stored.meal.servingQuantity, 31.8, reason: id);
+        expect(stored.addedAt, starredAt, reason: id);
+      }
       expect(favourites['c']!.isEmpty, isTrue);
     },
   );

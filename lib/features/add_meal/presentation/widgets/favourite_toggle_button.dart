@@ -45,6 +45,10 @@ class _FavouriteToggleButtonState extends State<FavouriteToggleButton> {
     if (FavouriteMealRepository.keyOf(oldWidget.meal) !=
         FavouriteMealRepository.keyOf(widget.meal)) {
       _bloc.add(LoadFavouriteStatusEvent(widget.meal));
+    } else if (widget.meal.detailed && !oldWidget.meal.detailed) {
+      // The detail page hydrated this food: keep the full record on a
+      // favourite of it.
+      _bloc.add(FavouriteMealHydratedEvent(widget.meal));
     }
   }
 

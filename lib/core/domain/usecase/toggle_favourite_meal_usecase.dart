@@ -1,4 +1,5 @@
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class ToggleFavouriteMealUsecase {
@@ -16,4 +17,10 @@ class ToggleFavouriteMealUsecase {
     await _favouriteMealRepository.addFavourite(meal);
     return true;
   }
+
+  /// Stores [meal], the full record its detail page fetched, over a starred
+  /// food's thin search snapshot. Stars nothing that was not starred.
+  Future<void> refreshDetailedSnapshot(MealEntity meal) => withTrackedDayLock(
+    () => _favouriteMealRepository.refreshDetailedSnapshot(meal),
+  );
 }
