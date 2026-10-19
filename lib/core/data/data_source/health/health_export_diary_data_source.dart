@@ -112,6 +112,26 @@ class HealthExportDiaryDataSource {
     );
   }
 
+  /// Per registered profile, the ledger records whose diary entry is gone.
+  Future<Map<String, Map<String, int>>> readOrphans() async {
+    final activeAtStart = _db.activeProfileId;
+    _ensureSettled(activeAtStart);
+    final result = <String, Map<String, int>>{};
+    for (final profile in _db.profileBox.values.toList()) {
+      result[profile.id] = await _read(profile, (_, intakes, ledger) {
+        final records = _entries(ledger);
+        if (records.isEmpty) return const <String, int>{};
+        final present = {for (final row in intakes.values) row.id};
+        return {
+          for (final MapEntry(:key, :value) in records.entries)
+            if (!present.contains(key)) key: value,
+        };
+      });
+    }
+    _ensureSettled(activeAtStart);
+    return result;
+  }
+
   /// Empties [profileId]'s ledger.
   Future<void> clearLedger(String profileId) async {
     final profile = _db.profileBox.get(profileId);

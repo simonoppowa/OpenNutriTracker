@@ -93,8 +93,8 @@ Future<void> _bootstrapApp() async {
   unawaited(
     locator<RemoteSearchCacheDataSource>().pruneStale(const Duration(days: 90)),
   );
-  // Apple Health meal windows a failed rewrite left incomplete (#1393).
-  unawaited(locator<ExportMealIntakeUsecase>().replayPendingWindows());
+  // Health exports a failure or a kill left incomplete (#1393).
+  unawaited(locator<ExportMealIntakeUsecase>().recoverOnStart());
 
   final isUserInitialized = await locator<UserDataSource>().hasUserData();
   final configRepo = locator<ConfigRepository>();

@@ -404,5 +404,18 @@ void main() {
       final records = await repository.recordsInWindows({start}, minute);
       expect(ids(records), contains('a/now'));
     });
+
+    // Codex, round 6: a delete that never ran leaves its record in the
+    // ledger with no entry, which start-up recovery looks for.
+    test('orphans are the records whose entry is gone', () async {
+      await repository.updateLedger('b', put: {'gone': inWindow});
+
+      expect(await repository.orphans(), {
+        'a': isEmpty,
+        'b': {'gone': inWindow},
+        'c': isEmpty,
+        'd': isEmpty,
+      });
+    });
   });
 }

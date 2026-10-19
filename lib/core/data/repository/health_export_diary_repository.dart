@@ -82,6 +82,14 @@ class HealthExportDiaryRepository {
   Future<void> clearLedger(String profileId) =>
       _dataSource.clearLedger(profileId);
 
+  /// Per profile, the ledger records whose diary entry is gone: deletes
+  /// that never reached the store. Throws when a profile switch interferes.
+  Future<Map<String, Map<String, DateTime>>> orphans() async => {
+    for (final MapEntry(:key, :value)
+        in (await _dataSource.readOrphans()).entries)
+      key: _times(value),
+  };
+
   /// [profileId]'s diary entry [intakeId], or null when it is gone.
   Future<IntakeEntity?> intakeOf(String profileId, String intakeId) async {
     final row = await _dataSource.readIntake(profileId, intakeId);
