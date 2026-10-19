@@ -593,7 +593,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => SaveRecipeUseCase(locator(), locator()));
   locator.registerLazySingleton(() => GetAllRecipesUseCase(locator()));
   locator.registerLazySingleton(() => GetRecipeByIdUseCase(locator()));
-  locator.registerLazySingleton(() => DeleteRecipeUseCase(locator()));
+  locator.registerLazySingleton(
+    () => DeleteRecipeUseCase(locator(), locator()),
+  );
   locator.registerLazySingleton(
     () => MergeCustomMealsUseCase(locator(), locator(), locator()),
   );

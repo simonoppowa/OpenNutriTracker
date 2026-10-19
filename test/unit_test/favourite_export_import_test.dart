@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
@@ -206,6 +207,7 @@ void main() {
   late Box<FavouriteMealDBO> sourceBox;
   late Box<FavouriteMealDBO> targetBox;
   late Box<MealDBO> customMealBox;
+  late Box<ProfileDBO> profileBox;
 
   FavouriteMealRepository repositoryOver(
     Box<FavouriteMealDBO> box, {
@@ -214,6 +216,7 @@ void main() {
     final provider = FakeHiveDBProvider(
       favouriteMealBox: box,
       customMealBox: customMeals,
+      profileBox: profileBox,
     );
     return FavouriteMealRepository(
       FavouriteMealDataSource(provider),
@@ -237,6 +240,7 @@ void main() {
     sourceBox = await Hive.openBox<FavouriteMealDBO>('fav_export_$tag');
     targetBox = await Hive.openBox<FavouriteMealDBO>('fav_import_$tag');
     customMealBox = await Hive.openBox<MealDBO>('fav_custom_$tag');
+    profileBox = await Hive.openBox<ProfileDBO>('fav_profiles_$tag');
   });
 
   tearDown(() async {
@@ -244,6 +248,7 @@ void main() {
     await sourceBox.deleteFromDisk();
     await targetBox.deleteFromDisk();
     await customMealBox.deleteFromDisk();
+    await profileBox.deleteFromDisk();
     if (await tempRoot.exists()) await tempRoot.delete(recursive: true);
   });
 

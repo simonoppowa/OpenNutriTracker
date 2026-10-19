@@ -42,23 +42,15 @@ class FavouriteMealRepository {
   }
 
   /// Refreshes the saved snapshot after an edit and moves the favourite to a
-  /// new key when needed. Keeping the latest snapshot means it remains current
-  /// if the custom meal is later deleted from its library.
-  Future<void> moveFavourite(MealEntity previous, MealEntity updated) async {
-    final oldKey = keyOf(previous);
-    final newKey = keyOf(updated);
-    final existing = _favouriteMealDataSource.getFavourite(oldKey);
-    if (existing == null) return;
-    await _favouriteMealDataSource.addFavourite(
-      FavouriteMealDBO(
-        meal: MealDBO.fromMealEntity(updated),
-        addedAt: existing.addedAt,
-      ),
-    );
-    if (oldKey != newKey) {
-      await _favouriteMealDataSource.deleteFavourite(oldKey);
-    }
-  }
+  /// new key when needed, in every profile that stars [previous]. Keeping
+  /// the latest snapshot means it remains current if the custom meal is
+  /// later deleted from its library. Callers hold the tracked-day lock; see
+  /// [FavouriteMealDataSource.rewriteInEveryProfile].
+  Future<void> moveFavourite(MealEntity previous, MealEntity updated) =>
+      _favouriteMealDataSource.rewriteInEveryProfile(
+        keyOf(previous),
+        MealDBO.fromMealEntity(updated),
+      );
 
   /// Writes the library's current version of the custom meal stored under
   /// [libraryKey] (its `code ?? name`, the key the library deletes by) into
@@ -66,19 +58,31 @@ class FavouriteMealRepository {
   /// deleted from the library, so the favourite that outlives it shows and
   /// logs the meal as it last was, whichever path last changed it — the
   /// edit form, a meal import, the scanner.
+  ///
+  /// Every profile that stars the meal gets it, since the library is shared.
+  /// Callers hold the tracked-day lock.
   Future<void> keepLatestCustomMealSnapshot(String libraryKey) async {
     for (final meal in _customMealDataSource.getAllCustomMeals()) {
       if ((meal.code ?? meal.name) != libraryKey) continue;
-      final key = FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name);
-      final existing = _favouriteMealDataSource.getFavourite(key);
-      if (existing == null) continue;
-      await _favouriteMealDataSource.addFavourite(
-        FavouriteMealDBO(
-          meal: MealDBO.fromMealEntity(MealEntity.fromMealDBO(meal)),
-          addedAt: existing.addedAt,
-        ),
+      await _favouriteMealDataSource.rewriteInEveryProfile(
+        FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name),
+        MealDBO.fromMealEntity(MealEntity.fromMealDBO(meal)),
       );
     }
+  }
+
+  /// [keepLatestCustomMealSnapshot] for the recipe with [recipeId]: every
+  /// profile that stars it keeps the version it is deleted at.
+  Future<void> keepLatestRecipeSnapshot(String recipeId) async {
+    final recipe = _recipeDataSource.getRecipeById(recipeId);
+    if (recipe == null) return;
+    final meal = MealDBO.fromMealEntity(
+      RecipeEntity.fromDBO(recipe).toMealEntity(),
+    );
+    await _favouriteMealDataSource.rewriteInEveryProfile(
+      FavouriteMealDBO.keyFor(meal.source, meal.code, meal.name),
+      meal,
+    );
   }
 
   /// Every favourite, the most recently starred first.

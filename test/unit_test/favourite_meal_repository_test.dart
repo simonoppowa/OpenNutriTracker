@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/data/data_source/favourite_meal_data_sourc
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
@@ -84,6 +85,7 @@ void main() {
   late Box<FavouriteMealDBO> favouriteBox;
   late Box<MealDBO> customMealBox;
   late Box<RecipeDBO> recipeBox;
+  late Box<ProfileDBO> profileBox;
   late FavouriteMealDataSource dataSource;
   late FavouriteMealRepository repository;
   late GetFavouriteMealsUsecase getFavourites;
@@ -100,10 +102,14 @@ void main() {
     favouriteBox = await Hive.openBox<FavouriteMealDBO>('favourites_$tag');
     customMealBox = await Hive.openBox<MealDBO>('favourites_custom_$tag');
     recipeBox = await Hive.openBox<RecipeDBO>('favourites_recipes_$tag');
+    // The registry the cross-profile rewrite walks; only the active profile
+    // here, so nothing else is opened.
+    profileBox = await Hive.openBox<ProfileDBO>('favourites_profiles_$tag');
     final provider = FakeHiveDBProvider(
       favouriteMealBox: favouriteBox,
       customMealBox: customMealBox,
       recipeBox: recipeBox,
+      profileBox: profileBox,
     );
     dataSource = FavouriteMealDataSource(provider);
     repository = FavouriteMealRepository(
@@ -119,6 +125,7 @@ void main() {
     await favouriteBox.deleteFromDisk();
     await customMealBox.deleteFromDisk();
     await recipeBox.deleteFromDisk();
+    await profileBox.deleteFromDisk();
   });
 
   group('ToggleFavouriteMealUsecase', () {

@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
@@ -32,6 +33,7 @@ class FakeHiveDBProvider extends HiveDBProvider {
   final Box<WaterIntakeDBO>? _waterIntakeBox;
   final Box<FastingSessionDBO>? _fastingBox;
   final Box<FavouriteMealDBO>? _favouriteMealBox;
+  final Box<ProfileDBO>? _profileBox;
 
   /// The profile the injected boxes belong to.
   ///
@@ -58,6 +60,7 @@ class FakeHiveDBProvider extends HiveDBProvider {
     Box<WaterIntakeDBO>? waterIntakeBox,
     Box<FastingSessionDBO>? fastingBox,
     Box<FavouriteMealDBO>? favouriteMealBox,
+    Box<ProfileDBO>? profileBox,
   })  : _configBox = configBox,
         _appConfigBox = appConfigBox ?? configBox,
         _intakeBox = intakeBox,
@@ -71,7 +74,8 @@ class FakeHiveDBProvider extends HiveDBProvider {
         _weightLogBox = weightLogBox,
         _waterIntakeBox = waterIntakeBox,
         _fastingBox = fastingBox,
-        _favouriteMealBox = favouriteMealBox;
+        _favouriteMealBox = favouriteMealBox,
+        _profileBox = profileBox;
 
   T _require<T>(T? box) {
     if (box == null) {
@@ -109,4 +113,6 @@ class FakeHiveDBProvider extends HiveDBProvider {
   Box<FastingSessionDBO> get fastingBox => _require(_fastingBox);
   @override
   Box<FavouriteMealDBO> get favouriteMealBox => _require(_favouriteMealBox);
+  @override
+  Box<ProfileDBO> get profileBox => _require(_profileBox);
 }
