@@ -174,23 +174,23 @@ void main() {
   group('RecentMealBloc search-as-you-type', () {
     test('keystrokes filter the loaded history without re-reading storage',
         () async {
-        final usecase = _FakeGetIntakeUsecase([
-          _intake('Apple'),
-          _intake('Banana'),
-        ]);
-        final bloc = RecentMealBloc(usecase, _FakeGetConfigUsecase());
-        addTearDown(bloc.close);
+      final usecase = _FakeGetIntakeUsecase([
+        _intake('Apple'),
+        _intake('Banana'),
+      ]);
+      final bloc = RecentMealBloc(usecase, _FakeGetConfigUsecase());
+      addTearDown(bloc.close);
 
-        bloc.add(const LoadRecentMealEvent(searchString: ''));
+      bloc.add(const LoadRecentMealEvent(searchString: ''));
+      await Future<void>.delayed(Duration.zero);
+      for (final query in ['a', 'ap', 'app', 'ban']) {
+        bloc.add(RecentMealSearchChangedEvent(searchString: query));
         await Future<void>.delayed(Duration.zero);
-        for (final query in ['a', 'ap', 'app', 'ban']) {
-          bloc.add(RecentMealSearchChangedEvent(searchString: query));
-          await Future<void>.delayed(Duration.zero);
-        }
+      }
 
-        expect(usecase.recentReads, 1);
-        final state = bloc.state as RecentMealLoadedState;
-        expect(state.recentMeals.map((m) => m.name), ['Banana']);
+      expect(usecase.recentReads, 1);
+      final state = bloc.state as RecentMealLoadedState;
+      expect(state.recentMeals.map((m) => m.name), ['Banana']);
     });
 
     test('a keystroke before anything is loaded reads storage once', () async {
@@ -252,42 +252,35 @@ void main() {
     });
 
     testWidgets(
-      'Search all is offered only once the query is long enough to search, '
+        'Search all is offered only once the query is long enough to search, '
         'and typing never re-reads recent history', (tester) async {
-        await _register([_intake('Apple')]);
-        await tester.pumpWidget(_app());
-        await tester.pumpAndSettle();
+      await _register([_intake('Apple')]);
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
 
-        // Explicitly pick Recent so typing stays there (#576).
-        await tester.tap(find.text(l10nEn.recentlyAddedLabel));
-        await tester.pumpAndSettle();
-        expect(
-          find.byWidgetPredicate(
-            (widget) =>
-                widget is Semantics &&
-                widget.properties.identifier == 'add-meal-recent-list',
-          ),
-          findsOneWidget,
-        );
-        final readsBeforeTyping = _intakeUsecase.recentReads;
+      // Explicitly pick Recent so typing stays there (#576).
+      await tester.tap(find.text(l10nEn.recentlyAddedLabel));
+      await tester.pumpAndSettle();
+      expect(_withIdentifier('add-meal-recent-list'), findsOneWidget);
+      final readsBeforeTyping = _intakeUsecase.recentReads;
 
-        // One character: All would refuse to search it, so no CTA.
-        await tester.enterText(find.byType(TextField).first, 'z');
-        await tester.pumpAndSettle();
-        expect(find.text(l10nEn.noResultsFound), findsOneWidget);
-        expect(_searchAll(), findsNothing);
+      // One character: All would refuse to search it, so no CTA.
+      await tester.enterText(find.byType(TextField).first, 'z');
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.noResultsFound), findsOneWidget);
+      expect(_searchAll(), findsNothing);
 
-        // Two characters: the CTA appears and runs the promised search.
-        await tester.enterText(find.byType(TextField).first, 'zz');
-        await tester.pumpAndSettle();
-        expect(_searchAll(), findsOneWidget);
-        expect(_intakeUsecase.recentReads, readsBeforeTyping);
+      // Two characters: the CTA appears and runs the promised search.
+      await tester.enterText(find.byType(TextField).first, 'zz');
+      await tester.pumpAndSettle();
+      expect(_searchAll(), findsOneWidget);
+      expect(_intakeUsecase.recentReads, readsBeforeTyping);
 
-        await tester.tap(_searchAll());
-        await tester.pumpAndSettle();
-        expect(_search.offQueries, contains('zz'));
-        expect(_search.fdcQueries, contains('zz'));
-        expect(find.text(l10nEn.noResultsFound), findsOneWidget);
+      await tester.tap(_searchAll());
+      await tester.pumpAndSettle();
+      expect(_search.offQueries, contains('zz'));
+      expect(_search.fdcQueries, contains('zz'));
+      expect(find.text(l10nEn.noResultsFound), findsOneWidget);
     });
   });
 }

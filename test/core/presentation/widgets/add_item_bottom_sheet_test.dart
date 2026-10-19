@@ -124,9 +124,9 @@ void main() {
   testWidgets(
     'defaults to showing the Activity tile when the flag is omitted',
     (tester) async {
-      await tester.pumpWidget(
-        _wrapWithMaterial(AddItemBottomSheet(day: DateTime(2026, 1, 1))),
-      );
+      await tester.pumpWidget(_wrapWithMaterial(
+        AddItemBottomSheet(day: DateTime(2026, 1, 1)),
+      ));
       await tester.pumpAndSettle();
 
       expect(find.text(l10nEn.activityLabel), findsOneWidget);
@@ -140,10 +140,10 @@ void main() {
     'shows exactly one Suggested chip on the tile matching suggestedType',
     (tester) async {
       await tester.pumpWidget(_wrapWithMaterial(
-          AddItemBottomSheet(
-            day: DateTime(2026, 1, 1),
-            suggestedType: IntakeTypeEntity.lunch,
-          ),
+        AddItemBottomSheet(
+          day: DateTime(2026, 1, 1),
+          suggestedType: IntakeTypeEntity.lunch,
+        ),
       ));
       await tester.pumpAndSettle();
 
@@ -173,7 +173,7 @@ void main() {
   testWidgets(
     'announces the suggestion once, not twice',
     (tester) async {
-    final handle = tester.ensureSemantics();
+      final handle = tester.ensureSemantics();
       await tester.pumpWidget(_wrapWithMaterial(
         AddItemBottomSheet(
           day: DateTime(2026, 1, 1),
@@ -182,12 +182,12 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-    final chip = find.byWidgetPredicate(
-      (widget) =>
-          widget is Semantics &&
-          widget.properties.identifier == 'add-item-suggested-chip',
-    );
-    final label = tester.semantics.find(chip).label;
+      final chip = find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.identifier == 'add-item-suggested-chip',
+      );
+      final label = tester.semantics.find(chip).label;
 
       expect(label, equals(l10nEn.suggestedLabel),
           reason: 'the chip should say it once and only once');
