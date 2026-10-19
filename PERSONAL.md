@@ -19,7 +19,7 @@ vervollständigt.
 |---|---|---|
 | Build | Unsignierte IPA per GitHub Actions (macOS-Runner), Artefakt auf jedem PR und jedem Push auf `personal` | #14 |
 | iOS | Bundle IDs `dev.theocloud.nutritracker` (Flavor `full`, „NutriTracker“) und `dev.theocloud.nutritracker.dev` (Flavor `develop`, „NutriTracker Dev“); Upstream-Team und match-Profile entfernt | #15 |
-| Lebensmittel | Kein Supabase-Backend mehr; FDC/BLS über Supabase entfallen, Open Food Facts bleibt online, BLS kommt lokal | #17, #51, #79 |
+| Lebensmittel | Kein Supabase-Backend mehr; BLS 4.0 lokal mit Offline-Suche, Open Food Facts bleibt online; `supabase_flutter` und `SpFoodDataSource` bleiben als ungenutzter Upstream-Code für kleine Merges | #17, #51, #79 |
 | Infrastruktur | fastlane, Store-Metadaten, Screenshot-Tooling, Upstream-Workflows, Dependabot, Issue-Templates entfernt | #18 |
 | Telemetrie | Sentry samt Einwilligungs-UI entfernt, `envied`/`.env` entfallen (nichts liest mehr Secrets) | #19 |
 | KI | KI-Mahlzeitenerkennung (externe Anbieter) ausgeblendet; Bulk-Add mit lokalem Parser bleibt | #20 |
@@ -127,7 +127,12 @@ Onboarding (#100).
   `assets/bls/bls_4_0.json.gz` in der App (7.140 Lebensmittel, 38 Nährstofffelder,
   ~0,7 MB komprimiert, ~70 ms zum Einlesen auf einem Desktop-Rechner). Erzeugt mit
   `tool/bls/bls_to_asset.py` aus dem offiziellen Download (Anleitung in
-  `tool/bls/README.md`). Suche darin: #79.
+  `tool/bls/README.md`). Die Suche (#79) läuft offline auf den deutschen
+  Namen. Sie versteht Umlaute und ae/oe/ue, Plural, einen Tippfehler und
+  Alltagswörter über die pflegbare Liste
+  `lib/features/add_meal/data/data_sources/bls_synonyms.dart` (z. B. Brokkoli →
+  Broccoli, Hüttenkäse → Körniger Frischkäse). Kommt bei einer häufigen Suche
+  nichts, gehört das Wort dort hinein.
 - Kein Supabase/FDC mehr. Upstream nutzte dafür ein Backend des Maintainers ohne
   öffentliche Zugangsdaten.
 

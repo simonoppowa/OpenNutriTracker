@@ -1327,6 +1327,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         applicationVersion: packageInfo.version,
         applicationLegalese: S.of(context).appLicenseLabel,
         children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Text(
+              S.of(context).aboutFoodDataCredits,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
           TextButton(
             onPressed: () {
               _launchSourceCodeUrl(context);

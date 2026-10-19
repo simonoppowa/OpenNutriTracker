@@ -85,32 +85,10 @@ void main() {
   });
 
   group('defaultFoodSourceToggles', () {
-    test('German-speaking locales get the BLS and drop US branded foods', () {
-      for (final locale in ['de_DE', 'de_AT', 'de_CH']) {
-        final toggles = defaultFoodSourceToggles(locale);
-        expect(toggles['bls'], isTrue, reason: locale);
-        expect(toggles['fdc_branded'], isFalse, reason: locale);
-        // The generic FDC sources stay: food_translation gives them German
-        // names, so they read as reference entries rather than noise.
-        expect(toggles['fdc_foundation'], isTrue, reason: locale);
-        expect(toggles['fdc_sr_legacy'], isTrue, reason: locale);
-        expect(toggles['fdc_survey'], isTrue, reason: locale);
+    test('every locale starts with the local BLS on', () {
+      for (final locale in ['de_DE', 'de_AT', 'en_US', 'it_IT', 'de']) {
+        expect(defaultFoodSourceToggles(locale)['bls'], isTrue, reason: locale);
       }
-    });
-
-    test('everywhere else gets the FDC set and no BLS', () {
-      for (final locale in ['en_US', 'en_GB', 'it_IT', 'pl_PL']) {
-        final toggles = defaultFoodSourceToggles(locale);
-        expect(toggles['bls'], isFalse, reason: locale);
-        expect(toggles['fdc_branded'], isTrue, reason: locale);
-        expect(toggles['fdc_foundation'], isTrue, reason: locale);
-      }
-    });
-
-    test('a locale without a country is treated as non-German', () {
-      final toggles = defaultFoodSourceToggles('de');
-      expect(toggles['bls'], isFalse);
-      expect(toggles['fdc_branded'], isTrue);
     });
 
     test('covers exactly the selectable sources', () {

@@ -122,16 +122,10 @@ class SPConst {
     'tbca': 'TBCA',
   };
 
-  /// Sources offered in Settings → Food databases. INDB and TBCA exist in
-  /// the schema but carry no data yet, so they are not selectable until
-  /// their imports land — add them here once they do.
-  static const settingsSelectableFoodSources = [
-    'fdc_foundation',
-    'fdc_sr_legacy',
-    'fdc_survey',
-    'fdc_branded',
-    'bls',
-  ];
+  /// Sources offered in Settings → Food databases. This fork has no
+  /// Supabase backend; its one reference database is the BLS shipped as a
+  /// local asset (`LocalBlsFoodDataSource`).
+  static const settingsSelectableFoodSources = ['bls'];
 
   /// Public website per backend source: the "learn more" link in Settings →
   /// Food databases and the info-button fallback for foods without a

@@ -412,6 +412,7 @@
   "autoBackupIntervalHours": "{hours} Stunden",
   "autoBackupKeepCount": "{count} Backups",
   "autoBackupServerError": "der Server hat mit Fehler {code} geantwortet",
+  "aboutFoodDataCredits": "Lebensmitteldaten: Bundeslebensmittelschlüssel (BLS) 4.0, © Max Rubner-Institut, Lizenz CC BY 4.0, in App-Einheiten umgerechnet und auf 38 Nährstoffe gekürzt in der App enthalten; Open Food Facts, ODbL.",
   "importAction": "Importieren",
   "importActivityConfirmContent": "Diese Aktivitäten werden zu heute hinzugefügt.",
   "importActivityConfirmTitle": "{count} Aktivitäten importieren?",

@@ -4,7 +4,9 @@
 (© Max Rubner-Institut, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/))
 in the shape the app reads offline: per food the BLS code, the German and
 English name and the nutrients per 100 g in the app's units. Missing values
-are `null`, never `0`.
+are `null`, never `0`. The asset is a modified version of the BLS (units
+converted, cut to 38 nutrient fields), and the in-app credits say so, as
+CC BY 4.0 requires.
 
 Regenerate after a new BLS release:
 
