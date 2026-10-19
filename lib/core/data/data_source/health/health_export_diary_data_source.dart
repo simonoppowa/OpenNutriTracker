@@ -5,40 +5,47 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
-/// One profile's meal-export opt-in and some of its diary entries.
-class ProfileDiaryEntries {
+/// One profile's export opt-in and the ledger records it has in some export
+/// windows, with the diary rows they belong to.
+class ProfileLedgerRecords {
   final String profileId;
 
-  /// The stored opt-in: null when the profile never opted in, so nothing of
-  /// it was ever exported; false when it opted out again.
+  /// The stored opt-in: null when the profile never opted in.
   final bool? exportEnabled;
 
-  final List<IntakeDBO> intakes;
+  /// Ledger records in the windows: intake id to the start time, in
+  /// milliseconds since the epoch, of the record the store holds for it.
+  final Map<String, int> exportedAt;
 
-  /// The ids among [intakes] the profile's export ledger marks as being in
-  /// the health store.
-  final Set<String> exportedIds;
+  /// The diary rows of those records still in the diary, by intake id. A
+  /// record without a row here is an orphan: its entry was deleted, and its
+  /// record still has to go.
+  final Map<String, IntakeDBO> rows;
 
-  const ProfileDiaryEntries({
+  const ProfileLedgerRecords({
     required this.profileId,
     required this.exportEnabled,
-    required this.intakes,
-    required this.exportedIds,
+    required this.exportedAt,
+    required this.rows,
   });
 }
 
 /// Reads diaries and export ledgers across every profile for the meal
 /// export.
 ///
-/// HealthKit has no way to tell one profile's meals from another's, so an
-/// iOS window delete removes every profile's meals in that minute, and the
-/// export has to know what each profile still holds there. The ledger
-/// ([HiveDBProvider.healthExportLedgerBoxName]) records which entries the
-/// export has put in the store, so nothing logged before an opt-in is ever
-/// written by a later rewrite. The active profile is read from its open
-/// boxes; any other profile's boxes are leased for the read
-/// ([HiveDBProvider.leaseScopedBox]), as `SendIntakeToProfilesUsecase` does,
-/// so neither closes them on the other.
+/// The ledger ([HiveDBProvider.healthExportLedgerBoxName]) is the durable
+/// account of what the health store holds: for each entry the export wrote,
+/// the start time of its record. It is kept apart from the diary — a record
+/// stays in it after its entry is edited while export is off, or deleted,
+/// until the store no longer holds it — because HealthKit can only find a
+/// record by that time.
+///
+/// HealthKit cannot tell one profile's meals from another's either, so an
+/// iOS window delete removes every profile's records in that minute, and the
+/// export has to know what each profile has there. The active profile is
+/// read from its open boxes; any other profile's boxes are leased for the
+/// read ([HiveDBProvider.leaseScopedBox]), as `SendIntakeToProfilesUsecase`
+/// does, so neither closes them on the other.
 class HealthExportDiaryDataSource {
   final HiveDBProvider _db;
 
@@ -56,58 +63,15 @@ class HealthExportDiaryDataSource {
     return _read(profile, (config, _, _) => _exportFlag(config));
   }
 
-  /// [profileId]'s opt-in and its whole diary, or null when the profile is
-  /// not registered.
-  Future<ProfileDiaryEntries?> readProfile(String profileId) async {
+  /// [profileId]'s whole ledger, or null when it is not registered.
+  Future<Map<String, int>?> readLedger(String profileId) async {
     final profile = _db.profileBox.get(profileId);
     if (profile == null) return null;
-    return _read(
-      profile,
-      (config, intakes, ledger) => _entries(
-        profile,
-        config,
-        intakes.values.toList(),
-        ledger,
-      ),
-    );
+    return _read(profile, (_, _, ledger) => _entries(ledger));
   }
 
-  /// Every registered profile's opt-in and the entries whose start time
-  /// satisfies [startsInside]. [exceptProfile] is skipped without opening
-  /// its boxes, for a profile whose storage is being wiped or deleted.
-  ///
-  /// Throws a [StateError] when a profile switch is under way or lands while
-  /// reading: the per-profile boxes move underneath it, so the result could
-  /// file one profile's entries under another's consent.
-  Future<List<ProfileDiaryEntries>> readAllProfiles(
-    bool Function(DateTime start) startsInside, {
-    String? exceptProfile,
-  }) async {
-    final activeAtStart = _db.activeProfileId;
-    _ensureSettled(activeAtStart);
-    final result = <ProfileDiaryEntries>[];
-    for (final profile in _db.profileBox.values.toList()) {
-      if (profile.id == exceptProfile) continue;
-      result.add(
-        await _read(
-          profile,
-          (config, intakes, ledger) => _entries(
-            profile,
-            config,
-            intakes.values
-                .where((intake) => startsInside(intake.dateTime))
-                .toList(),
-            ledger,
-          ),
-        ),
-      );
-    }
-    _ensureSettled(activeAtStart);
-    return result;
-  }
-
-  /// The ids among [intakeIds] that [profileId]'s ledger marks as exported.
-  Future<Set<String>> exportedAmong(
+  /// The ledger records of [intakeIds] in [profileId]'s ledger.
+  Future<Map<String, int>> ledgerRecordsOf(
     String profileId,
     Iterable<String> intakeIds,
   ) async {
@@ -115,22 +79,25 @@ class HealthExportDiaryDataSource {
     if (profile == null) return {};
     return _read(
       profile,
-      (_, _, ledger) => intakeIds.where(ledger.containsKey).toSet(),
+      (_, _, ledger) => {
+        for (final id in intakeIds)
+          if (ledger.get(id) case final int at) id: at,
+      },
     );
   }
 
-  /// Marks [add] as exported in [profileId]'s ledger and [remove] as not.
+  /// Records [put] in [profileId]'s ledger and drops [remove] from it.
   Future<void> updateLedger(
     String profileId, {
-    Set<String> add = const {},
+    Map<String, int> put = const {},
     Set<String> remove = const {},
   }) async {
-    if (add.isEmpty && remove.isEmpty) return;
+    if (put.isEmpty && remove.isEmpty) return;
     final profile = _db.profileBox.get(profileId);
     if (profile == null) return;
     await _read(profile, (_, _, ledger) async {
-      await ledger.putAll({for (final id in add) id: true});
-      await ledger.deleteAll(remove.difference(add));
+      await ledger.putAll(put);
+      await ledger.deleteAll(remove.difference(put.keys.toSet()));
     });
   }
 
@@ -141,39 +108,70 @@ class HealthExportDiaryDataSource {
     await _read(profile, (_, _, ledger) => ledger.clear());
   }
 
+  /// Every registered profile's opt-in and the ledger records whose time
+  /// satisfies [inside], with their diary rows. [exceptProfile] is skipped
+  /// without opening its boxes, for a profile whose storage is being wiped
+  /// or deleted.
+  ///
+  /// Throws a [StateError] when a profile switch is under way or lands while
+  /// reading: the per-profile boxes move underneath it, so the result could
+  /// file one profile's entries under another's consent.
+  Future<List<ProfileLedgerRecords>> readWindowRecords(
+    bool Function(DateTime time) inside, {
+    String? exceptProfile,
+  }) async {
+    final activeAtStart = _db.activeProfileId;
+    _ensureSettled(activeAtStart);
+    final result = <ProfileLedgerRecords>[];
+    for (final profile in _db.profileBox.values.toList()) {
+      if (profile.id == exceptProfile) continue;
+      result.add(
+        await _read(profile, (config, intakes, ledger) {
+          final exportedAt = {
+            for (final MapEntry(:key, :value) in _entries(ledger).entries)
+              if (inside(DateTime.fromMillisecondsSinceEpoch(value)))
+                key: value,
+          };
+          return ProfileLedgerRecords(
+            profileId: profile.id,
+            exportEnabled: _exportFlag(config),
+            exportedAt: exportedAt,
+            rows: exportedAt.isEmpty
+                ? const {}
+                : {
+                    for (final row in intakes.values)
+                      if (exportedAt.containsKey(row.id)) row.id: row,
+                  },
+          );
+        }),
+      );
+    }
+    _ensureSettled(activeAtStart);
+    return result;
+  }
+
   void _ensureSettled(String expectedActive) {
     if (_db.isSwitching || _db.activeProfileId != expectedActive) {
       throw StateError('A profile switch happened while reading diaries');
     }
   }
 
-  static ProfileDiaryEntries _entries(
-    ProfileDBO profile,
-    Box<ConfigDBO> config,
-    List<IntakeDBO> intakes,
-    Box<bool> ledger,
-  ) => ProfileDiaryEntries(
-    profileId: profile.id,
-    exportEnabled: _exportFlag(config),
-    intakes: intakes,
-    exportedIds: {
-      for (final intake in intakes)
-        if (ledger.containsKey(intake.id)) intake.id,
-    },
-  );
+  static Map<String, int> _entries(Box<int> ledger) => {
+    for (final key in ledger.keys)
+      if (ledger.get(key) case final int at) key as String: at,
+  };
 
   static bool? _exportFlag(Box<ConfigDBO> config) =>
       config.get(ConfigDataSource.configKey)?.healthExportEnabled;
 
   /// Runs [read] against [profile]'s config, diary and ledger boxes. A
-  /// future [read] returns has to be awaited by the caller before a scoped
-  /// box could close: [_read] releases its leases when [read] returns.
+  /// future [read] returns is awaited before any scoped box is released.
   Future<T> _read<T>(
     ProfileDBO profile,
     T Function(
       Box<ConfigDBO> config,
       Box<IntakeDBO> intakes,
-      Box<bool> ledger,
+      Box<int> ledger,
     )
     read,
   ) async {
@@ -195,9 +193,7 @@ class HealthExportDiaryDataSource {
     try {
       final config = await lease<ConfigDBO>(HiveDBProvider.configBoxName);
       final intakes = await lease<IntakeDBO>(HiveDBProvider.intakeBoxName);
-      final ledger = await lease<bool>(
-        HiveDBProvider.healthExportLedgerBoxName,
-      );
+      final ledger = await lease<int>(HiveDBProvider.healthExportLedgerBoxName);
       final result = read(config, intakes, ledger);
       // A write handed back as a future has to land before the release.
       if (result is Future) await result;

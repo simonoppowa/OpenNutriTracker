@@ -60,8 +60,10 @@ class HiveDBProvider extends ChangeNotifier {
   // intentionally keeps cancelled and completed sessions side by side with no
   // success/failure label on the record — see `FastingSessionDBO`.
   static const fastingBoxName = 'FastingBox';
-  // #1393: which diary entries the meal export has put in the health store,
-  // keyed by intake id. Per-profile, like the diary it mirrors, so a
+  // #1393: what the meal export has put in the health store — intake id to
+  // the start time, in milliseconds since the epoch, of its record. Kept
+  // apart from the diary, since a record outlives an edit made while export
+  // is off, or a deletion, until the store lets it go. Per-profile, so a
   // profile's box-set takes it along when the profile is deleted.
   static const healthExportLedgerBoxName = 'HealthExportLedgerBox';
   // #471: registry of profiles. Global — shared across every profile so
@@ -115,7 +117,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WeightLogDBO>? _weightLogBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
-  Box<bool>? _healthExportLedgerBox;
+  Box<int>? _healthExportLedgerBox;
 
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
@@ -146,7 +148,7 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
       _requireBox(_fastingBox, fastingBoxName);
-  Box<bool> get healthExportLedgerBox =>
+  Box<int> get healthExportLedgerBox =>
       _requireBox(_healthExportLedgerBox, healthExportLedgerBoxName);
 
   Box<T> _requireBox<T>(Box<T>? box, String name) {

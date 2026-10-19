@@ -1,43 +1,42 @@
 import 'package:opennutritracker/core/data/data_source/health/health_export_diary_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 
-/// A diary entry and the profile whose diary it is in.
-class ProfileIntake {
+/// A record the health store holds for one profile's diary entry, as the
+/// export ledger tells it.
+class LedgerRecord {
   final String profileId;
-  final IntakeEntity intake;
+  final String intakeId;
 
-  const ProfileIntake(this.profileId, this.intake);
-}
+  /// When the stored record starts: where HealthKit finds it.
+  final DateTime exportedAt;
 
-/// What the diaries of every profile hold in a set of export windows, as far
-/// as the health store is concerned: only entries the export ledgers mark as
-/// exported count. An entry logged before its profile opted in was never
-/// written, and a rewrite must not write it now either.
-class ExportWindowSnapshot {
-  /// Exported entries of profiles that still export: what the windows
-  /// should hold, each written under its own profile's opt-in.
-  final List<ProfileIntake> exported;
+  /// The entry as the diary has it now, or null once it was deleted and
+  /// only the record is left.
+  final IntakeEntity? current;
 
-  /// Exported entries of profiles that have stopped. Their records may be in
-  /// the window, and rewriting them would export without consent, so
-  /// deleting that window would lose them.
-  final List<IntakeEntity> blocked;
+  /// Whether [profileId] exports meals now.
+  final bool consenting;
 
-  const ExportWindowSnapshot({required this.exported, required this.blocked});
-}
+  const LedgerRecord({
+    required this.profileId,
+    required this.intakeId,
+    required this.exportedAt,
+    required this.current,
+    required this.consenting,
+  });
 
-/// One profile's opt-in and the diary entries it has exported.
-class ProfileDiary {
-  /// Null when the profile never opted in.
-  final bool? exportEnabled;
-  final List<IntakeEntity> exported;
-
-  const ProfileDiary({required this.exportEnabled, required this.exported});
+  /// The record with its entry written again at the entry's own time.
+  LedgerRecord rewritten() => LedgerRecord(
+    profileId: profileId,
+    intakeId: intakeId,
+    exportedAt: current!.dateTime,
+    current: current,
+    consenting: consenting,
+  );
 }
 
 /// The diary side of the meal export: which profile is active, whether a
-/// profile exports, what it has exported, and what every profile holds in a
-/// window.
+/// profile exports, and the export ledger — what the store holds, and where.
 class HealthExportDiaryRepository {
   final HealthExportDiaryDataSource _dataSource;
 
@@ -50,63 +49,66 @@ class HealthExportDiaryRepository {
   Future<bool> isExportEnabled(String profileId) async =>
       await _dataSource.exportEnabledFor(profileId) ?? false;
 
-  /// [profileId]'s opt-in and exported entries, or null when it is not
-  /// registered.
-  Future<ProfileDiary?> readProfile(String profileId) async {
-    final profile = await _dataSource.readProfile(profileId);
-    if (profile == null) return null;
-    return ProfileDiary(
-      exportEnabled: profile.exportEnabled,
-      exported: [
-        for (final intake in profile.intakes)
-          if (profile.exportedIds.contains(intake.id))
-            IntakeEntity.fromIntakeDBO(intake),
-      ],
-    );
-  }
+  /// [profileId]'s whole ledger: intake id to record start. Empty when the
+  /// profile is not registered.
+  Future<Map<String, DateTime>> ledgerOf(String profileId) async =>
+      _times(await _dataSource.readLedger(profileId) ?? const {});
 
-  Future<Set<String>> exportedAmong(
+  /// Where the store holds [intakeIds]' records, for those it holds.
+  Future<Map<String, DateTime>> exportedAt(
     String profileId,
     Iterable<String> intakeIds,
-  ) => _dataSource.exportedAmong(profileId, intakeIds);
+  ) async => _times(await _dataSource.ledgerRecordsOf(profileId, intakeIds));
 
   Future<void> updateLedger(
     String profileId, {
-    Set<String> add = const {},
+    Map<String, DateTime> put = const {},
     Set<String> remove = const {},
-  }) => _dataSource.updateLedger(profileId, add: add, remove: remove);
+  }) => _dataSource.updateLedger(
+    profileId,
+    put: {
+      for (final MapEntry(:key, :value) in put.entries)
+        key: value.millisecondsSinceEpoch,
+    },
+    remove: remove,
+  );
 
   Future<void> clearLedger(String profileId) =>
       _dataSource.clearLedger(profileId);
 
-  /// Reads every profile's entries starting in any window
+  /// Every profile's ledger records starting in any window
   /// `[start, start + length)`, skipping [exceptProfile]. Throws when a
   /// profile switch interferes.
-  Future<ExportWindowSnapshot> snapshotWindows(
+  Future<List<LedgerRecord>> recordsInWindows(
     Set<DateTime> starts,
     Duration length, {
     String? exceptProfile,
   }) async {
-    bool startsInside(DateTime time) => starts.any(
+    bool inside(DateTime time) => starts.any(
       (start) => !time.isBefore(start) && time.isBefore(start.add(length)),
     );
-    final profiles = await _dataSource.readAllProfiles(
-      startsInside,
+    final profiles = await _dataSource.readWindowRecords(
+      inside,
       exceptProfile: exceptProfile,
     );
-    final exported = <ProfileIntake>[];
-    final blocked = <IntakeEntity>[];
-    for (final profile in profiles) {
-      for (final intake in profile.intakes) {
-        if (!profile.exportedIds.contains(intake.id)) continue;
-        final entity = IntakeEntity.fromIntakeDBO(intake);
-        if (profile.exportEnabled == true) {
-          exported.add(ProfileIntake(profile.profileId, entity));
-        } else {
-          blocked.add(entity);
-        }
-      }
-    }
-    return ExportWindowSnapshot(exported: exported, blocked: blocked);
+    return [
+      for (final profile in profiles)
+        for (final MapEntry(key: id, value: at) in profile.exportedAt.entries)
+          LedgerRecord(
+            profileId: profile.profileId,
+            intakeId: id,
+            exportedAt: DateTime.fromMillisecondsSinceEpoch(at),
+            current: switch (profile.rows[id]) {
+              final row? => IntakeEntity.fromIntakeDBO(row),
+              null => null,
+            },
+            consenting: profile.exportEnabled == true,
+          ),
+    ];
   }
+
+  static Map<String, DateTime> _times(Map<String, int> millis) => {
+    for (final MapEntry(:key, :value) in millis.entries)
+      key: DateTime.fromMillisecondsSinceEpoch(value),
+  };
 }

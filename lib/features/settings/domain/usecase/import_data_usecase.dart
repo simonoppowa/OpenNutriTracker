@@ -318,9 +318,15 @@ class ImportDataUsecase {
   Future<void> _exportReplacements(Map<String, IntakeEntity> before) async {
     final export = _exportMealIntakeUsecase;
     if (export == null || before.isEmpty) return;
+    // One read of the diary, indexed: a lookup per row would scan it per
+    // row, under the tracked-day lock.
+    final stored = {
+      for (final row in await _intakeRepository.getAllIntakesDBO())
+        if (before.containsKey(row.id)) row.id: IntakeEntity.fromIntakeDBO(row),
+    };
     final edits = <(IntakeEntity, IntakeEntity)>[];
     for (final MapEntry(key: id, value: old) in before.entries) {
-      final now = await _intakeRepository.getIntakeById(id);
+      final now = stored[id];
       if (now == null || _sameContent(old, now)) continue;
       edits.add((old, now));
     }

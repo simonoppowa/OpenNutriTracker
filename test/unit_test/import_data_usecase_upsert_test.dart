@@ -87,6 +87,16 @@ class _FakeExportMealIntakeUsecase extends Fake
   }
 }
 
+/// Fails a lookup by id: the import has to read the diary once, not scan
+/// it again for every replaced row (Copilot review on #1393).
+class _NoLookupIntakeRepository extends IntakeRepository {
+  _NoLookupIntakeRepository(super.intakeDataSource);
+
+  @override
+  Future<IntakeEntity?> getIntakeById(String intakeId) =>
+      throw StateError('looked up $intakeId one by one');
+}
+
 /// A `user_intake.json` row for a custom food, as the exporter writes it.
 Map<String, dynamic> _intakeJson(String id, {double amount = 100}) => {
   'id': id,
@@ -253,7 +263,7 @@ void main() {
     final export = _FakeExportMealIntakeUsecase();
     final exporting = ImportDataUsecase(
       UserActivityRepository(UserActivityDataSource(provider)),
-      IntakeRepository(IntakeDataSource(provider)),
+      _NoLookupIntakeRepository(IntakeDataSource(provider)),
       TrackedDayRepository(TrackedDayDataSource(provider)),
       RecipeRepository(RecipeDataSource(provider)),
       WeightLogRepository(WeightLogDataSource(provider)),

@@ -49,7 +49,7 @@ class _ProfilesProvider extends HiveDBProvider {
   );
 
   @override
-  Box<bool> get healthExportLedgerBox => Hive.box<bool>(
+  Box<int> get healthExportLedgerBox => Hive.box<int>(
     HiveDBProvider.boxNameFor(
       HiveDBProvider.healthExportLedgerBoxName,
       _activeSuffix,
@@ -101,6 +101,7 @@ void main() {
   final at = DateTime(2026, 6, 15, 12, 30);
   final inWindow = at.add(const Duration(seconds: 20));
   final elsewhere = at.add(const Duration(hours: 1));
+  const minute = Duration(minutes: 1);
 
   late Directory dir;
   late _ProfilesProvider db;
@@ -110,12 +111,13 @@ void main() {
       HiveDBProvider.boxNameFor(base, 'export_$profile');
 
   /// Stores [profile]'s opt-in, diary and ledger, leaving its boxes open.
-  /// [exported] defaults to the whole diary when the profile has opted in.
+  /// [exported] defaults to the whole diary, at each entry's own time, when
+  /// the profile has opted in.
   Future<void> seed(
     String profile, {
     required bool? optIn,
     List<IntakeDBO> intakes = const [],
-    Set<String>? exported,
+    Map<String, DateTime>? exported,
   }) async {
     await db.profileBox.put(
       profile,
@@ -137,13 +139,18 @@ void main() {
       boxName(HiveDBProvider.intakeBoxName, profile),
     );
     await diary.addAll(intakes);
-    final ledger = await Hive.openBox<bool>(
+    final ledger = await Hive.openBox<int>(
       boxName(HiveDBProvider.healthExportLedgerBoxName, profile),
     );
-    final marked =
+    final records =
         exported ??
-        (optIn == null ? const <String>{} : {for (final i in intakes) i.id});
-    await ledger.putAll({for (final id in marked) id: true});
+        (optIn == null
+            ? const <String, DateTime>{}
+            : {for (final intake in intakes) intake.id: intake.dateTime});
+    await ledger.putAll({
+      for (final MapEntry(:key, :value) in records.entries)
+        key: value.millisecondsSinceEpoch,
+    });
   }
 
   /// Closes [profile]'s boxes, as for any profile that is not active.
@@ -154,10 +161,14 @@ void main() {
     await Hive.box<IntakeDBO>(
       boxName(HiveDBProvider.intakeBoxName, profile),
     ).close();
-    await Hive.box<bool>(
+    await Hive.box<int>(
       boxName(HiveDBProvider.healthExportLedgerBoxName, profile),
     ).close();
   }
+
+  Set<String> ids(List<LedgerRecord> records) => {
+    for (final record in records) '${record.profileId}/${record.intakeId}',
+  };
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -195,55 +206,78 @@ void main() {
   });
 
   // #1393 review: a HealthKit window delete hits every profile's meals, so
-  // the rewrite has to know what every exporting profile holds there.
-  test('a snapshot covers every exporting profile, in the window', () async {
-    final snapshot = await repository.snapshotWindows(
-      {at},
-      const Duration(minutes: 1),
-    );
+  // the rewrite has to know what every profile has there.
+  test('every profile\'s records in the window are read', () async {
+    final records = await repository.recordsInWindows({at}, minute);
 
-    expect(snapshot.exported.map((entry) => entry.intake.id), {'a1', 'b1'});
-    expect(snapshot.exported.map((entry) => entry.profileId), {'a', 'b'});
-    // c never opted in, so nothing of it was ever exported.
-    expect(snapshot.blocked, isEmpty);
+    expect(ids(records), {'a/a1', 'b/b1'});
+    final b1 = records.singleWhere((record) => record.intakeId == 'b1');
+    expect(b1.exportedAt, inWindow);
+    expect(b1.current!.dateTime, inWindow);
+    expect(b1.consenting, isTrue);
   });
 
-  test('an entry of a profile that opted out again is flagged', () async {
+  test('a record of a profile that opted out is not consenting', () async {
     await seed('d', optIn: false, intakes: [_intake('d1', inWindow)]);
     await close('d');
 
-    final snapshot = await repository.snapshotWindows(
-      {at},
-      const Duration(minutes: 1),
-    );
+    final records = await repository.recordsInWindows({at}, minute);
 
-    expect(snapshot.blocked.map((intake) => intake.id), ['d1']);
+    final d1 = records.singleWhere((record) => record.intakeId == 'd1');
+    expect(d1.consenting, isFalse);
   });
 
-  // #1393 review: a wipe has to read the whole diary before it is cleared.
-  test('a profile is read whole, active or not', () async {
-    final active = await repository.readProfile('a');
-    final inactive = await repository.readProfile('b');
+  // Copilot review on #1393, round 4: where the store has a record is the
+  // ledger's to say, not the diary's.
+  test('a record is found by its ledger time, not its entry\'s', () async {
+    await seed(
+      'b',
+      optIn: true,
+      intakes: [_intake('moved', elsewhere)],
+      exported: {'moved': inWindow},
+    );
+    await close('b');
 
-    expect(active!.exportEnabled, isTrue);
-    expect(active.exported.map((intake) => intake.id), ['a1', 'a2']);
-    expect(inactive!.exported.map((intake) => intake.id), ['b1']);
-    expect(await repository.readProfile('unknown'), isNull);
+    final records = await repository.recordsInWindows({at}, minute);
+    final moved = records.singleWhere((record) => record.intakeId == 'moved');
+
+    expect(moved.exportedAt, inWindow);
+    expect(moved.current!.dateTime, elsewhere);
+  });
+
+  test('a deleted entry\'s record is an orphan until it goes', () async {
+    await seed(
+      'b',
+      optIn: false,
+      exported: {'gone': inWindow},
+    );
+    await close('b');
+
+    final records = await repository.recordsInWindows({at}, minute);
+    final gone = records.singleWhere((record) => record.intakeId == 'gone');
+
+    expect(gone.current, isNull);
+  });
+
+  test('a profile\'s ledger is read whole, active or not', () async {
+    expect(await repository.ledgerOf('a'), {'a1': at, 'a2': elsewhere});
+    expect(await repository.ledgerOf('b'), {'b1': inWindow});
+    expect(await repository.ledgerOf('unknown'), isEmpty);
     expect(Hive.isBoxOpen(boxName(HiveDBProvider.intakeBoxName, 'b')), isFalse);
   });
 
   test('a profile being wiped is left out without opening it', () async {
-    final snapshot = await repository.snapshotWindows(
+    final records = await repository.recordsInWindows(
       {at},
-      const Duration(minutes: 1),
+      minute,
       exceptProfile: 'b',
     );
 
-    expect(snapshot.exported.map((entry) => entry.intake.id), ['a1']);
+    expect(ids(records), {'a/a1'});
   });
 
   test('other profiles\' boxes are closed, the active ones not', () async {
-    await repository.snapshotWindows({at}, const Duration(minutes: 1));
+    await repository.recordsInWindows({at}, minute);
 
     expect(Hive.isBoxOpen(boxName(HiveDBProvider.intakeBoxName, 'a')), isTrue);
     expect(Hive.isBoxOpen(boxName(HiveDBProvider.configBoxName, 'a')), isTrue);
@@ -266,7 +300,7 @@ void main() {
       'export_b',
     );
 
-    await repository.snapshotWindows({at}, const Duration(minutes: 1));
+    await repository.recordsInWindows({at}, minute);
 
     expect(Hive.isBoxOpen(name), isTrue);
     await copying.add(_intake('b2', elsewhere));
@@ -277,29 +311,29 @@ void main() {
     expect(Hive.isBoxOpen(name), isFalse);
   });
 
-  test('two snapshots at once leave no box closed under the other', () async {
+  test('two reads at once leave no box closed under the other', () async {
     await Future.wait([
-      repository.snapshotWindows({at}, const Duration(minutes: 1)),
-      repository.snapshotWindows({at}, const Duration(minutes: 1)),
+      repository.recordsInWindows({at}, minute),
+      repository.recordsInWindows({at}, minute),
     ]);
 
     expect(Hive.isBoxOpen(boxName(HiveDBProvider.intakeBoxName, 'b')), isFalse);
   });
 
-  test('a profile switch landing mid-read fails the snapshot', () async {
+  test('a profile switch landing mid-read fails the read', () async {
     db.afterScopedOpen = () => db.activeProfileId = 'b';
 
     expect(
-      () => repository.snapshotWindows({at}, const Duration(minutes: 1)),
+      () => repository.recordsInWindows({at}, minute),
       throwsStateError,
     );
   });
 
-  test('a switch already under way fails the snapshot', () async {
+  test('a switch already under way fails the read', () async {
     db.isSwitching = true;
 
     expect(
-      () => repository.snapshotWindows({at}, const Duration(minutes: 1)),
+      () => repository.recordsInWindows({at}, minute),
       throwsStateError,
     );
   });
@@ -311,43 +345,46 @@ void main() {
     expect(await repository.isExportEnabled('unknown'), isFalse);
   });
 
-  // #1393 review: only entries the export wrote may be rewritten, or a
-  // rewrite backfills what was logged before the opt-in.
   group('the export ledger', () {
-    test('a snapshot leaves out entries the store never got', () async {
+    test('only entries the store got are records', () async {
       await seed(
         'b',
         optIn: true,
         intakes: [_intake('b2', inWindow)],
-        exported: {'b1'},
+        exported: {'b1': inWindow},
       );
       await close('b');
 
-      final snapshot = await repository.snapshotWindows(
-        {at},
-        const Duration(minutes: 1),
-      );
+      final records = await repository.recordsInWindows({at}, minute);
 
-      expect(snapshot.exported.map((entry) => entry.intake.id), {'a1', 'b1'});
+      expect(ids(records), {'a/a1', 'b/b1'});
     });
 
     test('is read and written for an inactive profile too', () async {
-      await repository.updateLedger('b', add: {'b9'}, remove: {'b1'});
+      await repository.updateLedger(
+        'b',
+        put: {'b9': elsewhere},
+        remove: {'b1'},
+      );
 
-      expect(await repository.exportedAmong('b', ['b1', 'b9']), {'b9'});
+      expect(await repository.exportedAt('b', ['b1', 'b9']), {
+        'b9': elsewhere,
+      });
       expect(
         Hive.isBoxOpen(boxName(HiveDBProvider.healthExportLedgerBoxName, 'b')),
         isFalse,
       );
 
       await repository.clearLedger('b');
-      expect(await repository.exportedAmong('b', ['b9']), isEmpty);
+      expect(await repository.ledgerOf('b'), isEmpty);
     });
 
     test('the active profile\'s ledger is its open box', () async {
       await repository.updateLedger('a', remove: {'a1'});
 
-      expect(await repository.exportedAmong('a', ['a1', 'a2']), {'a2'});
+      expect(await repository.exportedAt('a', ['a1', 'a2']), {
+        'a2': elsewhere,
+      });
       expect(
         Hive.isBoxOpen(boxName(HiveDBProvider.healthExportLedgerBoxName, 'a')),
         isTrue,
