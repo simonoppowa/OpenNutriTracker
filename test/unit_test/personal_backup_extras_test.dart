@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/calories_profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
@@ -18,6 +19,7 @@ import 'package:opennutritracker/core/data/data_source/water_intake_data_source.
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
+import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
 
@@ -31,6 +33,7 @@ void main() {
   late Box<UserDBO> userBox;
   late Box<ConfigDBO> configBox;
   late Box<ConfigDBO> appConfigBox;
+  late Box<FastingSessionDBO> fastingBox;
   late UserDataSource userDataSource;
   late ConfigDataSource configDataSource;
   late PersonalBackupExtras extras;
@@ -45,12 +48,14 @@ void main() {
     userBox = await Hive.openBox<UserDBO>('user_test');
     configBox = await Hive.openBox<ConfigDBO>('config_test');
     appConfigBox = await Hive.openBox<ConfigDBO>('app_config_test');
+    fastingBox = await Hive.openBox<FastingSessionDBO>('fasting_test');
     final provider = FakeHiveDBProvider(
       waterIntakeBox: waterBox,
       customMealBox: customMealBox,
       userBox: userBox,
       configBox: configBox,
       appConfigBox: appConfigBox,
+      fastingBox: fastingBox,
     );
     userDataSource = UserDataSource(provider);
     configDataSource = ConfigDataSource(provider);
@@ -60,6 +65,7 @@ void main() {
       CustomMealDataSource(provider),
       userDataSource,
       configDataSource,
+      FastingDataSource(provider),
     );
   });
 
@@ -436,5 +442,40 @@ void main() {
       (await configDataSource.getConfig()).selectedAppTheme,
       AppThemeDBO.light,
     );
+  });
+
+  group('fasting sessions', () {
+    FastingSessionDBO session(String id, {int minutes = 960}) =>
+        FastingSessionDBO(
+          id: id,
+          startedAt: DateTime(2026, 10, 1, 20),
+          targetDurationMinutes: minutes,
+          completedAt: DateTime(2026, 10, 2, 12),
+        );
+
+    test('are written and restored', () async {
+      await fastingBox.putAll({'f1': session('f1'), 'f2': session('f2')});
+      final archive = await exportArchive();
+      expect(
+        archive.findFile(PersonalBackupExtras.fastingSessionsFileName),
+        isNotNull,
+      );
+      await fastingBox.clear();
+
+      await extras.prepareRestore(archive).write();
+
+      expect(fastingBox.keys, unorderedEquals(['f1', 'f2']));
+      expect(fastingBox.get('f1')!.completedAt, DateTime(2026, 10, 2, 12));
+    });
+
+    test('restoring the same backup twice adds nothing', () async {
+      await fastingBox.put('f1', session('f1'));
+      final archive = await exportArchive();
+
+      await extras.prepareRestore(archive).write();
+      await extras.prepareRestore(archive).write();
+
+      expect(fastingBox.length, 1);
+    });
   });
 }

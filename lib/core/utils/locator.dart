@@ -509,6 +509,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
       profiles: ProfilesBackup(
         hiveDBProvider,
         locator(),

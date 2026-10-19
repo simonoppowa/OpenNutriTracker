@@ -391,6 +391,40 @@ void main() {
     expect(fresh.profileBox.containsKey('partner'), isFalse);
   });
 
+  for (final name in [
+    'fasting_sessions.json',
+    'water_intake.json',
+    'goal_settings.json',
+    'user_profile.json',
+  ]) {
+    test(
+      'a folder file holding null is rejected before any write ($name)',
+      () async {
+        final archive = await exportFrom(await twoProfileDevice());
+        final broken = Archive();
+        for (final file in archive.files) {
+          if (file.name == 'profiles/partner/$name') continue;
+          broken.addFile(file);
+        }
+        broken.addFile(
+          ArchiveFile.bytes('profiles/partner/$name', utf8.encode('null')),
+        );
+        final fresh = await _Device.create();
+        final active = await fresh.addProfile(
+          'device-default',
+          makeActive: true,
+        );
+        await active.intakeBox.add(intake('keep-me'));
+
+        await expectLater(
+          importInto(fresh, broken, replaceExisting: true),
+          throwsA(isA<ExportImportFailure>()),
+        );
+        expect(active.intakeBox.values.map((i) => i.id), ['keep-me']);
+      },
+    );
+  }
+
   test(
     'an active profile that is another profile of the backup is refused',
     () async {
@@ -449,23 +483,36 @@ void main() {
   );
 
   test(
-    'replacing keeps fasting sessions, which the backup does not carry yet',
+    'fasting sessions travel per profile and replace those on the device',
     () async {
-      final archive = await exportFrom(await twoProfileDevice());
+      final source = await twoProfileDevice();
+      await source
+          .boxesOf('partner')
+          .fastingBox
+          .put(
+            'partner-fast',
+            FastingSessionDBO(
+              id: 'partner-fast',
+              startedAt: DateTime(2026, 10, 1, 20),
+              targetDurationMinutes: 960,
+            ),
+          );
+      final archive = await exportFrom(source);
       final device = await _Device.create();
       final active = await device.addProfile('me', makeActive: true);
       await active.fastingBox.put(
-        'f1',
+        'only-on-device',
         FastingSessionDBO(
-          id: 'f1',
-          startedAt: DateTime(2026, 10, 1, 20),
-          targetDurationMinutes: 960,
+          id: 'only-on-device',
+          startedAt: DateTime(2026, 9, 1, 20),
+          targetDurationMinutes: 720,
         ),
       );
 
       await importInto(device, archive, replaceExisting: true);
 
-      expect(active.fastingBox.length, 1);
+      expect(active.fastingBox.isEmpty, isTrue);
+      expect(device.boxesOf('partner').fastingBox.keys, ['partner-fast']);
     },
   );
 

@@ -30,6 +30,7 @@ next to its CSV counterpart will not find one.
 | `custom_activity_templates.json` | Saved custom activities — name and typical kcal.         |
 | `goal_settings.json`             | The profile's goal settings. See [below](#goal_settingsjson). |
 | `water_intake.json`              | Water log (fork addition). See [below](#water_intakejson). |
+| `fasting_sessions.json`          | Fasting sessions (fork addition). See [below](#fasting_sessionsjson). |
 | `custom_meals.json`              | Saved custom meals (fork addition). See [below](#custom_mealsjson). |
 | `user_profile.json`              | Profile (fork addition). See [below](#user_profilejson). |
 | `app_settings.json`              | Device-wide settings (fork addition). See [below](#app_settingsjson). |
@@ -303,6 +304,24 @@ without touching the water log.
 ]
 ```
 
+### `fasting_sessions.json`
+
+Added by this fork. Every fasting session of the profile (running, completed
+or cancelled), in the shape of `FastingSessionDBO`, keyed by `id`; importing
+twice replaces instead of adding.
+
+```jsonc
+[
+  {
+    "id": "a1b2…",
+    "startedAt": "2026-10-01T20:00:00.000",
+    "targetDurationMinutes": 960,
+    "completedAt": "2026-10-02T12:00:00.000",   // null while running
+    "cancelledAt": null
+  }
+]
+```
+
 ### `custom_meals.json`
 
 Added by this fork (`PersonalBackupExtras`). Every saved custom meal, in the
@@ -368,7 +387,7 @@ active one (`ProfilesBackup`):
 - Each other profile has a folder `profiles/<id>/` with its per-profile files:
   `user_activity.json`, `user_intake.json`, `user_tracked_day.json`,
   `weight_log.json`, `goal_settings.json`, `water_intake.json`,
-  `user_profile.json`. Photos on their diary entries go to the top level
+  `fasting_sessions.json`, `user_profile.json`. Photos on their diary entries go to the top level
   with the others. Profile pictures are not part of the bundle.
 
 On import the top level goes into the **active** profile (which takes the main
@@ -380,11 +399,10 @@ two diaries never end up in one. Every folder is decoded before the first
 write.
 
 **Replace everything on this device** (import dialog, JSON only, asks for
-confirmation) first clears the diary, activities, tracked days, weight and
-water logs of the active profile and of every profile in the backup, plus the
-saved custom meals, recipes and activity templates, and deletes the profiles
-that are not in the backup. Fasting sessions are kept until the backup
-carries them. The profile body data and the goals are
+confirmation) first clears the diary, activities, tracked days, weight,
+water and fasting logs of the active profile and of every profile in the
+backup, plus the saved custom meals, recipes and activity templates, and
+deletes the profiles that are not in the backup. The profile body data and the goals are
 overwritten by the backup (when restoring them is switched on), not cleared.
 
 ## CSV schema

@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.d
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/calories_profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
@@ -13,12 +14,13 @@ import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
+import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/profiles_backup.dart';
 
 /// The data this fork adds to the JSON backup on top of upstream's files:
-/// the water log, the saved custom meals, the user profile and the
-/// device-wide app settings.
+/// the water log, the fasting sessions, the saved custom meals, the user
+/// profile and the device-wide app settings.
 ///
 /// Kept apart from `ExportDataUsecase` / `ImportDataUsecase` so the fork's
 /// additions stay in one place and upstream merges touch as little as
@@ -31,6 +33,7 @@ class PersonalBackupExtras {
   static const customMealsFileName = 'custom_meals.json';
   static const userProfileFileName = 'user_profile.json';
   static const appSettingsFileName = 'app_settings.json';
+  static const fastingSessionsFileName = 'fasting_sessions.json';
 
   /// The `ConfigDBO` JSON keys that `app_settings.json` carries: the
   /// device-wide preferences. Left out on purpose are the legal and consent
@@ -67,6 +70,7 @@ class PersonalBackupExtras {
   final CustomMealDataSource _customMealDataSource;
   final UserDataSource _userDataSource;
   final ConfigDataSource _configDataSource;
+  final FastingDataSource _fastingDataSource;
 
   /// The other profiles' folders; null for the extras of a single profile's
   /// folder, which must not recurse into the profile list.
@@ -76,7 +80,8 @@ class PersonalBackupExtras {
     this._waterIntakeRepository,
     this._customMealDataSource,
     this._userDataSource,
-    this._configDataSource, {
+    this._configDataSource,
+    this._fastingDataSource, {
     ProfilesBackup? profiles,
   }) : _profiles = profiles;
 
@@ -85,6 +90,10 @@ class PersonalBackupExtras {
     final water = await _waterIntakeRepository.getAllEntriesDBO();
     _addJson(archive, waterIntakeFileName, [
       for (final entry in water) entry.toJson(),
+    ]);
+    _addJson(archive, fastingSessionsFileName, [
+      for (final session in await _fastingDataSource.allSessions())
+        session.toJson(),
     ]);
     _addJson(archive, customMealsFileName, [
       for (final meal in _customMealDataSource.getAllCustomMeals())
@@ -109,7 +118,8 @@ class PersonalBackupExtras {
   /// writes, so a malformed file throws an [ExportImportFailure] here, before
   /// the caller has written anything.
   ///
-  /// Water entries are keyed by id and saved custom meals by barcode (or by
+  /// Water entries and fasting sessions are keyed by id and saved custom
+  /// meals by barcode (or by
   /// name when they have none), so restoring the same backup twice replaces
   /// them instead of adding them again. The meals' photos travel as
   /// `meal_images/` entries, which upstream's import already writes back.
@@ -127,6 +137,10 @@ class PersonalBackupExtras {
     final water = _decodeList(
       archive.findFile(waterIntakeFileName),
       WaterIntakeDBO.fromJson,
+    );
+    final fasting = _decodeList(
+      archive.findFile(fastingSessionsFileName),
+      FastingSessionDBO.fromJson,
     );
     final customMeals = _decodeList(
       archive.findFile(customMealsFileName),
@@ -155,6 +169,9 @@ class PersonalBackupExtras {
     Future<void> write() async {
       if (water != null) {
         await _waterIntakeRepository.addAllEntries(water);
+      }
+      for (final session in fasting ?? const <FastingSessionDBO>[]) {
+        await _fastingDataSource.updateSession(session);
       }
       for (final meal in customMeals ?? const <MealDBO>[]) {
         await _customMealDataSource.saveCustomMeal(meal);

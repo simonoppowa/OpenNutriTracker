@@ -28,11 +28,10 @@ const _coverage = <String, String>{
   HiveDBProvider.profileBoxName: ProfilesBackup.profilesFileName,
   HiveDBProvider.cachedOffMealBoxName: _excludedCache,
   HiveDBProvider.cachedOffMealTimestampsBoxName: _excludedCache,
-  HiveDBProvider.fastingBoxName: _pendingFasting,
+  HiveDBProvider.fastingBoxName: PersonalBackupExtras.fastingSessionsFileName,
 };
 
 const _excludedCache = 'excluded: search cache, refilled by searching';
-const _pendingFasting = 'pending: fasting sessions (#28)';
 
 void main() {
   final declared = RegExp(r"static const (\w+BoxName) = '(\w+)';")
