@@ -15,6 +15,7 @@ import 'package:opennutritracker/core/utils/demo/unsplash_attribution.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/favorites/presentation/favorite_star_button.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/daily_kcal_overview.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
@@ -363,6 +364,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             ),
           ),
           actions: [
+            FavoriteStarButton.meal(meal),
             Semantics(
               identifier: 'meal-detail-edit',
               child: IconButton(

@@ -31,8 +31,10 @@ import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_det
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
+import 'package:opennutritracker/features/favorites/domain/favorites_usecase.dart';
 
 import '../../helpers/test_l10n.dart';
+import '../../helpers/fake_favorites_usecase.dart';
 
 // #1216: "Seabrook sea salted crisps" opened from the search list shows
 // "N/A" in the unit dropdown, and when the user picks the 31.8 g serving
@@ -161,6 +163,7 @@ void main() {
     getIt.registerLazySingleton<GetConfigUsecase>(_FakeGetConfigUsecase.new);
     getIt.registerLazySingleton<GetIntakeUsecase>(_FakeGetIntakeUsecase.new);
     getIt.registerLazySingleton<CacheManager>(_FakeCacheManager.new);
+    getIt.registerLazySingleton<FavoritesUsecase>(FakeFavoritesUsecase.new);
     getIt.registerLazySingleton<HomeBloc>(_FakeHomeBloc.new);
     getIt.registerLazySingleton<DiaryBloc>(_FakeDiaryBloc.new);
     getIt.registerLazySingleton<CalendarDayBloc>(_FakeCalendarDayBloc.new);

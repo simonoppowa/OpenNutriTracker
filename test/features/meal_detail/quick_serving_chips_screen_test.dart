@@ -27,6 +27,8 @@ import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
+import 'package:opennutritracker/features/favorites/domain/favorites_usecase.dart';
+import '../../helpers/fake_favorites_usecase.dart';
 
 // Screen-level counterpart to `quick_serving_chips_widget_test.dart`.
 // Drives the real [MealDetailScreen] with a scalable-serving solid product
@@ -78,6 +80,7 @@ void main() {
     getIt.registerLazySingleton<GetConfigUsecase>(_FakeGetConfigUsecase.new);
     getIt.registerLazySingleton<GetIntakeUsecase>(_FakeGetIntakeUsecase.new);
     getIt.registerLazySingleton<CacheManager>(_FakeCacheManager.new);
+    getIt.registerLazySingleton<FavoritesUsecase>(FakeFavoritesUsecase.new);
     getIt.registerLazySingleton<HomeBloc>(_FakeHomeBloc.new);
     getIt.registerLazySingleton<DiaryBloc>(_FakeDiaryBloc.new);
     getIt.registerLazySingleton<CalendarDayBloc>(_FakeCalendarDayBloc.new);

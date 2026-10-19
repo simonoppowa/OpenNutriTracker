@@ -30,6 +30,8 @@ import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
+import 'package:opennutritracker/features/favorites/domain/favorites_usecase.dart';
+import '../../helpers/fake_favorites_usecase.dart';
 
 // #1126: when the user has opted into raw units in Settings, the meal-detail
 // dropdown must skip the serving default even for a food with a scalable
@@ -132,6 +134,7 @@ void main() {
     );
     getIt.registerLazySingleton<GetIntakeUsecase>(_FakeGetIntakeUsecase.new);
     getIt.registerLazySingleton<CacheManager>(_FakeCacheManager.new);
+    getIt.registerLazySingleton<FavoritesUsecase>(FakeFavoritesUsecase.new);
     getIt.registerLazySingleton<HomeBloc>(_FakeHomeBloc.new);
     getIt.registerLazySingleton<DiaryBloc>(_FakeDiaryBloc.new);
     getIt.registerLazySingleton<CalendarDayBloc>(_FakeCalendarDayBloc.new);

@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/favorites/presentation/favorite_star_button.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_payload.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detail_bloc.dart';
@@ -79,6 +80,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       appBar: AppBar(
         title: Text(recipe.name),
         actions: [
+          FavoriteStarButton.recipe(recipe),
           IconButton(
             tooltip: S.of(context).shareRecipeLabel,
             icon: const Icon(Icons.share_outlined),

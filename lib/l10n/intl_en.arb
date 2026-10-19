@@ -1543,5 +1543,10 @@
   "ownGoalsNoteBody": "The calculation below is shown for comparison. Change your goals under Settings → Goals.",
   "ownGoalsNoteFixedKcal": "Fixed goal",
   "ownGoalsNoteTotal": "Goal today",
-  "ownGoalsNoteGramsOnlyBody": "Your calorie goal is calculated as shown below; only the macros are set in grams. Change your goals under Settings → Goals."
+  "ownGoalsNoteGramsOnlyBody": "Your calorie goal is calculated as shown below; only the macros are set in grams. Change your goals under Settings → Goals.",
+  "favoriteAddTooltip": "Add to favourites",
+  "favoriteRemoveTooltip": "Remove from favourites",
+  "favoriteAddedLabel": "Added to favourites",
+  "favoriteRemovedLabel": "Removed from favourites",
+  "favoriteToggleFailed": "The favourite could not be saved."
 }
