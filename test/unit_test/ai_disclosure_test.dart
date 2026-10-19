@@ -208,5 +208,34 @@ void main() {
         isFalse,
       );
     });
+
+    test('the absolute form, with its root dot, is Google too', () {
+      // DNS reaches Google either way, so the paragraph, the request shape
+      // and the route completion all have to treat it as Google.
+      const absolute =
+          'https://generativelanguage.googleapis.com./v1beta/openai/';
+      final s = lookupS(const Locale('en'));
+
+      expect(isGeminiEndpoint(Uri.parse(absolute)), isTrue);
+      expect(
+        aiDisclosureFor(
+          s,
+          provider: AiProvider.ownServer,
+          typedEndpoint: absolute,
+        ),
+        contains('Google'),
+      );
+      expect(
+        AiCredentialStorage.resolveEndpoint(absolute).toString(),
+        'https://generativelanguage.googleapis.com./v1beta/openai/chat/completions',
+      );
+      expect(
+        isGeminiEndpoint(
+          Uri.parse('https://generativelanguage.googleapis.com../v1'),
+        ),
+        isFalse,
+        reason: 'one root dot, not any number of them',
+      );
+    });
   });
 }

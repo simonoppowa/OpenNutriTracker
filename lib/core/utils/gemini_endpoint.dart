@@ -13,6 +13,11 @@ const geminiOpenAiCompatibleHost = 'generativelanguage.googleapis.com';
 ///
 /// Matched on the exact host, so a look-alike such as
 /// `generativelanguage.googleapis.com.example.org` is not Google. `Uri`
-/// already lower-cases the host.
-bool isGeminiEndpoint(Uri endpoint) =>
-    endpoint.host == geminiOpenAiCompatibleHost;
+/// already lower-cases the host, but keeps a terminal root dot, and
+/// `generativelanguage.googleapis.com.` is the same name written absolutely:
+/// DNS reaches Google either way, so one trailing dot is dropped first.
+bool isGeminiEndpoint(Uri endpoint) {
+  final host = endpoint.host;
+  final name = host.endsWith('.') ? host.substring(0, host.length - 1) : host;
+  return name == geminiOpenAiCompatibleHost;
+}
