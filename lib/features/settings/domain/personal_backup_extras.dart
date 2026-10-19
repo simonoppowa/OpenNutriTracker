@@ -64,6 +64,8 @@ class PersonalBackupExtras {
     'scannerPortraitLock',
     'foodSourceToggles',
     'defaultToRawFoodUnits',
+    'lastBackupAt',
+    'backupReminderDays',
   ];
 
   final WaterIntakeRepository _waterIntakeRepository;
@@ -85,7 +87,9 @@ class PersonalBackupExtras {
     ProfilesBackup? profiles,
   }) : _profiles = profiles;
 
-  /// Writes the fork's JSON files into [archive].
+  /// Writes the fork's JSON files into [archive]. `app_settings.json`
+  /// records this archive's creation as the last backup, so a restore from
+  /// it does not report that there was never one.
   Future<void> addTo(Archive archive) async {
     final water = await _waterIntakeRepository.getAllEntriesDBO();
     _addJson(archive, waterIntakeFileName, [
@@ -110,6 +114,7 @@ class PersonalBackupExtras {
     _addJson(archive, appSettingsFileName, {
       for (final key in appSettingKeys)
         if (config.containsKey(key)) key: config[key],
+      'lastBackupAt': DateTime.now().toIso8601String(),
     });
     await _profiles?.addTo(archive);
   }

@@ -376,6 +376,12 @@ void main() {
       }
     });
 
+    test('record the archive as the last backup', () async {
+      final settings = writtenSettings(await exportArchive());
+
+      expect(DateTime.parse(settings['lastBackupAt'] as String), isNotNull);
+    });
+
     test('a restore applies them and keeps consent and goals', () async {
       await setUpDevice();
       final archive = await exportArchive();

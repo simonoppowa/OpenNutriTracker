@@ -114,3 +114,10 @@ nur `main` gemerged. Einzelne Fixes von `develop` werden per
   mergen, wenn CI (Linux-Tests + iOS-Build) grün ist.
 - `dart format` nur auf neue Dateien anwenden: Upstream-Dateien sind nicht
   durchgängig formatiert, ein Formatieren ganzer Ordner erzeugt fremde Diffs.
+- Neue Hive-Felder des Forks bekommen Indizes **ab 100** (`@HiveField(100)` …)
+  und neue Hive-Typen typeIds ab 100. Upstream vergibt fortlaufend weiter;
+  eine Kollision beim nächsten Upstream-Merge würde gespeicherte Daten falsch
+  lesen.
+- Jede neue Hive-Box muss in `test/unit_test/backup_coverage_test.dart`
+  eingetragen werden (Backup-Datei oder begründete Ausnahme), sonst schlägt
+  der Test fehl.

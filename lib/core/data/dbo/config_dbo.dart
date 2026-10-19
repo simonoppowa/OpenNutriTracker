@@ -188,6 +188,14 @@ class ConfigDBO extends HiveObject {
   @HiveField(39)
   bool? defaultToRawFoodUnits;
 
+  // Fork fields start at 100 so they never collide with an index upstream
+  // adds later. When the last JSON backup was saved, and after how many days
+  // the home screen reminds of the next one (null means 7, 0 means never).
+  @HiveField(100)
+  DateTime? lastBackupAt;
+  @HiveField(101)
+  int? backupReminderDays;
+
   ConfigDBO(
     this.hasAcceptedDisclaimer,
     this.hasAcceptedPolicy,
@@ -226,6 +234,8 @@ class ConfigDBO extends HiveObject {
     this.policyNoticeRevisionSeen,
     this.healthDeletedWorkouts,
     this.defaultToRawFoodUnits,
+    this.lastBackupAt,
+    this.backupReminderDays,
   });
 
   factory ConfigDBO.empty() =>

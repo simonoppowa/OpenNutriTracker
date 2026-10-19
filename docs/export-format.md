@@ -355,7 +355,8 @@ while onboarding has not saved a profile yet. Enums are stored by name.
 Added by this fork. The device-wide preferences, as the `ConfigDBO` JSON keys
 listed in `PersonalBackupExtras.appSettingKeys` (theme, accent, Material You,
 units, kJ/kcal, language, the daily reminder, view toggles, nutrient panel
-visibility, diary sort order, food-source toggles, …). On restore only these
+visibility, diary sort order, food-source toggles, the time of the last
+backup and the backup reminder period, …). On restore only these
 keys are overlaid onto the current config. Deliberately **not** carried: the
 policy, disclaimer and consent flags (a restore never accepts a policy on the
 user's behalf), the demo flag, the goals (in `goal_settings.json`), the

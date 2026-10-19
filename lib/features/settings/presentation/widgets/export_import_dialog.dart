@@ -8,6 +8,7 @@ import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/backup_status_row.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -91,6 +92,14 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
                       ),
                     ),
                   ],
+                ),
+              ],
+              if (_exportFormat == ExportFormat.json) ...[
+                const SizedBox(height: 12),
+                BlocBuilder<ExportImportBloc, ExportImportState>(
+                  bloc: _exportImportBloc,
+                  builder: (context, state) =>
+                      BackupStatusRow(refreshKey: state),
                 ),
               ],
               if (_exportFormat == ExportFormat.json)

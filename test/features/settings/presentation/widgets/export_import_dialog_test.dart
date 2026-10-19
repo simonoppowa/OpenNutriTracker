@@ -7,11 +7,14 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/settings/domain/backup_reminder.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+
+import '../../../../helpers/fake_backup_reminder.dart';
 
 /// Sits in the state an import ends in, so the dialog runs its reload.
 class _SucceededExportImportBloc extends Fake implements ExportImportBloc {
@@ -70,7 +73,8 @@ void main() {
       ..registerSingleton<CalendarDayBloc>(_CalendarDayBloc())
       ..registerSingleton<SettingsBloc>(_SettingsBloc())
       ..registerSingleton<ProfileBloc>(_ProfileBloc())
-      ..registerSingleton<TrendsBloc>(_TrendsBloc(trendsState));
+      ..registerSingleton<TrendsBloc>(_TrendsBloc(trendsState))
+      ..registerSingleton<BackupReminder>(FakeBackupReminder());
   }
 
   Future<void> pumpDialog(WidgetTester tester) => tester.pumpWidget(

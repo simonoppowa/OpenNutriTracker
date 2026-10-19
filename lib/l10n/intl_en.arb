@@ -452,6 +452,36 @@
   "exportImportReplaceConfirmTitle": "Replace all data?",
   "exportImportReplaceConfirmContent": "The diary, logs, saved meals and recipes on this device are deleted and replaced with the backup. Profiles that are not in the backup are deleted.",
   "exportImportReplaceConfirmAction": "Replace",
+  "backupReminderTitle": "Time for a backup",
+  "backupReminderNoBackupBody": "There is no backup yet. A sideloaded app can lose its data when its signature runs out.",
+  "backupReminderOldBody": "Your last backup is {days} days old.",
+  "@backupReminderOldBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "backupReminderAction": "Back up now",
+  "exportImportLastBackupLabel": "Last backup: {date}",
+  "@exportImportLastBackupLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "exportImportNoBackupLabel": "No backup yet",
+  "exportImportReminderLabel": "Remind me after",
+  "exportImportReminderOffLabel": "Never",
+  "exportImportReminderDaysLabel": "{days} days",
+  "@exportImportReminderDaysLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "importAction": "Import",
   "importActivityConfirmContent": "These activities will be added to today.",
   "importActivityConfirmTitle": "Import {count} activities?",

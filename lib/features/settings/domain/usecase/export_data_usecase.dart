@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/utils/export_write_verifier.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
+import 'package:opennutritracker/features/settings/domain/backup_reminder.dart';
 import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
 
 /// The two export shapes available from Settings → Export / Import App Data.
@@ -41,6 +42,9 @@ class ExportDataUsecase {
   /// The fork's own backup files (water, …); see [PersonalBackupExtras].
   final PersonalBackupExtras? _extras;
 
+  /// Told after a JSON bundle was saved, for the home screen's reminder.
+  final BackupReminder? _backupReminder;
+
   ExportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
@@ -51,7 +55,9 @@ class ExportDataUsecase {
     this._customActivityTemplateRepository,
     this._configRepository, {
     PersonalBackupExtras? extras,
-  }) : _extras = extras;
+    BackupReminder? backupReminder,
+  }) : _extras = extras,
+       _backupReminder = backupReminder;
 
   /// Exports user activity, intake, tracked day, recipe, weight-log and
   /// Custom activity template data, plus the profile's goal settings, to a
@@ -105,7 +111,7 @@ class ExportDataUsecase {
     // to get the bytes onto disk, and is reported as such (#1103) — the
     // verifier's StateError in particular carries the path and the byte
     // count that make it diagnosable.
-    return ExportImportFailure.guard(
+    final saved = await ExportImportFailure.guard(
       ExportImportFailureReason.writeFailed,
       'Could not save $exportZipFileName',
       () async {
@@ -125,6 +131,10 @@ class ExportDataUsecase {
         return true;
       },
     );
+    if (saved && format == ExportFormat.json) {
+      await _backupReminder?.markBackedUp();
+    }
+    return saved;
   }
 
   /// Builds the bundle in memory, without touching the file picker.
