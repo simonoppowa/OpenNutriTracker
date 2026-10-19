@@ -485,10 +485,18 @@ Future<void> initLocator() async {
     () => GetWeightLogUsecase(locator()),
   );
   locator.registerLazySingleton<AddWeightLogUsecase>(
-    () => AddWeightLogUsecase(locator(), locator()),
+    () => AddWeightLogUsecase(
+      locator(),
+      locator(),
+      onProfileWeightChanged: (user) => locator<ProfileBloc>().updateUser(user),
+    ),
   );
   locator.registerLazySingleton<DeleteWeightLogUsecase>(
-    () => DeleteWeightLogUsecase(locator()),
+    () => DeleteWeightLogUsecase(
+      locator(),
+      locator(),
+      onProfileWeightChanged: (user) => locator<ProfileBloc>().updateUser(user),
+    ),
   );
   locator.registerLazySingleton<AddWaterIntakeUsecase>(
     () => AddWaterIntakeUsecase(locator()),
