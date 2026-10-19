@@ -1,0 +1,42 @@
+name: CI (analyze + test)
+
+on:
+  pull_request:
+    branches:
+      - personal
+  push:
+    branches:
+      - personal
+  workflow_dispatch:
+
+concurrency:
+  group: personal-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter + cache packages
+        uses: ./.github/actions/setup-flutter-cache
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test --concurrency=4 --timeout=120s
