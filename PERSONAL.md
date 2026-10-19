@@ -122,9 +122,12 @@ Onboarding (#100).
 ## Datenquellen
 
 - **Open Food Facts**: online, Text- und Barcode-Suche.
-- **BLS 4.0** (Bundeslebensmittelschlüssel, © Max Rubner-Institut, CC BY 4.0):
-  wird lokal in die App gepackt (#51, #79), damit generische Lebensmittel offline
-  mit allen Nährstoffen verfügbar sind.
+- **BLS 4.0** (Bundeslebensmittelschlüssel, © Max Rubner-Institut,
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)): liegt als
+  `assets/bls/bls_4_0.json.gz` in der App (7.140 Lebensmittel, 38 Nährstofffelder,
+  ~0,7 MB komprimiert, ~70 ms zum Einlesen auf einem Desktop-Rechner). Erzeugt mit
+  `tool/bls/bls_to_asset.py` aus dem offiziellen Download (Anleitung in
+  `tool/bls/README.md`). Suche darin: #79.
 - Kein Supabase/FDC mehr. Upstream nutzte dafür ein Backend des Maintainers ohne
   öffentliche Zugangsdaten.
 

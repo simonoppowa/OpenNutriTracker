@@ -129,6 +129,7 @@ flutter:
     # in unsplash_attribution.dart). Shipping them means Try Demo never
     # contacts Unsplash's CDN, at seed time or at render time.
     - assets/demo/meals/
+    - assets/bls/
 
   fonts:
     - family: CustomIcons
