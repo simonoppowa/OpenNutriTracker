@@ -36,6 +36,18 @@ class MealNutrimentsEntity extends Equatable {
   final double? vitaminB6100; // mg
   final double? vitaminB12100; // µg
   final double? niacin100; // mg (B3)
+  // #50: further micronutrients
+  final double? vitaminE100; // mg
+  final double? vitaminK100; // µg
+  final double? thiamin100; // mg
+  final double? riboflavin100; // mg
+  final double? pantothenicAcid100; // mg
+  final double? biotin100; // µg
+  final double? folate100; // µg
+  final double? iodine100; // µg
+  final double? selenium100; // µg
+  final double? copper100; // mg
+  final double? manganese100; // mg
 
   double? get energyPerUnit => _getValuePerUnit(energyKcal100);
 
@@ -64,7 +76,18 @@ class MealNutrimentsEntity extends Equatable {
       vitaminD100 != null ||
       vitaminB6100 != null ||
       vitaminB12100 != null ||
-      niacin100 != null;
+      niacin100 != null ||
+      vitaminE100 != null ||
+      vitaminK100 != null ||
+      thiamin100 != null ||
+      riboflavin100 != null ||
+      pantothenicAcid100 != null ||
+      biotin100 != null ||
+      folate100 != null ||
+      iodine100 != null ||
+      selenium100 != null ||
+      copper100 != null ||
+      manganese100 != null;
 
   const MealNutrimentsEntity({
     required this.energyKcal100,
@@ -91,6 +114,17 @@ class MealNutrimentsEntity extends Equatable {
     this.vitaminB6100,
     this.vitaminB12100,
     this.niacin100,
+    this.vitaminE100,
+    this.vitaminK100,
+    this.thiamin100,
+    this.riboflavin100,
+    this.pantothenicAcid100,
+    this.biotin100,
+    this.folate100,
+    this.iodine100,
+    this.selenium100,
+    this.copper100,
+    this.manganese100,
   });
 
   factory MealNutrimentsEntity.empty() => const MealNutrimentsEntity(
@@ -137,6 +171,17 @@ class MealNutrimentsEntity extends Equatable {
       vitaminB6100: finite(nutriments.vitaminB6100),
       vitaminB12100: finite(nutriments.vitaminB12100),
       niacin100: finite(nutriments.niacin100),
+      vitaminE100: finite(nutriments.vitaminE100),
+      vitaminK100: finite(nutriments.vitaminK100),
+      thiamin100: finite(nutriments.thiamin100),
+      riboflavin100: finite(nutriments.riboflavin100),
+      pantothenicAcid100: finite(nutriments.pantothenicAcid100),
+      biotin100: finite(nutriments.biotin100),
+      folate100: finite(nutriments.folate100),
+      iodine100: finite(nutriments.iodine100),
+      selenium100: finite(nutriments.selenium100),
+      copper100: finite(nutriments.copper100),
+      manganese100: finite(nutriments.manganese100),
     );
   }
 
@@ -206,6 +251,41 @@ class MealNutrimentsEntity extends Equatable {
       niacin100: _gToMg(
         (offNutriments.niacin_100g as Object?).asDoubleOrNull(),
       ),
+      // #50
+      vitaminE100: _gToMg(
+        (offNutriments.vitamin_e_100g as Object?).asDoubleOrNull(),
+      ),
+      vitaminK100: _gToUg(
+        (offNutriments.vitamin_k_100g as Object?).asDoubleOrNull(),
+      ),
+      thiamin100: _gToMg(
+        (offNutriments.thiamin_100g as Object?).asDoubleOrNull(),
+      ),
+      riboflavin100: _gToMg(
+        (offNutriments.riboflavin_100g as Object?).asDoubleOrNull(),
+      ),
+      pantothenicAcid100: _gToMg(
+        (offNutriments.pantothenic_acid_100g as Object?).asDoubleOrNull(),
+      ),
+      biotin100: _gToUg(
+        (offNutriments.biotin_100g as Object?).asDoubleOrNull(),
+      ),
+      folate100: _gToUg(
+        (offNutriments.vitamin_b9_100g as Object?).asDoubleOrNull() ??
+            (offNutriments.folates_100g as Object?).asDoubleOrNull(),
+      ),
+      iodine100: _gToUg(
+        (offNutriments.iodine_100g as Object?).asDoubleOrNull(),
+      ),
+      selenium100: _gToUg(
+        (offNutriments.selenium_100g as Object?).asDoubleOrNull(),
+      ),
+      copper100: _gToMg(
+        (offNutriments.copper_100g as Object?).asDoubleOrNull(),
+      ),
+      manganese100: _gToMg(
+        (offNutriments.manganese_100g as Object?).asDoubleOrNull(),
+      ),
     );
   }
 
@@ -256,6 +336,17 @@ class MealNutrimentsEntity extends Equatable {
       vitaminB6100: food.vitaminB6100,
       vitaminB12100: food.vitaminB12100,
       niacin100: food.niacin100,
+      vitaminE100: food.vitaminE100,
+      vitaminK100: food.vitaminK100,
+      thiamin100: food.thiamin100,
+      riboflavin100: food.riboflavin100,
+      pantothenicAcid100: food.pantothenicAcid100,
+      biotin100: food.biotin100,
+      folate100: food.folate100,
+      iodine100: food.iodine100,
+      selenium100: food.selenium100,
+      copper100: food.copper100,
+      manganese100: food.manganese100,
     );
   }
 

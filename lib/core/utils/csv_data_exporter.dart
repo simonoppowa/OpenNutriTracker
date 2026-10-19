@@ -66,6 +66,17 @@ class CsvDataExporter {
     'vitamin_b6_per_100g',
     'vitamin_b12_per_100g',
     'niacin_per_100g',
+    'vitamin_e_per_100g',
+    'vitamin_k_per_100g',
+    'thiamin_per_100g',
+    'riboflavin_per_100g',
+    'pantothenic_acid_per_100g',
+    'biotin_per_100g',
+    'folate_per_100g',
+    'iodine_per_100g',
+    'selenium_per_100g',
+    'copper_per_100g',
+    'manganese_per_100g',
     // Appended last so an older CSV still parses. Mirrors
     // `MealDBO.dataVersion`: a row with `meal_source` of `off` and no value
     // here was written before #775 and holds its micronutrients in raw
@@ -154,6 +165,17 @@ class CsvDataExporter {
         _num(n.vitaminB6100),
         _num(n.vitaminB12100),
         _num(n.niacin100),
+        _num(n.vitaminE100),
+        _num(n.vitaminK100),
+        _num(n.thiamin100),
+        _num(n.riboflavin100),
+        _num(n.pantothenicAcid100),
+        _num(n.biotin100),
+        _num(n.folate100),
+        _num(n.iodine100),
+        _num(n.selenium100),
+        _num(n.copper100),
+        _num(n.manganese100),
         _num(meal.dataVersion?.toDouble()),
       ];
       buf.writeln(cells.join(','));
@@ -246,6 +268,17 @@ class CsvDataExporter {
         vitaminB6100: _double(row['vitamin_b6_per_100g']),
         vitaminB12100: _double(row['vitamin_b12_per_100g']),
         niacin100: _double(row['niacin_per_100g']),
+        vitaminE100: _double(row['vitamin_e_per_100g']),
+        vitaminK100: _double(row['vitamin_k_per_100g']),
+        thiamin100: _double(row['thiamin_per_100g']),
+        riboflavin100: _double(row['riboflavin_per_100g']),
+        pantothenicAcid100: _double(row['pantothenic_acid_per_100g']),
+        biotin100: _double(row['biotin_per_100g']),
+        folate100: _double(row['folate_per_100g']),
+        iodine100: _double(row['iodine_per_100g']),
+        selenium100: _double(row['selenium_per_100g']),
+        copper100: _double(row['copper_per_100g']),
+        manganese100: _double(row['manganese_per_100g']),
       );
       final meal = MealDBO(
         code: _nullable(row['meal_code']),

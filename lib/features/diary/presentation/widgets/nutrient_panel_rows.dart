@@ -90,12 +90,23 @@ class NutrientPanelRow {
     NutrientPanelRow(NutrientPanelKeys.iron, NutrientPanelGroup.minerals),
     NutrientPanelRow(NutrientPanelKeys.zinc, NutrientPanelGroup.minerals),
     NutrientPanelRow(NutrientPanelKeys.phosphorus, NutrientPanelGroup.minerals),
+    NutrientPanelRow(NutrientPanelKeys.iodine, NutrientPanelGroup.minerals),
+    NutrientPanelRow(NutrientPanelKeys.selenium, NutrientPanelGroup.minerals),
+    NutrientPanelRow(NutrientPanelKeys.copper, NutrientPanelGroup.minerals),
+    NutrientPanelRow(NutrientPanelKeys.manganese, NutrientPanelGroup.minerals),
     NutrientPanelRow(NutrientPanelKeys.vitaminA, NutrientPanelGroup.vitamins),
     NutrientPanelRow(NutrientPanelKeys.vitaminC, NutrientPanelGroup.vitamins),
     NutrientPanelRow(NutrientPanelKeys.vitaminD, NutrientPanelGroup.vitamins),
     NutrientPanelRow(NutrientPanelKeys.vitaminB6, NutrientPanelGroup.vitamins),
     NutrientPanelRow(NutrientPanelKeys.vitaminB12, NutrientPanelGroup.vitamins),
     NutrientPanelRow(NutrientPanelKeys.niacin, NutrientPanelGroup.vitamins),
+    NutrientPanelRow(NutrientPanelKeys.vitaminE, NutrientPanelGroup.vitamins),
+    NutrientPanelRow(NutrientPanelKeys.vitaminK, NutrientPanelGroup.vitamins),
+    NutrientPanelRow(NutrientPanelKeys.thiamin, NutrientPanelGroup.vitamins),
+    NutrientPanelRow(NutrientPanelKeys.riboflavin, NutrientPanelGroup.vitamins),
+    NutrientPanelRow(NutrientPanelKeys.pantothenicAcid, NutrientPanelGroup.vitamins),
+    NutrientPanelRow(NutrientPanelKeys.biotin, NutrientPanelGroup.vitamins),
+    NutrientPanelRow(NutrientPanelKeys.folate, NutrientPanelGroup.vitamins),
   ];
 
   /// The goal [trackedDay] sets for [key] itself, or null: the user's own
@@ -123,7 +134,7 @@ class NutrientPanelRow {
         };
   }
 
-  /// References for the nutrients added in #47 when neither the user nor
+  /// References for the nutrients added in #47 and #50 when neither the user nor
   /// the IOM table gives one: FDA Daily Values for energy, the macros and
   /// cholesterol, the midpoint of the female and male IOM RDAs for the
   /// rest. Mono- and polyunsaturated and trans fat have none.
@@ -139,6 +150,17 @@ class NutrientPanelRow {
     NutrientPanelKeys.vitaminC: 82.5,
     NutrientPanelKeys.vitaminB6: 1.3,
     NutrientPanelKeys.niacin: 15,
+    NutrientPanelKeys.vitaminE: 15,
+    NutrientPanelKeys.vitaminK: 105,
+    NutrientPanelKeys.thiamin: 1.15,
+    NutrientPanelKeys.riboflavin: 1.2,
+    NutrientPanelKeys.pantothenicAcid: 5,
+    NutrientPanelKeys.biotin: 30,
+    NutrientPanelKeys.folate: 400,
+    NutrientPanelKeys.iodine: 150,
+    NutrientPanelKeys.selenium: 55,
+    NutrientPanelKeys.copper: 0.9,
+    NutrientPanelKeys.manganese: 2.05,
   };
 
   /// The reference of a nutrient added in #47, or null when there is

@@ -58,6 +58,30 @@ class MealNutrimentsDBO extends HiveObject {
   final double? vitaminB12100; // µg
   @HiveField(23)
   final double? niacin100; // mg (B3)
+  // #50: further micronutrients from the BLS and Open Food Facts; fork
+  // fields start at 100, clear of upstream's indices.
+  @HiveField(100)
+  final double? vitaminE100; // mg
+  @HiveField(101)
+  final double? vitaminK100; // µg
+  @HiveField(102)
+  final double? thiamin100; // mg
+  @HiveField(103)
+  final double? riboflavin100; // mg
+  @HiveField(104)
+  final double? pantothenicAcid100; // mg
+  @HiveField(105)
+  final double? biotin100; // µg
+  @HiveField(106)
+  final double? folate100; // µg
+  @HiveField(107)
+  final double? iodine100; // µg
+  @HiveField(108)
+  final double? selenium100; // µg
+  @HiveField(109)
+  final double? copper100; // mg
+  @HiveField(110)
+  final double? manganese100; // mg
 
   MealNutrimentsDBO({
     required this.energyKcal100,
@@ -84,6 +108,17 @@ class MealNutrimentsDBO extends HiveObject {
     this.vitaminB6100,
     this.vitaminB12100,
     this.niacin100,
+    this.vitaminE100,
+    this.vitaminK100,
+    this.thiamin100,
+    this.riboflavin100,
+    this.pantothenicAcid100,
+    this.biotin100,
+    this.folate100,
+    this.iodine100,
+    this.selenium100,
+    this.copper100,
+    this.manganese100,
   });
 
   factory MealNutrimentsDBO.fromProductNutrimentsEntity(
@@ -114,6 +149,17 @@ class MealNutrimentsDBO extends HiveObject {
       vitaminB6100: nutriments.vitaminB6100,
       vitaminB12100: nutriments.vitaminB12100,
       niacin100: nutriments.niacin100,
+      vitaminE100: nutriments.vitaminE100,
+      vitaminK100: nutriments.vitaminK100,
+      thiamin100: nutriments.thiamin100,
+      riboflavin100: nutriments.riboflavin100,
+      pantothenicAcid100: nutriments.pantothenicAcid100,
+      biotin100: nutriments.biotin100,
+      folate100: nutriments.folate100,
+      iodine100: nutriments.iodine100,
+      selenium100: nutriments.selenium100,
+      copper100: nutriments.copper100,
+      manganese100: nutriments.manganese100,
     );
   }
 

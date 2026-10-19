@@ -27,7 +27,18 @@ enum NutrientField {
   vitaminD('µg'),
   vitaminB6('mg'),
   vitaminB12('µg'),
-  niacin('mg');
+  niacin('mg'),
+  vitaminE('mg'),
+  vitaminK('µg'),
+  thiamin('mg'),
+  riboflavin('mg'),
+  pantothenicAcid('mg'),
+  biotin('µg'),
+  folate('µg'),
+  iodine('µg'),
+  selenium('µg'),
+  copper('mg'),
+  manganese('mg');
 
   final String unit;
 
@@ -59,6 +70,17 @@ enum NutrientField {
     vitaminB6 => n.vitaminB6100,
     vitaminB12 => n.vitaminB12100,
     niacin => n.niacin100,
+    vitaminE => n.vitaminE100,
+    vitaminK => n.vitaminK100,
+    thiamin => n.thiamin100,
+    riboflavin => n.riboflavin100,
+    pantothenicAcid => n.pantothenicAcid100,
+    biotin => n.biotin100,
+    folate => n.folate100,
+    iodine => n.iodine100,
+    selenium => n.selenium100,
+    copper => n.copper100,
+    manganese => n.manganese100,
   };
 
   /// Nutriments holding [values] per 100 g; a field not given is unknown.
@@ -88,5 +110,16 @@ enum NutrientField {
         vitaminB6100: values[vitaminB6],
         vitaminB12100: values[vitaminB12],
         niacin100: values[niacin],
+        vitaminE100: values[vitaminE],
+        vitaminK100: values[vitaminK],
+        thiamin100: values[thiamin],
+        riboflavin100: values[riboflavin],
+        pantothenicAcid100: values[pantothenicAcid],
+        biotin100: values[biotin],
+        folate100: values[folate],
+        iodine100: values[iodine],
+        selenium100: values[selenium],
+        copper100: values[copper],
+        manganese100: values[manganese],
       );
 }

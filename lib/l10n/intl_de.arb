@@ -1540,5 +1540,16 @@
   "nutrientReferenceIomLabel": "IOM",
   "nutrientReferenceDgeLabel": "DGE",
   "driPanelDgeInfoBody": "Diese Referenzwerte stammen aus den DGE/ÖGE-Referenzwerten für die Nährstoffzufuhr (3. Auflage 2025) für Erwachsene und hängen von Alter und Geschlecht ab. Wo die DGE keinen Wert nennt, wird der IOM/FDA-Wert genutzt und gekennzeichnet. Sie dienen als Orientierung, nicht als Vorgabe — dein eigener Bedarf kann abweichen.",
-  "driPanelDgeLinkLabel": "Quelle: DGE/ÖGE-Referenzwerte für die Nährstoffzufuhr"
+  "driPanelDgeLinkLabel": "Quelle: DGE/ÖGE-Referenzwerte für die Nährstoffzufuhr",
+  "vitaminELabel": "Vitamin E",
+  "vitaminKLabel": "Vitamin K",
+  "thiaminLabel": "Thiamin (B1)",
+  "riboflavinLabel": "Riboflavin (B2)",
+  "pantothenicAcidLabel": "Pantothensäure (B5)",
+  "biotinLabel": "Biotin (B7)",
+  "folateLabel": "Folat",
+  "iodineLabel": "Jod",
+  "seleniumLabel": "Selen",
+  "copperLabel": "Kupfer",
+  "manganeseLabel": "Mangan"
 }

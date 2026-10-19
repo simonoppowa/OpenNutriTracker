@@ -91,6 +91,31 @@ class OFFProductNutrimentsDTO {
   final dynamic vitamin_b12_100g;
   @JsonKey(name: 'vitamin-pp_100g')
   final dynamic niacin_100g;
+  // #50
+  @JsonKey(name: 'vitamin-e_100g')
+  final dynamic vitamin_e_100g;
+  @JsonKey(name: 'vitamin-k_100g')
+  final dynamic vitamin_k_100g;
+  @JsonKey(name: 'vitamin-b1_100g')
+  final dynamic thiamin_100g;
+  @JsonKey(name: 'vitamin-b2_100g')
+  final dynamic riboflavin_100g;
+  @JsonKey(name: 'pantothenic-acid_100g')
+  final dynamic pantothenic_acid_100g;
+  @JsonKey(name: 'biotin_100g')
+  final dynamic biotin_100g;
+  @JsonKey(name: 'vitamin-b9_100g')
+  final dynamic vitamin_b9_100g;
+  @JsonKey(name: 'iodine_100g')
+  final dynamic iodine_100g;
+  @JsonKey(name: 'selenium_100g')
+  final dynamic selenium_100g;
+  @JsonKey(name: 'copper_100g')
+  final dynamic copper_100g;
+  @JsonKey(name: 'manganese_100g')
+  final dynamic manganese_100g;
+  @JsonKey(name: 'folates_100g')
+  final dynamic folates_100g;
 
   OFFProductNutrimentsDTO({
     //required this.energy_kcal,
@@ -145,6 +170,18 @@ class OFFProductNutrimentsDTO {
     this.vitamin_b6_100g,
     this.vitamin_b12_100g,
     this.niacin_100g,
+    this.vitamin_e_100g,
+    this.vitamin_k_100g,
+    this.thiamin_100g,
+    this.riboflavin_100g,
+    this.pantothenic_acid_100g,
+    this.biotin_100g,
+    this.vitamin_b9_100g,
+    this.iodine_100g,
+    this.selenium_100g,
+    this.copper_100g,
+    this.manganese_100g,
+    this.folates_100g,
   });
 
   factory OFFProductNutrimentsDTO.fromJson(Map<String, dynamic> json) =>

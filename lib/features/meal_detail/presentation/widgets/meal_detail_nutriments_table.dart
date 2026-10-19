@@ -61,6 +61,17 @@ class MealDetailNutrimentsTable extends StatelessWidget {
     (NutrientField.vitaminB6, false),
     (NutrientField.vitaminB12, false),
     (NutrientField.niacin, false),
+    (NutrientField.vitaminE, false),
+    (NutrientField.vitaminK, false),
+    (NutrientField.thiamin, false),
+    (NutrientField.riboflavin, false),
+    (NutrientField.pantothenicAcid, false),
+    (NutrientField.biotin, false),
+    (NutrientField.folate, false),
+    (NutrientField.iodine, false),
+    (NutrientField.selenium, false),
+    (NutrientField.copper, false),
+    (NutrientField.manganese, false),
   ];
 
   bool get _perServing => usesImperialUnits && servingQuantity != null;

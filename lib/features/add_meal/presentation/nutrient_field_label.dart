@@ -28,5 +28,16 @@ extension NutrientFieldLabel on NutrientField {
     NutrientField.vitaminB6 => s.vitaminB6Label,
     NutrientField.vitaminB12 => s.vitaminB12Label,
     NutrientField.niacin => s.niacinLabel,
+    NutrientField.vitaminE => s.vitaminELabel,
+    NutrientField.vitaminK => s.vitaminKLabel,
+    NutrientField.thiamin => s.thiaminLabel,
+    NutrientField.riboflavin => s.riboflavinLabel,
+    NutrientField.pantothenicAcid => s.pantothenicAcidLabel,
+    NutrientField.biotin => s.biotinLabel,
+    NutrientField.folate => s.folateLabel,
+    NutrientField.iodine => s.iodineLabel,
+    NutrientField.selenium => s.seleniumLabel,
+    NutrientField.copper => s.copperLabel,
+    NutrientField.manganese => s.manganeseLabel,
   };
 }

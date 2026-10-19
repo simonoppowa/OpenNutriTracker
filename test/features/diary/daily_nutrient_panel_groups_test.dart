@@ -102,7 +102,7 @@ void main() {
     ]) {
       expect(find.text(label), findsOneWidget);
     }
-    expect(find.byType(LinearProgressIndicator), findsNWidgets(21));
+    expect(find.byType(LinearProgressIndicator), findsNWidgets(32));
   });
 
   testWidgets('energy is measured against a goal in the chosen unit', (

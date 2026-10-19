@@ -101,6 +101,28 @@ class SpFoodDTO {
   final double? vitaminB12100;
   @JsonKey(name: 'niacin_100')
   final double? niacin100;
+  @JsonKey(name: 'vitamin_e_100')
+  final double? vitaminE100;
+  @JsonKey(name: 'vitamin_k_100')
+  final double? vitaminK100;
+  @JsonKey(name: 'thiamin_100')
+  final double? thiamin100;
+  @JsonKey(name: 'riboflavin_100')
+  final double? riboflavin100;
+  @JsonKey(name: 'pantothenic_acid_100')
+  final double? pantothenicAcid100;
+  @JsonKey(name: 'biotin_100')
+  final double? biotin100;
+  @JsonKey(name: 'folate_100')
+  final double? folate100;
+  @JsonKey(name: 'iodine_100')
+  final double? iodine100;
+  @JsonKey(name: 'selenium_100')
+  final double? selenium100;
+  @JsonKey(name: 'copper_100')
+  final double? copper100;
+  @JsonKey(name: 'manganese_100')
+  final double? manganese100;
 
   /// Whether the backend holds a deliverable portion for this food, as
   /// the search RPC reports it — or null when the backend did not say.
@@ -214,6 +236,17 @@ class SpFoodDTO {
     this.vitaminB6100,
     this.vitaminB12100,
     this.niacin100,
+    this.vitaminE100,
+    this.vitaminK100,
+    this.thiamin100,
+    this.riboflavin100,
+    this.pantothenicAcid100,
+    this.biotin100,
+    this.folate100,
+    this.iodine100,
+    this.selenium100,
+    this.copper100,
+    this.manganese100,
     this.hasPortion,
     this.localizedName,
   });

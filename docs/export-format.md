@@ -155,7 +155,18 @@ Array of intake records:
         "vitaminD100": null,
         "vitaminB6100": null,
         "vitaminB12100": null,
-        "niacin100": null
+        "niacin100": null,
+        "vitaminE100": null,          // fork (#50), see below
+        "vitaminK100": null,
+        "thiamin100": null,
+        "riboflavin100": null,
+        "pantothenicAcid100": null,
+        "biotin100": null,
+        "folate100": null,
+        "iodine100": null,
+        "selenium100": null,
+        "copper100": null,
+        "manganese100": null
       },
       "dataVersion": 1                // see "Micronutrient units" below
     }
@@ -167,9 +178,15 @@ Array of intake records:
 
 The `*100` micronutrient fields are stored in the app's units: milligrams
 for cholesterol, the minerals and vitamins C, B6 and niacin, micrograms for
-vitamins A, D and B12. Builds up to 2.3.0 wrote Open Food Facts rows with
-those fields in the raw grams the API sends — a thousand times too small for
-the milligram fields, a million for the microgram ones
+vitamins A, D and B12. The fork's further micronutrients (#50) follow the
+same rule: milligrams for vitamin E, thiamin (B1), riboflavin (B2),
+pantothenic acid (B5), copper and manganese, micrograms for vitamin K,
+biotin, folate, iodine and selenium. They are null in older bundles and
+read as unknown; they were never written in raw grams, so the
+`dataVersion` scaling below leaves them alone. Builds up to 2.3.0 wrote
+Open Food Facts rows with the older fields (cholesterol, the minerals and
+vitamins A, C, D, B6, B12 and niacin) in the raw grams the API sends — a
+thousand times too small for the milligram fields, a million for the microgram ones
 ([#775](https://github.com/simonoppowa/OpenNutriTracker/pull/775)).
 
 `dataVersion` on the meal (and the `meal_data_version` column in the CSV) is
@@ -537,6 +554,17 @@ Header lookup is case-insensitive.
 | `vitamin_b6_per_100g`           | number | no       | mg.                                            |
 | `vitamin_b12_per_100g`          | number | no       | µg.                                            |
 | `niacin_per_100g`               | number | no       | mg (B3).                                       |
+| `vitamin_e_per_100g`            | number | no       | mg (fork, #50).                                |
+| `vitamin_k_per_100g`            | number | no       | µg (fork, #50).                                |
+| `thiamin_per_100g`              | number | no       | mg, B1 (fork, #50).                            |
+| `riboflavin_per_100g`           | number | no       | mg, B2 (fork, #50).                            |
+| `pantothenic_acid_per_100g`     | number | no       | mg, B5 (fork, #50).                            |
+| `biotin_per_100g`               | number | no       | µg (fork, #50).                                |
+| `folate_per_100g`               | number | no       | µg (fork, #50).                                |
+| `iodine_per_100g`               | number | no       | µg (fork, #50).                                |
+| `selenium_per_100g`             | number | no       | µg (fork, #50).                                |
+| `copper_per_100g`               | number | no       | mg (fork, #50).                                |
+| `manganese_per_100g`            | number | no       | mg (fork, #50).                                |
 | `meal_data_version`             | number | no       | See [Micronutrient units](#micronutrient-units-on-open-food-facts-rows). |
 
 ### `user_activity.csv`

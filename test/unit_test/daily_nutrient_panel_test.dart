@@ -245,8 +245,8 @@ void main() {
   group('NutrientPanelKeys', () {
     test('exposes every stored nutrient, the original ten unchanged (#47)',
         () {
-      expect(NutrientPanelKeys.all, hasLength(24));
-      expect(NutrientPanelKeys.all.toSet(), hasLength(24));
+      expect(NutrientPanelKeys.all, hasLength(35));
+      expect(NutrientPanelKeys.all.toSet(), hasLength(35));
       expect(
         NutrientPanelKeys.all.take(10).toList(),
         equals(<String>[

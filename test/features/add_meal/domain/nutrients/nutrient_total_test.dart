@@ -72,7 +72,7 @@ void main() {
     for (final field in NutrientField.values) {
       expect(field.per100(entity), values[field], reason: field.name);
     }
-    expect(NutrientField.values, hasLength(24));
+    expect(NutrientField.values, hasLength(35));
     expect(NutrientField.sodium.per100(MealNutrimentsEntity.empty()), isNull);
   });
 }

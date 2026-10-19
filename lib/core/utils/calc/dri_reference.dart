@@ -275,6 +275,127 @@ const Map<String, Map<_LifeStage, DriReference>> _driTable = {
     _LifeStage.f51to70: DriReference(amount: 14, unit: 'mg', basis: 'RDA'),
     _LifeStage.f71plus: DriReference(amount: 14, unit: 'mg', basis: 'RDA'),
   },
+  NutrientPanelKeys.vitaminE: {
+    // IOM RDA (alpha-tocopherol): 15 mg for all adults.
+    _LifeStage.m19to30: DriReference(amount: 15, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 15, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 15, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 15, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 15, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 15, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 15, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 15, unit: 'mg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.vitaminK: {
+    // IOM AI: men 120 µg, women 90 µg.
+    _LifeStage.m19to30: DriReference(amount: 120, unit: 'µg', basis: 'AI'),
+    _LifeStage.m31to50: DriReference(amount: 120, unit: 'µg', basis: 'AI'),
+    _LifeStage.m51to70: DriReference(amount: 120, unit: 'µg', basis: 'AI'),
+    _LifeStage.m71plus: DriReference(amount: 120, unit: 'µg', basis: 'AI'),
+    _LifeStage.f19to30: DriReference(amount: 90, unit: 'µg', basis: 'AI'),
+    _LifeStage.f31to50: DriReference(amount: 90, unit: 'µg', basis: 'AI'),
+    _LifeStage.f51to70: DriReference(amount: 90, unit: 'µg', basis: 'AI'),
+    _LifeStage.f71plus: DriReference(amount: 90, unit: 'µg', basis: 'AI'),
+  },
+  NutrientPanelKeys.thiamin: {
+    // IOM RDA: men 1.2 mg, women 1.1 mg.
+    _LifeStage.m19to30: DriReference(amount: 1.2, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 1.2, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 1.2, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 1.2, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 1.1, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 1.1, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 1.1, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 1.1, unit: 'mg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.riboflavin: {
+    // IOM RDA: men 1.3 mg, women 1.1 mg.
+    _LifeStage.m19to30: DriReference(amount: 1.3, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 1.3, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 1.3, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 1.3, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 1.1, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 1.1, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 1.1, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 1.1, unit: 'mg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.pantothenicAcid: {
+    // IOM AI: 5 mg for all adults.
+    _LifeStage.m19to30: DriReference(amount: 5, unit: 'mg', basis: 'AI'),
+    _LifeStage.m31to50: DriReference(amount: 5, unit: 'mg', basis: 'AI'),
+    _LifeStage.m51to70: DriReference(amount: 5, unit: 'mg', basis: 'AI'),
+    _LifeStage.m71plus: DriReference(amount: 5, unit: 'mg', basis: 'AI'),
+    _LifeStage.f19to30: DriReference(amount: 5, unit: 'mg', basis: 'AI'),
+    _LifeStage.f31to50: DriReference(amount: 5, unit: 'mg', basis: 'AI'),
+    _LifeStage.f51to70: DriReference(amount: 5, unit: 'mg', basis: 'AI'),
+    _LifeStage.f71plus: DriReference(amount: 5, unit: 'mg', basis: 'AI'),
+  },
+  NutrientPanelKeys.biotin: {
+    // IOM AI: 30 µg for all adults.
+    _LifeStage.m19to30: DriReference(amount: 30, unit: 'µg', basis: 'AI'),
+    _LifeStage.m31to50: DriReference(amount: 30, unit: 'µg', basis: 'AI'),
+    _LifeStage.m51to70: DriReference(amount: 30, unit: 'µg', basis: 'AI'),
+    _LifeStage.m71plus: DriReference(amount: 30, unit: 'µg', basis: 'AI'),
+    _LifeStage.f19to30: DriReference(amount: 30, unit: 'µg', basis: 'AI'),
+    _LifeStage.f31to50: DriReference(amount: 30, unit: 'µg', basis: 'AI'),
+    _LifeStage.f51to70: DriReference(amount: 30, unit: 'µg', basis: 'AI'),
+    _LifeStage.f71plus: DriReference(amount: 30, unit: 'µg', basis: 'AI'),
+  },
+  NutrientPanelKeys.folate: {
+    // IOM RDA (dietary folate equivalents): 400 µg for all adults.
+    _LifeStage.m19to30: DriReference(amount: 400, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 400, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 400, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 400, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 400, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 400, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 400, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 400, unit: 'µg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.iodine: {
+    // IOM RDA: 150 µg for all adults.
+    _LifeStage.m19to30: DriReference(amount: 150, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 150, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 150, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 150, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 150, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 150, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 150, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 150, unit: 'µg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.selenium: {
+    // IOM RDA: 55 µg for all adults.
+    _LifeStage.m19to30: DriReference(amount: 55, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 55, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 55, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 55, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 55, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 55, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 55, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 55, unit: 'µg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.copper: {
+    // IOM RDA: 900 µg (0.9 mg) for all adults.
+    _LifeStage.m19to30: DriReference(amount: 0.9, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 0.9, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 0.9, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 0.9, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 0.9, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 0.9, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 0.9, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 0.9, unit: 'mg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.manganese: {
+    // IOM AI: men 2.3 mg, women 1.8 mg.
+    _LifeStage.m19to30: DriReference(amount: 2.3, unit: 'mg', basis: 'AI'),
+    _LifeStage.m31to50: DriReference(amount: 2.3, unit: 'mg', basis: 'AI'),
+    _LifeStage.m51to70: DriReference(amount: 2.3, unit: 'mg', basis: 'AI'),
+    _LifeStage.m71plus: DriReference(amount: 2.3, unit: 'mg', basis: 'AI'),
+    _LifeStage.f19to30: DriReference(amount: 1.8, unit: 'mg', basis: 'AI'),
+    _LifeStage.f31to50: DriReference(amount: 1.8, unit: 'mg', basis: 'AI'),
+    _LifeStage.f51to70: DriReference(amount: 1.8, unit: 'mg', basis: 'AI'),
+    _LifeStage.f71plus: DriReference(amount: 1.8, unit: 'mg', basis: 'AI'),
+  },
 };
 
 /// Looks up the IOM reference intake for a given nutrient and user.
@@ -322,7 +443,9 @@ DriReference? getReferenceFor({
 /// derivation years: calcium 2013, sodium and potassium 2016, vitamin B12
 /// 2018, vitamin B6 and zinc 2019, vitamin A 2020, magnesium and fibre
 /// 2021, phosphorus 2022, iron 2023, vitamin C and niacin 2015, vitamin D
-/// 2012).
+/// 2012; for #50: vitamin E 2024, vitamin K, copper and manganese 2000,
+/// thiamin, riboflavin, folate and selenium 2015, biotin 2020, pantothenic
+/// acid 2021, iodine 2025).
 ///
 /// * Sodium: the DGE guidance of at most 6 g salt a day (2400 mg sodium),
 ///   since the panel treats sodium as a limit; the DGE estimate for an
@@ -333,6 +456,8 @@ DriReference? getReferenceFor({
 /// * Zinc: the values for a medium phytate intake.
 /// * Vitamin D: the estimate for when the skin makes none.
 /// * Fibre: the guide value of at least 30 g.
+/// * Copper and manganese: the lower end of the DGE ranges (1.0 to 1.5 mg
+///   and 2.0 to 5.0 mg).
 /// * Protein (2017 derivation, see [getDgeReferenceFor]): 0.8 g per kg body
 ///   weight, from 65 1.0 g; without a user the midpoint of the 25 to under
 ///   51 values per day, 57 g for men and 48 g for women.
@@ -363,6 +488,50 @@ const Map<String, (List<double>, List<double>)> _dgeTable = {
   NutrientPanelKeys.vitaminB6: ([1.6, 1.6, 1.6, 1.6], [1.4, 1.4, 1.4, 1.4]),
   NutrientPanelKeys.vitaminB12: ([4, 4, 4, 4], [4, 4, 4, 4]),
   NutrientPanelKeys.niacin: ([16, 15, 15, 14], [13, 12, 11, 11]),
+  NutrientPanelKeys.vitaminE: (
+    [8, 8, 8, 8],
+    [8, 8, 8, 8],
+  ),
+  NutrientPanelKeys.vitaminK: (
+    [70, 70, 80, 80],
+    [60, 60, 65, 65],
+  ),
+  NutrientPanelKeys.thiamin: (
+    [1.3, 1.2, 1.2, 1.1],
+    [1, 1, 1, 1],
+  ),
+  NutrientPanelKeys.riboflavin: (
+    [1.4, 1.4, 1.3, 1.3],
+    [1.1, 1.1, 1, 1],
+  ),
+  NutrientPanelKeys.pantothenicAcid: (
+    [5, 5, 5, 5],
+    [5, 5, 5, 5],
+  ),
+  NutrientPanelKeys.biotin: (
+    [40, 40, 40, 40],
+    [40, 40, 40, 40],
+  ),
+  NutrientPanelKeys.folate: (
+    [300, 300, 300, 300],
+    [300, 300, 300, 300],
+  ),
+  NutrientPanelKeys.iodine: (
+    [150, 150, 150, 150],
+    [150, 150, 150, 150],
+  ),
+  NutrientPanelKeys.selenium: (
+    [70, 70, 70, 70],
+    [60, 60, 60, 60],
+  ),
+  NutrientPanelKeys.copper: (
+    [1, 1, 1, 1],
+    [1, 1, 1, 1],
+  ),
+  NutrientPanelKeys.manganese: (
+    [2, 2, 2, 2],
+    [2, 2, 2, 2],
+  ),
 };
 
 int _dgeBand(int age) {

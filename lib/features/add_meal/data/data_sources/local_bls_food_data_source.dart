@@ -102,6 +102,16 @@ class LocalBlsFoodDataSource extends SpFoodDataSource {
       vitaminB6100: value('vitaminB6100'),
       vitaminB12100: value('vitaminB12100'),
       niacin100: value('niacin100'),
+      vitaminE100: value('vitaminE100'),
+      vitaminK100: value('vitaminK100'),
+      thiamin100: value('thiamin100'),
+      riboflavin100: value('riboflavin100'),
+      pantothenicAcid100: value('pantothenicAcid100'),
+      biotin100: value('biotin100'),
+      folate100: value('folate100'),
+      iodine100: value('iodine100'),
+      copper100: value('copper100'),
+      manganese100: value('manganese100'),
     );
   }
 }

@@ -106,6 +106,17 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     NutrientPanelKeys.vitaminC: (300, 60, false),
     NutrientPanelKeys.vitaminB6: (5, 50, true),
     NutrientPanelKeys.niacin: (50, 50, false),
+    NutrientPanelKeys.vitaminE: (50, 100, true),
+    NutrientPanelKeys.vitaminK: (300, 60, false),
+    NutrientPanelKeys.thiamin: (5, 50, true),
+    NutrientPanelKeys.riboflavin: (5, 50, true),
+    NutrientPanelKeys.pantothenicAcid: (20, 40, true),
+    NutrientPanelKeys.biotin: (150, 30, false),
+    NutrientPanelKeys.folate: (1000, 50, false),
+    NutrientPanelKeys.iodine: (500, 50, false),
+    NutrientPanelKeys.selenium: (200, 40, false),
+    NutrientPanelKeys.copper: (5, 50, true),
+    NutrientPanelKeys.manganese: (10, 50, true),
   };
 
   late final TextEditingController _fibreController;

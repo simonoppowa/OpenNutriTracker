@@ -23,6 +23,9 @@ The component mapping (BLS code → app field, unit factor) is `MAPPING` in
 `bls_to_asset.py`. It extends the mapping of the OpenNutriTracker backend
 (`scripts/bls/bls_to_ont_csv.py`) with vitamin E, K, B1, B2, B5, biotin,
 folate, iodine, copper, manganese, salt, water, alcohol, omega-3 and omega-6.
-BLS 4.0 has no selenium column.
+BLS 4.0 has no selenium column. Since #50 the app stores vitamin E, K,
+B1, B2, B5, biotin, folate, iodine, copper and manganese from the asset
+(`LocalBlsFoodDataSource`); selenium stays unknown for BLS foods and only
+comes from Open Food Facts.
 
 Size: about 0.7 MB compressed, 2 MB as JSON.

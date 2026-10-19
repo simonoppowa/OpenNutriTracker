@@ -38,7 +38,7 @@ void main() {
       expect(keys, hasLength(NutrientPanelKeys.all.length));
     });
 
-    test('covers all 24 stored nutrients', () {
+    test('covers every stored nutrient', () {
       expect({
         for (final row in NutrientPanelRow.all) row.field,
       }, NutrientField.values.toSet());
@@ -57,7 +57,7 @@ void main() {
     });
 
     test('extra goal keys are the new non-energy, non-macro keys', () {
-      expect(NutrientPanelKeys.extraGoalKeys, hasLength(10));
+      expect(NutrientPanelKeys.extraGoalKeys, hasLength(21));
       expect(
         NutrientPanelKeys.all.toSet().containsAll(
           NutrientPanelKeys.extraGoalKeys,

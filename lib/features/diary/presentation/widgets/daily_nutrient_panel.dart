@@ -746,6 +746,17 @@ class NutrientPanelTotals {
     NutrientPanelKeys.vitaminC: NutrientField.vitaminC,
     NutrientPanelKeys.vitaminB6: NutrientField.vitaminB6,
     NutrientPanelKeys.niacin: NutrientField.niacin,
+    NutrientPanelKeys.vitaminE: NutrientField.vitaminE,
+    NutrientPanelKeys.vitaminK: NutrientField.vitaminK,
+    NutrientPanelKeys.thiamin: NutrientField.thiamin,
+    NutrientPanelKeys.riboflavin: NutrientField.riboflavin,
+    NutrientPanelKeys.pantothenicAcid: NutrientField.pantothenicAcid,
+    NutrientPanelKeys.biotin: NutrientField.biotin,
+    NutrientPanelKeys.folate: NutrientField.folate,
+    NutrientPanelKeys.iodine: NutrientField.iodine,
+    NutrientPanelKeys.selenium: NutrientField.selenium,
+    NutrientPanelKeys.copper: NutrientField.copper,
+    NutrientPanelKeys.manganese: NutrientField.manganese,
   };
 }
 
@@ -780,6 +791,17 @@ class NutrientPanelKeys {
   static const String vitaminC = 'vitamin_c';
   static const String vitaminB6 = 'vitamin_b6';
   static const String niacin = 'niacin';
+  static const String vitaminE = 'vitamin_e';
+  static const String vitaminK = 'vitamin_k';
+  static const String thiamin = 'thiamin';
+  static const String riboflavin = 'riboflavin';
+  static const String pantothenicAcid = 'pantothenic_acid';
+  static const String biotin = 'biotin';
+  static const String folate = 'folate';
+  static const String iodine = 'iodine';
+  static const String selenium = 'selenium';
+  static const String copper = 'copper';
+  static const String manganese = 'manganese';
 
   static const List<String> all = <String>[
     fiber,
@@ -806,6 +828,17 @@ class NutrientPanelKeys {
     vitaminC,
     vitaminB6,
     niacin,
+    vitaminE,
+    vitaminK,
+    thiamin,
+    riboflavin,
+    pantothenicAcid,
+    biotin,
+    folate,
+    iodine,
+    selenium,
+    copper,
+    manganese,
   ];
 
   /// The keys added in #47 whose own goal lives in
@@ -822,6 +855,17 @@ class NutrientPanelKeys {
     vitaminC,
     vitaminB6,
     niacin,
+    vitaminE,
+    vitaminK,
+    thiamin,
+    riboflavin,
+    pantothenicAcid,
+    biotin,
+    folate,
+    iodine,
+    selenium,
+    copper,
+    manganese,
   ];
 }
 

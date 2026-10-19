@@ -1594,5 +1594,16 @@
   "nutrientReferenceIomLabel": "IOM",
   "nutrientReferenceDgeLabel": "DGE",
   "driPanelDgeInfoBody": "These reference amounts come from the DGE/ÖGE reference values for nutrient intake (3rd edition 2025) for adults and vary by age and gender. Where the DGE gives no value, the IOM/FDA value is used and marked. They're a point of reference, not a target — your own needs may differ.",
-  "driPanelDgeLinkLabel": "Source: DGE/ÖGE reference values for nutrient intake"
+  "driPanelDgeLinkLabel": "Source: DGE/ÖGE reference values for nutrient intake",
+  "vitaminELabel": "vitamin E",
+  "vitaminKLabel": "vitamin K",
+  "thiaminLabel": "thiamin (B1)",
+  "riboflavinLabel": "riboflavin (B2)",
+  "pantothenicAcidLabel": "pantothenic acid (B5)",
+  "biotinLabel": "biotin (B7)",
+  "folateLabel": "folate",
+  "iodineLabel": "iodine",
+  "seleniumLabel": "selenium",
+  "copperLabel": "copper",
+  "manganeseLabel": "manganese"
 }
