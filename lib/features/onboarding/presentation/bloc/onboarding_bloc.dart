@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/kcal_goal_breakdown_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
@@ -29,11 +31,17 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final AddConfigUsecase _addConfigUsecase;
   final GetConfigUsecase _getConfigUsecase;
 
+  /// Where the onboarding weight is logged. Optional only so tests of the
+  /// rest of the flow need not stand one up.
+  final WeightLogRepository? _weightLogRepository;
+
   OnboardingBloc(
     this._addUserUsecase,
     this._addConfigUsecase,
-    this._getConfigUsecase,
-  ) : super(OnboardingInitialState()) {
+    this._getConfigUsecase, {
+    WeightLogRepository? weightLogRepository,
+  }) : _weightLogRepository = weightLogRepository,
+       super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
       await _seedUnitSelection();
@@ -107,6 +115,18 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     required int? accentColor,
   }) async {
     await _addUserUsecase.addUser(userEntity);
+    // The weight given here is also today's entry in the weight history, as
+    // a weight entered anywhere else in the app is. It is what tells the
+    // health weight import the user's own weight is from today: without it
+    // a scale reading taken after the profile was created but before
+    // onboarding finished would look newer and replace it.
+    final now = DateTime.now();
+    await _weightLogRepository?.addEntry(
+      WeightLogEntity(
+        date: DateTime(now.year, now.month, now.day),
+        weightKg: userEntity.weightKG,
+      ),
+    );
     // Privacy policy is required to leave the intro page, so completing
     // onboarding always means the user accepted it. Persist that – the flag
     // previously only lived in ephemeral intro UI state.

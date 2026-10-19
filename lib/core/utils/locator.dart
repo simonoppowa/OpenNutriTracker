@@ -224,7 +224,12 @@ Future<void> initLocator() async {
 
   // BLoCs
   locator.registerLazySingleton<OnboardingBloc>(
-    () => OnboardingBloc(locator(), locator(), locator()),
+    () => OnboardingBloc(
+      locator(),
+      locator(),
+      locator(),
+      weightLogRepository: locator(),
+    ),
   );
   locator.registerLazySingleton<HomeBloc>(
     () => HomeBloc(
