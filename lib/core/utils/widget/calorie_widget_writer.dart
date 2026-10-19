@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -70,17 +71,10 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
     int? generation,
   }) => _serially(() async {
     if (generation != null && generation != _generation) return;
-    // Each key is its own platform call, so a kill or a failed call part
-    // way through would leave a mix of old and new keys. The extension
-    // shows figures only under a "1" marker: it goes to "0" first and is
-    // set last, so a snapshot that did not land in full stays invalid.
-    final payload = {...snapshot.toPayload(), ...labels.toPayload()};
-    final marker = payload.remove(CalorieWidgetSnapshot.hasDataKey);
     await _save({
-      CalorieWidgetSnapshot.hasDataKey: '0',
-      ...payload,
-    }, reload: false);
-    await _save({CalorieWidgetSnapshot.hasDataKey: marker});
+      CalorieWidgetLabels.storageKey: labels.encodeLanguage(),
+      CalorieWidgetSnapshot.storageKey: snapshot.encode(labels),
+    });
   });
 
   /// A null value makes the plugin remove the key, which the extension
@@ -88,34 +82,31 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
   @override
   Future<void> clear() {
     _generation++;
-    return _serially(
-      () => _save({
-        for (final key in [
-          ...CalorieWidgetSnapshot.keys,
-          ...CalorieWidgetLabels.figureKeys,
-        ])
-          key: null,
-      }),
-    );
+    return _serially(() => _save({CalorieWidgetSnapshot.storageKey: null}));
   }
 
-  /// Without stored figures (before the first Home load, or after a wipe)
-  /// only the language-only labels are written; the figure labels would
-  /// describe numbers the widget does not have.
+  /// Without a stored snapshot (before the first Home load, or after a
+  /// wipe) only the language-only labels are written; the figure labels
+  /// would describe numbers the widget does not have.
   @override
   Future<void> relabel(S s) => _serially(() => _relabel(s));
 
   Future<void> _relabel(S s) async {
     final group = await _enterAppGroup();
-    final consumed = await _readInt(group, CalorieWidgetSnapshot.consumedKey);
-    final goal = await _readInt(group, CalorieWidgetSnapshot.goalKey);
+    final stored = await _readSnapshot(group);
     final labels = CalorieWidgetLabels.forFigures(
       s,
-      consumedKcal: consumed ?? 0,
-      goalKcal: goal ?? 0,
+      consumedKcal: (stored?['consumed'] as int?) ?? 0,
+      goalKcal: (stored?['goal'] as int?) ?? 0,
     );
-    final hasFigures = consumed != null && goal != null;
-    await _save(hasFigures ? labels.toPayload() : labels.languagePayload());
+    await _save({
+      CalorieWidgetLabels.storageKey: labels.encodeLanguage(),
+      if (stored != null)
+        CalorieWidgetSnapshot.storageKey: jsonEncode({
+          ...stored,
+          'labels': labels.figureJson(),
+        }),
+    });
   }
 
   /// The App Group of this build's flavour, from its bundle id. Kept once
@@ -128,15 +119,21 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
     return group;
   }
 
-  Future<int?> _readInt(String group, String key) async {
+  Future<Map<String, Object?>?> _readSnapshot(String group) async {
     final value = await HomeWidget.getWidgetData<String>(
-      key,
+      CalorieWidgetSnapshot.storageKey,
       appGroupId: group,
     );
-    return int.tryParse(value ?? '');
+    if (value == null) return null;
+    try {
+      final decoded = jsonDecode(value);
+      return decoded is Map<String, Object?> ? decoded : null;
+    } on FormatException {
+      return null;
+    }
   }
 
-  Future<void> _save(Map<String, String?> values, {bool reload = true}) async {
+  Future<void> _save(Map<String, String?> values) async {
     final group = await _enterAppGroup();
     for (final entry in values.entries) {
       await HomeWidget.saveWidgetData<String>(
@@ -145,7 +142,7 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
         appGroupId: group,
       );
     }
-    if (!_isIOS || !reload) return;
+    if (!_isIOS) return;
     try {
       await HomeWidget.updateWidget(
         iOSName: CalorieWidgetSnapshot.iosWidgetKind,

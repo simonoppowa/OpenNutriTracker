@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui' show Locale;
 
 import 'package:flutter/widgets.dart' show basicLocaleListResolution;
@@ -13,21 +14,12 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// the already-localized labels into the App Group next to the numbers,
 /// and the extension falls back to English only until the first write.
 class CalorieWidgetLabels {
-  static const titleKey = 'ont_calorie_label_title';
-  static const unitKey = 'ont_calorie_label_unit';
-  static const goalKey = 'ont_calorie_label_goal';
-  static const accessibilityKey = 'ont_calorie_label_accessibility';
-  static const openAppKey = 'ont_calorie_label_open_app';
-  static const descriptionKey = 'ont_calorie_label_description';
-
-  /// Labels that depend only on the language. They hold nothing about the
-  /// profile, so a wipe keeps them and the placeholder stays translated.
-  static const languageKeys = [titleKey, unitKey, openAppKey, descriptionKey];
-
-  /// Labels that carry the profile's figures, and go when the figures do.
-  static const figureKeys = [goalKey, accessibilityKey];
-
-  static const keys = [...languageKeys, ...figureKeys];
+  /// The App Group key of the labels that depend only on the language, as
+  /// one JSON string. They hold nothing about the profile, so a wipe keeps
+  /// them and the placeholder stays translated. The labels that carry the
+  /// figures travel inside the snapshot instead
+  /// ([CalorieWidgetSnapshot.encode]), so they always describe it.
+  static const storageKey = 'ont_calorie_labels';
 
   final String title;
   final String unit;
@@ -90,16 +82,17 @@ class CalorieWidgetLabels {
     return lookupS(locale);
   }
 
-  Map<String, String> languagePayload() => {
-    titleKey: title,
-    unitKey: unit,
-    openAppKey: openApp,
-    descriptionKey: description,
+  Map<String, String> languageJson() => {
+    'title': title,
+    'unit': unit,
+    'openApp': openApp,
+    'description': description,
   };
 
-  Map<String, String> toPayload() => {
-    ...languagePayload(),
-    goalKey: goal,
-    accessibilityKey: accessibility,
+  Map<String, String> figureJson() => {
+    'goal': goal,
+    'accessibility': accessibility,
   };
+
+  String encodeLanguage() => jsonEncode(languageJson());
 }

@@ -16,12 +16,12 @@ void main() {
       expect(snapshot.consumedKcal, 180);
       expect(snapshot.goalKcal, 2001);
       expect(snapshot.dayId, '2026-09-23');
-      expect(snapshot.toPayload(), {
-        CalorieWidgetSnapshot.hasDataKey: '1',
-        CalorieWidgetSnapshot.dayKey: '2026-09-23',
-        CalorieWidgetSnapshot.offsetKey: '0',
-        CalorieWidgetSnapshot.consumedKey: '180',
-        CalorieWidgetSnapshot.goalKey: '2001',
+      expect(snapshot.toJson(), {
+        'hasData': true,
+        'day': '2026-09-23',
+        'offsetMinutes': 0,
+        'consumed': 180,
+        'goal': 2001,
       });
     });
 
@@ -34,8 +34,8 @@ void main() {
       );
 
       expect(snapshot.hasData, isFalse);
-      expect(snapshot.toPayload()[CalorieWidgetSnapshot.hasDataKey], '0');
-      expect(snapshot.toPayload()[CalorieWidgetSnapshot.consumedKey], '0');
+      expect(snapshot.toJson()['hasData'], isFalse);
+      expect(snapshot.toJson()['consumed'], 0);
     });
 
     test('an out-of-range offset is treated as midnight', () {

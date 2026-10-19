@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 
 /// Today's calorie figures for the iOS home-screen widget.
 ///
@@ -12,13 +15,11 @@ class CalorieWidgetSnapshot {
       'group.com.opennutritracker.ont.opennutritracker.develop';
   static const iosWidgetKind = 'CalorieProgressWidget';
 
-  static const hasDataKey = 'ont_calorie_has_data';
-  static const dayKey = 'ont_calorie_day';
-  static const offsetKey = 'ont_calorie_offset_minutes';
-  static const consumedKey = 'ont_calorie_consumed';
-  static const goalKey = 'ont_calorie_goal';
-
-  static const keys = [hasDataKey, dayKey, offsetKey, consumedKey, goalKey];
+  /// The App Group key the snapshot lives under: the figures and the
+  /// labels that describe them, as one JSON string. One key is one platform
+  /// write, so the extension reads either the old snapshot or the new one,
+  /// never a mix of the two.
+  static const storageKey = 'ont_calorie_snapshot';
 
   final bool hasData;
   final String dayId;
@@ -87,13 +88,18 @@ class CalorieWidgetSnapshot {
     return start.add(Duration(days: 1, minutes: offsetMinutes));
   }
 
-  Map<String, String> toPayload() => {
-    hasDataKey: hasData ? '1' : '0',
-    dayKey: dayId,
-    offsetKey: '$offsetMinutes',
-    consumedKey: '$consumedKcal',
-    goalKey: '$goalKcal',
+  Map<String, Object> toJson() => {
+    'hasData': hasData,
+    'day': dayId,
+    'offsetMinutes': offsetMinutes,
+    'consumed': consumedKcal,
+    'goal': goalKcal,
   };
+
+  /// The value stored under [storageKey]: this snapshot with the figure
+  /// labels in [labels].
+  String encode(CalorieWidgetLabels labels) =>
+      jsonEncode({...toJson(), 'labels': labels.figureJson()});
 
   /// The App Group for the build with [bundleId]. The develop flavour has
   /// its own bundle id and its own group, so a develop install next to the

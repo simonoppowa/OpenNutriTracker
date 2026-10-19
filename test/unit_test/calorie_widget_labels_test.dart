@@ -22,16 +22,16 @@ void main() {
       snapshot,
     );
 
-    expect(labels.toPayload(), {
-      CalorieWidgetLabels.titleKey: 'Calories',
-      CalorieWidgetLabels.unitKey: 'kcal',
-      CalorieWidgetLabels.goalKey: 'of 2001',
-      CalorieWidgetLabels.accessibilityKey: '180 of 2001 kilocalories',
-      CalorieWidgetLabels.openAppKey: 'Open the app',
-      CalorieWidgetLabels.descriptionKey:
-          "Today's calories eaten and your goal.",
+    expect(labels.languageJson(), {
+      'title': 'Calories',
+      'unit': 'kcal',
+      'openApp': 'Open the app',
+      'description': "Today's calories eaten and your goal.",
     });
-    expect(labels.toPayload().keys, CalorieWidgetLabels.keys);
+    expect(labels.figureJson(), {
+      'goal': 'of 2001',
+      'accessibility': '180 of 2001 kilocalories',
+    });
   });
 
   test('reuses the app\'s existing Calories string, so it is translated', () {

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui' show Locale;
 
 import 'package:flutter/services.dart';
@@ -75,36 +76,46 @@ void main() {
   );
   final german = CalorieWidgetLabels.of(lookupS(const Locale('de')), snapshot);
 
+  const snapshotKey = CalorieWidgetSnapshot.storageKey;
+  const labelsKey = CalorieWidgetLabels.storageKey;
+
+  test('a snapshot is one stored value, with the labels for its figures', () async {
+    final store = HomeWidgetCalorieStore(isIOS: false);
+
+    await store.write(snapshot, german);
+
+    expect(stored, {
+      labelsKey: german.encodeLanguage(),
+      snapshotKey: snapshot.encode(german),
+    });
+    expect(
+      saves.where((save) => save.key == snapshotKey),
+      hasLength(1),
+      reason: 'one platform call, so the extension never reads half of it',
+    );
+    expect(jsonDecode(stored[snapshotKey]! as String), {
+      'hasData': true,
+      'day': '2026-09-23',
+      'offsetMinutes': 0,
+      'consumed': 180,
+      'goal': 2000,
+      'labels': german.figureJson(),
+    });
+  });
+
   test('clear removes the figures and keeps the translated labels', () async {
     final store = HomeWidgetCalorieStore(isIOS: false);
     await store.write(snapshot, german);
-    expect(
-      stored.keys,
-      containsAll([...CalorieWidgetSnapshot.keys, ...CalorieWidgetLabels.keys]),
-      reason: 'setup',
-    );
 
     await store.clear();
 
     // The placeholder a wipe leads to stays in German rather than falling
     // back to the extension's English until onboarding writes again.
-    expect(stored, german.languagePayload());
+    expect(stored, {labelsKey: german.encodeLanguage()});
   });
 
-  test('a write marks the snapshot invalid first and valid last', () async {
-    final store = HomeWidgetCalorieStore(isIOS: false);
-
-    await store.write(snapshot, german);
-
-    final writes = [for (final save in saves) '${save.key}=${save.value}'];
-    expect(writes.first, '${CalorieWidgetSnapshot.hasDataKey}=0');
-    expect(writes.last, '${CalorieWidgetSnapshot.hasDataKey}=1');
-    expect(stored, {...snapshot.toPayload(), ...german.toPayload()});
-  });
-
-  test('a write that fails part way leaves the snapshot invalid', () async {
-    // The extension shows figures only under a "1" marker. Yesterday's
-    // valid snapshot must not become "valid" with today's day id and half
+  test('a write that fails leaves the previous snapshot whole', () async {
+    // Yesterday's snapshot must not be read with today's day id and half
     // of today's figures.
     final store = HomeWidgetCalorieStore(isIOS: false);
     await store.write(snapshot, german);
@@ -114,15 +125,14 @@ void main() {
       offsetMinutes: 0,
       now: DateTime(2026, 9, 24, 9, 0),
     );
-    failOn = CalorieWidgetSnapshot.goalKey;
+    failOn = snapshotKey;
 
     await expectLater(
       store.write(today, german),
       throwsA(isA<PlatformException>()),
     );
 
-    expect(stored[CalorieWidgetSnapshot.hasDataKey], '0');
-    expect(stored[CalorieWidgetSnapshot.dayKey], today.dayId, reason: 'setup');
+    expect(stored[snapshotKey], snapshot.encode(german));
   });
 
   test('a write read before a clear is dropped, a fresh one is not', () async {
@@ -133,23 +143,22 @@ void main() {
     await store.clear();
 
     await store.write(snapshot, german, generation: readAt);
-    expect(stored.keys, isNot(contains(CalorieWidgetSnapshot.consumedKey)));
+    expect(stored.keys, isNot(contains(snapshotKey)));
 
     await store.write(snapshot, german, generation: store.generation);
-    expect(stored, containsPair(CalorieWidgetSnapshot.consumedKey, '180'));
+    expect(stored[snapshotKey], snapshot.encode(german));
   });
 
   test('a write and a clear issued together leave no figures', () async {
-    // They run one at a time, so the clear's removals cannot interleave
-    // with the write's keys and leave half a snapshot behind.
+    // They run one at a time, so the clear cannot land between the write's
+    // two values.
     final store = HomeWidgetCalorieStore(isIOS: false);
     await Future.wait([
       store.write(snapshot, german, generation: store.generation),
       store.clear(),
     ]);
 
-    expect(stored.keys, isNot(contains(CalorieWidgetSnapshot.consumedKey)));
-    expect(stored.keys, isNot(contains(CalorieWidgetSnapshot.goalKey)));
+    expect(stored.keys, isNot(contains(snapshotKey)));
   });
 
   test('clear reloads the iOS widget so it drops the old figures', () async {
@@ -159,7 +168,7 @@ void main() {
 
     await store.clear();
 
-    expect(stored.keys, unorderedEquals(CalorieWidgetLabels.languageKeys));
+    expect(stored.keys, [labelsKey]);
     expect(calls.first, 'setAppGroupId');
     expect(calls.last, 'updateWidget');
   });
@@ -223,7 +232,10 @@ void main() {
 
       await store.relabel(lookupS(const Locale('de')));
 
-      expect(stored, {...snapshot.toPayload(), ...german.toPayload()});
+      expect(stored, {
+        labelsKey: german.encodeLanguage(),
+        snapshotKey: snapshot.encode(german),
+      });
       expect(calls.last, 'updateWidget');
     });
 
@@ -234,7 +246,7 @@ void main() {
 
       await store.relabel(lookupS(const Locale('de')));
 
-      expect(stored, german.languagePayload());
+      expect(stored, {labelsKey: german.encodeLanguage()});
     });
 
     test('the language picker relabels the widget', () async {

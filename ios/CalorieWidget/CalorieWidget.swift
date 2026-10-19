@@ -11,17 +11,42 @@ private enum CalorieWidgetKeys {
     static let appGroupId =
         Bundle.main.object(forInfoDictionaryKey: "ONTAppGroupId") as? String
         ?? "group.com.opennutritracker.ont.opennutritracker"
-    static let hasData = "ont_calorie_has_data"
-    static let day = "ont_calorie_day"
-    static let offset = "ont_calorie_offset_minutes"
-    static let consumed = "ont_calorie_consumed"
-    static let goal = "ont_calorie_goal"
-    static let titleLabel = "ont_calorie_label_title"
-    static let unitLabel = "ont_calorie_label_unit"
-    static let goalLabel = "ont_calorie_label_goal"
-    static let accessibilityLabel = "ont_calorie_label_accessibility"
-    static let openAppLabel = "ont_calorie_label_open_app"
-    static let descriptionLabel = "ont_calorie_label_description"
+    /// The figures and the labels that describe them, as one JSON string
+    /// (`CalorieWidgetSnapshot.encode`). One value is one write, so a
+    /// reading is either the old snapshot or the new one, never a mix.
+    static let snapshot = "ont_calorie_snapshot"
+    /// The labels that depend only on the language, as one JSON string
+    /// (`CalorieWidgetLabels.encodeLanguage`). A wipe keeps them.
+    static let labels = "ont_calorie_labels"
+
+    static func decode<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {
+        guard
+            let json = UserDefaults(suiteName: appGroupId)?.string(forKey: key),
+            let data = json.data(using: .utf8)
+        else { return nil }
+        return try? JSONDecoder().decode(type, from: data)
+    }
+}
+
+private struct StoredLanguageLabels: Decodable {
+    var title: String?
+    var unit: String?
+    var openApp: String?
+    var description: String?
+}
+
+private struct StoredFigureLabels: Decodable {
+    var goal: String?
+    var accessibility: String?
+}
+
+private struct StoredSnapshot: Decodable {
+    var hasData: Bool
+    var day: String
+    var offsetMinutes: Int
+    var consumed: Int
+    var goal: Int
+    var labels: StoredFigureLabels?
 }
 
 /// Copy the app writes in its own language (`CalorieWidgetLabels` in Dart),
@@ -35,27 +60,30 @@ private struct CalorieLabels {
     var openApp: String
     var description: String
 
+    /// The goal and VoiceOver lines come from `reading`, which decoded
+    /// them from the same stored value as its figures.
     static func load(for reading: CalorieReading? = nil) -> CalorieLabels {
-        let defaults = UserDefaults(suiteName: CalorieWidgetKeys.appGroupId)
-        func stored(_ key: String, or fallback: String) -> String {
-            guard let value = defaults?.string(forKey: key), !value.isEmpty else {
-                return fallback
-            }
+        let language = CalorieWidgetKeys.decode(
+            StoredLanguageLabels.self,
+            forKey: CalorieWidgetKeys.labels
+        )
+        func stored(_ value: String?, or fallback: String) -> String {
+            guard let value = value, !value.isEmpty else { return fallback }
             return value
         }
         let consumed = reading?.consumed ?? 0
         let goal = reading?.goal ?? 0
         return CalorieLabels(
-            title: stored(CalorieWidgetKeys.titleLabel, or: "Calories"),
-            unit: stored(CalorieWidgetKeys.unitLabel, or: "kcal"),
-            goal: stored(CalorieWidgetKeys.goalLabel, or: "of \(goal)"),
+            title: stored(language?.title, or: "Calories"),
+            unit: stored(language?.unit, or: "kcal"),
+            goal: stored(reading?.goalLabel, or: "of \(goal)"),
             accessibility: stored(
-                CalorieWidgetKeys.accessibilityLabel,
+                reading?.accessibilityLabel,
                 or: "\(consumed) of \(goal) kilocalories"
             ),
-            openApp: stored(CalorieWidgetKeys.openAppLabel, or: "Open the app"),
+            openApp: stored(language?.openApp, or: "Open the app"),
             description: stored(
-                CalorieWidgetKeys.descriptionLabel,
+                language?.description,
                 or: "Today's calories eaten and your goal."
             )
         )
@@ -68,15 +96,26 @@ private struct CalorieReading {
     var offsetMinutes: Int
     var consumed: Int
     var goal: Int
+    var goalLabel: String? = nil
+    var accessibilityLabel: String? = nil
 
+    /// One read and one decode, so the day, the figures and their labels
+    /// all come from the same write.
     static func load() -> CalorieReading {
-        let defaults = UserDefaults(suiteName: CalorieWidgetKeys.appGroupId)
+        guard let stored = CalorieWidgetKeys.decode(
+            StoredSnapshot.self,
+            forKey: CalorieWidgetKeys.snapshot
+        ) else {
+            return CalorieReading(hasData: false, dayId: "", offsetMinutes: 0, consumed: 0, goal: 0)
+        }
         return CalorieReading(
-            hasData: defaults?.string(forKey: CalorieWidgetKeys.hasData) == "1",
-            dayId: defaults?.string(forKey: CalorieWidgetKeys.day) ?? "",
-            offsetMinutes: Int(defaults?.string(forKey: CalorieWidgetKeys.offset) ?? "") ?? 0,
-            consumed: Int(defaults?.string(forKey: CalorieWidgetKeys.consumed) ?? "") ?? 0,
-            goal: Int(defaults?.string(forKey: CalorieWidgetKeys.goal) ?? "") ?? 0
+            hasData: stored.hasData,
+            dayId: stored.day,
+            offsetMinutes: stored.offsetMinutes,
+            consumed: stored.consumed,
+            goal: stored.goal,
+            goalLabel: stored.labels?.goal,
+            accessibilityLabel: stored.labels?.accessibility
         )
     }
 
