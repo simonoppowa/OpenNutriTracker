@@ -127,6 +127,8 @@ import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
+import 'package:opennutritracker/features/settings/data/auto_backup_settings.dart';
+import 'package:opennutritracker/features/settings/domain/auto_backup_service.dart';
 import 'package:opennutritracker/features/settings/domain/backup_reminder.dart';
 import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
 import 'package:opennutritracker/features/settings/domain/profiles_backup.dart';
@@ -494,6 +496,25 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerLazySingleton(() => BackupReminder(locator()));
+  locator.registerLazySingleton(
+    () => AutoBackupSettingsStore(SecureAppStorageProvider.secureAppStorage),
+  );
+  locator.registerLazySingleton(
+    () => AutoBackupService(
+      locator(),
+      () => locator<ExportDataUsecase>().assembleArchive(
+        format: ExportFormat.json,
+        userActivityJsonFileName: ProfilesBackup.activityFileName,
+        userIntakeJsonFileName: ProfilesBackup.intakeFileName,
+        trackedDayJsonFileName: ProfilesBackup.trackedDayFileName,
+        recipeJsonFileName: ProfilesBackup.recipeFileName,
+        weightLogJsonFileName: ProfilesBackup.weightLogFileName,
+        customActivityTemplateJsonFileName: ProfilesBackup.templateFileName,
+        goalSettingsJsonFileName: ProfilesBackup.goalSettingsFileName,
+      ),
+      locator(),
+    ),
+  );
   locator.registerLazySingleton(
     () => ImportDataUsecase(
       locator(),

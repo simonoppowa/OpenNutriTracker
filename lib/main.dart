@@ -19,6 +19,8 @@ import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/settings/domain/auto_backup_service.dart';
+import 'package:opennutritracker/features/settings/presentation/auto_backup_lifecycle.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -136,6 +138,7 @@ Future<void> _bootstrapApp() async {
     savedUseMaterialYou,
     savedAccentColor,
   );
+  startAutoBackup(locator<AutoBackupService>());
 }
 
 void runAppWithChangeNotifiers(

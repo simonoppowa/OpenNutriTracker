@@ -24,6 +24,7 @@ vervollständigt.
 | Telemetrie | Sentry samt Einwilligungs-UI entfernt, `envied`/`.env` entfallen (nichts liest mehr Secrets) | #19 |
 | KI | KI-Mahlzeitenerkennung (externe Anbieter) ausgeblendet; Bulk-Add mit lokalem Parser bleibt | #20 |
 | CI | Analyze und Tests auf jedem PR gegen `personal` | #21 |
+| Backup | Wasser, eigene Lebensmittel, Profil, Einstellungen, Fasten und alle Profile im JSON-Backup; „Alles ersetzen“; Hinweis auf alte Backups; automatisches WebDAV-Backup | #23–#28, #77, #78 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
@@ -82,6 +83,41 @@ Keychain verschlüsselt. Ändert sich die Team-ID des Zertifikats (Widerruf, neu
 Zertifikat) oder die Bundle ID, kommt die App nicht mehr an den Schlüssel, und die
 Daten auf dem Gerät sind unlesbar. Das automatische Backup auf FileBrowser Quantum
 (#77) ist genau dafür geplant.
+
+## Automatisches Backup (FileBrowser Quantum)
+
+Die App hat keine Accounts und kein Backend. Alle Daten liegen nur auf dem
+iPhone. Der eigene Ordner der App wird beim Löschen der App mitgelöscht, deshalb
+sichert die App automatisch per WebDAV auf den eigenen Server.
+
+Einrichten:
+
+1. In FileBrowser Quantum unter *Einstellungen → API Tokens* einen Token anlegen
+   (ohne Anpassung). Den Token-Wert kopieren.
+2. Ordner-URL bestimmen: `https://<host>/dav/<source>/<pfad>/`, z. B.
+   `https://files.theocloud.dev/dav/backups/nutritracker/`. Prüfen am Rechner:
+   `curl -X PROPFIND -u "egal:<TOKEN>" https://<host>/dav/<source>/` (401 =
+   Token falsch, 405 = falsche Methode).
+3. In der App: *Einstellungen → Automatisches Backup* → Ordner und Token
+   eintragen, optional ein Zip-Passwort (AES, lässt sich z. B. mit 7-Zip öffnen),
+   *Verbindung testen*, *Automatisch sichern* einschalten.
+
+Ablauf: Beim App-Start und jedes Mal, wenn die App wieder in den Vordergrund
+kommt, sichert sie, wenn das letzte erfolgreiche Backup älter als das Intervall
+ist (Standard 24 h). Dateien heißen `nutritracker-backup-JJJJMMTT-HHMMSS.zip`; die
+neuesten N (Standard 14) bleiben, ältere löscht die App, andere Dateien im Ordner
+bleiben unangetastet. Fehler blockieren nichts. Sie stehen mit Zeitpunkt im
+Backup-Screen, und beim nächsten Start versucht die App es erneut. Token und
+Passwort liegen nur in der Keychain, nie in der Config oder im Export.
+
+Wiederherstellen nach einer Neuinstallation: Onboarding durchlaufen →
+*Einstellungen → Automatisches Backup* → Server eintragen →
+*Vom Server wiederherstellen* → Backup wählen → *Alles auf diesem Gerät
+ersetzen* einschalten → *Importieren*.
+
+Bewusst verschoben: ein Ziel ohne Server über die Dateien-App (iCloud Drive per
+Security-Scoped Bookmark, #99) und ein „Backup wiederherstellen“ direkt im
+Onboarding (#100).
 
 ## Datenquellen
 

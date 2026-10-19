@@ -28,6 +28,7 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/auto_backup_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/food_sources_screen.dart';
@@ -507,6 +508,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.import_export_rounded,
                     title: S.of(context).exportImportAppDataLabel,
                     onTap: () => _showExportImportDialog(context),
+                  ),
+                  _SettingsTile(
+                    identifier: 'settings-auto-backup',
+                    palette: palette,
+                    icon: Icons.cloud_upload_rounded,
+                    title: S.of(context).autoBackupTitle,
+                    subtitle: S.of(context).autoBackupSubtitle,
+                    showChevron: true,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AutoBackupScreen(),
+                      ),
+                    ),
                   ),
                   _SettingsTile(
                     palette: palette,

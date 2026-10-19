@@ -24,6 +24,11 @@ class FakeBackupReminder extends Fake implements BackupReminder {
   load() async =>
       (lastBackupAt: lastBackupAt, reminderDays: reminderDays, isDue: due);
 
+  var backedUp = 0;
+
+  @override
+  Future<void> markBackedUp() async => backedUp++;
+
   @override
   Future<void> setReminderDays(int days) async {
     setDays.add(days);
