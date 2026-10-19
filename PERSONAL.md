@@ -45,6 +45,7 @@ vervollständigt.
 | Lebensmittel | BLS-Säfte, Nektare, Smoothies, Milch, Kefir, Buttermilch und Pflanzendrinks standardmäßig in ml (Regel über die BLS-Codes, `SPConst.isBlsLiquid`) | #104 |
 | Suche | Suchregion (Standard Deutschland, Einstellungen → Lebensmitteldatenbanken, ConfigDBO-Feld 114) statt Geräte-Locale; Marken und Märkte in der Eingabe werden erkannt (pflegbare Liste `german_brands.dart`), OFF wird nach `brands_tags` gefiltert (Fallback ohne Filter) und die Marke zuerst gezeigt; in „Alle“ stehen BLS-Lebensmittel bei vergleichbarer Relevanz vor OFF | #41 |
 | Gewicht | Profilgewicht folgt immer dem jüngsten Eintrag im Gewichtsverlauf (auch beim Nachtragen, Bearbeiten, Löschen); bei einer Änderung werden Kalorienziel und Ansichten neu berechnet | #42 |
+| Gewicht | Tests für Lücken, Einzelwerte, Mehrfachmessungen und Jahreswechsel im 7-Tage-Mittel; Entscheidung gegen EMA in `docs/weight-trend.md` | #45 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

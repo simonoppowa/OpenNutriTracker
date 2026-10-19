@@ -138,5 +138,76 @@ void main() {
       expect(points.last.weightKg, 80);
       // Jan 1 sits before the [Jan 4..Jan 10] trailing window; excluded.
     });
+
+    group('gaps and sparse logs (#45)', () {
+      test('a gap longer than the window starts the smoothing afresh', () {
+        final entries = [
+          _entry(DateTime(2026, 1, 1), 80),
+          _entry(DateTime(2026, 1, 2), 81),
+          _entry(DateTime(2026, 1, 20), 75),
+          _entry(DateTime(2026, 1, 21), 76),
+        ];
+
+        final points = const WeightMovingAverage().compute(entries);
+
+        expect(points.map((p) => (p.date, p.weightKg, p.sampleCount)), [
+          (DateTime(2026, 1, 2), 80.5, 2),
+          (DateTime(2026, 1, 21), 75.5, 2),
+        ]);
+      });
+
+      test('the first reading after a gap stands alone and is dropped, but '
+          'kept at minSamples 1 with its own value', () {
+        final entries = [
+          _entry(DateTime(2026, 1, 1), 80),
+          _entry(DateTime(2026, 1, 15), 77),
+        ];
+
+        expect(const WeightMovingAverage().compute(entries), isEmpty);
+        final raw = const WeightMovingAverage().compute(
+          entries,
+          minSamples: 1,
+        );
+        expect(raw.map((p) => (p.weightKg, p.sampleCount)), [
+          (80.0, 1),
+          (77.0, 1),
+        ]);
+      });
+
+      test('a single reading gives its own value at minSamples 1', () {
+        final points = const WeightMovingAverage().compute([
+          _entry(DateTime(2026, 3, 8), 72.4),
+        ], minSamples: 1);
+
+        expect(points.single.weightKg, 72.4);
+        expect(points.single.sampleCount, 1);
+      });
+
+      test('several readings on one day only average each other', () {
+        final points = const WeightMovingAverage().compute([
+          _entry(DateTime(2026, 3, 8, 6), 72),
+          _entry(DateTime(2026, 3, 8, 12), 73),
+          _entry(DateTime(2026, 3, 8, 21), 74),
+        ]);
+
+        expect(points.map((p) => (p.weightKg, p.sampleCount)), [
+          (72.5, 2),
+          (73.0, 3),
+        ]);
+      });
+
+      test('the window reaches back across a year end', () {
+        final points = const WeightMovingAverage().compute([
+          _entry(DateTime(2025, 12, 27), 90),
+          _entry(DateTime(2025, 12, 30), 80),
+          _entry(DateTime(2026, 1, 2), 70),
+        ]);
+
+        expect(points.map((p) => (p.date, p.weightKg, p.sampleCount)), [
+          (DateTime(2025, 12, 30), 85.0, 2),
+          (DateTime(2026, 1, 2), 80.0, 3),
+        ]);
+      });
+    });
   });
 }
