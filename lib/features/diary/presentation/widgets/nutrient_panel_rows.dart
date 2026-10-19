@@ -98,6 +98,31 @@ class NutrientPanelRow {
     NutrientPanelRow(NutrientPanelKeys.niacin, NutrientPanelGroup.vitamins),
   ];
 
+  /// The goal [trackedDay] sets for [key] itself, or null: the user's own
+  /// nutrient goals and, for energy and the macros, the day's calorie and
+  /// macro goals.
+  static double? ownGoal(String key, TrackedDayEntity? trackedDay) {
+    if (trackedDay == null) return null;
+    return trackedDay.extraNutrientGoals[key] ??
+        switch (key) {
+          NutrientPanelKeys.fiber => trackedDay.fibreGoal,
+          NutrientPanelKeys.sodium => trackedDay.sodiumGoal,
+          NutrientPanelKeys.saturatedFat => trackedDay.satFatGoal,
+          NutrientPanelKeys.sugar => trackedDay.sugarsGoal,
+          NutrientPanelKeys.calcium => trackedDay.calciumGoal,
+          NutrientPanelKeys.iron => trackedDay.ironGoal,
+          NutrientPanelKeys.potassium => trackedDay.potassiumGoal,
+          NutrientPanelKeys.vitaminD => trackedDay.vitaminDGoal,
+          NutrientPanelKeys.vitaminB12 => trackedDay.vitaminB12Goal,
+          NutrientPanelKeys.magnesium => trackedDay.magnesiumGoal,
+          NutrientPanelKeys.energy => trackedDay.calorieGoal,
+          NutrientPanelKeys.carbohydrates => trackedDay.carbsGoal,
+          NutrientPanelKeys.fat => trackedDay.fatGoal,
+          NutrientPanelKeys.protein => trackedDay.proteinGoal,
+          _ => null,
+        };
+  }
+
   /// References for the nutrients added in #47 when neither the user nor
   /// the IOM table gives one: FDA Daily Values for energy, the macros and
   /// cholesterol, the midpoint of the female and male IOM RDAs for the
@@ -125,15 +150,7 @@ class NutrientPanelRow {
     TrackedDayEntity? trackedDay,
     UserEntity? user,
   }) {
-    final own =
-        trackedDay?.extraNutrientGoals[key] ??
-        switch (key) {
-          NutrientPanelKeys.energy => trackedDay?.calorieGoal,
-          NutrientPanelKeys.carbohydrates => trackedDay?.carbsGoal,
-          NutrientPanelKeys.fat => trackedDay?.fatGoal,
-          NutrientPanelKeys.protein => trackedDay?.proteinGoal,
-          _ => null,
-        };
+    final own = ownGoal(key, trackedDay);
     if (own != null) return own;
     if (user != null) {
       final dri = getReferenceFor(nutrient: key, user: user);

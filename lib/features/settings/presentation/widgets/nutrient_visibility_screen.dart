@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/nutrient_panel_rows.dart';
+import 'package:opennutritracker/features/settings/domain/nutrient_reference_setting.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// A small sub-screen inside Settings → Nutrients that lets the user pick
@@ -22,6 +23,7 @@ class NutrientVisibilityScreen extends StatefulWidget {
 
 class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
   Map<String, bool> _visibility = <String, bool>{};
+  var _standard = NutrientReferenceSetting.defaultStandard;
   bool _loading = true;
 
   @override
@@ -32,11 +34,18 @@ class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
 
   Future<void> _loadVisibility() async {
     final config = await locator<GetConfigUsecase>().getConfig();
+    final standard = await locator<NutrientReferenceSetting>().standard();
     if (!mounted) return;
     setState(() {
       _visibility = Map<String, bool>.from(config.nutrientPanelVisibility);
+      _standard = standard;
       _loading = false;
     });
+  }
+
+  Future<void> _setStandard(NutrientReferenceStandard standard) async {
+    setState(() => _standard = standard);
+    await locator<NutrientReferenceSetting>().save(standard);
   }
 
   Future<void> _toggle(String key, bool visible) async {
@@ -54,6 +63,32 @@ class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
+                ListTile(
+                  title: Text(s.nutrientReferenceStandardLabel),
+                  subtitle: Text(s.nutrientReferenceStandardHelp),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Semantics(
+                    identifier: 'nutrient-reference-standard',
+                    child: SegmentedButton<NutrientReferenceStandard>(
+                      segments: [
+                        ButtonSegment(
+                          value: NutrientReferenceStandard.iom,
+                          label: Text(s.nutrientReferenceIomLabel),
+                        ),
+                        ButtonSegment(
+                          value: NutrientReferenceStandard.dge,
+                          label: Text(s.nutrientReferenceDgeLabel),
+                        ),
+                      ],
+                      selected: {_standard},
+                      onSelectionChanged: (selection) =>
+                          _setStandard(selection.first),
+                    ),
+                  ),
+                ),
+                const Divider(height: 32),
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 8.0),

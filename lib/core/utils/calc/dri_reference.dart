@@ -311,6 +311,100 @@ DriReference? getReferenceFor({
   }
 }
 
+/// Reference values of the German and Austrian nutrition societies
+/// (DGE/ÖGE, formerly D-A-CH with the Swiss SGE until 2022; #49), keyed
+/// like [_driTable]: per nutrient the male and the
+/// female values for the DGE age bands 19 to under 25, 25 to under 51, 51
+/// to under 65 and 65 and older, in the panel's units.
+///
+/// Source: DGE/ÖGE, Referenzwerte für die Nährstoffzufuhr, 3rd edition
+/// 2025, as published per nutrient on [dgeSourceUrl] (read 2026-10-19;
+/// derivation years: calcium 2013, sodium and potassium 2016, vitamin B12
+/// 2018, vitamin B6 and zinc 2019, vitamin A 2020, magnesium and fibre
+/// 2021, phosphorus 2022, iron 2023, vitamin C and niacin 2015, vitamin D
+/// 2012).
+///
+/// * Sodium: the DGE guidance of at most 6 g salt a day (2400 mg sodium),
+///   since the panel treats sodium as a limit; the DGE estimate for an
+///   adequate intake is 1500 mg.
+/// * Iron: the DGE lists 16 mg for women before and 14 mg after the
+///   menopause; the app does not know which applies and uses 16 mg up to
+///   50 and 14 mg from 51.
+/// * Zinc: the values for a medium phytate intake.
+/// * Vitamin D: the estimate for when the skin makes none.
+/// * Fibre: the guide value of at least 30 g.
+/// * Protein (2017 derivation, see [getDgeReferenceFor]): 0.8 g per kg body
+///   weight, from 65 1.0 g; without a user the midpoint of the 25 to under
+///   51 values per day, 57 g for men and 48 g for women.
+///
+/// Saturated fat, sugar, cholesterol, mono-, polyunsaturated and trans fat
+/// have no DGE value; the panel falls back to its IOM/FDA reference.
+const Map<String, (List<double>, List<double>)> _dgeTable = {
+  NutrientPanelKeys.fiber: ([30, 30, 30, 30], [30, 30, 30, 30]),
+  NutrientPanelKeys.sodium: (
+    [2400, 2400, 2400, 2400],
+    [2400, 2400, 2400, 2400],
+  ),
+  NutrientPanelKeys.potassium: (
+    [4000, 4000, 4000, 4000],
+    [4000, 4000, 4000, 4000],
+  ),
+  NutrientPanelKeys.calcium: (
+    [1000, 1000, 1000, 1000],
+    [1000, 1000, 1000, 1000],
+  ),
+  NutrientPanelKeys.phosphorus: ([550, 550, 550, 550], [550, 550, 550, 550]),
+  NutrientPanelKeys.magnesium: ([350, 350, 350, 350], [300, 300, 300, 300]),
+  NutrientPanelKeys.iron: ([11, 11, 11, 11], [16, 16, 14, 14]),
+  NutrientPanelKeys.zinc: ([14, 14, 14, 14], [8, 8, 8, 8]),
+  NutrientPanelKeys.vitaminA: ([850, 850, 850, 800], [700, 700, 700, 700]),
+  NutrientPanelKeys.vitaminC: ([110, 110, 110, 110], [95, 95, 95, 95]),
+  NutrientPanelKeys.vitaminD: ([20, 20, 20, 20], [20, 20, 20, 20]),
+  NutrientPanelKeys.vitaminB6: ([1.6, 1.6, 1.6, 1.6], [1.4, 1.4, 1.4, 1.4]),
+  NutrientPanelKeys.vitaminB12: ([4, 4, 4, 4], [4, 4, 4, 4]),
+  NutrientPanelKeys.niacin: ([16, 15, 15, 14], [13, 12, 11, 11]),
+};
+
+int _dgeBand(int age) {
+  if (age < 25) return 0;
+  if (age < 51) return 1;
+  if (age < 65) return 2;
+  return 3;
+}
+
+/// The DGE reference for [nutrient], or null when the DGE gives none.
+///
+/// Users are routed like [getReferenceFor]; without a [user] the value is
+/// the midpoint of the female and male values for 25 to under 51.
+DriReference? getDgeReferenceFor({required String nutrient, UserEntity? user}) {
+  if (nutrient == NutrientPanelKeys.protein) {
+    return DriReference(
+      amount: user == null
+          ? (57 + 48) / 2
+          : user.weightKG * (user.age < 65 ? 0.8 : 1.0),
+      unit: 'g',
+      basis: 'DGE',
+    );
+  }
+  final row = _dgeTable[nutrient];
+  if (row == null) return null;
+  final (male, female) = row;
+  final band = user == null ? 1 : _dgeBand(user.age);
+  final amount = switch (user == null ? _DriRoute.averaged : _routeFor(user)) {
+    _DriRoute.male => male[band],
+    _DriRoute.female => female[band],
+    _DriRoute.averaged => (male[band] + female[band]) / 2,
+  };
+  return DriReference(
+    amount: amount,
+    unit: NutrientPanelTotals.panelFields[nutrient]!.unit,
+    basis: 'DGE',
+  );
+}
+
+/// Where the DGE publishes its reference values.
+const String dgeSourceUrl = 'https://www.dge.de/wissenschaft/referenzwerte/';
+
 /// Canonical URL surfaced in the in-app "where do these come from" dialog.
 /// Kept here next to the table so changes stay in one place.
 const String driSourceUrl =

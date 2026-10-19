@@ -230,6 +230,10 @@ class ConfigDBO extends HiveObject {
   // ISO code of the country the food search ranks up (#41, SearchRegion).
   @HiveField(114)
   String? offSearchCountry;
+  // Reference values of the nutrient panel, 'iom' or 'dge' (#49,
+  // NutrientReferenceSetting).
+  @HiveField(115)
+  String? nutrientReferenceStandard;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -284,6 +288,7 @@ class ConfigDBO extends HiveObject {
     this.dayTypeOverrides,
     this.autoTrainingDayMode,
     this.offSearchCountry,
+    this.nutrientReferenceStandard,
   });
 
   factory ConfigDBO.empty() =>

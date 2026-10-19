@@ -51,6 +51,7 @@ vervollständigt.
 | Mikronährstoffe | Fehlende Werte zählen als „unbekannt“: Nährstoff-Panel zeigt „unbekannt“ bzw. „≥ X“ mit Anzahl der Einträge ohne Angabe; Rezepte summieren über dieselbe Logik (`NutrientTotal`, `NutrientField`) | #46 |
 | Mikronährstoffe | Mahlzeit-Detail listet alle Nährwerte, fehlende als „—“ statt 0, pro 100 g und für die gewählte Menge; Mikronährstoffe nur mit Einstellung „Mikronährstoffe anzeigen“ | #48 |
 | Mikronährstoffe | Tagesübersicht zeigt alle 24 Nährstoffe in einklappbaren Gruppen (Energie & Makros, Fettsäuren & Cholesterin, Mineralstoffe, Vitamine); Sichtbarkeit und eigene Ziele auch für die neuen; Ziele im neuen Feld `TrackedDayDBO.extraNutrientGoals` (Hive-Feld 100, im JSON-Backup) | #47 |
+| Mikronährstoffe | Referenzwerte wählbar: IOM oder DGE (DGE/ÖGE, 3. Auflage 2025, nach Alter/Geschlecht) unter Einstellungen → Nährstoffe; wirkt sofort, fehlende DGE-Werte sichtbar als „IOM/FDA“ markiert; Einstellung `nutrientReferenceStandard` (ConfigDBO-Feld 115, geräteweit, im Backup) | #49 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

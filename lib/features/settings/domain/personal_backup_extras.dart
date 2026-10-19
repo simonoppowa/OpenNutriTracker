@@ -89,6 +89,7 @@ class PersonalBackupExtras {
     'confirmedStoreBarcodes',
     'waterQuickAmountMl',
     'offSearchCountry',
+    'nutrientReferenceStandard',
   ];
 
   final WaterIntakeRepository _waterIntakeRepository;
