@@ -22,12 +22,16 @@ class MealItemCard extends StatelessWidget {
   final MealEntity mealEntity;
   final bool usesImperialUnits;
 
+  /// Shows a star on the thumbnail (#39).
+  final bool isFavorite;
+
   const MealItemCard({
     super.key,
     required this.day,
     required this.mealEntity,
     required this.addMealType,
     required this.usesImperialUnits,
+    this.isFavorite = false,
   });
 
   @override
@@ -50,7 +54,22 @@ class MealItemCard extends StatelessWidget {
         padding: const EdgeInsets.all(Dimens.spacing12),
         child: Row(
           children: [
-            _buildThumbnail(context, palette, accent, isRecipe, emoji),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _buildThumbnail(context, palette, accent, isRecipe, emoji),
+                if (isFavorite)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Semantics(
+                      identifier: 'meal-item-favorite',
+                      label: S.of(context).favoritesLabel,
+                      child: Icon(Icons.star_rounded, size: 20, color: accent),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(width: Dimens.spacing16),
             Expanded(
               child: Column(

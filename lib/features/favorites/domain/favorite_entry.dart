@@ -29,9 +29,12 @@ class FavoriteEntry extends Equatable {
     required this.sortIndex,
   });
 
-  /// The id a food is a favourite under: its source and code.
+  /// The id a meal is a favourite under: its source and code, or for a
+  /// recipe listed as a meal the recipe's id.
   static String idForMeal(MealEntity meal) =>
-      'meal:${meal.source.name}:${meal.code}';
+      meal.source == MealSourceEntity.recipe
+      ? idForRecipe(meal.code ?? '')
+      : 'meal:${meal.source.name}:${meal.code}';
 
   static String idForRecipe(String recipeId) => 'recipe:$recipeId';
 

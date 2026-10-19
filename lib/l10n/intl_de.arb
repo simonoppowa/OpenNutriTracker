@@ -1497,5 +1497,8 @@
   "favoriteRemoveTooltip": "Aus Favoriten entfernen",
   "favoriteAddedLabel": "Zu Favoriten hinzugefügt",
   "favoriteRemovedLabel": "Aus Favoriten entfernt",
-  "favoriteToggleFailed": "Der Favorit konnte nicht gespeichert werden."
+  "favoriteToggleFailed": "Der Favorit konnte nicht gespeichert werden.",
+  "favoritesLabel": "Favoriten",
+  "favoritesEmptyTitle": "Noch keine Favoriten",
+  "favoritesEmptySubtitle": "Tippe bei einem Lebensmittel oder Rezept auf den Stern, um es hier zu finden."
 }

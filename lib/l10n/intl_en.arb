@@ -1548,5 +1548,8 @@
   "favoriteRemoveTooltip": "Remove from favourites",
   "favoriteAddedLabel": "Added to favourites",
   "favoriteRemovedLabel": "Removed from favourites",
-  "favoriteToggleFailed": "The favourite could not be saved."
+  "favoriteToggleFailed": "The favourite could not be saved.",
+  "favoritesLabel": "Favourites",
+  "favoritesEmptyTitle": "No favourites yet",
+  "favoritesEmptySubtitle": "Tap the star on a food or recipe to find it here."
 }

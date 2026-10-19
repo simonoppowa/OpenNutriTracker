@@ -11,6 +11,15 @@ class FakeFavoritesUsecase extends Fake implements FavoritesUsecase {
   final ids = <String>{};
   Object? toggleError;
 
+  /// What [favoriteMeals] lists, filtered by name like the real one.
+  final meals = <MealEntity>[];
+
+  @override
+  Future<List<MealEntity>> favoriteMeals({String query = ''}) async => [
+    for (final meal in meals)
+      if ((meal.name ?? '').toLowerCase().contains(query.toLowerCase())) meal,
+  ];
+
   @override
   final ValueNotifier<int> changes = ValueNotifier(0);
 

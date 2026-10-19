@@ -17,6 +17,8 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 
+import '../helpers/fake_favorites_usecase.dart';
+
 class _FakeProductsRepository implements ProductsRepository {
   final Map<String, List<MealEntity>> offResults = {};
   final Map<String, List<MealEntity>> fdcResults = {};
@@ -908,6 +910,88 @@ void main() {
 
       // Recipe (priority 2) appears before OFF cache (priority 4).
       expect(result.meals.first.source, MealSourceEntity.recipe);
+    });
+
+    test('a matching favourite leads, before recipes and OFF results (#39)',
+        () async {
+      final favorites = FakeFavoritesUsecase();
+      final favoriteOff = _meal(
+          code: 'fav-off', name: 'Tomato Soup', source: MealSourceEntity.off);
+      final freshCopy = _meal(
+          code: 'fav-off',
+          name: 'Tomato Soup (fresh)',
+          source: MealSourceEntity.off);
+      final otherOff = _meal(
+          code: 'other', name: 'Tomato Juice', source: MealSourceEntity.off);
+      final notMatching = _meal(
+          code: 'x', name: 'Cucumber', source: MealSourceEntity.off);
+      favorites.meals.addAll([notMatching, favoriteOff]);
+      recipeDataSource.recipes.add(
+        _recipeDbo(id: 'r1', name: 'Tomato Salad'),
+      );
+      productsRepository.offResults['tomato'] = [otherOff, freshCopy];
+      useCase = SearchProductsUseCase(
+        productsRepository,
+        getIntakeUsecase,
+        customMealDataSource,
+        cachedOffMealDataSource,
+        recipeDataSource,
+        getConfigUsecase,
+        favorites: favorites,
+      );
+
+      final result = await useCase.searchOFFProductsByString('tomato');
+
+      expect(result.meals.map((m) => m.code), ['fav-off', 'r1', 'other']);
+      expect(result.meals.first.name, 'Tomato Soup (fresh)',
+          reason: 'the fresh copy of a favourite in the results is kept');
+    });
+
+    test('a favourite that is not in the results comes from its snapshot',
+        () async {
+      final favorites = FakeFavoritesUsecase()
+        ..meals.add(_meal(
+            code: 'snap', name: 'Tomato Paste', source: MealSourceEntity.off));
+      productsRepository.offResults['tomato'] = const [];
+      useCase = SearchProductsUseCase(
+        productsRepository,
+        getIntakeUsecase,
+        customMealDataSource,
+        cachedOffMealDataSource,
+        recipeDataSource,
+        getConfigUsecase,
+        favorites: favorites,
+      );
+
+      final result = await useCase.searchOFFProductsByString('tomato');
+
+      expect(result.meals.map((m) => m.code), ['snap']);
+    });
+
+    test('a product favourite is not slipped into the Food search', () async {
+      final favorites = FakeFavoritesUsecase()
+        ..meals.addAll([
+          _meal(
+              code: 'snap', name: 'Tomato Paste', source: MealSourceEntity.off),
+          _meal(
+              code: 'own',
+              name: 'Tomato Sauce',
+              source: MealSourceEntity.custom),
+        ]);
+      productsRepository.fdcResults['tomato'] = const [];
+      useCase = SearchProductsUseCase(
+        productsRepository,
+        getIntakeUsecase,
+        customMealDataSource,
+        cachedOffMealDataSource,
+        recipeDataSource,
+        getConfigUsecase,
+        favorites: favorites,
+      );
+
+      final result = await useCase.searchFDCFoodByString('tomato');
+
+      expect(result.meals.map((m) => m.code), ['own']);
     });
   });
 }

@@ -22,23 +22,35 @@ class FavoritesUsecase {
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
 
+  /// Whether [meal] is a favourite: a food by source and code, a recipe
+  /// (as listed in a search) by its id.
   bool isMealFavorite(MealEntity meal) =>
       _dataSource.contains(FavoriteEntry.idForMeal(meal));
 
   bool isRecipeFavorite(String recipeId) =>
       _dataSource.contains(FavoriteEntry.idForRecipe(recipeId));
 
-  /// Marks or unmarks [meal]; returns whether it is a favourite now.
+  /// Marks or unmarks [meal]; returns whether it is a favourite now. A
+  /// recipe listed as a meal is kept as that recipe.
   Future<bool> toggleMeal(MealEntity meal) => _toggle(
     FavoriteEntry.idForMeal(meal),
-    (id, index) => FavoriteEntry(
-      id: id,
-      kind: FavoriteKind.food,
-      name: meal.name ?? '',
-      meal: meal,
-      createdAt: _clock(),
-      sortIndex: index,
-    ),
+    (id, index) => meal.source == MealSourceEntity.recipe
+        ? FavoriteEntry(
+            id: id,
+            kind: FavoriteKind.recipe,
+            name: meal.name ?? '',
+            recipeId: meal.code,
+            createdAt: _clock(),
+            sortIndex: index,
+          )
+        : FavoriteEntry(
+            id: id,
+            kind: FavoriteKind.food,
+            name: meal.name ?? '',
+            meal: meal,
+            createdAt: _clock(),
+            sortIndex: index,
+          ),
   );
 
   /// Marks or unmarks [recipe]; returns whether it is a favourite now.
@@ -73,6 +85,32 @@ class FavoritesUsecase {
         if (!gone.contains(entry.id)) entry,
     ];
   }
+
+  /// The favourites as meals to log, in list order: food snapshots and
+  /// recipes as meals; only those whose name or brand contains [query]
+  /// (case-insensitive) when one is given.
+  Future<List<MealEntity>> favoriteMeals({String query = ''}) async {
+    final needle = query.trim().toLowerCase();
+    final meals = <MealEntity>[];
+    for (final entry in await list()) {
+      final meal = entry.kind == FavoriteKind.food
+          ? entry.meal
+          : _recipeRepository.getRecipeById(entry.recipeId!)?.toMealEntity();
+      if (meal == null) continue;
+      final matches =
+          needle.isEmpty ||
+          (meal.name?.toLowerCase().contains(needle) ?? false) ||
+          (meal.brands?.toLowerCase().contains(needle) ?? false);
+      if (matches) meals.add(meal);
+    }
+    return meals;
+  }
+
+  /// [meals] with the favourites first, each group keeping its order.
+  List<MealEntity> favoritesFirst(List<MealEntity> meals) => [
+    ...meals.where(isMealFavorite),
+    ...meals.where((meal) => !isMealFavorite(meal)),
+  ];
 
   /// Puts the favourites in the order of [ids]; ids not given keep their
   /// relative order after them.

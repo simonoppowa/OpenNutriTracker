@@ -40,6 +40,7 @@ vervollständigt.
 | Ziele | Erklär-Screen des Kalorienziels zeigt bei festem Ziel oder Gramm-Makros oben die heute geltenden Werte (inkl. Trainingstag) | #119 |
 | Favoriten | Datenmodell: Box `FavoriteBox` pro Profil (JSON-Einträge, keine neue Hive-typeId), Lebensmittel als Snapshot, Rezepte per id (gelöschte fallen heraus), Reihenfolge; im Backup als `favorites.json` | #37 |
 | Favoriten | Stern in Mahlzeit- und Rezeptdetail | #38 |
+| Favoriten | Chip „Favoriten“ im Mahlzeit-Hinzufügen (mit Suche, leerer Zustand), Favoriten zuerst in Suche und „Alle“, Stern auf den Ergebniskarten auch in „Zuletzt“ | #39 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

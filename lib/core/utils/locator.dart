@@ -405,6 +405,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      favorites: locator(),
     ),
   );
   // Per-navigation, matching how the AddMeal / Products / Food blocs that
