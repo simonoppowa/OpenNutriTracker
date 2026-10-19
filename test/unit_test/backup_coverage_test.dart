@@ -29,6 +29,7 @@ const _coverage = <String, String>{
   HiveDBProvider.cachedOffMealBoxName: _excludedCache,
   HiveDBProvider.cachedOffMealTimestampsBoxName: _excludedCache,
   HiveDBProvider.fastingBoxName: PersonalBackupExtras.fastingSessionsFileName,
+  HiveDBProvider.favoriteBoxName: PersonalBackupExtras.favoritesFileName,
 };
 
 const _excludedCache = 'excluded: search cache, refilled by searching';

@@ -75,6 +75,10 @@ class HiveProfileScopes implements ProfileScopes {
         HiveDBProvider.fastingBoxName,
         suffix,
       ),
+      favoriteBox: await _db.openScopedBox<String>(
+        HiveDBProvider.favoriteBoxName,
+        suffix,
+      ),
     );
   }
 
@@ -103,6 +107,7 @@ class HiveProfileScopes implements ProfileScopes {
         HiveDBProvider.fastingBoxName,
         suffix,
       ),
+      _db.closeScopedBox<String>(HiveDBProvider.favoriteBoxName, suffix),
     ]);
   }
 
@@ -128,6 +133,7 @@ class ProfileBoxScope extends HiveDBProvider {
   final Box<WeightLogDBO> _weightLog;
   final Box<WaterIntakeDBO> _waterIntake;
   final Box<FastingSessionDBO> _fasting;
+  final Box<String> _favorite;
 
   ProfileBoxScope({
     required HiveDBProvider shared,
@@ -140,6 +146,7 @@ class ProfileBoxScope extends HiveDBProvider {
     required Box<WeightLogDBO> weightLogBox,
     required Box<WaterIntakeDBO> waterIntakeBox,
     required Box<FastingSessionDBO> fastingBox,
+    required Box<String> favoriteBox,
   }) : _shared = shared,
        _profileId = profileId,
        _config = configBox,
@@ -149,7 +156,8 @@ class ProfileBoxScope extends HiveDBProvider {
        _trackedDay = trackedDayBox,
        _weightLog = weightLogBox,
        _waterIntake = waterIntakeBox,
-       _fasting = fastingBox;
+       _fasting = fastingBox,
+       _favorite = favoriteBox;
 
   @override
   String get activeProfileId => _profileId;
@@ -170,6 +178,8 @@ class ProfileBoxScope extends HiveDBProvider {
   Box<WaterIntakeDBO> get waterIntakeBox => _waterIntake;
   @override
   Box<FastingSessionDBO> get fastingBox => _fasting;
+  @override
+  Box<String> get favoriteBox => _favorite;
 
   @override
   Box<ConfigDBO> get appConfigBox => _shared.appConfigBox;

@@ -109,6 +109,8 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
+import 'package:opennutritracker/features/favorites/data/favorite_data_source.dart';
+import 'package:opennutritracker/features/favorites/domain/favorites_usecase.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
 import 'package:opennutritracker/features/fasting/data/repository/fasting_repository.dart';
 import 'package:opennutritracker/features/fasting/domain/usecase/acknowledge_fasting_warning_usecase.dart';
@@ -554,6 +556,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      favorites: locator(),
       profiles: ProfilesBackup(
         hiveDBProvider,
         locator(),
@@ -687,6 +690,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   locator.registerLazySingleton(() => StoreBarcodeCheck(locator()));
   locator.registerLazySingleton(() => WaterQuickAmount(locator()));
+  locator.registerLazySingleton(() => FavoriteDataSource(hiveDBProvider));
+  locator.registerLazySingleton(() => FavoritesUsecase(locator(), locator()));
   locator.registerLazySingleton(GoalChanges.new);
   locator.registerLazySingleton(
     () => SetDayTypeUsecase(locator(), locator(), locator(), locator()),

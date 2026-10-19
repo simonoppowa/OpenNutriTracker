@@ -38,6 +38,7 @@ vervollständigt.
 | Ziele | Eigener Zielsatz für Trainingstage, Wochenplan der Trainingstage, Umschalter Trainings-/Ruhetag auf Home und im Tagebuch (rechnet die Ziele des Tages neu); ConfigDBO-Felder 110–112, im Backup als `training_plan.json` | #35 |
 | Ziele | Aktivität an einem Ruhetag: nichts / nachfragen / automatisch Trainingstag (Ziele → Trainingstage, ConfigDBO-Feld 113); von Hand gesetzte Tage bleiben; gilt für Schnell-Eintrag, Aktivitäts-Screen und Workout-Import (über `TrainingAwareLogUserActivityUsecase`) | #36 |
 | Ziele | Erklär-Screen des Kalorienziels zeigt bei festem Ziel oder Gramm-Makros oben die heute geltenden Werte (inkl. Trainingstag) | #119 |
+| Favoriten | Datenmodell: Box `FavoriteBox` pro Profil (JSON-Einträge, keine neue Hive-typeId), Lebensmittel als Snapshot, Rezepte per id (gelöschte fallen heraus), Reihenfolge; im Backup als `favorites.json` | #37 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

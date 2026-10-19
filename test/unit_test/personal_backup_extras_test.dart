@@ -22,6 +22,8 @@ import 'package:opennutritracker/core/data/repository/water_intake_repository.da
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/core/domain/entity/training_plan.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
+import 'package:opennutritracker/features/favorites/data/favorite_data_source.dart';
+import 'package:opennutritracker/features/favorites/domain/favorite_entry.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
 
@@ -537,6 +539,81 @@ void main() {
         GoalTargets.fromConfigDBO(await configDataSource.getConfig()),
         const GoalTargets(),
         reason: 'a profile without its own config box has no own goals',
+      );
+    });
+  });
+
+  group('favourites', () {
+    late Box<String> favoriteBox;
+    late PersonalBackupExtras withFavorites;
+    late FavoriteDataSource favoriteDataSource;
+
+    setUp(() async {
+      favoriteBox = await Hive.openBox<String>('favorites_test');
+      final provider = FakeHiveDBProvider(
+        waterIntakeBox: waterBox,
+        customMealBox: customMealBox,
+        userBox: userBox,
+        configBox: configBox,
+        appConfigBox: appConfigBox,
+        fastingBox: fastingBox,
+        favoriteBox: favoriteBox,
+      );
+      favoriteDataSource = FavoriteDataSource(provider);
+      withFavorites = PersonalBackupExtras(
+        WaterIntakeRepository(WaterIntakeDataSource(provider)),
+        CustomMealDataSource(provider),
+        userDataSource,
+        configDataSource,
+        FastingDataSource(provider),
+        favorites: favoriteDataSource,
+      );
+    });
+
+    final entry = FavoriteEntry(
+      id: 'recipe:r1',
+      kind: FavoriteKind.recipe,
+      name: 'Overnight oats',
+      recipeId: 'r1',
+      createdAt: DateTime(2026, 10, 19),
+      sortIndex: 0,
+    );
+
+    test('are written as favorites.json and restored', () async {
+      await favoriteDataSource.put(entry);
+      final archive = Archive();
+      await withFavorites.addTo(archive);
+      final decoded = ZipDecoder().decodeBytes(ZipEncoder().encode(archive));
+      await favoriteBox.clear();
+
+      await withFavorites.prepareRestore(decoded).write();
+
+      expect(favoriteDataSource.all(), [entry]);
+    });
+
+    test('restoring twice adds nothing', () async {
+      await favoriteDataSource.put(entry);
+      final archive = Archive();
+      await withFavorites.addTo(archive);
+
+      await withFavorites.prepareRestore(archive).write();
+      await withFavorites.prepareRestore(archive).write();
+
+      expect(favoriteDataSource.all(), hasLength(1));
+    });
+
+    test('a malformed file is rejected before anything is written', () {
+      final archive = Archive()
+        ..addFile(
+          ArchiveFile.bytes(
+            PersonalBackupExtras.favoritesFileName,
+            utf8.encode('[{"kind": "food"}]'),
+          ),
+        );
+
+      expect(
+        () => withFavorites.prepareRestore(archive),
+        throwsA(isA<ExportImportFailure>()),
       );
     });
   });

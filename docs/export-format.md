@@ -36,6 +36,7 @@ next to its CSV counterpart will not find one.
 | `app_settings.json`              | Device-wide settings (fork addition). See [below](#app_settingsjson). |
 | `goal_targets.json`              | The profile's own goals (fork addition). See [below](#goal_targetsjson). |
 | `training_plan.json`             | The profile's training days (fork addition). See [below](#training_planjson). |
+| `favorites.json`                 | The profile's favourites (fork addition). See [below](#favoritesjson). |
 | `profiles.json`, `profiles/<id>/…` | Every other profile (fork addition). See [All profiles](#all-profiles-fork). |
 
 **CSV bundle**
@@ -402,6 +403,21 @@ and the days set by hand, which win over the weekly plan. Restored like
 }
 ```
 
+### `favorites.json`
+
+Added by this fork (#37). The profile's favourite foods and recipes in list
+order. A food carries a snapshot in the meal shape of `user_intake.json`, so
+it logs without a network; a recipe is referenced by id and dropped once the
+recipe is deleted. Keyed by `id` (`meal:<source>:<code>` or
+`recipe:<id>`), so importing twice replaces instead of adding.
+
+```jsonc
+[
+  { "id": "meal:off:4002971234567", "kind": "food", "name": "Skyr", "meal": { /* meal */ }, "recipeId": null, "createdAt": "2026-10-19T12:00:00.000", "sortIndex": 0 },
+  { "id": "recipe:3f2c…", "kind": "recipe", "name": "Overnight oats", "meal": null, "recipeId": "3f2c…", "createdAt": "2026-10-19T12:05:00.000", "sortIndex": 1 }
+]
+```
+
 ## All profiles (fork)
 
 This fork's JSON bundle covers **every profile** on the device, not only the
@@ -428,7 +444,7 @@ active one (`ProfilesBackup`):
   `user_activity.json`, `user_intake.json`, `user_tracked_day.json`,
   `weight_log.json`, `goal_settings.json`, `water_intake.json`,
   `fasting_sessions.json`, `user_profile.json`, `goal_targets.json`,
-  `training_plan.json`. Photos on their diary entries go to the top level
+  `training_plan.json`, `favorites.json`. Photos on their diary entries go to the top level
   with the others. Profile pictures are not part of the bundle.
 
 On import the top level goes into the **active** profile (which takes the main

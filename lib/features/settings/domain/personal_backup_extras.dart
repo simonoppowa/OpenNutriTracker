@@ -17,13 +17,15 @@ import 'package:opennutritracker/core/data/repository/water_intake_repository.da
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/core/domain/entity/training_plan.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
+import 'package:opennutritracker/features/favorites/data/favorite_data_source.dart';
+import 'package:opennutritracker/features/favorites/domain/favorite_entry.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/profiles_backup.dart';
 
 /// The data this fork adds to the JSON backup on top of upstream's files:
 /// the water log, the fasting sessions, the saved custom meals, the user
-/// profile, the profile's own goals and training days and the device-wide
-/// app settings.
+/// profile, the profile's own goals, training days and favourites, and the
+/// device-wide app settings.
 ///
 /// Kept apart from `ExportDataUsecase` / `ImportDataUsecase` so the fork's
 /// additions stay in one place and upstream merges touch as little as
@@ -44,6 +46,9 @@ class PersonalBackupExtras {
 
   /// The profile's training days (#35, [TrainingPlan]).
   static const trainingPlanFileName = 'training_plan.json';
+
+  /// The profile's favourites (#37, [FavoriteEntry]).
+  static const favoritesFileName = 'favorites.json';
 
   /// The `ConfigDBO` JSON keys that `app_settings.json` carries: the
   /// device-wide preferences. Left out on purpose are the legal and consent
@@ -85,6 +90,7 @@ class PersonalBackupExtras {
   final UserDataSource _userDataSource;
   final ConfigDataSource _configDataSource;
   final FastingDataSource _fastingDataSource;
+  final FavoriteDataSource? _favoriteDataSource;
 
   /// The other profiles' folders; null for the extras of a single profile's
   /// folder, which must not recurse into the profile list.
@@ -97,7 +103,9 @@ class PersonalBackupExtras {
     this._configDataSource,
     this._fastingDataSource, {
     ProfilesBackup? profiles,
-  }) : _profiles = profiles;
+    FavoriteDataSource? favorites,
+  }) : _profiles = profiles,
+       _favoriteDataSource = favorites;
 
   /// Writes the fork's JSON files into [archive]. `app_settings.json`
   /// records this archive's creation as the last backup, so a restore from
@@ -111,6 +119,12 @@ class PersonalBackupExtras {
       for (final session in await _fastingDataSource.allSessions())
         session.toJson(),
     ]);
+    final favorites = _favoriteDataSource;
+    if (favorites != null) {
+      _addJson(archive, favoritesFileName, [
+        for (final entry in favorites.all()) entry.toJson(),
+      ]);
+    }
     _addJson(archive, customMealsFileName, [
       for (final meal in _customMealDataSource.getAllCustomMeals())
         meal.toJson(),
@@ -174,6 +188,12 @@ class PersonalBackupExtras {
       archive.findFile(customMealsFileName),
       MealDBO.fromJson,
     );
+    final favorites = _favoriteDataSource == null
+        ? null
+        : _decodeList(
+            archive.findFile(favoritesFileName),
+            FavoriteEntry.fromJson,
+          );
     final user = includeProfileAndSettings
         ? _decodeMap(archive.findFile(userProfileFileName), _userFromJson)
         : null;
@@ -213,6 +233,9 @@ class PersonalBackupExtras {
       }
       for (final meal in customMeals ?? const <MealDBO>[]) {
         await _customMealDataSource.saveCustomMeal(meal);
+      }
+      if (favorites != null) {
+        await _favoriteDataSource!.putAll(favorites);
       }
       if (user != null) {
         await _userDataSource.saveUserData(user);

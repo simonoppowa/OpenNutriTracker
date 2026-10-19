@@ -59,6 +59,7 @@ void main() {
         weightLogBox: await Hive.openBox<WeightLogDBO>('other_weight'),
         waterIntakeBox: await Hive.openBox<WaterIntakeDBO>('other_water'),
         fastingBox: await Hive.openBox<FastingSessionDBO>('other_fasting'),
+        favoriteBox: await Hive.openBox<String>('other_favorites'),
       );
 
       expect(scope.activeProfileId, 'other');

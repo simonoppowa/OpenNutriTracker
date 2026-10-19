@@ -60,6 +60,9 @@ class HiveDBProvider extends ChangeNotifier {
   // intentionally keeps cancelled and completed sessions side by side with no
   // success/failure label on the record — see `FastingSessionDBO`.
   static const fastingBoxName = 'FastingBox';
+  // Fork (#37): the profile's favourite foods and recipes, as
+  // `FavoriteEntry` JSON keyed by its id.
+  static const favoriteBoxName = 'FavoriteBox';
   // #471: registry of profiles. Global — shared across every profile so
   // the app can enumerate and switch profiles before any one of them is
   // active.
@@ -83,6 +86,7 @@ class HiveDBProvider extends ChangeNotifier {
     weightLogBoxName,
     waterIntakeBoxName,
     fastingBoxName,
+    favoriteBoxName,
   ];
 
   // Global boxes — opened once, never closed on a profile switch.
@@ -110,6 +114,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WeightLogDBO>? _weightLogBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
+  Box<String>? _favoriteBox;
 
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
@@ -131,6 +136,7 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
       _requireBox(_fastingBox, fastingBoxName);
+  Box<String> get favoriteBox => _requireBox(_favoriteBox, favoriteBoxName);
 
   Box<T> _requireBox<T>(Box<T>? box, String name) {
     if (_switching) {
@@ -228,6 +234,9 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(waterIntakeBoxName, suffix),
     );
     _fastingBox = await _openEncryptedBox(boxNameFor(fastingBoxName, suffix));
+    _favoriteBox = await _openEncryptedBox(
+      boxNameFor(favoriteBoxName, suffix),
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -240,6 +249,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_weightLogBox != null) _weightLogBox!.close(),
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
+      if (_favoriteBox != null) _favoriteBox!.close(),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -249,6 +259,7 @@ class HiveDBProvider extends ChangeNotifier {
     _weightLogBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
+    _favoriteBox = null;
   }
 
   /// Opens (or returns the already-open) box for an arbitrary profile
