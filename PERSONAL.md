@@ -162,6 +162,8 @@ nur `main` gemerged. Einzelne Fixes von `develop` werden per
   und neue Hive-Typen typeIds ab 100. Upstream vergibt fortlaufend weiter;
   eine Kollision beim nächsten Upstream-Merge würde gespeicherte Daten falsch
   lesen.
+- Neue Texte kommen in `lib/l10n/intl_en.arb` **und** `intl_de.arb`. Der Fork
+  hat keine Weblate-Anbindung; die übrigen Sprachen zeigen Englisch.
 - Jede neue Hive-Box muss in `test/unit_test/backup_coverage_test.dart`
   eingetragen werden (Backup-Datei oder begründete Ausnahme), sonst schlägt
   der Test fehl.

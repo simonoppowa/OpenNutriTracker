@@ -20,6 +20,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/daily
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_nutriments_table.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/nutriments_plausibility_card.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_info_button.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_title_expanded.dart';
@@ -457,6 +458,18 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         color: palette.protein,
                       ),
                     ],
+                  ),
+                  NutrimentsPlausibilityCard(
+                    nutriments: meal.nutriments,
+                    onCorrect: () => Navigator.of(context).pushNamed(
+                      NavigationOptions.editMealRoute,
+                      arguments: EditMealScreenArguments(
+                        _day,
+                        meal,
+                        intakeTypeEntity,
+                        _usesImperialUnits,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: Dimens.spacing24),
                   Divider(color: palette.border, height: Dimens.hairline),
