@@ -117,6 +117,8 @@ import 'package:opennutritracker/features/fasting/domain/usecase/complete_fastin
 import 'package:opennutritracker/features/fasting/domain/usecase/get_active_fasting_session_usecase.dart';
 import 'package:opennutritracker/features/fasting/domain/usecase/start_fasting_usecase.dart';
 import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc.dart';
+import 'package:opennutritracker/features/goals/domain/auto_training_day_usecase.dart';
+import 'package:opennutritracker/features/goals/domain/training_aware_log_user_activity_usecase.dart';
 import 'package:opennutritracker/features/home/domain/day_water_log.dart';
 import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -431,7 +433,13 @@ Future<void> initLocator() async {
     () => AddUserActivityUsecase(locator()),
   );
   locator.registerLazySingleton<LogUserActivityUsecase>(
-    () => LogUserActivityUsecase(locator(), locator(), locator(), locator()),
+    () => TrainingAwareLogUserActivityUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
   );
   locator.registerLazySingleton<ImportWorkoutsUsecase>(
     () => ImportWorkoutsUsecase(
@@ -682,6 +690,17 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(GoalChanges.new);
   locator.registerLazySingleton(
     () => SetDayTypeUsecase(locator(), locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton(
+    () => AutoTrainingDayUsecase(
+      locator(),
+      locator(),
+      onSwitched: () {
+        locator<HomeBloc>().add(const LoadItemsEvent());
+        locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+        locator<GoalChanges>().notifyChanged();
+      },
+    ),
   );
   locator.registerLazySingleton(
     () => GoalSettingsStore(

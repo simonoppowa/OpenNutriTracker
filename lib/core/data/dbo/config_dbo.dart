@@ -224,6 +224,9 @@ class ConfigDBO extends HiveObject {
   List<int>? trainingWeekdays;
   @HiveField(112)
   Map<String, String>? dayTypeOverrides;
+  // What logging an activity on a rest day does (#36, AutoTrainingDay).
+  @HiveField(113)
+  String? autoTrainingDayMode;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -276,6 +279,7 @@ class ConfigDBO extends HiveObject {
     this.trainingGoalTargets,
     this.trainingWeekdays,
     this.dayTypeOverrides,
+    this.autoTrainingDayMode,
   });
 
   factory ConfigDBO.empty() =>

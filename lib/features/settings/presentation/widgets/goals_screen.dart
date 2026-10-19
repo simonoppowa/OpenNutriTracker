@@ -79,6 +79,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
   bool _trainingEnabled = false;
   bool _editingTraining = false;
   Set<int> _trainingWeekdays = {};
+  AutoTrainingDay _autoTrainingDay = AutoTrainingDay.off;
   TrainingPlan _plan = const TrainingPlan();
   double _calculatedKcal = 0;
   ({double carbs, double fat, double protein}) _split = (
@@ -114,6 +115,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
         _training.fill(plan.trainingTargets ?? targets);
         _trainingEnabled = plan.isEnabled;
         _trainingWeekdays = {...plan.trainingWeekdays};
+        _autoTrainingDay = plan.autoTrainingDay;
         _plan = plan;
         _split = split;
         _calculatedKcal = calculated;
@@ -237,6 +239,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
             .withTrainingTargets(training)
             .withTrainingWeekdays(
               _trainingEnabled ? _trainingWeekdays : _plan.trainingWeekdays,
+            )
+            .withAutoTrainingDay(
+              _trainingEnabled ? _autoTrainingDay : _plan.autoTrainingDay,
             ),
       );
     } catch (error, stackTrace) {
@@ -337,6 +342,31 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 ),
               ),
           ],
+        ),
+        const SizedBox(height: Dimens.spacing16),
+        Text(s.autoTrainingDayLabel),
+        const SizedBox(height: Dimens.spacing8),
+        Semantics(
+          identifier: 'goals-auto-training-day',
+          child: SegmentedButton<AutoTrainingDay>(
+            segments: [
+              ButtonSegment(
+                value: AutoTrainingDay.off,
+                label: Text(s.autoTrainingDayOff),
+              ),
+              ButtonSegment(
+                value: AutoTrainingDay.suggest,
+                label: Text(s.autoTrainingDaySuggest),
+              ),
+              ButtonSegment(
+                value: AutoTrainingDay.automatic,
+                label: Text(s.autoTrainingDayAutomatic),
+              ),
+            ],
+            selected: {_autoTrainingDay},
+            onSelectionChanged: (selection) =>
+                setState(() => _autoTrainingDay = selection.first),
+          ),
         ),
         const SizedBox(height: Dimens.spacing16),
         Semantics(

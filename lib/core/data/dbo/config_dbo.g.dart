@@ -67,6 +67,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         trainingGoalTargets: (fields[110] as Map?)?.cast<String, dynamic>(),
         trainingWeekdays: (fields[111] as List?)?.cast<int>(),
         dayTypeOverrides: (fields[112] as Map?)?.cast<String, String>(),
+        autoTrainingDayMode: fields[113] as String?,
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -76,7 +77,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(53)
+      ..writeByte(54)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -182,7 +183,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(111)
       ..write(obj.trainingWeekdays)
       ..writeByte(112)
-      ..write(obj.dayTypeOverrides);
+      ..write(obj.dayTypeOverrides)
+      ..writeByte(113)
+      ..write(obj.autoTrainingDayMode);
   }
 
   @override
@@ -277,6 +280,7 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
             .toList(),
         dayTypeOverrides: (json['dayTypeOverrides'] as Map<String, dynamic>?)
             ?.map((k, e) => MapEntry(k, e as String)),
+        autoTrainingDayMode: json['autoTrainingDayMode'] as String?,
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -338,6 +342,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'trainingGoalTargets': instance.trainingGoalTargets,
   'trainingWeekdays': instance.trainingWeekdays,
   'dayTypeOverrides': instance.dayTypeOverrides,
+  'autoTrainingDayMode': instance.autoTrainingDayMode,
 };
 
 const _$AppThemeDBOEnumMap = {

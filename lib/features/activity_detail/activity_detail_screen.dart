@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
@@ -19,6 +21,8 @@ import 'package:opennutritracker/features/activity_detail/presentation/widget/ac
 import 'package:opennutritracker/features/activity_detail/presentation/widget/activity_title_expanded.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/goals/domain/auto_training_day_usecase.dart';
+import 'package:opennutritracker/features/goals/presentation/training_day_after_activity.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -285,7 +289,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         );
       }
     }
-    _activityDetailBloc.persistActivity(
+    final saved = _activityDetailBloc.persistActivity(
       quantityForBloc,
       totalKcal,
       activityEntity,
@@ -318,6 +322,19 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     // Show snackbar and return to dashboard
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(S.of(context).infoAddedActivityLabel)),
+    );
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = S.of(context);
+    final day = _day;
+    unawaited(
+      saved.then(
+        (_) => offerTrainingDayAfterActivity(
+          usecase: locator<AutoTrainingDayUsecase>(),
+          messenger: messenger,
+          l10n: l10n,
+          day: day,
+        ),
+      ),
     );
     Navigator.of(
       context,

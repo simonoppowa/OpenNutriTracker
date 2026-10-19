@@ -4,10 +4,15 @@ import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 
 enum DayType { rest, training }
 
+/// What logging an activity on a rest day does (#36).
+enum AutoTrainingDay { off, suggest, automatic }
+
+enum AutoTrainingDayDecision { none, suggest, switchToTraining }
+
 /// Separate goals for training days (#35): the training goal set, the
 /// weekdays that are training days by default, and the days the user set
-/// by hand, which win over the weekly plan. Kept per profile in the config
-/// (fields 110–112). Without training goals every day uses the normal
+/// by hand, which win over the weekly plan, and what logging an activity
+/// does (#36). Kept per profile in the config (fields 110–113). Without training goals every day uses the normal
 /// goals, as before.
 class TrainingPlan extends Equatable {
   final GoalTargets? trainingTargets;
@@ -18,10 +23,13 @@ class TrainingPlan extends Equatable {
   /// Day types set by hand, keyed by `yyyy-MM-dd`.
   final Map<String, DayType> dayTypes;
 
+  final AutoTrainingDay autoTrainingDay;
+
   const TrainingPlan({
     this.trainingTargets,
     this.trainingWeekdays = const {},
     this.dayTypes = const {},
+    this.autoTrainingDay = AutoTrainingDay.off,
   });
 
   /// Whether training days have goals of their own.
@@ -34,6 +42,20 @@ class TrainingPlan extends Equatable {
           : DayType.rest);
 
   bool isSetByHand(DateTime day) => dayTypes.containsKey(_key(day));
+
+  /// What an activity logged on [day] should do: nothing on a training day,
+  /// on a day the user set by hand, or while training days have no goals of
+  /// their own; else what [autoTrainingDay] says.
+  AutoTrainingDayDecision decisionAfterActivity(DateTime day) {
+    if (!isEnabled || isSetByHand(day) || dayTypeOf(day) == DayType.training) {
+      return AutoTrainingDayDecision.none;
+    }
+    return switch (autoTrainingDay) {
+      AutoTrainingDay.off => AutoTrainingDayDecision.none,
+      AutoTrainingDay.suggest => AutoTrainingDayDecision.suggest,
+      AutoTrainingDay.automatic => AutoTrainingDayDecision.switchToTraining,
+    };
+  }
 
   /// The goals that apply on [day]: the training goals on a training day
   /// when there are any, else [restTargets].
@@ -51,7 +73,11 @@ class TrainingPlan extends Equatable {
     trainingTargets: targets,
     trainingWeekdays: trainingWeekdays,
     dayTypes: dayTypes,
+    autoTrainingDay: autoTrainingDay,
   );
+
+  TrainingPlan withAutoTrainingDay(AutoTrainingDay mode) =>
+      _copy(autoTrainingDay: mode);
 
   TrainingPlan withTrainingWeekdays(Set<int> weekdays) =>
       _copy(trainingWeekdays: weekdays);
@@ -59,10 +85,12 @@ class TrainingPlan extends Equatable {
   TrainingPlan _copy({
     Set<int>? trainingWeekdays,
     Map<String, DayType>? dayTypes,
+    AutoTrainingDay? autoTrainingDay,
   }) => TrainingPlan(
     trainingTargets: trainingTargets,
     trainingWeekdays: trainingWeekdays ?? this.trainingWeekdays,
     dayTypes: dayTypes ?? this.dayTypes,
+    autoTrainingDay: autoTrainingDay ?? this.autoTrainingDay,
   );
 
   /// The plan stored in [config]; a value no settings screen would store
@@ -88,6 +116,8 @@ class TrainingPlan extends Equatable {
             in (config.dayTypeOverrides ?? const <String, String>{}).entries)
           if (_validKey(key) && _dayType(value) != null) key: _dayType(value)!,
       },
+      autoTrainingDay:
+          _autoMode(config.autoTrainingDayMode) ?? AutoTrainingDay.off,
     );
   }
 
@@ -97,7 +127,8 @@ class TrainingPlan extends Equatable {
       ..trainingWeekdays = (trainingWeekdays.toList()..sort())
       ..dayTypeOverrides = {
         for (final MapEntry(:key, :value) in dayTypes.entries) key: value.name,
-      };
+      }
+      ..autoTrainingDayMode = autoTrainingDay.name;
   }
 
   Map<String, dynamic> toJson() => {
@@ -106,6 +137,7 @@ class TrainingPlan extends Equatable {
     'dayTypes': {
       for (final MapEntry(:key, :value) in dayTypes.entries) key: value.name,
     },
+    'autoTrainingDay': autoTrainingDay.name,
   };
 
   /// Parses the plan of a backup; a missing key is unset. Throws a
@@ -132,6 +164,10 @@ class TrainingPlan extends Equatable {
             ))) {
       throw FormatException('invalid dayTypes: $days');
     }
+    final auto = json['autoTrainingDay'];
+    if (auto != null && (auto is! String || _autoMode(auto) == null)) {
+      throw FormatException('invalid autoTrainingDay: $auto');
+    }
     return TrainingPlan(
       trainingTargets: targets == null
           ? null
@@ -142,6 +178,9 @@ class TrainingPlan extends Equatable {
             in ((days as Map?) ?? const {}).entries)
           key as String: _dayType(value as String)!,
       },
+      autoTrainingDay: auto == null
+          ? AutoTrainingDay.off
+          : _autoMode(auto as String)!,
     );
   }
 
@@ -160,11 +199,15 @@ class TrainingPlan extends Equatable {
   static DayType? _dayType(String name) =>
       DayType.values.where((type) => type.name == name).firstOrNull;
 
+  static AutoTrainingDay? _autoMode(String? name) =>
+      AutoTrainingDay.values.where((mode) => mode.name == name).firstOrNull;
+
   @override
   List<Object?> get props => [
     trainingTargets,
     (trainingWeekdays.toList()..sort()).join(','),
     (dayTypes.entries.map((e) => '${e.key}=${e.value.name}').toList()..sort())
         .join(','),
+    autoTrainingDay,
   ];
 }

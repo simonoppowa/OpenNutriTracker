@@ -67,6 +67,7 @@ class ConfigDataSource {
       merged.trainingGoalTargets = profile.trainingGoalTargets;
       merged.trainingWeekdays = profile.trainingWeekdays;
       merged.dayTypeOverrides = profile.dayTypeOverrides;
+      merged.autoTrainingDayMode = profile.autoTrainingDayMode;
       merged.healthImportEnabled = profile.healthImportEnabled;
       merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
       merged.healthLastImportAt = profile.healthLastImportAt;
@@ -92,6 +93,7 @@ class ConfigDataSource {
       merged.trainingGoalTargets = null;
       merged.trainingWeekdays = null;
       merged.dayTypeOverrides = null;
+      merged.autoTrainingDayMode = null;
       merged.healthImportEnabled = null;
       merged.healthWorkoutKcalMultiplier = null;
       merged.healthLastImportAt = null;

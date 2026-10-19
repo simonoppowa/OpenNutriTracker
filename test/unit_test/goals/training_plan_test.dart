@@ -118,4 +118,82 @@ void main() {
     expect(read.dayTypeOf(tuesday), DayType.training);
     expect(read.trainingTargets, isNull);
   });
+
+  group('activity rule', () {
+    const enabledPlan = TrainingPlan(
+      trainingTargets: trainingTargets,
+      autoTrainingDay: AutoTrainingDay.automatic,
+    );
+
+    test('off by default, so nothing happens', () {
+      expect(const TrainingPlan().autoTrainingDay, AutoTrainingDay.off);
+      expect(
+        const TrainingPlan(
+          trainingTargets: trainingTargets,
+        ).decisionAfterActivity(tuesday),
+        AutoTrainingDayDecision.none,
+      );
+    });
+
+    test('automatic switches a rest day, suggest asks', () {
+      expect(
+        enabledPlan.decisionAfterActivity(tuesday),
+        AutoTrainingDayDecision.switchToTraining,
+      );
+      expect(
+        const TrainingPlan(
+          trainingTargets: trainingTargets,
+          autoTrainingDay: AutoTrainingDay.suggest,
+        ).decisionAfterActivity(tuesday),
+        AutoTrainingDayDecision.suggest,
+      );
+    });
+
+    test('a day the user set by hand stays as set', () {
+      expect(
+        enabledPlan
+            .withDayType(tuesday, DayType.rest)
+            .decisionAfterActivity(tuesday),
+        AutoTrainingDayDecision.none,
+      );
+    });
+
+    test('a training day needs nothing', () {
+      expect(
+        enabledPlan
+            .withTrainingWeekdays({DateTime.tuesday})
+            .decisionAfterActivity(tuesday),
+        AutoTrainingDayDecision.none,
+      );
+    });
+
+    test('without training goals there is nothing to switch to', () {
+      expect(
+        const TrainingPlan(
+          autoTrainingDay: AutoTrainingDay.automatic,
+        ).decisionAfterActivity(tuesday),
+        AutoTrainingDayDecision.none,
+      );
+    });
+
+    test('the mode round-trips and rejects unknown values', () {
+      final dbo = ConfigDBO(false, false, false, AppThemeDBO.system);
+      enabledPlan.applyTo(dbo);
+
+      expect(
+        TrainingPlan.fromConfigDBO(
+          ConfigDBO.fromJson(dbo.toJson()),
+        ).autoTrainingDay,
+        AutoTrainingDay.automatic,
+      );
+      expect(
+        TrainingPlan.fromJson(enabledPlan.toJson()).autoTrainingDay,
+        AutoTrainingDay.automatic,
+      );
+      expect(
+        () => TrainingPlan.fromJson(const {'autoTrainingDay': 'sometimes'}),
+        throwsFormatException,
+      );
+    });
+  });
 }

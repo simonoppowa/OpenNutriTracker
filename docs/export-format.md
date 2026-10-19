@@ -397,7 +397,8 @@ and the days set by hand, which win over the weekly plan. Restored like
 {
   "trainingTargets": { "kcalMode": "fixed", "fixedKcal": 2600.0, "macroMode": "percent", "carbsG": null, "fatG": null, "proteinG": null },
   "trainingWeekdays": [1, 3, 5],
-  "dayTypes": { "2026-10-20": "training", "2026-10-22": "rest" }
+  "dayTypes": { "2026-10-20": "training", "2026-10-22": "rest" },
+  "autoTrainingDay": "suggest"   // off | suggest | automatic (#36)
 }
 ```
 

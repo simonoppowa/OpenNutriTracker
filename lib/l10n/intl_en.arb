@@ -1530,5 +1530,12 @@
   "goalsTrainingWeekdays": "Training days by default",
   "dayTypeRestLabel": "Rest day",
   "dayTypeTrainingLabel": "Training day",
-  "dayTypeSwitchTooltip": "Switch between training and rest day"
+  "dayTypeSwitchTooltip": "Switch between training and rest day",
+  "autoTrainingDayLabel": "After an activity on a rest day",
+  "autoTrainingDayOff": "Nothing",
+  "autoTrainingDaySuggest": "Ask",
+  "autoTrainingDayAutomatic": "Switch",
+  "trainingDaySuggestion": "Activity logged. Make this a training day?",
+  "trainingDaySuggestionAction": "Training day",
+  "trainingDaySwitched": "This is a training day now"
 }

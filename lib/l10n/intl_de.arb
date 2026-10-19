@@ -1479,5 +1479,12 @@
   "goalsTrainingWeekdays": "Standardmäßig Trainingstage",
   "dayTypeRestLabel": "Ruhetag",
   "dayTypeTrainingLabel": "Trainingstag",
-  "dayTypeSwitchTooltip": "Zwischen Trainings- und Ruhetag wechseln"
+  "dayTypeSwitchTooltip": "Zwischen Trainings- und Ruhetag wechseln",
+  "autoTrainingDayLabel": "Nach einer Aktivität an einem Ruhetag",
+  "autoTrainingDayOff": "Nichts",
+  "autoTrainingDaySuggest": "Nachfragen",
+  "autoTrainingDayAutomatic": "Umschalten",
+  "trainingDaySuggestion": "Aktivität eingetragen. Zum Trainingstag machen?",
+  "trainingDaySuggestionAction": "Trainingstag",
+  "trainingDaySwitched": "Das ist jetzt ein Trainingstag"
 }

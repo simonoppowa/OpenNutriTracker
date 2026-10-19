@@ -11,6 +11,8 @@ import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/features/goals/domain/auto_training_day_usecase.dart';
+import 'package:opennutritracker/features/goals/presentation/training_day_after_activity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -109,11 +111,18 @@ class _QuickAddActivityBottomSheetState
       // Resolve the message before navigating: the push below tears down
       // this sheet, so reading from context afterwards is unsafe.
       final addedMessage = S.of(context).quickAddActivityAddedSnack;
+      final l10n = S.of(context);
       Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
         NavigationOptions.mainRoute,
         (route) => false,
       );
       scaffoldMessenger.showSnackBar(SnackBar(content: Text(addedMessage)));
+      await offerTrainingDayAfterActivity(
+        usecase: locator<AutoTrainingDayUsecase>(),
+        messenger: scaffoldMessenger,
+        l10n: l10n,
+        day: widget.day,
+      );
     } catch (e, st) {
       _log.severe('Quick Add activity save failed', e, st);
       if (!mounted) return;

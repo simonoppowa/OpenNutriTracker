@@ -36,6 +36,7 @@ vervollständigt.
 | Ziele | Kcal- und Makro-Usecases lesen die eigenen Ziele; Home, Tagebuch, neue Tracked Days und Trends folgen ihnen, verbrannte Aktivitäts-kcal kommen auch auf ein festes Ziel | #34 |
 | Ziele | Einstellungen → Ziele: Kalorien berechnet oder fest, Makros in Prozent (bestehender Aufteilungs-Dialog) oder Gramm mit Live-Umrechnung und Hinweis, wenn die Makro-kcal vom Ziel abweichen | #33 |
 | Ziele | Eigener Zielsatz für Trainingstage, Wochenplan der Trainingstage, Umschalter Trainings-/Ruhetag auf Home und im Tagebuch (rechnet die Ziele des Tages neu); ConfigDBO-Felder 110–112, im Backup als `training_plan.json` | #35 |
+| Ziele | Aktivität an einem Ruhetag: nichts / nachfragen / automatisch Trainingstag (Ziele → Trainingstage, ConfigDBO-Feld 113); von Hand gesetzte Tage bleiben; gilt für Schnell-Eintrag, Aktivitäts-Screen und Workout-Import (über `TrainingAwareLogUserActivityUsecase`) | #36 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

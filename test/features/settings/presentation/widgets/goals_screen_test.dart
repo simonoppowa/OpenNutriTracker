@@ -364,5 +364,20 @@ void main() {
       expect(store.saved, isEmpty);
       expect(find.text(l10nEn.goalsKcalRangeError(800, 10000)), findsOneWidget);
     });
+
+    testWidgets('the activity rule is saved with the training days', (
+      tester,
+    ) async {
+      final store = _FakeStore();
+      await pumpScreen(tester, store);
+
+      await tester.tap(find.text(l10nEn.goalsTrainingEnabled));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.autoTrainingDaySuggest));
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      expect(store.savedPlans.single.autoTrainingDay, AutoTrainingDay.suggest);
+    });
   });
 }
