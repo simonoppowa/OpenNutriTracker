@@ -198,6 +198,12 @@ class TrackedDayRepository {
     );
   }
 
+  /// See [TrackedDayDataSource.updateDayExtraNutrientGoals].
+  Future<void> updateDayExtraNutrientGoals(
+    DateTime day,
+    Map<String, double> goals,
+  ) => _trackedDayDataSource.updateDayExtraNutrientGoals(day, goals);
+
   Future<void> reconcileDayTracked(DateTime day,
       double calories, double carbs, double fat, double protein) async {
     await _trackedDayDataSource.reconcileCaloriesAndMacrosTracked(

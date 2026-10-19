@@ -155,6 +155,13 @@ class AddTrackedDayUsecase {
     );
   }
 
+  /// Replaces the day's own goals for the nutrients added to the panel in
+  /// #47, keyed by `NutrientPanelKeys`; an empty map clears them.
+  Future<void> updateDayExtraNutrientGoals(
+    DateTime day,
+    Map<String, double> goals,
+  ) => _trackedDayRepository.updateDayExtraNutrientGoals(day, goals);
+
   /// Overwrite cached tracked values with actual sums to fix stale data (#182)
   Future<void> reconcileDayTracked(DateTime day,
       double calories, double carbs, double fat, double protein) async {

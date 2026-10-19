@@ -4,7 +4,9 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/nutrient_field_label.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/nutrient_panel_rows.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -84,6 +86,28 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   UserEntity? _user;
   bool _loaded = false;
 
+  /// Own goals for [NutrientPanelKeys.extraGoalKeys]; a missing key keeps
+  /// the default reference (#47).
+  final Map<String, double> _extra = {};
+  final Map<String, TextEditingController> _extraControllers = {
+    for (final key in NutrientPanelKeys.extraGoalKeys)
+      key: TextEditingController(),
+  };
+
+  /// Slider range and step of each extra goal: max, divisions, decimals.
+  static const _extraRanges = <String, (double, int, bool)>{
+    NutrientPanelKeys.monounsaturatedFat: (60, 60, false),
+    NutrientPanelKeys.polyunsaturatedFat: (40, 40, false),
+    NutrientPanelKeys.transFat: (10, 100, true),
+    NutrientPanelKeys.cholesterol: (600, 60, false),
+    NutrientPanelKeys.zinc: (30, 60, true),
+    NutrientPanelKeys.phosphorus: (2000, 80, false),
+    NutrientPanelKeys.vitaminA: (3000, 60, false),
+    NutrientPanelKeys.vitaminC: (300, 60, false),
+    NutrientPanelKeys.vitaminB6: (5, 50, true),
+    NutrientPanelKeys.niacin: (50, 50, false),
+  };
+
   late final TextEditingController _fibreController;
   late final TextEditingController _satFatController;
   late final TextEditingController _sugarsController;
@@ -123,6 +147,9 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     _magnesiumController.dispose();
     _vitaminDController.dispose();
     _vitaminB12Controller.dispose();
+    for (final controller in _extraControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -174,6 +201,9 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
       _magnesium = today?.magnesiumGoal;
       _vitaminD = today?.vitaminDGoal;
       _vitaminB12 = today?.vitaminB12Goal;
+      _extra
+        ..clear()
+        ..addAll(today?.extraNutrientGoals ?? const {});
       _loaded = true;
     });
     _syncControllers();
@@ -207,7 +237,18 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     _vitaminB12Controller.text = _formatGoal(
       _vitaminB12 ?? DailyNutrientPanel.defaultVitaminB12RefUg,
     );
+    for (final MapEntry(:key, value: controller) in _extraControllers.entries) {
+      final value = _extra[key] ?? _extraDefault(key);
+      controller.text = value == null
+          ? ''
+          : _extraRanges[key]!.$3
+          ? value.toStringAsFixed(1)
+          : value.round().toString();
+    }
   }
+
+  double? _extraDefault(String key) =>
+      NutrientPanelRow.extraReference(key, user: _user);
 
   void _resetAll() {
     setState(() {
@@ -221,6 +262,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
       _magnesium = null;
       _vitaminD = null;
       _vitaminB12 = null;
+      _extra.clear();
     });
     _syncControllers();
   }
@@ -230,6 +272,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     // nutrient values onto it. updateTrackedDay creates the row from
     // current macro goals if missing, or refreshes the macro columns
     // on the existing one.
+    await widget.settingsBloc.ensureTrackedDay(DateTime.now());
     await widget.settingsBloc.updateTrackedDay(DateTime.now());
     await widget.settingsBloc.setTodayNutrientGoals(
       DateTime.now(),
@@ -243,6 +286,10 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
       magnesiumGoal: _magnesium,
       vitaminDGoal: _vitaminD,
       vitaminB12Goal: _vitaminB12,
+    );
+    await widget.settingsBloc.setTodayExtraNutrientGoals(
+      DateTime.now(),
+      Map.of(_extra),
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
@@ -453,9 +500,37 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                     decimalStep: true,
                   ),
                 ),
+                for (final key in NutrientPanelKeys.extraGoalKeys)
+                  _extraRow(s, key),
                 const SizedBox(height: 32),
               ],
             ),
+    );
+  }
+
+  Widget _extraRow(S s, String key) {
+    final (max, divisions, decimalStep) = _extraRanges[key]!;
+    final field = NutrientPanelTotals.panelFields[key]!;
+    final fallback = _extraDefault(key);
+    return _NutrientRow(
+      label: field.label(s),
+      description: fallback == null ? s.nutrientGoalNoReferenceHint : '',
+      value: _extra[key] ?? fallback ?? 0,
+      min: 0,
+      max: max,
+      divisions: divisions,
+      controller: _extraControllers[key]!,
+      unit: field.unit,
+      decimalStep: decimalStep,
+      identifier: 'nutrient-${key.replaceAll('_', '-')}-slider',
+      onSliderChanged: (v) => setState(() => _extra[key] = v),
+      onTextSubmitted: () => _applyText(
+        _extraControllers[key]!,
+        0,
+        max,
+        (v) => _extra[key] = v,
+        decimalStep: decimalStep,
+      ),
     );
   }
 

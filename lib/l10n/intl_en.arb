@@ -1582,5 +1582,10 @@
   "nutrientPartialHint": "{count, plural, =1{1 entry} other{{count} entries}} without a value",
   "@nutrientPartialHint": {"placeholders": {"count": {"type": "int"}}},
   "nutritionForAmountLabel": "For {amount}",
-  "@nutritionForAmountLabel": {"placeholders": {"amount": {"type": "String"}}}
+  "@nutritionForAmountLabel": {"placeholders": {"amount": {"type": "String"}}},
+  "nutrientGroupMacrosLabel": "Energy & macronutrients",
+  "nutrientGroupFattyAcidsLabel": "Fatty acids & cholesterol",
+  "nutrientGroupMineralsLabel": "Minerals",
+  "nutrientGroupVitaminsLabel": "Vitamins",
+  "nutrientGoalNoReferenceHint": "No general reference value, set your own if you like."
 }

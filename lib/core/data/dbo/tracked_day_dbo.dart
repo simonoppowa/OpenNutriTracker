@@ -64,6 +64,11 @@ class TrackedDayDBO extends HiveObject {
   @HiveField(18)
   double? magnesiumGoal;
 
+  /// Own goals for the panel nutrients without a column above, keyed by
+  /// `NutrientPanelKeys` (#47). A missing key means the default reference.
+  @HiveField(100)
+  Map<String, double>? extraNutrientGoals;
+
   TrackedDayDBO({
     required this.day,
     required this.calorieGoal,
@@ -84,6 +89,7 @@ class TrackedDayDBO extends HiveObject {
     this.vitaminDGoal,
     this.vitaminB12Goal,
     this.magnesiumGoal,
+    this.extraNutrientGoals,
   });
 
   factory TrackedDayDBO.fromTrackedDayEntity(TrackedDayEntity entity) {
@@ -107,6 +113,9 @@ class TrackedDayDBO extends HiveObject {
       vitaminDGoal: entity.vitaminDGoal,
       vitaminB12Goal: entity.vitaminB12Goal,
       magnesiumGoal: entity.magnesiumGoal,
+      extraNutrientGoals: entity.extraNutrientGoals.isEmpty
+          ? null
+          : Map.of(entity.extraNutrientGoals),
     );
   }
 

@@ -13,16 +13,20 @@ import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/dri_reference.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/nutrients/nutrient_field.dart';
 import 'package:opennutritracker/features/add_meal/domain/nutrients/nutrient_total.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/nutrient_panel_rows.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Daily micronutrient summary that aggregates the nutrients reporters keep
-/// asking for — fibre, sodium, saturated fat, sugar, calcium, iron, potassium,
-/// vitamin D, vitamin B12, and magnesium — across the day's intake list and
-/// renders each as a "value / reference" row with a small progress bar.
+/// Daily nutrient summary that aggregates every nutrient a meal stores (#47)
+/// across the day's intake list and renders each as a "value / reference"
+/// row with a small progress bar, in collapsible groups ([NutrientPanelRow]).
+/// A nutrient without any reference shows its amount without a bar.
 ///
 /// The references are sensible DRIs for an average adult (FDA Daily Values
 /// where applicable). Iron and magnesium are gender-aware because the gap
@@ -125,6 +129,7 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
   // Persists for the lifetime of the screen; revisiting the day view
   // resets it, which feels right given how secondary the detail is.
   bool _expanded = false;
+  final Set<NutrientPanelGroup> _collapsedGroups = {};
 
   Future<_PanelData>? _panelDataFuture;
 
@@ -217,16 +222,6 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     final isWeekly = _view == _NutrientView.week;
     final source = isWeekly ? (data?.weekIntakes ?? widget.intakes) : widget.intakes;
     final totals = NutrientPanelTotals.fromIntakes(source, weekly: isWeekly);
-    final fiberG = totals.fiberG;
-    final sodiumMg = totals.sodiumMg;
-    final saturatedFatG = totals.saturatedFatG;
-    final sugarG = totals.sugarG;
-    final calciumMg = totals.calciumMg;
-    final ironMg = totals.ironMg;
-    final potassiumMg = totals.potassiumMg;
-    final vitaminDMcg = totals.vitaminDMcg;
-    final vitaminB12Mcg = totals.vitaminB12Mcg;
-    final magnesiumMg = totals.magnesiumMg;
 
     // Reference values are sensible adult DRIs / FDA Daily Values. Iron's
     // reference uses UserEntity.gender so women see 18mg and men see 8mg;
@@ -301,104 +296,47 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     );
 
     final s = S.of(context);
-    final allRows = <_PanelRow>[
-      _PanelRow(
-        key: NutrientPanelKeys.fiber,
-        label: s.fiberLabel,
-        value: fiberG,
-        reference: fiberRefG,
-        unit: 'g',
-        excessMatters: false,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.sodium,
-        label: s.sodiumLabel,
-        value: sodiumMg,
-        reference: sodiumRefMg,
-        unit: 'mg',
-        excessMatters: true,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.saturatedFat,
-        label: s.saturatedFatLabel,
-        value: saturatedFatG,
-        reference: saturatedFatRefG,
-        unit: 'g',
-        excessMatters: true,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.sugar,
-        label: s.sugarLabel,
-        value: sugarG,
-        reference: sugarRefG,
-        unit: 'g',
-        excessMatters: true,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.calcium,
-        label: s.calciumLabel,
-        value: calciumMg,
-        reference: calciumRefMg,
-        unit: 'mg',
-        excessMatters: false,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.iron,
-        label: s.ironLabel,
-        value: ironMg,
-        reference: ironRefMg,
-        unit: 'mg',
-        excessMatters: false,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.potassium,
-        label: s.potassiumLabel,
-        value: potassiumMg,
-        reference: potassiumRefMg,
-        unit: 'mg',
-        excessMatters: false,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.vitaminD,
-        label: s.vitaminDLabel,
-        value: vitaminDMcg,
-        reference: vitaminDRefMcg,
-        unit: 'µg',
-        excessMatters: false,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.vitaminB12,
-        label: s.vitaminB12Label,
-        value: vitaminB12Mcg,
-        reference: vitaminB12RefMcg,
-        unit: 'µg',
-        excessMatters: false,
-      ),
-      _PanelRow(
-        key: NutrientPanelKeys.magnesium,
-        label: s.magnesiumLabel,
-        value: magnesiumMg,
-        reference: magnesiumRefMg,
-        unit: 'mg',
-        excessMatters: false,
-      ),
-    ];
-
-    // Filter by the user's per-nutrient visibility setting. Anything not
-    // mentioned in the map defaults to visible.
-    final visibleRows = allRows
-        .where((row) => visibility[row.key] ?? true)
-        .map(
-          (row) => _NutrientRow(
-            label: row.label,
-            value: row.value,
-            reference: row.reference,
-            unit: row.unit,
-            excessMatters: row.excessMatters,
-            total: totals.coverage[row.key],
-          ),
-        )
-        .toList();
+    final references = <String, double?>{
+      NutrientPanelKeys.fiber: fiberRefG,
+      NutrientPanelKeys.sodium: sodiumRefMg,
+      NutrientPanelKeys.saturatedFat: saturatedFatRefG,
+      NutrientPanelKeys.sugar: sugarRefG,
+      NutrientPanelKeys.calcium: calciumRefMg,
+      NutrientPanelKeys.iron: ironRefMg,
+      NutrientPanelKeys.potassium: potassiumRefMg,
+      NutrientPanelKeys.vitaminD: vitaminDRefMcg,
+      NutrientPanelKeys.vitaminB12: vitaminB12RefMcg,
+      NutrientPanelKeys.magnesium: magnesiumRefMg,
+    };
+    final useKj =
+        Provider.of<EnergyUnitProvider?>(context)?.usesKilojoules ?? false;
+    final groups = <NutrientPanelGroup, List<_NutrientRow>>{};
+    for (final row in NutrientPanelRow.all) {
+      if (!(visibility[row.key] ?? true)) continue;
+      final total = totals.coverage[row.key]!;
+      var value = total.sum;
+      var reference = references.containsKey(row.key)
+          ? references[row.key]
+          : NutrientPanelRow.extraReference(row.key, trackedDay: td, user: user);
+      var unit = row.field.unit;
+      if (row.key == NutrientPanelKeys.energy) {
+        if (useKj) {
+          value = UnitCalc.kcalToKj(value);
+          reference = reference == null ? null : UnitCalc.kcalToKj(reference);
+        }
+        unit = ' ${useKj ? s.kjLabel : s.kcalLabel}';
+      }
+      groups.putIfAbsent(row.group, () => []).add(
+        _NutrientRow(
+          label: row.label(s),
+          value: value,
+          reference: reference,
+          unit: unit,
+          excessMatters: row.excessMatters,
+          total: total,
+        ),
+      );
+    }
 
     // Collapsed by default: the diary day view already carries a lot of
     // visual weight (kcal summary, macro circles, sortable meal sections),
@@ -492,7 +430,7 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                 ),
               ),
               const SizedBox(height: Dimens.spacing8),
-              if (visibleRows.isEmpty)
+              if (groups.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
                   child: Text(
@@ -501,12 +439,50 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                   ),
                 )
               else
-                ...visibleRows,
+                for (final MapEntry(key: group, value: rows) in groups.entries)
+                  ..._groupSection(context, group, rows),
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// A group's header, which folds the group in and out, and its rows.
+  List<Widget> _groupSection(
+    BuildContext context,
+    NutrientPanelGroup group,
+    List<_NutrientRow> rows,
+  ) {
+    final collapsed = _collapsedGroups.contains(group);
+    return [
+      Semantics(
+        identifier: 'nutrient-group-${group.name}',
+        button: true,
+        child: InkWell(
+          onTap: () => setState(() {
+            if (!_collapsedGroups.remove(group)) _collapsedGroups.add(group);
+          }),
+          child: Padding(
+            padding: const EdgeInsets.only(top: Dimens.spacing8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    group.label(S.of(context)),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                Icon(collapsed ? Icons.expand_more : Icons.expand_less),
+              ],
+            ),
+          ),
+        ),
+      ),
+      if (!collapsed) ...rows,
+    ];
   }
 
   void _showDataDisclaimer(BuildContext context, S s) {
@@ -703,6 +679,20 @@ class NutrientPanelTotals {
     NutrientPanelKeys.vitaminD: NutrientField.vitaminD,
     NutrientPanelKeys.vitaminB12: NutrientField.vitaminB12,
     NutrientPanelKeys.magnesium: NutrientField.magnesium,
+    NutrientPanelKeys.energy: NutrientField.energyKcal,
+    NutrientPanelKeys.carbohydrates: NutrientField.carbohydrates,
+    NutrientPanelKeys.fat: NutrientField.fat,
+    NutrientPanelKeys.protein: NutrientField.proteins,
+    NutrientPanelKeys.monounsaturatedFat: NutrientField.monounsaturatedFat,
+    NutrientPanelKeys.polyunsaturatedFat: NutrientField.polyunsaturatedFat,
+    NutrientPanelKeys.transFat: NutrientField.transFat,
+    NutrientPanelKeys.cholesterol: NutrientField.cholesterol,
+    NutrientPanelKeys.zinc: NutrientField.zinc,
+    NutrientPanelKeys.phosphorus: NutrientField.phosphorus,
+    NutrientPanelKeys.vitaminA: NutrientField.vitaminA,
+    NutrientPanelKeys.vitaminC: NutrientField.vitaminC,
+    NutrientPanelKeys.vitaminB6: NutrientField.vitaminB6,
+    NutrientPanelKeys.niacin: NutrientField.niacin,
   };
 }
 
@@ -723,6 +713,20 @@ class NutrientPanelKeys {
   static const String vitaminD = 'vitamin_d';
   static const String vitaminB12 = 'vitamin_b12';
   static const String magnesium = 'magnesium';
+  static const String energy = 'energy';
+  static const String carbohydrates = 'carbohydrates';
+  static const String fat = 'fat';
+  static const String protein = 'protein';
+  static const String monounsaturatedFat = 'monounsaturated_fat';
+  static const String polyunsaturatedFat = 'polyunsaturated_fat';
+  static const String transFat = 'trans_fat';
+  static const String cholesterol = 'cholesterol';
+  static const String zinc = 'zinc';
+  static const String phosphorus = 'phosphorus';
+  static const String vitaminA = 'vitamin_a';
+  static const String vitaminC = 'vitamin_c';
+  static const String vitaminB6 = 'vitamin_b6';
+  static const String niacin = 'niacin';
 
   static const List<String> all = <String>[
     fiber,
@@ -735,6 +739,36 @@ class NutrientPanelKeys {
     vitaminD,
     vitaminB12,
     magnesium,
+    energy,
+    carbohydrates,
+    fat,
+    protein,
+    monounsaturatedFat,
+    polyunsaturatedFat,
+    transFat,
+    cholesterol,
+    zinc,
+    phosphorus,
+    vitaminA,
+    vitaminC,
+    vitaminB6,
+    niacin,
+  ];
+
+  /// The keys added in #47 whose own goal lives in
+  /// `TrackedDayEntity.extraNutrientGoals`; energy and the macros take
+  /// theirs from the day's calorie and macro goals instead.
+  static const List<String> extraGoalKeys = <String>[
+    monounsaturatedFat,
+    polyunsaturatedFat,
+    transFat,
+    cholesterol,
+    zinc,
+    phosphorus,
+    vitaminA,
+    vitaminC,
+    vitaminB6,
+    niacin,
   ];
 }
 
@@ -750,28 +784,13 @@ class _PanelData {
   });
 }
 
-class _PanelRow {
-  final String key;
-  final String label;
-  final double value;
-  final double reference;
-  final String unit;
-  final bool excessMatters;
-
-  _PanelRow({
-    required this.key,
-    required this.label,
-    required this.value,
-    required this.reference,
-    required this.unit,
-    required this.excessMatters,
-  });
-}
-
 class _NutrientRow extends StatelessWidget {
   final String label;
   final double value;
-  final double reference;
+
+  /// Null when the nutrient has no reference: the row shows the amount
+  /// without a bar.
+  final double? reference;
   final String unit;
 
   /// Whether going over the reference is a problem (sodium, saturated fat,
@@ -799,18 +818,27 @@ class _NutrientRow extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textTheme = Theme.of(context).textTheme;
-    final ratio = reference > 0 ? value / reference : 0.0;
+    final reference = this.reference;
+    final ratio = switch (reference) {
+      final ref? when ref > 0 => value / ref,
+      final ref? when ref == 0 && value > 0 && excessMatters => 1.0,
+      _ => 0.0,
+    };
     final clamped = ratio.clamp(0.0, 1.0).toDouble();
     final color = _colorForRatio(context, ratio);
     final unknown = total?.isUnknown ?? false;
     final partial = total?.isPartial ?? false;
-    final referenceLabel =
-        '${reference.toStringAsFixed(reference >= 10 ? 0 : 1)}$unit';
-    final valueLabel = unknown
-        ? '${s.nutrientUnknownLabel} / $referenceLabel'
-        : '${partial ? '≥ ' : ''}'
-              '${value.toStringAsFixed(value >= 10 ? 0 : 1)}'
-              ' / $referenceLabel';
+    final referenceLabel = reference == null
+        ? null
+        : '${reference.toStringAsFixed(reference >= 10 ? 0 : 1)}$unit';
+    final amountLabel =
+        '${partial ? '≥ ' : ''}${value.toStringAsFixed(value >= 10 ? 0 : 1)}';
+    final valueLabel = switch ((unknown, referenceLabel)) {
+      (true, null) => s.nutrientUnknownLabel,
+      (true, final ref?) => '${s.nutrientUnknownLabel} / $ref',
+      (false, null) => '$amountLabel$unit',
+      (false, final ref?) => '$amountLabel / $ref',
+    };
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
@@ -834,7 +862,7 @@ class _NutrientRow extends StatelessWidget {
                   // reference is a limit to stay under, not a target to reach.
                   // A small qualifier says so, since the bare "x / y" reads as
                   // a goal otherwise.
-                  if (excessMatters) ...[
+                  if (excessMatters && reference != null) ...[
                     Text(
                       s.nutrientPanelLimitLabel,
                       style: textTheme.labelSmall?.copyWith(
@@ -860,16 +888,18 @@ class _NutrientRow extends StatelessWidget {
               s.nutrientPartialHint(total!.unknownEntries),
               style: textTheme.labelSmall?.copyWith(color: palette.textMuted),
             ),
-          const SizedBox(height: Dimens.spacing8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: LinearProgressIndicator(
-              value: unknown ? 0 : clamped,
-              minHeight: 8.0,
-              backgroundColor: palette.surfaceMuted,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
+          if (reference != null) ...[
+            const SizedBox(height: Dimens.spacing8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: LinearProgressIndicator(
+                value: unknown ? 0 : clamped,
+                minHeight: 8.0,
+                backgroundColor: palette.surfaceMuted,
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

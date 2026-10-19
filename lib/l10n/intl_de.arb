@@ -1528,5 +1528,10 @@
   "bodyMeasurementDeleteTitle": "Diese Messung löschen?",
   "nutrientUnknownLabel": "unbekannt",
   "nutrientPartialHint": "{count, plural, =1{1 Eintrag} other{{count} Einträge}} ohne Angabe",
-  "nutritionForAmountLabel": "Für {amount}"
+  "nutritionForAmountLabel": "Für {amount}",
+  "nutrientGroupMacrosLabel": "Energie & Makronährstoffe",
+  "nutrientGroupFattyAcidsLabel": "Fettsäuren & Cholesterin",
+  "nutrientGroupMineralsLabel": "Mineralstoffe",
+  "nutrientGroupVitaminsLabel": "Vitamine",
+  "nutrientGoalNoReferenceHint": "Kein allgemeiner Referenzwert – bei Bedarf eigenes Ziel setzen."
 }

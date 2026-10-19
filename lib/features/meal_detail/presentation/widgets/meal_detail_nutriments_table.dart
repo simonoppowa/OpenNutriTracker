@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/nutrients/nutrient_field.dart';
+import 'package:opennutritracker/features/add_meal/presentation/nutrient_field_label.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// The nutrition table of the meal detail. Every stored value is listed, a
@@ -104,7 +105,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
       final base = per100 == null || !_perServing
           ? per100
           : per100 * servingQuantity! / 100;
-      return _tableRow('${indented ? '   ' : ''}${_label(context, field)}', [
+      return _tableRow('${indented ? '   ' : ''}${field.label(s)}', [
         _format(context, field, base),
         if (_showAmountColumn)
           _format(
@@ -183,36 +184,6 @@ class MealDetailNutrimentsTable extends StatelessWidget {
       return EnergyDisplay.formatWithUnit(context, value);
     }
     return '${value.roundToPrecision(2)}${field.unit}';
-  }
-
-  static String _label(BuildContext context, NutrientField field) {
-    final s = S.of(context);
-    return switch (field) {
-      NutrientField.energyKcal => s.energyLabel,
-      NutrientField.carbohydrates => s.carbohydrateLabel,
-      NutrientField.fat => s.fatLabel,
-      NutrientField.proteins => s.proteinLabel,
-      NutrientField.sugars => s.sugarLabel,
-      NutrientField.saturatedFat => s.saturatedFatLabel,
-      NutrientField.fiber => s.fiberLabel,
-      NutrientField.monounsaturatedFat => s.monounsaturatedFatLabel,
-      NutrientField.polyunsaturatedFat => s.polyunsaturatedFatLabel,
-      NutrientField.transFat => s.transFatLabel,
-      NutrientField.cholesterol => s.cholesterolLabel,
-      NutrientField.sodium => s.sodiumLabel,
-      NutrientField.potassium => s.potassiumLabel,
-      NutrientField.magnesium => s.magnesiumLabel,
-      NutrientField.calcium => s.calciumLabel,
-      NutrientField.iron => s.ironLabel,
-      NutrientField.zinc => s.zincLabel,
-      NutrientField.phosphorus => s.phosphorusLabel,
-      NutrientField.vitaminA => s.vitaminALabel,
-      NutrientField.vitaminC => s.vitaminCLabel,
-      NutrientField.vitaminD => s.vitaminDLabel,
-      NutrientField.vitaminB6 => s.vitaminB6Label,
-      NutrientField.vitaminB12 => s.vitaminB12Label,
-      NutrientField.niacin => s.niacinLabel,
-    };
   }
 
   static TableRow _tableRow(

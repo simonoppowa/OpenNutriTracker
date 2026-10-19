@@ -243,22 +243,24 @@ void main() {
   });
 
   group('NutrientPanelKeys', () {
-    test('exposes all ten nutrient identifiers', () {
-      expect(NutrientPanelKeys.all, hasLength(10));
+    test('exposes every stored nutrient, the original ten unchanged (#47)',
+        () {
+      expect(NutrientPanelKeys.all, hasLength(24));
+      expect(NutrientPanelKeys.all.toSet(), hasLength(24));
       expect(
-        NutrientPanelKeys.all.toSet(),
-        equals(<String>{
-          NutrientPanelKeys.fiber,
-          NutrientPanelKeys.sodium,
-          NutrientPanelKeys.saturatedFat,
-          NutrientPanelKeys.sugar,
-          NutrientPanelKeys.calcium,
-          NutrientPanelKeys.iron,
-          NutrientPanelKeys.potassium,
-          NutrientPanelKeys.vitaminD,
-          NutrientPanelKeys.vitaminB12,
-          NutrientPanelKeys.magnesium,
-        }),
+        NutrientPanelKeys.all.take(10).toList(),
+        equals(<String>[
+          'fiber',
+          'sodium',
+          'saturated_fat',
+          'sugar',
+          'calcium',
+          'iron',
+          'potassium',
+          'vitamin_d',
+          'vitamin_b12',
+          'magnesium',
+        ]),
       );
     });
   });

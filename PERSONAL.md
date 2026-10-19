@@ -50,6 +50,7 @@ vervollständigt.
 | Körperumfänge | Profil → Körperumfänge: erfassen, bearbeiten, löschen, Verlauf pro Maß; cm oder Zoll nach der Größen-Einstellung | #44 |
 | Mikronährstoffe | Fehlende Werte zählen als „unbekannt“: Nährstoff-Panel zeigt „unbekannt“ bzw. „≥ X“ mit Anzahl der Einträge ohne Angabe; Rezepte summieren über dieselbe Logik (`NutrientTotal`, `NutrientField`) | #46 |
 | Mikronährstoffe | Mahlzeit-Detail listet alle Nährwerte, fehlende als „—“ statt 0, pro 100 g und für die gewählte Menge; Mikronährstoffe nur mit Einstellung „Mikronährstoffe anzeigen“ | #48 |
+| Mikronährstoffe | Tagesübersicht zeigt alle 24 Nährstoffe in einklappbaren Gruppen (Energie & Makros, Fettsäuren & Cholesterin, Mineralstoffe, Vitamine); Sichtbarkeit und eigene Ziele auch für die neuen; Ziele im neuen Feld `TrackedDayDBO.extraNutrientGoals` (Hive-Feld 100, im JSON-Backup) | #47 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

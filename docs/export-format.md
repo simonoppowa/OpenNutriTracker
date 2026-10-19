@@ -580,10 +580,13 @@ empty-string-vs-null normalisation on nullable fields). The unit test
 `test/unit_test/csv_data_exporter_test.dart` pins this behaviour.
 
 **Tracked days do not round-trip.** `trackedDayColumns` carries nine columns
-while `TrackedDayDBO` has nineteen fields: the ten per-nutrient goals — fibre,
+while `TrackedDayDBO` has twenty fields: the ten per-nutrient goals — fibre,
 saturated fat, sugars, sodium, calcium, iron, potassium, magnesium, vitamin B12
-and vitamin D — have no column and are lost on a CSV export. The JSON bundle
-keeps them. Use JSON if you intend to restore from the bundle rather than read
+and vitamin D — and the fork's `extraNutrientGoals` (own goals for the
+nutrients the panel gained in #47, an object keyed by panel key such as
+`zinc` or `vitamin_c`, values in the nutrient's unit) have no column and are
+lost on a CSV export. The JSON bundle keeps them; an older bundle without
+`extraNutrientGoals` imports as "no own goals". Use JSON if you intend to restore from the bundle rather than read
 it in a spreadsheet.
 
 **CSV import works.** `ImportDataUsecase.importDataCsv` reads `user_intake.csv`,

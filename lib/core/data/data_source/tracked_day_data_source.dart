@@ -277,6 +277,18 @@ class TrackedDayDataSource {
     }
   }
 
+  /// Replaces the day's own goals for the nutrients without a column of
+  /// their own (#47); an empty [goals] clears them.
+  Future<void> updateDayExtraNutrientGoals(
+    DateTime day,
+    Map<String, double> goals,
+  ) async {
+    final updateDay = await getTrackedDay(day);
+    if (updateDay == null) return;
+    updateDay.extraNutrientGoals = goals.isEmpty ? null : Map.of(goals);
+    await updateDay.save();
+  }
+
   Future<void> reconcileCaloriesAndMacrosTracked(
     DateTime day,
     double calories,

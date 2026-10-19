@@ -3,7 +3,7 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/nutrient_panel_rows.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// A small sub-screen inside Settings → Nutrients that lets the user pick
@@ -45,34 +45,6 @@ class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
         .setConfigNutrientPanelVisibility(_visibility);
   }
 
-  String _labelFor(BuildContext context, String key) {
-    final s = S.of(context);
-    switch (key) {
-      case NutrientPanelKeys.fiber:
-        return s.fiberLabel;
-      case NutrientPanelKeys.sodium:
-        return s.sodiumLabel;
-      case NutrientPanelKeys.saturatedFat:
-        return s.saturatedFatLabel;
-      case NutrientPanelKeys.sugar:
-        return s.sugarLabel;
-      case NutrientPanelKeys.calcium:
-        return s.calciumLabel;
-      case NutrientPanelKeys.iron:
-        return s.ironLabel;
-      case NutrientPanelKeys.potassium:
-        return s.potassiumLabel;
-      case NutrientPanelKeys.vitaminD:
-        return s.vitaminDLabel;
-      case NutrientPanelKeys.vitaminB12:
-        return s.vitaminB12Label;
-      case NutrientPanelKeys.magnesium:
-        return s.magnesiumLabel;
-      default:
-        return key;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -90,12 +62,22 @@ class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
-                for (final key in NutrientPanelKeys.all)
-                  CheckboxListTile(
-                    title: Text(_labelFor(context, key)),
-                    value: _visibility[key] ?? true,
-                    onChanged: (value) => _toggle(key, value ?? true),
+                for (final group in NutrientPanelGroup.values) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Text(
+                      group.label(s),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                   ),
+                  for (final row in NutrientPanelRow.all)
+                    if (row.group == group)
+                      CheckboxListTile(
+                        title: Text(row.label(s)),
+                        value: _visibility[row.key] ?? true,
+                        onChanged: (value) => _toggle(row.key, value ?? true),
+                      ),
+                ],
               ],
             ),
     );

@@ -39,6 +39,10 @@ class TrackedDayEntity extends Equatable {
   final double? vitaminB12Goal;
   final double? magnesiumGoal;
 
+  /// Own goals for the panel nutrients without a field above, keyed by
+  /// `NutrientPanelKeys` (#47).
+  final Map<String, double> extraNutrientGoals;
+
   const TrackedDayEntity({
     required this.day,
     required this.calorieGoal,
@@ -59,6 +63,7 @@ class TrackedDayEntity extends Equatable {
     this.vitaminDGoal,
     this.vitaminB12Goal,
     this.magnesiumGoal,
+    this.extraNutrientGoals = const {},
   });
 
   factory TrackedDayEntity.fromTrackedDayDBO(TrackedDayDBO trackedDayDBO) {
@@ -89,6 +94,11 @@ class TrackedDayEntity extends Equatable {
       vitaminDGoal: trackedDayDBO.vitaminDGoal,
       vitaminB12Goal: trackedDayDBO.vitaminB12Goal,
       magnesiumGoal: trackedDayDBO.magnesiumGoal,
+      extraNutrientGoals: {
+        for (final MapEntry(:key, :value)
+            in (trackedDayDBO.extraNutrientGoals ?? const {}).entries)
+          if (value.isFinite) key: value,
+      },
     );
   }
 
@@ -148,5 +158,6 @@ class TrackedDayEntity extends Equatable {
         vitaminDGoal,
         vitaminB12Goal,
         magnesiumGoal,
+        extraNutrientGoals,
       ];
 }
