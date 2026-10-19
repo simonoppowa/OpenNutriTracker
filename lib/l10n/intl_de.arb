@@ -1417,5 +1417,10 @@
   "labelScanFilled": "Werte pro 100 {unit} übernommen. Bitte die markierten Felder prüfen.",
   "labelScanCheckField": "Bitte mit der Verpackung vergleichen",
   "labelScanMissingTitle": "Keine Nährwerte vorhanden",
-  "labelScanMissingBody": "Open Food Facts kennt für dieses Produkt keine Nährwerte. Scanne die Tabelle auf der Packung, um es als eigenes Lebensmittel zu speichern."
+  "labelScanMissingBody": "Open Food Facts kennt für dieses Produkt keine Nährwerte. Scanne die Tabelle auf der Packung, um es als eigenes Lebensmittel zu speichern.",
+  "storeCodeConfirmTitle": "Ist das dein Produkt?",
+  "storeCodeConfirmBody": "Codes, die mit 2 beginnen, vergibt jeder Händler selbst. Derselbe Code kann in einem anderen Laden ein anderes Produkt sein.",
+  "storeCodeConfirmYes": "Ja, das ist es",
+  "storeCodeConfirmNo": "Nein, ein anderes",
+  "storeCodeRejectedInPicker": "Lege es zuerst als eigenes Lebensmittel an, um es hier zu verwenden."
 }

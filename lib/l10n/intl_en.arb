@@ -1460,5 +1460,10 @@
   "@labelScanFilled": {"placeholders": {"unit": {"type": "String"}}},
   "labelScanCheckField": "Please check against the label",
   "labelScanMissingTitle": "No nutrition values",
-  "labelScanMissingBody": "Open Food Facts has no nutrition values for this product. Scan the table on the pack to save it as your own food."
+  "labelScanMissingBody": "Open Food Facts has no nutrition values for this product. Scan the table on the pack to save it as your own food.",
+  "storeCodeConfirmTitle": "Is this your product?",
+  "storeCodeConfirmBody": "Codes starting with 2 are assigned by each retailer, so the same code can be a different product in another shop.",
+  "storeCodeConfirmYes": "Yes, that's it",
+  "storeCodeConfirmNo": "No, a different one",
+  "storeCodeRejectedInPicker": "Save it as your own food first to use it here."
 }

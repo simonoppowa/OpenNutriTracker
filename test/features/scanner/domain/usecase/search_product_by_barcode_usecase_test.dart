@@ -186,6 +186,23 @@ void main() {
       expect(repo.getOFFProductByBarcodeCalls, 0);
     });
 
+    test('an own food on a store code wins over the other store\'s product '
+        'in Open Food Facts', () async {
+      cachedOffMealDataSource.entries.add(_offCacheDbo(
+        code: '20697112',
+        name: 'Milk chocolate de Noël',
+      ));
+      customMealDataSource.meals.add(_customMealDbo(
+        code: '20697112',
+        name: 'Bio Studenten-Futter',
+      ));
+
+      final result = await useCase.searchProductByBarcode('20697112');
+
+      expect(result.name, 'Bio Studenten-Futter');
+      expect(result.source, MealSourceEntity.custom);
+      expect(repo.getOFFProductByBarcodeCalls, 0);
+    });
   });
 }
 

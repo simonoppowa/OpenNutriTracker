@@ -13,12 +13,16 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/shared_payload_router.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/home/presentation/screens/import_activity_scanner_screen.dart';
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/import_recipe_scanner_screen.dart';
+import 'package:opennutritracker/features/scanner/domain/store_barcode_check.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:opennutritracker/features/scanner/presentation/widgets/store_product_confirm_dialog.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -120,13 +124,26 @@ class _ScannerScreenState extends State<ScannerScreen>
           // Push new route after build
           if (!_navigatedAfterLoad) {
             _navigatedAfterLoad = true;
-            Future.microtask(() {
+            Future.microtask(() async {
+              if (!context.mounted) return;
+              final confirmed = await _isConfirmedProduct(state.product);
               if (!context.mounted) return;
               if (_pickMode) {
                 // Recipe ingredient picker — hand the loaded MealEntity back
                 // to whoever pushed us instead of routing into the meal-detail
                 // logging flow.
-                Navigator.of(context).pop(state.product);
+                if (confirmed) {
+                  Navigator.of(context).pop(state.product);
+                } else {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final label = S.of(context).storeCodeRejectedInPicker;
+                  Navigator.of(context).pop();
+                  messenger.showSnackBar(SnackBar(content: Text(label)));
+                }
+                return;
+              }
+              if (!confirmed) {
+                _openOwnFoodFor(state.product.code!, state.usesImperialUnits);
                 return;
               }
               Navigator.of(context).pushReplacementNamed(
@@ -156,6 +173,37 @@ class _ScannerScreenState extends State<ScannerScreen>
         }
         return const SizedBox();
       },
+    );
+  }
+
+  /// Whether [product] may be used as the scanned product. For a product
+  /// found under a store-internal code the user has not confirmed yet, that
+  /// is the answer to "is this your product?" (#83); a yes is remembered.
+  Future<bool> _isConfirmedProduct(MealEntity product) async {
+    final code = product.code;
+    if (code == null || !isStoreInternalBarcode(code)) return true;
+    final check = locator<StoreBarcodeCheck>();
+    if (!await check.needsConfirmation(product)) return true;
+    if (!mounted) return false;
+    final confirmed = await showStoreProductConfirmDialog(context, product);
+    if (confirmed) await check.confirm(code);
+    return confirmed;
+  }
+
+  /// Replaces the scanner with a new own food carrying [code] and the
+  /// table scan, for a store code whose Open Food Facts product was not the
+  /// scanned one; the own food then wins the next scan of the code.
+  void _openOwnFoodFor(String code, bool usesImperialUnits) {
+    Navigator.of(context).pushReplacementNamed(
+      NavigationOptions.editMealRoute,
+      arguments: EditMealScreenArguments(
+        _day!,
+        MealEntity.empty(),
+        _intakeTypeEntity!,
+        usesImperialUnits,
+        barcode: code,
+        scanLabelOnOpen: true,
+      ),
     );
   }
 

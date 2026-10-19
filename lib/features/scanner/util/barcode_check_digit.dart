@@ -26,3 +26,10 @@ bool isValidBarcodeCheckDigit(String code) {
   final expected = (10 - sum % 10) % 10;
   return expected == checkDigit;
 }
+
+/// Whether [code] is a store-internal number: eight digits starting with 2.
+/// Retailers assign these themselves (Lidl and Penny both do for their own
+/// brands), so the same code can name different products in different
+/// shops, and an Open Food Facts hit for one may be another shop's product.
+bool isStoreInternalBarcode(String code) =>
+    code.length == 8 && code.startsWith('2') && RegExp(r'^\d+$').hasMatch(code);

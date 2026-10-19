@@ -195,6 +195,10 @@ class ConfigDBO extends HiveObject {
   DateTime? lastBackupAt;
   @HiveField(101)
   int? backupReminderDays;
+  // Store-internal barcodes (eight digits starting with 2) the user
+  // confirmed as the product Open Food Facts returned for them.
+  @HiveField(102)
+  List<String>? confirmedStoreBarcodes;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -236,6 +240,7 @@ class ConfigDBO extends HiveObject {
     this.defaultToRawFoodUnits,
     this.lastBackupAt,
     this.backupReminderDays,
+    this.confirmedStoreBarcodes,
   });
 
   factory ConfigDBO.empty() =>

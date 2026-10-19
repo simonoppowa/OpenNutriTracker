@@ -66,6 +66,7 @@ class PersonalBackupExtras {
     'defaultToRawFoodUnits',
     'lastBackupAt',
     'backupReminderDays',
+    'confirmedStoreBarcodes',
   ];
 
   final WaterIntakeRepository _waterIntakeRepository;
