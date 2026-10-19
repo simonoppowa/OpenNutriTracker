@@ -70,7 +70,17 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
     int? generation,
   }) => _serially(() async {
     if (generation != null && generation != _generation) return;
-    await _save({...snapshot.toPayload(), ...labels.toPayload()});
+    // Each key is its own platform call, so a kill or a failed call part
+    // way through would leave a mix of old and new keys. The extension
+    // shows figures only under a "1" marker: it goes to "0" first and is
+    // set last, so a snapshot that did not land in full stays invalid.
+    final payload = {...snapshot.toPayload(), ...labels.toPayload()};
+    final marker = payload.remove(CalorieWidgetSnapshot.hasDataKey);
+    await _save({
+      CalorieWidgetSnapshot.hasDataKey: '0',
+      ...payload,
+    }, reload: false);
+    await _save({CalorieWidgetSnapshot.hasDataKey: marker});
   });
 
   /// A null value makes the plugin remove the key, which the extension
@@ -126,7 +136,7 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
     return int.tryParse(value ?? '');
   }
 
-  Future<void> _save(Map<String, String?> values) async {
+  Future<void> _save(Map<String, String?> values, {bool reload = true}) async {
     final group = await _enterAppGroup();
     for (final entry in values.entries) {
       await HomeWidget.saveWidgetData<String>(
@@ -135,7 +145,7 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
         appGroupId: group,
       );
     }
-    if (!_isIOS) return;
+    if (!_isIOS || !reload) return;
     try {
       await HomeWidget.updateWidget(
         iOSName: CalorieWidgetSnapshot.iosWidgetKind,

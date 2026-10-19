@@ -17,9 +17,13 @@ void main() {
   late Map<String, Object?> stored;
   late List<String> calls;
   late Set<String> groups;
+  late List<MapEntry<String, Object?>> saves;
+  String? failOn;
 
   setUp(() {
     stored = {};
+    saves = [];
+    failOn = null;
     calls = [];
     groups = {};
     PackageInfo.setMockInitialValues(
@@ -40,6 +44,10 @@ void main() {
             case 'saveWidgetData':
               final id = args!['id'] as String;
               final data = args['data'];
+              if (id == failOn) {
+                throw PlatformException(code: 'write-failed');
+              }
+              saves.add(MapEntry(id, data));
               if (data == null) {
                 stored.remove(id);
               } else {
@@ -81,6 +89,40 @@ void main() {
     // The placeholder a wipe leads to stays in German rather than falling
     // back to the extension's English until onboarding writes again.
     expect(stored, german.languagePayload());
+  });
+
+  test('a write marks the snapshot invalid first and valid last', () async {
+    final store = HomeWidgetCalorieStore(isIOS: false);
+
+    await store.write(snapshot, german);
+
+    final writes = [for (final save in saves) '${save.key}=${save.value}'];
+    expect(writes.first, '${CalorieWidgetSnapshot.hasDataKey}=0');
+    expect(writes.last, '${CalorieWidgetSnapshot.hasDataKey}=1');
+    expect(stored, {...snapshot.toPayload(), ...german.toPayload()});
+  });
+
+  test('a write that fails part way leaves the snapshot invalid', () async {
+    // The extension shows figures only under a "1" marker. Yesterday's
+    // valid snapshot must not become "valid" with today's day id and half
+    // of today's figures.
+    final store = HomeWidgetCalorieStore(isIOS: false);
+    await store.write(snapshot, german);
+    final today = CalorieWidgetSnapshot.fromHome(
+      consumedKcal: 640,
+      goalKcal: 2100,
+      offsetMinutes: 0,
+      now: DateTime(2026, 9, 24, 9, 0),
+    );
+    failOn = CalorieWidgetSnapshot.goalKey;
+
+    await expectLater(
+      store.write(today, german),
+      throwsA(isA<PlatformException>()),
+    );
+
+    expect(stored[CalorieWidgetSnapshot.hasDataKey], '0');
+    expect(stored[CalorieWidgetSnapshot.dayKey], today.dayId, reason: 'setup');
   });
 
   test('a write read before a clear is dropped, a fresh one is not', () async {
