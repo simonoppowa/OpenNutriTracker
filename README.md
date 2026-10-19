@@ -1,3 +1,5 @@
+> **Persönlicher Fork** für ein einzelnes iPhone (Sideloading). Änderungen, Build und Installation: [PERSONAL.md](PERSONAL.md).
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/icon/ont_banner_top_light.png">
