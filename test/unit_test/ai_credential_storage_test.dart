@@ -1183,6 +1183,100 @@ void main() {
 
         expect(await storage.readApiKey(provider: AiProvider.ownServer), 'new');
       });
+
+      test('the absolute form of the same host keeps it', () async {
+        // `example.org.` is `example.org` written absolutely; DNS reaches the
+        // same machine, so the key is still that machine's.
+        const gemini =
+            'https://generativelanguage.googleapis.com/v1beta/openai/';
+        const absolute =
+            'https://generativelanguage.googleapis.com./v1beta/openai/';
+        await configure(gemini);
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        expect(
+          await storage.apiKeyForServer(
+            absolute,
+            provider: AiProvider.ownServer,
+          ),
+          'google-key',
+        );
+        await configure(absolute);
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          'google-key',
+        );
+      });
+
+      test('is handed out only for its own server', () async {
+        await configure('https://a.example.org/v1');
+        await storage.writeApiKey('a-key', provider: AiProvider.ownServer);
+
+        expect(
+          await storage.apiKeyForServer(
+            'https://a.example.org/v1',
+            provider: AiProvider.ownServer,
+          ),
+          'a-key',
+        );
+        expect(
+          await storage.apiKeyForServer(
+            'https://b.example.org/v1',
+            provider: AiProvider.ownServer,
+          ),
+          isNull,
+        );
+      });
+
+      test('a save landing mid-read cannot pair one server with the next '
+          'server\'s key', () async {
+        // Read as two calls, the address of A and then — after a save of B
+        // and B's key — B's key, which the model-list request then carried
+        // to A. One read under the configuration lock cannot be split.
+        await configure('https://a.example.org/v1');
+        await storage.writeApiKey('a-key', provider: AiProvider.ownServer);
+
+        // Held after the address has been read and before the key is: the
+        // window a save has to land in to cross the pair.
+        const keySlot = 'AiApiKeyTag.ownServer';
+        final held = Completer<void>();
+        backing.readGates[keySlot] = held;
+        backing.reads.clear();
+        final reading = storage.apiKeyForServer(
+          'https://a.example.org/v1',
+          provider: AiProvider.ownServer,
+        );
+        for (var i = 0; i < 50 && !backing.reads.contains(keySlot); i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(backing.reads, contains('AiEndpointTag.ownServer'));
+        backing.readGates.remove(keySlot);
+
+        // The dialog's save of another server, started while A is read.
+        final saved = () async {
+          await storage.writeOwnServerConfiguration(
+            endpoint: 'https://b.example.org/v1',
+            model: 'some-model',
+            provider: AiProvider.ownServer,
+          );
+          await storage.writeApiKey('b-key', provider: AiProvider.ownServer);
+        }();
+        for (var i = 0; i < 20; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        held.complete();
+
+        expect(await reading, 'a-key');
+        await saved;
+        expect(
+          await storage.apiKeyForServer(
+            'https://a.example.org/v1',
+            provider: AiProvider.ownServer,
+          ),
+          isNull,
+          reason: 'B is on file now, and A gets nothing of it',
+        );
+      });
     });
 
     group('a Gemini verdict recorded before #1257', () {

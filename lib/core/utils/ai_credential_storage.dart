@@ -600,13 +600,31 @@ class AiCredentialStorage {
   /// server, and handing it to another — a request for the model list, a
   /// setup check, a meal — sends someone's credential to a machine it was
   /// never meant for (#1257). Unparseable means "not the same", so the doubt
-  /// falls on the side of withholding the key.
+  /// falls on the side of withholding the key. Hosts are compared by
+  /// [canonicalHost], so the absolute form of a name is the same server.
   static bool sameServer(String a, String b) {
     final x = Uri.tryParse(a.trim());
     final y = Uri.tryParse(b.trim());
     if (x == null || y == null || x.host.isEmpty) return false;
-    return x.host == y.host && x.port == y.port;
+    return canonicalHost(x) == canonicalHost(y) && x.port == y.port;
   }
+
+  /// [provider]'s stored key, but only while [endpoint] names the server it
+  /// was stored with; null for any other address.
+  ///
+  /// **One read under the configuration lock**, as [_readState] is. Read as
+  /// two calls, a save landing between them paired one server's address with
+  /// the next server's key, and the model-list request then carried that key
+  /// to the first server. [writeApiKey] takes the same lock, so neither half
+  /// of a save can land inside this.
+  Future<String?> apiKeyForServer(
+    String endpoint, {
+    required AiProvider provider,
+  }) => _probeConfigurationLock.synchronized(() async {
+    final stored = await readEndpoint(provider: provider);
+    if (stored == null || !sameServer(stored, endpoint)) return null;
+    return readApiKey(provider: provider);
+  });
 
   /// Whether [provider] has what it needs to be used at all.
   ///
@@ -1098,12 +1116,16 @@ class AiCredentialStorage {
       return;
     }
 
-    await _storage.write(key: _slotTag(target), value: trimmed);
-    await _retireLegacyTagFor(target);
+    // Under the configuration lock, so [apiKeyForServer] never reads an
+    // address and then a key written for another one.
+    await _probeConfigurationLock.synchronized(() async {
+      await _storage.write(key: _slotTag(target), value: trimmed);
+      await _retireLegacyTagFor(target);
 
-    // Saving a key is the user asking for the feature. Requiring a second
-    // switch afterwards is a step that only exists to be forgotten.
-    await _storage.write(key: _enabledTag, value: 'true');
+      // Saving a key is the user asking for the feature. Requiring a second
+      // switch afterwards is a step that only exists to be forgotten.
+      await _storage.write(key: _enabledTag, value: 'true');
+    });
   }
 
   /// Forgets [provider]'s key, defaulting to the active one, and the intent

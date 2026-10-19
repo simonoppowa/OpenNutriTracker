@@ -12,12 +12,21 @@ const geminiOpenAiCompatibleHost = 'generativelanguage.googleapis.com';
 /// that no third party receives them.
 ///
 /// Matched on the exact host, so a look-alike such as
-/// `generativelanguage.googleapis.com.example.org` is not Google. `Uri`
-/// already lower-cases the host, but keeps a terminal root dot, and
-/// `generativelanguage.googleapis.com.` is the same name written absolutely:
-/// DNS reaches Google either way, so one trailing dot is dropped first.
-bool isGeminiEndpoint(Uri endpoint) {
-  final host = endpoint.host;
-  final name = host.endsWith('.') ? host.substring(0, host.length - 1) : host;
-  return name == geminiOpenAiCompatibleHost;
+/// `generativelanguage.googleapis.com.example.org` is not Google.
+bool isGeminiEndpoint(Uri endpoint) =>
+    canonicalHost(endpoint) == geminiOpenAiCompatibleHost;
+
+/// [uri]'s host in the one form every comparison of hosts uses.
+///
+/// `Uri` already lower-cases it, but keeps a terminal root dot, and
+/// `example.org.` is the same name as `example.org` written absolutely: DNS
+/// reaches the same machine either way. One trailing dot is dropped, and only
+/// one — a name ending in two is not a valid absolute form.
+///
+/// Shared so the checks that decide who is on the other end cannot disagree
+/// about it: whether an address is Google's, and whether a stored key
+/// belongs to the server being typed.
+String canonicalHost(Uri uri) {
+  final host = uri.host;
+  return host.endsWith('.') ? host.substring(0, host.length - 1) : host;
 }

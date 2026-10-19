@@ -1180,6 +1180,77 @@ void main() {
         expect(server.authorizations, [null, 'Bearer google-key']);
       });
 
+      testWidgets('another server asks for its own key, and Cancel keeps '
+          'the stored one', (tester) async {
+        // #1257: saving an address on another server forgets the stored key,
+        // so "Key saved" over the new address described a key that would not
+        // be used — and hid the field the new server's key has to go in.
+        const gemini =
+            'https://generativelanguage.googleapis.com/v1beta/openai/';
+        final server = _Server.listing(const []);
+        await storage.writeOwnServerConfiguration(
+          endpoint: gemini,
+          model: 'gemini-3.1-pro',
+          provider: AiProvider.ownServer,
+        );
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+        final saved = find.textContaining(l10nEn.aiAssistKeySavedLabel);
+        final keyField = find.bySemanticsIdentifier('ai-assist-key-field');
+        final endpointField = find.bySemanticsIdentifier(
+          'ai-assist-endpoint-field',
+        );
+        expect(saved, findsOneWidget);
+        expect(keyField, findsNothing);
+
+        await tester.enterText(endpointField, 'https://other.example.org/v1');
+        await tester.pump();
+        expect(saved, findsNothing);
+        expect(keyField, findsOneWidget);
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(of: keyField, matching: find.byType(TextField)),
+              )
+              .controller!
+              .text,
+          isEmpty,
+        );
+
+        // A key typed for the other server is not kept behind the mask once
+        // the address is back on the saved one.
+        await tester.enterText(keyField, 'other-key');
+        await tester.enterText(endpointField, gemini);
+        await tester.pump();
+        expect(saved, findsOneWidget);
+        expect(keyField, findsNothing);
+
+        await tester.enterText(endpointField, 'https://other.example.org/v1');
+        await tester.pump();
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(of: keyField, matching: find.byType(TextField)),
+              )
+              .controller!
+              .text,
+          isEmpty,
+        );
+
+        await tester.tap(find.bySemanticsIdentifier('ai-assist-cancel'));
+        await tester.pumpAndSettle();
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          'google-key',
+          reason: 'Cancel deletes nothing',
+        );
+        // Moving focus to the key field commits the address and asks the
+        // other server for its models; the stored key never goes with it.
+        expect(server.authorizations, isNot(contains('Bearer google-key')));
+      });
+
       testWidgets('opening the dialog asks the server nothing', (tester) async {
         // The promise the README is built on is about what leaves the device
         // **and when**. For the three hosted providers, opening AI settings

@@ -131,6 +131,26 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// A key is really stored, so the field is replaced by a mask.
   bool _hasKey = false;
 
+  /// The address on file when the dialog loaded, which the stored key
+  /// belongs to.
+  String? _savedEndpoint;
+
+  /// Whether the stored key is the key for what the address field says now.
+  ///
+  /// A server the user runs keeps its key only on the server it was saved
+  /// for — saving an address on another one forgets it (#1257). So once the
+  /// field names another server, "Key saved" would be describing a key that
+  /// will not be used, over the very field the new server's key has to go
+  /// in. Nothing is deleted here: Cancel leaves the stored key as it was.
+  bool get _keyIsSaved =>
+      _hasKey &&
+      (_provider != AiProvider.ownServer ||
+          _savedEndpoint == null ||
+          AiCredentialStorage.sameServer(
+            _savedEndpoint!,
+            _endpointController.text,
+          ));
+
   /// This provider has what it needs to be used — a key for the hosted three,
   /// an **address** for a server the user runs.
   ///
@@ -304,6 +324,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     setState(() {
       _provider = provider;
       _hasKey = hasKey;
+      _savedEndpoint = summary.endpoint;
       _configured = summary.provider == null ? false : summary.configured;
       _enabled = summary.enabled;
       _model = AiModelCatalogue.resolve(provider, modelId);
@@ -408,6 +429,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// leaves a verdict for the address still in the field standing.
   void _endpointChanged() {
     setState(() {
+      // Back on the server the stored key belongs to, the field is hidden
+      // again; a key typed for the other server must not be saved over it
+      // from behind the mask.
+      if (_keyIsSaved) _apiKeyController.clear();
       _endpointError = null;
       _modelsGeneration++;
       _fetchingModels = false;
@@ -510,12 +535,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // as a bearer, before any save and even if the dialog was then cancelled
     // (#1257).
     final typedKey = _apiKeyController.text.trim();
-    final result = await _modelList.list(
-      url,
-      apiKey: typedKey.isNotEmpty
-          ? typedKey
-          : await _storedKeyFor(typed, provider),
-    );
+    final apiKey = typedKey.isNotEmpty
+        ? typedKey
+        : await widget.storage.apiKeyForServer(typed, provider: provider);
+    // Checked before sending as well as after: a lookup superseded while the
+    // key was being read would otherwise still carry it to an address the
+    // user has already moved on from.
+    if (!mounted || generation != _modelsGeneration) return;
+    final result = await _modelList.list(url, apiKey: apiKey);
 
     // Dropping this one loses nothing: a newer request writes every field it
     // would have, and a provider switch has already cleared them.
@@ -525,16 +552,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _modelIds = result.failure == null ? result.ids : null;
       _modelListFailure = result.failure;
     });
-  }
-
-  /// The key stored for [provider], but only while [typed] names the server
-  /// it was stored with; null for any other address.
-  Future<String?> _storedKeyFor(String typed, AiProvider provider) async {
-    final stored = await widget.storage.readEndpoint(provider: provider);
-    if (stored == null || !AiCredentialStorage.sameServer(stored, typed)) {
-      return null;
-    }
-    return widget.storage.readApiKey(provider: provider);
   }
 
   Future<void> _selectProvider(AiProvider provider) async {
@@ -952,8 +969,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // server the user runs is usable on an address alone, and
                     // its key stays optional afterwards — so the field has to
                     // remain reachable there rather than being replaced by a
-                    // mask over an empty slot.
-                    if (_hasKey)
+                    // mask over an empty slot. And on whether that key is for
+                    // the server the address field names — see [_keyIsSaved].
+                    if (_keyIsSaved)
                       Row(
                         children: [
                           const Icon(Icons.key_rounded, size: 18),
