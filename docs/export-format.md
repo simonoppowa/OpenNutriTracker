@@ -34,6 +34,7 @@ next to its CSV counterpart will not find one.
 | `custom_meals.json`              | Saved custom meals (fork addition). See [below](#custom_mealsjson). |
 | `user_profile.json`              | Profile (fork addition). See [below](#user_profilejson). |
 | `app_settings.json`              | Device-wide settings (fork addition). See [below](#app_settingsjson). |
+| `goal_targets.json`              | The profile's own goals (fork addition). See [below](#goal_targetsjson). |
 | `profiles.json`, `profiles/<id>/…` | Every other profile (fork addition). See [All profiles](#all-profiles-fork). |
 
 **CSV bundle**
@@ -363,6 +364,26 @@ user's behalf), the demo flag, the goals (in `goal_settings.json`), the
 health-import state, and the day boundary (`dayStartOffset…`), which decides
 how tracked days are keyed. Theme and language apply on the next app start.
 
+### `goal_targets.json`
+
+Added by this fork (#32). The profile's own goals next to upstream's
+`goal_settings.json`: a fixed kcal goal instead of the calculated one, and
+macro goals in grams instead of a split. Unset values mean the app's
+calculation. On restore it replaces the profile's own goals when *Also
+restore profile, goals and settings* is on; a backup without the file (from
+before #32) leaves them as they are, like the fork's other optional files.
+
+```jsonc
+{
+  "kcalMode": "fixed",      // calculated | fixed
+  "fixedKcal": 2100.0,      // 800–10000, null when unset
+  "macroMode": "grams",     // percent | grams
+  "carbsG": 220.0,          // 0–1000 each, null when unset
+  "fatG": 70.0,
+  "proteinG": 160.0
+}
+```
+
 ## All profiles (fork)
 
 This fork's JSON bundle covers **every profile** on the device, not only the
@@ -388,7 +409,7 @@ active one (`ProfilesBackup`):
 - Each other profile has a folder `profiles/<id>/` with its per-profile files:
   `user_activity.json`, `user_intake.json`, `user_tracked_day.json`,
   `weight_log.json`, `goal_settings.json`, `water_intake.json`,
-  `fasting_sessions.json`, `user_profile.json`. Photos on their diary entries go to the top level
+  `fasting_sessions.json`, `user_profile.json`, `goal_targets.json`. Photos on their diary entries go to the top level
   with the others. Profile pictures are not part of the bundle.
 
 On import the top level goes into the **active** profile (which takes the main

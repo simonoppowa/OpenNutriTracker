@@ -14,13 +14,14 @@ import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
+import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/profiles_backup.dart';
 
 /// The data this fork adds to the JSON backup on top of upstream's files:
 /// the water log, the fasting sessions, the saved custom meals, the user
-/// profile and the device-wide app settings.
+/// profile, the profile's own goals and the device-wide app settings.
 ///
 /// Kept apart from `ExportDataUsecase` / `ImportDataUsecase` so the fork's
 /// additions stay in one place and upstream merges touch as little as
@@ -34,6 +35,10 @@ class PersonalBackupExtras {
   static const userProfileFileName = 'user_profile.json';
   static const appSettingsFileName = 'app_settings.json';
   static const fastingSessionsFileName = 'fasting_sessions.json';
+
+  /// The profile's own goals (#32, [GoalTargets]); kept apart from
+  /// upstream's `goal_settings.json` so its format stays upstream's.
+  static const goalTargetsFileName = 'goal_targets.json';
 
   /// The `ConfigDBO` JSON keys that `app_settings.json` carries: the
   /// device-wide preferences. Left out on purpose are the legal and consent
@@ -112,7 +117,13 @@ class PersonalBackupExtras {
         _userToJson(await _userDataSource.getUserData()),
       );
     }
-    final config = (await _configDataSource.getConfig()).toJson();
+    final stored = await _configDataSource.getConfig();
+    _addJson(
+      archive,
+      goalTargetsFileName,
+      GoalTargets.fromConfigDBO(stored).toJson(),
+    );
+    final config = stored.toJson();
     _addJson(archive, appSettingsFileName, {
       for (final key in appSettingKeys)
         if (config.containsKey(key)) key: config[key],
@@ -167,6 +178,10 @@ class PersonalBackupExtras {
           })
         : null;
 
+    final goalTargets = includeProfileAndSettings
+        ? _decodeMap(archive.findFile(goalTargetsFileName), GoalTargets.fromJson)
+        : null;
+
     final profiles = _profiles?.prepareRestore(
       archive,
       includeProfileAndSettings: includeProfileAndSettings,
@@ -191,6 +206,9 @@ class PersonalBackupExtras {
         await _configDataSource.addConfig(
           ConfigDBO.fromJson({...current, ...settings}),
         );
+      }
+      if (goalTargets != null) {
+        await _configDataSource.setGoalTargets(goalTargets);
       }
       await profiles?.write();
     }

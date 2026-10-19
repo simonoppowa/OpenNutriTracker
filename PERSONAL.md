@@ -32,6 +32,7 @@ vervollständigt.
 | Wasser | Schnellbuttons +250 ml, +500 ml und eine eigene Menge (Profil → Eigene Schnellmenge, ConfigDBO-Feld 103, im Backup) im Wasser-Dialog, Snackbar mit Rückgängig | #29 |
 | Wasser | Einträge des Tages (Uhrzeit, Menge) im Wasser-Dialog und im Tagebuch, einzeln löschbar nach Bestätigung; Home und Trends aktualisieren sich | #30 |
 | Wasser | Fortschrittsbalken in der Kalorien-Karte auf Home (ersetzt den Wasser-Chip, Tap öffnet den Wasser-Dialog) und im Tagebuch gegen das Tagesziel | #31 |
+| Ziele | Zielmodell pro Profil: festes Kalorienziel und Makros in Gramm (ConfigDBO-Felder 104–109, `GoalTargets`, `MacroGoalResolver`), im Backup als `goal_targets.json` | #32 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

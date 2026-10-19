@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:archive/archive.dart';
+import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/core/data/data_source/profile_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
@@ -64,6 +65,7 @@ class ProfilesBackup {
     PersonalBackupExtras.waterIntakeFileName,
     PersonalBackupExtras.fastingSessionsFileName,
     PersonalBackupExtras.userProfileFileName,
+    PersonalBackupExtras.goalTargetsFileName,
   ];
 
   final HiveDBProvider _db;
@@ -312,6 +314,13 @@ class ProfilesBackup {
         if (folder.findFile(goalSettingsFileName) != null) {
           GoalSettingsBackup.fromJson(
             read(goalSettingsFileName) as Map<String, dynamic>,
+          );
+        }
+        if (folder.findFile(PersonalBackupExtras.goalTargetsFileName) !=
+            null) {
+          GoalTargets.fromJson(
+            read(PersonalBackupExtras.goalTargetsFileName)
+                as Map<String, dynamic>,
           );
         }
         if (folder.findFile(PersonalBackupExtras.userProfileFileName) != null) {

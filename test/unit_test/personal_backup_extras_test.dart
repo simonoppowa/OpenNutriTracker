@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/data/data_source/water_intake_data_source.
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
+import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
@@ -448,6 +449,75 @@ void main() {
       (await configDataSource.getConfig()).selectedAppTheme,
       AppThemeDBO.light,
     );
+  });
+
+  group('own goals', () {
+    const targets = GoalTargets(
+      kcalMode: KcalGoalMode.fixed,
+      fixedKcal: 2100,
+      macroMode: MacroGoalMode.grams,
+      carbsG: 220,
+      fatG: 70,
+      proteinG: 160,
+    );
+
+    test('are written as goal_targets.json and restored', () async {
+      await configDataSource.setGoalTargets(targets);
+      final archive = await exportArchive();
+      expect(
+        archive.findFile(PersonalBackupExtras.goalTargetsFileName),
+        isNotNull,
+      );
+      await configDataSource.setGoalTargets(const GoalTargets());
+
+      await extras.prepareRestore(archive).write();
+
+      expect(
+        GoalTargets.fromConfigDBO(await configDataSource.getConfig()),
+        targets,
+      );
+    });
+
+    test('stay as they are when the user opts out of settings', () async {
+      final archive = await exportArchive();
+      await configDataSource.setGoalTargets(targets);
+
+      await extras
+          .prepareRestore(archive, includeProfileAndSettings: false)
+          .write();
+
+      expect(
+        GoalTargets.fromConfigDBO(await configDataSource.getConfig()),
+        targets,
+      );
+    });
+
+    test('an invalid file is rejected before anything is written', () async {
+      final archive = Archive()
+        ..addFile(
+          ArchiveFile.bytes(
+            PersonalBackupExtras.goalTargetsFileName,
+            utf8.encode('{"fixedKcal": 12}'),
+          ),
+        );
+
+      expect(
+        () => extras.prepareRestore(archive),
+        throwsA(isA<ExportImportFailure>()),
+      );
+    });
+
+    test('belong to the profile, not the device', () async {
+      await configDataSource.setGoalTargets(targets);
+
+      await configBox.clear();
+
+      expect(
+        GoalTargets.fromConfigDBO(await configDataSource.getConfig()),
+        const GoalTargets(),
+        reason: 'a profile without its own config box has no own goals',
+      );
+    });
   });
 
   group('fasting sessions', () {

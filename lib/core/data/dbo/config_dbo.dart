@@ -202,6 +202,20 @@ class ConfigDBO extends HiveObject {
   // The amount of the third water quick-add button, in ml.
   @HiveField(103)
   int? waterQuickAmountMl;
+  // The profile's own goals (#32, see GoalTargets): kcal mode and fixed
+  // kcal goal, macro mode and macro goals in grams.
+  @HiveField(104)
+  String? kcalGoalMode;
+  @HiveField(105)
+  double? fixedKcalGoal;
+  @HiveField(106)
+  String? macroGoalMode;
+  @HiveField(107)
+  double? carbGoalG;
+  @HiveField(108)
+  double? fatGoalG;
+  @HiveField(109)
+  double? proteinGoalG;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -245,6 +259,12 @@ class ConfigDBO extends HiveObject {
     this.backupReminderDays,
     this.confirmedStoreBarcodes,
     this.waterQuickAmountMl,
+    this.kcalGoalMode,
+    this.fixedKcalGoal,
+    this.macroGoalMode,
+    this.carbGoalG,
+    this.fatGoalG,
+    this.proteinGoalG,
   });
 
   factory ConfigDBO.empty() =>

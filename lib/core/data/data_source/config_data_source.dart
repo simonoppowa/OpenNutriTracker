@@ -1,5 +1,6 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -56,6 +57,12 @@ class ConfigDataSource {
       merged.userFatGoalPct = profile.userFatGoalPct;
       merged.mealKcalSharesPct = profile.mealKcalSharesPct;
       merged.dailyWaterGoalMl = profile.dailyWaterGoalMl;
+      merged.kcalGoalMode = profile.kcalGoalMode;
+      merged.fixedKcalGoal = profile.fixedKcalGoal;
+      merged.macroGoalMode = profile.macroGoalMode;
+      merged.carbGoalG = profile.carbGoalG;
+      merged.fatGoalG = profile.fatGoalG;
+      merged.proteinGoalG = profile.proteinGoalG;
       merged.healthImportEnabled = profile.healthImportEnabled;
       merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
       merged.healthLastImportAt = profile.healthLastImportAt;
@@ -72,6 +79,12 @@ class ConfigDataSource {
       merged.userFatGoalPct = null;
       merged.mealKcalSharesPct = null;
       merged.dailyWaterGoalMl = null;
+      merged.kcalGoalMode = null;
+      merged.fixedKcalGoal = null;
+      merged.macroGoalMode = null;
+      merged.carbGoalG = null;
+      merged.fatGoalG = null;
+      merged.proteinGoalG = null;
       merged.healthImportEnabled = null;
       merged.healthWorkoutKcalMultiplier = null;
       merged.healthLastImportAt = null;
@@ -326,6 +339,11 @@ class ConfigDataSource {
           : Map<String, int>.from(mealKcalSharesPct);
       c.dailyWaterGoalMl = dailyWaterGoalMl;
     });
+  }
+
+  /// Stores the active profile's own goals (#32).
+  Future<void> setGoalTargets(GoalTargets targets) async {
+    await _update(targets.applyTo);
   }
 
   Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
