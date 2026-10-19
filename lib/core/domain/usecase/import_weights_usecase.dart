@@ -140,6 +140,9 @@ class ImportWeightsUsecase {
     final latestByDay = latestReadingPerDay(readings, filedDays: filedDays);
 
     final written = <String, ExternalWeight>{};
+    // Set when the run stops filing early. Rows it already filed still get
+    // their derived state settled below; only further writes stop.
+    var stopped = false;
     for (final MapEntry(key: day, value: reading) in latestByDay.entries) {
       // Everything a write depends on is read fresh, right before it, rather
       // than taken from before the platform read, which is long:
@@ -153,7 +156,10 @@ class ImportWeightsUsecase {
       //  * the row itself, last, because a weight the user logged meanwhile
       //    is a manual entry and must not be overwritten.
       final current = await _configRepository.getConfig();
-      if (!_mayWrite(profileId, current)) return written.length;
+      if (!_mayWrite(profileId, current)) {
+        stopped = true;
+        break;
+      }
       if (current.healthDeletedExternalIds.contains(reading.id)) continue;
       // An earlier reading from a deleted day, which the health store hands
       // back once the deleted newest one is gone from it too.
@@ -162,7 +168,10 @@ class ImportWeightsUsecase {
         continue;
       }
       final existing = await _weightLogRepository.getEntry(day);
-      if (!_stillOnProfile(profileId)) return written.length;
+      if (!_stillOnProfile(profileId)) {
+        stopped = true;
+        break;
+      }
       if (existing != null && !existing.isImported) continue;
       if (existing?.externalId == reading.id &&
           existing?.weightKg == reading.weightKg) {
@@ -182,8 +191,12 @@ class ImportWeightsUsecase {
     // Every run, not only one that filed something: the current weight is
     // derived from the log as it stands, so a run killed between filing its
     // newest reading and updating the weight is finished by the next one,
-    // however long that takes to come.
+    // however long that takes to come. A run that stopped early settles it
+    // too — import switched off while its last write was under way leaves
+    // that row in the log, and nothing would reconcile it later.
     final weightChanged = await _updateCurrentWeight(profileId);
+    if (written.isNotEmpty || weightChanged) _weightsImported.add(null);
+    if (stopped) return written.length;
 
     // Every write from here on resolves its box from whichever profile is
     // active at the moment of the call, so each is checked right before it
@@ -214,7 +227,6 @@ class ImportWeightsUsecase {
         'health store',
       );
     }
-    if (written.isNotEmpty || weightChanged) _weightsImported.add(null);
     return written.length;
   }
 
@@ -281,7 +293,9 @@ class ImportWeightsUsecase {
   ///
   /// Bound to [profileId]: each read and the write are checked against it
   /// right before they are made, so a switch mid-way cannot carry this
-  /// profile's weight into another, nor a wipe bring a user back.
+  /// profile's weight into another, nor a wipe bring a user back. It does
+  /// not ask whether weight import is still on: it settles rows already in
+  /// the log, which turning the import off does not remove.
   Future<bool> _updateCurrentWeight(String profileId) async {
     if (!await _userRepository.hasUserData()) return false;
     if (!_stillOnProfile(profileId)) return false;
@@ -290,7 +304,6 @@ class ImportWeightsUsecase {
       _hiveDBProvider.profileBox.get(profileId)?.createdAt,
     );
     if (candidate == null) return false;
-    if (!await _mayStillWrite(profileId)) return false;
     if (!await _userRepository.hasUserData()) return false;
     if (!_stillOnProfile(profileId)) return false;
     // The log again, after the guards: a weight the user entered while they

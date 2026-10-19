@@ -109,6 +109,20 @@ class _EditingUserRepository extends UserRepository {
   }
 }
 
+/// Runs [afterWrite] once each filed entry has been stored, to land a change
+/// while the import's write is still being awaited.
+class _HookedWeightLogRepository extends WeightLogRepository {
+  Future<void> Function()? afterWrite;
+
+  _HookedWeightLogRepository(super.weightLogDataSource);
+
+  @override
+  Future<void> addEntry(WeightLogEntity entry) async {
+    await super.addEntry(entry);
+    await afterWrite?.call();
+  }
+}
+
 ExternalWeight _reading(String id, DateTime at, double kg) => ExternalWeight(
   id: id,
   measuredAt: at,
@@ -450,6 +464,37 @@ void main() {
       await usecase.importNow();
 
       expect((await userRepository.getUserData()).weightKG, equals(79.5));
+    });
+
+    test('turning import off during the last write still settles it', () async {
+      final hookedLog = _HookedWeightLogRepository(
+        WeightLogDataSource(provider),
+      );
+      hookedLog.afterWrite = () =>
+          configDataSource.setConfigHealthWeightImportEnabled(false);
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        configRepository,
+        hookedLog,
+        userRepository,
+        provider,
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+      var events = 0;
+      final subscription = usecase.weightsImported.listen((_) => events++);
+      addTearDown(subscription.cancel);
+
+      expect(await usecase.importNow(), equals(1));
+      await Future<void>.delayed(Duration.zero);
+
+      expect((await weightLogRepository.getEntry(today))!.externalId, 'c');
+      expect((await userRepository.getUserData()).weightKG, equals(78.5));
+      expect(events, equals(1));
+      // Turned off, so no watermark is recorded for the run.
+      expect(
+        (await configRepository.getConfig()).healthWeightLastImportAt,
+        isNull,
+      );
     });
 
     test(
