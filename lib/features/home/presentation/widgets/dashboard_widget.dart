@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/water_progress_bar.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -22,6 +23,12 @@ class DashboardWidget extends StatefulWidget {
   final double totalFatsGoal;
   final double totalProteinsGoal;
 
+  /// Water drunk today and the goal, shown under the calorie gauge (#31);
+  /// no water bar when null.
+  final int? waterMl;
+  final int? waterGoalMl;
+  final VoidCallback? onWaterTap;
+
   const DashboardWidget({
     super.key,
     required this.totalKcalSupplied,
@@ -34,6 +41,9 @@ class DashboardWidget extends StatefulWidget {
     required this.totalCarbsGoal,
     required this.totalFatsGoal,
     required this.totalProteinsGoal,
+    this.waterMl,
+    this.waterGoalMl,
+    this.onWaterTap,
   });
 
   @override
@@ -173,6 +183,14 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     ),
                   ),
                 ),
+                if (widget.waterMl != null && widget.waterGoalMl != null) ...[
+                  const SizedBox(height: Dimens.spacing16),
+                  WaterProgressBar(
+                    currentMl: widget.waterMl!,
+                    goalMl: widget.waterGoalMl!,
+                    onTap: widget.onWaterTap,
+                  ),
+                ],
               ],
             ),
           ),

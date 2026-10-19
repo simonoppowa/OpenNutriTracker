@@ -10,20 +10,26 @@ class DayWaterLog {
   final DeleteWaterIntakeUsecase _deleteWaterIntake;
   final Future<int> Function() _dayStartOffsetMinutes;
   final VoidCallback _onChanged;
+  final Future<int> Function()? _goalMl;
 
   /// Goes up whenever entries were added or deleted, so a shown list
   /// reloads.
   final ValueNotifier<int> revision = ValueNotifier(0);
 
   /// [onChanged] runs after a delete here, to refresh the screens that
-  /// show water totals.
+  /// show water totals; [goalMl] gives the daily goal for the progress bar.
   DayWaterLog(
     this._getWaterIntake,
     this._deleteWaterIntake, {
     required Future<int> Function() dayStartOffsetMinutes,
     required VoidCallback onChanged,
+    Future<int> Function()? goalMl,
   }) : _dayStartOffsetMinutes = dayStartOffsetMinutes,
-       _onChanged = onChanged;
+       _onChanged = onChanged,
+       _goalMl = goalMl;
+
+  /// The daily water goal, or null when none is known.
+  Future<int?> goalMl() async => _goalMl?.call();
 
   /// The entries of the logical day starting on the calendar date [day],
   /// earliest first.

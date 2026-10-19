@@ -28,7 +28,7 @@ import 'package:opennutritracker/features/home/presentation/widgets/dashboard_wi
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/backup_reminder_card.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/quick_water_widget.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/log_water_dialog.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_weight_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -183,21 +183,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Dimens.spacing16,
                 Dimens.spacing4,
               ),
-              // Wrap rather than Row so the two chips drop onto a second line
-              // at large text scale instead of overflowing off the edge.
-              child: Wrap(
-                spacing: Dimens.spacing12,
-                runSpacing: Dimens.spacing8,
-                children: [
-                  QuickWeightWidget(
-                    weightKg: userWeightKg,
-                    bodyWeightUnit: bodyWeightUnit,
-                  ),
-                  QuickWaterWidget(
-                    waterMlToday: waterMlToday,
-                    waterGoalMl: waterGoalMl,
-                  ),
-                ],
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: QuickWeightWidget(
+                  weightKg: userWeightKg,
+                  bodyWeightUnit: bodyWeightUnit,
+                ),
               ),
             ),
             const FastingHomeChip(),
@@ -214,6 +205,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               totalCarbsGoal: totalCarbsGoal,
               totalFatsGoal: totalFatsGoal,
               totalProteinsGoal: totalProteinsGoal,
+              waterMl: waterMlToday,
+              waterGoalMl: waterGoalMl,
+              onWaterTap: () => showDialog<void>(
+                context: context,
+                builder: (_) => const LogWaterDialog(),
+              ),
             ),
             // Day-one / empty-day guidance: when nothing is logged yet, point
             // the way to the centre + rather than leaving a silent dashboard.

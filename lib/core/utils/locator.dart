@@ -683,6 +683,14 @@ Future<void> initLocator() async {
       dayStartOffsetMinutes: () async =>
           (await locator<GetConfigUsecase>().getConfig())
               .dayStartOffsetTotalMinutes,
+      goalMl: () async {
+        final config = await locator<GetConfigUsecase>().getConfig();
+        final user = await locator<GetUserUsecase>().getUserData();
+        return config.effectiveDailyWaterGoalMl(
+          user.gender,
+          caloriesProfile: user.caloriesProfile,
+        );
+      },
       onChanged: () {
         locator<HomeBloc>().add(const LoadItemsEvent());
         final trendsBloc = locator<TrendsBloc>();

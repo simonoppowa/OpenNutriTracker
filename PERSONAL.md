@@ -31,6 +31,7 @@ vervollständigt.
 | Open Food Facts | Opt-in „Beiträge an Open Food Facts“: nach dem Speichern eines gescannten Lebensmittels mit Barcode Vorschau der Nährwerte, Senden nur nach Bestätigung, nie über vorhandene Werte; Zugangsdaten nur in der Keychain; Testserver standardmäßig an. Bewusste Ausnahme von „keine externen Dienste“ | #81 |
 | Wasser | Schnellbuttons +250 ml, +500 ml und eine eigene Menge (Profil → Eigene Schnellmenge, ConfigDBO-Feld 103, im Backup) im Wasser-Dialog, Snackbar mit Rückgängig | #29 |
 | Wasser | Einträge des Tages (Uhrzeit, Menge) im Wasser-Dialog und im Tagebuch, einzeln löschbar nach Bestätigung; Home und Trends aktualisieren sich | #30 |
+| Wasser | Fortschrittsbalken in der Kalorien-Karte auf Home (ersetzt den Wasser-Chip, Tap öffnet den Wasser-Dialog) und im Tagebuch gegen das Tagesziel | #31 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

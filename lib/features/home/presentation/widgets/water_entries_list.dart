@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/features/home/domain/day_water_log.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/water_progress_bar.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// The water entries of [day] (the current logical day when null) with
@@ -28,6 +29,7 @@ class WaterEntriesList extends StatefulWidget {
 
 class _WaterEntriesListState extends State<WaterEntriesList> {
   List<WaterIntakeEntity> _entries = const [];
+  int? _goalMl;
   int _loadGeneration = 0;
 
   @override
@@ -59,8 +61,12 @@ class _WaterEntriesListState extends State<WaterEntriesList> {
     final entries = day == null
         ? await widget.log.entriesForToday()
         : await widget.log.entriesFor(day);
+    final goalMl = widget.showTitle ? await widget.log.goalMl() : null;
     if (mounted && generation == _loadGeneration) {
-      setState(() => _entries = entries);
+      setState(() {
+        _entries = entries;
+        _goalMl = goalMl;
+      });
     }
   }
 
@@ -100,7 +106,7 @@ class _WaterEntriesListState extends State<WaterEntriesList> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (widget.showTitle)
+        if (widget.showTitle) ...[
           Padding(
             padding: const EdgeInsets.only(bottom: Dimens.spacing4),
             child: Row(
@@ -115,10 +121,17 @@ class _WaterEntriesListState extends State<WaterEntriesList> {
                     ),
                   ),
                 ),
-                Text('$total ${s.mlLabel}', style: textTheme.titleSmall),
+                if (_goalMl == null)
+                  Text('$total ${s.mlLabel}', style: textTheme.titleSmall),
               ],
             ),
           ),
+          if (_goalMl != null)
+            Padding(
+              padding: const EdgeInsets.only(right: Dimens.spacing12),
+              child: WaterProgressBar(currentMl: total, goalMl: _goalMl!),
+            ),
+        ],
         for (final (index, entry) in _entries.indexed)
           Row(
             children: [

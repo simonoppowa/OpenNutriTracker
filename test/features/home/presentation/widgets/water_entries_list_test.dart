@@ -141,4 +141,19 @@ void main() {
 
     expect(find.text('22:00 · 200 ml'), findsOneWidget);
   });
+
+  testWidgets('in the diary the total shows against the goal', (tester) async {
+    log = DayWaterLog(
+      GetWaterIntakeUsecase(repository),
+      DeleteWaterIntakeUsecase(repository),
+      dayStartOffsetMinutes: () async => 0,
+      onChanged: () {},
+      goalMl: () async => 2000,
+    );
+
+    await pumpList(tester, DateTime(2026, 10, 19));
+
+    expect(find.text('1080 / 2000 ml'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+  });
 }

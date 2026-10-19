@@ -103,4 +103,58 @@ void main() {
       semanticsHandle.dispose();
     },
   );
+
+  testWidgets('the water bar sits in the calorie card and opens on tap', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(500, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    var waterTaps = 0;
+    await tester.pumpWidget(
+      _wrap(
+        DashboardWidget(
+          totalKcalSupplied: 800,
+          totalKcalBurned: 200,
+          totalKcalDaily: 2500,
+          totalKcalLeft: 1900,
+          totalCarbsIntake: 100,
+          totalFatsIntake: 30,
+          totalProteinsIntake: 60,
+          totalCarbsGoal: 375,
+          totalFatsGoal: 69,
+          totalProteinsGoal: 93,
+          waterMl: 750,
+          waterGoalMl: 2000,
+          onWaterTap: () => waterTaps++,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('750 / 2000 ml'), findsOneWidget);
+    await tester.tap(find.bySemanticsIdentifier('water-progress'));
+    expect(waterTaps, 1);
+  });
+
+  testWidgets('without water values there is no water bar', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        const DashboardWidget(
+          totalKcalSupplied: 800,
+          totalKcalBurned: 200,
+          totalKcalDaily: 2500,
+          totalKcalLeft: 1900,
+          totalCarbsIntake: 100,
+          totalFatsIntake: 30,
+          totalProteinsIntake: 60,
+          totalCarbsGoal: 375,
+          totalFatsGoal: 69,
+          totalProteinsGoal: 93,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsIdentifier('water-progress'), findsNothing);
+  });
 }
