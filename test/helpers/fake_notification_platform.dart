@@ -55,6 +55,16 @@ class FakeNotificationPlatform {
           pending.remove(arguments['id']);
         case 'cancelAll':
           pending.clear();
+        case 'pendingNotificationRequests':
+          return [
+            for (final arguments in pending.values)
+              {
+                'id': arguments['id'],
+                'title': arguments['title'],
+                'body': arguments['body'],
+                'payload': arguments['payload'],
+              },
+          ];
       }
       return true;
     });

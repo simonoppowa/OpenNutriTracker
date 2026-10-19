@@ -207,6 +207,21 @@ void main() {
       expect(config.writes, contains(#setIsDemoData));
     });
 
+    test('a stale alarm a cancel cannot clear leaves it on', () async {
+      // Reads off, but a delete-all whose cancel failed left the alarm.
+      final config = _Config(notificationsEnabled: true);
+      final (:bloc, :scheduler) = build(config);
+      await scheduler.refresh(locale: const Locale('en'));
+      config.notificationsEnabled = false;
+
+      platform.failNextCancel = true;
+      await finishOnboarding(bloc, dailyReminderEnabled: false);
+
+      expect(platform.pending.keys, [0]);
+      expect(config.notificationsEnabled, isTrue);
+      expect(config.writes, contains(#setIsDemoData));
+    });
+
     test('a cancel that fails leaves it on, as the alarm still is', () async {
       // Onboarding a second profile, with the reminder already set.
       final config = _Config(notificationsEnabled: true);

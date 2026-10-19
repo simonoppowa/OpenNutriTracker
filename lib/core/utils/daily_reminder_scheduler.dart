@@ -69,6 +69,11 @@ class DailyReminderScheduler {
   ///   stays.
   /// - the flag reads off while an alarm may be set: the alarm is
   ///   cancelled, or, if the OS refuses that, the flag is put back to on.
+  ///   A cancel that fails while the flag already read off is the one case
+  ///   where this call cannot know: an earlier failure, such as a [stopAll]
+  ///   whose cancel failed, may have left an alarm. The OS is asked, and
+  ///   the flag goes to on only if it holds one, so a reminder the user
+  ///   never had is not switched on.
   ///
   /// Should that fail as well, the switch reads off with an alarm still
   /// set, which the next [reschedule] cancels.
@@ -103,8 +108,11 @@ class DailyReminderScheduler {
   }) async {
     try {
       final saved = (await _configRepository.getConfig()).notificationsEnabled;
-      if (saved || !alarmSet) return;
-      if (!cancelFailed) {
+      if (saved) return;
+      if (cancelFailed) {
+        if (!alarmSet && !await _reminderPending()) return;
+      } else {
+        if (!alarmSet) return;
         try {
           await _notificationService.cancelDailyReminder();
           return;
@@ -144,6 +152,21 @@ class DailyReminderScheduler {
       await _notificationService.cancelAllScheduled();
     }
   });
+
+  /// Whether the OS holds the reminder; false if it cannot say, which
+  /// leaves an alarm, if there is one, to the next [reschedule].
+  Future<bool> _reminderPending() async {
+    try {
+      return await _notificationService.isDailyReminderPending();
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not ask whether the daily reminder is set',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
 
   /// Runs [operation] once every earlier one has finished, failed or not.
   Future<void> _serialized(Future<void> Function() operation) {

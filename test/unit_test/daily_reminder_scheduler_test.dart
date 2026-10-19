@@ -74,6 +74,9 @@ class _RecordingNotificationService extends NotificationService {
   }
 
   @override
+  Future<bool> isDailyReminderPending() async => pending != null;
+
+  @override
   Future<void> cancelDailyReminder() async {
     if (failNextCancel) {
       failNextCancel = false;
@@ -435,6 +438,39 @@ void main() {
       // The alarm is still set, so the switch must read on with it.
       expect(platform.pending.keys, [0]);
       expect(config.config.notificationsEnabled, isTrue);
+    });
+
+    test('a cancel that fails over a stale alarm puts "on" back', () async {
+      // Reads off, but an earlier failure (a delete-all whose cancel
+      // failed) left the alarm set.
+      final config = _Config(_config(enabled: true));
+      final scheduler = DailyReminderScheduler(config, NotificationService());
+      await scheduler.refresh(locale: const Locale('en'));
+      config.config = _config(enabled: false);
+
+      platform.failNextCancel = true;
+      await expectLater(
+        scheduler.setEnabled(false, locale: const Locale('en')),
+        throwsA(isA<PlatformException>()),
+      );
+
+      expect(platform.pending.keys, [0]);
+      expect(config.config.notificationsEnabled, isTrue);
+    });
+
+    test('a cancel that fails with no alarm set leaves it off', () async {
+      // A first run that leaves the reminder off must not turn it on.
+      final config = _Config(_config(enabled: false));
+      final scheduler = DailyReminderScheduler(config, NotificationService());
+
+      platform.failNextCancel = true;
+      await expectLater(
+        scheduler.setEnabled(false, locale: const Locale('en')),
+        throwsA(isA<PlatformException>()),
+      );
+
+      expect(platform.pending, isEmpty);
+      expect(config.config.notificationsEnabled, isFalse);
     });
 
     test('turning reminders off still cancels the alarm', () async {

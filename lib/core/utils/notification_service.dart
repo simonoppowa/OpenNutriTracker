@@ -132,6 +132,13 @@ class NotificationService {
     _log.fine('Daily reminder cancelled');
   }
 
+  /// Whether the OS holds a daily reminder right now.
+  Future<bool> isDailyReminderPending() async {
+    await _ensureInitialized();
+    final pending = await _plugin.pendingNotificationRequests();
+    return pending.any((request) => request.id == _dailyReminderId);
+  }
+
   /// Schedules a one-shot notification for the moment a fasting session is
   /// expected to reach its target. The OS owns delivery from here, so the
   /// app doesn't need to be running. Calling this twice replaces the
