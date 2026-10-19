@@ -42,7 +42,7 @@ class _FakeAddWeightLogUsecase extends Fake implements AddWeightLogUsecase {
 class _FakeDeleteWeightLogUsecase extends Fake
     implements DeleteWeightLogUsecase {
   @override
-  Future<void> deleteEntry(DateTime date) async {}
+  Future<bool> deleteEntry(DateTime date) async => false;
 }
 
 class _FakeConfigRepository extends Fake implements ConfigRepository {

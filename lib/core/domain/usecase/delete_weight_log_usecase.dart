@@ -1,13 +1,20 @@
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 class DeleteWeightLogUsecase {
   final WeightLogRepository _weightLogRepository;
   final ConfigRepository _configRepository;
+  final UserRepository _userRepository;
 
-  DeleteWeightLogUsecase(this._weightLogRepository, this._configRepository);
+  DeleteWeightLogUsecase(
+    this._weightLogRepository,
+    this._configRepository,
+    this._userRepository,
+  );
 
   /// Deletes the entry on [date] from the profile active at the call.
   ///
@@ -16,14 +23,18 @@ class DeleteWeightLogUsecase {
   /// profile switch takes: a switch requested meanwhile waits for it, and a
   /// deletion queued behind a switch is dropped rather than applied to the
   /// profile switched to — its row, and the other profile's tombstones.
-  Future<void> deleteEntry(DateTime date) async {
-    await withTrackedDayLockOnProfile(
+  ///
+  /// Returns whether the user's current weight changed, in which case the
+  /// caller runs the refresh a weight change sets off.
+  Future<bool> deleteEntry(DateTime date) async {
+    final changed = await withTrackedDayLockOnProfile(
       () => _deleteEntry(date),
       startedOn: ProfileStamp.now(),
     );
+    return changed ?? false;
   }
 
-  Future<void> _deleteEntry(DateTime date) async {
+  Future<bool> _deleteEntry(DateTime date) async {
     final entry = await _weightLogRepository.getEntry(date);
     final externalId = entry?.externalId;
     if (externalId != null) {
@@ -58,5 +69,31 @@ class DeleteWeightLogUsecase {
       );
     }
     await _weightLogRepository.deleteEntry(date);
+    if (entry == null || !entry.isImported) return false;
+    return _replaceDeletedCurrentWeight(entry);
+  }
+
+  /// The health weight import makes its newest entry the current weight.
+  /// Deleting that entry has to take its weight back with it, or BMI and the
+  /// calorie goal keep using a reading the user removed — and with no other
+  /// imported entry left, no later import would correct them. The newest
+  /// remaining entry, manual or imported, takes its place; with none left
+  /// the current weight stays as it is.
+  ///
+  /// Only an imported entry, the newest in the log, whose weight is the
+  /// current one counts as having set it. Deleting a manual entry leaves the
+  /// current weight alone, as it always has.
+  Future<bool> _replaceDeletedCurrentWeight(WeightLogEntity deleted) async {
+    if (!await _userRepository.hasUserData()) return false;
+    final remaining = await _weightLogRepository.getAllEntries();
+    if (remaining.any((e) => e.date.isAfter(deleted.date))) return false;
+    final user = await _userRepository.getUserData();
+    if (user.weightKG != deleted.weightKg) return false;
+    if (remaining.isEmpty) return false;
+    final newest = remaining.reduce((a, b) => b.date.isAfter(a.date) ? b : a);
+    if (newest.weightKg == user.weightKG) return false;
+    user.weightKG = newest.weightKg;
+    await _userRepository.updateUserData(user);
+    return true;
   }
 }

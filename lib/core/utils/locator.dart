@@ -500,7 +500,7 @@ Future<void> initLocator() async {
     () => AddWeightLogUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<DeleteWeightLogUsecase>(
-    () => DeleteWeightLogUsecase(locator(), locator()),
+    () => DeleteWeightLogUsecase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<AddWaterIntakeUsecase>(
     () => AddWaterIntakeUsecase(locator()),

@@ -205,6 +205,7 @@ void main() {
     deleteUsecase = DeleteWeightLogUsecase(
       weightLogRepository,
       configRepository,
+      userRepository,
     );
 
     ImportWeightsUsecase.clock = () => now;
@@ -709,6 +710,32 @@ void main() {
         (await configRepository.getConfig()).healthDeletedExternalIds,
         isEmpty,
       );
+    });
+
+    test('deleting the entry that set the current weight restores the newest '
+        'remaining one', () async {
+      await weightLogRepository.addEntry(
+        WeightLogEntity(date: DateTime(2026, 5, 20), weightKg: 82.0),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+      await usecase.importNow();
+      expect((await userRepository.getUserData()).weightKG, equals(78.5));
+
+      expect(await deleteUsecase.deleteEntry(today), isTrue);
+
+      expect((await userRepository.getUserData()).weightKG, equals(82.0));
+    });
+
+    test('deleting an older imported entry leaves the current weight', () async {
+      healthService.weights = [
+        _reading('b', DateTime(2026, 5, 22, 7), 80.9),
+        _reading('c', DateTime(2026, 5, 23, 7), 78.5),
+      ];
+      await usecase.importNow();
+
+      expect(await deleteUsecase.deleteEntry(yesterday), isFalse);
+
+      expect((await userRepository.getUserData()).weightKG, equals(78.5));
     });
 
     test('deleting a manual entry leaves no tombstone', () async {

@@ -78,7 +78,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   /// Runs what saving a weight change sets off — today's calorie goal and
   /// every screen that reads the user — for a weight that reached the user
   /// record without going through [updateUser]. The health weight import
-  /// writes the current weight itself and calls this afterwards.
+  /// writes the current weight itself and calls this afterwards, as does
+  /// deleting the imported entry that weight came from.
   Future<void> reloadAfterWeightImport() async {
     final startedOn = ProfileStamp.now();
     final user = await _getUserUsecase.getUserData();
