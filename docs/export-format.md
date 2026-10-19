@@ -29,6 +29,7 @@ next to its CSV counterpart will not find one.
 | `weight_log.json`                | Weight history.                                          |
 | `custom_activity_templates.json` | Saved custom activities — name and typical kcal.         |
 | `goal_settings.json`             | The profile's goal settings. See [below](#goal_settingsjson). |
+| `water_intake.json`              | Water log (fork addition). See [below](#water_intakejson). |
 
 **CSV bundle**
 
@@ -279,6 +280,23 @@ Array of recipe records, each holding an `ingredients` list referencing
 external food items by code. The nested-ingredient shape makes CSV a poor fit
 here, so recipes ship as JSON only. See `lib/core/data/dbo/recipe_dbo.dart`
 for the precise field list.
+
+### `water_intake.json`
+
+Added by this fork (`PersonalBackupExtras`). One row per logged amount, keyed by
+`id`; importing the same bundle twice replaces the rows instead of adding them
+again. Missing in bundles from upstream or older builds, which then import
+without touching the water log.
+
+```jsonc
+[
+  {
+    "id": "8c5a…",                       // uuid, the box key
+    "dateTime": "2026-10-01T08:15:00.000",
+    "amountMl": 250
+  }
+]
+```
 
 ## CSV schema
 

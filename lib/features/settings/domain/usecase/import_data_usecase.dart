@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
+import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
 
 /// Opens the system file picker for a single file of any type and resolves
 /// to the pick, or to null when the user dismissed the picker.
@@ -42,6 +43,9 @@ class ImportDataUsecase {
   /// path, a pick of the wrong file) can only be driven from here.
   final PickImportFile _pickFile;
 
+  /// The fork's own backup files (water, …); see [PersonalBackupExtras].
+  final PersonalBackupExtras? _extras;
+
   ImportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
@@ -51,7 +55,9 @@ class ImportDataUsecase {
     this._customActivityTemplateRepository,
     this._configRepository, {
     PickImportFile pickFile = _pickAnyFile,
-  }) : _pickFile = pickFile;
+    PersonalBackupExtras? extras,
+  }) : _pickFile = pickFile,
+       _extras = extras;
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
   /// weight log, Custom activity template and goal settings data from a
@@ -134,6 +140,8 @@ class ImportDataUsecase {
             ),
           );
 
+    final restoreExtras = _extras?.prepareRestore(archive);
+
     await _userActivityRepository.upsertAllUserActivityDBOs(userActivityDBOs);
     await _intakeRepository.upsertAllIntakeDBOs(intakeDBOs);
     await _trackedDayRepository.addAllTrackedDays(trackedDayDBOs);
@@ -160,6 +168,7 @@ class ImportDataUsecase {
         dailyWaterGoalMl: goalSettings.dailyWaterGoalMl,
       );
     }
+    await restoreExtras?.call();
 
     // Restore any user-attached photos — recipes under `recipe_images/`
     // and custom meals under `meal_images/`. Each archive entry's name

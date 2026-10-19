@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/utils/export_write_verifier.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
+import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
 
 /// The two export shapes available from Settings → Export / Import App Data.
 /// JSON is the canonical backup-and-restore format the app re-imports from;
@@ -37,6 +38,9 @@ class ExportDataUsecase {
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
   final ConfigRepository _configRepository;
 
+  /// The fork's own backup files (water, …); see [PersonalBackupExtras].
+  final PersonalBackupExtras? _extras;
+
   ExportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
@@ -45,8 +49,9 @@ class ExportDataUsecase {
     this._customMealDataSource,
     this._weightLogRepository,
     this._customActivityTemplateRepository,
-    this._configRepository,
-  );
+    this._configRepository, {
+    PersonalBackupExtras? extras,
+  }) : _extras = extras;
 
   /// Exports user activity, intake, tracked day, recipe, weight-log and
   /// Custom activity template data, plus the profile's goal settings, to a
@@ -262,6 +267,8 @@ class ExportDataUsecase {
           goalSettingsBytes,
         ),
       );
+
+      await _extras?.addTo(archive);
     }
 
     return archive;

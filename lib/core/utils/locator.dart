@@ -125,6 +125,7 @@ import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
+import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
@@ -484,6 +485,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      extras: locator(),
     ),
   );
   locator.registerLazySingleton(
@@ -495,8 +497,10 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      extras: locator(),
     ),
   );
+  locator.registerLazySingleton(() => PersonalBackupExtras(locator()));
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));
   locator.registerLazySingleton(() => ImportRecipesCsvUsecase(locator()));
   locator.registerLazySingleton(() => DownloadSampleCsvUsecase());
