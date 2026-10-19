@@ -1561,5 +1561,21 @@
   "copyTargetTitle": "Copy to …",
   "copyFailedLabel": "Copying did not finish; check the target day.",
   "searchRegionLabel": "Search region",
-  "searchRegionHint": "Products sold here are ranked up in the Open Food Facts search."
+  "searchRegionHint": "Products sold here are ranked up in the Open Food Facts search.",
+  "bodyMeasurementsTitle": "Body measurements",
+  "bodyMeasureWaist": "Waist",
+  "bodyMeasureChest": "Chest",
+  "bodyMeasureArm": "Upper arm",
+  "bodyMeasureThigh": "Thigh",
+  "bodyMeasureHip": "Hip",
+  "bodyMeasurementAdd": "Add measurement",
+  "bodyMeasurementEdit": "Edit measurement",
+  "bodyMeasurementDateLabel": "Date",
+  "bodyMeasurementNoteLabel": "Note",
+  "bodyMeasurementNeedOne": "Enter at least one measure.",
+  "bodyMeasurementRange": "Enter {min} to {max} {unit}",
+  "@bodyMeasurementRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}, "unit": {"type": "String"}}},
+  "bodyMeasurementsEmpty": "No measurements yet. Add one to follow your waist, hips and more over time.",
+  "bodyMeasurementsChartEmpty": "Two measurements of this kind make a chart.",
+  "bodyMeasurementDeleteTitle": "Delete this measurement?"
 }

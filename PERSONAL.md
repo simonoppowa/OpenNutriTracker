@@ -47,6 +47,7 @@ vervollständigt.
 | Gewicht | Profilgewicht folgt immer dem jüngsten Eintrag im Gewichtsverlauf (auch beim Nachtragen, Bearbeiten, Löschen); bei einer Änderung werden Kalorienziel und Ansichten neu berechnet | #42 |
 | Gewicht | Tests für Lücken, Einzelwerte, Mehrfachmessungen und Jahreswechsel im 7-Tage-Mittel; Entscheidung gegen EMA in `docs/weight-trend.md` | #45 |
 | Körperumfänge | Datenmodell: Box `BodyMeasurementBox` pro Profil (JSON, keine neue Hive-typeId), Taille/Brust/Arm/Oberschenkel/Hüfte in cm, mindestens ein Wert; im Backup als `body_measurements.json` | #43 |
+| Körperumfänge | Profil → Körperumfänge: erfassen, bearbeiten, löschen, Verlauf pro Maß; cm oder Zoll nach der Größen-Einstellung | #44 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

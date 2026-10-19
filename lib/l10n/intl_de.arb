@@ -1510,5 +1510,20 @@
   "copyTargetTitle": "Kopieren nach …",
   "copyFailedLabel": "Kopieren hat nicht geklappt; bitte den Ziel-Tag prüfen.",
   "searchRegionLabel": "Suchregion",
-  "searchRegionHint": "Produkte aus diesem Land stehen in der Open-Food-Facts-Suche weiter oben."
+  "searchRegionHint": "Produkte aus diesem Land stehen in der Open-Food-Facts-Suche weiter oben.",
+  "bodyMeasurementsTitle": "Körperumfänge",
+  "bodyMeasureWaist": "Taille",
+  "bodyMeasureChest": "Brust",
+  "bodyMeasureArm": "Oberarm",
+  "bodyMeasureThigh": "Oberschenkel",
+  "bodyMeasureHip": "Hüfte",
+  "bodyMeasurementAdd": "Maße eintragen",
+  "bodyMeasurementEdit": "Maße bearbeiten",
+  "bodyMeasurementDateLabel": "Datum",
+  "bodyMeasurementNoteLabel": "Notiz",
+  "bodyMeasurementNeedOne": "Bitte mindestens ein Maß eintragen.",
+  "bodyMeasurementRange": "Bitte {min} bis {max} {unit} eingeben",
+  "bodyMeasurementsEmpty": "Noch keine Maße. Trag sie ein, um Taille, Hüfte und mehr im Verlauf zu sehen.",
+  "bodyMeasurementsChartEmpty": "Ab zwei Messungen dieses Maßes erscheint ein Verlauf.",
+  "bodyMeasurementDeleteTitle": "Diese Messung löschen?"
 }

@@ -30,6 +30,7 @@ import 'package:opennutritracker/features/profile/presentation/widgets/set_weekl
 import 'package:opennutritracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_target_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
+import 'package:opennutritracker/features/body_measurements/presentation/body_measurements_screen.dart';
 import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/water_quick_amount_dialog.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -229,6 +230,18 @@ class _ProfilePageState extends State<ProfilePage> {
               onTap: () => Navigator.of(
                 context,
               ).pushNamed(NavigationOptions.weightHistoryRoute),
+            ),
+            _ProfileTile(
+              identifier: 'profile-body-measurements',
+              palette: palette,
+              icon: Icons.straighten_rounded,
+              title: S.of(context).bodyMeasurementsTitle,
+              showChevron: true,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const BodyMeasurementsScreen(),
+                ),
+              ),
             ),
             _ProfileTile(
               identifier: 'profile-fasting-entry',
