@@ -461,15 +461,19 @@ class MealEntity extends Equatable {
   /// 100 g everywhere, but beverages are naturally measured in
   /// millilitres: BLS encodes its food group in the first letter of the
   /// source code, and groups N (alkoholfreie Getränke) and P (alkoholische
-  /// Getränke) are drinks. Everything else — and every non-BLS source,
-  /// which carries no such classification — defaults to grams rather than
-  /// the old 'g/ml' placeholder, which the meal detail rendered as "N/A".
+  /// Getränke) are drinks, as are juices, milk and plant drinks in other
+  /// groups ([SPConst.isBlsLiquid]). Everything else — and every non-BLS
+  /// source, which carries no such classification — defaults to grams
+  /// rather than the old 'g/ml' placeholder, which the meal detail
+  /// rendered as "N/A".
   static String _spDefaultUnit(SpFoodDTO foodItem) {
     final sourceCode = foodItem.sourceCode;
     if (foodItem.source == SPConst.blsSourceCode &&
         sourceCode != null &&
-        sourceCode.isNotEmpty &&
-        SPConst.blsBeverageGroups.contains(sourceCode[0].toUpperCase())) {
+        SPConst.isBlsLiquid(
+          sourceCode,
+          names: [foodItem.name, foodItem.localizedName],
+        )) {
       return 'ml';
     }
     return 'g';

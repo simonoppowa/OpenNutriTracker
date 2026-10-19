@@ -42,6 +42,7 @@ vervollständigt.
 | Favoriten | Stern in Mahlzeit- und Rezeptdetail | #38 |
 | Favoriten | Chip „Favoriten“ im Mahlzeit-Hinzufügen (mit Suche, leerer Zustand), Favoriten zuerst in Suche und „Alle“, Stern auf den Ergebniskarten auch in „Zuletzt“ | #39 |
 | Tagebuch | Einträge, Mahlzeiten, Aktivitäten und ganze Tage (optional mit Aktivitäten und Wasser) auf ein beliebiges Datum kopieren, auch von heute aus; neue IDs, gleiche Uhrzeit im Ziel-Tag (Tagesgrenze beachtet), Summen am Ziel | #40 |
+| Lebensmittel | BLS-Säfte, Nektare, Smoothies, Milch, Kefir, Buttermilch und Pflanzendrinks standardmäßig in ml (Regel über die BLS-Codes, `SPConst.isBlsLiquid`) | #104 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
