@@ -80,10 +80,16 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   /// record without going through [updateUser]. The health weight import
   /// writes the current weight itself and calls this afterwards, as does
   /// deleting the imported entry that weight came from.
+  ///
+  /// The user is read inside the lock, not before it: an edit saved through
+  /// [updateUser] while this waited would otherwise have its goal replaced
+  /// by one worked out from the older user. Nothing is refreshed when no
+  /// user is left — "Delete all my data" can land before a late signal.
   Future<void> reloadAfterWeightImport() async {
     final startedOn = ProfileStamp.now();
-    final user = await _getUserUsecase.getUserData();
     final updated = await withTrackedDayLockOnProfile(() async {
+      if (!await _getUserUsecase.hasUserData()) return false;
+      final user = await _getUserUsecase.getUserData();
       await _updateTrackedDayCalorieGoal(user, DateTime.now());
       return true;
     }, startedOn: startedOn);

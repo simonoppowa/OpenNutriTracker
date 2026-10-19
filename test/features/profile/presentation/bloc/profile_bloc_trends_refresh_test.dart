@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
@@ -11,6 +13,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -20,12 +23,19 @@ import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.d
 import '../../../../fixture/user_entity_fixtures.dart';
 
 class _FakeGetUserUsecase extends Fake implements GetUserUsecase {
-  final UserEntity user;
+  UserEntity user;
+  bool hasUser = true;
 
   _FakeGetUserUsecase(this.user);
 
   @override
-  Future<UserEntity> getUserData() async => user;
+  Future<UserEntity> getUserData() async {
+    if (!hasUser) throw StateError('no user');
+    return user;
+  }
+
+  @override
+  Future<bool> hasUserData() async => hasUser;
 }
 
 class _FakeAddUserUsecase extends Fake implements AddUserUsecase {
@@ -204,5 +214,63 @@ void main() {
     expect(diaryBloc.addedEvents, hasLength(1));
     expect(calendarDayBloc.addedEvents, hasLength(1));
     expect(trendsBloc.addedEvents, hasLength(1));
+  });
+
+  group('reloadAfterWeightImport reads the user inside the lock', () {
+    late _FakeGetUserUsecase getUserUsecase;
+    late _FakeAddTrackedDayUsecase addTrackedDayUsecase;
+    late _FakeGetKcalGoalUsecase getKcalGoalUsecase;
+    late _FakeDiaryBloc diaryBloc;
+    late ProfileBloc profileBloc;
+
+    setUp(() {
+      getUserUsecase = _FakeGetUserUsecase(
+        UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight,
+      );
+      addTrackedDayUsecase = _FakeAddTrackedDayUsecase()
+        ..trackedDayExists = true;
+      getKcalGoalUsecase = _FakeGetKcalGoalUsecase();
+      diaryBloc = _FakeDiaryBloc();
+      trendsBloc = _FakeTrendsBloc(const TrendsInitial());
+      locator.registerSingleton<HomeBloc>(_FakeHomeBloc());
+      locator.registerSingleton<DiaryBloc>(diaryBloc);
+      locator.registerSingleton<CalendarDayBloc>(_FakeCalendarDayBloc());
+      locator.registerSingleton<TrendsBloc>(trendsBloc);
+      profileBloc = ProfileBloc(
+        getUserUsecase,
+        _FakeAddUserUsecase(),
+        addTrackedDayUsecase,
+        _FakeGetConfigUsecase(),
+        getKcalGoalUsecase,
+      );
+      addTearDown(profileBloc.close);
+    });
+
+    test('an edit saved while it waited for the lock is the one used', () async {
+      final release = Completer<void>();
+      final held = withTrackedDayLock(() => release.future);
+
+      final reload = profileBloc.reloadAfterWeightImport();
+      await Future<void>.delayed(Duration.zero);
+      // The queued edit: a different user record saved before the lock
+      // comes free.
+      final edited =
+          UserEntityFixtures.middleAgedActiveFemaleWantingToLoseWeight;
+      getUserUsecase.user = edited;
+      release.complete();
+      await Future.wait([held, reload]);
+
+      expect(getKcalGoalUsecase.goalFor, same(edited));
+    });
+
+    test('a cleared user skips the refresh without throwing', () async {
+      getUserUsecase.hasUser = false;
+
+      await profileBloc.reloadAfterWeightImport();
+
+      expect(addTrackedDayUsecase.updatedGoals, isEmpty);
+      expect(diaryBloc.addedEvents, isEmpty);
+      expect(trendsBloc.addedEvents, isEmpty);
+    });
   });
 }
