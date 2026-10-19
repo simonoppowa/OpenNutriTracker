@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/calc/macro_goal_resolver.dart';
 
 class GetKcalGoalUsecase {
   final UserRepository _userRepository;
@@ -40,11 +41,16 @@ class GetKcalGoalUsecase {
           dayStartOffsetHours: config.dayStartOffsetHours,
           dayStartOffsetMinutes: config.dayStartOffsetMinutes,
         )).map((activity) => activity.burnedKcal).toList().sum;
-    return CalorieGoalCalc.getTotalKcalGoal(
+    final calculated = CalorieGoalCalc.getTotalKcalGoal(
       user,
       totalKcalActivities,
       kcalUserAdjustment: config.userKcalAdjustment,
       caloriesTaperEnabled: user.caloriesTaperEnabled,
+    );
+    return MacroGoalResolver.kcalGoal(
+      config.goalTargets,
+      calculatedKcal: calculated,
+      activityKcal: totalKcalActivities,
     );
   }
 }
