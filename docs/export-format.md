@@ -33,6 +33,7 @@ next to its CSV counterpart will not find one.
 | `custom_meals.json`              | Saved custom meals (fork addition). See [below](#custom_mealsjson). |
 | `user_profile.json`              | Profile (fork addition). See [below](#user_profilejson). |
 | `app_settings.json`              | Device-wide settings (fork addition). See [below](#app_settingsjson). |
+| `profiles.json`, `profiles/<id>/…` | Every other profile (fork addition). See [All profiles](#all-profiles-fork). |
 
 **CSV bundle**
 
@@ -341,6 +342,50 @@ policy, disclaimer and consent flags (a restore never accepts a policy on the
 user's behalf), the demo flag, the goals (in `goal_settings.json`), the
 health-import state, and the day boundary (`dayStartOffset…`), which decides
 how tracked days are keyed. Theme and language apply on the next app start.
+
+## All profiles (fork)
+
+This fork's JSON bundle covers **every profile** on the device, not only the
+active one (`ProfilesBackup`):
+
+- The top level is unchanged: it holds the active profile's files exactly as
+  upstream writes them, plus the shared data (custom meals, recipes, activity
+  templates, app settings, photos). Upstream and older builds can still
+  import it.
+- `profiles.json` lists every profile and names the one the top level belongs
+  to:
+
+  ```jsonc
+  {
+    "mainProfileId": "3f2c…",
+    "profiles": [
+      { "id": "3f2c…", "name": "Theo", "createdAt": "2026-01-01T00:00:00.000", "boxSuffix": "" },
+      { "id": "9a71…", "name": "Partner", "createdAt": "2026-03-04T00:00:00.000", "boxSuffix": "9a71…" }
+    ]
+  }
+  ```
+
+- Each other profile has a folder `profiles/<id>/` with its per-profile files:
+  `user_activity.json`, `user_intake.json`, `user_tracked_day.json`,
+  `weight_log.json`, `goal_settings.json`, `water_intake.json`,
+  `user_profile.json`. Photos on their diary entries go to the top level
+  with the others. Profile pictures are not part of the bundle.
+
+On import the top level goes into the **active** profile (which takes the main
+profile's name when *Also restore profile, goals and settings* is on) and each
+folder into the profile with the same id, created when the device does not
+have it. If the active profile is one of the backup's *other* profiles, the
+import stops and asks to switch to the profile the backup was made from, so
+two diaries never end up in one. Every folder is decoded before the first
+write.
+
+**Replace everything on this device** (import dialog, JSON only, asks for
+confirmation) first clears the diary, activities, tracked days, weight and
+water logs of the active profile and of every profile in the backup, plus the
+saved custom meals, recipes and activity templates, and deletes the profiles
+that are not in the backup. Fasting sessions are kept until the backup
+carries them. The profile body data and the goals are
+overwritten by the backup (when restoring them is switched on), not cleared.
 
 ## CSV schema
 

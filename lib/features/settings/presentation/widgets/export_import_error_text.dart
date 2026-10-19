@@ -14,6 +14,8 @@ String exportImportErrorText(S l10n, ExportImportFailureReason reason) {
       return l10n.exportImportErrorWriteFailedLabel;
     case ExportImportFailureReason.unexpected:
       return l10n.exportImportErrorLabel;
+    case ExportImportFailureReason.activeProfileIsNotBackupMain:
+      return l10n.exportImportErrorActiveProfileLabel;
     case ExportImportFailureReason.cancelled:
       // Never rendered: the bloc maps a cancel back to its initial state
       // and ExportImportError asserts against carrying this reason. The

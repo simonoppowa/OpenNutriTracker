@@ -20,6 +20,11 @@ enum ExportImportFailureReason {
 
   /// Anything the use cases did not classify. The log carries the details.
   unexpected,
+
+  /// An all-profiles backup holds the active profile as one of its other
+  /// profiles: importing now would put the backup's main profile into it.
+  /// The user switches to the profile the backup was made from first.
+  activeProfileIsNotBackupMain,
 }
 
 /// An export or import failure with a [reason] the UI can act on.

@@ -27,13 +27,22 @@ class ImportDataEvent extends ExportImportEvent {
   /// the app settings the backup carries (see `PersonalBackupExtras`).
   final bool restoreProfileAndSettings;
 
+  /// Whether a JSON import first clears the data the backup restores, so
+  /// the device ends up holding exactly the backup.
+  final bool replaceExisting;
+
   const ImportDataEvent({
     this.format = ExportFormat.json,
     this.restoreProfileAndSettings = true,
+    this.replaceExisting = false,
   });
 
   @override
-  List<Object?> get props => [format, restoreProfileAndSettings];
+  List<Object?> get props => [
+    format,
+    restoreProfileAndSettings,
+    replaceExisting,
+  ];
 }
 
 /// User picked a CSV file to import as custom meals.

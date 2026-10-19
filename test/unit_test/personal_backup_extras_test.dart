@@ -100,8 +100,7 @@ void main() {
       final archive = await exportArchive();
       await waterBox.clear();
 
-      final restore = extras.prepareRestore(archive);
-      await restore();
+      await extras.prepareRestore(archive).write();
 
       final restored = {for (final entry in waterBox.values) entry.id: entry};
       expect(restored.keys, unorderedEquals(['w1', 'w2']));
@@ -113,8 +112,8 @@ void main() {
       await waterBox.put('w1', water('w1', 250, DateTime(2026, 10, 1, 8)));
       final archive = await exportArchive();
 
-      await extras.prepareRestore(archive)();
-      await extras.prepareRestore(archive)();
+      await extras.prepareRestore(archive).write();
+      await extras.prepareRestore(archive).write();
 
       expect(waterBox.length, 1);
     });
@@ -122,7 +121,7 @@ void main() {
     test('a backup without the file leaves the entries alone', () async {
       await waterBox.put('w1', water('w1', 250, DateTime(2026, 10, 1, 8)));
 
-      await extras.prepareRestore(Archive())();
+      await extras.prepareRestore(Archive()).write();
 
       expect(waterBox.length, 1);
     });
@@ -185,7 +184,7 @@ void main() {
       final archive = await exportArchive();
       await customMealBox.clear();
 
-      await extras.prepareRestore(archive)();
+      await extras.prepareRestore(archive).write();
 
       final restored = customMealBox.values.single;
       expect(restored.name, 'Studentenfutter');
@@ -202,8 +201,8 @@ void main() {
       ]);
       final archive = await exportArchive();
 
-      await extras.prepareRestore(archive)();
-      await extras.prepareRestore(archive)();
+      await extras.prepareRestore(archive).write();
+      await extras.prepareRestore(archive).write();
 
       expect(customMealBox.length, 2);
     });
@@ -214,7 +213,7 @@ void main() {
       await customMealBox.clear();
       await customMealBox.add(meal('Granola', kcal: 999));
 
-      await extras.prepareRestore(archive)();
+      await extras.prepareRestore(archive).write();
 
       expect(customMealBox.values.single.nutriments.energyKcal100, 450);
     });
@@ -241,7 +240,7 @@ void main() {
         final archive = await exportArchive();
         await userBox.clear();
 
-        await extras.prepareRestore(archive)();
+        await extras.prepareRestore(archive).write();
 
         final restored = await userDataSource.getUserData();
         expect(restored.birthday, DateTime(1994, 3, 2));
@@ -386,7 +385,7 @@ void main() {
         dailyWaterGoalMl: 3000,
       );
 
-      await extras.prepareRestore(archive)();
+      await extras.prepareRestore(archive).write();
 
       final config = await configDataSource.getConfig();
       expect(config.selectedAppTheme, AppThemeDBO.dark);
@@ -428,7 +427,9 @@ void main() {
     );
     await configDataSource.setConfigAppTheme(AppThemeDBO.light);
 
-    await extras.prepareRestore(archive, includeProfileAndSettings: false)();
+    await extras
+        .prepareRestore(archive, includeProfileAndSettings: false)
+        .write();
 
     expect((await userDataSource.getUserData()).weightKG, 65);
     expect(

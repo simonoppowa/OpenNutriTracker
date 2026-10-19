@@ -36,6 +36,7 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
 
   ExportFormat _exportFormat = ExportFormat.json;
   bool _restoreProfileAndSettings = true;
+  bool _replaceExisting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +109,22 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
                         setState(() => _restoreProfileAndSettings = value),
                   ),
                 ),
+              if (_exportFormat == ExportFormat.json)
+                Semantics(
+                  identifier: 'export-import-replace',
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: Text(
+                      S.of(context).exportImportReplaceLabel,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    value: _replaceExisting,
+                    onChanged: (value) =>
+                        setState(() => _replaceExisting = value),
+                  ),
+                ),
               const SizedBox(height: 12),
               BlocBuilder<ExportImportBloc, ExportImportState>(
                 bloc: _exportImportBloc,
@@ -168,16 +185,44 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
           child: Text(S.of(context).exportAction),
         ),
         TextButton(
-          onPressed: () => _exportImportBloc.add(
-            ImportDataEvent(
-              format: _exportFormat,
-              restoreProfileAndSettings: _restoreProfileAndSettings,
-            ),
-          ),
+          onPressed: _onImportPressed,
           child: Text(S.of(context).importAction),
         ),
       ],
     );
+  }
+
+  Future<void> _onImportPressed() async {
+    final replace = _exportFormat == ExportFormat.json && _replaceExisting;
+    if (replace && !await _confirmReplace()) return;
+    _exportImportBloc.add(
+      ImportDataEvent(
+        format: _exportFormat,
+        restoreProfileAndSettings: _restoreProfileAndSettings,
+        replaceExisting: replace,
+      ),
+    );
+  }
+
+  Future<bool> _confirmReplace() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(S.of(dialogContext).exportImportReplaceConfirmTitle),
+        content: Text(S.of(dialogContext).exportImportReplaceConfirmContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(S.of(dialogContext).dialogCancelLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(S.of(dialogContext).exportImportReplaceConfirmAction),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
   }
 
   void refreshScreens() {

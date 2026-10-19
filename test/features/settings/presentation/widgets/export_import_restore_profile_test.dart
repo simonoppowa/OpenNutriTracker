@@ -90,7 +90,7 @@ void main() {
   testWidgets('switching it off is passed on to the import', (tester) async {
     await pumpDialog(tester);
 
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(restoreSwitch());
     await tester.pump();
     await tester.tap(find.text('Import'));
 
@@ -104,5 +104,38 @@ void main() {
     await tester.pump();
 
     expect(restoreSwitch(), findsNothing);
+  });
+
+  testWidgets('replacing asks first and only imports after the user agrees', (
+    tester,
+  ) async {
+    await pumpDialog(tester);
+
+    await tester.tap(find.bySemanticsIdentifier('export-import-replace'));
+    await tester.pump();
+    await tester.tap(find.text('Import'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Replace all data?'), findsOneWidget);
+    expect(bloc.events.whereType<ImportDataEvent>(), isEmpty);
+
+    await tester.tap(find.text('CANCEL'));
+    await tester.pumpAndSettle();
+    expect(bloc.events.whereType<ImportDataEvent>(), isEmpty);
+
+    await tester.tap(find.text('Import'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Replace'));
+    await tester.pumpAndSettle();
+
+    expect(lastImport().replaceExisting, isTrue);
+  });
+
+  testWidgets('a plain import merges', (tester) async {
+    await pumpDialog(tester);
+
+    await tester.tap(find.text('Import'));
+
+    expect(lastImport().replaceExisting, isFalse);
   });
 }

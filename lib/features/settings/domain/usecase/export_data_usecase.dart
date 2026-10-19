@@ -137,8 +137,8 @@ class ExportDataUsecase {
   /// #1061 that matters to someone restoring a backup.
   ///
   /// Extracted from @AzazelSensei's #1083, which had the seam and the test
-  /// this exists for.
-  @visibleForTesting
+  /// this exists for. This fork also calls it for the other profiles'
+  /// folders of the all-profiles backup (`ProfilesBackup`).
   Future<Archive> assembleArchive({
     required ExportFormat format,
     required String userActivityJsonFileName,

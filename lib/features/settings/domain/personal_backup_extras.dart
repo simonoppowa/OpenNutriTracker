@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
+import 'package:opennutritracker/features/settings/domain/profiles_backup.dart';
 
 /// The data this fork adds to the JSON backup on top of upstream's files:
 /// the water log, the saved custom meals, the user profile and the
@@ -67,12 +68,17 @@ class PersonalBackupExtras {
   final UserDataSource _userDataSource;
   final ConfigDataSource _configDataSource;
 
+  /// The other profiles' folders; null for the extras of a single profile's
+  /// folder, which must not recurse into the profile list.
+  final ProfilesBackup? _profiles;
+
   PersonalBackupExtras(
     this._waterIntakeRepository,
     this._customMealDataSource,
     this._userDataSource,
-    this._configDataSource,
-  );
+    this._configDataSource, {
+    ProfilesBackup? profiles,
+  }) : _profiles = profiles;
 
   /// Writes the fork's JSON files into [archive].
   Future<void> addTo(Archive archive) async {
@@ -96,6 +102,7 @@ class PersonalBackupExtras {
       for (final key in appSettingKeys)
         if (config.containsKey(key)) key: config[key],
     });
+    await _profiles?.addTo(archive);
   }
 
   /// Decodes everything the fork restores from [archive] and returns the
@@ -109,10 +116,13 @@ class PersonalBackupExtras {
   ///
   /// With [includeProfileAndSettings] false the profile and the app settings
   /// on the device stay as they are; `ImportDataUsecase` then also skips the
-  /// goal settings.
-  Future<void> Function() prepareRestore(
+  /// goal settings. With [replaceExisting] the returned
+  /// [PreparedRestore.clearForReplace] empties what the backup restores (see
+  /// [ProfilesBackup.prepareRestore]).
+  PreparedRestore prepareRestore(
     Archive archive, {
     bool includeProfileAndSettings = true,
+    bool replaceExisting = false,
   }) {
     final water = _decodeList(
       archive.findFile(waterIntakeFileName),
@@ -136,7 +146,13 @@ class PersonalBackupExtras {
           })
         : null;
 
-    return () async {
+    final profiles = _profiles?.prepareRestore(
+      archive,
+      includeProfileAndSettings: includeProfileAndSettings,
+      replaceExisting: replaceExisting,
+    );
+
+    Future<void> write() async {
       if (water != null) {
         await _waterIntakeRepository.addAllEntries(water);
       }
@@ -152,8 +168,19 @@ class PersonalBackupExtras {
           ConfigDBO.fromJson({...current, ...settings}),
         );
       }
-    };
+      await profiles?.write();
+    }
+
+    return PreparedRestore(
+      clearForReplace: profiles?.clearForReplace ?? () async {},
+      write: write,
+    );
   }
+
+  /// Decodes a `user_profile.json` object, throwing on an unknown or missing
+  /// value.
+  static UserDBO decodeUserProfile(Map<String, dynamic> json) =>
+      _userFromJson(json);
 
   static final _emptyConfigJson = ConfigDBO.empty().toJson();
 

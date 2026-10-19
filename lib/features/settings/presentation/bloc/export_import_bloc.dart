@@ -94,6 +94,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
                 customActivityTemplateJsonFileName,
                 goalSettingsJsonFileName: goalSettingsJsonFileName,
                 restoreProfileAndSettings: event.restoreProfileAndSettings,
+                replaceExisting: event.replaceExisting,
               );
         if (result) {
           await _syncTodayGoals();

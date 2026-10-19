@@ -81,7 +81,9 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpo
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
+import 'package:opennutritracker/core/utils/backup_usecases_for.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/profile_box_scope.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
@@ -126,6 +128,7 @@ import 'package:opennutritracker/features/settings/domain/usecase/download_sampl
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
+import 'package:opennutritracker/features/settings/domain/profiles_backup.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
@@ -501,7 +504,18 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerLazySingleton(
-    () => PersonalBackupExtras(locator(), locator(), locator(), locator()),
+    () => PersonalBackupExtras(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      profiles: ProfilesBackup(
+        hiveDBProvider,
+        locator(),
+        HiveProfileScopes(hiveDBProvider),
+        backupUsecasesFor,
+      ),
+    ),
   );
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));
   locator.registerLazySingleton(() => ImportRecipesCsvUsecase(locator()));

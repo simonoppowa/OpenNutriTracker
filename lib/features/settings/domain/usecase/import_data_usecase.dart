@@ -79,9 +79,41 @@ class ImportDataUsecase {
     String customActivityTemplateJsonFileName, {
     String goalSettingsJsonFileName = 'goal_settings.json',
     bool restoreProfileAndSettings = true,
+    bool replaceExisting = false,
   }) async {
     final archive = await _pickAndDecodeArchive();
+    return importArchive(
+      archive,
+      userActivityJsonFileName,
+      userIntakeJsonFileName,
+      trackedDayJsonFileName,
+      recipeJsonFileName,
+      weightLogJsonFileName,
+      customActivityTemplateJsonFileName,
+      goalSettingsJsonFileName: goalSettingsJsonFileName,
+      restoreProfileAndSettings: restoreProfileAndSettings,
+      replaceExisting: replaceExisting,
+    );
+  }
 
+  /// [importData] for an archive that is already in memory. The fork uses it
+  /// to restore the other profiles' folders of an all-profiles backup.
+  ///
+  /// With [replaceExisting] the data the backup restores is cleared on the
+  /// device first (see `PersonalBackupExtras.prepareRestore`), after every
+  /// entry has been decoded, so a malformed archive still changes nothing.
+  Future<bool> importArchive(
+    Archive archive,
+    String userActivityJsonFileName,
+    String userIntakeJsonFileName,
+    String trackedDayJsonFileName,
+    String recipeJsonFileName,
+    String weightLogJsonFileName,
+    String customActivityTemplateJsonFileName, {
+    String goalSettingsJsonFileName = 'goal_settings.json',
+    bool restoreProfileAndSettings = true,
+    bool replaceExisting = false,
+  }) async {
     // Decode every entry before writing anything (#1357): the upserts
     // below replace and delete rows on the device, so an archive with a
     // missing or malformed entry must be rejected while it has touched
@@ -144,7 +176,9 @@ class ImportDataUsecase {
     final restoreExtras = _extras?.prepareRestore(
       archive,
       includeProfileAndSettings: restoreProfileAndSettings,
+      replaceExisting: replaceExisting,
     );
+    await restoreExtras?.clearForReplace();
 
     await _userActivityRepository.upsertAllUserActivityDBOs(userActivityDBOs);
     await _intakeRepository.upsertAllIntakeDBOs(intakeDBOs);
@@ -172,7 +206,7 @@ class ImportDataUsecase {
         dailyWaterGoalMl: goalSettings.dailyWaterGoalMl,
       );
     }
-    await restoreExtras?.call();
+    await restoreExtras?.write();
 
     // Restore any user-attached photos — recipes under `recipe_images/`
     // and custom meals under `meal_images/`. Each archive entry's name
