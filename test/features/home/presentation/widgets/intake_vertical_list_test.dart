@@ -214,7 +214,7 @@ void main() {
         intakeList: intakes,
         usesImperialUnits: false,
         showMealMacros: true,
-        onCopyIntakeCallback: (_, _, _) {},
+        onCopyIntakeCallback: (_, _) {},
         onDeleteIntakeCallback: (_, _) {},
       )));
       await tester.pump();

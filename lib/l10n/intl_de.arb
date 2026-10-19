@@ -170,7 +170,7 @@
   "codeCopiedLabel": "Code kopiert",
   "copyCodeLabel": "Code kopieren",
   "copyDialogTitle": "Zu welcher Mahlzeit hinzufügen?",
-  "copyOrDeleteTimeDialogContent": "Auf \"Nach heute kopieren\" klicken, um die Mahlzeit nach heute zu kopieren. Mit \"Löschen\" kann die Mahlzeit entfernt werden",
+  "copyOrDeleteTimeDialogContent": "Mit „Kopieren“ landet der Eintrag auf einem anderen Tag, mit „Löschen“ wird er entfernt.",
   "copyOrDeleteTimeDialogTitle": "Was soll getan werden?",
   "createCustomDialogContent": "Möchten Sie einen benutzerdefinierte Mahlzeit erstellen?",
   "createCustomDialogTitle": "Benutzerdefinierte Mahlzeit erstellen?",
@@ -264,7 +264,7 @@
   "deleteTimeDialogPluralTitle": "Einträge löschen?",
   "deleteTimeDialogTitle": "Eintrag löschen?",
   "dialogCancelLabel": "ABBRECHEN",
-  "dialogCopyLabel": "Nach heute kopieren",
+  "dialogCopyLabel": "Kopieren",
   "dialogDeleteLabel": "LÖSCHEN",
   "dialogOKLabel": "OK",
   "diaryFutureDateWarning": "Du bearbeitest ein zukünftiges Datum",
@@ -1500,5 +1500,13 @@
   "favoriteToggleFailed": "Der Favorit konnte nicht gespeichert werden.",
   "favoritesLabel": "Favoriten",
   "favoritesEmptyTitle": "Noch keine Favoriten",
-  "favoritesEmptySubtitle": "Tippe bei einem Lebensmittel oder Rezept auf den Stern, um es hier zu finden."
+  "favoritesEmptySubtitle": "Tippe bei einem Lebensmittel oder Rezept auf den Stern, um es hier zu finden.",
+  "copyDialogDayLabel": "Kopieren auf",
+  "copyDayAction": "Tag kopieren",
+  "copyDayDialogTitle": "Diesen Tag kopieren",
+  "copyDayActivitiesLabel": "Mit Aktivitäten",
+  "copyDayWaterLabel": "Mit Wasser",
+  "copiedLabel": "Kopiert",
+  "copyTargetTitle": "Kopieren nach …",
+  "copyFailedLabel": "Kopieren hat nicht geklappt; bitte den Ziel-Tag prüfen."
 }

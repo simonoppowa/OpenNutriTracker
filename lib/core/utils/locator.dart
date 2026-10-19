@@ -69,6 +69,7 @@ import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/copy_entries_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/set_day_type_usecase.dart';
 import 'package:opennutritracker/core/utils/goal_changes.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
@@ -691,6 +692,20 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   locator.registerLazySingleton(() => StoreBarcodeCheck(locator()));
   locator.registerLazySingleton(() => WaterQuickAmount(locator()));
+  locator.registerLazySingleton(
+    () => CopyEntriesUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
+  );
   locator.registerLazySingleton(() => FavoriteDataSource(hiveDBProvider));
   locator.registerLazySingleton(() => FavoritesUsecase(locator(), locator()));
   locator.registerLazySingleton(GoalChanges.new);

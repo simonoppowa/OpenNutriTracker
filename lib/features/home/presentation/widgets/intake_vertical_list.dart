@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/copy_target.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
@@ -40,8 +41,10 @@ class IntakeVerticalList extends StatefulWidget {
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
   final Function(BuildContext, IntakeEntity, bool)? onItemTappedCallback;
-  final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
-      AddMealType? type)? onCopyIntakeCallback;
+  final Function(List<IntakeEntity> intakes, CopyTarget target)?
+      onCopyIntakeCallback;
+  /// The day the copy dialog preselects (#40); the calendar today when null.
+  final DateTime? copyDefaultDay;
   final TrackedDayEntity? trackedDayEntity;
   // #150: optional recommended kcal target for this meal section. When
   // supplied and > 0, the section header shows "consumed / target kcal" so
@@ -74,6 +77,7 @@ class IntakeVerticalList extends StatefulWidget {
     this.onItemDragCallback,
     this.onItemTappedCallback,
     this.onCopyIntakeCallback,
+    this.copyDefaultDay,
     this.trackedDayEntity,
     this.mealKcalTarget,
     this.sortType,
@@ -208,17 +212,15 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                         (VerticalListPopupMenuSelections selection) async {
                       switch (selection) {
                         case VerticalListPopupMenuSelections.onCopy:
-                          final copyDialog =
-                              CopyDialog(initialValue: widget.addMealType);
-                          final selectedMealType =
-                              await showDialog<AddMealType>(
-                                  context: context,
-                                  builder: (context) => copyDialog);
-                          if (selectedMealType != null) {
-                            for (IntakeEntity intake in widget.intakeList) {
-                              widget.onCopyIntakeCallback!(
-                                  intake, null, selectedMealType);
-                            }
+                          final copyDialog = CopyDialog(
+                              initialValue: widget.addMealType,
+                              initialDay: widget.copyDefaultDay);
+                          final target = await showDialog<CopyTarget>(
+                              context: context,
+                              builder: (context) => copyDialog);
+                          if (target != null) {
+                            widget.onCopyIntakeCallback!(
+                                widget.intakeList, target);
                           }
                           break;
                         case VerticalListPopupMenuSelections.onDelete:

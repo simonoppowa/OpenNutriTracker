@@ -288,7 +288,7 @@
   "codeCopiedLabel": "Code copied",
   "copyCodeLabel": "Copy code",
   "copyDialogTitle": "Which meal type do you want to copy to?",
-  "copyOrDeleteTimeDialogContent": "With \"Copy to today\" you can copy the meal to today. With \"Delete\" you can delete the meal.",
+  "copyOrDeleteTimeDialogContent": "With \"Copy\" you can copy the entry to another day. With \"Delete\" you can delete it.",
   "copyOrDeleteTimeDialogTitle": "What do you want to do?",
   "createCustomDialogContent": "Do you want create a custom meal item?",
   "createCustomDialogTitle": "Create custom meal item?",
@@ -358,7 +358,7 @@
   "deleteTimeDialogPluralTitle": "Delete Items?",
   "deleteTimeDialogTitle": "Delete Item?",
   "dialogCancelLabel": "CANCEL",
-  "dialogCopyLabel": "Copy to today",
+  "dialogCopyLabel": "Copy",
   "dialogDeleteLabel": "DELETE",
   "dialogOKLabel": "OK",
   "diaryFutureDateWarning": "You are editing a future date",
@@ -1551,5 +1551,13 @@
   "favoriteToggleFailed": "The favourite could not be saved.",
   "favoritesLabel": "Favourites",
   "favoritesEmptyTitle": "No favourites yet",
-  "favoritesEmptySubtitle": "Tap the star on a food or recipe to find it here."
+  "favoritesEmptySubtitle": "Tap the star on a food or recipe to find it here.",
+  "copyDialogDayLabel": "Copy to",
+  "copyDayAction": "Copy day",
+  "copyDayDialogTitle": "Copy this day",
+  "copyDayActivitiesLabel": "With activities",
+  "copyDayWaterLabel": "With water",
+  "copiedLabel": "Copied",
+  "copyTargetTitle": "Copy to …",
+  "copyFailedLabel": "Copying did not finish; check the target day."
 }

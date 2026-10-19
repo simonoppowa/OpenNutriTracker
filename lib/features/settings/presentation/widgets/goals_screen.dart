@@ -303,9 +303,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   List<Widget> _trainingSection(BuildContext context) {
     final s = S.of(context);
-    final weekdayNames = DateFormat.E(
-      Localizations.localeOf(context).toString(),
-    );
+    final weekdayNames = DateFormat.E();
     return [
       Semantics(
         identifier: 'goals-training-enabled',

@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/domain/entity/copy_target.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_or_delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/macro_nutriments_widget.dart';
@@ -18,6 +19,7 @@ import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/copy_day_dialog.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/features/goals/presentation/app_day_type_toggle.dart';
@@ -66,15 +68,15 @@ class DayInfoWidget extends StatefulWidget {
     UserActivityEntity userActivityEntity,
     TrackedDayEntity? trackedDayEntity,
   ) onDeleteActivity;
-  final Function(
-    IntakeEntity intake,
-    TrackedDayEntity? trackedDayEntity,
-    AddMealType? type,
-  ) onCopyIntake;
-  final Function(
-    UserActivityEntity userActivityEntity,
-    TrackedDayEntity? trackedDayEntity,
-  ) onCopyActivity;
+  final Function(List<IntakeEntity> intakes, CopyTarget target) onCopyIntake;
+  final Function(UserActivityEntity userActivityEntity, DateTime day)
+      onCopyActivity;
+
+  /// Copies the whole day (#40); no "Copy day" action when null.
+  final Function(CopyDayChoice choice)? onCopyDay;
+
+  /// The logical today, preselected as the copy target.
+  final DateTime? copyDefaultDay;
   final Function(BuildContext context, IntakeEntity intake, bool usesImperialUnits)?
       onEditIntake;
   final Function(BuildContext context, UserActivityEntity activity)?
@@ -97,6 +99,8 @@ class DayInfoWidget extends StatefulWidget {
     required this.onDeleteActivity,
     required this.onCopyIntake,
     required this.onCopyActivity,
+    this.onCopyDay,
+    this.copyDefaultDay,
     this.onEditIntake,
     this.onEditActivity,
     this.breakfastKcalTarget = 0,
@@ -191,9 +195,26 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             Dimens.spacing20,
             Dimens.spacing4,
           ),
-          child: Text(
-            DateFormat.yMMMMEEEEd().format(widget.selectedDay),
-            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat.yMMMMEEEEd().format(widget.selectedDay),
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (widget.onCopyDay != null)
+                Semantics(
+                  identifier: 'diary-copy-day',
+                  child: IconButton(
+                    tooltip: S.of(context).copyDayAction,
+                    icon: const Icon(Icons.content_copy_rounded),
+                    onPressed: () => _showCopyDayDialog(context),
+                  ),
+                ),
+            ],
           ),
         ),
         Padding(
@@ -296,11 +317,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 userActivityList: widget.userActivities,
                 onItemLongPressedCallback: onActivityItemLongPressed,
                 onItemTappedCallback: widget.onEditActivity,
-                onCopyActivityCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : (activity) =>
-                            widget.onCopyActivity(activity, widget.trackedDayEntity),
+                onCopyActivityCallback: (activity) =>
+                    _showCopyActivityDialog(context, activity),
               ),
             ],
             // #150 follow-up: a 0% share hides the section entirely so OMAD
@@ -318,10 +336,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onDeleteIntakeCallback: widget.onDeleteIntake,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
-                onCopyIntakeCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : widget.onCopyIntake,
+                onCopyIntakeCallback: widget.onCopyIntake,
+                copyDefaultDay: widget.copyDefaultDay,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 trackedDayEntity: trackedDay,
@@ -343,10 +359,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onItemTappedCallback: widget.onEditIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
-                onCopyIntakeCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : widget.onCopyIntake,
+                onCopyIntakeCallback: widget.onCopyIntake,
+                copyDefaultDay: widget.copyDefaultDay,
                 trackedDayEntity: trackedDay,
                 mealKcalTarget: widget.lunchKcalTarget,
                 sortType: _sortByMeal[IntakeTypeEntity.lunch],
@@ -364,10 +378,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onDeleteIntakeCallback: widget.onDeleteIntake,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
-                onCopyIntakeCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : widget.onCopyIntake,
+                onCopyIntakeCallback: widget.onCopyIntake,
+                copyDefaultDay: widget.copyDefaultDay,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 mealKcalTarget: widget.dinnerKcalTarget,
@@ -388,10 +400,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onItemTappedCallback: widget.onEditIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
-                onCopyIntakeCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : widget.onCopyIntake,
+                onCopyIntakeCallback: widget.onCopyIntake,
+                copyDefaultDay: widget.copyDefaultDay,
                 trackedDayEntity: trackedDay,
                 mealKcalTarget: widget.snackKcalTarget,
                 sortType: _sortByMeal[IntakeTypeEntity.snack],
@@ -456,14 +466,35 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
 
     final copyDialog = CopyDialog(
       initialValue: defaultMealType,
+      initialDay: widget.copyDefaultDay,
     );
-    final selectedMealType = await showDialog<AddMealType>(
+    final target = await showDialog<CopyTarget>(
       context: context,
       builder: (context) => copyDialog,
     );
-    if (selectedMealType != null) {
-      widget.onCopyIntake(intakeEntity, null, selectedMealType);
+    if (target != null) {
+      widget.onCopyIntake([intakeEntity], target);
     }
+  }
+
+  Future<void> _showCopyActivityDialog(
+    BuildContext context,
+    UserActivityEntity activity,
+  ) async {
+    final target = await showDialog<CopyTarget>(
+      context: context,
+      builder: (context) => CopyDialog(initialDay: widget.copyDefaultDay),
+    );
+    if (target != null) widget.onCopyActivity(activity, target.day);
+  }
+
+  Future<void> _showCopyDayDialog(BuildContext context) async {
+    final choice = await showDialog<CopyDayChoice>(
+      context: context,
+      builder: (context) =>
+          CopyDayDialog(initialDay: widget.copyDefaultDay),
+    );
+    if (choice != null) widget.onCopyDay?.call(choice);
   }
 
   void showDeleteIntakeDialog(
@@ -483,36 +514,22 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     BuildContext context,
     IntakeEntity intakeEntity,
   ) async {
-    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
-      showDeleteIntakeDialog(context, intakeEntity);
-    } else {
-      showCopyOrDeleteIntakeDialog(context, intakeEntity);
-    }
+    showCopyOrDeleteIntakeDialog(context, intakeEntity);
   }
 
   void onActivityItemLongPressed(
     BuildContext context,
     UserActivityEntity activityEntity,
   ) async {
-    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
-      final shouldDelete = await showDialog<bool>(
-        context: context,
-        builder: (context) => const DeleteDialog(),
-      );
-      if (shouldDelete != null) {
+    final copyOrDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => const CopyOrDeleteDialog(),
+    );
+    if (context.mounted) {
+      if (copyOrDelete == false) {
         widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
-      }
-    } else {
-      final copyOrDelete = await showDialog<bool>(
-        context: context,
-        builder: (context) => const CopyOrDeleteDialog(),
-      );
-      if (context.mounted) {
-        if (copyOrDelete == false) {
-          widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
-        } else if (copyOrDelete == true) {
-          widget.onCopyActivity(activityEntity, widget.trackedDayEntity);
-        }
+      } else if (copyOrDelete == true) {
+        _showCopyActivityDialog(context, activityEntity);
       }
     }
   }
