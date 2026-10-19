@@ -110,6 +110,7 @@ class _Device implements ProfileScopes {
         waterIntakeBox: await _open<WaterIntakeDBO>('water_$id'),
         fastingBox: await _open<FastingSessionDBO>('fasting_$id'),
         favoriteBox: await _open<String>('favorites_$id'),
+        bodyMeasurementBox: await _open<String>('body_$id'),
         customMealBox: shared.customMeals,
         recipeBox: shared.recipes,
         customActivityTemplateBox: shared.templates,

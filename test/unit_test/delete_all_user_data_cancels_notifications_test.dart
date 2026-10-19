@@ -100,6 +100,7 @@ void main() {
         waterIntakeBox: await Hive.openBox<WaterIntakeDBO>('delete_all_water'),
         fastingBox: await Hive.openBox<FastingSessionDBO>('delete_all_fast'),
         favoriteBox: await Hive.openBox<String>('delete_all_favorites'),
+        bodyMeasurementBox: await Hive.openBox<String>('delete_all_body'),
       );
       final configDataSource = ConfigDataSource(provider);
       configRepository = ConfigRepository(configDataSource);

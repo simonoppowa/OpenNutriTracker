@@ -37,6 +37,7 @@ next to its CSV counterpart will not find one.
 | `goal_targets.json`              | The profile's own goals (fork addition). See [below](#goal_targetsjson). |
 | `training_plan.json`             | The profile's training days (fork addition). See [below](#training_planjson). |
 | `favorites.json`                 | The profile's favourites (fork addition). See [below](#favoritesjson). |
+| `body_measurements.json`         | The profile's body measurements (fork addition). See [below](#body_measurementsjson). |
 | `profiles.json`, `profiles/<id>/…` | Every other profile (fork addition). See [All profiles](#all-profiles-fork). |
 
 **CSV bundle**
@@ -418,6 +419,18 @@ recipe is deleted. Keyed by `id` (`meal:<source>:<code>` or
 ]
 ```
 
+### `body_measurements.json`
+
+Added by this fork (#43). The profile's body measurements, newest first, keyed
+by `id` so importing twice replaces instead of adding. Every circumference is
+optional (in cm, 10–300), at least one is present.
+
+```jsonc
+[
+  { "id": "5b1e…", "date": "2026-10-01T00:00:00.000", "waistCm": 84.5, "chestCm": null, "armCm": 34.0, "thighCm": null, "hipCm": 99.0, "note": null }
+]
+```
+
 ## All profiles (fork)
 
 This fork's JSON bundle covers **every profile** on the device, not only the
@@ -444,7 +457,7 @@ active one (`ProfilesBackup`):
   `user_activity.json`, `user_intake.json`, `user_tracked_day.json`,
   `weight_log.json`, `goal_settings.json`, `water_intake.json`,
   `fasting_sessions.json`, `user_profile.json`, `goal_targets.json`,
-  `training_plan.json`, `favorites.json`. Photos on their diary entries go to the top level
+  `training_plan.json`, `favorites.json`, `body_measurements.json`. Photos on their diary entries go to the top level
   with the others. Profile pictures are not part of the bundle.
 
 On import the top level goes into the **active** profile (which takes the main

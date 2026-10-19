@@ -63,6 +63,9 @@ class HiveDBProvider extends ChangeNotifier {
   // Fork (#37): the profile's favourite foods and recipes, as
   // `FavoriteEntry` JSON keyed by its id.
   static const favoriteBoxName = 'FavoriteBox';
+  // Fork (#43): the profile's body measurements, as `BodyMeasurement` JSON
+  // keyed by id.
+  static const bodyMeasurementBoxName = 'BodyMeasurementBox';
   // #471: registry of profiles. Global — shared across every profile so
   // the app can enumerate and switch profiles before any one of them is
   // active.
@@ -87,6 +90,7 @@ class HiveDBProvider extends ChangeNotifier {
     waterIntakeBoxName,
     fastingBoxName,
     favoriteBoxName,
+    bodyMeasurementBoxName,
   ];
 
   // Global boxes — opened once, never closed on a profile switch.
@@ -115,6 +119,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
   Box<String>? _favoriteBox;
+  Box<String>? _bodyMeasurementBox;
 
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
@@ -137,6 +142,8 @@ class HiveDBProvider extends ChangeNotifier {
   Box<FastingSessionDBO> get fastingBox =>
       _requireBox(_fastingBox, fastingBoxName);
   Box<String> get favoriteBox => _requireBox(_favoriteBox, favoriteBoxName);
+  Box<String> get bodyMeasurementBox =>
+      _requireBox(_bodyMeasurementBox, bodyMeasurementBoxName);
 
   Box<T> _requireBox<T>(Box<T>? box, String name) {
     if (_switching) {
@@ -237,6 +244,9 @@ class HiveDBProvider extends ChangeNotifier {
     _favoriteBox = await _openEncryptedBox(
       boxNameFor(favoriteBoxName, suffix),
     );
+    _bodyMeasurementBox = await _openEncryptedBox(
+      boxNameFor(bodyMeasurementBoxName, suffix),
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -250,6 +260,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
       if (_favoriteBox != null) _favoriteBox!.close(),
+      if (_bodyMeasurementBox != null) _bodyMeasurementBox!.close(),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -260,6 +271,7 @@ class HiveDBProvider extends ChangeNotifier {
     _waterIntakeBox = null;
     _fastingBox = null;
     _favoriteBox = null;
+    _bodyMeasurementBox = null;
   }
 
   /// Opens (or returns the already-open) box for an arbitrary profile

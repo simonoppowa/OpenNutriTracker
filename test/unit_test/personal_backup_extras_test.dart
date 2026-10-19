@@ -22,6 +22,8 @@ import 'package:opennutritracker/core/data/repository/water_intake_repository.da
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/core/domain/entity/training_plan.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
+import 'package:opennutritracker/features/body_measurements/data/body_measurement_data_source.dart';
+import 'package:opennutritracker/features/body_measurements/domain/body_measurement.dart';
 import 'package:opennutritracker/features/favorites/data/favorite_data_source.dart';
 import 'package:opennutritracker/features/favorites/domain/favorite_entry.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
@@ -615,6 +617,44 @@ void main() {
         () => withFavorites.prepareRestore(archive),
         throwsA(isA<ExportImportFailure>()),
       );
+    });
+  });
+
+  group('body measurements', () {
+    test('are written as body_measurements.json and restored', () async {
+      final box = await Hive.openBox<String>('body_test');
+      final provider = FakeHiveDBProvider(
+        waterIntakeBox: waterBox,
+        customMealBox: customMealBox,
+        userBox: userBox,
+        configBox: configBox,
+        appConfigBox: appConfigBox,
+        fastingBox: fastingBox,
+        bodyMeasurementBox: box,
+      );
+      final dataSource = BodyMeasurementDataSource(provider);
+      final withMeasurements = PersonalBackupExtras(
+        WaterIntakeRepository(WaterIntakeDataSource(provider)),
+        CustomMealDataSource(provider),
+        userDataSource,
+        configDataSource,
+        FastingDataSource(provider),
+        bodyMeasurements: dataSource,
+      );
+      final measurement = BodyMeasurement(
+        id: 'm1',
+        date: DateTime(2026, 10, 1),
+        valuesCm: {BodyMeasureKind.waist: 84.5, BodyMeasureKind.hip: 99},
+      );
+      await dataSource.put(measurement);
+      final archive = Archive();
+      await withMeasurements.addTo(archive);
+      await box.clear();
+
+      await withMeasurements.prepareRestore(archive).write();
+      await withMeasurements.prepareRestore(archive).write();
+
+      expect(dataSource.all(), [measurement]);
     });
   });
 

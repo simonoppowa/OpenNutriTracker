@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/profile_box_scope.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
+import 'package:opennutritracker/features/body_measurements/domain/body_measurement.dart';
 import 'package:opennutritracker/features/favorites/domain/favorite_entry.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
@@ -70,6 +71,7 @@ class ProfilesBackup {
     PersonalBackupExtras.goalTargetsFileName,
     PersonalBackupExtras.trainingPlanFileName,
     PersonalBackupExtras.favoritesFileName,
+    PersonalBackupExtras.bodyMeasurementsFileName,
   ];
 
   final HiveDBProvider _db;
@@ -254,6 +256,7 @@ class ProfilesBackup {
     await db.waterIntakeBox.clear();
     await db.fastingBox.clear();
     await db.favoriteBox.clear();
+    await db.bodyMeasurementBox.clear();
   }
 
   /// A photo entry of a profile's folder export (an intake photo of that
@@ -319,6 +322,9 @@ class ProfilesBackup {
         rows(
           PersonalBackupExtras.favoritesFileName,
         ).forEach(FavoriteEntry.fromJson);
+        rows(
+          PersonalBackupExtras.bodyMeasurementsFileName,
+        ).forEach(BodyMeasurement.fromJson);
         if (folder.findFile(goalSettingsFileName) != null) {
           GoalSettingsBackup.fromJson(
             read(goalSettingsFileName) as Map<String, dynamic>,

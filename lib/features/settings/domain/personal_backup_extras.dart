@@ -16,6 +16,8 @@ import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/core/domain/entity/training_plan.dart';
+import 'package:opennutritracker/features/body_measurements/data/body_measurement_data_source.dart';
+import 'package:opennutritracker/features/body_measurements/domain/body_measurement.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
 import 'package:opennutritracker/features/favorites/data/favorite_data_source.dart';
 import 'package:opennutritracker/features/favorites/domain/favorite_entry.dart';
@@ -24,8 +26,8 @@ import 'package:opennutritracker/features/settings/domain/profiles_backup.dart';
 
 /// The data this fork adds to the JSON backup on top of upstream's files:
 /// the water log, the fasting sessions, the saved custom meals, the user
-/// profile, the profile's own goals, training days and favourites, and the
-/// device-wide app settings.
+/// profile, the profile's own goals, training days, favourites and body
+/// measurements, and the device-wide app settings.
 ///
 /// Kept apart from `ExportDataUsecase` / `ImportDataUsecase` so the fork's
 /// additions stay in one place and upstream merges touch as little as
@@ -49,6 +51,9 @@ class PersonalBackupExtras {
 
   /// The profile's favourites (#37, [FavoriteEntry]).
   static const favoritesFileName = 'favorites.json';
+
+  /// The profile's body measurements (#43, [BodyMeasurement]).
+  static const bodyMeasurementsFileName = 'body_measurements.json';
 
   /// The `ConfigDBO` JSON keys that `app_settings.json` carries: the
   /// device-wide preferences. Left out on purpose are the legal and consent
@@ -92,6 +97,7 @@ class PersonalBackupExtras {
   final ConfigDataSource _configDataSource;
   final FastingDataSource _fastingDataSource;
   final FavoriteDataSource? _favoriteDataSource;
+  final BodyMeasurementDataSource? _bodyMeasurementDataSource;
 
   /// The other profiles' folders; null for the extras of a single profile's
   /// folder, which must not recurse into the profile list.
@@ -105,8 +111,10 @@ class PersonalBackupExtras {
     this._fastingDataSource, {
     ProfilesBackup? profiles,
     FavoriteDataSource? favorites,
+    BodyMeasurementDataSource? bodyMeasurements,
   }) : _profiles = profiles,
-       _favoriteDataSource = favorites;
+       _favoriteDataSource = favorites,
+       _bodyMeasurementDataSource = bodyMeasurements;
 
   /// Writes the fork's JSON files into [archive]. `app_settings.json`
   /// records this archive's creation as the last backup, so a restore from
@@ -124,6 +132,12 @@ class PersonalBackupExtras {
     if (favorites != null) {
       _addJson(archive, favoritesFileName, [
         for (final entry in favorites.all()) entry.toJson(),
+      ]);
+    }
+    final bodyMeasurements = _bodyMeasurementDataSource;
+    if (bodyMeasurements != null) {
+      _addJson(archive, bodyMeasurementsFileName, [
+        for (final measurement in bodyMeasurements.all()) measurement.toJson(),
       ]);
     }
     _addJson(archive, customMealsFileName, [
@@ -195,6 +209,12 @@ class PersonalBackupExtras {
             archive.findFile(favoritesFileName),
             FavoriteEntry.fromJson,
           );
+    final bodyMeasurements = _bodyMeasurementDataSource == null
+        ? null
+        : _decodeList(
+            archive.findFile(bodyMeasurementsFileName),
+            BodyMeasurement.fromJson,
+          );
     final user = includeProfileAndSettings
         ? _decodeMap(archive.findFile(userProfileFileName), _userFromJson)
         : null;
@@ -237,6 +257,9 @@ class PersonalBackupExtras {
       }
       if (favorites != null) {
         await _favoriteDataSource!.putAll(favorites);
+      }
+      if (bodyMeasurements != null) {
+        await _bodyMeasurementDataSource!.putAll(bodyMeasurements);
       }
       if (user != null) {
         await _userDataSource.saveUserData(user);
