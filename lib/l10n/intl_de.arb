@@ -1443,5 +1443,10 @@
   "offUploadRejected": "Open Food Facts hat den Upload abgelehnt. Bitte Benutzername und Passwort prüfen.",
   "offUploadBusy": "Open Food Facts ist gerade überlastet.",
   "offUploadRetry": "Erneut versuchen",
-  "offUploadSaltLabel": "Salz"
+  "offUploadSaltLabel": "Salz",
+  "waterQuickAddedLabel": "{amount} ml Wasser eingetragen",
+  "waterQuickUndoLabel": "Rückgängig",
+  "waterQuickAmountLabel": "Eigene Schnellmenge",
+  "waterQuickAmountDescription": "Die Menge des dritten Buttons im Wasser-Dialog, neben +250 ml und +500 ml.",
+  "waterQuickAmountRangeError": "Bitte {min} bis {max} ml eingeben"
 }

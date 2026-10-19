@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -25,6 +26,14 @@ class LogWaterDialog extends StatefulWidget {
 
 class _LogWaterDialogState extends State<LogWaterDialog> {
   double _selectedMl = LogWaterDialog.sliderDefaultMl.toDouble();
+  final _quickAmount = locator<WaterQuickAmount>();
+  bool _adding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _quickAmount.load();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +66,31 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          ValueListenableBuilder<int>(
+            valueListenable: _quickAmount.amount,
+            builder: (context, customMl, _) => Wrap(
+              alignment: WrapAlignment.center,
+              spacing: Dimens.spacing8,
+              runSpacing: Dimens.spacing8,
+              children: [
+                for (final (id, amount) in [
+                  ('250', 250),
+                  ('500', 500),
+                  ('custom', customMl),
+                ])
+                  Semantics(
+                    identifier: 'log-water-quick-$id',
+                    child: FilledButton.tonal(
+                      onPressed: _adding
+                          ? null
+                          : () => _onQuickAddPressed(amount),
+                      child: Text('+$amount ${s.mlLabel}'),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Dimens.spacing16),
           Text(
             s.logWaterAmountLabel(_selectedMl.round()),
             textAlign: TextAlign.center,
@@ -120,6 +154,28 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
     if (mounted) {
       navigator.pop();
     }
+  }
+
+  /// Logs [amountMl] with one tap (#29), closes the dialog and offers to
+  /// take it back.
+  Future<void> _onQuickAddPressed(int amountMl) async {
+    setState(() => _adding = true);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final s = S.of(context);
+    final homeBloc = locator<HomeBloc>();
+    final id = await homeBloc.addWaterIntake(amountMl);
+    if (mounted) navigator.pop();
+    if (id == null) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(s.waterQuickAddedLabel(amountMl)),
+        action: SnackBarAction(
+          label: s.waterQuickUndoLabel,
+          onPressed: () => homeBloc.deleteWaterIntake(id),
+        ),
+      ),
+    );
   }
 
   Future<void> _onUndoPressed() async {

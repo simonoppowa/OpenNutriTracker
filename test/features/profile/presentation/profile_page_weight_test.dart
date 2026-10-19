@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
@@ -12,6 +15,7 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/profile_page.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -117,6 +121,7 @@ void main() {
     locator.registerSingleton<ProfileBloc>(fakeProfileBloc);
     locator.registerSingleton<AddWeightLogUsecase>(fakeAddWeightLogUsecase);
     locator.registerSingleton<GetUserUsecase>(_FakeGetUserUsecase(user));
+    locator.registerSingleton(WaterQuickAmount(_FakeConfigDataSource()));
     locator.registerSingleton<GetProfilesUsecase>(
       _SingleProfileGetProfilesUsecase(),
     );
@@ -166,4 +171,14 @@ void main() {
     // Profile/home/diary refresh still happens via ProfileBloc.updateUser.
     expect(fakeProfileBloc.updateUserCalls, hasLength(1));
   });
+}
+
+class _FakeConfigDataSource implements ConfigDataSource {
+  @override
+  Future<ConfigDBO> getConfig() async =>
+      ConfigDBO(false, false, false, AppThemeDBO.system);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }

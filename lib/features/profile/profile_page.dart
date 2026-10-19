@@ -30,6 +30,8 @@ import 'package:opennutritracker/features/profile/presentation/widgets/set_weekl
 import 'package:opennutritracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_target_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
+import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/water_quick_amount_dialog.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
@@ -50,6 +52,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     _profileBloc = locator<ProfileBloc>();
     super.initState();
+    locator<WaterQuickAmount>().load();
   }
 
   @override
@@ -254,6 +257,22 @@ class _ProfilePageState extends State<ProfilePage> {
               title: S.of(context).settingsWaterGoalLabel,
               subtitle: '$effectiveWaterGoalMl ${S.of(context).mlLabel}',
               onTap: () => _showWaterGoalDialog(context),
+            ),
+            ValueListenableBuilder<int>(
+              valueListenable: locator<WaterQuickAmount>().amount,
+              builder: (context, amountMl, _) => _ProfileTile(
+                identifier: 'profile-water-quick-amount',
+                palette: palette,
+                icon: Icons.local_drink_rounded,
+                title: S.of(context).waterQuickAmountLabel,
+                subtitle: '$amountMl ${S.of(context).mlLabel}',
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => WaterQuickAmountDialog(
+                    quickAmount: locator<WaterQuickAmount>(),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

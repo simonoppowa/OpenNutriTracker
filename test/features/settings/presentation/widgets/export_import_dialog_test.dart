@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/domain/backup_reminder.dart';
@@ -63,9 +64,22 @@ class _TrendsBloc extends Fake implements TrendsBloc {
   void add(TrendsEvent event) => _events.add(event);
 }
 
+final _quickAmount = _RecordingQuickAmount();
+
+class _RecordingQuickAmount extends Fake implements WaterQuickAmount {
+  var loads = 0;
+
+  @override
+  Future<int> load() async {
+    loads++;
+    return WaterQuickAmount.defaultMl;
+  }
+}
+
 void main() {
   void register(TrendsState trendsState) {
     _events.clear();
+    _quickAmount.loads = 0;
     locator
       ..registerSingleton<ExportImportBloc>(_SucceededExportImportBloc())
       ..registerSingleton<HomeBloc>(_HomeBloc())
@@ -74,7 +88,8 @@ void main() {
       ..registerSingleton<SettingsBloc>(_SettingsBloc())
       ..registerSingleton<ProfileBloc>(_ProfileBloc())
       ..registerSingleton<TrendsBloc>(_TrendsBloc(trendsState))
-      ..registerSingleton<BackupReminder>(FakeBackupReminder());
+      ..registerSingleton<BackupReminder>(FakeBackupReminder())
+      ..registerSingleton<WaterQuickAmount>(_quickAmount);
   }
 
   Future<void> pumpDialog(WidgetTester tester) => tester.pumpWidget(
@@ -115,6 +130,7 @@ void main() {
     expect(_events, contains(isA<LoadItemsEvent>()));
     expect(_events, contains(isA<LoadDiaryYearEvent>()));
     expect(_events, contains(const LoadTrendsEvent(rangeDays: 30)));
+    expect(_quickAmount.loads, 1, reason: 'a restore can change it (#29)');
   });
 
   testWidgets('Trends is left to load itself when it never has', (

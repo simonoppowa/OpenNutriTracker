@@ -395,14 +395,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   /// Logs a single water intake entry and reloads the home view so the
   /// chip updates immediately. The dialog itself only owns the slider
   /// value; persistence and recomputation flow back through the bloc.
-  Future<void> addWaterIntake(int amountMl) async {
-    if (amountMl <= 0) return;
+  /// Returns the new entry's id, which [deleteWaterIntake] takes for an
+  /// undo, or null when nothing was logged.
+  Future<String?> addWaterIntake(int amountMl) async {
+    if (amountMl <= 0) return null;
     final entry = WaterIntakeEntity(
       id: 'water-${DateTime.now().microsecondsSinceEpoch}',
       dateTime: DateTime.now(),
       amountMl: amountMl,
     );
     await _addWaterIntakeUsecase.addEntry(entry);
+    add(const LoadItemsEvent());
+    return entry.id;
+  }
+
+  /// Removes the water entry with [id] and reloads the home view.
+  Future<void> deleteWaterIntake(String id) async {
+    await _deleteWaterIntakeUsecase.deleteEntry(id);
     add(const LoadItemsEvent());
   }
 

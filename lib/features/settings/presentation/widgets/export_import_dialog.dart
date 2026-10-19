@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
@@ -243,6 +244,7 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
     // from blocs that keep their loaded state until told to reload.
     locator<SettingsBloc>().add(LoadSettingsEvent());
     locator<ProfileBloc>().add(LoadProfileEvent());
+    locator<WaterQuickAmount>().load();
     final trendsBloc = locator<TrendsBloc>();
     final trendsState = trendsBloc.state;
     if (trendsState is TrendsLoaded) {

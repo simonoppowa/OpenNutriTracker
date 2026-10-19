@@ -16,7 +16,8 @@ class SharedActivityItem {
   const SharedActivityItem({required this.code, required this.duration});
 
   factory SharedActivityItem.fromUserActivityEntity(
-      UserActivityEntity activity) {
+    UserActivityEntity activity,
+  ) {
     return SharedActivityItem(
       code: activity.physicalActivityEntity.code,
       duration: activity.duration,
@@ -51,12 +52,11 @@ class SharedActivityPayload {
   const SharedActivityPayload({required this.version, required this.items});
 
   factory SharedActivityPayload.fromUserActivityList(
-      List<UserActivityEntity> activities) {
+    List<UserActivityEntity> activities,
+  ) {
     return SharedActivityPayload(
       version: _currentVersion,
-      items: activities
-          .map(SharedActivityItem.fromUserActivityEntity)
-          .toList(),
+      items: activities.map(SharedActivityItem.fromUserActivityEntity).toList(),
     );
   }
 
@@ -64,11 +64,13 @@ class SharedActivityPayload {
     try {
       String jsonString;
       try {
-        final decompressed =
-            gzip.decode(base64Url.decode(base64Url.normalize(input)));
+        final decompressed = gzip.decode(
+          base64Url.decode(base64Url.normalize(input)),
+        );
         if (decompressed.length > _kMaxDecompressedBytes) {
           throw SharedActivityParseException(
-              'Payload too large to decode (>$_kMaxDecompressedBytes bytes)');
+            'Payload too large to decode (>$_kMaxDecompressedBytes bytes)',
+          );
         }
         jsonString = utf8.decode(decompressed);
       } on SharedActivityParseException {
@@ -87,7 +89,8 @@ class SharedActivityPayload {
       final version = decoded[0] as int;
       if (version != _currentVersion) {
         throw SharedActivityParseException(
-            'Unsupported payload version: $version');
+          'Unsupported payload version: $version',
+        );
       }
 
       final rawItems = decoded[1] as List<dynamic>;
@@ -105,10 +108,7 @@ class SharedActivityPayload {
   }
 
   String toJsonString() {
-    final json = jsonEncode([
-      version,
-      items.map((i) => i.toArray()).toList(),
-    ]);
+    final json = jsonEncode([version, items.map((i) => i.toArray()).toList()]);
     return base64Url.encode(gzip.encode(utf8.encode(json)));
   }
 }

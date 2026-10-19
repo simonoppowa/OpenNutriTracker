@@ -67,6 +67,7 @@ class PersonalBackupExtras {
     'lastBackupAt',
     'backupReminderDays',
     'confirmedStoreBarcodes',
+    'waterQuickAmountMl',
   ];
 
   final WaterIntakeRepository _waterIntakeRepository;

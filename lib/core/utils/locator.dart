@@ -115,6 +115,7 @@ import 'package:opennutritracker/features/fasting/domain/usecase/complete_fastin
 import 'package:opennutritracker/features/fasting/domain/usecase/get_active_fasting_session_usecase.dart';
 import 'package:opennutritracker/features/fasting/domain/usecase/start_fasting_usecase.dart';
 import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc.dart';
+import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
@@ -673,6 +674,7 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   locator.registerLazySingleton(() => StoreBarcodeCheck(locator()));
+  locator.registerLazySingleton(() => WaterQuickAmount(locator()));
   locator.registerLazySingleton(
     () => OffContributionSettingsStore(SecureAppStorageProvider.secureAppStorage),
   );

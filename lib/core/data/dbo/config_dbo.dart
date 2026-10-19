@@ -199,6 +199,9 @@ class ConfigDBO extends HiveObject {
   // confirmed as the product Open Food Facts returned for them.
   @HiveField(102)
   List<String>? confirmedStoreBarcodes;
+  // The amount of the third water quick-add button, in ml.
+  @HiveField(103)
+  int? waterQuickAmountMl;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -241,6 +244,7 @@ class ConfigDBO extends HiveObject {
     this.lastBackupAt,
     this.backupReminderDays,
     this.confirmedStoreBarcodes,
+    this.waterQuickAmountMl,
   });
 
   factory ConfigDBO.empty() =>

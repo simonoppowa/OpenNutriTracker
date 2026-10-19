@@ -57,6 +57,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         lastBackupAt: fields[100] as DateTime?,
         backupReminderDays: (fields[101] as num?)?.toInt(),
         confirmedStoreBarcodes: (fields[102] as List?)?.cast<String>(),
+        waterQuickAmountMl: (fields[103] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -66,7 +67,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(43)
+      ..writeByte(44)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -152,7 +153,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(101)
       ..write(obj.backupReminderDays)
       ..writeByte(102)
-      ..write(obj.confirmedStoreBarcodes);
+      ..write(obj.confirmedStoreBarcodes)
+      ..writeByte(103)
+      ..write(obj.waterQuickAmountMl);
   }
 
   @override
@@ -234,6 +237,7 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         confirmedStoreBarcodes: (json['confirmedStoreBarcodes'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList(),
+        waterQuickAmountMl: (json['waterQuickAmountMl'] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -285,6 +289,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'lastBackupAt': instance.lastBackupAt?.toIso8601String(),
   'backupReminderDays': instance.backupReminderDays,
   'confirmedStoreBarcodes': instance.confirmedStoreBarcodes,
+  'waterQuickAmountMl': instance.waterQuickAmountMl,
 };
 
 const _$AppThemeDBOEnumMap = {
