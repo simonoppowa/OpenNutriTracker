@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/favorites/domain/favorites_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/search/search_ordering.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
@@ -354,7 +355,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           ? fs.food
                           : const <MealEntity>[];
                       final merged = _favorites.favoritesFirst(
-                        mergeAndRankMeals(products, foods, query),
+                        SearchOrdering.rankMerged(
+                          mergeAndRankMeals(products, foods, query),
+                          query,
+                        ),
                       );
                       final imperial = ps is ProductsLoadedState
                           ? ps.usesImperialUnits
@@ -397,7 +401,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 } else if (state is ProductsLoadingState) {
                   return _pendingSpinner;
                 } else if (state is ProductsLoadedState) {
-                  final products = _favorites.favoritesFirst(state.products);
+                  final products = _favorites.favoritesFirst(
+                    SearchOrdering.brandFirst(state.products, query),
+                  );
                   if (state.products.isEmpty) {
                     return Flexible(
                       child: _productsPending(state, query)
@@ -452,7 +458,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 } else if (state is FoodLoadingState) {
                   return _pendingSpinner;
                 } else if (state is FoodLoadedState) {
-                  final food = _favorites.favoritesFirst(state.food);
+                  final food = _favorites.favoritesFirst(
+                    SearchOrdering.brandFirst(state.food, query),
+                  );
                   if (state.food.isEmpty) {
                     return Flexible(
                       child: _foodPending(state, query)

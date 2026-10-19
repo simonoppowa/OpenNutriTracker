@@ -78,6 +78,7 @@ import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
 import 'package:opennutritracker/core/utils/tracked_day_total_repair.dart';
 import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/search/search_region.dart';
 import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
 import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/data/model_meal_text_interpreter.dart';
@@ -608,7 +609,11 @@ Future<void> initLocator() async {
     () => IntakeRepository(locator()),
   );
   locator.registerLazySingleton<ProductsRepository>(
-    () => ProductsRepository(locator(), locator()),
+    () => ProductsRepository(
+      locator(),
+      locator(),
+      countryTag: () => locator<SearchRegion>().offCountryTag(),
+    ),
   );
   locator.registerLazySingleton<UserActivityRepository>(
     () => UserActivityRepository(locator()),
@@ -692,6 +697,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   locator.registerLazySingleton(() => StoreBarcodeCheck(locator()));
   locator.registerLazySingleton(() => WaterQuickAmount(locator()));
+  locator.registerLazySingleton(() => SearchRegion(locator()));
   locator.registerLazySingleton(
     () => CopyEntriesUsecase(
       locator(),

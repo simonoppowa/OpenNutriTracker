@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
+import 'package:opennutritracker/features/add_meal/domain/search/search_region.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -80,6 +81,7 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
                   value: true,
                   onChanged: null,
                 ),
+                const _SearchRegionTile(),
                 for (final sourceCode in SPConst.settingsSelectableFoodSources)
                   SwitchListTile(
                     secondary: _infoButton(
@@ -93,6 +95,60 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
                   ),
               ],
             ),
+    );
+  }
+}
+
+/// The country the Open Food Facts search ranks up (#41).
+class _SearchRegionTile extends StatefulWidget {
+  const _SearchRegionTile();
+
+  @override
+  State<_SearchRegionTile> createState() => _SearchRegionTileState();
+}
+
+class _SearchRegionTileState extends State<_SearchRegionTile> {
+  final _region = locator<SearchRegion>();
+  String? _country;
+
+  @override
+  void initState() {
+    super.initState();
+    _region.country().then((country) {
+      if (mounted) setState(() => _country = country);
+    });
+  }
+
+  Future<void> _select(String? country) async {
+    if (country == null) return;
+    setState(() => _country = country);
+    await _region.save(country);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    final country = _country;
+    return Semantics(
+      identifier: 'food-sources-search-region',
+      child: ListTile(
+        leading: const Icon(Icons.public_rounded),
+        title: Text(s.searchRegionLabel),
+        subtitle: Text(s.searchRegionHint),
+        trailing: country == null
+            ? null
+            : DropdownButton<String>(
+                value: country,
+                onChanged: _select,
+                items: [
+                  for (final code in SearchRegion.countries)
+                    DropdownMenuItem(
+                      value: code,
+                      child: Text('${SearchRegion.flagOf(code)} $code'),
+                    ),
+                ],
+              ),
+      ),
     );
   }
 }

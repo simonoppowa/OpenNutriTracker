@@ -227,6 +227,9 @@ class ConfigDBO extends HiveObject {
   // What logging an activity on a rest day does (#36, AutoTrainingDay).
   @HiveField(113)
   String? autoTrainingDayMode;
+  // ISO code of the country the food search ranks up (#41, SearchRegion).
+  @HiveField(114)
+  String? offSearchCountry;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -280,6 +283,7 @@ class ConfigDBO extends HiveObject {
     this.trainingWeekdays,
     this.dayTypeOverrides,
     this.autoTrainingDayMode,
+    this.offSearchCountry,
   });
 
   factory ConfigDBO.empty() =>

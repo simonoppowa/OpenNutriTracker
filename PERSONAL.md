@@ -43,6 +43,7 @@ vervollständigt.
 | Favoriten | Chip „Favoriten“ im Mahlzeit-Hinzufügen (mit Suche, leerer Zustand), Favoriten zuerst in Suche und „Alle“, Stern auf den Ergebniskarten auch in „Zuletzt“ | #39 |
 | Tagebuch | Einträge, Mahlzeiten, Aktivitäten und ganze Tage (optional mit Aktivitäten und Wasser) auf ein beliebiges Datum kopieren, auch von heute aus; neue IDs, gleiche Uhrzeit im Ziel-Tag (Tagesgrenze beachtet), Summen am Ziel | #40 |
 | Lebensmittel | BLS-Säfte, Nektare, Smoothies, Milch, Kefir, Buttermilch und Pflanzendrinks standardmäßig in ml (Regel über die BLS-Codes, `SPConst.isBlsLiquid`) | #104 |
+| Suche | Suchregion (Standard Deutschland, Einstellungen → Lebensmitteldatenbanken, ConfigDBO-Feld 114) statt Geräte-Locale; Marken und Märkte in der Eingabe werden erkannt (pflegbare Liste `german_brands.dart`), OFF wird nach `brands_tags` gefiltert (Fallback ohne Filter) und die Marke zuerst gezeigt; in „Alle“ stehen BLS-Lebensmittel bei vergleichbarer Relevanz vor OFF | #41 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
@@ -139,7 +140,12 @@ Onboarding (#100).
 
 ## Datenquellen
 
-- **Open Food Facts**: online, Text- und Barcode-Suche.
+- **Open Food Facts**: online, Text- und Barcode-Suche. Marken und Märkte in der
+  Eingabe („Paradiso Mango-Maracuja“, „Penny Studentenfutter“) filtern die Suche
+  auf die Marke bzw. die Eigenmarken des Markts. Die Liste der Marken, ihrer
+  Schreibweisen und der Eigenmarken je Markt steht in
+  `lib/features/add_meal/domain/search/german_brands.dart`; fehlt eine Marke,
+  gehört sie dort hinein (die `brands_tags` stehen auf der Produktseite von OFF).
   Schreiben nur per Opt-in (#81, Einstellungen → Beiträge an Open Food Facts):
   zuerst mit eingeschaltetem Testserver (`world.openfoodfacts.net`) einen Upload
   ausprobieren, erst danach den Schalter für die echte Datenbank umlegen.

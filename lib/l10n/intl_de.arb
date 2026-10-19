@@ -1508,5 +1508,7 @@
   "copyDayWaterLabel": "Mit Wasser",
   "copiedLabel": "Kopiert",
   "copyTargetTitle": "Kopieren nach …",
-  "copyFailedLabel": "Kopieren hat nicht geklappt; bitte den Ziel-Tag prüfen."
+  "copyFailedLabel": "Kopieren hat nicht geklappt; bitte den Ziel-Tag prüfen.",
+  "searchRegionLabel": "Suchregion",
+  "searchRegionHint": "Produkte aus diesem Land stehen in der Open-Food-Facts-Suche weiter oben."
 }

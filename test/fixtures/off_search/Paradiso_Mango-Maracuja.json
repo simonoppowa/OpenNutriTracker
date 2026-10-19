@@ -1,0 +1,670 @@
+{
+ "hits": [
+  {
+   "code": "4003240942006",
+   "brands": [
+    "Albi"
+   ],
+   "quantity": "1K",
+   "countries_tags": [
+    "en:switzerland"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 12.1,
+    "energy-kcal_100g": 53,
+    "energy-kj_100g": 223,
+    "fat_100g": 0.5,
+    "proteins_100g": 0.5,
+    "salt_100g": 0.01,
+    "saturated-fat_100g": 0.1,
+    "sodium_100g": 0.004,
+    "sugars_100g": 12.1
+   },
+   "popularity_key": 1,
+   "product_name": "Albi Mangosaft",
+   "product_name_de": "Albi Mangosaft",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/400/324/094/2006/front_de.15.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/400/324/094/2006/front_de.15.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/400/324/094/2006/front_de.15.100.jpg"
+  },
+  {
+   "code": "4337185620720",
+   "brands": [
+    "Kaufland"
+   ],
+   "quantity": "1000 ml",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 12,
+    "energy-kcal_100g": 51,
+    "fat_100g": 0.5,
+    "fiber_100g": 0.6,
+    "proteins_100g": 0.5,
+    "salt_100g": 0.01,
+    "saturated-fat_100g": 0.1,
+    "sodium_100g": 0.004,
+    "sugars_100g": 12
+   },
+   "popularity_key": 1,
+   "product_name": "Mango Nektar",
+   "product_name_de": "Mango Nektar",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/433/718/562/0720/front_de.3.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/433/718/562/0720/front_de.3.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/433/718/562/0720/front_de.3.100.jpg"
+  },
+  {
+   "code": "4260516390200",
+   "brands": [
+    "IceDate"
+   ],
+   "quantity": "330g / 450ml",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 17,
+    "energy-kcal_100g": 102,
+    "fat_100g": 2.8,
+    "fiber_100g": 2.1,
+    "proteins_100g": 1.7,
+    "salt_100g": 0.02,
+    "saturated-fat_100g": 0.5,
+    "sodium_100g": 0.008,
+    "sugars_100g": 15
+   },
+   "popularity_key": 12,
+   "product_name": "Mango maracuja",
+   "product_name_de": "Mango maracuja",
+   "product_name_en": "Mango maracuja",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/426/051/639/0200/front_en.6.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/426/051/639/0200/front_en.6.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/426/051/639/0200/front_en.6.100.jpg"
+  },
+  {
+   "code": "4021155131582",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 96,
+    "energy-kcal_100g": 392,
+    "fat_100g": 0,
+    "fiber_100g": 0,
+    "proteins_100g": 0,
+    "salt_100g": 0.19,
+    "saturated-fat_100g": 0,
+    "sodium_100g": 0.076,
+    "sugars_100g": 96
+   },
+   "popularity_key": 15,
+   "product_name": "Mango Maracuja",
+   "product_name_de": "Mango Maracuja",
+   "product_name_en": "Mango Maracuja",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/402/115/513/1582/front_de.8.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/402/115/513/1582/front_de.8.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/402/115/513/1582/front_de.8.100.jpg"
+  },
+  {
+   "code": "4316268451093",
+   "brands": [
+    "Frucht Stern"
+   ],
+   "countries_tags": [
+    "en:france",
+    "en:germany"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 12.1,
+    "energy-kcal_100g": 53,
+    "energy-kj_100g": 224,
+    "fat_100g": 0.1,
+    "proteins_100g": 0.2,
+    "salt_100g": 0.01,
+    "saturated-fat_100g": 0.1,
+    "sodium_100g": 0.004,
+    "sugars_100g": 12.1
+   },
+   "popularity_key": 1,
+   "product_name": "Fruchtstern Mango-Nektar",
+   "product_name_de": "Fruchtstern Mango-Nektar",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/431/626/845/1093/front_de.11.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/431/626/845/1093/front_de.11.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/431/626/845/1093/front_de.11.100.jpg"
+  },
+  {
+   "code": "4850046001037",
+   "brands": [
+    "Kinder"
+   ],
+   "quantity": "4 x 29 g",
+   "countries_tags": [
+    "en:japan"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 48.5,
+    "energy-kcal_100g": 177,
+    "fat_100g": 23,
+    "proteins_100g": 5.80000019073486,
+    "saturated-fat_100g": 13.6999998092651,
+    "sugars_100g": 39.5999984741211
+   },
+   "popularity_key": 12,
+   "product_name": "Paradiso",
+   "product_name_en": "Paradiso",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/485/004/600/1037/front_en.3.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/485/004/600/1037/front_en.3.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/485/004/600/1037/front_en.3.100.jpg"
+  },
+  {
+   "code": "4337256265256",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "fat_100g": 0,
+    "proteins_100g": 0,
+    "sugars_100g": 10.5,
+    "energy-kcal_100g": 48,
+    "carbohydrates_100g": 10.8,
+    "saturated-fat_100g": 0
+   },
+   "popularity_key": 21900000002,
+   "product_name": "Paradiso Multivitaminsaft",
+   "product_name_en": "Paradiso Multivitaminsaft",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/433/725/626/5256/front_en.4.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/433/725/626/5256/front_en.4.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/433/725/626/5256/front_en.4.100.jpg"
+  },
+  {
+   "code": "9120081683464",
+   "brands": [
+    "Juice Box"
+   ],
+   "countries_tags": [
+    "en:ireland"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 0.5,
+    "energy-kcal_100g": 3.20000004768372,
+    "sugars_100g": 0.400000005960464
+   },
+   "product_name": "Mango Maracuja light",
+   "product_name_en": "Mango Maracuja light"
+  },
+  {
+   "code": "42232407",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "energy-kcal_100g": 98,
+    "carbohydrates_100g": 9.6,
+    "saturated-fat_100g": 0,
+    "fat_100g": 0,
+    "sugars_100g": 9.6,
+    "proteins_100g": 0
+   },
+   "product_name": "Apfel-mango maracuja",
+   "product_name_en": "Apfel-mango maracuja",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/42232407/front_en.7.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/42232407/front_en.7.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/42232407/front_en.7.100.jpg"
+  },
+  {
+   "code": "5999559160196",
+   "brands": [
+    "Pölöskei"
+   ],
+   "countries_tags": [
+    "en:hungary"
+   ],
+   "nutriments": {
+    "sugars_100g": 60,
+    "fiber_100g": 0,
+    "proteins_100g": 0,
+    "fat_100g": 0,
+    "salt_100g": 0,
+    "carbohydrates_100g": 61.8,
+    "saturated-fat_100g": 0,
+    "sodium_100g": 0,
+    "energy-kcal_100g": 252
+   },
+   "popularity_key": 21900000004,
+   "product_name": "Mango-maracuja szörp",
+   "product_name_en": "Mango-maracuja szörp",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/599/955/916/0196/front_en.4.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/599/955/916/0196/front_en.4.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/599/955/916/0196/front_en.4.100.jpg"
+  },
+  {
+   "code": "0735257003640",
+   "brands": [
+    "D'gari"
+   ],
+   "countries_tags": [
+    "en:sweden"
+   ],
+   "nutriments": {
+    "energy-kcal_100g": 13.2,
+    "saturated-fat_100g": 0,
+    "carbohydrates_100g": 0,
+    "sugars_100g": 0,
+    "fiber_100g": 0,
+    "proteins_100g": 3.3,
+    "fat_100g": 0
+   },
+   "popularity_key": 1,
+   "product_name": "Gelatina mango maracuja",
+   "product_name_en": "Gelatina mango maracuja",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/073/525/700/3640/front_en.4.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/073/525/700/3640/front_en.4.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/073/525/700/3640/front_en.4.100.jpg"
+  },
+  {
+   "code": "5051007146616",
+   "brands": [
+    "Tesco"
+   ],
+   "countries_tags": [
+    "en:united-kingdom"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 28,
+    "energy-kcal_100g": 119,
+    "fat_100g": 0.5,
+    "fiber_100g": 1.10000002384186,
+    "proteins_100g": 0.5,
+    "sugars_100g": 25
+   },
+   "product_name": "Mango & Maracuja sorbet",
+   "product_name_en": "Mango & Maracuja sorbet"
+  },
+  {
+   "code": "8594008040561",
+   "countries_tags": [
+    "en:czech-republic"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 8.9,
+    "energy-kcal_100g": 37,
+    "sugars_100g": 8.9
+   },
+   "product_name": "Pomeranč, mango a maracuja",
+   "product_name_en": "Pomeranč, mango a maracuja"
+  },
+  {
+   "code": "7593822759711",
+   "brands": [
+    "Olma"
+   ],
+   "countries_tags": [
+    "en:venezuela"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 7,
+    "energy-kcal_100g": 64,
+    "fat_100g": 1,
+    "fiber_100g": 1,
+    "proteins_100g": 6.69999980926514,
+    "saturated-fat_100g": 0.600000023841858,
+    "sugars_100g": 7
+   },
+   "product_name": "Protein mango maracuja",
+   "product_name_en": "Protein mango maracuja"
+  },
+  {
+   "code": "4015533054341",
+   "brands": [
+    "Voelkel"
+   ],
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 12,
+    "energy-kcal_100g": 55,
+    "fiber_100g": 0.200000002980232,
+    "proteins_100g": 0.200000002980232,
+    "sugars_100g": 12
+   },
+   "popularity_key": 6,
+   "product_name": "Smoothie Mango Maracuja",
+   "product_name_en": "Smoothie Mango Maracuja",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/401/553/305/4341/front_en.3.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/401/553/305/4341/front_en.3.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/401/553/305/4341/front_en.3.100.jpg"
+  },
+  {
+   "code": "4388860145380",
+   "brands": [
+    "Rewe",
+    "Rewe Beste Wahl"
+   ],
+   "quantity": "1 l",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 11,
+    "energy-kcal_100g": 46,
+    "energy-kj_100g": 196,
+    "fat_100g": 0.5,
+    "proteins_100g": 0.5,
+    "salt_100g": 0.01,
+    "saturated-fat_100g": 0.1,
+    "sodium_100g": 0.004,
+    "sugars_100g": 11
+   },
+   "popularity_key": 19950000013,
+   "product_name": "Mango Maracuja Nektar",
+   "product_name_de": "Mango Maracuja Nektar",
+   "product_name_en": "Mango Maracuja Nektar",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/438/886/014/5380/front_de.39.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/438/886/014/5380/front_de.39.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/438/886/014/5380/front_de.39.100.jpg"
+  },
+  {
+   "code": "4335718163744",
+   "brands": [
+    "Tip"
+   ],
+   "quantity": "1 Liter",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "product_name": "Mango-Maracuja-Nektar",
+   "product_name_en": "Mango-Maracuja-Nektar",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/433/571/816/3744/front_de.3.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/433/571/816/3744/front_de.3.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/433/571/816/3744/front_de.3.100.jpg"
+  },
+  {
+   "code": "5999886615956",
+   "brands": [
+    "All  in Natural food"
+   ],
+   "countries_tags": [
+    "en:hungary"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 18,
+    "energy-kcal_100g": 645,
+    "fat_100g": 9.5,
+    "fiber_100g": 4,
+    "proteins_100g": 1,
+    "saturated-fat_100g": 6.59999990463257,
+    "sugars_100g": 15
+   },
+   "product_name": "Mango&maracuja  icecream",
+   "product_name_en": "Mango&maracuja  icecream"
+  },
+  {
+   "code": "5038862232937",
+   "brands": [
+    "Innocent"
+   ],
+   "quantity": "750 ml",
+   "countries_tags": [
+    "en:switzerland"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 12,
+    "energy-kj_100g": 227,
+    "fat_100g": 0,
+    "proteins_100g": 0.4,
+    "salt_100g": 0,
+    "saturated-fat_100g": 0,
+    "sodium_100g": 0,
+    "sugars_100g": 11
+   },
+   "product_name": "smoothie Mango & Maracuja",
+   "product_name_de": "smoothie Mango & Maracuja",
+   "product_name_en": "smoothie Mango & Maracuja",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/503/886/223/2937/front_de.12.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/503/886/223/2937/front_de.12.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/503/886/223/2937/front_de.12.100.jpg"
+  },
+  {
+   "code": "4337185470776",
+   "brands": [
+    "K-take it veggie"
+   ],
+   "quantity": "400 g",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "energy-kcal_100g": 133,
+    "energy-kj_100g": 550,
+    "sodium_100g": 0.032,
+    "saturated-fat_100g": 8.3,
+    "carbohydrates_100g": 9.7,
+    "salt_100g": 0.08,
+    "fat_100g": 9.2,
+    "proteins_100g": 1,
+    "fiber_100g": 3.5,
+    "sugars_100g": 6.4
+   },
+   "popularity_key": 3,
+   "product_name": "K-take it veggie Veganer Cocogurt Mango-Maracuja",
+   "product_name_de": "K-take it veggie Veganer Cocogurt Mango-Maracuja",
+   "product_name_en": "K-take it veggie Vegan Cocogurt Mango-Maracuja",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/433/718/547/0776/front_de.19.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/433/718/547/0776/front_de.19.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/433/718/547/0776/front_de.19.100.jpg"
+  },
+  {
+   "code": "4337185796548",
+   "brands": [
+    "K-take it veggie"
+   ],
+   "quantity": "400 g",
+   "countries_tags": [
+    "en:czech-republic",
+    "en:germany",
+    "en:poland",
+    "en:slovakia"
+   ],
+   "nutriments": {
+    "fat_100g": 9.2,
+    "proteins_100g": 1,
+    "fiber_100g": 3.5,
+    "sugars_100g": 6.4,
+    "saturated-fat_100g": 8.3,
+    "carbohydrates_100g": 9.7,
+    "salt_100g": 0.08,
+    "energy-kcal_100g": 133,
+    "energy-kj_100g": 550,
+    "sodium_100g": 0.032
+   },
+   "popularity_key": 1,
+   "product_name": "Veganer Cocogurt Mango-Maracuja",
+   "product_name_en": "Vegan Cocogurt Mango-Maracuja",
+   "product_name_de": "Veganer Cocogurt Mango-Maracuja",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/433/718/579/6548/front_de.26.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/433/718/579/6548/front_de.26.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/433/718/579/6548/front_de.26.100.jpg"
+  },
+  {
+   "code": "8445438957694",
+   "brands": [
+    "mango"
+   ],
+   "quantity": "0,23kg",
+   "countries_tags": [
+    "en:spain"
+   ],
+   "popularity_key": 1,
+   "product_name": "best friends",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/844/543/895/7694/front_es.7.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/844/543/895/7694/front_es.7.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/844/543/895/7694/front_es.7.100.jpg"
+  },
+  {
+   "code": "4388860404586",
+   "quantity": "1 l",
+   "countries_tags": [
+    "en:france"
+   ],
+   "nutriments": {
+    "sodium_100g": 0,
+    "carbohydrates_100g": 9.8,
+    "sugars_100g": 9.8,
+    "salt_100g": 0,
+    "proteins_100g": 0,
+    "saturated-fat_100g": 0,
+    "fat_100g": 0,
+    "energy-kcal_100g": 42
+   },
+   "popularity_key": 22900000005,
+   "product_name": "A.C.E. Paradiso",
+   "product_name_en": "A.C.E. Paradiso"
+  },
+  {
+   "code": "5060696280372",
+   "brands": [
+    "Big Drop Brewing"
+   ],
+   "countries_tags": [
+    "en:united-states"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 0,
+    "energy-kcal_100g": 2.82,
+    "fat_100g": 0,
+    "proteins_100g": 0.563
+   },
+   "product_name": "Paradiso IPA",
+   "product_name_en": "Paradiso IPA"
+  },
+  {
+   "code": "80056126",
+   "brands": [
+    "Kinder"
+   ],
+   "countries_tags": [
+    "en:qatar"
+   ],
+   "popularity_key": 4,
+   "product_name": "Kinder paradiso",
+   "product_name_en": "Kinder paradiso",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/80056126/front_en.3.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/80056126/front_en.3.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/80056126/front_en.3.100.jpg"
+  },
+  {
+   "code": "5017174838396",
+   "brands": [
+    "Holland & Barrett"
+   ],
+   "countries_tags": [
+    "en:united-kingdom"
+   ],
+   "nutriments": {
+    "sugars_100g": 1.6,
+    "carbohydrates_100g": 76,
+    "sodium_100g": 0,
+    "fat_100g": 1.7,
+    "energy-kcal_100g": 370,
+    "saturated-fat_100g": 0.2,
+    "proteins_100g": 7.1,
+    "salt_100g": 0
+   },
+   "popularity_key": 1,
+   "product_name": "Paradiso Polenta",
+   "product_name_en": "Paradiso Polenta",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/501/717/483/8396/front_en.9.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/501/717/483/8396/front_en.9.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/501/717/483/8396/front_en.9.100.jpg"
+  },
+  {
+   "code": "4061464595231",
+   "brands": [
+    "Good Choice"
+   ],
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 12,
+    "energy-kcal_100g": 57,
+    "fat_100g": 0.5,
+    "proteins_100g": 0.5,
+    "saturated-fat_100g": 0.100000001490116,
+    "sugars_100g": 11
+   },
+   "product_name": "Smoothie Apfel Mango Maracuja",
+   "product_name_en": "Smoothie Apfel Mango Maracuja"
+  },
+  {
+   "code": "5051007066372",
+   "brands": [
+    "Tesco"
+   ],
+   "countries_tags": [
+    "en:slovakia"
+   ],
+   "popularity_key": 1,
+   "product_name": "MANGO &MARACUJA SORBET Tesco",
+   "product_name_en": "MANGO &MARACUJA SORBET Tesco",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/505/100/706/6372/front_sk.3.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/505/100/706/6372/front_sk.3.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/505/100/706/6372/front_sk.3.100.jpg"
+  },
+  {
+   "code": "7640153560056",
+   "brands": [
+    "Lee-Sport"
+   ],
+   "countries_tags": [
+    "en:switzerland"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 2.9,
+    "energy-kcal_100g": 357,
+    "fat_100g": 1,
+    "proteins_100g": 86.4,
+    "salt_100g": 0.0015,
+    "saturated-fat_100g": 1,
+    "sodium_100g": 0.0006,
+    "sugars_100g": 2.5
+   },
+   "product_name": "Whey Isolate Mango Maracuja",
+   "product_name_en": "Whey Isolate Mango Maracuja"
+  },
+  {
+   "code": "8718907630726",
+   "brands": [
+    "Albert Hejn"
+   ],
+   "quantity": "500 ml",
+   "countries_tags": [
+    "en:netherlands"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 9.5,
+    "energy-kcal_100g": 42,
+    "energy-kj_100g": 178,
+    "fat_100g": 0,
+    "fiber_100g": 0.8,
+    "proteins_100g": 0.6,
+    "salt_100g": 0,
+    "saturated-fat_100g": 0,
+    "sodium_100g": 0,
+    "sugars_100g": 9.5
+   },
+   "popularity_key": 12,
+   "product_name": "Mango maracuja sinaas smoothie",
+   "product_name_en": "Mango maracuja sinaas smoothie",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/871/890/763/0726/front_nl.4.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/871/890/763/0726/front_nl.4.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/871/890/763/0726/front_nl.4.100.jpg"
+  }
+ ],
+ "page": 1,
+ "page_size": 30,
+ "page_count": 334,
+ "count": 10000
+}

@@ -1559,5 +1559,7 @@
   "copyDayWaterLabel": "With water",
   "copiedLabel": "Copied",
   "copyTargetTitle": "Copy to …",
-  "copyFailedLabel": "Copying did not finish; check the target day."
+  "copyFailedLabel": "Copying did not finish; check the target day.",
+  "searchRegionLabel": "Search region",
+  "searchRegionHint": "Products sold here are ranked up in the Open Food Facts search."
 }

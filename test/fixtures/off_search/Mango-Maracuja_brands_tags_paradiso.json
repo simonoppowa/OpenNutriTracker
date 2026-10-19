@@ -1,0 +1,58 @@
+{
+ "hits": [
+  {
+   "code": "28410768",
+   "brands": [
+    "Paradiso"
+   ],
+   "quantity": "1l",
+   "nutriments": {
+    "proteins_100g": 0.2,
+    "energy-kcal_100g": 46,
+    "sugars_100g": 10.7,
+    "carbohydrates_100g": 10.7,
+    "saturated-fat_100g": 0,
+    "salt_100g": 0.01,
+    "fat_100g": 0,
+    "sodium_100g": 0.004
+   },
+   "popularity_key": 18900000002,
+   "product_name": "Mango-Maracuja Nektar",
+   "product_name_de": "Mango-Maracuja Nektar",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/28410768/front_de.14.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/28410768/front_de.14.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/28410768/front_de.14.100.jpg"
+  },
+  {
+   "code": "27118221",
+   "brands": [
+    "Paradiso"
+   ],
+   "quantity": "1l",
+   "countries_tags": [
+    "en:germany"
+   ],
+   "nutriments": {
+    "carbohydrates_100g": 10.10000038147,
+    "energy-kcal_100g": 48,
+    "energy-kj_100g": 406,
+    "fat_100g": 0,
+    "proteins_100g": 0.60000002384186,
+    "salt_100g": 0,
+    "saturated-fat_100g": 0,
+    "sodium_100g": 0,
+    "sugars_100g": 10.10000038147
+   },
+   "popularity_key": 1,
+   "product_name": "Orange mango ananas direktsaft",
+   "product_name_de": "Orange mango ananas direktsaft",
+   "image_front_url": "https://images.openfoodfacts.org/images/products/27118221/front_de.17.400.jpg",
+   "image_url": "https://images.openfoodfacts.org/images/products/27118221/front_de.17.400.jpg",
+   "image_thumb_url": "https://images.openfoodfacts.org/images/products/27118221/front_de.17.100.jpg"
+  }
+ ],
+ "page": 1,
+ "page_size": 30,
+ "page_count": 1,
+ "count": 2
+}
