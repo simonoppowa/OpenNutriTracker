@@ -1580,5 +1580,7 @@
   "bodyMeasurementDeleteTitle": "Delete this measurement?",
   "nutrientUnknownLabel": "unknown",
   "nutrientPartialHint": "{count, plural, =1{1 entry} other{{count} entries}} without a value",
-  "@nutrientPartialHint": {"placeholders": {"count": {"type": "int"}}}
+  "@nutrientPartialHint": {"placeholders": {"count": {"type": "int"}}},
+  "nutritionForAmountLabel": "For {amount}",
+  "@nutritionForAmountLabel": {"placeholders": {"amount": {"type": "String"}}}
 }

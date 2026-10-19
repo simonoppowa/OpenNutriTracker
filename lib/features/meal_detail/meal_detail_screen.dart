@@ -496,6 +496,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     servingQuantity: meal.servingQuantity,
                     servingUnit: meal.servingUnit,
                     showMicronutrients: _showMicronutrients,
+                    selectedAmountG: double.tryParse(totalQuantity),
                   ),
                   const SizedBox(height: 32.0),
                   MealInfoButton(
