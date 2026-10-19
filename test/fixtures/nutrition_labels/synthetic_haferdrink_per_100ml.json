@@ -1,0 +1,161 @@
+{
+ "source": "synthetic, modeled on Apple Vision output (docs/nutrition-label-ocr.md)",
+ "product": "Alnatura Hafer Drink ohne Zucker",
+ "basis": "ml",
+ "expected": {
+  "energyKcal": 44,
+  "fat": 1.8,
+  "saturatedFat": 0.3,
+  "carbohydrates": 5.6,
+  "sugars": 0.5,
+  "fiber": 1.1,
+  "protein": 0.8,
+  "salt": 0.12
+ },
+ "lines": [
+  {
+   "text": "Nährwerte",
+   "x": 0.08,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "pro 100 ml",
+   "x": 0.55,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "Brennwert",
+   "x": 0.08,
+   "y": 0.175,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "184 kJ/44 kcal",
+   "x": 0.55,
+   "y": 0.179,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Fett",
+   "x": 0.08,
+   "y": 0.23,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "1,8 g",
+   "x": 0.55,
+   "y": 0.234,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "davon gesättigte Fettsäuren",
+   "x": 0.08,
+   "y": 0.285,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "0,3 g",
+   "x": 0.55,
+   "y": 0.289,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Kohlenhydrate",
+   "x": 0.08,
+   "y": 0.34,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "5,6 g",
+   "x": 0.55,
+   "y": 0.344,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "davon Zucker",
+   "x": 0.08,
+   "y": 0.395,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "0,5 g",
+   "x": 0.55,
+   "y": 0.399,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Ballaststoffe",
+   "x": 0.08,
+   "y": 0.45,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "1,1 g",
+   "x": 0.55,
+   "y": 0.454,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Eiweiß",
+   "x": 0.08,
+   "y": 0.505,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "0,8 g",
+   "x": 0.55,
+   "y": 0.509,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Salz",
+   "x": 0.08,
+   "y": 0.56,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "0,12 g",
+   "x": 0.55,
+   "y": 0.564,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  }
+ ]
+}

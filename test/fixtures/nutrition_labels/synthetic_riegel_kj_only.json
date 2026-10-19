@@ -1,0 +1,161 @@
+{
+ "source": "synthetic, modeled on Apple Vision output (docs/nutrition-label-ocr.md)",
+ "product": "Müsliriegel (Energie nur in kJ)",
+ "basis": "g",
+ "expected": {
+  "energyKcal": 359,
+  "fat": 10,
+  "saturatedFat": 3.0,
+  "carbohydrates": 60,
+  "sugars": 25,
+  "fiber": 5.0,
+  "protein": 8.0,
+  "salt": 0.3
+ },
+ "lines": [
+  {
+   "text": "Nährwerte",
+   "x": 0.08,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "je 100 g",
+   "x": 0.55,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "Energie",
+   "x": 0.08,
+   "y": 0.175,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "1500 kJ",
+   "x": 0.55,
+   "y": 0.179,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Fett",
+   "x": 0.08,
+   "y": 0.23,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "10 g",
+   "x": 0.55,
+   "y": 0.234,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "davon gesättigte Fettsäuren",
+   "x": 0.08,
+   "y": 0.285,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "3,0 g",
+   "x": 0.55,
+   "y": 0.289,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Kohlenhydrate",
+   "x": 0.08,
+   "y": 0.34,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "60 g",
+   "x": 0.55,
+   "y": 0.344,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "davon Zucker",
+   "x": 0.08,
+   "y": 0.395,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "25 g",
+   "x": 0.55,
+   "y": 0.399,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Ballaststoffe",
+   "x": 0.08,
+   "y": 0.45,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "5,0 g",
+   "x": 0.55,
+   "y": 0.454,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Eiweiß",
+   "x": 0.08,
+   "y": 0.505,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "8,0 g",
+   "x": 0.55,
+   "y": 0.509,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Salz",
+   "x": 0.08,
+   "y": 0.56,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "0,3 g",
+   "x": 0.55,
+   "y": 0.564,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  }
+ ]
+}

@@ -1,0 +1,81 @@
+{
+ "source": "synthetic, modeled on Apple Vision output (docs/nutrition-label-ocr.md)",
+ "product": "Milbona Mozzarella Leicht",
+ "basis": "g",
+ "expected": {
+  "energyKcal": 165,
+  "fat": 8.5,
+  "saturatedFat": 6.1,
+  "carbohydrates": 2.0,
+  "sugars": 0.0,
+  "fiber": null,
+  "protein": 20.5,
+  "salt": 0.6
+ },
+ "lines": [
+  {
+   "text": "Nährwerte je 100 g:",
+   "x": 0.08,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "Brennwert 690 kJ / 165 kcal",
+   "x": 0.08,
+   "y": 0.175,
+   "w": 0.4,
+   "h": 0.03,
+   "confidence": 0.9
+  },
+  {
+   "text": "Fett 8,5 g",
+   "x": 0.08,
+   "y": 0.23,
+   "w": 0.4,
+   "h": 0.03,
+   "confidence": 0.9
+  },
+  {
+   "text": "davon gesättigte Fettsäuren 6,1 g",
+   "x": 0.08,
+   "y": 0.285,
+   "w": 0.4,
+   "h": 0.03,
+   "confidence": 0.9
+  },
+  {
+   "text": "Kohlenhydrate 2,0 g",
+   "x": 0.08,
+   "y": 0.34,
+   "w": 0.4,
+   "h": 0.03,
+   "confidence": 0.9
+  },
+  {
+   "text": "davon Zucker 0 g",
+   "x": 0.08,
+   "y": 0.395,
+   "w": 0.4,
+   "h": 0.03,
+   "confidence": 0.9
+  },
+  {
+   "text": "Eiweiß 20,5 g",
+   "x": 0.08,
+   "y": 0.45,
+   "w": 0.4,
+   "h": 0.03,
+   "confidence": 0.9
+  },
+  {
+   "text": "Salz 0,6 g",
+   "x": 0.08,
+   "y": 0.505,
+   "w": 0.4,
+   "h": 0.03,
+   "confidence": 0.9
+  }
+ ]
+}

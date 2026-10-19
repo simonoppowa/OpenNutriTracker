@@ -1,0 +1,225 @@
+{
+ "source": "synthetic, modeled on Apple Vision output (docs/nutrition-label-ocr.md)",
+ "product": "Gräfschafter Eiweißbrot",
+ "basis": "g",
+ "expected": {
+  "energyKcal": 268,
+  "fat": 11,
+  "saturatedFat": 1.6,
+  "carbohydrates": 15.8,
+  "sugars": 1.5,
+  "fiber": 6.8,
+  "protein": 23,
+  "salt": 1.1
+ },
+ "lines": [
+  {
+   "text": "100 g enthalten",
+   "x": 0.55,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "1 Scheibe (50 g)",
+   "x": 0.78,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "Brennwert",
+   "x": 0.08,
+   "y": 0.175,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "1123 kJ (268 kcal)",
+   "x": 0.55,
+   "y": 0.179,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "562 kJ (134 kcal)",
+   "x": 0.78,
+   "y": 0.179,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Fett",
+   "x": 0.08,
+   "y": 0.23,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "11 g",
+   "x": 0.55,
+   "y": 0.234,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "5,5 g",
+   "x": 0.78,
+   "y": 0.234,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "davon gesättigte Fettsäuren",
+   "x": 0.08,
+   "y": 0.285,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "1,6 g",
+   "x": 0.55,
+   "y": 0.289,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "0,8 g",
+   "x": 0.78,
+   "y": 0.289,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Kohlenhydrate",
+   "x": 0.08,
+   "y": 0.34,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "15,8 g",
+   "x": 0.55,
+   "y": 0.344,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "7,9 g",
+   "x": 0.78,
+   "y": 0.344,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "davon Zucker",
+   "x": 0.08,
+   "y": 0.395,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "1,5 g",
+   "x": 0.55,
+   "y": 0.399,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "0,8 g",
+   "x": 0.78,
+   "y": 0.399,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Ballaststoffe",
+   "x": 0.08,
+   "y": 0.45,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "6,8 g",
+   "x": 0.55,
+   "y": 0.454,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "3,4 g",
+   "x": 0.78,
+   "y": 0.454,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Eiweiß",
+   "x": 0.08,
+   "y": 0.505,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "23 g",
+   "x": 0.55,
+   "y": 0.509,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "11,5 g",
+   "x": 0.78,
+   "y": 0.509,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Salz",
+   "x": 0.08,
+   "y": 0.56,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "1,1 g",
+   "x": 0.55,
+   "y": 0.564,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "0,55 g",
+   "x": 0.78,
+   "y": 0.564,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  }
+ ]
+}

@@ -1,0 +1,209 @@
+{
+ "source": "synthetic, modeled on Apple Vision output (docs/nutrition-label-ocr.md)",
+ "product": "Milbona Körniger Frischkäse",
+ "basis": "g",
+ "expected": {
+  "energyKcal": 98,
+  "fat": 4.5,
+  "saturatedFat": 3.0,
+  "carbohydrates": 2.8,
+  "sugars": 2.8,
+  "fiber": null,
+  "protein": 11.5,
+  "salt": 0.0
+ },
+ "lines": [
+  {
+   "text": "Nährwerte",
+   "x": 0.08,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "pro 100 g",
+   "x": 0.55,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "pro 200 g",
+   "x": 0.78,
+   "y": 0.12,
+   "w": 0.2,
+   "h": 0.03,
+   "confidence": 0.95
+  },
+  {
+   "text": "Brennwert",
+   "x": 0.08,
+   "y": 0.175,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "409 kJ / 98 kcal",
+   "x": 0.55,
+   "y": 0.179,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "818 kJ / 196 kcal",
+   "x": 0.78,
+   "y": 0.179,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Fett",
+   "x": 0.08,
+   "y": 0.23,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "4,5 g",
+   "x": 0.55,
+   "y": 0.234,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "9,0 g",
+   "x": 0.78,
+   "y": 0.234,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "davon gesättigte Fettsäuren",
+   "x": 0.08,
+   "y": 0.285,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "3,0 g",
+   "x": 0.55,
+   "y": 0.289,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "6,0 g",
+   "x": 0.78,
+   "y": 0.289,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Kohlenhydrate",
+   "x": 0.08,
+   "y": 0.34,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "2,8 g",
+   "x": 0.55,
+   "y": 0.344,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "5,6 g",
+   "x": 0.78,
+   "y": 0.344,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "davon Zucker",
+   "x": 0.08,
+   "y": 0.395,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "2,8 g",
+   "x": 0.55,
+   "y": 0.399,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "5,6 g",
+   "x": 0.78,
+   "y": 0.399,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Eiweiß",
+   "x": 0.08,
+   "y": 0.45,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "11,5 g",
+   "x": 0.55,
+   "y": 0.454,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "23 g",
+   "x": 0.78,
+   "y": 0.454,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Salz",
+   "x": 0.08,
+   "y": 0.505,
+   "w": 0.35,
+   "h": 0.03,
+   "confidence": 0.97
+  },
+  {
+   "text": "Spuren",
+   "x": 0.55,
+   "y": 0.509,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  },
+  {
+   "text": "Spuren",
+   "x": 0.78,
+   "y": 0.509,
+   "w": 0.15,
+   "h": 0.03,
+   "confidence": 0.93
+  }
+ ]
+}
