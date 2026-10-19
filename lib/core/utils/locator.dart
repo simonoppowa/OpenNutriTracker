@@ -124,6 +124,7 @@ import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detai
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:opennutritracker/features/scanner/data/nutrition_label_scanner.dart';
 import 'package:opennutritracker/features/scanner/data/text_recognizer.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
@@ -665,6 +666,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<TextRecognizer>(
     () => const VisionTextRecognizer(),
   );
+  locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   // Probed once here rather than per call: resolving the platform health
   // store needs an await, and a plugin that can't initialise falls back to a
   // service that reports itself unavailable instead of failing startup.

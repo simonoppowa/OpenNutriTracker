@@ -9,15 +9,18 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// A hint in the meal detail when the per-100 g values of a product do not
 /// add up (see [checkEnergyPlausibility]), with a way to correct them.
 /// Renders nothing for plausible values or once the user chose to use them
-/// anyway.
+/// anyway. [onScan], when given, offers to read the values off the pack's
+/// nutrition table instead.
 class NutrimentsPlausibilityCard extends StatefulWidget {
   final MealNutrimentsEntity nutriments;
   final VoidCallback onCorrect;
+  final VoidCallback? onScan;
 
   const NutrimentsPlausibilityCard({
     super.key,
     required this.nutriments,
     required this.onCorrect,
+    this.onScan,
   });
 
   @override
@@ -94,6 +97,14 @@ class _NutrimentsPlausibilityCardState
                       child: Text(l10n.plausibilityKeepAction),
                     ),
                   ),
+                  if (widget.onScan != null)
+                    Semantics(
+                      identifier: 'meal-detail-plausibility-scan',
+                      child: TextButton(
+                        onPressed: widget.onScan,
+                        child: Text(l10n.labelScanAction),
+                      ),
+                    ),
                   Semantics(
                     identifier: 'meal-detail-plausibility-correct',
                     child: TextButton(

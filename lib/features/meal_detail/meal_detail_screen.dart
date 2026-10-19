@@ -24,7 +24,9 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/nutri
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_info_button.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_title_expanded.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/missing_nutriments_card.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/off_disclaimer.dart';
+import 'package:opennutritracker/features/scanner/domain/label_scan_meal.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailScreen extends StatefulWidget {
@@ -459,6 +461,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       ),
                     ],
                   ),
+                  if (lacksNutrients(meal))
+                    MissingNutrimentsCard(
+                      onScan: () => _scanLabelFor(meal, intakeTypeEntity),
+                    ),
                   NutrimentsPlausibilityCard(
                     nutriments: meal.nutriments,
                     onCorrect: () => Navigator.of(context).pushNamed(
@@ -470,6 +476,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         _usesImperialUnits,
                       ),
                     ),
+                    onScan: meal.source == MealSourceEntity.custom
+                        ? null
+                        : () => _scanLabelFor(meal, intakeTypeEntity),
                   ),
                   const SizedBox(height: Dimens.spacing24),
                   Divider(color: palette.border, height: Dimens.hairline),
@@ -527,6 +536,22 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       ),
     );
     _scrollToCalorieText();
+  }
+
+  /// Opens a new custom food for [product], named and barcoded like it,
+  /// and asks for a photo of the nutrition table right away (#63).
+  void _scanLabelFor(MealEntity product, IntakeTypeEntity intakeTypeEntity) {
+    Navigator.of(context).pushNamed(
+      NavigationOptions.editMealRoute,
+      arguments: EditMealScreenArguments(
+        _day,
+        labelScanMealFor(product),
+        intakeTypeEntity,
+        _usesImperialUnits,
+        barcode: labelScanBarcodeFor(product),
+        scanLabelOnOpen: true,
+      ),
+    );
   }
 
   void _scrollToCalorieText() {

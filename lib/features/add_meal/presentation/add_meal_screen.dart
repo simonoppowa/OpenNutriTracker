@@ -577,6 +577,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
               onPressed: () => Navigator.of(context).pop(), // close dialog
               child: Text(S.of(context).dialogCancelLabel),
             ),
+            Semantics(
+              identifier: 'add-meal-custom-scan-label',
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _openEditMealScreen(usesImperialUnits, scanLabel: true);
+                },
+                child: Text(S.of(context).labelScanAction),
+              ),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
@@ -590,7 +600,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
     );
   }
 
-  void _openEditMealScreen(bool usesImperialUnits) {
+  void _openEditMealScreen(bool usesImperialUnits, {bool scanLabel = false}) {
     Navigator.of(context).pushNamed(
       NavigationOptions.editMealRoute,
       arguments: EditMealScreenArguments(
@@ -598,6 +608,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
         MealEntity.empty(),
         _mealType.getIntakeType(),
         usesImperialUnits,
+        scanLabelOnOpen: scanLabel,
       ),
     );
   }

@@ -27,9 +27,15 @@ const _skyr = MealNutrimentsEntity(
 
 void main() {
   var corrections = 0;
+  var scans = 0;
 
-  Future<void> pumpCard(WidgetTester tester, MealNutrimentsEntity values) {
+  Future<void> pumpCard(
+    WidgetTester tester,
+    MealNutrimentsEntity values, {
+    bool canScan = false,
+  }) {
     corrections = 0;
+    scans = 0;
     return tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [
@@ -43,6 +49,7 @@ void main() {
           body: NutrimentsPlausibilityCard(
             nutriments: values,
             onCorrect: () => corrections++,
+            onScan: canScan ? () => scans++ : null,
           ),
         ),
       ),
@@ -80,5 +87,19 @@ void main() {
     await tester.pump();
 
     expect(card(), findsNothing);
+  });
+
+  testWidgets('offers the table scan when there is one', (tester) async {
+    await pumpCard(tester, _hirtenkaese, canScan: true);
+
+    await tester.tap(find.text('Scan nutrition table'));
+
+    expect(scans, 1);
+  });
+
+  testWidgets('has no scan action without one', (tester) async {
+    await pumpCard(tester, _hirtenkaese);
+
+    expect(find.text('Scan nutrition table'), findsNothing);
   });
 }

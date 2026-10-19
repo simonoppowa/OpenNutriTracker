@@ -29,6 +29,9 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/scanner/data/nutrition_label_scanner.dart';
+import 'package:opennutritracker/features/scanner/data/text_recognizer.dart';
+import 'package:opennutritracker/features/scanner/util/nutrition_label_parser.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -109,6 +112,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
   String? _localImagePath;
   bool _localImageCleared = false;
 
+  /// Fields a nutrition table scan filled in that the user should check.
+  Set<String> _uncertainFields = {};
+  bool _scanningLabel = false;
+
   @override
   void initState() {
     super.initState();
@@ -139,10 +146,15 @@ class _EditMealScreenState extends State<EditMealScreen> {
     // Only show codes that actually look like a retail barcode (8–14 digits);
     // anything else means there isn't a user-visible barcode yet.
     final existingCode = _mealEntity.code;
-    _barcodeTextController.text =
-        (existingCode != null && isBarcodeFormatValid(existingCode))
+    _barcodeTextController.text = args.barcode ??
+        ((existingCode != null && isBarcodeFormatValid(existingCode))
             ? existingCode
-            : "";
+            : "");
+    if (args.scanLabelOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _onScanLabelPressed();
+      });
+    }
     _mealQuantityTextController.text = _mealEntity.mealQuantity ?? "";
     _servingQuantityTextController.text =
         _mealEntity.servingQuantity.toStringOrEmpty();
@@ -364,6 +376,26 @@ class _EditMealScreenState extends State<EditMealScreen> {
         else
           Center(child: _buildRemoteMealImage()),
         const SizedBox(height: 24),
+        if (_mealEntity.source == MealSourceEntity.custom) ...[
+          Semantics(
+            identifier: 'edit-meal-scan-label',
+            child: OutlinedButton.icon(
+              onPressed: _scanningLabel ? null : _onScanLabelPressed,
+              icon: _scanningLabel
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.document_scanner_outlined),
+              label: Text(
+                _scanningLabel
+                    ? S.of(context).labelScanReading
+                    : S.of(context).labelScanAction,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         // Simple / Advanced toggle (#232). The reporter wanted to log a
         // homemade meal as "name + per-serving macros" without the per-100g
         // scaffolding; the advanced view keeps the precise path for users
@@ -524,41 +556,57 @@ class _EditMealScreenState extends State<EditMealScreen> {
         TextFormField(
           controller: _kcalTextController,
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
-          decoration: InputDecoration(
-              labelText:
-                  '${S.of(context).mealEnergyLabel} ($energyUnitSuffix)',
-              helperText: energyHelper,
-              border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM)),
+          onChanged: (_) => _clearUncertain('energyKcal'),
+          decoration: _markIfUncertain(
+              'energyKcal',
+              InputDecoration(
+                  labelText:
+                      '${S.of(context).mealEnergyLabel} ($energyUnitSuffix)',
+                  helperText: energyHelper,
+                  border: const OutlineInputBorder(
+                      borderRadius: Dimens.borderRadiusM))),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _carbsTextController,
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
-          decoration: InputDecoration(
-              labelText: S.of(context).mealCarbsLabel,
-              helperText: macroHelper,
-              border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM)),
+          onChanged: (_) => _clearUncertain('carbohydrates'),
+          decoration: _markIfUncertain(
+              'carbohydrates',
+              InputDecoration(
+                  labelText: S.of(context).mealCarbsLabel,
+                  helperText: macroHelper,
+                  border: const OutlineInputBorder(
+                      borderRadius: Dimens.borderRadiusM))),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _fatTextController,
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
-          decoration: InputDecoration(
-              labelText: S.of(context).mealFatLabel,
-              helperText: macroHelper,
-              border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM)),
+          onChanged: (_) => _clearUncertain('fat'),
+          decoration: _markIfUncertain(
+              'fat',
+              InputDecoration(
+                  labelText: S.of(context).mealFatLabel,
+                  helperText: macroHelper,
+                  border: const OutlineInputBorder(
+                      borderRadius: Dimens.borderRadiusM))),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: _proteinTextController,
           inputFormatters: CustomTextInputFormatter.doubleOnly(),
-          decoration: InputDecoration(
-              labelText: S.of(context).mealProteinLabel,
-              helperText: macroHelper,
-              border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM)),
+          onChanged: (_) => _clearUncertain('protein'),
+          decoration: _markIfUncertain(
+              'protein',
+              InputDecoration(
+                  labelText: S.of(context).mealProteinLabel,
+                  helperText: macroHelper,
+                  border: const OutlineInputBorder(
+                      borderRadius: Dimens.borderRadiusM))),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         if (!isSimple) ...[
@@ -568,13 +616,13 @@ class _EditMealScreenState extends State<EditMealScreen> {
             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
-          _buildMicroField(_fiberTextController, S.of(context).fiberLabel, 'g', perQtyHelper),
+          _buildMicroField(_fiberTextController, S.of(context).fiberLabel, 'g', perQtyHelper, field: 'fiber'),
           const SizedBox(height: 16),
-          _buildMicroField(_saturatedFatTextController, S.of(context).saturatedFatLabel, 'g', perQtyHelper),
+          _buildMicroField(_saturatedFatTextController, S.of(context).saturatedFatLabel, 'g', perQtyHelper, field: 'saturatedFat'),
           const SizedBox(height: 16),
-          _buildMicroField(_sugarsTextController, S.of(context).sugarLabel, 'g', perQtyHelper),
+          _buildMicroField(_sugarsTextController, S.of(context).sugarLabel, 'g', perQtyHelper, field: 'sugars'),
           const SizedBox(height: 16),
-          _buildMicroField(_sodiumTextController, S.of(context).sodiumLabel, 'mg', perQtyHelper),
+          _buildMicroField(_sodiumTextController, S.of(context).sodiumLabel, 'mg', perQtyHelper, field: 'sodium'),
           const SizedBox(height: 16),
           _buildMicroField(_calciumTextController, S.of(context).calciumLabel, 'mg', perQtyHelper),
           const SizedBox(height: 16),
@@ -607,19 +655,145 @@ class _EditMealScreenState extends State<EditMealScreen> {
     TextEditingController controller,
     String label,
     String unit,
-    String? helperText,
-  ) {
+    String? helperText, {
+    String? field,
+  }) {
+    final decoration = InputDecoration(
+      labelText: label,
+      suffixText: unit,
+      helperText: helperText,
+      border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM),
+    );
     return TextFormField(
       controller: controller,
       inputFormatters: CustomTextInputFormatter.doubleOnly(),
-      decoration: InputDecoration(
-        labelText: label,
-        suffixText: unit,
-        helperText: helperText,
-        border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM),
-      ),
+      onChanged: field == null ? null : (_) => _clearUncertain(field),
+      decoration:
+          field == null ? decoration : _markIfUncertain(field, decoration),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
     );
+  }
+
+  /// [decoration] with a highlighted border and a "please check" hint when
+  /// a table scan was unsure about [field].
+  InputDecoration _markIfUncertain(String field, InputDecoration decoration) {
+    if (!_uncertainFields.contains(field)) return decoration;
+    final color = Theme.of(context).colorScheme.tertiary;
+    return decoration.copyWith(
+      helperText: S.of(context).labelScanCheckField,
+      helperStyle: TextStyle(color: color),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: Dimens.borderRadiusM,
+        borderSide: BorderSide(color: color, width: 2),
+      ),
+    );
+  }
+
+  void _clearUncertain(String field) {
+    if (_uncertainFields.contains(field)) {
+      setState(() => _uncertainFields.remove(field));
+    }
+  }
+
+  /// Photographs a nutrition table (#63) and fills the form with what it
+  /// says per 100 g or ml; nothing is saved until the user saves the form.
+  Future<void> _onScanLabelPressed() async {
+    final s = S.of(context);
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Semantics(
+              identifier: 'edit-meal-scan-label-camera',
+              child: ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: Text(s.labelScanCamera),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.camera),
+              ),
+            ),
+            Semantics(
+              identifier: 'edit-meal-scan-label-gallery',
+              child: ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(s.labelScanGallery),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.gallery),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _scanningLabel = true);
+    String? message;
+    try {
+      final values = await locator<NutritionLabelScanner>().scan(source);
+      if (!mounted || values == null) return;
+      if (values.isEmpty) {
+        message = s.labelScanNothingFound;
+      } else {
+        _applyLabel(values);
+        message = s.labelScanFilled(
+          values.basis == 'ml' ? s.milliliterUnit : s.gramUnit,
+        );
+      }
+    } on TextRecognitionException catch (error) {
+      message = error.failure == TextRecognitionFailure.unavailable
+          ? s.labelScanUnavailable
+          : s.labelScanFailed;
+    } catch (error, stackTrace) {
+      log.warning('Nutrition table scan failed', error, stackTrace);
+      message = s.labelScanFailed;
+    } finally {
+      if (mounted) setState(() => _scanningLabel = false);
+    }
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Puts scanned per-100 values into the Advanced form, which is where
+  /// per-100 values and the extra nutrients are entered. Fields the table
+  /// did not give keep what they held.
+  void _applyLabel(NutritionLabelValues values) {
+    final usesKj =
+        Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
+    String format(double value) {
+      final rounded = double.parse(value.toStringAsFixed(2));
+      return rounded == rounded.roundToDouble()
+          ? rounded.toInt().toString()
+          : rounded.toString();
+    }
+
+    void put(TextEditingController controller, double? value) {
+      if (value != null) controller.text = format(value);
+    }
+
+    final kcal = values.energyKcal;
+    setState(() {
+      _formMode = CustomMealFormMode.advanced;
+      _formModeHydrated = true;
+      selectedUnit = values.basis;
+      _isTotal = false;
+      _baseQuantityTextController.text = '100';
+      put(_kcalTextController,
+          kcal == null ? null : (usesKj ? UnitCalc.kcalToKj(kcal) : kcal));
+      put(_carbsTextController, values.carbohydrates);
+      put(_fatTextController, values.fat);
+      put(_proteinTextController, values.protein);
+      put(_fiberTextController, values.fiber);
+      put(_saturatedFatTextController, values.saturatedFat);
+      put(_sugarsTextController, values.sugars);
+      put(_sodiumTextController, values.sodiumMg);
+      _uncertainFields = {
+        for (final field in values.uncertain)
+          field == 'salt' ? 'sodium' : field,
+      };
+    });
   }
 
   /// Returns "0" for empty / whitespace-only text, otherwise the original
@@ -1070,12 +1244,20 @@ class EditMealScreenArguments {
   final bool usesImperialUnits;
   final bool editOnly;
 
+  /// Prefills the barcode field, for a food made from a scanned product.
+  final String? barcode;
+
+  /// Asks for a photo of the nutrition table as soon as the form opens.
+  final bool scanLabelOnOpen;
+
   EditMealScreenArguments(
     this.day,
     this.mealEntity,
     this.intakeTypeEntity,
     this.usesImperialUnits, {
     this.editOnly = false,
+    this.barcode,
+    this.scanLabelOnOpen = false,
   });
 }
 

@@ -1448,5 +1448,17 @@
   "healthSyncDisclosureContinueAction": "Continue",
   "healthSyncUnavailableLabel": "Health data is not available on this device. Workout import needs Health Connect on Android or Apple Health on iOS.",
   "sourcesEnergyCompensationTitle": "Workout calorie credit",
-  "sourcesEnergyCompensationDescription": "Imported workouts are credited with less than the energy your device reports. People compensate for exercise by burning fewer calories through the rest of the day — about 28% on average, and more at a higher body fat percentage. The suggested credit comes from that research and you can override it under Settings → Health sync. The energy itself is reported by the app or device that recorded the workout, not calculated with the app’s MET formula."
+  "sourcesEnergyCompensationDescription": "Imported workouts are credited with less than the energy your device reports. People compensate for exercise by burning fewer calories through the rest of the day — about 28% on average, and more at a higher body fat percentage. The suggested credit comes from that research and you can override it under Settings → Health sync. The energy itself is reported by the app or device that recorded the workout, not calculated with the app’s MET formula.",
+  "labelScanAction": "Scan nutrition table",
+  "labelScanCamera": "Take a photo",
+  "labelScanGallery": "Choose from library",
+  "labelScanReading": "Reading the table…",
+  "labelScanNothingFound": "No nutrition values found. Photograph the table straight on, in good light and filling the frame.",
+  "labelScanFailed": "The photo could not be read.",
+  "labelScanUnavailable": "Text recognition is not available on this device.",
+  "labelScanFilled": "Values per 100 {unit} filled in. Please check the highlighted fields.",
+  "@labelScanFilled": {"placeholders": {"unit": {"type": "String"}}},
+  "labelScanCheckField": "Please check against the label",
+  "labelScanMissingTitle": "No nutrition values",
+  "labelScanMissingBody": "Open Food Facts has no nutrition values for this product. Scan the table on the pack to save it as your own food."
 }

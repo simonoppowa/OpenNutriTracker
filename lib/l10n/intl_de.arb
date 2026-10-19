@@ -1406,5 +1406,16 @@
   "healthSyncDisclosureContinueAction": "Weiter",
   "healthSyncUnavailableLabel": "Gesundheitsdaten sind auf diesem Gerät nicht verfügbar. Der Trainingsimport benötigt Health Connect unter Android oder Apple Health unter iOS.",
   "sourcesEnergyCompensationTitle": "Anrechnung von Trainingskalorien",
-  "sourcesEnergyCompensationDescription": "Importierte Trainings werden mit weniger Energie angerechnet, als dein Gerät meldet. Menschen gleichen Sport aus, indem sie den Rest des Tages weniger Kalorien verbrennen – im Mittel etwa 28 %, bei höherem Körperfettanteil mehr. Der Vorschlag stammt aus dieser Forschung und lässt sich unter Einstellungen → Gesundheitsdaten-Sync ändern. Die Energie selbst meldet die App oder das Gerät, das das Training aufgezeichnet hat; sie wird nicht mit der MET-Formel der App berechnet."
+  "sourcesEnergyCompensationDescription": "Importierte Trainings werden mit weniger Energie angerechnet, als dein Gerät meldet. Menschen gleichen Sport aus, indem sie den Rest des Tages weniger Kalorien verbrennen – im Mittel etwa 28 %, bei höherem Körperfettanteil mehr. Der Vorschlag stammt aus dieser Forschung und lässt sich unter Einstellungen → Gesundheitsdaten-Sync ändern. Die Energie selbst meldet die App oder das Gerät, das das Training aufgezeichnet hat; sie wird nicht mit der MET-Formel der App berechnet.",
+  "labelScanAction": "Nährwerttabelle scannen",
+  "labelScanCamera": "Foto aufnehmen",
+  "labelScanGallery": "Aus Mediathek wählen",
+  "labelScanReading": "Tabelle wird gelesen …",
+  "labelScanNothingFound": "Keine Nährwerte gefunden. Die Tabelle gerade von vorn, hell und formatfüllend fotografieren.",
+  "labelScanFailed": "Das Foto konnte nicht gelesen werden.",
+  "labelScanUnavailable": "Texterkennung ist auf diesem Gerät nicht verfügbar.",
+  "labelScanFilled": "Werte pro 100 {unit} übernommen. Bitte die markierten Felder prüfen.",
+  "labelScanCheckField": "Bitte mit der Verpackung vergleichen",
+  "labelScanMissingTitle": "Keine Nährwerte vorhanden",
+  "labelScanMissingBody": "Open Food Facts kennt für dieses Produkt keine Nährwerte. Scanne die Tabelle auf der Packung, um es als eigenes Lebensmittel zu speichern."
 }

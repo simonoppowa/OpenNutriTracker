@@ -25,6 +25,7 @@ vervollständigt.
 | KI | KI-Mahlzeitenerkennung (externe Anbieter) ausgeblendet; Bulk-Add mit lokalem Parser bleibt | #20 |
 | CI | Analyze und Tests auf jedem PR gegen `personal` | #21 |
 | Backup | Wasser, eigene Lebensmittel, Profil, Einstellungen, Fasten und alle Profile im JSON-Backup; „Alles ersetzen“; Hinweis auf alte Backups; automatisches WebDAV-Backup | #23–#28, #77, #78 |
+| Scanner | Nährwerttabelle fotografieren: Texterkennung auf dem Gerät (Apple Vision, `ios/Runner/NutritionTextRecognizer.swift`), Parser für deutsche Tabellen, vorausgefülltes Formular mit markierten unsicheren Feldern; Einstiege im Dialog „Eigenes Lebensmittel“, im Formular, bei OFF-Produkten ohne Nährwerte und bei unstimmigen Werten. Das Foto wird nach der Erkennung gelöscht | #60–#63 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
@@ -34,8 +35,8 @@ Datenschutzerklärung und der Code der KI-Funktionen (nur die Einstiege sind weg
 
 | Was | Wofür | Stand |
 |---|---|---|
-| `NSCameraUsageDescription` | Barcode-Scan, Fotos für eigene Lebensmittel (später: Nährwerttabelle scannen, #60–#64) | aktiv |
-| `NSPhotoLibraryUsageDescription` | Foto für eigene Lebensmittel, Export | aktiv |
+| `NSCameraUsageDescription` | Barcode-Scan, Nährwerttabelle scannen, Fotos für eigene Lebensmittel | aktiv |
+| `NSPhotoLibraryUsageDescription` | Nährwerttabelle aus einem Foto lesen, Foto für eigene Lebensmittel, Export | aktiv |
 | `NSHealthShareUsageDescription` / `NSHealthUpdateUsageDescription` | Workout-Import aus Apple Health (Upstream); Ausbau in Epic 9 | aktiv |
 | `com.apple.developer.healthkit` | HealthKit | hängt vom KravaSigner-Profil ab, wird in #16 geprüft |
 | App Groups | Widget (Epic 11) | noch nicht vorhanden, Prüfung in #73 |

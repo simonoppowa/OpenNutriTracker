@@ -62,9 +62,9 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera permission is used to scan barcodes and to attach a photo to a custom meal so it's easier to recognise in your saved list. Photos stay on your device.</string>
+	<string>The camera scans barcodes, reads nutrition tables on the device and attaches photos to your own foods. Photos stay on your device.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-    <string>Used to attach a photo to a custom meal so it's easier to recognise in your saved list, and for exporting data.</string>
+    <string>Used to read a nutrition table from a photo on the device, to attach a photo to your own foods, and for exporting data.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Read access to your workouts and body fat percentage is used to import workouts into your diary and to suggest how much of their energy to credit toward your daily goal. Nothing is written back to Health, and the data stays on your device.</string>
 	<key>NSHealthUpdateUsageDescription</key>
