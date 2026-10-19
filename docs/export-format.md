@@ -31,6 +31,8 @@ next to its CSV counterpart will not find one.
 | `goal_settings.json`             | The profile's goal settings. See [below](#goal_settingsjson). |
 | `water_intake.json`              | Water log (fork addition). See [below](#water_intakejson). |
 | `custom_meals.json`              | Saved custom meals (fork addition). See [below](#custom_mealsjson). |
+| `user_profile.json`              | Profile (fork addition). See [below](#user_profilejson). |
+| `app_settings.json`              | Device-wide settings (fork addition). See [below](#app_settingsjson). |
 
 **CSV bundle**
 
@@ -51,11 +53,14 @@ photo reachable from any of the three is in the bundle exactly once.
 A CSV export carries none, and the CSV importer does not restore them — another reason to use
 JSON for anything you intend to restore from.
 
-The **profile box** — height, birthday, PAL, goal — is intentionally not
-included; see `lib/core/data/data_source/user_data_source.dart`. Note this is the
-profile only: your logged **weight history** *is* exported, as `weight_log.json`,
-and so are the **goal settings** you set under Settings → Calculations, as
-`goal_settings.json` ([#1363](https://github.com/simonoppowa/OpenNutriTracker/issues/1363)).
+Upstream leaves the **profile box** (height, birthday, PAL, goal) out of the
+bundle. This fork adds it as `user_profile.json`, together with the device-wide
+settings in `app_settings.json` (see below), so a full restore after a
+reinstall brings back everything. The import dialog has a switch to leave the
+profile, the goals and the settings on the device untouched. Your logged **weight
+history** travels as `weight_log.json`, and the **goal settings** under
+Settings → Calculations as `goal_settings.json`
+([#1363](https://github.com/simonoppowa/OpenNutriTracker/issues/1363)).
 
 The user can re-import the same zip via **Settings → Import**, in either format.
 Import merges into what is on the device: an intake, activity or recipe whose
@@ -265,12 +270,10 @@ Only goals that belong to a profile are in the file:
   They belong in this file once they apply beyond the day they were set on
   ([#1316](https://github.com/simonoppowa/OpenNutriTracker/issues/1316)).
 - **Device-wide preferences** — theme, accent colour, language, units, kJ /
-  kcal, reminders, the diary day boundary, view toggles, food sources — are
-  shared by every profile on the device, so a restore into one profile should
-  not change them for the others. Reminders also need the system's permission
-  on the new device, and the privacy consents must be given there, not
-  carried over in a file. They survive a profile reset; after a reinstall they
-  are set once by hand.
+  kcal, reminders, view toggles, food sources — are shared by every profile on
+  the device, so they are not in this file. This fork carries them in
+  [`app_settings.json`](#app_settingsjson); the diary day boundary and the
+  privacy consents stay out of both files.
 - **Workout import** settings from Health Connect / Apple Health are left out:
   switching it on needs the system's permission on the new device, and the
   multiplier is suggested again when it is.
@@ -306,6 +309,38 @@ same meal shape as the `meal` object of `user_intake.json`. Restored through
 `CustomMealDataSource.saveCustomMeal`, which replaces a meal with the same
 barcode (`code`), or with the same name when it has none, so importing twice
 adds nothing. Photos travel as `meal_images/` entries, like those of intakes.
+
+### `user_profile.json`
+
+Added by this fork. The active profile's body data and weight goal; missing
+while onboarding has not saved a profile yet. Enums are stored by name.
+
+```jsonc
+{
+  "birthday": "1994-03-02T00:00:00.000",
+  "heightCM": 183.0,
+  "weightKG": 84.5,
+  "gender": "male",                 // male | female | nonBinary
+  "goal": "loseWeight",             // loseWeight | maintainWeight | gainWeight
+  "pal": "active",                  // sedentary | lowActive | active | veryActive
+  "weeklyWeightGoalKg": 0.4,        // optional
+  "caloriesProfile": null,          // averaged | estrogenTypical | testosteroneTypical
+  "targetWeightKg": 78.0,           // optional
+  "caloriesTaperEnabled": true
+}
+```
+
+### `app_settings.json`
+
+Added by this fork. The device-wide preferences, as the `ConfigDBO` JSON keys
+listed in `PersonalBackupExtras.appSettingKeys` (theme, accent, Material You,
+units, kJ/kcal, language, the daily reminder, view toggles, nutrient panel
+visibility, diary sort order, food-source toggles, …). On restore only these
+keys are overlaid onto the current config. Deliberately **not** carried: the
+policy, disclaimer and consent flags (a restore never accepts a policy on the
+user's behalf), the demo flag, the goals (in `goal_settings.json`), the
+health-import state, and the day boundary (`dayStartOffset…`), which decides
+how tracked days are keyed. Theme and language apply on the next app start.
 
 ## CSV schema
 

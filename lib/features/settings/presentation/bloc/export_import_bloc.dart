@@ -93,6 +93,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
                 weightLogJsonFileName,
                 customActivityTemplateJsonFileName,
                 goalSettingsJsonFileName: goalSettingsJsonFileName,
+                restoreProfileAndSettings: event.restoreProfileAndSettings,
               );
         if (result) {
           await _syncTodayGoals();

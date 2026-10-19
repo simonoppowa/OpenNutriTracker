@@ -446,6 +446,7 @@
   "trendsPerWeekSuffix": "/week",
   "trendsWeeksToGoalLabel": "weeks to goal",
   "trendsWaterLabel": "Water",
+  "exportImportRestoreProfileLabel": "Also restore profile, goals and settings",
   "importAction": "Import",
   "importActivityConfirmContent": "These activities will be added to today.",
   "importActivityConfirmTitle": "Import {count} activities?",

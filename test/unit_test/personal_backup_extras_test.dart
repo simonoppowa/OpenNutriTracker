@@ -4,7 +4,16 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/calories_profile_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/water_intake_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
@@ -19,6 +28,11 @@ void main() {
   late Directory hiveDir;
   late Box<WaterIntakeDBO> waterBox;
   late Box<MealDBO> customMealBox;
+  late Box<UserDBO> userBox;
+  late Box<ConfigDBO> configBox;
+  late Box<ConfigDBO> appConfigBox;
+  late UserDataSource userDataSource;
+  late ConfigDataSource configDataSource;
   late PersonalBackupExtras extras;
 
   setUp(() async {
@@ -28,13 +42,24 @@ void main() {
     registerHiveAdaptersOnce();
     waterBox = await Hive.openBox<WaterIntakeDBO>('water_test');
     customMealBox = await Hive.openBox<MealDBO>('custom_meal_test');
+    userBox = await Hive.openBox<UserDBO>('user_test');
+    configBox = await Hive.openBox<ConfigDBO>('config_test');
+    appConfigBox = await Hive.openBox<ConfigDBO>('app_config_test');
     final provider = FakeHiveDBProvider(
       waterIntakeBox: waterBox,
       customMealBox: customMealBox,
+      userBox: userBox,
+      configBox: configBox,
+      appConfigBox: appConfigBox,
     );
+    userDataSource = UserDataSource(provider);
+    configDataSource = ConfigDataSource(provider);
+    await configDataSource.initializeConfig();
     extras = PersonalBackupExtras(
       WaterIntakeRepository(WaterIntakeDataSource(provider)),
       CustomMealDataSource(provider),
+      userDataSource,
+      configDataSource,
     );
   });
 
@@ -193,5 +218,222 @@ void main() {
 
       expect(customMealBox.values.single.nutriments.energyKcal100, 450);
     });
+  });
+
+  group('profile', () {
+    UserDBO user() => UserDBO(
+      birthday: DateTime(1994, 3, 2),
+      heightCM: 183,
+      weightKG: 84.5,
+      gender: UserGenderDBO.male,
+      goal: UserWeightGoalDBO.loseWeight,
+      pal: UserPALDBO.active,
+      weeklyWeightGoalKg: 0.4,
+      caloriesProfile: CaloriesProfileDBO.testosteroneTypical,
+      targetWeightKg: 78,
+      caloriesTaperEnabled: true,
+    );
+
+    test(
+      'is written as user_profile.json and restored field by field',
+      () async {
+        await userDataSource.saveUserData(user());
+        final archive = await exportArchive();
+        await userBox.clear();
+
+        await extras.prepareRestore(archive)();
+
+        final restored = await userDataSource.getUserData();
+        expect(restored.birthday, DateTime(1994, 3, 2));
+        expect(restored.heightCM, 183);
+        expect(restored.weightKG, 84.5);
+        expect(restored.gender, UserGenderDBO.male);
+        expect(restored.goal, UserWeightGoalDBO.loseWeight);
+        expect(restored.pal, UserPALDBO.active);
+        expect(restored.weeklyWeightGoalKg, 0.4);
+        expect(
+          restored.caloriesProfile,
+          CaloriesProfileDBO.testosteroneTypical,
+        );
+        expect(restored.targetWeightKg, 78);
+        expect(restored.caloriesTaperEnabled, isTrue);
+      },
+    );
+
+    test('is left out while there is no profile yet', () async {
+      final archive = await exportArchive();
+
+      expect(
+        archive.findFile(PersonalBackupExtras.userProfileFileName),
+        isNull,
+      );
+    });
+
+    test('an unknown value is rejected before anything is written', () async {
+      final archive = Archive()
+        ..addFile(
+          ArchiveFile.bytes(
+            PersonalBackupExtras.userProfileFileName,
+            utf8.encode(
+              jsonEncode({
+                'birthday': '1994-03-02T00:00:00.000',
+                'heightCM': 183,
+                'weightKG': 84.5,
+                'gender': 'robot',
+                'goal': 'loseWeight',
+                'pal': 'active',
+              }),
+            ),
+          ),
+        );
+
+      expect(
+        () => extras.prepareRestore(archive),
+        throwsA(isA<ExportImportFailure>()),
+      );
+      expect(userBox.isEmpty, isTrue);
+    });
+  });
+
+  test('a number too large for a double is rejected', () async {
+    final archive = Archive()
+      ..addFile(
+        ArchiveFile.bytes(
+          PersonalBackupExtras.userProfileFileName,
+          utf8.encode(
+            '{"birthday": "1994-03-02T00:00:00.000", "heightCM": 183, '
+            '"weightKG": 1e400, "gender": "male", "goal": "loseWeight", '
+            '"pal": "active"}',
+          ),
+        ),
+      );
+
+    expect(
+      () => extras.prepareRestore(archive),
+      throwsA(isA<ExportImportFailure>()),
+    );
+    expect(userBox.isEmpty, isTrue);
+  });
+
+  group('app settings', () {
+    Future<void> setUpDevice() async {
+      await configDataSource.setConfigAppTheme(AppThemeDBO.dark);
+      await configDataSource.setConfigUsesKilojoules(true);
+      await configDataSource.setSelectedLocale('de');
+      await configDataSource.setConfigShowMicronutrients(true);
+      await configDataSource.setNotificationsEnabled(true);
+      await configDataSource.setNotificationTime(7, 45);
+      await configDataSource.setConfigAcceptedPolicy(true);
+      await configDataSource.setConfigGoalSettings(
+        kcalAdjustment: -300,
+        carbGoalPct: 40,
+        proteinGoalPct: 30,
+        fatGoalPct: 30,
+        mealKcalSharesPct: null,
+        dailyWaterGoalMl: 2500,
+      );
+    }
+
+    Map<String, dynamic> writtenSettings(Archive archive) =>
+        jsonDecode(
+              utf8.decode(
+                archive
+                        .findFile(PersonalBackupExtras.appSettingsFileName)!
+                        .content
+                    as List<int>,
+              ),
+            )
+            as Map<String, dynamic>;
+
+    test('carry the device-wide preferences only', () async {
+      await setUpDevice();
+
+      final settings = writtenSettings(await exportArchive());
+
+      expect(settings['selectedAppTheme'], 'dark');
+      expect(settings['usesKilojoules'], isTrue);
+      expect(settings['selectedLocale'], 'de');
+      expect(settings['notificationHour'], 7);
+      expect(settings['notificationMinute'], 45);
+      for (final excluded in [
+        'hasAcceptedPolicy',
+        'hasAcceptedDisclaimer',
+        'hasAcceptedSendAnonymousData',
+        'policyNoticeRevisionSeen',
+        'isDemoData',
+        'userKcalAdjustment',
+        'dailyWaterGoalMl',
+        'healthImportEnabled',
+        'healthLastImportAt',
+        'dayStartOffsetMinutes',
+      ]) {
+        expect(settings.containsKey(excluded), isFalse, reason: excluded);
+      }
+    });
+
+    test('a restore applies them and keeps consent and goals', () async {
+      await setUpDevice();
+      final archive = await exportArchive();
+      await configDataSource.setConfigAppTheme(AppThemeDBO.light);
+      await configDataSource.setConfigUsesKilojoules(false);
+      await configDataSource.setNotificationTime(21, 0);
+      await configDataSource.setConfigGoalSettings(
+        kcalAdjustment: 100,
+        carbGoalPct: 50,
+        proteinGoalPct: 25,
+        fatGoalPct: 25,
+        mealKcalSharesPct: null,
+        dailyWaterGoalMl: 3000,
+      );
+
+      await extras.prepareRestore(archive)();
+
+      final config = await configDataSource.getConfig();
+      expect(config.selectedAppTheme, AppThemeDBO.dark);
+      expect(config.usesKilojoules, isTrue);
+      expect(config.notificationHour, 7);
+      expect(config.notificationMinute, 45);
+      expect(config.hasAcceptedPolicy, isTrue);
+      expect(
+        config.userKcalAdjustment,
+        100,
+        reason: 'goals come from goal_settings.json, not from here',
+      );
+      expect(config.dailyWaterGoalMl, 3000);
+    });
+  });
+
+  test('profile and settings stay untouched when the user opts out', () async {
+    await userDataSource.saveUserData(
+      UserDBO(
+        birthday: DateTime(1990),
+        heightCM: 170,
+        weightKG: 70,
+        gender: UserGenderDBO.female,
+        goal: UserWeightGoalDBO.maintainWeight,
+        pal: UserPALDBO.sedentary,
+      ),
+    );
+    await configDataSource.setConfigAppTheme(AppThemeDBO.dark);
+    final archive = await exportArchive();
+    await userDataSource.saveUserData(
+      UserDBO(
+        birthday: DateTime(1990),
+        heightCM: 170,
+        weightKG: 65,
+        gender: UserGenderDBO.female,
+        goal: UserWeightGoalDBO.maintainWeight,
+        pal: UserPALDBO.sedentary,
+      ),
+    );
+    await configDataSource.setConfigAppTheme(AppThemeDBO.light);
+
+    await extras.prepareRestore(archive, includeProfileAndSettings: false)();
+
+    expect((await userDataSource.getUserData()).weightKG, 65);
+    expect(
+      (await configDataSource.getConfig()).selectedAppTheme,
+      AppThemeDBO.light,
+    );
   });
 }

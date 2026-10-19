@@ -35,6 +35,7 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
   final _calendarDayBloc = locator<CalendarDayBloc>();
 
   ExportFormat _exportFormat = ExportFormat.json;
+  bool _restoreProfileAndSettings = true;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +92,22 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
                   ],
                 ),
               ],
+              if (_exportFormat == ExportFormat.json)
+                Semantics(
+                  identifier: 'export-import-restore-profile',
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: Text(
+                      S.of(context).exportImportRestoreProfileLabel,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    value: _restoreProfileAndSettings,
+                    onChanged: (value) =>
+                        setState(() => _restoreProfileAndSettings = value),
+                  ),
+                ),
               const SizedBox(height: 12),
               BlocBuilder<ExportImportBloc, ExportImportState>(
                 bloc: _exportImportBloc,
@@ -152,7 +169,10 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
         ),
         TextButton(
           onPressed: () => _exportImportBloc.add(
-            ImportDataEvent(format: _exportFormat),
+            ImportDataEvent(
+              format: _exportFormat,
+              restoreProfileAndSettings: _restoreProfileAndSettings,
+            ),
           ),
           child: Text(S.of(context).importAction),
         ),

@@ -23,10 +23,17 @@ class ImportDataEvent extends ExportImportEvent {
   /// include recipes — see [ExportDataUsecase] for the asymmetry).
   final ExportFormat format;
 
-  const ImportDataEvent({this.format = ExportFormat.json});
+  /// Whether a JSON import also restores the profile, the goal settings and
+  /// the app settings the backup carries (see `PersonalBackupExtras`).
+  final bool restoreProfileAndSettings;
+
+  const ImportDataEvent({
+    this.format = ExportFormat.json,
+    this.restoreProfileAndSettings = true,
+  });
 
   @override
-  List<Object?> get props => [format];
+  List<Object?> get props => [format, restoreProfileAndSettings];
 }
 
 /// User picked a CSV file to import as custom meals.
