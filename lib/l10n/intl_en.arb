@@ -1522,5 +1522,13 @@
   "@goalsGramsKcalHint": {"placeholders": {"macroKcal": {"type": "int"}, "goalKcal": {"type": "int"}}},
   "goalsSaved": "Goals saved",
   "goalsSaveFailed": "The goals could not be saved.",
-  "goalsLoadFailed": "The goals could not be loaded."
+  "goalsLoadFailed": "The goals could not be loaded.",
+  "goalsTrainingEnabled": "Own goals for training days",
+  "goalsTrainingEnabledHint": "Training days are set by the weekly plan below and can be switched on Home and in the diary.",
+  "goalsRestDay": "Rest day",
+  "goalsTrainingDay": "Training day",
+  "goalsTrainingWeekdays": "Training days by default",
+  "dayTypeRestLabel": "Rest day",
+  "dayTypeTrainingLabel": "Training day",
+  "dayTypeSwitchTooltip": "Switch between training and rest day"
 }

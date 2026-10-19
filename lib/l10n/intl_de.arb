@@ -1471,5 +1471,13 @@
   "goalsGramsKcalHint": "Deine Makros ergeben {macroKcal} kcal, dein Kalorienziel liegt bei {goalKcal} kcal.",
   "goalsSaved": "Ziele gespeichert",
   "goalsSaveFailed": "Die Ziele konnten nicht gespeichert werden.",
-  "goalsLoadFailed": "Die Ziele konnten nicht geladen werden."
+  "goalsLoadFailed": "Die Ziele konnten nicht geladen werden.",
+  "goalsTrainingEnabled": "Eigene Ziele für Trainingstage",
+  "goalsTrainingEnabledHint": "Trainingstage folgen dem Wochenplan unten und lassen sich auf Home und im Tagebuch umschalten.",
+  "goalsRestDay": "Ruhetag",
+  "goalsTrainingDay": "Trainingstag",
+  "goalsTrainingWeekdays": "Standardmäßig Trainingstage",
+  "dayTypeRestLabel": "Ruhetag",
+  "dayTypeTrainingLabel": "Trainingstag",
+  "dayTypeSwitchTooltip": "Zwischen Trainings- und Ruhetag wechseln"
 }

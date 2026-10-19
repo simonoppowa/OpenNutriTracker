@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
+import 'package:opennutritracker/core/domain/entity/training_plan.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
@@ -66,6 +67,8 @@ class ConfigEntity extends Equatable {
   final int? dailyWaterGoalMl;
   // The profile's fixed kcal goal and gram macro goals (fork, #32).
   final GoalTargets goalTargets;
+  // Training-day goals, weekly plan and hand-set day types (fork, #35).
+  final TrainingPlan trainingPlan;
   // #84: whether the user has acknowledged the one-time content warning
   // shown before the fasting timer becomes usable. Defaults to false; the
   // warning is shown until the user explicitly taps "I understand, enable
@@ -261,6 +264,7 @@ class ConfigEntity extends Equatable {
     this.dayStartOffsetMinutes = 0,
     this.dailyWaterGoalMl,
     this.goalTargets = const GoalTargets(),
+    this.trainingPlan = const TrainingPlan(),
     this.fastingWarningAcknowledged = false,
     this.useMaterialYou = true,
     this.accentColor,
@@ -281,6 +285,11 @@ class ConfigEntity extends Equatable {
   /// the setting would expect from the rest of the app.
   double get effectiveHealthWorkoutKcalMultiplier =>
       healthWorkoutKcalMultiplier ?? maxHealthWorkoutKcalMultiplier;
+
+  /// The goals that apply on [day]: [goalTargets], or the training goals
+  /// on a training day.
+  GoalTargets goalTargetsFor(DateTime day) =>
+      trainingPlan.targetsFor(day, goalTargets);
 
   /// Resolves the daily water goal for the home chip. Returns the user's
   /// stored override if one exists, otherwise the gendered seed default
@@ -376,6 +385,7 @@ class ConfigEntity extends Equatable {
     dayStartOffsetMinutes: _normaliseOffsetMinutes(dbo.dayStartOffsetMinutes),
     dailyWaterGoalMl: _normaliseWaterGoal(dbo.dailyWaterGoalMl),
     goalTargets: GoalTargets.fromConfigDBO(dbo),
+    trainingPlan: TrainingPlan.fromConfigDBO(dbo),
     fastingWarningAcknowledged: dbo.fastingWarningAcknowledged ?? false,
     useMaterialYou: dbo.useMaterialYou ?? true,
     accentColor: _normaliseAccentColor(dbo.accentColor),
@@ -490,6 +500,7 @@ class ConfigEntity extends Equatable {
     dayStartOffsetMinutes,
     dailyWaterGoalMl,
     goalTargets,
+    trainingPlan,
     fastingWarningAcknowledged,
     useMaterialYou,
     accentColor,

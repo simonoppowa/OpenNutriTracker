@@ -1,6 +1,7 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
+import 'package:opennutritracker/core/domain/entity/training_plan.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -63,6 +64,9 @@ class ConfigDataSource {
       merged.carbGoalG = profile.carbGoalG;
       merged.fatGoalG = profile.fatGoalG;
       merged.proteinGoalG = profile.proteinGoalG;
+      merged.trainingGoalTargets = profile.trainingGoalTargets;
+      merged.trainingWeekdays = profile.trainingWeekdays;
+      merged.dayTypeOverrides = profile.dayTypeOverrides;
       merged.healthImportEnabled = profile.healthImportEnabled;
       merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
       merged.healthLastImportAt = profile.healthLastImportAt;
@@ -85,6 +89,9 @@ class ConfigDataSource {
       merged.carbGoalG = null;
       merged.fatGoalG = null;
       merged.proteinGoalG = null;
+      merged.trainingGoalTargets = null;
+      merged.trainingWeekdays = null;
+      merged.dayTypeOverrides = null;
       merged.healthImportEnabled = null;
       merged.healthWorkoutKcalMultiplier = null;
       merged.healthLastImportAt = null;
@@ -344,6 +351,11 @@ class ConfigDataSource {
   /// Stores the active profile's own goals (#32).
   Future<void> setGoalTargets(GoalTargets targets) async {
     await _update(targets.applyTo);
+  }
+
+  /// Stores the active profile's training days (#35).
+  Future<void> setTrainingPlan(TrainingPlan plan) async {
+    await _update(plan.applyTo);
   }
 
   Future<void> setFastingWarningAcknowledged(bool acknowledged) async {

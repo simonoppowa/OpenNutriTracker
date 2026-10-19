@@ -1,12 +1,13 @@
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
+import 'package:opennutritracker/core/domain/entity/training_plan.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 
 /// What the goals screen (#33) shows and edits: the profile's own goals,
-/// the macro split and the calculated kcal goal the split and the grams are
-/// converted with.
+/// its training days (#35), the macro split and the calculated kcal goal
+/// the split and the grams are converted with.
 class GoalSettingsStore {
   final ConfigRepository _config;
   final UserRepository _user;
@@ -21,6 +22,9 @@ class GoalSettingsStore {
 
   Future<GoalTargets> loadTargets() async =>
       (await _config.getConfig()).goalTargets;
+
+  Future<TrainingPlan> loadTrainingPlan() async =>
+      (await _config.getConfig()).trainingPlan;
 
   /// The macro split in percent, the app's default where none is set.
   Future<({double carbs, double fat, double protein})> loadSplit() async {
@@ -49,8 +53,9 @@ class GoalSettingsStore {
     );
   }
 
-  Future<void> save(GoalTargets targets) async {
+  Future<void> save(GoalTargets targets, TrainingPlan plan) async {
     await _config.setGoalTargets(targets);
+    await _config.setTrainingPlan(plan);
     await _onSaved();
   }
 }

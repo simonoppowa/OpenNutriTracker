@@ -35,6 +35,7 @@ next to its CSV counterpart will not find one.
 | `user_profile.json`              | Profile (fork addition). See [below](#user_profilejson). |
 | `app_settings.json`              | Device-wide settings (fork addition). See [below](#app_settingsjson). |
 | `goal_targets.json`              | The profile's own goals (fork addition). See [below](#goal_targetsjson). |
+| `training_plan.json`             | The profile's training days (fork addition). See [below](#training_planjson). |
 | `profiles.json`, `profiles/<id>/…` | Every other profile (fork addition). See [All profiles](#all-profiles-fork). |
 
 **CSV bundle**
@@ -384,6 +385,22 @@ before #32) leaves them as they are, like the fork's other optional files.
 }
 ```
 
+### `training_plan.json`
+
+Added by this fork (#35). The goals for training days (in the shape of
+`goal_targets.json`; null when training days have no goals of their own),
+the weekdays that are training days by default (1 = Monday … 7 = Sunday)
+and the days set by hand, which win over the weekly plan. Restored like
+`goal_targets.json`.
+
+```jsonc
+{
+  "trainingTargets": { "kcalMode": "fixed", "fixedKcal": 2600.0, "macroMode": "percent", "carbsG": null, "fatG": null, "proteinG": null },
+  "trainingWeekdays": [1, 3, 5],
+  "dayTypes": { "2026-10-20": "training", "2026-10-22": "rest" }
+}
+```
+
 ## All profiles (fork)
 
 This fork's JSON bundle covers **every profile** on the device, not only the
@@ -409,7 +426,8 @@ active one (`ProfilesBackup`):
 - Each other profile has a folder `profiles/<id>/` with its per-profile files:
   `user_activity.json`, `user_intake.json`, `user_tracked_day.json`,
   `weight_log.json`, `goal_settings.json`, `water_intake.json`,
-  `fasting_sessions.json`, `user_profile.json`, `goal_targets.json`. Photos on their diary entries go to the top level
+  `fasting_sessions.json`, `user_profile.json`, `goal_targets.json`,
+  `training_plan.json`. Photos on their diary entries go to the top level
   with the others. Profile pictures are not part of the bundle.
 
 On import the top level goes into the **active** profile (which takes the main

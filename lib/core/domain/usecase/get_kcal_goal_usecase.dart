@@ -23,21 +23,38 @@ class GetKcalGoalUsecase {
     double? totalKcalActivitiesParam,
     double? kcalUserAdjustment,
   }) async {
+    final config = await _configRepository.getConfig();
+    return _kcalGoal(
+      // #586: the query takes a day label, so "today" has to be
+      // resolved through the boundary first. A raw DateTime.now()
+      // here asks for the wall-clock date, which between midnight
+      // and the boundary is a different day than the one Home's
+      // activity list shows — the goal would silently drop those
+      // burned calories.
+      DayBoundaryCalc.currentLogicalDayLabel(
+        config.dayStartOffsetHours,
+        config.dayStartOffsetMinutes,
+      ),
+      userEntity: userEntity,
+      totalKcalActivitiesParam: totalKcalActivitiesParam,
+    );
+  }
+
+  /// The kcal goal of the day labelled [day]: its activities and, on a
+  /// training day, the training goals (#35).
+  Future<double> getKcalGoalForDay(DateTime day) => _kcalGoal(day);
+
+  Future<double> _kcalGoal(
+    DateTime dayLabel, {
+    UserEntity? userEntity,
+    double? totalKcalActivitiesParam,
+  }) async {
     final user = userEntity ?? await _userRepository.getUserData();
     final config = await _configRepository.getConfig();
     final totalKcalActivities =
         totalKcalActivitiesParam ??
         (await _userActivityRepository.getAllUserActivityByDate(
-          // #586: the query takes a day label, so "today" has to be
-          // resolved through the boundary first. A raw DateTime.now()
-          // here asks for the wall-clock date, which between midnight
-          // and the boundary is a different day than the one Home's
-          // activity list shows — the goal would silently drop those
-          // burned calories.
-          DayBoundaryCalc.currentLogicalDayLabel(
-            config.dayStartOffsetHours,
-            config.dayStartOffsetMinutes,
-          ),
+          dayLabel,
           dayStartOffsetHours: config.dayStartOffsetHours,
           dayStartOffsetMinutes: config.dayStartOffsetMinutes,
         )).map((activity) => activity.burnedKcal).toList().sum;
@@ -48,7 +65,7 @@ class GetKcalGoalUsecase {
       caloriesTaperEnabled: user.caloriesTaperEnabled,
     );
     return MacroGoalResolver.kcalGoal(
-      config.goalTargets,
+      config.goalTargetsFor(dayLabel),
       calculatedKcal: calculated,
       activityKcal: totalKcalActivities,
     );

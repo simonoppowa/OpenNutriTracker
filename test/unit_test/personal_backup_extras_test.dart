@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
+import 'package:opennutritracker/core/domain/entity/training_plan.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/personal_backup_extras.dart';
@@ -506,6 +507,26 @@ void main() {
         throwsA(isA<ExportImportFailure>()),
       );
     });
+
+    test(
+      'training days are written as training_plan.json and restored',
+      () async {
+        final plan = const TrainingPlan(
+          trainingTargets: targets,
+          trainingWeekdays: {DateTime.monday, DateTime.thursday},
+        ).withDayType(DateTime(2026, 10, 20), DayType.training);
+        await configDataSource.setTrainingPlan(plan);
+        final archive = await exportArchive();
+        await configDataSource.setTrainingPlan(const TrainingPlan());
+
+        await extras.prepareRestore(archive).write();
+
+        expect(
+          TrainingPlan.fromConfigDBO(await configDataSource.getConfig()),
+          plan,
+        );
+      },
+    );
 
     test('belong to the profile, not the device', () async {
       await configDataSource.setGoalTargets(targets);

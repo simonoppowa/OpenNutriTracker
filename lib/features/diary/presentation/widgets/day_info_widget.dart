@@ -20,6 +20,7 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.da
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
+import 'package:opennutritracker/features/goals/presentation/app_day_type_toggle.dart';
 import 'package:opennutritracker/features/home/domain/day_water_log.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/water_entries_list.dart';
@@ -194,6 +195,10 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             DateFormat.yMMMMEEEEd().format(widget.selectedDay),
             style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing20),
+          child: AppDayTypeToggle(day: widget.selectedDay),
         ),
         const SizedBox(height: Dimens.spacing8),
         Column(

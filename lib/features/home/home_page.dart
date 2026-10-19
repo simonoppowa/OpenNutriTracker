@@ -23,6 +23,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/goals/presentation/app_day_type_toggle.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
@@ -183,12 +184,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Dimens.spacing16,
                 Dimens.spacing4,
               ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: QuickWeightWidget(
-                  weightKg: userWeightKg,
-                  bodyWeightUnit: bodyWeightUnit,
-                ),
+              // Wrap rather than Row so the chips drop onto a second line
+              // at large text scale instead of overflowing off the edge.
+              child: Wrap(
+                spacing: Dimens.spacing12,
+                runSpacing: Dimens.spacing8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  QuickWeightWidget(
+                    weightKg: userWeightKg,
+                    bodyWeightUnit: bodyWeightUnit,
+                  ),
+                  const AppDayTypeToggle(),
+                ],
               ),
             ),
             const FastingHomeChip(),

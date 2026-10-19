@@ -216,6 +216,14 @@ class ConfigDBO extends HiveObject {
   double? fatGoalG;
   @HiveField(109)
   double? proteinGoalG;
+  // Training days (#35, see TrainingPlan): the training goal set as
+  // GoalTargets JSON, the training weekdays and the day types set by hand.
+  @HiveField(110)
+  Map<String, dynamic>? trainingGoalTargets;
+  @HiveField(111)
+  List<int>? trainingWeekdays;
+  @HiveField(112)
+  Map<String, String>? dayTypeOverrides;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -265,6 +273,9 @@ class ConfigDBO extends HiveObject {
     this.carbGoalG,
     this.fatGoalG,
     this.proteinGoalG,
+    this.trainingGoalTargets,
+    this.trainingWeekdays,
+    this.dayTypeOverrides,
   });
 
   factory ConfigDBO.empty() =>

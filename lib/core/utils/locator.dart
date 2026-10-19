@@ -69,6 +69,8 @@ import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_type_usecase.dart';
+import 'package:opennutritracker/core/utils/goal_changes.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/config_initializer.dart';
 import 'package:opennutritracker/core/utils/off_micronutrient_repair.dart';
@@ -677,11 +679,16 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   locator.registerLazySingleton(() => StoreBarcodeCheck(locator()));
   locator.registerLazySingleton(() => WaterQuickAmount(locator()));
+  locator.registerLazySingleton(GoalChanges.new);
+  locator.registerLazySingleton(
+    () => SetDayTypeUsecase(locator(), locator(), locator(), locator()),
+  );
   locator.registerLazySingleton(
     () => GoalSettingsStore(
       locator(),
       locator(),
       onSaved: () async {
+        locator<GoalChanges>().notifyChanged();
         final settingsBloc = locator<SettingsBloc>();
         locator<HomeBloc>().add(const LoadItemsEvent());
         settingsBloc.add(LoadSettingsEvent());

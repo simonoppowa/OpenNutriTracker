@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
+import 'package:opennutritracker/core/domain/entity/training_plan.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_store.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/goals_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -34,11 +35,17 @@ class _FakeStore extends GoalSettingsStore {
   Future<double> calculatedKcal() async => 2000;
 
   Object? saveError;
+  TrainingPlan plan = const TrainingPlan();
+  final savedPlans = <TrainingPlan>[];
 
   @override
-  Future<void> save(GoalTargets targets) async {
+  Future<TrainingPlan> loadTrainingPlan() async => plan;
+
+  @override
+  Future<void> save(GoalTargets targets, TrainingPlan plan) async {
     if (saveError != null) throw saveError!;
     saved.add(targets);
+    savedPlans.add(plan);
   }
 }
 
@@ -274,5 +281,88 @@ void main() {
     store.saveError = null;
     await save(tester);
     expect(store.saved, hasLength(1));
+  });
+
+  group('training days', () {
+    testWidgets('training goals start from the normal ones and save apart', (
+      tester,
+    ) async {
+      final store = _FakeStore(
+        const GoalTargets(kcalMode: KcalGoalMode.fixed, fixedKcal: 2000),
+      );
+      await pumpScreen(tester, store);
+
+      await tester.tap(find.text(l10nEn.goalsTrainingEnabled));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('goals-weekday-1'));
+      await tester.tap(find.bySemanticsIdentifier('goals-weekday-4'));
+      await tester.tap(find.text(l10nEn.goalsTrainingDay));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(field('goals-kcal-fixed')).controller!.text,
+        '2000',
+      );
+      await tester.enterText(field('goals-kcal-fixed'), '2600');
+      await tester.tap(find.text(l10nEn.goalsRestDay));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(field('goals-kcal-fixed')).controller!.text,
+        '2000',
+      );
+      await save(tester);
+
+      expect(
+        store.saved.single,
+        const GoalTargets(kcalMode: KcalGoalMode.fixed, fixedKcal: 2000),
+      );
+      final plan = store.savedPlans.single;
+      expect(
+        plan.trainingTargets,
+        const GoalTargets(kcalMode: KcalGoalMode.fixed, fixedKcal: 2600),
+      );
+      expect(plan.trainingWeekdays, {DateTime.monday, DateTime.thursday});
+    });
+
+    testWidgets('switching training goals off drops them, keeps the plan', (
+      tester,
+    ) async {
+      final store = _FakeStore()
+        ..plan = const TrainingPlan(
+          trainingTargets: GoalTargets(
+            kcalMode: KcalGoalMode.fixed,
+            fixedKcal: 2600,
+          ),
+          trainingWeekdays: {DateTime.monday},
+        ).withDayType(DateTime(2026, 10, 20), DayType.training);
+      await pumpScreen(tester, store);
+
+      await tester.tap(find.text(l10nEn.goalsTrainingEnabled));
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      final plan = store.savedPlans.single;
+      expect(plan.trainingTargets, isNull);
+      expect(plan.isSetByHand(DateTime(2026, 10, 20)), isTrue);
+    });
+
+    testWidgets('an invalid training value shows the training set', (
+      tester,
+    ) async {
+      final store = _FakeStore();
+      await pumpScreen(tester, store);
+
+      await tester.tap(find.text(l10nEn.goalsTrainingEnabled));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.goalsTrainingDay));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.goalsKcalFixed));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.goalsRestDay));
+      await tester.pumpAndSettle();
+      await save(tester);
+
+      expect(store.saved, isEmpty);
+      expect(find.text(l10nEn.goalsKcalRangeError(800, 10000)), findsOneWidget);
+    });
   });
 }
