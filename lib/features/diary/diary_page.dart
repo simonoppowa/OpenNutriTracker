@@ -156,6 +156,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 return DayInfoWidget(
                 trackedDayEntity: state.trackedDayEntity,
                 selectedDay: _selectedDate,
+                currentDay: _currentDate,
                 userActivities: state.userActivityList,
                 breakfastIntake: state.breakfastIntakeList,
                 lunchIntake: state.lunchIntakeList,
