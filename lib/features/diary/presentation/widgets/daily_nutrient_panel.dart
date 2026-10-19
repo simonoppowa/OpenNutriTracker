@@ -14,7 +14,8 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/dri_reference.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/nutrients/nutrient_field.dart';
+import 'package:opennutritracker/features/add_meal/domain/nutrients/nutrient_total.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -394,6 +395,7 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
             reference: row.reference,
             unit: row.unit,
             excessMatters: row.excessMatters,
+            total: totals.coverage[row.key],
           ),
         )
         .toList();
@@ -651,35 +653,57 @@ class NutrientPanelTotals {
     required this.vitaminDMcg,
     required this.vitaminB12Mcg,
     required this.magnesiumMg,
+    this.coverage = const {},
   });
+
+  /// Per panel key, how much of the total the logged entries knew (#46).
+  final Map<String, NutrientTotal> coverage;
 
   factory NutrientPanelTotals.fromIntakes(
     List<IntakeEntity> intakes, {
     bool weekly = false,
   }) {
     final divisor = weekly ? 7.0 : 1.0;
-    double sum(double? Function(MealNutrimentsEntity n) pick) {
-      return intakes.fold<double>(0, (running, intake) {
-            final per100 = pick(intake.meal.nutriments);
-            if (per100 == null) return running;
-            return running + intake.amount * per100 / 100.0;
-          }) /
-          divisor;
-    }
+    NutrientTotal total(NutrientField field) => NutrientTotal.over(
+      intakes,
+      per100: (intake) => field.per100(intake.meal.nutriments),
+      amountG: (intake) => intake.amount,
+      divisor: divisor,
+    );
 
+    final coverage = {
+      for (final MapEntry(key: key, value: field) in panelFields.entries)
+        key: total(field),
+    };
+    double sum(String key) => coverage[key]!.sum;
     return NutrientPanelTotals(
-      fiberG: sum((n) => n.fiber100),
-      sodiumMg: sum((n) => n.sodium100),
-      saturatedFatG: sum((n) => n.saturatedFat100),
-      sugarG: sum((n) => n.sugars100),
-      calciumMg: sum((n) => n.calcium100),
-      ironMg: sum((n) => n.iron100),
-      potassiumMg: sum((n) => n.potassium100),
-      vitaminDMcg: sum((n) => n.vitaminD100),
-      vitaminB12Mcg: sum((n) => n.vitaminB12100),
-      magnesiumMg: sum((n) => n.magnesium100),
+      fiberG: sum(NutrientPanelKeys.fiber),
+      sodiumMg: sum(NutrientPanelKeys.sodium),
+      saturatedFatG: sum(NutrientPanelKeys.saturatedFat),
+      sugarG: sum(NutrientPanelKeys.sugar),
+      calciumMg: sum(NutrientPanelKeys.calcium),
+      ironMg: sum(NutrientPanelKeys.iron),
+      potassiumMg: sum(NutrientPanelKeys.potassium),
+      vitaminDMcg: sum(NutrientPanelKeys.vitaminD),
+      vitaminB12Mcg: sum(NutrientPanelKeys.vitaminB12),
+      magnesiumMg: sum(NutrientPanelKeys.magnesium),
+      coverage: coverage,
     );
   }
+
+  /// The stored nutrient behind each panel key.
+  static const panelFields = <String, NutrientField>{
+    NutrientPanelKeys.fiber: NutrientField.fiber,
+    NutrientPanelKeys.sodium: NutrientField.sodium,
+    NutrientPanelKeys.saturatedFat: NutrientField.saturatedFat,
+    NutrientPanelKeys.sugar: NutrientField.sugars,
+    NutrientPanelKeys.calcium: NutrientField.calcium,
+    NutrientPanelKeys.iron: NutrientField.iron,
+    NutrientPanelKeys.potassium: NutrientField.potassium,
+    NutrientPanelKeys.vitaminD: NutrientField.vitaminD,
+    NutrientPanelKeys.vitaminB12: NutrientField.vitaminB12,
+    NutrientPanelKeys.magnesium: NutrientField.magnesium,
+  };
 }
 
 /// Stable identifiers for the panel's nutrient rows. These are the keys the
@@ -756,12 +780,17 @@ class _NutrientRow extends StatelessWidget {
   /// bar turns when the user goes over.
   final bool excessMatters;
 
+  /// How much of [value] the entries knew: "unknown" when none did, "at
+  /// least" when only some (#46).
+  final NutrientTotal? total;
+
   const _NutrientRow({
     required this.label,
     required this.value,
     required this.reference,
     required this.unit,
     required this.excessMatters,
+    this.total,
   });
 
   @override
@@ -773,8 +802,15 @@ class _NutrientRow extends StatelessWidget {
     final ratio = reference > 0 ? value / reference : 0.0;
     final clamped = ratio.clamp(0.0, 1.0).toDouble();
     final color = _colorForRatio(context, ratio);
-    final valueLabel = '${value.toStringAsFixed(value >= 10 ? 0 : 1)}'
-        ' / ${reference.toStringAsFixed(reference >= 10 ? 0 : 1)}$unit';
+    final unknown = total?.isUnknown ?? false;
+    final partial = total?.isPartial ?? false;
+    final referenceLabel =
+        '${reference.toStringAsFixed(reference >= 10 ? 0 : 1)}$unit';
+    final valueLabel = unknown
+        ? '${s.nutrientUnknownLabel} / $referenceLabel'
+        : '${partial ? '≥ ' : ''}'
+              '${value.toStringAsFixed(value >= 10 ? 0 : 1)}'
+              ' / $referenceLabel';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
@@ -819,11 +855,16 @@ class _NutrientRow extends StatelessWidget {
               ),
             ],
           ),
+          if (partial)
+            Text(
+              s.nutrientPartialHint(total!.unknownEntries),
+              style: textTheme.labelSmall?.copyWith(color: palette.textMuted),
+            ),
           const SizedBox(height: Dimens.spacing8),
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
             child: LinearProgressIndicator(
-              value: clamped,
+              value: unknown ? 0 : clamped,
               minHeight: 8.0,
               backgroundColor: palette.surfaceMuted,
               valueColor: AlwaysStoppedAnimation<Color>(color),

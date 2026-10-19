@@ -48,6 +48,7 @@ vervollständigt.
 | Gewicht | Tests für Lücken, Einzelwerte, Mehrfachmessungen und Jahreswechsel im 7-Tage-Mittel; Entscheidung gegen EMA in `docs/weight-trend.md` | #45 |
 | Körperumfänge | Datenmodell: Box `BodyMeasurementBox` pro Profil (JSON, keine neue Hive-typeId), Taille/Brust/Arm/Oberschenkel/Hüfte in cm, mindestens ein Wert; im Backup als `body_measurements.json` | #43 |
 | Körperumfänge | Profil → Körperumfänge: erfassen, bearbeiten, löschen, Verlauf pro Maß; cm oder Zoll nach der Größen-Einstellung | #44 |
+| Mikronährstoffe | Fehlende Werte zählen als „unbekannt“: Nährstoff-Panel zeigt „unbekannt“ bzw. „≥ X“ mit Anzahl der Einträge ohne Angabe; Rezepte summieren über dieselbe Logik (`NutrientTotal`, `NutrientField`) | #46 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

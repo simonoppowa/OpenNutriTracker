@@ -1577,5 +1577,8 @@
   "@bodyMeasurementRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}, "unit": {"type": "String"}}},
   "bodyMeasurementsEmpty": "No measurements yet. Add one to follow your waist, hips and more over time.",
   "bodyMeasurementsChartEmpty": "Two measurements of this kind make a chart.",
-  "bodyMeasurementDeleteTitle": "Delete this measurement?"
+  "bodyMeasurementDeleteTitle": "Delete this measurement?",
+  "nutrientUnknownLabel": "unknown",
+  "nutrientPartialHint": "{count, plural, =1{1 entry} other{{count} entries}} without a value",
+  "@nutrientPartialHint": {"placeholders": {"count": {"type": "int"}}}
 }

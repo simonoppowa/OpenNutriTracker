@@ -104,11 +104,16 @@ void main() {
   test('apply returns a new list and never mutates the source', () {
     final original = List<IntakeEntity>.of(source);
     final sorted = DiarySortType.kcal.apply(source);
-    expect(identical(sorted, source), isFalse,
-        reason: 'apply must return a copy');
-    expect(source.map((i) => i.id).toList(),
-        original.map((i) => i.id).toList(),
-        reason: 'source list must be untouched');
+    expect(
+      identical(sorted, source),
+      isFalse,
+      reason: 'apply must return a copy',
+    );
+    expect(
+      source.map((i) => i.id).toList(),
+      original.map((i) => i.id).toList(),
+      reason: 'source list must be untouched',
+    );
   });
 
   test('apply handles an empty list without error', () {

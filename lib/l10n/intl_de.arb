@@ -1525,5 +1525,7 @@
   "bodyMeasurementRange": "Bitte {min} bis {max} {unit} eingeben",
   "bodyMeasurementsEmpty": "Noch keine Maße. Trag sie ein, um Taille, Hüfte und mehr im Verlauf zu sehen.",
   "bodyMeasurementsChartEmpty": "Ab zwei Messungen dieses Maßes erscheint ein Verlauf.",
-  "bodyMeasurementDeleteTitle": "Diese Messung löschen?"
+  "bodyMeasurementDeleteTitle": "Diese Messung löschen?",
+  "nutrientUnknownLabel": "unbekannt",
+  "nutrientPartialHint": "{count, plural, =1{1 Eintrag} other{{count} Einträge}} ohne Angabe"
 }
