@@ -30,6 +30,7 @@ vervollständigt.
 | Scanner | Nach einem Tabellen-Scan ohne Barcode bietet der Hinweis „Barcode scannen“ an; beim Speichern wird die Prüfziffer aller Barcode-Längen (EAN-8, UPC-A, EAN-13, GTIN-14) geprüft | #64 |
 | Open Food Facts | Opt-in „Beiträge an Open Food Facts“: nach dem Speichern eines gescannten Lebensmittels mit Barcode Vorschau der Nährwerte, Senden nur nach Bestätigung, nie über vorhandene Werte; Zugangsdaten nur in der Keychain; Testserver standardmäßig an. Bewusste Ausnahme von „keine externen Dienste“ | #81 |
 | Wasser | Schnellbuttons +250 ml, +500 ml und eine eigene Menge (Profil → Eigene Schnellmenge, ConfigDBO-Feld 103, im Backup) im Wasser-Dialog, Snackbar mit Rückgängig | #29 |
+| Wasser | Einträge des Tages (Uhrzeit, Menge) im Wasser-Dialog und im Tagebuch, einzeln löschbar nach Bestätigung; Home und Trends aktualisieren sich | #30 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

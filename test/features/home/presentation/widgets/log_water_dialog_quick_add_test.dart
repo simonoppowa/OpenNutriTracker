@@ -5,6 +5,11 @@ import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
+import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_water_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
+import 'package:opennutritracker/features/home/domain/day_water_log.dart';
 import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/log_water_dialog.dart';
@@ -42,6 +47,18 @@ class _FakeConfigDataSource implements ConfigDataSource {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
+class _EmptyWaterRepository implements WaterIntakeRepository {
+  @override
+  Future<List<WaterIntakeEntity>> getEntriesInRange(
+    DateTime from,
+    DateTime to,
+  ) async => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
 void main() {
   final getIt = GetIt.instance;
   late _FakeHomeBloc home;
@@ -50,6 +67,14 @@ void main() {
     home = _FakeHomeBloc();
     getIt.registerSingleton<HomeBloc>(home);
     getIt.registerSingleton(WaterQuickAmount(_FakeConfigDataSource()));
+    getIt.registerSingleton(
+      DayWaterLog(
+        GetWaterIntakeUsecase(_EmptyWaterRepository()),
+        DeleteWaterIntakeUsecase(_EmptyWaterRepository()),
+        dayStartOffsetMinutes: () async => 0,
+        onChanged: () {},
+      ),
+    );
   });
 
   tearDown(() => getIt.reset());

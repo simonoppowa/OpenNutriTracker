@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/home/domain/day_water_log.dart';
 import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/water_entries_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// #32: simple "how much did you just drink?" dialog. A slider feels
@@ -39,6 +41,7 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
   Widget build(BuildContext context) {
     final s = S.of(context);
     return AlertDialog(
+      scrollable: true,
       shape: Dimens.shapeL,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -113,6 +116,7 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
               },
             ),
           ),
+          WaterEntriesList(log: locator<DayWaterLog>()),
           Align(
             alignment: Alignment.centerRight,
             child: Semantics(

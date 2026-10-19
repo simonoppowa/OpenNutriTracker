@@ -115,6 +115,7 @@ import 'package:opennutritracker/features/fasting/domain/usecase/complete_fastin
 import 'package:opennutritracker/features/fasting/domain/usecase/get_active_fasting_session_usecase.dart';
 import 'package:opennutritracker/features/fasting/domain/usecase/start_fasting_usecase.dart';
 import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc.dart';
+import 'package:opennutritracker/features/home/domain/day_water_log.dart';
 import 'package:opennutritracker/features/home/domain/water_quick_amount.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
@@ -675,6 +676,23 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   locator.registerLazySingleton(() => StoreBarcodeCheck(locator()));
   locator.registerLazySingleton(() => WaterQuickAmount(locator()));
+  locator.registerLazySingleton(
+    () => DayWaterLog(
+      locator(),
+      locator(),
+      dayStartOffsetMinutes: () async =>
+          (await locator<GetConfigUsecase>().getConfig())
+              .dayStartOffsetTotalMinutes,
+      onChanged: () {
+        locator<HomeBloc>().add(const LoadItemsEvent());
+        final trendsBloc = locator<TrendsBloc>();
+        final trendsState = trendsBloc.state;
+        if (trendsState is TrendsLoaded) {
+          trendsBloc.add(LoadTrendsEvent(rangeDays: trendsState.rangeDays));
+        }
+      },
+    ),
+  );
   locator.registerLazySingleton(
     () => OffContributionSettingsStore(SecureAppStorageProvider.secureAppStorage),
   );

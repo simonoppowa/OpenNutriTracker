@@ -1448,5 +1448,9 @@
   "waterQuickUndoLabel": "Rückgängig",
   "waterQuickAmountLabel": "Eigene Schnellmenge",
   "waterQuickAmountDescription": "Die Menge des dritten Buttons im Wasser-Dialog, neben +250 ml und +500 ml.",
-  "waterQuickAmountRangeError": "Bitte {min} bis {max} ml eingeben"
+  "waterQuickAmountRangeError": "Bitte {min} bis {max} ml eingeben",
+  "waterEntriesTitle": "Wasser",
+  "waterEntryDeleteTitle": "Eintrag löschen?",
+  "waterEntryDeleteContent": "{amount} ml um {time}",
+  "waterEntryDeleteTooltip": "Eintrag löschen"
 }

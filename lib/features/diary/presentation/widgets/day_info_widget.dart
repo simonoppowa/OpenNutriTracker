@@ -20,7 +20,9 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.da
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
+import 'package:opennutritracker/features/home/domain/day_water_log.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/water_entries_list.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -268,6 +270,19 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 selectedDay: widget.selectedDay,
                 trackedDay: widget.trackedDayEntity,
               ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Dimens.spacing20,
+                Dimens.spacing8,
+                Dimens.spacing8,
+                0,
+              ),
+              child: WaterEntriesList(
+                log: locator<DayWaterLog>(),
+                day: widget.selectedDay,
+                showTitle: true,
+              ),
+            ),
             if (widget.showActivityTracking) ...[
               const SizedBox(height: Dimens.spacing8),
               ActivityVerticalList(

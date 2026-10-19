@@ -27,6 +27,7 @@ import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/home/domain/day_water_log.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 
@@ -406,6 +407,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
     await _addWaterIntakeUsecase.addEntry(entry);
     add(const LoadItemsEvent());
+    locator<DayWaterLog>().markChanged();
     return entry.id;
   }
 
@@ -413,6 +415,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> deleteWaterIntake(String id) async {
     await _deleteWaterIntakeUsecase.deleteEntry(id);
     add(const LoadItemsEvent());
+    locator<DayWaterLog>().markChanged();
   }
 
   /// Rolls back the most recent water entry for the configured logical
@@ -427,6 +430,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     entries.sort((a, b) => a.dateTime.compareTo(b.dateTime));
     await _deleteWaterIntakeUsecase.deleteEntry(entries.last.id);
     add(const LoadItemsEvent());
+    locator<DayWaterLog>().markChanged();
     return true;
   }
 

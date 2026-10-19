@@ -1494,5 +1494,10 @@
   "waterQuickAmountLabel": "Own quick amount",
   "waterQuickAmountDescription": "The amount of the third button in the water dialog, next to +250 ml and +500 ml.",
   "waterQuickAmountRangeError": "Enter {min} to {max} ml",
-  "@waterQuickAmountRangeError": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}}
+  "@waterQuickAmountRangeError": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "waterEntriesTitle": "Water",
+  "waterEntryDeleteTitle": "Delete this entry?",
+  "waterEntryDeleteContent": "{amount} ml at {time}",
+  "@waterEntryDeleteContent": {"placeholders": {"amount": {"type": "int"}, "time": {"type": "String"}}},
+  "waterEntryDeleteTooltip": "Delete entry"
 }
