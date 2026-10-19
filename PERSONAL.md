@@ -34,6 +34,7 @@ vervollständigt.
 | Wasser | Fortschrittsbalken in der Kalorien-Karte auf Home (ersetzt den Wasser-Chip, Tap öffnet den Wasser-Dialog) und im Tagebuch gegen das Tagesziel | #31 |
 | Ziele | Zielmodell pro Profil: festes Kalorienziel und Makros in Gramm (ConfigDBO-Felder 104–109, `GoalTargets`, `MacroGoalResolver`), im Backup als `goal_targets.json` | #32 |
 | Ziele | Kcal- und Makro-Usecases lesen die eigenen Ziele; Home, Tagebuch, neue Tracked Days und Trends folgen ihnen, verbrannte Aktivitäts-kcal kommen auch auf ein festes Ziel | #34 |
+| Ziele | Einstellungen → Ziele: Kalorien berechnet oder fest, Makros in Prozent (bestehender Aufteilungs-Dialog) oder Gramm mit Live-Umrechnung und Hinweis, wenn die Makro-kcal vom Ziel abweichen | #33 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

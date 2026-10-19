@@ -1,6 +1,7 @@
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/domain/entity/goal_targets.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -90,6 +91,10 @@ class ConfigRepository {
 
   Future<void> setConfigShowMealMacros(bool show) async {
     await _configDataSource.setConfigShowMealMacros(show);
+  }
+
+  Future<void> setGoalTargets(GoalTargets targets) async {
+    await _configDataSource.setGoalTargets(targets);
   }
 
   Future<void> setUserMacroPct(double carbs, double protein, double fat) async {

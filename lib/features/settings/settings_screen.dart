@@ -29,6 +29,7 @@ import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc
 import 'package:opennutritracker/features/off_contribution/presentation/off_contribution_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/goals_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/auto_backup_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
@@ -273,6 +274,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => const KcalGoalInfoScreen(),
+                      ),
+                    ),
+                  ),
+                  _SettingsTile(
+                    identifier: 'settings-goals',
+                    palette: palette,
+                    icon: Icons.flag_rounded,
+                    title: S.of(context).goalsTitle,
+                    subtitle: S.of(context).goalsSubtitle,
+                    showChevron: true,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => GoalsScreen(
+                          onEditSplit: _showMacroSplitDialog,
+                        ),
                       ),
                     ),
                   ),
@@ -983,8 +999,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showMacroSplitDialog(BuildContext context) {
-    showDialog(
+  Future<void> _showMacroSplitDialog(BuildContext context) {
+    return showDialog<void>(
       context: context,
       builder: (context) =>
           MacroSplitDialog(settingsBloc: _settingsBloc, homeBloc: _homeBloc),

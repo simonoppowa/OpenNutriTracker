@@ -133,6 +133,7 @@ import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart
 import 'package:opennutritracker/features/scanner/data/nutrition_label_scanner.dart';
 import 'package:opennutritracker/features/scanner/data/text_recognizer.dart';
 import 'package:opennutritracker/features/scanner/domain/store_barcode_check.dart';
+import 'package:opennutritracker/features/settings/domain/goal_settings_store.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
@@ -676,6 +677,19 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => NutritionLabelScanner(locator()));
   locator.registerLazySingleton(() => StoreBarcodeCheck(locator()));
   locator.registerLazySingleton(() => WaterQuickAmount(locator()));
+  locator.registerLazySingleton(
+    () => GoalSettingsStore(
+      locator(),
+      locator(),
+      onSaved: () async {
+        final settingsBloc = locator<SettingsBloc>();
+        locator<HomeBloc>().add(const LoadItemsEvent());
+        settingsBloc.add(LoadSettingsEvent());
+        locator<ProfileBloc>().add(LoadProfileEvent());
+        await settingsBloc.updateTrackedDay(DateTime.now());
+      },
+    ),
+  );
   locator.registerLazySingleton(
     () => DayWaterLog(
       locator(),
