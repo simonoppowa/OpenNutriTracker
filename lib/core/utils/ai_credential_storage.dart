@@ -278,6 +278,16 @@ class AiCredentialStorage {
 
   static const _enabledTag = 'AiAssistEnabledTag';
   static const _termsAcceptedTag = 'AiTermsAcceptedTag';
+
+  /// The agreement was given over the paragraph that names **Google** — the
+  /// one an own-server address at Google's Gemini API shows (#1257).
+  ///
+  /// Separate from [_termsAcceptedTag] because that one can predate it. An
+  /// install that saved Google's address under an older build agreed to
+  /// "a server you run … No third party receives it", and the read-side
+  /// completion of that stored address is what first makes it reach Google.
+  /// A yes to a paragraph that named nobody is not a yes to Google.
+  static const _googleTermsAcceptedTag = 'AiGoogleTermsAcceptedTag';
   static const _providerTag = 'AiProviderTag';
   static const _modelTag = 'AiModelTag';
 
@@ -427,6 +437,7 @@ class AiCredentialStorage {
             modelId: modelId,
           ) &&
           await _storage.read(key: _termsAcceptedTag) == 'true' &&
+          await _googleTermsHold(target, endpoint) &&
           await _storage.read(key: _enabledTag) != 'false';
       return (
         provider: target,
@@ -1162,6 +1173,7 @@ class AiCredentialStorage {
       if (!await hasAnyUsableProvider()) {
         await _storage.delete(key: _enabledTag);
         await _storage.delete(key: _termsAcceptedTag);
+        await _storage.delete(key: _googleTermsAcceptedTag);
       }
     });
   }
@@ -1196,6 +1208,7 @@ class AiCredentialStorage {
     await _storage.delete(key: _providerTag);
     await _storage.delete(key: _enabledTag);
     await _storage.delete(key: _termsAcceptedTag);
+    await _storage.delete(key: _googleTermsAcceptedTag);
   });
 
   /// The legacy tag is the Anthropic slot under an older name, so it is
@@ -1264,17 +1277,50 @@ class AiCredentialStorage {
   /// It follows that agreeing while pointed at a server the user runs also
   /// covers a hosted provider chosen later — which is why the screen says so,
   /// and why the dialog keeps showing each provider's own terms.
-  Future<bool> hasAcceptedTerms() async =>
-      await _storage.read(key: _termsAcceptedTag) == 'true';
+  ///
+  /// The one exception is Google's Gemini API reached as [AiProvider.ownServer]
+  /// at [endpoint]: that needs an agreement given over the paragraph naming
+  /// Google, which an older build never showed (#1257).
+  Future<bool> hasAcceptedTerms({
+    AiProvider? provider,
+    String? endpoint,
+  }) async =>
+      await _storage.read(key: _termsAcceptedTag) == 'true' &&
+      (provider == null || await _googleTermsHold(provider, endpoint));
 
   /// Recorded only after the agreement is actually given, and cleared when
   /// the last credential goes (#836) so a stored yes never outlives the thing
   /// it authorised.
-  Future<void> setTermsAccepted(bool accepted) async {
+  ///
+  /// [endpoint] is the address the agreement was shown for. When it is
+  /// Google's Gemini API the screen named Google, and that is recorded too.
+  Future<void> setTermsAccepted(bool accepted, {String? endpoint}) async {
     await _storage.write(
       key: _termsAcceptedTag,
       value: accepted ? 'true' : 'false',
     );
+    if (!accepted) {
+      await _storage.delete(key: _googleTermsAcceptedTag);
+    } else if (_isGeminiAddress(endpoint)) {
+      await _storage.write(key: _googleTermsAcceptedTag, value: 'true');
+    }
+  }
+
+  /// False only for an own-server address at Google's Gemini API with no
+  /// agreement on file that was given over the paragraph naming Google.
+  ///
+  /// Every other destination is untouched by this, so no agreement anyone
+  /// gave for one of them can be withdrawn by it.
+  Future<bool> _googleTermsHold(AiProvider provider, String? endpoint) async {
+    if (provider != AiProvider.ownServer || !_isGeminiAddress(endpoint)) {
+      return true;
+    }
+    return await _storage.read(key: _googleTermsAcceptedTag) == 'true';
+  }
+
+  static bool _isGeminiAddress(String? endpoint) {
+    final uri = endpoint == null ? null : Uri.tryParse(endpoint.trim());
+    return uri != null && isGeminiEndpoint(uri);
   }
 
   /// Whether the user currently wants the key used. False whenever the

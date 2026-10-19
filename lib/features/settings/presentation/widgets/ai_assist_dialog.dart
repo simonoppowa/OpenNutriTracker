@@ -754,7 +754,18 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// it in the field would show a credential the app has not saved, which is
   /// the same lie the dialog already refuses to tell elsewhere.
   Future<bool> _agreedBeforeAnythingIsStored(AiProvider provider) async {
-    if (await widget.storage.hasAcceptedTerms()) return true;
+    // The address goes with the question: an agreement on file does not
+    // cover Google's Gemini API unless it was given over the paragraph that
+    // names Google (#1257), so that address asks again.
+    final endpoint = provider == AiProvider.ownServer
+        ? _endpointController.text
+        : null;
+    if (await widget.storage.hasAcceptedTerms(
+      provider: provider,
+      endpoint: endpoint,
+    )) {
+      return true;
+    }
     if (!mounted) return false;
 
     final agreed = await AiConsentScreen.show(
@@ -768,7 +779,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     }
     // Written only once the answer is yes, so a dismissed screen leaves no
     // trace of having been shown.
-    await widget.storage.setTermsAccepted(true);
+    await widget.storage.setTermsAccepted(true, endpoint: endpoint);
     return true;
   }
 

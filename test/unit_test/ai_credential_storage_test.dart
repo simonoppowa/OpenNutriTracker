@@ -1037,6 +1037,11 @@ void main() {
       // way the dialog saves it, read back as the selection the factory
       // builds the client from, and the URL that request actually goes to.
       await storage.setActiveProvider(AiProvider.ownServer);
+      // Agreed over the paragraph naming Google, as the dialog asks for.
+      await storage.setTermsAccepted(
+        true,
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      );
       await storage.writeOwnServerConfiguration(
         endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
         model: 'gemini-3.1-pro',
@@ -1065,8 +1070,14 @@ void main() {
         'route, without saving again', () async {
       // Installs that saved Google's base before #1257 hold `/v1beta/openai`
       // verbatim. Set up as a working configuration, then put the old form
-      // back in the slot the way the old resolver left it.
+      // back in the slot the way the old resolver left it. The agreement is
+      // the one given over the Google paragraph, which such an install is
+      // asked for before anything is sent (see the consent tests).
       await storage.setActiveProvider(AiProvider.ownServer);
+      await storage.setTermsAccepted(
+        true,
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      );
       await storage.writeOwnServerConfiguration(
         endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
         model: 'gemini-3.1-pro',
@@ -2120,6 +2131,81 @@ void main() {
 
       await storage.setTermsAccepted(true);
       expect(await storage.isEnabled(), isTrue);
+    });
+
+    group('Google\'s Gemini API asks again (#1257)', () {
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      /// An install from before #1257: Google's base saved verbatim, and an
+      /// agreement given while that address was described as a server the
+      /// user runs, with no third party receiving anything.
+      Future<void> preMigration() async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        backing.store['AiEndpointTag.ownServer'] = gemini;
+        backing.store['AiModelTag.ownServer'] = 'gemini-3.1-pro';
+        backing.store['AiApiKeyTag.ownServer'] = 'google-key';
+        backing.store['AiAssistEnabledTag'] = 'true';
+        backing.store['AiTermsAcceptedTag'] = 'true';
+      }
+
+      test('an agreement from before sends nothing to Google', () async {
+        await preMigration();
+
+        expect(await storage.readSelection(), isNull);
+        expect(await storage.isEnabled(), isFalse);
+        expect(
+          await storage.hasAcceptedTerms(
+            provider: AiProvider.ownServer,
+            endpoint: gemini,
+          ),
+          isFalse,
+          reason: 'the dialog must show the paragraph naming Google again',
+        );
+        expect(
+          await storage.hasAcceptedTerms(),
+          isTrue,
+          reason: 'nothing the user agreed to is deleted',
+        );
+      });
+
+      test('agreeing over the Google paragraph turns it back on', () async {
+        await preMigration();
+
+        await storage.setTermsAccepted(true, endpoint: gemini);
+
+        final selection = await storage.readSelection();
+        expect(selection?.endpoint, '$gemini/chat/completions');
+        expect(selection?.apiKey, 'google-key');
+      });
+
+      test('every other destination keeps the agreement it has', () async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await storage.setTermsAccepted(true);
+
+        expect(await storage.readSelection(), isNotNull);
+        expect(
+          await storage.hasAcceptedTerms(
+            provider: AiProvider.ownServer,
+            endpoint: 'http://192.168.1.5:11434',
+          ),
+          isTrue,
+        );
+      });
+
+      test('withdrawing the agreement withdraws Google\'s too', () async {
+        await preMigration();
+        await storage.setTermsAccepted(true, endpoint: gemini);
+
+        await storage.setTermsAccepted(false);
+        await storage.setTermsAccepted(true);
+
+        expect(await storage.readSelection(), isNull);
+      });
     });
 
     test('removing the only credential withdraws it', () async {

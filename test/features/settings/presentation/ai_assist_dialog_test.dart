@@ -3297,6 +3297,47 @@ void main() {
       expect(await storage.readApiKey(provider: AiProvider.anthropic), 'sk-x');
     });
 
+    testWidgets('an agreement from before Google was named asks again for '
+        'a Gemini address', (tester) async {
+      // #1257: an install that saved Google's address agreed to "a server
+      // you run … No third party receives it". Saving it now puts the
+      // paragraph naming Google in front of the user before anything is
+      // sent, and only a yes to that turns the feature on.
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+      await storage.setActiveProvider(AiProvider.ownServer);
+      backing.store['AiEndpointTag.ownServer'] = gemini;
+      backing.store['AiModelTag.ownServer'] = 'gemini-3.1-pro';
+      backing.store['AiAssistEnabledTag'] = 'true';
+      backing.store['AiTermsAcceptedTag'] = 'true';
+      expect(await storage.readSelection(), isNull);
+
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.aiConsentTitle), findsOneWidget);
+      expect(
+        find.text(
+          l10nEn.aiAssistDisclosureOwnServerGemini(
+            'generativelanguage.googleapis.com',
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      // The Google paragraph is long enough to push the button past the fold.
+      final agree = find.bySemanticsIdentifier('ai-consent-agree');
+      await tester.scrollUntilVisible(agree, 200);
+      await tester.tap(agree);
+      await tester.pumpAndSettle();
+
+      expect(
+        (await storage.readSelection())?.endpoint,
+        '$gemini/chat/completions',
+      );
+    });
+
     testWidgets('the screen names the destination that was chosen', (
       tester,
     ) async {
