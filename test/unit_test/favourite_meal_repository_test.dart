@@ -188,6 +188,89 @@ void main() {
       expect(await repository.isFavourite(soup), isTrue);
     });
 
+    group('a name too long for a Hive key', () {
+      // Hive writes a string key's length in one byte: 255 UTF-8 bytes.
+      // 'custom:' plus 249 ASCII characters is 256; 100 three-byte
+      // characters are 300 bytes in only 100 UTF-16 units, which Hive's own
+      // length check (in UTF-16 units) lets through and then writes wrong.
+      final longAscii = 'a' * 249;
+      final longMultibyte = '寿' * 100;
+
+      for (final (label, name) in [
+        ('ASCII', longAscii),
+        ('multibyte', longMultibyte),
+      ]) {
+        test('stars a $label name, and it survives reopening the box', () async {
+          final meal = _meal(
+            code: null,
+            name: name,
+            source: MealSourceEntity.custom,
+          );
+          expect(utf8.encode('custom:$name').length, greaterThan(255));
+
+          expect(await toggleFavourite.toggle(meal), isTrue);
+          expect(await repository.isFavourite(meal), isTrue);
+          final key = favouriteBox.keys.single as String;
+          expect(key, startsWith('custom#'));
+          expect(utf8.encode(key).length, lessThanOrEqualTo(255));
+          expect(key, FavouriteMealRepository.keyOf(meal));
+
+          // Read back from disk: a key Hive wrote wrong corrupts the frame.
+          final name0 = favouriteBox.name;
+          await favouriteBox.close();
+          favouriteBox = await Hive.openBox<FavouriteMealDBO>(name0);
+          expect(favouriteBox.keys, [key]);
+          expect(favouriteBox.get(key)!.meal.name, name);
+        });
+      }
+
+      test('two names that differ only at the end are two favourites', () async {
+        await repository.addFavourite(
+          _meal(code: null, name: '${longAscii}x', source: MealSourceEntity.custom),
+        );
+        await repository.addFavourite(
+          _meal(code: null, name: '${longAscii}y', source: MealSourceEntity.custom),
+        );
+
+        expect(favouriteBox.length, 2);
+        final names = (await repository.getAllFavourites()).map((m) => m.name);
+        expect(names, unorderedEquals(['${longAscii}x', '${longAscii}y']));
+      });
+
+      test('an import or an edit of one keeps a single entry', () async {
+        final meal = _meal(
+          code: null,
+          name: longMultibyte,
+          source: MealSourceEntity.custom,
+        );
+        await repository.addFavourite(meal);
+        final exported = await repository.getAllFavouritesDBO();
+
+        await repository.addAllFavouriteDBOs(exported);
+        await repository.addAllFavouriteDBOs(exported);
+        expect(favouriteBox.length, 1);
+
+        // Renaming the meal moves it to the new name's key.
+        final renamed = _meal(
+          code: null,
+          name: '$longMultibyte!',
+          source: MealSourceEntity.custom,
+        );
+        await repository.moveFavourite(meal, renamed);
+        expect(favouriteBox.keys, [FavouriteMealRepository.keyOf(renamed)]);
+        expect(await repository.isFavourite(meal), isFalse);
+        expect(await repository.isFavourite(renamed), isTrue);
+      });
+
+      test('a key that fits is used as is', () {
+        final name = 'b' * 248; // 'custom:' + 248 = 255 bytes
+        expect(
+          FavouriteMealDBO.keyFor(MealSourceDBO.custom, null, name),
+          'custom:$name',
+        );
+      });
+    });
+
     test('matches the key search deduplicates on', () {
       final meal = _meal(code: '987', source: MealSourceEntity.recipe);
 
