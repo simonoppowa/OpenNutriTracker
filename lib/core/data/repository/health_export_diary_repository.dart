@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_export_diary_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 
@@ -25,11 +26,16 @@ class LedgerRecord {
     required this.consenting,
   });
 
+  /// Where the entry's record starts when written now: its time, to the
+  /// millisecond the store and the ledger keep.
+  DateTime get currentStart =>
+      ExternalMealIntake.recordStart(current!.dateTime);
+
   /// The record with its entry written again at the entry's own time.
   LedgerRecord rewritten() => LedgerRecord(
     profileId: profileId,
     intakeId: intakeId,
-    exportedAt: current!.dateTime,
+    exportedAt: currentStart,
     current: current,
     consenting: consenting,
   );
@@ -75,6 +81,12 @@ class HealthExportDiaryRepository {
 
   Future<void> clearLedger(String profileId) =>
       _dataSource.clearLedger(profileId);
+
+  /// [profileId]'s diary entry [intakeId], or null when it is gone.
+  Future<IntakeEntity?> intakeOf(String profileId, String intakeId) async {
+    final row = await _dataSource.readIntake(profileId, intakeId);
+    return row == null ? null : IntakeEntity.fromIntakeDBO(row);
+  }
 
   /// Every profile's ledger records starting in any window
   /// `[start, start + length)`, skipping [exceptProfile]. Throws when a

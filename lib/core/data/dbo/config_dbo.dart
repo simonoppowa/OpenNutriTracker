@@ -213,6 +213,11 @@ class ConfigDBO extends HiveObject {
   // until each delete succeeds. Device-wide, kept in the shared app box.
   @HiveField(46)
   List<String>? healthPendingRecordDeletes;
+  // Health Connect meal writes still to land, as `profileId/intakeId`
+  // (#1393): written before the attempt, dropped once a write succeeds, and
+  // replayed until then. Device-wide, kept in the shared app box.
+  @HiveField(47)
+  List<String>? healthPendingRecordWrites;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -256,6 +261,7 @@ class ConfigDBO extends HiveObject {
     this.healthExportEnabled,
     this.healthPendingExportWindows,
     this.healthPendingRecordDeletes,
+    this.healthPendingRecordWrites,
   });
 
   factory ConfigDBO.empty() =>

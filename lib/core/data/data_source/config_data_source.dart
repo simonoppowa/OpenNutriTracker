@@ -437,6 +437,21 @@ class ConfigDataSource {
     config.healthPendingRecordDeletes = ids.isEmpty ? null : ids.toList();
   });
 
+  /// Health Connect meal writes still waiting to land, as
+  /// `profileId/intakeId`. Device-wide, in the shared app box alone.
+  List<String> getHealthPendingRecordWrites() => List.of(
+    _appBox.get(_configKey)?.healthPendingRecordWrites ?? const <String>[],
+  );
+
+  Future<void> updateHealthPendingRecordWrites({
+    Iterable<String> add = const [],
+    Iterable<String> remove = const [],
+  }) => _updateAppOnly((config) {
+    final keys = {...?config.healthPendingRecordWrites, ...add}
+      ..removeAll(remove);
+    config.healthPendingRecordWrites = keys.isEmpty ? null : keys.toList();
+  });
+
   /// Changes the shared app box's record alone. The read and the start of
   /// the write happen in one synchronous step, so two updates cannot lose
   /// each other's changes; and every merged write copies the app box's value

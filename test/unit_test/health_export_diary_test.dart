@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_export_diary_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -389,6 +390,19 @@ void main() {
         Hive.isBoxOpen(boxName(HiveDBProvider.healthExportLedgerBoxName, 'a')),
         isTrue,
       );
+    });
+
+    // Review round 5 on #1393: the ledger keeps milliseconds, so a time
+    // with microseconds is found in the window of its record start.
+    test('a microsecond time is kept, and found, to the millisecond', () async {
+      final now = DateTime(2026, 6, 15, 12, 30, 0, 123, 456);
+      final start = ExternalMealIntake.recordStart(now);
+      await repository.updateLedger('a', put: {'now': now});
+
+      expect(start, DateTime(2026, 6, 15, 12, 30, 0, 123));
+      expect(await repository.exportedAt('a', ['now']), {'now': start});
+      final records = await repository.recordsInWindows({start}, minute);
+      expect(ids(records), contains('a/now'));
     });
   });
 }

@@ -219,6 +219,19 @@ class ConfigRepository {
     );
   }
 
+  Future<Set<String>> getHealthPendingRecordWrites() async =>
+      _configDataSource.getHealthPendingRecordWrites().toSet();
+
+  Future<void> updateHealthPendingRecordWrites({
+    Set<String> add = const {},
+    Set<String> remove = const {},
+  }) async {
+    await _configDataSource.updateHealthPendingRecordWrites(
+      add: add,
+      remove: remove,
+    );
+  }
+
   Future<Set<String>> getHealthPendingRecordDeletes() async =>
       _configDataSource.getHealthPendingRecordDeletes().toSet();
 

@@ -58,6 +58,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         healthExportEnabled: fields[44] as bool?,
         healthPendingExportWindows: (fields[45] as List?)?.cast<DateTime>(),
         healthPendingRecordDeletes: (fields[46] as List?)?.cast<String>(),
+        healthPendingRecordWrites: (fields[47] as List?)?.cast<String>(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -67,7 +68,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(44)
+      ..writeByte(45)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -155,7 +156,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(45)
       ..write(obj.healthPendingExportWindows)
       ..writeByte(46)
-      ..write(obj.healthPendingRecordDeletes);
+      ..write(obj.healthPendingRecordDeletes)
+      ..writeByte(47)
+      ..write(obj.healthPendingRecordWrites);
   }
 
   @override
@@ -241,6 +244,10 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
             (json['healthPendingRecordDeletes'] as List<dynamic>?)
                 ?.map((e) => e as String)
                 .toList(),
+        healthPendingRecordWrites:
+            (json['healthPendingRecordWrites'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -295,6 +302,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       ?.map((e) => e.toIso8601String())
       .toList(),
   'healthPendingRecordDeletes': instance.healthPendingRecordDeletes,
+  'healthPendingRecordWrites': instance.healthPendingRecordWrites,
 };
 
 const _$AppThemeDBOEnumMap = {

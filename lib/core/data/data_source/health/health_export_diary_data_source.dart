@@ -101,6 +101,17 @@ class HealthExportDiaryDataSource {
     });
   }
 
+  /// [profileId]'s diary row [intakeId], or null when it is gone.
+  Future<IntakeDBO?> readIntake(String profileId, String intakeId) async {
+    final profile = _db.profileBox.get(profileId);
+    if (profile == null) return null;
+    return _read(
+      profile,
+      (_, intakes, _) =>
+          intakes.values.where((row) => row.id == intakeId).firstOrNull,
+    );
+  }
+
   /// Empties [profileId]'s ledger.
   Future<void> clearLedger(String profileId) async {
     final profile = _db.profileBox.get(profileId);

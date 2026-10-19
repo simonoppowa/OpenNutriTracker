@@ -38,9 +38,10 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 /// times, and only then drops the windows from the pending set. That is
 /// idempotent, so whatever stops it part-way — a failed call, or the app
 /// being killed — is put right by replaying the pending windows, which the
-/// next operation and the next app start ([replayPendingWindows]) do. A
-/// Health Connect delete that does not go through stays pending the same
-/// way.
+/// next operation and the next app start ([replayPendingWindows]) do.
+/// Health Connect writes and deletes are stored as pending before they are
+/// tried and leave the pending sets only once they went through, so they are
+/// replayed the same way.
 class ExportMealIntakeUsecase {
   // TODO: Implement "Export now" backfill for historical date ranges (follow-up to issue #1245)
   // TODO: Implement hydration / water intake export to Health Connect / Apple Health (follow-up to issue #1245)
@@ -75,6 +76,23 @@ class ExportMealIntakeUsecase {
   bool _forgotten(String owner, int request) =>
       request < (_forgottenBefore[owner] ?? 0);
 
+  /// Per profile, how many times [forgetProfile] has run. Work that started
+  /// before a wipe of a profile compares this to drop what it would still
+  /// do for that profile: no ledger writes, no rewrites, and no clearing of
+  /// pending windows the wipe may have added.
+  final Map<String, int> _wipes = {};
+
+  Map<String, int> _wipesNow() => Map.of(_wipes);
+
+  bool _wipedSince(String profileId, Map<String, int> before) =>
+      (_wipes[profileId] ?? 0) != (before[profileId] ?? 0);
+
+  bool _anyWipeSince(Map<String, int> before) =>
+      _wipes.keys.any((profileId) => _wipedSince(profileId, before));
+
+  static String _writeKey(String profileId, String intakeId) =>
+      '$profileId/$intakeId';
+
   ExportMealIntakeUsecase(
     this._healthExportRepository,
     this._diaryRepository,
@@ -91,21 +109,17 @@ class ExportMealIntakeUsecase {
     return _serialized('export intake ${intake.id}', () async {
       if (_forgotten(owner, request)) return false;
       if (!await _consents(owner, consent)) return false;
-      // In the ledger before the write: it lists what the store should
-      // hold, so a write that fails is redone by the next edit or rewrite.
-      await _diaryRepository.updateLedger(
-        owner,
-        put: {intake.id: intake.dateTime},
-      );
+      final wipes = _wipesNow();
+      final start = ExternalMealIntake.recordStart(intake.dateTime);
       if (!_healthExportRepository.hasRecordIdentity) {
-        return _replaceWindows({intake.dateTime});
+        // The window is pending before the ledger names it, so a stop in
+        // between still writes the meal on replay.
+        await _configRepository.updateHealthPendingExportWindows(add: {start});
+        await _diaryRepository.updateLedger(owner, put: {intake.id: start});
+        return _replaceWindows({start});
       }
-      await _drainRecordDeletes();
-      return _retrying(
-        () => _healthExportRepository.writeMeal(
-          ExternalMealIntake.fromIntake(intake, profileId: owner),
-        ),
-      );
+      await _drainPendingRecords();
+      return _writeRecords(owner, [intake], wipes);
     });
   }
 
@@ -135,24 +149,12 @@ class ExportMealIntakeUsecase {
         // its record.
         return _replaceWindows(stored.values.toSet());
       }
-      await _drainRecordDeletes();
-      var allWritten = true;
-      for (final (_, after) in edits) {
-        if (!stored.containsKey(after.id)) continue;
-        final written = await _retrying(
-          () => _healthExportRepository.writeMeal(
-            ExternalMealIntake.fromIntake(after, profileId: owner),
-          ),
-        );
-        if (written) {
-          await _diaryRepository.updateLedger(
-            owner,
-            put: {after.id: after.dateTime},
-          );
-        }
-        allWritten = allWritten && written;
-      }
-      return allWritten;
+      final wipes = _wipesNow();
+      await _drainPendingRecords();
+      return _writeRecords(owner, [
+        for (final (_, after) in edits)
+          if (stored.containsKey(after.id)) after,
+      ], wipes);
     });
   }
 
@@ -172,20 +174,17 @@ class ExportMealIntakeUsecase {
         // The record leaves the ledger once its window is cleared.
         return _replaceWindows({at});
       }
-      await _drainRecordDeletes();
-      final recordId = ExternalMealIntake.recordIdOf(owner, intake.id);
-      final deleted = await _retrying(
-        () => _healthExportRepository.deleteMeal(recordId),
+      // Pending before the attempt, and off the ledger after it is: from
+      // here the pending deletes find the record, and only a confirmed
+      // delete drops it.
+      await _configRepository.updateHealthPendingRecordDeletes(
+        add: {ExternalMealIntake.recordIdOf(owner, intake.id)},
       );
-      // Not deleted: the id moves to the pending deletes, which find the
-      // record without the ledger.
-      if (!deleted) {
-        await _configRepository.updateHealthPendingRecordDeletes(
-          add: {recordId},
-        );
-      }
+      await _configRepository.updateHealthPendingRecordWrites(
+        remove: {_writeKey(owner, intake.id)},
+      );
       await _diaryRepository.updateLedger(owner, remove: {intake.id});
-      return deleted;
+      return _drainPendingRecords();
     });
   }
 
@@ -209,7 +208,18 @@ class ExportMealIntakeUsecase {
     // dropped instead. One already running put its record in the ledger
     // before writing it, so the read below finds it.
     _forgottenBefore[profileId] = _requests;
+    // Work already running past that point leaves this profile alone from
+    // here on.
+    _wipes[profileId] = (_wipes[profileId] ?? 0) + 1;
     try {
+      // A write that never landed has nothing to delete, and must not land.
+      final writes = await _configRepository.getHealthPendingRecordWrites();
+      await _configRepository.updateHealthPendingRecordWrites(
+        remove: {
+          for (final key in writes)
+            if (key.startsWith('$profileId/')) key,
+        },
+      );
       final ledger = await _diaryRepository.ledgerOf(profileId);
       if (ledger.isEmpty) return;
       final byId = _healthExportRepository.hasRecordIdentity;
@@ -230,7 +240,7 @@ class ExportMealIntakeUsecase {
         _serialized(
           'remove the records of profile $profileId',
           () => byId
-              ? _drainRecordDeletes()
+              ? _drainPendingRecords()
               // The profile's entries may still be on disk when this runs,
               // so it is left out of the rewrite explicitly.
               : _replaceWindows(const {}, exceptProfile: profileId),
@@ -245,13 +255,13 @@ class ExportMealIntakeUsecase {
     }
   }
 
-  /// Takes up whatever a failure left pending: Health Connect record deletes
-  /// or HealthKit windows. Called on app start; every later operation takes
-  /// them up along the way too.
+  /// Takes up whatever a failure left pending: Health Connect record writes
+  /// and deletes, or HealthKit windows. Called on app start; every later
+  /// operation takes them up along the way too.
   Future<bool> replayPendingWindows() =>
       _serialized('replay pending health exports', () async {
         if (_healthExportRepository.hasRecordIdentity) {
-          return _drainRecordDeletes();
+          return _drainPendingRecords();
         }
         return _replaceWindows(const {});
       });
@@ -265,6 +275,95 @@ class ExportMealIntakeUsecase {
   /// now, as it runs.
   Future<bool> _consents(String owner, Future<bool> atRequest) async =>
       await atRequest && await _diaryRepository.isExportEnabled(owner);
+
+  /// Writes [intakes] of [owner] to Health Connect. Each is a pending write
+  /// before the attempt; it joins the ledger, and leaves the pending set,
+  /// only once written. If the pending writes cannot be stored, nothing is
+  /// written.
+  Future<bool> _writeRecords(
+    String owner,
+    List<IntakeEntity> intakes,
+    Map<String, int> wipes,
+  ) async {
+    if (intakes.isEmpty) return true;
+    await _configRepository.updateHealthPendingRecordWrites(
+      add: {for (final intake in intakes) _writeKey(owner, intake.id)},
+    );
+    var allWritten = true;
+    for (final intake in intakes) {
+      allWritten = await _writeRecord(owner, intake, wipes) && allWritten;
+    }
+    return allWritten;
+  }
+
+  /// One pending Health Connect write: the write, then the ledger, then off
+  /// the pending set. A failure leaves it pending for the next replay.
+  Future<bool> _writeRecord(
+    String owner,
+    IntakeEntity intake,
+    Map<String, int> wipes,
+  ) async {
+    final key = _writeKey(owner, intake.id);
+    final recordId = ExternalMealIntake.recordIdOf(owner, intake.id);
+    final written = await _retrying(
+      () => _healthExportRepository.writeMeal(
+        ExternalMealIntake.fromIntake(intake, profileId: owner),
+      ),
+    );
+    if (!written) return false;
+    if (_wipedSince(owner, wipes)) {
+      // The profile was wiped while this was being written: the record
+      // belongs to storage that is gone, so it goes too.
+      await _configRepository.updateHealthPendingRecordDeletes(
+        add: {recordId},
+      );
+      await _configRepository.updateHealthPendingRecordWrites(remove: {key});
+      return false;
+    }
+    await _diaryRepository.updateLedger(
+      owner,
+      put: {intake.id: ExternalMealIntake.recordStart(intake.dateTime)},
+    );
+    await _configRepository.updateHealthPendingRecordWrites(remove: {key});
+    return true;
+  }
+
+  /// Takes up pending Health Connect deletes, then pending writes.
+  Future<bool> _drainPendingRecords() async {
+    final deleted = await _drainRecordDeletes();
+    final written = await _drainRecordWrites();
+    return deleted && written;
+  }
+
+  /// Writes every pending Health Connect write whose profile exports and
+  /// whose entry is still in its diary. One whose entry is gone is dropped;
+  /// one whose profile has stopped exporting waits.
+  Future<bool> _drainRecordWrites() async {
+    final keys = await _readOrEmpty(
+      _configRepository.getHealthPendingRecordWrites,
+      'pending record writes',
+    );
+    var allWritten = true;
+    for (final key in keys) {
+      final slash = key.indexOf('/');
+      final owner = key.substring(0, slash);
+      final intakeId = key.substring(slash + 1);
+      final wipes = _wipesNow();
+      if (!await _diaryRepository.isExportEnabled(owner)) {
+        allWritten = false;
+        continue;
+      }
+      final intake = await _diaryRepository.intakeOf(owner, intakeId);
+      if (intake == null) {
+        await _configRepository.updateHealthPendingRecordWrites(
+          remove: {key},
+        );
+        continue;
+      }
+      allWritten = await _writeRecord(owner, intake, wipes) && allWritten;
+    }
+    return allWritten;
+  }
 
   /// Deletes every pending Health Connect record, dropping each from the
   /// pending set only once its delete succeeded.
@@ -280,10 +379,7 @@ class ExportMealIntakeUsecase {
         deleted.add(id);
       }
     }
-    await _guarded(
-      () => _configRepository.updateHealthPendingRecordDeletes(remove: deleted),
-      'store pending record deletes',
-    );
+    await _configRepository.updateHealthPendingRecordDeletes(remove: deleted);
     return deleted.length == ids.length;
   }
 
@@ -346,6 +442,7 @@ class ExportMealIntakeUsecase {
       ),
     };
     if (windows.isEmpty) return true;
+    final wipes = _wipesNow();
 
     // Read everything before touching the store: a profile switch during
     // the read aborts here, with nothing deleted yet.
@@ -371,8 +468,8 @@ class ExportMealIntakeUsecase {
         for (final record in records)
           if (record.current != null &&
               record.consenting &&
-              !_covered(record.current!.dateTime, windows))
-            record.current!.dateTime,
+              !_covered(record.currentStart, windows))
+            record.currentStart,
       };
       if (movedTo.isEmpty) break;
       windows.addAll(movedTo);
@@ -407,20 +504,18 @@ class ExportMealIntakeUsecase {
 
     var done = false;
     for (var attempt = 1; ; attempt++) {
-      final outcome = await _replaceOnce(active, records);
+      final outcome = await _replaceOnce(active, records, wipes);
       records = outcome.records;
       done = outcome.complete;
       if (done || attempt == _attempts) break;
       await Future<void>.delayed(_retryDelay * attempt);
     }
 
+    // A wipe that landed meanwhile added its windows to the pending set, and
+    // perhaps some of these; they are its to clear, not this replacement's.
+    if (_anyWipeSince(wipes)) return false;
     if (done) {
-      await _guarded(
-        () => _configRepository.updateHealthPendingExportWindows(
-          remove: active,
-        ),
-        'store pending meal windows',
-      );
+      await _configRepository.updateHealthPendingExportWindows(remove: active);
     }
     return done && blocked.isEmpty;
   }
@@ -431,6 +526,7 @@ class ExportMealIntakeUsecase {
   Future<({bool complete, List<LedgerRecord> records})> _replaceOnce(
     Set<DateTime> windows,
     List<LedgerRecord> records,
+    Map<String, int> wipes,
   ) async {
     final cleared = <DateTime>{};
     for (final start in windows) {
@@ -450,6 +546,11 @@ class ExportMealIntakeUsecase {
     for (final record in records) {
       if (!_covered(record.exportedAt, cleared)) {
         after.add(record);
+        continue;
+      }
+      if (_wipedSince(record.profileId, wipes)) {
+        // Wiped meanwhile: its record went with the window, and its ledger
+        // is the wipe's.
         continue;
       }
       final current = record.current;
@@ -483,14 +584,19 @@ class ExportMealIntakeUsecase {
       }
     }
     for (final profileId in {...put.keys, ...remove.keys}) {
-      await _guarded(
-        () => _diaryRepository.updateLedger(
+      if (_wipedSince(profileId, wipes)) continue;
+      try {
+        await _diaryRepository.updateLedger(
           profileId,
           put: put[profileId] ?? const {},
           remove: remove[profileId] ?? const {},
-        ),
-        'update the export ledger of profile $profileId',
-      );
+        );
+      } catch (error, stackTrace) {
+        // The store and the ledger now disagree on where a record is, so the
+        // windows stay pending until a replacement gets both written.
+        _log.warning('Could not update an export ledger', error, stackTrace);
+        complete = false;
+      }
     }
     return (complete: complete, records: after);
   }

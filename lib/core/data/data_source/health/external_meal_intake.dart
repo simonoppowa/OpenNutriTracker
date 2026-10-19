@@ -18,6 +18,18 @@ class ExternalMealIntake {
   /// under. The profile is part of it: one backup imported into two profiles
   /// keeps its intake ids in both, and Health Connect would otherwise take
   /// either profile's copy for the other's.
+  /// The start of the record exported for an entry logged at [time]: the
+  /// same instant to the millisecond. The plugin hands HealthKit and Health
+  /// Connect milliseconds, and the export ledger keeps them, while a diary
+  /// entry logged with `DateTime.now()` carries microseconds; every export
+  /// time goes through here so the ledger, the windows and the records
+  /// agree.
+  static DateTime recordStart(DateTime time) =>
+      DateTime.fromMillisecondsSinceEpoch(
+        time.millisecondsSinceEpoch,
+        isUtc: time.isUtc,
+      );
+
   static String recordIdOf(String profileId, String intakeId) =>
       'ont_intake_${profileId}_$intakeId';
 
@@ -180,7 +192,7 @@ class ExternalMealIntake {
       id: recordIdOf(profileId, intake.id),
       name: (name != null && name.isNotEmpty) ? name : null,
       mealTypeName: mealTypeString,
-      dateTime: intake.dateTime,
+      dateTime: recordStart(intake.dateTime),
       // The entity's totals read an unknown value as 0; a food that lists no
       // energy or macro must omit it, not export a false zero.
       calories: nutriments.energyPerUnit == null ? null : intake.totalKcal,

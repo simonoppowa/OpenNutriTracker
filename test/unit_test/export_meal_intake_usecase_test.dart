@@ -45,6 +45,9 @@ class _FakeHealthExportRepository extends Fake
     if (shouldThrow || intake.id == throwFor) {
       throw Exception('Platform channel error');
     }
+    if (writeStarted case final started? when !started.isCompleted) {
+      started.complete();
+    }
     await writeGate?.future;
     final failuresLeft = failingWrites[intake.id] ?? 0;
     if (failuresLeft > 0) {
@@ -59,9 +62,16 @@ class _FakeHealthExportRepository extends Fake
   @override
   Future<bool> deleteMeal(String clientRecordId) async {
     if (shouldThrow) throw Exception('Platform channel error');
+    beforeDelete?.call();
     ops.add('delete $clientRecordId');
     return deleteResult;
   }
+
+  /// Completes when a write reaches the store.
+  Completer<void>? writeStarted;
+
+  /// Runs as each record delete reaches the store.
+  void Function()? beforeDelete;
 
   @override
   Future<bool> deleteMealWindow(DateTime start) async {
@@ -104,7 +114,9 @@ class _FakeDiaryRepository extends Fake
       ledgers[profileId] ??
       {
         for (final intake in diaries[profileId] ?? const <IntakeEntity>[])
-          intake.id: intake.dateTime,
+          intake.id: DateTime.fromMillisecondsSinceEpoch(
+            intake.dateTime.millisecondsSinceEpoch,
+          ),
         ...?alsoExported[profileId],
       };
 
@@ -129,13 +141,32 @@ class _FakeDiaryRepository extends Fake
     };
   }
 
+  /// Makes [updateLedger] fail.
+  bool failLedgerWrites = false;
+
+  /// Runs inside [updateLedger], before it fails or writes.
+  void Function()? onLedgerWrite;
+
+  @override
+  Future<IntakeEntity?> intakeOf(String profileId, String intakeId) async =>
+      (diaries[profileId] ?? const <IntakeEntity>[])
+          .where((intake) => intake.id == intakeId)
+          .firstOrNull;
+
   @override
   Future<void> updateLedger(
     String profileId, {
     Map<String, DateTime> put = const {},
     Set<String> remove = const {},
   }) async {
-    final ledger = {...ledgerFor(profileId), ...put};
+    onLedgerWrite?.call();
+    if (failLedgerWrites) throw StateError('ledger box closed');
+    // Milliseconds, as the real ledger stores them.
+    final ledger = {
+      ...ledgerFor(profileId),
+      for (final MapEntry(:key, :value) in put.entries)
+        key: DateTime.fromMillisecondsSinceEpoch(value.millisecondsSinceEpoch),
+    };
     for (final id in remove.difference(put.keys.toSet())) {
       ledger.remove(id);
     }
@@ -194,6 +225,19 @@ class _FakeConfigRepository extends Fake implements ConfigRepository {
     if (failWindowUpdates) throw StateError('app box closed');
     pending = {...pending, ...add}..removeAll(remove);
   }
+
+  Set<String> pendingWrites = {};
+
+  @override
+  Future<Set<String>> getHealthPendingRecordWrites() async => {
+    ...pendingWrites,
+  };
+
+  @override
+  Future<void> updateHealthPendingRecordWrites({
+    Set<String> add = const {},
+    Set<String> remove = const {},
+  }) async => pendingWrites = {...pendingWrites, ...add}..removeAll(remove);
 
   @override
   Future<Set<String>> getHealthPendingRecordDeletes() async => {
@@ -1032,6 +1076,165 @@ void main() {
           'delete ont_intake_a_other',
         ]),
       );
+    });
+  });
+
+  // Review round 5 on #1393.
+  group('round 5', () {
+    // Codex and Copilot: the ledger keeps milliseconds, and an entry logged
+    // with DateTime.now() has microseconds, so its own window started after
+    // its ledger time and the rewrite wrote nothing.
+    test('a HealthKit export of a microsecond time writes the meal', () async {
+      healthRepo.identity = false;
+      final now = DateTime(2026, 6, 15, 12, 30, 0, 123, 456);
+      final logged = edit(testIntake, id: 'now', dateTime: now);
+      diary.diaries['a'] = [logged];
+      diary.ledgers['a'] = {};
+      final start = DateTime(2026, 6, 15, 12, 30, 0, 123);
+
+      expect(await usecase.exportIntake(logged), isTrue);
+
+      expect(healthRepo.ops, [
+        'delete window $start',
+        'write ont_intake_a_now',
+      ]);
+      expect(healthRepo.writtenMeals.single.dateTime, start);
+      expect(diary.ledgers['a'], {'now': start});
+      expect(config.pending, isEmpty);
+    });
+
+    // Codex and Copilot: a rewrite already writing when the wipe came put
+    // the profile back in the ledger and cleared the wipe's windows.
+    test('a wipe during a HealthKit write keeps its own cleanup', () async {
+      healthRepo.identity = false;
+      diary.diaries['a'] = [testIntake];
+      diary.ledgers['a'] = {};
+      healthRepo.writeStarted = Completer<void>();
+      healthRepo.writeGate = Completer<void>();
+      final inFlight = usecase.exportIntake(testIntake);
+      await healthRepo.writeStarted!.future;
+
+      await usecase.forgetProfile('a');
+      expect(config.pending, {mealDate});
+      expect(diary.ledgers['a'], isEmpty);
+
+      healthRepo.writeGate!.complete();
+      expect(await inFlight, isFalse);
+      expect(diary.ledgers['a'], isEmpty, reason: 'not refilled');
+
+      // The wipe's queued cleanup clears the window the write landed in.
+      await usecase.replayPendingWindows();
+      expect(healthRepo.ops.last, 'delete window $mealDate');
+      expect(config.pending, isEmpty);
+    });
+
+    test('a wipe during a Health Connect write deletes what landed', () async {
+      healthRepo.writeStarted = Completer<void>();
+      healthRepo.writeGate = Completer<void>();
+      final inFlight = usecase.exportIntake(testIntake);
+      await healthRepo.writeStarted!.future;
+
+      await usecase.forgetProfile('a');
+      healthRepo.writeGate!.complete();
+      expect(await inFlight, isFalse);
+      await usecase.replayPendingWindows();
+
+      expect(healthRepo.ops, [
+        'write ont_intake_a_intake-123',
+        'delete ont_intake_a_intake-123',
+      ]);
+      expect(diary.ledgers['a'] ?? const {}, isEmpty);
+      expect(config.pendingWrites, isEmpty);
+      expect(config.pendingDeletes, isEmpty);
+    });
+
+    // Codex: three failed Health Connect writes left the meal in the ledger
+    // and nothing to retry it.
+    group('a failed Health Connect write', () {
+      setUp(() {
+        diary.diaries['a'] = [testIntake];
+        diary.ledgers['a'] = {};
+        healthRepo.failingWrites['ont_intake_a_intake-123'] = 3;
+      });
+
+      test('stays pending, out of the ledger, until it lands', () async {
+        expect(await usecase.exportIntake(testIntake), isFalse);
+        expect(config.pendingWrites, {'a/intake-123'});
+        expect(diary.ledgers['a'], isEmpty);
+
+        expect(await usecase.replayPendingWindows(), isTrue);
+
+        expect(healthRepo.ops, ['write ont_intake_a_intake-123']);
+        expect(config.pendingWrites, isEmpty);
+        expect(diary.ledgers['a'], {testIntake.id: mealDate});
+      });
+
+      test('is dropped once its entry is deleted', () async {
+        await usecase.exportIntake(testIntake);
+        diary.diaries['a'] = [];
+
+        expect(await usecase.replayPendingWindows(), isTrue);
+
+        expect(healthRepo.ops, isEmpty);
+        expect(config.pendingWrites, isEmpty);
+      });
+
+      test('waits while its profile is opted out', () async {
+        await usecase.exportIntake(testIntake);
+        diary.optIn['a'] = false;
+
+        expect(await usecase.replayPendingWindows(), isFalse);
+
+        expect(healthRepo.ops, isEmpty);
+        expect(config.pendingWrites, {'a/intake-123'});
+      });
+
+      test('is dropped by a wipe of its profile', () async {
+        await usecase.exportIntake(testIntake);
+
+        await usecase.forgetProfile('a');
+        await usecase.replayPendingWindows();
+
+        expect(healthRepo.ops, isEmpty);
+        expect(config.pendingWrites, isEmpty);
+      });
+    });
+
+    // Copilot: a delete became pending only after its retries, so a kill
+    // during a retry lost it.
+    test('a Health Connect delete is pending while it is tried', () async {
+      final pendingAtDelete = <Set<String>>[];
+      healthRepo.beforeDelete = () => pendingAtDelete.add({
+        ...config.pendingDeletes,
+      });
+
+      expect(await usecase.deleteIntake(testIntake), isTrue);
+
+      expect(pendingAtDelete, [
+        {'ont_intake_a_intake-123'},
+      ]);
+      expect(config.pendingDeletes, isEmpty);
+    });
+
+    // Codex and Copilot: a ledger write that failed after the store moved a
+    // record was swallowed, and the windows were cleared as if all was well.
+    test('a failed ledger write keeps the windows pending', () async {
+      healthRepo.identity = false;
+      final moved = mealDate.add(const Duration(hours: 2));
+      diary.diaries['a'] = [edit(testIntake, dateTime: moved)];
+      diary.ledgers['a'] = {testIntake.id: mealDate};
+      diary.onLedgerWrite = () => diary.failLedgerWrites = true;
+
+      expect(
+        await usecase.exportUpdatedIntake(
+          testIntake,
+          edit(testIntake, dateTime: moved),
+        ),
+        isFalse,
+      );
+
+      expect(config.pending, {mealDate, moved});
+      expect(diary.ledgers['a'], {testIntake.id: mealDate});
     });
   });
 
