@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:health/health.dart';
+import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_package_service.dart';
@@ -72,6 +73,22 @@ class _FakeHealth extends Fake implements Health {
   }) async {
     idDeletes.add((dataTypeKey, clientRecordId));
     return true;
+  }
+}
+
+/// Records the client record version of each meal write. Caught in
+/// [noSuchMethod] rather than overridden, so the plugin's long parameter
+/// list is not restated here.
+class _VersionRecordingHealth extends _FakeHealth {
+  final versions = <double?>[];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #writeMeal) {
+      versions.add(invocation.namedArguments[#clientRecordVersion] as double?);
+      return Future.value(true);
+    }
+    return super.noSuchMethod(invocation);
   }
 }
 
@@ -475,5 +492,30 @@ void main() {
       ]);
       expect(health.idDeletes, isEmpty);
     });
+  });
+
+  // #1393 review: Health Connect keeps the record with the highest version,
+  // so an edit written after the clock was set back must still outrank it.
+  test('record versions keep rising when the clock goes back', () async {
+    final health = _VersionRecordingHealth();
+    var now = DateTime(2026, 6, 15, 12);
+    final service = HealthPackageService(
+      health,
+      workoutReader: _FakeWorkoutReader(),
+      platform: HealthTargetPlatform.android,
+      now: () => now,
+    );
+    final meal = ExternalMealIntake(
+      id: 'ont_intake_a',
+      mealTypeName: 'LUNCH',
+      dateTime: DateTime(2026, 6, 15, 12, 30),
+    );
+
+    expect(await service.writeMeal(meal), isTrue);
+    now = now.subtract(const Duration(hours: 1));
+    expect(await service.writeMeal(meal), isTrue);
+
+    expect(health.versions, hasLength(2));
+    expect(health.versions[1]!, greaterThan(health.versions[0]!));
   });
 }

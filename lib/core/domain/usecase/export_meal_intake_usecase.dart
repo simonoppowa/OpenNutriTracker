@@ -799,8 +799,11 @@ class ExportMealIntakeUsecase {
       }
       final current = record.current;
       if (current == null) {
-        // An orphan: its record went with the window.
+        // An orphan: its record went with the window. Kept for the next
+        // attempt until the ledger removal below is known to have landed,
+        // so a retry still removes it; removing twice is harmless.
         (remove[record.profileId] ??= {}).add(record.intakeId);
+        after.add(record);
         continue;
       }
       if (!record.consenting) {

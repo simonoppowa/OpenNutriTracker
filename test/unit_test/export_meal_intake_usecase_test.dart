@@ -1387,6 +1387,25 @@ void main() {
     });
   });
 
+  // Review round 7 on #1393.
+  group('round 7', () {
+    // Codex: an orphan left the retry list before its ledger removal was
+    // known to have landed, so a retry cleared the window as done while the
+    // ledger still held the record.
+    test('an orphan whose ledger removal fails is removed on retry', () async {
+      healthRepo.identity = false;
+      diary.diaries['a'] = [];
+      diary.ledgers['a'] = {testIntake.id: mealDate};
+      var failures = 1;
+      diary.onLedgerWrite = () => diary.failLedgerWrites = failures-- > 0;
+
+      expect(await usecase.deleteIntake(testIntake), isTrue);
+
+      expect(diary.ledgers['a'], isEmpty);
+      expect(config.pending, isEmpty);
+    });
+  });
+
   group('forgetProfile', () {
     final first = edit(testIntake, id: 'first');
     final second = edit(

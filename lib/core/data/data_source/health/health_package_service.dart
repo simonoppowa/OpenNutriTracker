@@ -90,13 +90,29 @@ class HealthPackageService implements HealthService {
   final Health _health;
   final HealthConnectWorkoutReader _workoutReader;
   final HealthTargetPlatform _platform;
+  final DateTime Function() _now;
+
+  /// The last client record version handed to Health Connect, which keeps
+  /// the record whose version is highest. Wall-clock time on its own would
+  /// go backwards when the clock is corrected, and an edit written after
+  /// that would be ignored; this keeps versions rising within a run.
+  static double _lastRecordVersion = 0;
 
   HealthPackageService(
     this._health, {
     HealthConnectWorkoutReader? workoutReader,
     HealthTargetPlatform? platform,
+    DateTime Function()? now,
   }) : _workoutReader = workoutReader ?? HealthConnectWorkoutReader(),
-       _platform = platform ?? HealthTargetPlatform.current;
+       _platform = platform ?? HealthTargetPlatform.current,
+       _now = now ?? DateTime.now;
+
+  double _nextRecordVersion() {
+    final now = _now().millisecondsSinceEpoch.toDouble();
+    return _lastRecordVersion = now > _lastRecordVersion
+        ? now
+        : _lastRecordVersion + 1;
+  }
 
   /// Builds a configured service. [Health.configure] resolves the device id
   /// and has to run before any query, so it happens here rather than lazily
@@ -354,7 +370,7 @@ class HealthPackageService implements HealthService {
         startTime: intake.dateTime,
         endTime: intake.dateTime.add(ExternalMealIntake.sampleDuration),
         clientRecordId: intake.id,
-        clientRecordVersion: DateTime.now().millisecondsSinceEpoch.toDouble(),
+        clientRecordVersion: _nextRecordVersion(),
         name: intake.name,
         caloriesConsumed: intake.calories,
         carbohydrates: intake.carbohydrates,
