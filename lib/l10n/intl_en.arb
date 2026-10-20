@@ -541,6 +541,10 @@
   "kcalTooMuchLabel": "kcal too much",
   "kgLabel": "kg",
   "kjLabel": "kJ",
+  "minuteShortLabel": "min",
+  "@minuteShortLabel": {
+    "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
+  },
   "lbsLabel": "lbs",
   "stLabel": "st",
   "lunchExample": "e.g. pizza, salad, rice ...",
