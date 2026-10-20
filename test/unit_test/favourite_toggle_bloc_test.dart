@@ -5,17 +5,18 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_t
 
 import '../helpers/fake_favourites.dart';
 
-MealEntity _meal(String code) => MealEntity(
+MealEntity _meal(String code, {bool detailed = false}) => MealEntity(
   code: code,
   name: 'Meal $code',
   url: null,
   mealQuantity: '100',
   mealUnit: 'g',
-  servingQuantity: null,
-  servingUnit: null,
+  servingQuantity: detailed ? 30 : null,
+  servingUnit: detailed ? 'g' : null,
   servingSize: null,
   nutriments: MealNutrimentsEntity.empty(),
   source: MealSourceEntity.fdc,
+  detailed: detailed,
 );
 
 void main() {
@@ -78,6 +79,30 @@ void main() {
     expect(favourites.contains(meal), isFalse);
     expect(bloc.state.isFavourite, isFalse);
   });
+
+  test(
+    'a hydration landing during a pending star keeps the full record',
+    () async {
+      // The star is tapped on the thin search result, and the detail page's
+      // fetch lands while that write is still pending. Run beside the toggle,
+      // the hydration would find nothing starred yet and do nothing, and the
+      // toggle would then store the thin record for good.
+      favourites.slowWrites = true;
+      final thin = _meal('9');
+      bloc.add(LoadFavouriteStatusEvent(thin));
+      expect(await settle(), isFalse);
+
+      bloc
+        ..add(ToggleFavouriteEvent(thin))
+        ..add(FavouriteMealHydratedEvent(_meal('9', detailed: true)));
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+
+      expect(favourites.stored(thin)?.detailed, isTrue);
+      expect(bloc.state.isFavourite, isTrue);
+    },
+  );
 
   test('a row rebound during a pending toggle shows its new food', () async {
     // The write for A lands a turn later; meanwhile the recycled row is

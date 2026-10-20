@@ -23,6 +23,7 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/delete_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -388,4 +389,46 @@ void main() {
       expect(favourites['c']!.isEmpty, isTrue);
     },
   );
+
+  group('a star tapped just before a profile switch', () {
+    test('lands on the profile it was tapped on', () async {
+      final meal = _meal('t1');
+      final toggle = ToggleFavouriteMealUsecase(repository);
+
+      // The tap is stamped on A; the switch to B is already holding the
+      // lock, so the toggle queues behind it.
+      final tappedOn = ProfileStamp.now();
+      final release = Completer<void>();
+      final switched = withProfileSwitchLock(() async {
+        await release.future;
+        provider.activate('b');
+      });
+      final toggled = toggle.toggle(meal, startedOn: tappedOn);
+      await Future<void>.delayed(Duration.zero);
+      release.complete();
+      await switched;
+
+      // Read on A and written on B, it would have starred the meal for the
+      // wrong person. It is dropped instead.
+      expect(await toggled, isNull);
+      for (final id in ['a', 'b', 'c']) {
+        expect(favourites[id]!.isEmpty, isTrue, reason: id);
+      }
+    });
+
+    test('a toggle started before the switch finishes first', () async {
+      final meal = _meal('t2');
+      final toggle = ToggleFavouriteMealUsecase(repository);
+
+      final toggled = toggle.toggle(meal);
+      final switched = withProfileSwitchLock(
+        () async => provider.activate('b'),
+      );
+
+      expect(await toggled, isTrue);
+      await switched;
+      expect(favourites['a']!.keys, ['custom:t2']);
+      expect(favourites['b']!.isEmpty, isTrue);
+    });
+  });
 }

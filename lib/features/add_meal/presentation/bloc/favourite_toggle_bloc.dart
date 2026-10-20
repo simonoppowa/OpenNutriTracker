@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_favourite_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 part 'favourite_toggle_event.dart';
@@ -36,37 +37,56 @@ class FavouriteToggleBloc
       _meal = event.meal;
       await _refresh(emit);
     });
-    // One toggle at a time: each reads the stored state before writing it,
-    // so a double tap run side by side would read before the first write
-    // landed and star the meal twice instead of starring and unstarring it.
-    on<ToggleFavouriteEvent>((event, emit) async {
-      _meal ??= event.meal;
-      try {
-        final isFavourite = await _toggleFavouriteMealUsecase.toggle(
-          event.meal,
-        );
-        // A recycled row may have been handed another food while the write
-        // was pending; that food's own load says how its star shows.
-        if (_isBound(event.meal)) {
-          emit(FavouriteToggleState(isFavourite: isFavourite));
-        }
-      } catch (error) {
-        log.severe(error);
-      }
-    }, transformer: sequential());
-    // In the same queue as the toggles, so a hydration and a tap on the
-    // star do not interleave their writes.
-    on<FavouriteMealHydratedEvent>((event, emit) async {
-      try {
-        await _toggleFavouriteMealUsecase.refreshDetailedSnapshot(event.meal);
-      } catch (error) {
-        log.severe(error);
+    // One write at a time, toggles and hydrations in the same queue
+    // (`sequential()` queues per registration, so they share one). Each
+    // toggle reads the stored state before writing it: a double tap run side
+    // by side would read before the first write landed and star the meal
+    // twice. A hydration run beside a pending star would find nothing
+    // starred yet and do nothing, leaving the thin record stored for good.
+    on<FavouriteWriteEvent>((event, emit) async {
+      switch (event) {
+        case ToggleFavouriteEvent():
+          await _toggle(event, emit);
+        case FavouriteMealHydratedEvent():
+          try {
+            await _toggleFavouriteMealUsecase.refreshDetailedSnapshot(
+              event.meal,
+            );
+          } catch (error) {
+            log.severe(error);
+          }
       }
     }, transformer: sequential());
     on<_FavouritesChangedEvent>((event, emit) => _refresh(emit));
     _changes = _getFavouriteMealsUsecase.watchFavourites().listen(
       (_) => add(const _FavouritesChangedEvent()),
     );
+  }
+
+  Future<void> _toggle(
+    ToggleFavouriteEvent event,
+    Emitter<FavouriteToggleState> emit,
+  ) async {
+    _meal ??= event.meal;
+    try {
+      final isFavourite = await _toggleFavouriteMealUsecase.toggle(
+        event.meal,
+        startedOn: event.startedOn,
+      );
+      if (isFavourite == null) {
+        // A profile switch overtook the tap and nothing was written; show
+        // the star as the now-active profile has it.
+        await _refresh(emit);
+        return;
+      }
+      // A recycled row may have been handed another food while the write
+      // was pending; that food's own load says how its star shows.
+      if (_isBound(event.meal)) {
+        emit(FavouriteToggleState(isFavourite: isFavourite));
+      }
+    } catch (error) {
+      log.severe(error);
+    }
   }
 
   Future<void> _refresh(Emitter<FavouriteToggleState> emit) async {

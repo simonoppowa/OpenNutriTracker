@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_favourite_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 /// An in-memory Favourites list behind both favourites use cases, so bloc
@@ -71,7 +72,7 @@ class _FakeToggleFavouriteMealUsecase implements ToggleFavouriteMealUsecase {
   final FakeFavourites _store;
 
   @override
-  Future<bool> toggle(MealEntity meal) async {
+  Future<bool?> toggle(MealEntity meal, {ProfileStamp? startedOn}) async {
     final wasFavourite = _store.contains(meal);
     if (_store.slowWrites) await Future<void>.delayed(Duration.zero);
     if (wasFavourite) {
