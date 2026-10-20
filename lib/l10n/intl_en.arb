@@ -269,6 +269,35 @@
   "calculationsRecommendedLabel": "(recommended)",
   "calculationsTDEEIOM2006Label": "Institute of Medicine Equation (2005)",
   "calculationsTDEELabel": "TDEE equation",
+  "calorieWidgetAccessibilityLabel": "{consumed} of {goal} kilocalories",
+  "@calorieWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS home-screen calorie widget.",
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetDescription": "Today's calories eaten and your goal.",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetGoalLabel": "of {goal}",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetOpenAppHint": "Open the app",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
   "caloriesProfileAveragedLabel": "Averaged reference (default)",
   "caloriesProfileEstrogenTypicalLabel": "Estrogen-typical reference",
   "caloriesProfileInfoBody": "There isn't a published non-binary calorie baseline — the reference equations are built around male and female samples. We use an average of the two by default, a neutral starting point that doesn't ask you to disclose more about your body. The kcal slider in Settings is always available to fine-tune; this is a starting point, not a precise estimate.",

@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -200,6 +201,8 @@ void runAppWithChangeNotifiers(
         create: (_) => LocaleProvider(
           locale: savedLocale,
           onChanged: (locale) => unawaited(_refreshDailyReminder(locale)),
+          calorieWidgetStore: locator<CalorieWidgetStore>(),
+          relabelCalorieWidget: !userInitialized,
         ),
       ),
       ChangeNotifierProvider(

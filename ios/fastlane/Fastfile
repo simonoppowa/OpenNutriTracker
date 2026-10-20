@@ -74,6 +74,18 @@ platform :ios do
       code_sign_identity: 'Apple Distribution',
       profile_name: 'match AppStore com.opennutritracker.ont.opennutritracker'
     )
+    # The widget extension is embedded in Runner but signed on its own, so
+    # it needs its own App Store profile from match.
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: 'Runner.xcodeproj',
+      team_id: '79AJPC6DP3',
+      bundle_identifier: 'com.opennutritracker.ont.opennutritracker.CalorieWidget',
+      targets: ['CalorieWidget'],
+      build_configurations: ['Release-full', 'Profile-full'],
+      code_sign_identity: 'Apple Distribution',
+      profile_name: 'match AppStore com.opennutritracker.ont.opennutritracker.CalorieWidget'
+    )
   end
 
   private_lane :app_store_connect_api_key_from_env do
