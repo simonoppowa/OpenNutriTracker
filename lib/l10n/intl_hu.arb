@@ -1661,5 +1661,6 @@
   "paCalisthenicsVigorousDesc": "intenzív testmozgás (pl. fekvőtámasz, hasizomgyakorlat, húzódzkodás, ugráló felülés, négyütemű fekvőtámasz)",
   "paCircuitTraining": "köredzés",
   "paCircuitTrainingDesc": "beleértve a kettlebelleket, néhány aerob gyakorlatot minimális pihenőidővel, magas intenzitással",
-  "paEllipticalTrainer": "elliptikus edzőgép"
+  "paEllipticalTrainer": "elliptikus edzőgép",
+  "paRowingMachine": "evezőgép"
 }
