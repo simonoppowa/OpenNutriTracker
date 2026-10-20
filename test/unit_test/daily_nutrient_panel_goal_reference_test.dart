@@ -1,5 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 
 /// #173 (+follow-up): the daily micronutrient panel uses ten nutrient
@@ -321,6 +325,56 @@ void main() {
       expect(
         DailyNutrientPanel.resolveVitaminB12Reference(day),
         DailyNutrientPanel.defaultVitaminB12RefUg,
+      );
+    });
+  });
+
+  // #1365: the panel and Settings -> Nutrient goals share this default, so
+  // it has to be the age- and gender-banded IOM value the panel shows.
+  group('DailyNutrientPanel.defaultReferenceFor', () {
+    UserEntity user(int age, UserGenderEntity gender) {
+      final now = DateTime.now();
+      return UserEntity(
+        birthday: DateTime(now.year - age, now.month, now.day),
+        heightCM: 170,
+        weightKG: 70,
+        gender: gender,
+        goal: UserWeightGoalEntity.maintainWeight,
+        pal: UserPALEntity.sedentary,
+      );
+    }
+
+    test('uses the IOM fibre row for the user', () {
+      double fibre(UserEntity u) => DailyNutrientPanel.defaultReferenceFor(
+        NutrientPanelKeys.fiber,
+        u,
+        DailyNutrientPanel.defaultFibreRefG,
+      );
+
+      expect(fibre(user(30, UserGenderEntity.female)), 25);
+      expect(fibre(user(40, UserGenderEntity.male)), 38);
+      expect(fibre(user(60, UserGenderEntity.female)), 21);
+    });
+
+    test('falls back without a user', () {
+      expect(
+        DailyNutrientPanel.defaultReferenceFor(
+          NutrientPanelKeys.fiber,
+          null,
+          DailyNutrientPanel.defaultFibreRefG,
+        ),
+        DailyNutrientPanel.defaultFibreRefG,
+      );
+    });
+
+    test('falls back for a nutrient the IOM table does not carry', () {
+      expect(
+        DailyNutrientPanel.defaultReferenceFor(
+          NutrientPanelKeys.saturatedFat,
+          user(30, UserGenderEntity.female),
+          DailyNutrientPanel.defaultSaturatedFatRefG,
+        ),
+        DailyNutrientPanel.defaultSaturatedFatRefG,
       );
     });
   });

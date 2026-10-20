@@ -93,6 +93,7 @@ import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
@@ -196,6 +197,7 @@ Future<void> initLocator() async {
       locator(),
       locator<DailyReminderScheduler>(),
       locator<AiCredentialStorage>(),
+      calorieWidgetStore: locator<CalorieWidgetStore>(),
     ),
   );
 
@@ -220,6 +222,13 @@ Future<void> initLocator() async {
       locator<ConfigRepository>(),
       locator<NotificationService>(),
     ),
+  );
+
+  // The iOS home-screen widget's App Group copy. One instance for Home,
+  // the language picker, delete-all and the profile switch, so they share
+  // the App Group it resolves once from the bundle id.
+  locator.registerLazySingleton<CalorieWidgetStore>(
+    HomeWidgetCalorieStore.new,
   );
 
   // Cache manager
@@ -248,6 +257,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      calorieWidgetStore: locator<CalorieWidgetStore>(),
     ),
   );
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
@@ -419,7 +429,11 @@ Future<void> initLocator() async {
     () => SendIntakeToProfilesUsecase(locator()),
   );
   locator.registerLazySingleton<ProfileSwitchCoordinator>(
-    () => ProfileSwitchCoordinator(locator(), locator()),
+    () => ProfileSwitchCoordinator(
+      locator(),
+      locator(),
+      calorieWidgetStore: locator<CalorieWidgetStore>(),
+    ),
   );
   locator.registerLazySingleton<SearchProductsUseCase>(
     () => SearchProductsUseCase(

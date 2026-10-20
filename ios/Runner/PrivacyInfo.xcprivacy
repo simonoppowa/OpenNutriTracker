@@ -11,9 +11,15 @@
         <dict>
             <key>NSPrivacyAccessedAPIType</key>
             <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <!-- CA92.1: the app's own defaults. 1C8F.1: the App Group
+                 defaults the home_widget plugin writes for the calorie
+                 widget extension through UserDefaults(suiteName:).
+                 home_widget ships no privacy manifest of its own, so the
+                 app declares it. -->
             <key>NSPrivacyAccessedAPITypeReasons</key>
             <array>
                 <string>CA92.1</string>
+                <string>1C8F.1</string>
             </array>
         </dict>
         <dict>

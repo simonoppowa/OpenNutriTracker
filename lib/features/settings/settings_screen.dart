@@ -16,6 +16,8 @@ import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dar
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -1280,22 +1282,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     groupValue: selectedCode,
                     onChanged: (v) =>
                         setState(() => selectedCode = v as String),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RadioListTile<String>(
-                          title: Text(
-                            S.of(context).settingsThemeSystemDefaultLabel,
+                    // The list outgrows a short phone, so it scrolls
+                    // between the title and the buttons (#1331).
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          RadioListTile<String>(
+                            title: Text(
+                              S.of(context).settingsThemeSystemDefaultLabel,
+                            ),
+                            value: _systemLocale,
                           ),
-                          value: _systemLocale,
-                        ),
-                        ...shippedLocales.entries.map(
-                          (e) => RadioListTile<String>(
-                            title: Text(e.value),
-                            value: e.key,
+                          ...shippedLocales.entries.map(
+                            (e) => RadioListTile<String>(
+                              title: Text(e.value),
+                              value: e.key,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -1308,17 +1314,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () {
                 final locale = selectedCode.isEmpty ? null : selectedCode;
-                _settingsBloc.setSelectedLocale(locale);
+                final localeProvider = Provider.of<LocaleProvider>(
+                  context,
+                  listen: false,
+                );
+                final configRepo = locator<ConfigRepository>();
                 // Keep Android's per-app language picker in step, so someone
                 // who later looks there finds the language they chose here
                 // rather than a stale one. A no-op off Android and below
-                // API 33.
-                unawaited(AppLocaleService.setApplicationLocale(locale));
-                _settingsBloc.add(LoadSettingsEvent());
-                Provider.of<LocaleProvider>(
-                  context,
-                  listen: false,
-                ).updateLocale(locale != null ? Locale(locale) : null);
+                // API 33. The pushed value is read back and recorded, so a
+                // later clear in Android's picker is honoured even if this
+                // pick never fires a locale-change callback. The whole write
+                // shares the lock runtime reconciliation runs under, so an
+                // OS clear being reconciled cannot undo it halfway.
+                unawaited(
+                  applyInAppLocaleChoice(
+                    lock: localeSyncLock,
+                    localeCode: locale,
+                    persistSelectedLocale: _settingsBloc.setSelectedLocale,
+                    applyToApp: () {
+                      _settingsBloc.add(LoadSettingsEvent());
+                      localeProvider.updateLocale(
+                        locale != null ? Locale(locale) : null,
+                      );
+                    },
+                    pushToSystem: AppLocaleService.setApplicationLocale,
+                    readSystemTag: AppLocaleService.getApplicationLocale,
+                    markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+                    clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
+                  ),
+                );
                 Navigator.of(context).pop();
               },
               child: Text(S.of(context).dialogOKLabel),

@@ -299,6 +299,7 @@ void main() {
       expect(find.text(l10nEn.deleteAllLabel), findsOneWidget);
       expect(find.text(l10nEn.shareMealLabel), findsOneWidget);
       expect(find.text(l10nEn.importMealLabel), findsOneWidget);
+      expect(find.text(l10nEn.pasteCodeLabel), findsOneWidget);
     },
   );
 
@@ -326,6 +327,7 @@ void main() {
       expect(find.text(l10nEn.deleteAllLabel), findsNothing);
       expect(find.text(l10nEn.shareMealLabel), findsNothing);
       expect(find.text(l10nEn.importMealLabel), findsOneWidget);
+      expect(find.text(l10nEn.pasteCodeLabel), findsOneWidget);
     },
   );
 
