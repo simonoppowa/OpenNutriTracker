@@ -452,7 +452,12 @@ Future<void> initLocator() async {
     () => ResolveParsedMealsUseCase(locator()),
   );
   locator.registerLazySingleton<SearchProductByBarcodeUseCase>(
-    () => SearchProductByBarcodeUseCase(locator(), locator(), locator()),
+    () => SearchProductByBarcodeUseCase(
+      locator(),
+      locator(),
+      locator(),
+      locator<ToggleFavouriteMealUsecase>(),
+    ),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
     () => GetIntakeUsecase(locator(), locator()),
