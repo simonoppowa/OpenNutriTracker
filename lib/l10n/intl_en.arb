@@ -981,7 +981,7 @@
   "settingsDisclaimerLabel": "Disclaimer",
   "settingsDistanceLabel": "Distance",
   "settingsEnergyUnitLabel": "Energy unit",
-  "settingsFibreGoalDescription": "Daily fibre target in grams. Default reference is 30g.",
+  "settingsFibreGoalDescription": "Daily fibre target in grams. Default varies by age and gender (21g to 38g).",
   "settingsFibreGoalLabel": "Fibre goal",
   "settingsImperialLabel": "Imperial (lbs, ft, oz)",
   "settingsKcalAdjustmentLabel": "Daily kcal adjustment",
