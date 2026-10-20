@@ -139,6 +139,17 @@ class ExportMealIntakeUsecase {
   /// replay's.
   final Map<String, int> _queuedKeys = {};
 
+  /// Drops [keys] from the pending set once this operation is done with
+  /// them, except a key another queued request of the same entry also
+  /// stored: the set holds it once, and that request still needs it.
+  Future<void> _settleKeys(Set<String> keys) =>
+      _configRepository.updateHealthPendingRecordWrites(
+        remove: {
+          for (final key in keys)
+            if ((_queuedKeys[key] ?? 0) <= 1) key,
+        },
+      );
+
   void _releaseKeys(Set<String> keys) {
     for (final key in keys) {
       final left = (_queuedKeys[key] ?? 1) - 1;
@@ -183,22 +194,19 @@ class ExportMealIntakeUsecase {
   ) async {
     if (_forgotten(owner, request)) return false;
     if (!await _consents(owner, consent)) {
-      await _configRepository.updateHealthPendingRecordWrites(
-        remove: {key},
-      );
+      await _settleKeys({key});
       return false;
     }
     final wipes = _wipesNow();
     if (!_healthExportRepository.hasRecordIdentity) {
       // Handed from the pending write to the ledger and a pending window;
       // until both are stored, the pending write finishes it on replay.
-      await _registerHealthKitWrite(owner, intake);
-      await _configRepository.updateHealthPendingRecordWrites(
-        remove: {key},
-      );
-      return _replaceWindows({
+      final registered = await _registerHealthKitWrite(owner, intake, wipes);
+      await _settleKeys({key});
+      final replaced = await _replaceWindows({
         ExternalMealIntake.recordStart(intake.dateTime),
       });
+      return registered && replaced;
     }
     await _drainPendingRecords();
     return _writeRecords(owner, [intake], wipes);
@@ -237,7 +245,7 @@ class ExportMealIntakeUsecase {
     if (_forgotten(owner, request)) return false;
     if (edits.isEmpty) return false;
     if (!await _consents(owner, consent)) {
-      await _configRepository.updateHealthPendingRecordWrites(remove: keys);
+      await _settleKeys(keys);
       return false;
     }
     final stored = await _diaryRepository.exportedAt(owner, {
@@ -249,7 +257,7 @@ class ExportMealIntakeUsecase {
       // its record. Pending before the edits are let go.
       final windows = stored.values.toSet();
       await _configRepository.updateHealthPendingExportWindows(add: windows);
-      await _configRepository.updateHealthPendingRecordWrites(remove: keys);
+      await _settleKeys(keys);
       return windows.isEmpty || await _replaceWindows(windows);
     }
     final wipes = _wipesNow();
@@ -260,7 +268,7 @@ class ExportMealIntakeUsecase {
       for (final (_, after) in edits)
         if (stored.containsKey(after.id)) after,
     ], wipes);
-    await _configRepository.updateHealthPendingRecordWrites(remove: keys);
+    await _settleKeys(keys);
     return written;
   }
 
@@ -438,13 +446,24 @@ class ExportMealIntakeUsecase {
   /// Puts a HealthKit write for [intake] of [owner] into the ledger with
   /// its window pending, the window first: a ledger entry is what a window
   /// replacement writes.
-  Future<void> _registerHealthKitWrite(
+  ///
+  /// Not if [owner] was wiped since [wipes]: the entry belongs to storage
+  /// that is gone, and [forgetProfile] may already have read the ledger, so
+  /// one put meanwhile is taken back. The window stays pending, so the
+  /// replacement that clears it writes nothing of [owner]. Returns whether
+  /// the entry was registered.
+  Future<bool> _registerHealthKitWrite(
     String owner,
     IntakeEntity intake,
+    Map<String, int> wipes,
   ) async {
     final start = ExternalMealIntake.recordStart(intake.dateTime);
     await _configRepository.updateHealthPendingExportWindows(add: {start});
+    if (_wipedSince(owner, wipes)) return false;
     await _diaryRepository.updateLedger(owner, put: {intake.id: start});
+    if (!_wipedSince(owner, wipes)) return true;
+    await _diaryRepository.updateLedger(owner, remove: {intake.id});
+    return false;
   }
 
   /// Finishes pending writes and edits whose operation never completed.
@@ -512,7 +531,8 @@ class ExportMealIntakeUsecase {
           add: {stored!},
         );
       } else {
-        await _registerHealthKitWrite(profileId, intake);
+        allDone =
+            await _registerHealthKitWrite(profileId, intake, wipes) && allDone;
       }
       await _configRepository.updateHealthPendingRecordWrites(remove: {key});
     }
@@ -570,14 +590,14 @@ class ExportMealIntakeUsecase {
       await _configRepository.updateHealthPendingRecordDeletes(
         add: {recordId},
       );
-      await _configRepository.updateHealthPendingRecordWrites(remove: {key});
+      await _settleKeys({key});
       return false;
     }
     await _diaryRepository.updateLedger(
       owner,
       put: {intake.id: ExternalMealIntake.recordStart(intake.dateTime)},
     );
-    await _configRepository.updateHealthPendingRecordWrites(remove: {key});
+    await _settleKeys({key});
     return true;
   }
 

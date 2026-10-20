@@ -233,11 +233,15 @@ class _FakeConfigRepository extends Fake implements ConfigRepository {
   /// Makes storing the pending windows fail.
   bool failWindowUpdates = false;
 
+  /// Runs as the pending windows are stored, before they change.
+  void Function()? onWindowUpdate;
+
   @override
   Future<void> updateHealthPendingExportWindows({
     Set<DateTime> add = const {},
     Set<DateTime> remove = const {},
   }) async {
+    onWindowUpdate?.call();
     if (failWindowUpdates) throw StateError('app box closed');
     pending = {...pending, ...add}..removeAll(remove);
   }
@@ -1403,6 +1407,60 @@ void main() {
 
       expect(diary.ledgers['a'], isEmpty);
       expect(config.pending, isEmpty);
+    });
+  });
+
+  // Review round 8 on #1393.
+  group('round 8', () {
+    // Codex: a wipe landing while a HealthKit add registered its entry let
+    // the add put the entry in the emptied ledger, and the replacement then
+    // wrote the wiped meal back.
+    test('a wipe during a HealthKit registration writes none of it', () async {
+      healthRepo.identity = false;
+      diary.diaries['a'] = [testIntake];
+      diary.ledgers['a'] = {};
+      Future<void>? wipe;
+      config.onWindowUpdate = () => wipe ??= usecase.forgetProfile('a');
+
+      expect(await usecase.exportIntake(testIntake), isFalse);
+      await wipe;
+      await usecase.replayPendingWindows();
+
+      expect(healthRepo.ops.where((op) => op.startsWith('write ')), isEmpty);
+      expect(diary.ledgers['a'], isEmpty);
+      expect(config.pending, isEmpty);
+    });
+
+    // Codex: two queued edits of one entry share one pending key, and the
+    // first to run dropped it while the second still waited for the queue.
+    test('a second queued edit of an entry keeps it pending', () async {
+      final other = edit(testIntake, id: 'other');
+      diary.diaries['a'] = [testIntake, other];
+      final firstGate = Completer<void>();
+      final heldGate = Completer<void>();
+      healthRepo.writeGate = firstGate;
+      healthRepo.writeStarted = Completer<void>();
+
+      final first = usecase.exportUpdatedIntake(
+        testIntake,
+        edit(testIntake, amount: 200),
+      );
+      final held = usecase.exportIntake(other);
+      final second = usecase.exportUpdatedIntake(
+        testIntake,
+        edit(testIntake, amount: 250),
+      );
+      await healthRepo.writeStarted!.future;
+      healthRepo.writeGate = heldGate;
+      firstGate.complete();
+      expect(await first, isTrue);
+
+      expect(config.pendingWrites, contains('edit:a/intake-123'));
+
+      heldGate.complete();
+      await Future.wait([held, second]);
+      expect(config.pendingWrites, isEmpty);
+      expect(healthRepo.writtenMeals.last.id, 'ont_intake_a_intake-123');
     });
   });
 
