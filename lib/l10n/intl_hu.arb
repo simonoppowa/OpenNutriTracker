@@ -1667,5 +1667,10 @@
   "paTrackField1": "atlétika (dobószámok)",
   "paTrackField2": "atlétika (ugrószámok és gerelyhajítás)",
   "paTrackField3": "atlétika (gátfutás)",
-  "paYoga": "jóga"
+  "paYoga": "jóga",
+  "paYogaDesc": "általános vagy hatha jóga",
+  "recipeTotalWeightCalculatedHelper": "Az összetevők alapján számított érték. A folyadékok esetében a következő közelítést alkalmaztuk: 1 ml ≈ 1 g.",
+  "recipeTotalWeightManualHelper": "Kézzel lett megadva, így az összetevők módosítása nem változtat rajta.",
+  "recipeTotalWeightUseIngredientTotalButton": "Az összes hozzávaló felhasználása",
+  "settingsKjAdjustmentLabel": "Napi kJ-kiigazítás"
 }
