@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/data/repository/weight_log_repository.dart
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Pulls body weight readings out of Health Connect / Apple Health and files
 /// them in the weight log.
@@ -129,13 +130,37 @@ class ImportWeightsUsecase {
     );
     if (!_stillOnProfile(profileId)) return 0;
 
+    // Everything from here on reads and writes the profile's boxes, so it
+    // runs under the tracked-day lock, which "Delete all my data", deleting
+    // or saving a weight and a profile switch all hold for their whole
+    // operation. None of them can then land between a check below and the
+    // write it guards: a wipe cannot be followed by a user, a row or a
+    // watermark written back, nor a deletion by its row. The platform read
+    // above stays outside, as it is long.
+    return withTrackedDayLock(
+      () => _file(profileId, config, to, readings),
+    );
+  }
+
+  Future<int> _file(
+    String profileId,
+    ConfigEntity config,
+    DateTime to,
+    List<ExternalWeight> readings,
+  ) async {
     // The day each record id is already filed on. A reading keeps that day:
     // re-read after the device's time zone changed, the same instant can
     // fall on another local calendar day, and filing it there as well would
     // log one weigh-in twice.
+    //
+    // Taken from the key the row is stored under rather than its date: the
+    // stored date is a local midnight, and in another time zone it reads
+    // back as an instant on the neighbouring date, under which the row
+    // would not be found and the reading would be filed a second time.
     final filedDays = <String, DateTime>{
-      for (final entry in await _weightLogRepository.getAllEntries())
-        if (entry.externalId != null) entry.externalId!: entry.date,
+      for (final MapEntry(key: day, value: entry)
+          in (await _weightLogRepository.getEntriesByDay()).entries)
+        if (entry.externalId != null) entry.externalId!: day,
     };
     final latestByDay = latestReadingPerDay(readings, filedDays: filedDays);
 

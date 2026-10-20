@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/data/repository/weight_log_repository.dart
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
@@ -123,6 +124,66 @@ class _HookedWeightLogRepository extends WeightLogRepository {
     await afterWrite?.call();
   }
 }
+
+/// Holds the first [getUserData] call made after [pause] until [release]
+/// completes, with the user it read before the pause — a stale copy if
+/// another operation saves the user in that gap.
+class _PausingUserRepository extends UserRepository {
+  Completer<void>? _reached;
+  Completer<void>? _release;
+
+  _PausingUserRepository(super.userDataSource);
+
+  /// Completes once the paused call is waiting.
+  Future<void> pause(Completer<void> release) {
+    _release = release;
+    return (_reached = Completer<void>()).future;
+  }
+
+  @override
+  Future<UserEntity> getUserData() async {
+    final user = await super.getUserData();
+    final release = _release;
+    if (release != null) {
+      _release = null;
+      _reached!.complete();
+      await release.future;
+    }
+    return user;
+  }
+}
+
+/// Holds the first [getEntry] call made after [pause] until [release]
+/// completes, then reads the row as it is by then.
+class _PausingWeightLogRepository extends WeightLogRepository {
+  Completer<void>? _reached;
+  Completer<void>? _release;
+
+  _PausingWeightLogRepository(super.weightLogDataSource);
+
+  Future<void> pause(Completer<void> release) {
+    _release = release;
+    return (_reached = Completer<void>()).future;
+  }
+
+  @override
+  Future<WeightLogEntity?> getEntry(DateTime date) async {
+    final release = _release;
+    if (release != null) {
+      _release = null;
+      _reached!.complete();
+      await release.future;
+    }
+    return super.getEntry(date);
+  }
+}
+
+/// Waits until [other] has finished, or long enough that it evidently
+/// cannot while the paused operation holds the lock it waits for.
+Future<void> _finishedOrBlocked(Future<Object?> other) => Future.any([
+  other.then((_) {}),
+  Future<void>.delayed(const Duration(milliseconds: 200)),
+]);
 
 ExternalWeight _reading(String id, DateTime at, double kg) => ExternalWeight(
   id: id,
@@ -1041,6 +1102,146 @@ void main() {
       await usecase.importNow();
       await Future<void>.delayed(Duration.zero);
       expect(events, equals(1));
+    });
+  });
+
+  group('ImportWeightsUsecase alongside other weight writes', () {
+    test('a wipe while the current weight is saved is not undone', () async {
+      final users = _PausingUserRepository(UserDataSource(provider));
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        configRepository,
+        weightLogRepository,
+        users,
+        provider,
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 79.4)];
+      final release = Completer<void>();
+      final reached = users.pause(release);
+
+      final run = usecase.importNow();
+      await reached;
+      // What "Delete all my data" does to these boxes, under the same lock.
+      final wipe = withTrackedDayLock(
+        () => Future.wait([
+          configBox.clear(),
+          userBox.clear(),
+          weightLogBox.clear(),
+        ]),
+      );
+      await _finishedOrBlocked(wipe);
+      release.complete();
+      await run;
+      await wipe;
+
+      expect(await userRepository.hasUserData(), isFalse);
+      expect(weightLogBox.isEmpty, isTrue);
+    });
+
+    test('a day deleted while its row is checked stays deleted', () async {
+      final logs = _PausingWeightLogRepository(WeightLogDataSource(provider));
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        configRepository,
+        logs,
+        userRepository,
+        provider,
+      );
+      healthService.weights = [_reading('b', DateTime(2026, 5, 22, 7), 80.9)];
+      await usecase.importNow();
+
+      final release = Completer<void>();
+      final reached = logs.pause(release);
+      ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+      final run = usecase.importNow();
+      await reached;
+      final deletion = deleteUsecase.deleteEntry(yesterday);
+      await _finishedOrBlocked(deletion);
+      release.complete();
+      await run;
+      await deletion;
+
+      expect(await weightLogRepository.getEntry(yesterday), isNull);
+    });
+
+    test(
+      'a weight saved while a deletion restores the previous one stays',
+      () async {
+        final realToday = DateTime.now();
+        await weightLogRepository.addEntry(
+          WeightLogEntity(date: yesterday, weightKg: 81.0),
+        );
+        healthService.weights = [
+          _reading('c', DateTime(2026, 5, 23, 7), 79.4),
+        ];
+        await usecase.importNow();
+        expect((await userRepository.getUserData()).weightKG, equals(79.4));
+
+        final users = _PausingUserRepository(UserDataSource(provider));
+        final deleting = DeleteWeightLogUsecase(
+          weightLogRepository,
+          configRepository,
+          users,
+        );
+        final release = Completer<void>();
+        final reached = users.pause(release);
+        final deletion = deleting.deleteEntry(today);
+        await reached;
+        final save = AddWeightLogUsecase(
+          weightLogRepository,
+          userRepository,
+        ).addEntry(
+          WeightLogEntity(
+            date: DateTime(realToday.year, realToday.month, realToday.day),
+            weightKg: 78.0,
+          ),
+        );
+        await _finishedOrBlocked(save);
+        release.complete();
+        await deletion;
+        await save;
+
+        expect((await userRepository.getUserData()).weightKG, equals(78.0));
+      },
+    );
+
+    test(
+      'correcting the imported entry the weight came from corrects the weight',
+      () async {
+        healthService.weights = [
+          _reading('b', DateTime(2026, 5, 22, 7), 80.9),
+        ];
+        await usecase.importNow();
+        expect((await userRepository.getUserData()).weightKG, equals(80.9));
+
+        final add = AddWeightLogUsecase(weightLogRepository, userRepository);
+        // A backdated entry on another day leaves the weight alone.
+        await add.addEntry(
+          WeightLogEntity(date: DateTime(2026, 5, 20), weightKg: 82.0),
+        );
+        expect((await userRepository.getUserData()).weightKG, equals(80.9));
+
+        await add.addEntry(WeightLogEntity(date: yesterday, weightKg: 80.2));
+        expect((await userRepository.getUserData()).weightKG, equals(80.2));
+      },
+    );
+
+    test('a row filed before a time-zone change is not filed twice', () async {
+      // Stored under its day's key, with its date read back in a zone an
+      // hour behind the one it was filed in: 23:00 on the day before.
+      await weightLogBox.put(
+        '2026-05-22',
+        WeightLogDBO(
+          date: DateTime(2026, 5, 21, 23),
+          weightKg: 80.9,
+          externalId: 'b',
+          measuredAt: DateTime(2026, 5, 22, 7),
+        ),
+      );
+      healthService.weights = [_reading('b', DateTime(2026, 5, 22, 7), 80.9)];
+
+      expect(await usecase.importNow(), equals(0));
+      expect(weightLogBox.keys, ['2026-05-22']);
     });
   });
 

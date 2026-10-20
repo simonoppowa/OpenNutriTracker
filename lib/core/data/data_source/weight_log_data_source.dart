@@ -32,6 +32,13 @@ class WeightLogDataSource {
     return _weightLogBox.values.toList();
   }
 
+  /// Every entry, under the `yyyy-MM-dd` key it is stored by.
+  Future<Map<String, WeightLogDBO>> entriesByKey() async {
+    return {
+      for (final key in _weightLogBox.keys) '$key': ?_weightLogBox.get(key),
+    };
+  }
+
   Future<List<WeightLogDBO>> entriesInRange(
     DateTime from,
     DateTime to,
