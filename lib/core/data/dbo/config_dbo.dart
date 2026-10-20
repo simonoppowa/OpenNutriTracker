@@ -198,6 +198,20 @@ class ConfigDBO extends HiveObject {
   // workout import aside; see `ensureTrackedDaysMatchEntries`).
   @HiveField(40)
   int? trackedDaysOffsetMinutes;
+  // Set by [reconcileAppLocale] once the OS has been *seen* holding a per-app
+  // language override — a value read from Android's picker, or the saved
+  // language read back right after the migration push. Never set by the push
+  // attempt alone: on platforms with no per-app override the push no-ops on
+  // every launch and this stays null, so null means "the OS has not been
+  // observed with an override yet", not "the push has not happened". Without
+  // it, an override the user cleared in the OS picker is indistinguishable
+  // from one that was never seeded, and gets silently pushed back on the next
+  // launch. Reset to null when that clear is acted on, so a language picked
+  // in the app afterwards whose push silently failed is retried rather than
+  // read as a second clear. Device-wide, like selectedLocale: it is a fact
+  // about the device.
+  @HiveField(41)
+  bool? localeSyncSeeded;
   // Opt-in body weight import from Health Connect / Apple Health — the route
   // by which a smart scale, or an aggregator such as Health Sync, reaches the
   // weight log. Separate from [healthImportEnabled] because it asks the
@@ -250,6 +264,7 @@ class ConfigDBO extends HiveObject {
     this.healthDeletedWorkouts,
     this.defaultToRawFoodUnits,
     this.trackedDaysOffsetMinutes,
+    this.localeSyncSeeded,
     this.healthWeightImportEnabled,
     this.healthWeightLastImportAt,
   });

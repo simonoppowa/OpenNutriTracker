@@ -144,6 +144,12 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         ? configData.targetKcalForMeal(ConfigEntity.mealKeySnack, dailyKcalGoal)
         : 0.0;
 
+    // Events run concurrently, so a load for a day the Diary has since
+    // left can finish last: a Refresh of the old day racing the Load of
+    // the new "today" after a day-boundary change (#1360), or two quick
+    // taps on the calendar. Only the day last asked for may be shown.
+    if (day != _currentDay) return;
+
     emit(
       CalendarDayLoaded(
         trackedDayEntity,
