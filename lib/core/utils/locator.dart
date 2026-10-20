@@ -354,6 +354,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      favourites: locator<ToggleFavouriteMealUsecase>(),
     ),
   );
   locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
