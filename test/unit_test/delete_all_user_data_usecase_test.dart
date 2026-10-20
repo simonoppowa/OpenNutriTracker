@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,6 +25,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
@@ -297,6 +300,36 @@ void main() {
 
     expect(export.forgotten, [(provider.activeProfileId, 1)]);
     expect(provider.intake.isEmpty, isTrue);
+  });
+
+  // Codex: a diary write paused under the writers' lock resumed after the
+  // health export had read the diary, and requested its export too late
+  // for the wipe to account for it.
+  test('the health export reads the diary after a write under way', () async {
+    final export = _FakeExportMealIntakeUsecase(provider.intake);
+    final release = Completer<void>();
+    // Released even if an expectation fails, so the lock is not left held.
+    addTearDown(() {
+      if (!release.isCompleted) release.complete();
+    });
+    final writing = withTrackedDayLock(() => release.future);
+    final wiping = DeleteAllUserDataUsecase(
+      provider,
+      DailyReminderScheduler(
+        ConfigRepository(ConfigDataSource(provider)),
+        _SilentNotificationService(),
+      ),
+      credentials,
+      exportMealIntakeUsecase: export,
+      calorieWidgetStore: widgetStore,
+    ).deleteAll();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(export.forgotten, isEmpty);
+
+    release.complete();
+    await Future.wait([writing, wiping]);
+    expect(export.forgotten, [(provider.activeProfileId, 0)]);
   });
 
   test('takes the AI credentials with it', () async {

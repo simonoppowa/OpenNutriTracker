@@ -53,14 +53,6 @@ class DeleteAllUserDataUsecase {
     // Settings; nothing here re-opens the SDK on its own.
     await Sentry.close();
 
-    // The meals this profile exported to Health Connect / Apple Health are
-    // addressed by the ids and times about to be cleared, so they are read
-    // now and their deletion queued. Never throws, so it cannot stop the
-    // wipe; the deletions finish in the background.
-    await _exportMealIntakeUsecase?.forgetProfile(
-      _hiveDBProvider.activeProfileId,
-    );
-
     // Only the active profile's own data is cleared. The shared content
     // libraries (custom meals, recipes, activity templates) and the shared
     // app settings belong to every profile, so they're deliberately left
@@ -71,6 +63,15 @@ class DeleteAllUserDataUsecase {
     // clear: rows it writes from here on are keyed by it, not by the
     // midnight an unrecorded history is assumed to use (#1317).
     await withTrackedDayLock(() async {
+      // The meals this profile exported to Health Connect / Apple Health are
+      // addressed by the ids and times about to be cleared, so they are read
+      // first and their deletion queued. Under the same lock as the clear:
+      // a diary write still under way finishes, and requests its export,
+      // before the read, so the read accounts for it. Never throws, so it
+      // cannot stop the wipe; the deletions finish in the background.
+      await _exportMealIntakeUsecase?.forgetProfile(
+        _hiveDBProvider.activeProfileId,
+      );
       await Future.wait([
         _hiveDBProvider.configBox.clear(),
         _hiveDBProvider.intakeBox.clear(),

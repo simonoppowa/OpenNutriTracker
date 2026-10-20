@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/repository/profile_repository.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
@@ -5,6 +7,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_profile_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Every step the deletion takes, in order, across the fakes below.
 final _steps = <String>[];
@@ -79,5 +82,21 @@ void main() {
       'delete boxes suffix_a',
       'unregister a',
     ]);
+  });
+
+  // Codex: a diary write paused under the writers' lock resumed after the
+  // read and requested its export too late for the wipe to account for it.
+  test('a diary write under way finishes before the read', () async {
+    final release = Completer<void>();
+    final writing = withTrackedDayLock(() async {
+      await release.future;
+      _steps.add('write');
+    });
+    final deleting = usecase.deleteProfile(_profile('a'));
+    await Future<void>.delayed(Duration.zero);
+    release.complete();
+    await Future.wait([writing, deleting]);
+
+    expect(_steps.take(3), ['write', 'forget a', 'switch to b']);
   });
 }
