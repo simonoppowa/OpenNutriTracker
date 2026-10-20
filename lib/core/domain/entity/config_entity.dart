@@ -154,17 +154,50 @@ class ConfigEntity extends Equatable {
   /// Kept in the same map as the record tombstones so it is pruned by the
   /// same rule — once the cutoff falls behind every window a future import
   /// can ask for, no reading at or before it can come back anyway.
-  static String deletedWeightDayKey(DateTime day) =>
-      '$_deletedWeightDayPrefix'
+  ///
+  /// The key carries the instant the day began on the device when it was
+  /// deleted ([dayStart], local midnight of [day] unless given), not just
+  /// its date. A reading's calendar day is worked out in the time zone the
+  /// device is in when it is read back, so after a time-zone change an
+  /// earlier reading from the deleted day can land on a neighbouring date;
+  /// the instant still places it inside the day that was deleted.
+  static String deletedWeightDayKey(DateTime day, {DateTime? dayStart}) {
+    final start = dayStart ?? DateTime(day.year, day.month, day.day);
+    return '$_deletedWeightDayPrefix${_dayLabel(day)}'
+        '@${start.millisecondsSinceEpoch}';
+  }
+
+  static String _dayLabel(DateTime day) =>
       '${day.year}-${day.month.toString().padLeft(2, '0')}-'
       '${day.day.toString().padLeft(2, '0')}';
 
-  /// Readings on [day] taken at or before this instant stay out of the
-  /// weight log: the user deleted the day's newest reading, and an earlier
-  /// one from the same day must not take its place. Null when nothing on
-  /// that day was deleted.
-  DateTime? deletedWeightDayCutoff(DateTime day) =>
-      healthDeletedWorkouts[deletedWeightDayKey(day)];
+  /// Whether a reading taken at [measuredAt], which the current time zone
+  /// puts on [day], belongs to a day whose newest reading the user deleted
+  /// and was taken at or before that deleted one. Such a reading stays out
+  /// of the weight log, so an earlier reading does not take the deleted
+  /// one's place; a newer one is let in.
+  ///
+  /// A reading counts as from the deleted day when [day] is its date, or
+  /// when [measuredAt] falls between the instant that day began and the
+  /// cutoff — which holds whatever time zone the device has moved to since.
+  bool isDeletedWeightReading({
+    required DateTime day,
+    required DateTime measuredAt,
+  }) {
+    final label = _dayLabel(day);
+    for (final MapEntry(:key, value: cutoff) in healthDeletedWorkouts.entries) {
+      if (!key.startsWith(_deletedWeightDayPrefix)) continue;
+      if (measuredAt.isAfter(cutoff)) continue;
+      final rest = key.substring(_deletedWeightDayPrefix.length);
+      final at = rest.indexOf('@');
+      if ((at < 0 ? rest : rest.substring(0, at)) == label) return true;
+      final startMs = at < 0 ? null : int.tryParse(rest.substring(at + 1));
+      if (startMs == null) continue;
+      final start = DateTime.fromMillisecondsSinceEpoch(startMs);
+      if (!measuredAt.isBefore(start)) return true;
+    }
+    return false;
+  }
 
   /// The earliest instant any future import could ask the platform about, and
   /// therefore the point before which a tombstone is dead weight rather than

@@ -163,8 +163,10 @@ class ImportWeightsUsecase {
       if (current.healthDeletedExternalIds.contains(reading.id)) continue;
       // An earlier reading from a deleted day, which the health store hands
       // back once the deleted newest one is gone from it too.
-      final deletedUpTo = current.deletedWeightDayCutoff(day);
-      if (deletedUpTo != null && !reading.measuredAt.isAfter(deletedUpTo)) {
+      if (current.isDeletedWeightReading(
+        day: day,
+        measuredAt: reading.measuredAt,
+      )) {
         continue;
       }
       final existing = await _weightLogRepository.getEntry(day);
@@ -179,9 +181,15 @@ class ImportWeightsUsecase {
       }
       // A stored reading taken later than this one stays: it can only be
       // missing from this read because it left the health store, and an
-      // earlier reading from the same day must not take its place.
+      // earlier reading from the same day must not take its place. "Later"
+      // is the order [latestReadingPerDay] picks by, ties included.
       final storedAt = existing?.measuredAt;
-      if (storedAt != null && storedAt.isAfter(reading.measuredAt)) continue;
+      final storedId = existing?.externalId;
+      if (storedAt != null &&
+          storedId != null &&
+          _ranksAfter(storedAt, storedId, reading)) {
+        continue;
+      }
       await _weightLogRepository.addEntry(
         WeightLogEntity(
           date: day,
@@ -272,11 +280,28 @@ class ImportWeightsUsecase {
       final day =
           filedDays[reading.id] ?? DateTime(local.year, local.month, local.day);
       final current = latest[day];
-      if (current == null || reading.measuredAt.isAfter(current.measuredAt)) {
+      if (current == null ||
+          _ranksAfter(reading.measuredAt, reading.id, current)) {
         latest[day] = reading;
       }
     }
     return latest;
+  }
+
+  /// Whether a reading taken at [measuredAt] with record id [id] counts as
+  /// later than [other]. Two readings can share an instant — a scale's app
+  /// and an aggregator copying its weigh-in both write one — and the health
+  /// store returns them in no fixed order, so the record id breaks the tie:
+  /// every read then keeps the same one, rather than whichever came first,
+  /// and the day's row does not flip between them from run to run.
+  static bool _ranksAfter(
+    DateTime measuredAt,
+    String id,
+    ExternalWeight other,
+  ) {
+    if (measuredAt.isAfter(other.measuredAt)) return true;
+    return measuredAt.isAtSameMomentAs(other.measuredAt) &&
+        id.compareTo(other.id) > 0;
   }
 
   /// Makes the newest imported entry in the log the user's current weight —

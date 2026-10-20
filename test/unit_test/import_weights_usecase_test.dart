@@ -5,6 +5,7 @@ import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_weight.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
+import 'package:opennutritracker/core/data/data_source/health/noop_health_service.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
@@ -219,6 +220,28 @@ void main() {
   });
 
   group('ImportWeightsUsecase filing', () {
+    test(
+      'two readings of one instant keep the same row whichever comes first',
+      () async {
+        final at = DateTime(2026, 5, 23, 7);
+        final scale = _reading('scale-1', at, 80.2);
+        final copy = _reading('sync-9', at, 80.25);
+        healthService.weights = [scale, copy];
+        expect(await usecase.importNow(), equals(1));
+
+        healthService.weights = [copy, scale];
+        ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+        expect(await usecase.importNow(), equals(0));
+
+        healthService.weights = [scale, copy];
+        ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 2));
+        expect(await usecase.importNow(), equals(0));
+        final entry = await weightLogRepository.getEntry(today);
+        expect(entry!.externalId, 'sync-9');
+        expect(entry.weightKg, 80.25);
+      },
+    );
+
     test('files each day once, keeping its latest reading', () async {
       healthService.weights = [
         _reading('a', DateTime(2026, 5, 22, 7), 80.4),
@@ -594,11 +617,20 @@ void main() {
         await usecase.importNow();
         await deleteUsecase.deleteEntry(yesterday);
 
+        final afterDelete = await configRepository.getConfig();
         expect(
-          (await configRepository.getConfig()).deletedWeightDayCutoff(
-            yesterday,
+          afterDelete.isDeletedWeightReading(
+            day: yesterday,
+            measuredAt: DateTime(2026, 5, 22, 11),
           ),
-          equals(DateTime(2026, 5, 22, 11)),
+          isTrue,
+        );
+        expect(
+          afterDelete.isDeletedWeightReading(
+            day: yesterday,
+            measuredAt: DateTime(2026, 5, 22, 11, 1),
+          ),
+          isFalse,
         );
 
         // The user also removed 'd' from the health store.
@@ -633,8 +665,69 @@ void main() {
       await usecase.importNow();
 
       final config = await configRepository.getConfig();
-      expect(config.deletedWeightDayCutoff(longAgo), isNull);
+      expect(
+        config.isDeletedWeightReading(
+          day: longAgo,
+          measuredAt: DateTime(2026, 4, 1, 6),
+        ),
+        isFalse,
+      );
       expect(config.healthDeletedWorkouts, isEmpty);
+    });
+
+    // A time zone cannot be changed under `flutter test`, so the deletion is
+    // stored as one made in a zone three hours behind this one: there, the
+    // deleted day 22 May ran from 03:00 on the 22nd to 03:00 on the 23rd of
+    // this zone's clock, and its deleted reading at 23:00 is 02:00 on the
+    // 23rd here.
+    test('an earlier reading from a deleted day stays out after a time-zone '
+        'change moves it onto another date', () async {
+      await configDataSource.addConfigHealthDeletedWorkout(
+        ConfigEntity.deletedWeightDayKey(
+          yesterday,
+          dayStart: DateTime(2026, 5, 22, 3),
+        ),
+        DateTime(2026, 5, 23, 2),
+      );
+      // 22:00 on the deleted day where it was deleted; 01:00 on the 23rd
+      // here, a date with no cutoff of its own.
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 1), 80.9)];
+
+      expect(await usecase.importNow(), equals(0));
+      expect(await weightLogRepository.getEntry(today), isNull);
+
+      // A reading taken after the deleted one is still welcome.
+      healthService.weights = [
+        _reading('c', DateTime(2026, 5, 23, 1), 80.9),
+        _reading('d', DateTime(2026, 5, 23, 2, 30), 80.6),
+      ];
+      ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+
+      expect(await usecase.importNow(), equals(1));
+      expect((await weightLogRepository.getEntry(today))!.externalId, 'd');
+    });
+
+    test('a deleted day does not hold back the day before it', () async {
+      await configDataSource.addConfigHealthDeletedWorkout(
+        ConfigEntity.deletedWeightDayKey(yesterday),
+        DateTime(2026, 5, 22, 7),
+      );
+      final config = await configRepository.getConfig();
+
+      expect(
+        config.isDeletedWeightReading(
+          day: DateTime(2026, 5, 21),
+          measuredAt: DateTime(2026, 5, 21, 23),
+        ),
+        isFalse,
+      );
+      expect(
+        config.isDeletedWeightReading(
+          day: yesterday,
+          measuredAt: DateTime(2026, 5, 22, 6),
+        ),
+        isTrue,
+      );
     });
 
     test('a newer reading on a deleted day is still filed', () async {
@@ -858,6 +951,29 @@ void main() {
       expect(usecase.importNow(), throwsStateError);
     });
 
+    test(
+      'with no health store, a resume keeps the watermark where it was',
+      () async {
+        final watermark = now.subtract(const Duration(hours: 1));
+        await configDataSource.setConfigHealthWeightLastImportAt(watermark);
+        final unavailable = ImportWeightsUsecase(
+          HealthImportRepository(const NoopHealthService()),
+          configRepository,
+          weightLogRepository,
+          userRepository,
+          provider,
+        );
+
+        expect(await unavailable.importIfDue(), equals(0));
+        expect(unavailable.importNow(), throwsStateError);
+        await Future<void>.delayed(Duration.zero);
+        expect(
+          (await configRepository.getConfig()).healthWeightLastImportAt,
+          equals(watermark),
+        );
+      },
+    );
+
     test('switching away and back joins the run still in flight', () async {
       healthService.readGate = Completer<void>();
 
@@ -937,6 +1053,21 @@ void main() {
       expect(grouped.keys, containsAll([yesterday, today]));
       expect(grouped[yesterday]!.id, 'a');
       expect(grouped[today]!.id, 'b');
+    });
+
+    test('breaks a tie on the instant the same way in any order', () {
+      final at = DateTime(2026, 5, 23, 7);
+      final scale = _reading('scale-1', at, 80.2);
+      final copy = _reading('sync-9', at, 80.25);
+
+      expect(
+        ImportWeightsUsecase.latestReadingPerDay([scale, copy])[today]!.id,
+        'sync-9',
+      );
+      expect(
+        ImportWeightsUsecase.latestReadingPerDay([copy, scale])[today]!.id,
+        'sync-9',
+      );
     });
 
     test('keeps a filed record on the day it was filed on', () {
