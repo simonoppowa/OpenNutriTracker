@@ -59,10 +59,11 @@ class _DiaryDayBoundaryDialogState extends State<DiaryDayBoundaryDialog> {
     widget.settingsBloc.add(LoadSettingsEvent());
     // Refresh anywhere day rollover affects what's shown: the home
     // dashboard's totals and the calendar day view both partition
-    // intake by day boundary, and the calendar's markers follow the
-    // tracked-day rows that moved with it (#1317). Trends charts those
-    // rows by date, and stays loaded in the main IndexedStack; the
-    // refresh keeps the range the user picked.
+    // intake by day boundary, the calendar's markers follow the
+    // tracked-day rows that moved with it (#1317), and the Diary's
+    // "today" is the logical day, which the boundary just moved (#1360).
+    // Trends charts those rows by date, and stays loaded in the main
+    // IndexedStack; the refresh keeps the range the user picked.
     widget.homeBloc.add(const LoadItemsEvent());
     widget.diaryBloc.add(const LoadDiaryYearEvent());
     widget.calendarDayBloc.add(RefreshCalendarDayEvent());

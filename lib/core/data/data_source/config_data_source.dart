@@ -251,6 +251,18 @@ class ConfigDataSource {
     await _update((c) => c.selectedLocale = locale);
   }
 
+  Future<bool> getLocaleSyncSeeded() async {
+    return _readMerged().localeSyncSeeded ?? false;
+  }
+
+  Future<void> setLocaleSyncSeeded() async {
+    await _update((c) => c.localeSyncSeeded = true);
+  }
+
+  Future<void> clearLocaleSyncSeeded() async {
+    await _update((c) => c.localeSyncSeeded = null);
+  }
+
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _update((c) => c.showMicronutrients = show);
   }

@@ -132,6 +132,18 @@ class ConfigRepository {
     await _configDataSource.setSelectedLocale(locale);
   }
 
+  Future<bool> getLocaleSyncSeeded() async {
+    return await _configDataSource.getLocaleSyncSeeded();
+  }
+
+  Future<void> setLocaleSyncSeeded() async {
+    await _configDataSource.setLocaleSyncSeeded();
+  }
+
+  Future<void> clearLocaleSyncSeeded() async {
+    await _configDataSource.clearLocaleSyncSeeded();
+  }
+
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _configDataSource.setConfigShowMicronutrients(show);
   }
