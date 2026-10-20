@@ -694,7 +694,7 @@
   "paHeadingWinterActivities": "téli programok",
   "paHighIntensityIntervalExercise": "nagy intenzitású intervallumos edzés",
   "paHighIntensityIntervalExerciseDesc": "közepes erőfeszítés",
-  "paHighIntensityIntervalExerciseVigorous": "nagy intenzitású intervallumos edzés",
+  "paHighIntensityIntervalExerciseVigorous": "erőteljes, nagy intenzitású intervallum edzés",
   "paHighIntensityIntervalExerciseVigorousDesc": "hegymászó gyakorlatok, guggolásugrások, tabata, erőteljes erőfeszítés",
   "paHikingCrossCountry": "túrázás",
   "paHikingCrossCountryDesc": "terepfutás",
@@ -722,7 +722,7 @@
   "paLawnBowlingDesc": "boccia, szabadtéri",
   "paMartialArtsModerate": "harcművészetek",
   "paMartialArtsModerateDesc": "különböző típusok, mérsékelt tempó (pl. dzsúdó, dzsúdzsucu, karate, kick-box, taekwondo, tai-bo, muay thai box)",
-  "paMartialArtsSlower": "harcművészetek",
+  "paMartialArtsSlower": "harcművészetek (lassabb tempóban)",
   "paMartialArtsSlowerDesc": "különböző típusok, lassabb tempó, kezdő előadók, gyakorlás",
   "paMotoCross": "motokrossz",
   "paMotoCrossDesc": "terepjáró motorsport, terepjáró, általános",
@@ -1660,5 +1660,6 @@
   "paCalisthenicsVigorous": "testgyakorlatok (intenzív)",
   "paCalisthenicsVigorousDesc": "intenzív testmozgás (pl. fekvőtámasz, hasizomgyakorlat, húzódzkodás, ugráló felülés, négyütemű fekvőtámasz)",
   "paCircuitTraining": "köredzés",
-  "paCircuitTrainingDesc": "beleértve a kettlebelleket, néhány aerob gyakorlatot minimális pihenőidővel, magas intenzitással"
+  "paCircuitTrainingDesc": "beleértve a kettlebelleket, néhány aerob gyakorlatot minimális pihenőidővel, magas intenzitással",
+  "paEllipticalTrainer": "elliptikus edzőgép"
 }
