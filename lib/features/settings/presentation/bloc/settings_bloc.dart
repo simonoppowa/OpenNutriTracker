@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 part 'settings_event.dart';
@@ -240,6 +241,22 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   Future<void> setMealKcalSharesPct(Map<String, int> shares) async {
     await _addConfigUsecase.setConfigMealKcalSharesPct(shares);
+  }
+
+  /// The day a goal edit means by "today": the logical day under the
+  /// configured "Day starts at" boundary (#139), the one Home and the
+  /// Diary show, and the one an entry logged now is filed under. On a
+  /// 22:00 boundary at 20:40 that is yesterday's date; `DateTime.now()`
+  /// would put the goal on a day the user is not looking at (#1360).
+  ///
+  /// Resolve it once per save and pass the result to every call that
+  /// follows, so the row check, its creation and the per-nutrient writes
+  /// cannot land on two different days if the boundary passes mid-save.
+  Future<DateTime> getCurrentLogicalDay() async {
+    final config = await _getConfigUsecase.getConfig();
+    return DayBoundaryCalc.currentLogicalDayMinutes(
+      config.dayStartOffsetTotalMinutes,
+    );
   }
 
   /// #173: read today's per-nutrient goal overrides from the stored
