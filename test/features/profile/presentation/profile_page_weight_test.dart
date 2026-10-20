@@ -50,8 +50,9 @@ class _FakeAddWeightLogUsecase extends Fake implements AddWeightLogUsecase {
   final List<WeightLogEntity> entries = [];
 
   @override
-  Future<void> addEntry(WeightLogEntity entry) async {
+  Future<bool> addEntry(WeightLogEntity entry) async {
     entries.add(entry);
+    return true;
   }
 }
 

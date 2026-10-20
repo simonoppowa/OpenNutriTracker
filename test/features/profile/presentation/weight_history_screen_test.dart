@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/weight_history_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import '../../../helpers/fake_reload_blocs.dart';
@@ -35,14 +36,23 @@ class _FakeGetWeightLogUsecase extends Fake implements GetWeightLogUsecase {
 }
 
 class _FakeAddWeightLogUsecase extends Fake implements AddWeightLogUsecase {
+  bool changesWeight = false;
+
   @override
-  Future<void> addEntry(WeightLogEntity entry) async {}
+  Future<bool> addEntry(WeightLogEntity entry) async => changesWeight;
 }
 
 class _FakeDeleteWeightLogUsecase extends Fake
     implements DeleteWeightLogUsecase {
   @override
   Future<bool> deleteEntry(DateTime date) async => false;
+}
+
+class _RecordingProfileBloc extends Fake implements ProfileBloc {
+  int reloads = 0;
+
+  @override
+  Future<void> reloadAfterWeightImport() async => reloads++;
 }
 
 class _FakeConfigRepository extends Fake implements ConfigRepository {
@@ -206,6 +216,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(recorder.trendsReloaded, isTrue);
+  });
+
+  testWidgets('an entry that moves the current weight refreshes the profile, '
+      'not just Diary and Trends', (tester) async {
+    addTearDown(locator.reset);
+    final profileBloc = _RecordingProfileBloc();
+    locator.registerSingleton<ProfileBloc>(profileBloc);
+    final addUsecase = _FakeAddWeightLogUsecase()..changesWeight = true;
+
+    await tester.pumpWidget(
+      _wrap(
+        WeightHistoryScreen(
+          getUsecase: _FakeGetWeightLogUsecase(const []),
+          addUsecase: addUsecase,
+          deleteUsecase: _FakeDeleteWeightLogUsecase(),
+          configRepository: _FakeConfigRepository(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(profileBloc.reloads, equals(1));
   });
 
   group('WeightHistoryScreen entry tiles', () {

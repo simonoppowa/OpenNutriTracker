@@ -299,7 +299,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     );
     if (result == null) return;
 
-    await _addUsecase.addEntry(
+    final weightChanged = await _addUsecase.addEntry(
       WeightLogEntity(
         date: DateTime(result.date.year, result.date.month, result.date.day),
         weightKg: result.weightKg,
@@ -307,6 +307,13 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       ),
     );
     await _load();
+    if (weightChanged && locator.isRegistered<ProfileBloc>()) {
+      // The entry became the current weight — today's, or a correction of
+      // the imported entry it came from — so BMI and today's calorie goal
+      // move with it. This also reloads Diary and Trends.
+      await locator<ProfileBloc>().reloadAfterWeightImport();
+      return;
+    }
     reloadDiaryAndTrends();
   }
 

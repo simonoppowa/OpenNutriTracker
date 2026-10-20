@@ -1216,15 +1216,35 @@ void main() {
 
         final add = AddWeightLogUsecase(weightLogRepository, userRepository);
         // A backdated entry on another day leaves the weight alone.
-        await add.addEntry(
-          WeightLogEntity(date: DateTime(2026, 5, 20), weightKg: 82.0),
+        expect(
+          await add.addEntry(
+            WeightLogEntity(date: DateTime(2026, 5, 20), weightKg: 82.0),
+          ),
+          isFalse,
         );
         expect((await userRepository.getUserData()).weightKG, equals(80.9));
 
-        await add.addEntry(WeightLogEntity(date: yesterday, weightKg: 80.2));
+        expect(
+          await add.addEntry(WeightLogEntity(date: yesterday, weightKg: 80.2)),
+          isTrue,
+        );
         expect((await userRepository.getUserData()).weightKG, equals(80.2));
       },
     );
+
+    test('a weight save overtaken by a profile switch is dropped', () async {
+      final switched = Completer<void>();
+      final switching = withProfileSwitchLock(() => switched.future);
+      final save = AddWeightLogUsecase(
+        weightLogRepository,
+        userRepository,
+      ).addEntry(WeightLogEntity(date: yesterday, weightKg: 70.0));
+      switched.complete();
+      await switching;
+
+      expect(await save, isFalse);
+      expect(await weightLogRepository.getEntry(yesterday), isNull);
+    });
 
     test('a row filed before a time-zone change is not filed twice', () async {
       // Stored under its day's key, with its date read back in a zone an
