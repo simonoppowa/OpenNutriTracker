@@ -274,8 +274,8 @@
       }
     }
   },
-  "deleteTimeDialogContent": "Valóban törölni szeretné a kijelölt elemet?",
-  "deleteTimeDialogPluralContent": "Törölni szeretné ennek az étkezésnek az összes elemét?",
+  "deleteTimeDialogContent": "Törölni szeretné a kijelölt elemet?",
+  "deleteTimeDialogPluralContent": "Törölni szeretné az étkezés összes elemét?",
   "deleteTimeDialogPluralTitle": "Törli az elemeket?",
   "deleteTimeDialogTitle": "Törli az elemet?",
   "dialogCancelLabel": "MÉGSE",
@@ -633,7 +633,7 @@
   "paBilliardsGeneralDesc": "általános",
   "paBowlingGeneral": "tekézés",
   "paBowlingGeneralDesc": "általános",
-  "paBoxingBag": "ökölvívás",
+  "paBoxingBag": "boksz (bokszzsák)",
   "paBoxingBagDesc": "bokszzsák",
   "paBoxingGeneral": "ökölvívás",
   "paBoxingGeneralDesc": "ringben, általános",
@@ -1655,5 +1655,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "noResultsSearchAll": "Összes keresése",
+  "paCalisthenicsVigorous": "testgyakorlatok (intenzív)",
+  "paCalisthenicsVigorousDesc": "intenzív testmozgás (pl. fekvőtámasz, hasizomgyakorlat, húzódzkodás, ugráló felülés, négyütemű fekvőtámasz)",
+  "paCircuitTraining": "köredzés",
+  "paCircuitTrainingDesc": "beleértve a kettlebelleket, néhány aerob gyakorlatot minimális pihenőidővel, magas intenzitással"
 }
