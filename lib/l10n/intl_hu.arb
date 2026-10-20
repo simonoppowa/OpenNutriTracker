@@ -1664,5 +1664,8 @@
   "paEllipticalTrainer": "elliptikus edzőgép",
   "paRowingMachine": "evezőgép",
   "paStairTreadmillErgometer": "lépcsőzőgép",
-  "paTrackField1": "atlétika (dobószámok)"
+  "paTrackField1": "atlétika (dobószámok)",
+  "paTrackField2": "atlétika (ugrószámok és gerelyhajítás)",
+  "paTrackField3": "atlétika (gátfutás)",
+  "paYoga": "jóga"
 }
