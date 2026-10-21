@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/entity/recipe_ingredient_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -173,6 +174,84 @@ void main() {
       expect(bloc.state.isExistingRecipe, isFalse);
       expect(bloc.state.id, isNull);
       expect(bloc.state.name, 'Cake (copy)');
+    });
+  });
+
+  group('weight after cooking (#142)', () {
+    RecipeEntity recipe({String id = 'r1', double totalWeightG = 800}) =>
+        RecipeEntity(
+          id: id,
+          name: 'Soup',
+          description: null,
+          ingredients: [
+            RecipeIngredientEntity(
+              snapshotMeal: _meal('veg', kcal: 100),
+              amount: 1000,
+              unit: 'g',
+              convertedAmountG: 1000,
+            ),
+          ],
+          totalWeightG: totalWeightG,
+          aggregatedNutrimentsPer100: MealNutrimentsEntity.empty(),
+          createdAt: DateTime.utc(2026, 1, 1),
+          updatedAt: DateTime.utc(2026, 1, 1),
+          servingsCount: null,
+        );
+
+    Future<RecipeEntity> saveAfter(RecipeBuilderEvent change) async {
+      bloc.add(change);
+      bloc.add(const SaveRecipeEvent());
+      await bloc.stream.firstWhere((_) => repo.saved.isNotEmpty);
+      return repo.saved.single;
+    }
+
+    test('an existing recipe opens with its cooked weight', () async {
+      bloc.add(InitializeBuilderEvent(existing: recipe()));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.totalWeightG, 800);
+      expect(bloc.state.totalWeightOverridden, isTrue);
+      expect(
+        bloc.state.aggregatedNutrimentsPer100.energyKcal100,
+        closeTo(125, 1e-9),
+      );
+    });
+
+    test('saving without touching the weight keeps it', () async {
+      bloc.add(InitializeBuilderEvent(existing: recipe()));
+
+      final saved = await saveAfter(const UpdateNameEvent('Soup, renamed'));
+
+      expect(saved.totalWeightG, 800);
+      expect(
+        saved.aggregatedNutrimentsPer100.energyKcal100,
+        closeTo(125, 1e-9),
+      );
+    });
+
+    test(
+      'without a cooked weight the weight follows the ingredients',
+      () async {
+        bloc.add(InitializeBuilderEvent(existing: recipe(totalWeightG: 1000)));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.totalWeightOverridden, isFalse);
+
+        bloc.add(
+          AddIngredientEvent(meal: _meal('rice'), amount: 200, unit: 'g'),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.totalWeightG, 1200);
+      },
+    );
+
+    test('a duplicate keeps the cooked weight', () async {
+      bloc.add(InitializeBuilderEvent(existing: recipe(id: '')));
+
+      final saved = await saveAfter(const UpdateNameEvent('Soup (copy)'));
+
+      expect(saved.id, isNot(''));
+      expect(saved.totalWeightG, 800);
     });
   });
 }

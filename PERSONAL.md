@@ -55,6 +55,7 @@ vervollständigt.
 | Mikronährstoffe | Elf weitere Mikronährstoffe: Vitamin E, K, B1, B2, B5, Biotin, Folat, Jod, Selen, Kupfer, Mangan (`MealNutrimentsDBO`, Hive-Felder 100–110, alte Daten lesen sie als unbekannt); gefüllt aus dem lokalen BLS (ohne Selen) und aus OFF (Gramm in mg/µg umgerechnet); in Tagesübersicht, Mahlzeit-Detail, Zielen, Rezepten sowie JSON- und CSV-Export/-Import (Spalten vor `meal_data_version`) | #50 |
 | Mikronährstoffe | Eigene Nährstoffziele gelten ab dem Speichertag weiter: Speichern schreibt sie auf diesen und alle späteren Tage, ein neuer Tag übernimmt die Ziele des letzten früheren Tages; Zurücksetzen löscht alle eigenen Ziele (auch die zehn alten Felder); Upstreams `updateDayNutrientGoals` bleibt für Merges unverändert | #136 |
 | Lebensmittel | FDC Foundation + SR Legacy lokal (englische Namen, eigene Schalter, standardmäßig aus); die lokale Suche zählt englische Plurale wie den Singular und hebt „raw“ wie „roh“ | #80 |
+| Rezepte | Ein bestehendes Rezept öffnet mit seinem Endgewicht nach dem Kochen (gespeichertes Gewicht ≠ Summe der Zutaten), statt es beim Bearbeiten stillschweigend auf das Rohgewicht zurückzusetzen; Regressionstests für Snapshot, Portionen, Endgewicht und Duplizieren | #52, #142 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
