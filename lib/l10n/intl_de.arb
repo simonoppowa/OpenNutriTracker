@@ -377,6 +377,7 @@
   "trendsMacroGoalsMetLabel": "Makroziele erreicht",
   "trendsToleranceLabel": "±{percent} %",
   "trendsNoEntriesLabel": "Keine Einträge in diesem Zeitraum.",
+  "trendsEnergyWeightLabel": "Kalorien und Gewicht",
   "trendsCaloriesLabel": "Kalorien",
   "trendsDaysOnTrack": "Tage im Plan diese Woche",
   "trendsDayStreakLabel": "Tage in Folge",

@@ -457,6 +457,7 @@
   "trendsToleranceLabel": "±{percent} %",
   "@trendsToleranceLabel": {"placeholders": {"percent": {"type": "int"}}},
   "trendsNoEntriesLabel": "No entries in this period.",
+  "trendsEnergyWeightLabel": "Calories and weight",
   "trendsCaloriesLabel": "Calories",
   "trendsDaysOnTrack": "days on track this week",
   "trendsDayStreakLabel": "day streak",

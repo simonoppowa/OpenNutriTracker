@@ -15,8 +15,10 @@ import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/weight_trend_chart.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
+import 'package:opennutritracker/features/trends/domain/energy_weight_series.dart';
 import 'package:opennutritracker/features/trends/domain/trends_tolerance_setting.dart';
 import 'package:opennutritracker/features/trends/presentation/trends_calc.dart';
+import 'package:opennutritracker/features/trends/presentation/widgets/energy_weight_card.dart';
 import 'package:opennutritracker/features/trends/presentation/widgets/period_stats_card.dart';
 import 'package:opennutritracker/features/trends/presentation/widgets/trends_period_selector.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -87,6 +89,17 @@ class _TrendsView extends StatelessWidget {
                 rangeDays: state.windowDays,
                 windowEnd: state.windowEnd,
                 palette: palette),
+            const SizedBox(height: Dimens.spacing16),
+            EnergyWeightCard(
+              series: energyWeightSeries(
+                start: DateTime(state.windowEnd.year, state.windowEnd.month,
+                    state.windowEnd.day - (state.windowDays - 1)),
+                end: state.windowEnd,
+                days: state.days,
+                weight: state.weight,
+              ),
+              bodyWeightUnit: state.bodyWeightUnit,
+            ),
             const SizedBox(height: Dimens.spacing16),
             _MacrosTrendCard(
                 days: state.days, rangeDays: state.windowDays, palette: palette),
