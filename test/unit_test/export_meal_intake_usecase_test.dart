@@ -73,9 +73,19 @@ class _FakeHealthExportRepository extends Fake
   /// Runs as each record delete reaches the store.
   void Function()? beforeDelete;
 
+  /// Completes when a window delete reaches the store.
+  Completer<void>? windowDeleteStarted;
+
+  /// While set, window deletes wait for it.
+  Completer<void>? windowDeleteGate;
+
   @override
   Future<bool> deleteMealWindow(DateTime start) async {
     if (shouldThrow) throw Exception('Platform channel error');
+    if (windowDeleteStarted case final started? when !started.isCompleted) {
+      started.complete();
+    }
+    await windowDeleteGate?.future;
     beforeWindowDelete?.call();
     ops.add('delete window $start');
     return deleteResult;
@@ -1497,6 +1507,38 @@ void main() {
       await usecase.exportIntake(sibling, profileId: 'b');
       diary.clearGate!.complete();
       await forget;
+      await usecase.replayPendingWindows();
+
+      final lastClear = healthRepo.ops.lastIndexOf('delete window $mealDate');
+      expect(lastClear, isNonNegative);
+      expect(healthRepo.ops.sublist(lastClear + 1), ['write ont_intake_b_b1']);
+      expect(diary.ledgers['a'], isEmpty);
+      expect(config.pending, isEmpty);
+    });
+
+    // Codex: a replacement that started during the handoff and was still
+    // running when it ended saw the profile as no longer wiped.
+    test('a replacement outliving the handoff leaves its meal out', () async {
+      healthRepo.identity = false;
+      final sibling = edit(testIntake, id: 'b1');
+      diary.optIn['b'] = true;
+      diary.diaries['a'] = [testIntake];
+      diary.ledgers['a'] = {testIntake.id: mealDate};
+      diary.diaries['b'] = [sibling];
+      diary.ledgers['b'] = {};
+      diary.clearStarted = Completer<void>();
+      diary.clearGate = Completer<void>();
+      healthRepo.windowDeleteStarted = Completer<void>();
+      healthRepo.windowDeleteGate = Completer<void>();
+
+      final forget = usecase.forgetProfile('a');
+      await diary.clearStarted!.future;
+      final export = usecase.exportIntake(sibling, profileId: 'b');
+      await healthRepo.windowDeleteStarted!.future;
+      diary.clearGate!.complete();
+      await forget;
+      healthRepo.windowDeleteGate!.complete();
+      await export;
       await usecase.replayPendingWindows();
 
       final lastClear = healthRepo.ops.lastIndexOf('delete window $mealDate');

@@ -85,7 +85,8 @@ class ExportMealIntakeUsecase {
   /// Profiles whose [forgetProfile] has not yet handed its cleanup to the
   /// queue. Work running meanwhile treats them as wiped: it took its
   /// snapshot of [_wipes] after the count went up, so the count alone would
-  /// not tell it.
+  /// not tell it. The count goes up again when the handoff ends, so work
+  /// that started during it still sees the wipe once it is over.
   final Set<String> _wiping = {};
 
   Map<String, int> _wipesNow() => Map.of(_wipes);
@@ -400,6 +401,7 @@ class ExportMealIntakeUsecase {
         stackTrace,
       );
     } finally {
+      _wipes[profileId] = (_wipes[profileId] ?? 0) + 1;
       _wiping.remove(profileId);
     }
   }
