@@ -75,9 +75,9 @@ class _GatedCustomMealDataSource extends CustomMealDataSource {
   final gate = Completer<void>();
 
   @override
-  Future<void> saveCustomMeal(MealDBO mealDBO) async {
+  Future<void> saveCustomMeal(MealDBO mealDBO, {MealDBO? previous}) async {
     await gate.future;
-    await super.saveCustomMeal(mealDBO);
+    await super.saveCustomMeal(mealDBO, previous: previous);
   }
 }
 
@@ -389,6 +389,59 @@ void main() {
       expect(favourites['c']!.isEmpty, isTrue);
     },
   );
+
+  group('an edit that takes over another meal\'s barcode (#1403)', () {
+    test('the edited meal replaces its entry and its favourite follows; the '
+        'dropped meal\'s favourite resolves to the edited one', () async {
+      final library = CustomMealDataSource(provider);
+      // P has no barcode; X already has the one the edit gives P.
+      final p = _meal('p', name: 'Porridge');
+      final x = _meal('4006381333931', name: 'Muesli', kcal: 90);
+      await library.saveCustomMeal(MealDBO.fromMealEntity(p));
+      await library.saveCustomMeal(MealDBO.fromMealEntity(x));
+      final earlier = starredAt.subtract(const Duration(days: 1));
+      // A stars both, X first; B stars only X; C only P.
+      await favourites['a']!.put('custom:p', _favourite(p, starredAt));
+      await favourites['a']!.put(
+        'custom:4006381333931',
+        _favourite(x, earlier),
+      );
+      await favourites['b']!.put(
+        'custom:4006381333931',
+        _favourite(x, starredAt),
+      );
+      await favourites['c']!.put('custom:p', _favourite(p, starredAt));
+      final bloc = EditMealBloc(
+        _FakeGetConfigUsecase(),
+        library,
+        _FakeConfigRepository(),
+        repository,
+      );
+      addTearDown(bloc.close);
+
+      final edited = _meal('4006381333931', name: 'Porridge', kcal: 180);
+      await bloc.saveCustomMeal(edited, previous: p);
+
+      // One library entry, the edited meal, in P's place.
+      expect(customMealBox.values.map((m) => (m.code, m.name)), [
+        ('4006381333931', 'Porridge'),
+      ]);
+      for (final id in ['a', 'b', 'c']) {
+        expect(favourites[id]!.keys, ['custom:4006381333931'], reason: id);
+      }
+      expect(favourites['a']!.get('custom:4006381333931')!.addedAt, earlier);
+      expect(
+        favourites['c']!.get('custom:4006381333931')!.meal.name,
+        'Porridge',
+      );
+      // B starred the meal that was dropped; its star now shows the meal
+      // that holds the barcode.
+      provider.activate('b');
+      final shown = await repository.getAllFavourites();
+      expect(shown.single.name, 'Porridge');
+      expect(shown.single.nutriments.energyKcal100, 180);
+    });
+  });
 
   group('a star tapped just before a profile switch', () {
     test('lands on the profile it was tapped on', () async {

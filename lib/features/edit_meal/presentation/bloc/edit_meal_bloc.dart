@@ -5,7 +5,9 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/utils/barcode_validator.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -31,6 +33,24 @@ part 'edit_meal_event.dart';
 double factorTo100gFromBase(String baseQuantity) {
   final parsed = double.tryParse(baseQuantity);
   return (parsed != null && parsed.isFinite && parsed > 0) ? (100 / parsed) : 1;
+}
+
+/// The code an edited meal is saved with, given the Barcode field.
+///
+/// `null` keeps the old code. A typed or scanned barcode replaces it. An
+/// empty string is a blanked field: it clears the barcode a custom meal had,
+/// and the meal gets a fresh internal id in its place, the kind
+/// `MealEntity.empty()` gives a new custom meal, so it stays identified by a
+/// code rather than falling back to its name. A code the field never showed
+/// (an internal id) and an Open Food Facts or FDC product's code are kept.
+String? codeAfterEdit(MealEntity oldMealEntity, String? barcodeOverride) {
+  final oldCode = oldMealEntity.code;
+  if (barcodeOverride == null) return oldCode;
+  if (barcodeOverride.isNotEmpty) return barcodeOverride;
+  final hadBarcode = oldMealEntity.source == MealSourceEntity.custom &&
+      oldCode != null &&
+      isBarcodeFormatValid(oldCode);
+  return hadBarcode ? IdGenerator.getUniqueID() : oldCode;
 }
 
 /// Custom meal form view mode (#232). Persisted on ConfigDBO so the form
@@ -138,7 +158,7 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       // from the originating OFF/FDC record, but only when the override
       // was actually supplied. Empty-string is treated as "clear" so a
       // user can erase a stored code by blanking the field.
-      code: barcodeOverride ?? oldMealEntity.code,
+      code: codeAfterEdit(oldMealEntity, barcodeOverride),
       name: nameText.toStringOrNull(),
       brands: brandsText.toStringOrNull(),
       url: oldMealEntity.url,
@@ -167,9 +187,14 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
 
   /// Persist custom meal template so it appears in Recent Meals before first log (#267)
   ///
-  /// [previous] is the meal as it was before the edit. A favourite on it, in
-  /// any profile, takes the edited version, and moves to its key when the
-  /// edit changed its identity (a new barcode), so it stays starred (#1307).
+  /// [previous] is the meal as it was before the edit: its library entry is
+  /// the one replaced, even when the edit changed the barcode or the name
+  /// the meal is found by (#1403). A favourite on it, in any profile, takes
+  /// the edited version, and moves to its key when the edit changed its
+  /// identity, so it stays starred (#1307). Another library entry that
+  /// already had the new identity is dropped by the save; a favourite on it
+  /// is keyed by that identity, so it now resolves to the edited meal, and a
+  /// profile that starred both keeps one entry, starred at the earlier time.
   ///
   /// The save and the move run as one step under the tracked-day lock, so a
   /// profile switch cannot land between them and swap the favourites box
@@ -180,7 +205,10 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     MealEntity mealEntity, {
     MealEntity? previous,
   }) => withTrackedDayLock(() async {
-    await _customMealDataSource.saveCustomMeal(MealDBO.fromMealEntity(mealEntity));
+    await _customMealDataSource.saveCustomMeal(
+      MealDBO.fromMealEntity(mealEntity),
+      previous: previous == null ? null : MealDBO.fromMealEntity(previous),
+    );
     if (previous != null) {
       await _favouriteMealRepository.moveFavourite(previous, mealEntity);
     }

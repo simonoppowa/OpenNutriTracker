@@ -114,7 +114,8 @@ Widget app(Widget child, {bool kj = false, double scale = 1}) =>
 class _Meals extends Fake implements CustomMealDataSource {
   final saved = <MealDBO>[];
   @override
-  Future<void> saveCustomMeal(MealDBO value) async => saved.add(value);
+  Future<void> saveCustomMeal(MealDBO value, {MealDBO? previous}) async =>
+      saved.add(value);
 }
 
 class _Barcode extends Fake implements SearchProductByBarcodeUseCase {
