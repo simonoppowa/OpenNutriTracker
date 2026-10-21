@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
@@ -132,6 +133,14 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     super.dispose();
   }
 
+  /// The fibre reference the Diary panel uses when no goal is set: the
+  /// IOM value for the user's age and gender, 30 g without a profile.
+  double _fibreDefaultForUser() => DailyNutrientPanel.defaultReferenceFor(
+        NutrientPanelKeys.fiber,
+        _user,
+        DailyNutrientPanel.defaultFibreRefG,
+      );
+
   /// Iron RDA splits female 18 / male 8 (mg). 14 mg is the
   /// gender-neutral midpoint we pick for non-binary / unknown,
   /// matching the panel's existing fallback.
@@ -164,9 +173,19 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   String _formatGoal(double value) =>
       value >= 10 ? value.round().toString() : value.toStringAsFixed(1);
 
+  /// Whole-step rows show a whole number unless the value itself is
+  /// fractional, as the averaged non-binary fibre reference is (31.5 g /
+  /// 25.5 g), so the field never disagrees with the slider.
+  static String _formatWholeStep(double value) =>
+      value == value.roundToDouble()
+          ? value.round().toString()
+          : value.toStringAsFixed(1);
+
   Future<void> _load() async {
     final user = await widget.profileBloc.getUser();
-    final today = await widget.settingsBloc.getTodayTrackedDay(DateTime.now());
+    final today = await widget.settingsBloc.getTodayTrackedDay(
+      await widget.settingsBloc.getCurrentLogicalDay(),
+    );
     if (!mounted) return;
     setState(() {
       _user = user;
@@ -188,7 +207,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   void _syncControllers() {
     _editedControllers.clear();
     _fibreController.text =
-        (_fibre ?? DailyNutrientPanel.defaultFibreRefG).round().toString();
+        _formatWholeStep(_fibre ?? _fibreDefaultForUser());
     _satFatController.text =
         (_satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG)
             .round()
@@ -262,10 +281,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     // Make sure today's tracked-day row exists before we write per-
     // nutrient values onto it. updateTrackedDay creates the row from
     // current macro goals if missing, or refreshes the macro columns
-    // on the existing one.
-    await widget.settingsBloc.updateTrackedDay(DateTime.now());
+    // on the existing one. Both go to the logical day, resolved once
+    // (#1360).
+    final day = await widget.settingsBloc.getCurrentLogicalDay();
+    await widget.settingsBloc.updateTrackedDay(day);
     await widget.settingsBloc.setTodayNutrientGoals(
-      DateTime.now(),
+      day,
       fibreGoal: _fibre,
       satFatGoal: _satFat,
       sugarsGoal: _sugars,
@@ -338,13 +359,15 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                 _NutrientRow(
                   label: s.settingsFibreGoalLabel,
                   description: s.settingsFibreGoalDescription,
-                  value: _fibre ?? DailyNutrientPanel.defaultFibreRefG,
+                  value: _fibre ?? _fibreDefaultForUser(),
                   min: _fibreMin,
                   max: _fibreMax,
                   divisions: _fibreDivisions,
                   onTextEdited: _editedControllers.add,
                   controller: _fibreController,
                   identifier: 'nutrient-fibre-slider',
+                  // Whole steps, but the non-binary default is fractional.
+                  decimalInput: true,
                   onSliderChanged: (v) => setState(() => _fibre = v),
                   onTextSubmitted: () => _applyText(
                       _fibreController, _fibreMin, _fibreMax, (v) => _fibre = v),
@@ -524,9 +547,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     final parsed = double.tryParse(controller.text);
     if (parsed == null) return;
     final clamped = parsed.clamp(min, max).toDouble();
-    setState(() => setter(clamped));
-    controller.text =
-        decimalStep ? clamped.toStringAsFixed(1) : clamped.round().toString();
+    final text =
+        decimalStep ? clamped.toStringAsFixed(1) : _formatWholeStep(clamped);
+    // Keep the goal at what the field shows, so 31.52 is held as 31.5.
+    // This now runs once per edit, so no second pass re-parses the text.
+    setState(() => setter(double.parse(text)));
+    controller.text = text;
   }
 }
 
@@ -541,6 +567,9 @@ class _NutrientRow extends StatelessWidget {
   final String identifier;
   final String unit;
   final bool decimalStep;
+
+  /// Accept a decimal point in the field on a whole-step row.
+  final bool decimalInput;
   final ValueChanged<double> onSliderChanged;
   final VoidCallback onTextSubmitted;
   final ValueChanged<TextEditingController> onTextEdited;
@@ -559,6 +588,7 @@ class _NutrientRow extends StatelessWidget {
     required this.onTextEdited,
     this.unit = 'g',
     this.decimalStep = false,
+    this.decimalInput = false,
   });
 
   @override
@@ -589,10 +619,16 @@ class _NutrientRow extends StatelessWidget {
                   child: TextField(
                     controller: controller,
                     keyboardType: TextInputType.numberWithOptions(
-                      decimal: decimalStep,
+                      decimal: decimalStep || decimalInput,
                     ),
-                    inputFormatters: decimalStep
+                    inputFormatters: decimalStep || decimalInput
                         ? [
+                            // Accept a comma from comma-decimal keyboards and
+                            // normalise it to a period, so the field always
+                            // holds what double.tryParse reads (#1387).
+                            ...CustomTextInputFormatter.doubleOnly(
+                              maxDecimals: 1,
+                            ),
                             FilteringTextInputFormatter.allow(
                               RegExp(r'^\d*\.?\d*'),
                             ),
