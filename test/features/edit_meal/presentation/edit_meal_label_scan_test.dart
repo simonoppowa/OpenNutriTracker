@@ -28,6 +28,7 @@ import '../../../helpers/test_l10n.dart';
 void main() {
   final getIt = GetIt.instance;
   var photosTaken = 0;
+  final deletedPhotos = <String>[];
 
   void registerScanner(List<OcrLine> lines) {
     getIt.registerLazySingleton<NutritionLabelScanner>(
@@ -35,15 +36,20 @@ void main() {
         _FakeRecognizer(lines),
         pickImage: (_) async {
           photosTaken++;
-          return '/tmp/label.jpg';
+          return '/tmp/label$photosTaken.jpg';
         },
-        deletePhoto: (_) async {},
+        deletePhoto: (path) async => deletedPhotos.add(path),
       ),
     );
   }
 
   setUp(() {
     photosTaken = 0;
+    deletedPhotos.clear();
+    getIt.allowReassignment = true;
+    getIt.registerLazySingleton<OffContributionFlow>(
+      () => _RecordingFlow([], ready: false),
+    );
     _FakeCustomMealDataSource.saved.clear();
     getIt.registerFactory<EditMealBloc>(
       () => EditMealBloc(
@@ -389,6 +395,85 @@ void main() {
     expect(offers, isEmpty);
   });
 
+  group('the photo of the table (#112)', () {
+    Future<_RecordingFlow> scan(
+      WidgetTester tester, {
+      required bool uploadsSetUp,
+    }) async {
+      final flow = _RecordingFlow([], ready: uploadsSetUp);
+      getIt.registerLazySingleton<OffContributionFlow>(() => flow);
+      registerScanner(label);
+      await pumpEditMeal(
+        tester,
+        EditMealScreenArguments(
+          DateTime(2026, 10, 19),
+          MealEntity.empty(),
+          IntakeTypeEntity.snack,
+          false,
+          barcode: '4056489123453',
+          scanLabelOnOpen: true,
+        ),
+      );
+      await tester.tap(find.text(l10nEn.labelScanCamera));
+      await tester.pumpAndSettle();
+      return flow;
+    }
+
+    Future<void> save(WidgetTester tester) async {
+      await tester.enterText(
+        find.descendant(
+          of: find.ancestor(
+            of: find.text(l10nEn.mealNameLabel),
+            matching: find.byType(TextFormField),
+          ),
+          matching: find.byType(TextField),
+        ),
+        'Studenten-Futter',
+      );
+      await tester.tap(find.text(l10nEn.buttonSaveLabel));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('with uploads set up it goes to the upload offer', (
+      tester,
+    ) async {
+      final flow = await scan(tester, uploadsSetUp: true);
+      expect(deletedPhotos, isEmpty);
+
+      await save(tester);
+
+      expect(flow.photos.single?.fileName, 'label1.jpg');
+      expect(deletedPhotos, isEmpty);
+    });
+
+    testWidgets('without uploads it is deleted right after the scan', (
+      tester,
+    ) async {
+      await scan(tester, uploadsSetUp: false);
+
+      expect(deletedPhotos, ['/tmp/label1.jpg']);
+    });
+
+    testWidgets('leaving without saving deletes it', (tester) async {
+      await scan(tester, uploadsSetUp: true);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      expect(deletedPhotos, ['/tmp/label1.jpg']);
+    });
+
+    testWidgets('a second scan deletes the first photo', (tester) async {
+      await scan(tester, uploadsSetUp: true);
+
+      await tester.tap(find.bySemanticsIdentifier('edit-meal-scan-label'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.labelScanCamera));
+      await tester.pumpAndSettle();
+
+      expect(deletedPhotos, ['/tmp/label1.jpg']);
+    });
+  });
+
   group('barcode check digit on save', () {
     Future<void> saveWithBarcode(WidgetTester tester, String code) async {
       final meal = MealEntity.empty();
@@ -494,13 +579,22 @@ class _FakeCacheManager implements CacheManager {
 
 class _RecordingFlow implements OffContributionFlow {
   final List<(String, double?)> offers;
+  final bool ready;
+  final photos = <LabelPhoto?>[];
 
-  _RecordingFlow(this.offers);
+  _RecordingFlow(this.offers, {this.ready = true});
+
+  @override
+  Future<bool> isReady() async => ready;
 
   @override
   Future<void> offer(
     BuildContext context,
     String barcode,
-    MealNutrimentsEntity nutriments,
-  ) async => offers.add((barcode, nutriments.energyKcal100));
+    MealNutrimentsEntity nutriments, {
+    LabelPhoto? photo,
+  }) async {
+    offers.add((barcode, nutriments.energyKcal100));
+    photos.add(photo);
+  }
 }

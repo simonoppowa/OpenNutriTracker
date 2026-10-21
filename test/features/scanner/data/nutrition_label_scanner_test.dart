@@ -98,4 +98,62 @@ void main() {
     );
     expect(photo.existsSync(), isFalse);
   });
+
+  group('keeping the photo for an upload (#112)', () {
+    NutritionLabelScanner scanner(List<OcrLine> lines, {Object? error}) =>
+        NutritionLabelScanner(
+          _FakeRecognizer(
+            lines,
+            error: error is TextRecognitionException ? error : null,
+          ),
+          pickImage: (_) async => photo.path,
+        );
+
+    test('a table with values hands the photo over', () async {
+      final scan = await scanner([
+        _line('Brennwert 1046 kJ / 250 kcal', 0.1),
+      ]).scanKeepingPhoto(ImageSource.camera);
+
+      expect(scan!.values.energyKcal, 250);
+      expect(photo.existsSync(), isTrue);
+      expect(scan.photo!.fileName, 'label.jpg');
+      expect(await scan.photo!.read(), [1, 2, 3]);
+
+      await scan.photo!.delete();
+      expect(photo.existsSync(), isFalse);
+    });
+
+    test('a photo without values is deleted at once', () async {
+      final scan = await scanner([
+        _line('Zutaten: Wasser, Zucker', 0.1),
+      ]).scanKeepingPhoto(ImageSource.camera);
+
+      expect(scan!.values.isEmpty, isTrue);
+      expect(scan.photo, isNull);
+      expect(photo.existsSync(), isFalse);
+    });
+
+    test('a failed recognition deletes the photo', () async {
+      await expectLater(
+        scanner(
+          const [],
+          error: const TextRecognitionException(
+            TextRecognitionFailure.unreadableImage,
+          ),
+        ).scanKeepingPhoto(ImageSource.camera),
+        throwsA(isA<TextRecognitionException>()),
+      );
+      expect(photo.existsSync(), isFalse);
+    });
+
+    test('deleting twice does no harm', () async {
+      final scan = await scanner([
+        _line('Brennwert 1046 kJ / 250 kcal', 0.1),
+      ]).scanKeepingPhoto(ImageSource.camera);
+
+      await scan!.photo!.delete();
+      await scan.photo!.delete();
+      expect(photo.existsSync(), isFalse);
+    });
+  });
 }

@@ -123,6 +123,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
   /// codes, which name other products in other shops (#83).
   bool _labelScanned = false;
 
+  /// The photo of the last scanned table, kept for the Open Food Facts
+  /// upload offer when uploads are set up (#112); deleted when replaced or
+  /// when the screen closes without handing it to the offer.
+  LabelPhoto? _labelPhoto;
+
   @override
   void initState() {
     super.initState();
@@ -248,6 +253,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _carbsTextController.dispose();
     _fatTextController.dispose();
     _proteinTextController.dispose();
+    unawaited(_labelPhoto?.delete());
     // Do not close _editMealBloc here if provided as a singleton by locator.
     super.dispose();
   }
@@ -741,7 +747,22 @@ class _EditMealScreenState extends State<EditMealScreen> {
     String? message;
     var filled = false;
     try {
-      final values = await locator<NutritionLabelScanner>().scan(source);
+      final scanner = locator<NutritionLabelScanner>();
+      final NutritionLabelValues? values;
+      if (await locator<OffContributionFlow>().isReady()) {
+        final scan = await scanner.scanKeepingPhoto(source);
+        values = scan?.values;
+        if (scan?.photo case final photo?) {
+          if (mounted) {
+            unawaited(_labelPhoto?.delete());
+            _labelPhoto = photo;
+          } else {
+            await photo.delete();
+          }
+        }
+      } else {
+        values = await scanner.scan(source);
+      }
       if (!mounted || values == null) return;
       if (values.isEmpty) {
         message = s.labelScanNothingFound;
@@ -1109,8 +1130,14 @@ class _EditMealScreenState extends State<EditMealScreen> {
           rawBarcode.isNotEmpty &&
           !isStoreInternalBarcode(rawBarcode)) {
         try {
-          await locator<OffContributionFlow>()
-              .offer(context, rawBarcode, newMealEntity.nutriments);
+          final photo = _labelPhoto;
+          _labelPhoto = null;
+          await locator<OffContributionFlow>().offer(
+            context,
+            rawBarcode,
+            newMealEntity.nutriments,
+            photo: photo,
+          );
         } catch (error, stackTrace) {
           log.warning('Open Food Facts upload offer failed', error, stackTrace);
         }

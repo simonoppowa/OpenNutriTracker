@@ -91,11 +91,54 @@ class OffContributionClient {
     }
   }
 
+  /// Sends the photo of a nutrition table as [barcode]'s German nutrition
+  /// image (#112) through the image upload form
+  /// (`/cgi/product_image_upload.pl`). Open Food Facts answers
+  /// "status not ok" with an image id when it kept the photo but did not
+  /// make it the shown one; that counts as uploaded. Throws an
+  /// [OffContributionException].
+  Future<void> uploadNutritionPhoto(
+    OffContributionSettings settings,
+    String barcode,
+    List<int> bytes,
+    String fileName,
+  ) async {
+    const imageField = 'nutrition_de';
+    final request =
+        http.MultipartRequest(
+            'POST',
+            Uri.https(_host(settings), '/cgi/product_image_upload.pl'),
+          )
+          ..fields.addAll({
+            'code': barcode,
+            'user_id': settings.userId,
+            'password': settings.password,
+            'imagefield': imageField,
+          })
+          ..files.add(
+            http.MultipartFile.fromBytes(
+              'imgupload_$imageField',
+              bytes,
+              filename: fileName,
+            ),
+          );
+    final response = await _send(request, settings);
+    _throwOnServerError(response);
+    final body = _decode(response);
+    final kept =
+        body is Map<String, dynamic> &&
+        (body['status'] == 'status ok' ||
+            (int.tryParse('${body['imgid']}') ?? 0) > 0);
+    if (!kept) {
+      throw const OffContributionException(OffContributionFailure.rejected);
+    }
+  }
+
   String _host(OffContributionSettings settings) =>
       settings.useTestServer ? _testHost : _productionHost;
 
   Future<http.Response> _send(
-    http.Request request,
+    http.BaseRequest request,
     OffContributionSettings settings,
   ) async {
     request.headers['User-Agent'] = _userAgent;
