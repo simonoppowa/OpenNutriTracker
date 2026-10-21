@@ -340,6 +340,35 @@ void main() {
     expect(storedIntake(otherIntakeBox, 'theirs').meal.code, retried.code);
   });
 
+  test('a Save that fails leaves every entry where it was, so leaving the '
+      'editor orphans none', () async {
+    final oats = customMeal(code: 'uuid-oats', name: 'Oats');
+    await customMealBox.add(MealDBO.fromMealEntity(oats));
+    await intakeBox.add(intakeOf('mine', oats));
+    final edited = customMeal(code: '4006381333931', name: 'Oats');
+
+    // The other profile's box cannot be opened.
+    db.failNextScopedOpen = true;
+    await expectLater(
+      bloc.saveCustomMeal(edited, previous: oats),
+      throwsA(isA<StateError>()),
+    );
+    expect(storedIntake(intakeBox, 'mine').meal.code, 'uuid-oats');
+    expect(customMealBox.values.single.code, 'uuid-oats');
+
+    // The other profile's box opens, but writing to it fails after the
+    // active profile's entry has moved.
+    await otherIntakeBox.add(intakeOf('theirs', oats));
+    db.scopedIntakeBoxes['_partner'] = _WriteFailingBox(otherIntakeBox);
+    await expectLater(
+      bloc.saveCustomMeal(edited, previous: oats),
+      throwsA(isA<StateError>()),
+    );
+    expect(storedIntake(intakeBox, 'mine').meal.code, 'uuid-oats');
+    expect(storedIntake(otherIntakeBox, 'theirs').meal.code, 'uuid-oats');
+    expect(customMealBox.values.single.code, 'uuid-oats');
+  });
+
   test('waits for a running tracked-day write before moving entries', () async {
     final banana = customMeal(code: null, name: 'Banana');
     await customMealBox.add(MealDBO.fromMealEntity(banana));
@@ -366,7 +395,7 @@ void main() {
 /// provider opens them on demand.
 class _ProfilesHiveDBProvider extends FakeHiveDBProvider {
   final Box<ProfileDBO> _profiles;
-  final Map<String, Box<IntakeDBO>> _scopedIntakeBoxes;
+  final Map<String, Box<IntakeDBO>> scopedIntakeBoxes;
   final openedScopedBoxes = <(String, String)>[];
 
   /// Makes the next [openScopedBox] fail, as a disk error would.
@@ -380,7 +409,7 @@ class _ProfilesHiveDBProvider extends FakeHiveDBProvider {
     super.intakeBox,
     super.trackedDayBox,
   }) : _profiles = profiles,
-       _scopedIntakeBoxes = scopedIntakeBoxes,
+       scopedIntakeBoxes = Map.of(scopedIntakeBoxes),
        super(activeProfileId: 'me');
 
   @override
@@ -394,7 +423,7 @@ class _ProfilesHiveDBProvider extends FakeHiveDBProvider {
       throw StateError('cannot open $baseName$boxSuffix');
     }
     openedScopedBoxes.add((baseName, boxSuffix));
-    return _scopedIntakeBoxes[boxSuffix]! as Box<E>;
+    return scopedIntakeBoxes[boxSuffix]! as Box<E>;
   }
 
   // The test keeps reading the box afterwards, so record the close instead.
@@ -402,6 +431,24 @@ class _ProfilesHiveDBProvider extends FakeHiveDBProvider {
   Future<void> closeScopedBox<E>(String baseName, String boxSuffix) async {
     closedScopedBoxes.add((baseName, boxSuffix));
   }
+}
+
+/// Reads from [_box], but every write fails, as on a full disk.
+class _WriteFailingBox implements Box<IntakeDBO> {
+  final Box<IntakeDBO> _box;
+
+  _WriteFailingBox(this._box);
+
+  @override
+  Map<dynamic, IntakeDBO> toMap() => _box.toMap();
+
+  @override
+  Future<void> put(dynamic key, IntakeDBO value) async =>
+      throw StateError('cannot write $key');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {

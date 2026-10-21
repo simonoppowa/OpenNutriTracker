@@ -209,9 +209,9 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   /// (#1417). A [previous] the library does not hold — the placeholder a new
   /// meal starts from — has no entries, so nothing is searched.
   ///
-  /// The entries move first and the library entry is replaced after, so a
-  /// Save that failed part-way can be retried: [previous] is still in the
-  /// library, and moving the entries already moved again changes nothing.
+  /// The entries move first and the library entry is replaced after, and a
+  /// move that fails puts back what it moved, so a failed Save leaves the
+  /// meal and its entries as they were, and a retry starts over.
   ///
   /// The save and the move run as one step under the tracked-day lock, so
   /// no profile switch lands between them and swaps the intake box mid-way.

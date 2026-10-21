@@ -189,6 +189,11 @@ class IntakeDataSource {
   /// own entries, so an edit in one profile changes the meal behind the
   /// others' entries too (#1417). Run it under the tracked-day lock, which
   /// excludes a profile switch, so the active box is the same throughout.
+  ///
+  /// All or nothing: every profile's box is opened before any entry is
+  /// rewritten, and a write that fails puts back the entries already
+  /// rewritten, so a failed move leaves no entry on an identity the library
+  /// does not have.
   Future<int> moveCustomMealInEveryProfile({
     required String fromMealKey,
     required MealDBO toMeal,
@@ -214,36 +219,59 @@ class IntakeDataSource {
       dataVersion: logged.dataVersion,
     );
 
-    var count = (await _rewriteCustomMeal(
-      _intakeBox,
-      fromMealKey,
-      moved,
-    )).length;
-    for (final profile in _db.profileBox.values) {
-      if (profile.id == _db.activeProfileId) continue;
-      final box = await _db.openScopedBox<IntakeDBO>(
-        HiveDBProvider.intakeBoxName,
-        profile.boxSuffix,
-      );
+    final suffixes = [
+      for (final profile in _db.profileBox.values)
+        if (profile.id != _db.activeProfileId) profile.boxSuffix,
+    ];
+    final opened = <String>[];
+    try {
+      final boxes = [_intakeBox];
+      for (final suffix in suffixes) {
+        boxes.add(
+          await _db.openScopedBox<IntakeDBO>(
+            HiveDBProvider.intakeBoxName,
+            suffix,
+          ),
+        );
+        opened.add(suffix);
+      }
+      final undo = <Future<void> Function()>[];
       try {
-        count += (await _rewriteCustomMeal(box, fromMealKey, moved)).length;
-      } finally {
+        var count = 0;
+        for (final box in boxes) {
+          count += (await _rewriteCustomMeal(
+            box,
+            fromMealKey,
+            moved,
+            undo: undo,
+          )).length;
+        }
+        return count;
+      } catch (_) {
+        for (final step in undo.reversed) {
+          await step();
+        }
+        rethrow;
+      }
+    } finally {
+      for (final suffix in opened) {
         await _db.closeScopedBox<IntakeDBO>(
           HiveDBProvider.intakeBoxName,
-          profile.boxSuffix,
+          suffix,
         );
       }
     }
-    return count;
   }
 
   /// Gives every custom-meal intake in [box] logged as [fromMealKey] the
-  /// meal [rewrite] makes of its own, keeping the rest of the intake.
+  /// meal [rewrite] makes of its own, keeping the rest of the intake. Each
+  /// rewrite adds a step to [undo] that puts the intake back.
   static Future<List<(IntakeDBO, IntakeDBO)>> _rewriteCustomMeal(
     Box<IntakeDBO> box,
     String fromMealKey,
-    MealDBO Function(MealDBO logged) rewrite,
-  ) async {
+    MealDBO Function(MealDBO logged) rewrite, {
+    List<Future<void> Function()>? undo,
+  }) async {
     final rewrites = <(IntakeDBO, IntakeDBO)>[];
     final entries = box.toMap().entries.toList();
     for (final entry in entries) {
@@ -260,6 +288,7 @@ class IntakeDataSource {
         dateTime: dbo.dateTime,
       );
       await box.put(entry.key, updated);
+      undo?.add(() => box.put(entry.key, dbo));
       rewrites.add((dbo, updated));
     }
     return rewrites;
