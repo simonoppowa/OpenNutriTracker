@@ -82,9 +82,16 @@ class ExportMealIntakeUsecase {
   /// pending windows the wipe may have added.
   final Map<String, int> _wipes = {};
 
+  /// Profiles whose [forgetProfile] has not yet handed its cleanup to the
+  /// queue. Work running meanwhile treats them as wiped: it took its
+  /// snapshot of [_wipes] after the count went up, so the count alone would
+  /// not tell it.
+  final Set<String> _wiping = {};
+
   Map<String, int> _wipesNow() => Map.of(_wipes);
 
   bool _wipedSince(String profileId, Map<String, int> before) =>
+      _wiping.contains(profileId) ||
       (_wipes[profileId] ?? 0) != (before[profileId] ?? 0);
 
   bool _anyWipeSince(Map<String, int> before) =>
@@ -340,6 +347,7 @@ class ExportMealIntakeUsecase {
     // Work already running past that point leaves this profile alone from
     // here on.
     _wipes[profileId] = (_wipes[profileId] ?? 0) + 1;
+    _wiping.add(profileId);
     try {
       final byId = _healthExportRepository.hasRecordIdentity;
       // A pending write must not land now, but on Health Connect it may
@@ -391,6 +399,8 @@ class ExportMealIntakeUsecase {
         error,
         stackTrace,
       );
+    } finally {
+      _wiping.remove(profileId);
     }
   }
 

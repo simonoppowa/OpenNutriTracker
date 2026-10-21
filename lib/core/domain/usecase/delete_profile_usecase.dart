@@ -37,20 +37,23 @@ class DeleteProfileUsecase {
     // Read under the diary writers' lock, and held through the switch away:
     // a write still under way finishes, and requests its export, before the
     // read accounts for it, and one queued behind is dropped by the switch
-    // rather than writing to the profile after the read.
+    // rather than writing to the profile after the read. Held until the
+    // profile is gone, too: a copy into it from another profile has no
+    // switch to drop it, and must not write to it between the read and the
+    // deletion.
     await withTrackedDayLock(() async {
       await _exportMealIntakeUsecase?.forgetProfile(profile.id);
       if (_hiveDBProvider.activeProfileId == profile.id) {
         final fallback = all.firstWhere((p) => p.id != profile.id);
         await _switchProfileUsecase.switchProfile(fallback);
       }
-    });
 
-    await _hiveDBProvider.deleteProfileBoxes(profile.boxSuffix);
-    final imagePath = profile.imagePath;
-    if (imagePath != null) {
-      await UserImageStorage.delete(imagePath);
-    }
-    await _profileRepository.deleteProfile(profile.id);
+      await _hiveDBProvider.deleteProfileBoxes(profile.boxSuffix);
+      final imagePath = profile.imagePath;
+      if (imagePath != null) {
+        await UserImageStorage.delete(imagePath);
+      }
+      await _profileRepository.deleteProfile(profile.id);
+    });
   }
 }

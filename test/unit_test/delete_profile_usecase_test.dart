@@ -99,4 +99,22 @@ void main() {
 
     expect(_steps.take(3), ['write', 'forget a', 'switch to b']);
   });
+
+  // Codex: a copy into an inactive profile, waiting on the writers' lock,
+  // ran between the read and the deletion, and nothing switches it away.
+  test(
+    'a copy waiting on the lock runs only once the profile is gone',
+    () async {
+      final deleting = usecase.deleteProfile(_profile('b'));
+      final copying = withTrackedDayLock(() async => _steps.add('copy'));
+      await Future.wait([deleting, copying]);
+
+      expect(_steps, [
+        'forget b',
+        'delete boxes suffix_b',
+        'unregister b',
+        'copy',
+      ]);
+    },
+  );
 }

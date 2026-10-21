@@ -76,16 +76,18 @@ class _FakeHealth extends Fake implements Health {
   }
 }
 
-/// Records the client record version of each meal write. Caught in
-/// [noSuchMethod] rather than overridden, so the plugin's long parameter
-/// list is not restated here.
+/// Records the client record version and trans fat of each meal write.
+/// Caught in [noSuchMethod] rather than overridden, so the plugin's long
+/// parameter list is not restated here.
 class _VersionRecordingHealth extends _FakeHealth {
   final versions = <double?>[];
+  final transFats = <double?>[];
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.memberName == #writeMeal) {
       versions.add(invocation.namedArguments[#clientRecordVersion] as double?);
+      transFats.add(invocation.namedArguments[#fatTransMonoenoic] as double?);
       return Future.value(true);
     }
     return super.noSuchMethod(invocation);
@@ -517,5 +519,27 @@ void main() {
 
     expect(health.versions, hasLength(2));
     expect(health.versions[1]!, greaterThan(health.versions[0]!));
+  });
+
+  // #1393 review: the disclosure promises the types of fat, and Health
+  // Connect has a trans fat field.
+  test('trans fat is written with the meal', () async {
+    final health = _VersionRecordingHealth();
+    final service = HealthPackageService(
+      health,
+      workoutReader: _FakeWorkoutReader(),
+      platform: HealthTargetPlatform.android,
+    );
+
+    await service.writeMeal(
+      ExternalMealIntake(
+        id: 'ont_intake_a',
+        mealTypeName: 'LUNCH',
+        dateTime: DateTime(2026, 6, 15, 12, 30),
+        fatTrans: 0.6,
+      ),
+    );
+
+    expect(health.transFats, [0.6]);
   });
 }

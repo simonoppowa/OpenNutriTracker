@@ -189,8 +189,18 @@ class _FakeDiaryRepository extends Fake
     ledgers[profileId] = ledger;
   }
 
+  /// Completes when [clearLedger] is reached.
+  Completer<void>? clearStarted;
+
+  /// While set, [clearLedger] waits for it before clearing.
+  Completer<void>? clearGate;
+
   @override
-  Future<void> clearLedger(String profileId) async => ledgers[profileId] = {};
+  Future<void> clearLedger(String profileId) async {
+    clearStarted?.complete();
+    await clearGate?.future;
+    ledgers[profileId] = {};
+  }
 
   @override
   Future<List<LedgerRecord>> recordsInWindows(
@@ -335,6 +345,7 @@ void main() {
         fat100: 10, // * 1.5 = 15 g
         proteins100: 8, // * 1.5 = 12 g
         saturatedFat100: 2, // * 1.5 = 3 g
+        transFat100: 0.4, // * 1.5 = 0.6 g
         sugars100: 12, // * 1.5 = 18 g
         fiber100: 4, // * 1.5 = 6 g
         sodium100: 100, // 100mg * 1.5 = 150mg -> 0.15 g
@@ -362,6 +373,7 @@ void main() {
       expect(external.fatTotal, closeTo(15.0, 0.01));
       expect(external.protein, closeTo(12.0, 0.01));
       expect(external.fatSaturated, closeTo(3.0, 0.01));
+      expect(external.fatTrans, closeTo(0.6, 0.001));
       expect(external.sugar, closeTo(18.0, 0.01));
       expect(external.fiber, closeTo(6.0, 0.01));
       // Milligrams to grams conversion
@@ -1461,6 +1473,37 @@ void main() {
       await Future.wait([held, second]);
       expect(config.pendingWrites, isEmpty);
       expect(healthRepo.writtenMeals.last.id, 'ont_intake_a_intake-123');
+    });
+  });
+
+  // Review round 9 on #1393.
+  group('round 9', () {
+    // Codex: a HealthKit replacement starting while a wipe was still storing
+    // its cleanup took the raised wipe count as its baseline, rewrote the
+    // wiped profile's meal and dropped the wipe's pending window.
+    test('a replacement during a wipe handoff leaves its meal out', () async {
+      healthRepo.identity = false;
+      final sibling = edit(testIntake, id: 'b1');
+      diary.optIn['b'] = true;
+      diary.diaries['a'] = [testIntake];
+      diary.ledgers['a'] = {testIntake.id: mealDate};
+      diary.diaries['b'] = [sibling];
+      diary.ledgers['b'] = {};
+      diary.clearStarted = Completer<void>();
+      diary.clearGate = Completer<void>();
+
+      final forget = usecase.forgetProfile('a');
+      await diary.clearStarted!.future;
+      await usecase.exportIntake(sibling, profileId: 'b');
+      diary.clearGate!.complete();
+      await forget;
+      await usecase.replayPendingWindows();
+
+      final lastClear = healthRepo.ops.lastIndexOf('delete window $mealDate');
+      expect(lastClear, isNonNegative);
+      expect(healthRepo.ops.sublist(lastClear + 1), ['write ont_intake_b_b1']);
+      expect(diary.ledgers['a'], isEmpty);
+      expect(config.pending, isEmpty);
     });
   });
 

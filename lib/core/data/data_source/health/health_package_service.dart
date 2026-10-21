@@ -381,6 +381,7 @@ class HealthPackageService implements HealthService {
         fatSaturated: intake.fatSaturated,
         fatMonounsaturated: intake.fatMonounsaturated,
         fatPolyunsaturated: intake.fatPolyunsaturated,
+        fatTransMonoenoic: intake.fatTrans,
         cholesterol: intake.cholesterol,
         sodium: intake.sodium,
         potassium: intake.potassium,

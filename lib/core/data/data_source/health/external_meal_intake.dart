@@ -72,6 +72,10 @@ class ExternalMealIntake {
   /// Polyunsaturated fat in grams.
   final double? fatPolyunsaturated;
 
+  /// Trans fat in grams. Health Connect only: HealthKit has no type for it,
+  /// and the plugin drops it there.
+  final double? fatTrans;
+
   /// Cholesterol in grams.
   final double? cholesterol;
 
@@ -128,6 +132,7 @@ class ExternalMealIntake {
     this.fatSaturated,
     this.fatMonounsaturated,
     this.fatPolyunsaturated,
+    this.fatTrans,
     this.cholesterol,
     this.sodium,
     this.potassium,
@@ -208,6 +213,7 @@ class ExternalMealIntake {
       fatSaturated: scaleGrams(nutriments.saturatedFat100),
       fatMonounsaturated: scaleGrams(nutriments.monounsaturatedFat100),
       fatPolyunsaturated: scaleGrams(nutriments.polyunsaturatedFat100),
+      fatTrans: scaleGrams(nutriments.transFat100),
       cholesterol: scaleMgToGrams(nutriments.cholesterol100),
       sodium: scaleMgToGrams(nutriments.sodium100),
       potassium: scaleMgToGrams(nutriments.potassium100),
