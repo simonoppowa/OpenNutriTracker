@@ -2,6 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+/// Where the automatic backup goes: the WebDAV server (#77) or a folder
+/// picked in the Files app (#99).
+enum AutoBackupTarget { server, folder }
+
 /// Where and how often the automatic backup goes, and how the last attempt
 /// ended. Lives in secure storage as a whole: the token and the password are
 /// secrets, and none of it belongs in the exported config.
@@ -10,6 +14,7 @@ class AutoBackupSettings {
   static const defaultKeepCount = 14;
 
   final bool enabled;
+  final AutoBackupTarget target;
 
   /// The WebDAV folder, e.g. `https://files.example.org/dav/backups/nutri/`.
   final String folderUrl;
@@ -23,8 +28,14 @@ class AutoBackupSettings {
   final DateTime? lastErrorAt;
   final String? lastError;
 
+  /// The security-scoped bookmark of the picked Files-app folder (base64)
+  /// and the folder's name to show.
+  final String? folderBookmark;
+  final String? folderName;
+
   const AutoBackupSettings({
     this.enabled = false,
+    this.target = AutoBackupTarget.server,
     this.folderUrl = '',
     this.token = '',
     this.password,
@@ -33,13 +44,21 @@ class AutoBackupSettings {
     this.lastSuccessAt,
     this.lastErrorAt,
     this.lastError,
+    this.folderBookmark,
+    this.folderName,
   });
 
-  /// Whether a server is set up well enough to try.
-  bool get isConfigured => folderUrl.isNotEmpty && token.isNotEmpty;
+  /// Whether the chosen target is set up well enough to try.
+  bool get isConfigured => switch (target) {
+    AutoBackupTarget.server => folderUrl.isNotEmpty && token.isNotEmpty,
+    AutoBackupTarget.folder => folderBookmark != null,
+  };
 
   AutoBackupSettings copyWith({
     bool? enabled,
+    AutoBackupTarget? target,
+    String? folderBookmark,
+    String? folderName,
     String? folderUrl,
     String? token,
     String? password,
@@ -52,6 +71,9 @@ class AutoBackupSettings {
     bool clearLastError = false,
   }) => AutoBackupSettings(
     enabled: enabled ?? this.enabled,
+    target: target ?? this.target,
+    folderBookmark: folderBookmark ?? this.folderBookmark,
+    folderName: folderName ?? this.folderName,
     folderUrl: folderUrl ?? this.folderUrl,
     token: token ?? this.token,
     password: clearPassword ? null : (password ?? this.password),
@@ -64,6 +86,9 @@ class AutoBackupSettings {
 
   Map<String, dynamic> toJson() => {
     'enabled': enabled,
+    'target': target.name,
+    'folderBookmark': folderBookmark,
+    'folderName': folderName,
     'folderUrl': folderUrl,
     'token': token,
     'password': password,
@@ -82,6 +107,11 @@ class AutoBackupSettings {
 
     return AutoBackupSettings(
       enabled: json['enabled'] as bool? ?? false,
+      target:
+          AutoBackupTarget.values.asNameMap()[json['target']] ??
+          AutoBackupTarget.server,
+      folderBookmark: json['folderBookmark'] as String?,
+      folderName: json['folderName'] as String?,
       folderUrl: json['folderUrl'] as String? ?? '',
       token: json['token'] as String? ?? '',
       password: json['password'] as String?,

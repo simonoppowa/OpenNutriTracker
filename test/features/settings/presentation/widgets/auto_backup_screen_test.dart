@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/settings/data/auto_backup_settings.dart';
+import 'package:opennutritracker/features/settings/data/backup_folder.dart';
 import 'package:opennutritracker/features/settings/data/webdav_client.dart';
 import 'package:opennutritracker/features/settings/domain/auto_backup_service.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/auto_backup_screen.dart';
@@ -11,6 +12,11 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class _FakeService extends Fake implements AutoBackupService {
   Object? connectionError;
+  Future<String?> Function()? onChooseFolder;
+
+  @override
+  Future<String?> chooseFolder() async => onChooseFolder?.call();
+
   final tested = <AutoBackupSettings>[];
   var backups = <String>[];
   var ranNow = 0;
@@ -90,6 +96,7 @@ void main() {
 
   Future<void> tapButton(WidgetTester tester, String id) async {
     await tester.ensureVisible(find.bySemanticsIdentifier(id));
+    await tester.pump();
     await tester.tap(find.bySemanticsIdentifier(id));
     await tester.pumpAndSettle();
   }
@@ -311,6 +318,82 @@ void main() {
 
       expect(results, isEmpty);
       expect(find.text('The backup could not be restored.'), findsOneWidget);
+    });
+  });
+
+  group('a Files-app folder (#99)', () {
+    testWidgets('choosing the folder target hides the server fields', (
+      tester,
+    ) async {
+      await pumpScreen(tester);
+
+      await tester.tap(find.text('Folder'));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsIdentifier('auto-backup-folder'), findsNothing);
+      expect(find.text('No folder chosen'), findsOneWidget);
+      expect((await store.load()).target, AutoBackupTarget.folder);
+    });
+
+    testWidgets('picking a folder shows its name', (tester) async {
+      service.onChooseFolder = () async {
+        await store.save(
+          (await store.load()).copyWith(
+            target: AutoBackupTarget.folder,
+            folderBookmark: 'bm',
+            folderName: 'NutriTracker Backups',
+          ),
+        );
+        return 'NutriTracker Backups';
+      };
+      await pumpScreen(tester);
+      await tester.tap(find.text('Folder'));
+      await tester.pumpAndSettle();
+
+      await tapButton(tester, 'auto-backup-choose-folder');
+
+      expect(find.text('NutriTracker Backups'), findsOneWidget);
+    });
+
+    testWidgets('a folder that cannot be opened says so', (tester) async {
+      await store.save(
+        const AutoBackupSettings(
+          target: AutoBackupTarget.folder,
+          folderBookmark: 'bm',
+          folderName: 'Backups',
+        ),
+      );
+      service.connectionError = const BackupFolderException('access_denied');
+      await pumpScreen(tester);
+
+      await tapButton(tester, 'auto-backup-test');
+
+      expect(
+        find.text('The connection failed: the folder could not be opened'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('back up now ignores the hidden server address', (
+      tester,
+    ) async {
+      await store.save(
+        const AutoBackupSettings(
+          target: AutoBackupTarget.folder,
+          folderBookmark: 'bm',
+          folderName: 'Backups',
+        ),
+      );
+      await pumpScreen(tester);
+      await tester.tap(find.text('Server (WebDAV)'));
+      await tester.pumpAndSettle();
+      await fillIn(tester, folder: 'http://not-https.example.org/');
+      await tester.tap(find.text('Folder'));
+      await tester.pumpAndSettle();
+
+      await tapButton(tester, 'auto-backup-now');
+
+      expect(service.ranNow, 1);
     });
   });
 }

@@ -110,6 +110,13 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
   /// The form as settings, or null (with the field error set) when the
   /// address is not https.
   AutoBackupSettings? _fromForm() {
+    if (_settings!.target == AutoBackupTarget.folder) {
+      final password = _password.text;
+      return _settings!.copyWith(
+        password: password.isEmpty ? null : password,
+        clearPassword: password.isEmpty,
+      );
+    }
     final folder = _folder.text.trim();
     final uri = Uri.tryParse(folder);
     final valid = uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
@@ -168,6 +175,7 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
   }
 
   String _reason(S l10n, String code) {
+    if (code.startsWith('folder ')) return l10n.autoBackupReasonFolder;
     if (code == 'unauthorized') return l10n.autoBackupReasonUnauthorized;
     if (code == 'invalid address') return l10n.autoBackupReasonInvalidAddress;
     if (code.startsWith('server error ')) {
@@ -183,6 +191,20 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
     try {
       await _service.testConnection(settings);
       _show(l10n.autoBackupTestSuccess);
+    } catch (error) {
+      _show(
+        l10n.autoBackupTestFailed(
+          _reason(l10n, AutoBackupService.describe(error)),
+        ),
+      );
+    }
+  });
+
+  Future<void> _chooseFolder() => _withBusy(() async {
+    final l10n = S.of(context);
+    try {
+      await _service.chooseFolder();
+      await _load();
     } catch (error) {
       _show(
         l10n.autoBackupTestFailed(
@@ -295,30 +317,68 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
                   ),
                 ),
                 Semantics(
-                  identifier: 'auto-backup-folder',
-                  child: TextField(
-                    controller: _folder,
-                    keyboardType: TextInputType.url,
-                    autocorrect: false,
-                    decoration: InputDecoration(
-                      labelText: l10n.autoBackupFolderLabel,
-                      hintText: 'https://files.example.org/dav/backups/',
-                      errorText: _folderError,
+                  identifier: 'auto-backup-target',
+                  child: SegmentedButton<AutoBackupTarget>(
+                    showSelectedIcon: false,
+                    segments: [
+                      ButtonSegment(
+                        value: AutoBackupTarget.server,
+                        label: Text(l10n.autoBackupTargetServer),
+                      ),
+                      ButtonSegment(
+                        value: AutoBackupTarget.folder,
+                        label: Text(l10n.autoBackupTargetFolder),
+                      ),
+                    ],
+                    selected: {settings.target},
+                    onSelectionChanged: (selection) => _update(
+                      (fresh) => fresh.copyWith(target: selection.first),
                     ),
                   ),
                 ),
-                Semantics(
-                  identifier: 'auto-backup-token',
-                  child: TextField(
-                    controller: _token,
-                    obscureText: true,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    decoration: InputDecoration(
-                      labelText: l10n.autoBackupTokenLabel,
+                const SizedBox(height: 8),
+                if (settings.target == AutoBackupTarget.folder) ...[
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.folder_outlined),
+                    title: Text(settings.folderName ?? l10n.autoBackupNoFolder),
+                    trailing: Semantics(
+                      identifier: 'auto-backup-choose-folder',
+                      child: TextButton(
+                        onPressed: _busy ? null : _chooseFolder,
+                        child: Text(l10n.autoBackupChooseFolder),
+                      ),
                     ),
                   ),
-                ),
+                  Text(l10n.autoBackupFolderHint, style: textTheme.bodySmall),
+                ],
+                if (settings.target == AutoBackupTarget.server)
+                  Semantics(
+                    identifier: 'auto-backup-folder',
+                    child: TextField(
+                      controller: _folder,
+                      keyboardType: TextInputType.url,
+                      autocorrect: false,
+                      decoration: InputDecoration(
+                        labelText: l10n.autoBackupFolderLabel,
+                        hintText: 'https://files.example.org/dav/backups/',
+                        errorText: _folderError,
+                      ),
+                    ),
+                  ),
+                if (settings.target == AutoBackupTarget.server)
+                  Semantics(
+                    identifier: 'auto-backup-token',
+                    child: TextField(
+                      controller: _token,
+                      obscureText: true,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: InputDecoration(
+                        labelText: l10n.autoBackupTokenLabel,
+                      ),
+                    ),
+                  ),
                 Semantics(
                   identifier: 'auto-backup-password',
                   child: TextField(

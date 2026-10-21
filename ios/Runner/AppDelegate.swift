@@ -12,6 +12,9 @@ import UserNotifications
     if let registrar = self.registrar(forPlugin: "NutritionTextRecognizer") {
       NutritionTextRecognizer.register(with: registrar)
     }
+    if let registrar = self.registrar(forPlugin: "BackupFolderAccess") {
+      BackupFolderAccess.register(with: registrar)
+    }
     // Required by flutter_local_notifications so foreground notifications
     // are displayed instead of being silently dropped (#312).
     // FlutterAppDelegate already conforms to UNUserNotificationCenterDelegate,

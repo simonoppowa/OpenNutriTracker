@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/settings/data/auto_backup_settings.dart';
+import 'package:opennutritracker/features/settings/data/backup_folder.dart';
 import 'package:opennutritracker/features/settings/data/webdav_client.dart';
 import 'package:opennutritracker/features/settings/domain/backup_reminder.dart';
 
@@ -10,7 +11,8 @@ import 'package:opennutritracker/features/settings/domain/backup_reminder.dart';
 enum AutoBackupOutcome { disabled, notDue, uploaded, failed }
 
 /// Uploads the JSON backup to a WebDAV folder (the user's FileBrowser
-/// Quantum) and keeps the newest [AutoBackupSettings.keepCount] there.
+/// Quantum, #77) or a folder picked in the Files app (#99) and keeps the
+/// newest [AutoBackupSettings.keepCount] there.
 ///
 /// iOS does not run background tasks reliably, so [runIfDue] is called on
 /// app start and resume and backs up when the last success is older than
@@ -27,6 +29,7 @@ class AutoBackupService {
   final Future<Archive> Function() _assembleBackup;
   final BackupReminder _reminder;
   final http.Client Function() _httpClient;
+  final BackupFolder _folder;
   final DateTime Function() _clock;
   Future<AutoBackupOutcome>? _running;
 
@@ -35,9 +38,42 @@ class AutoBackupService {
     this._assembleBackup,
     this._reminder, {
     http.Client Function()? httpClient,
+    BackupFolder? folder,
     DateTime Function()? clock,
   }) : _httpClient = httpClient ?? http.Client.new,
+       _folder = folder ?? const ChannelBackupFolder(),
        _clock = clock ?? DateTime.now;
+
+  /// Lets the user pick a Files-app folder and makes it the backup target;
+  /// its name, or null when they cancelled.
+  Future<String?> chooseFolder() async {
+    final picked = await _folder.pick();
+    if (picked == null) return null;
+    await _saveStatus(
+      (fresh) => fresh.copyWith(
+        target: AutoBackupTarget.folder,
+        folderBookmark: picked.bookmark,
+        folderName: picked.name,
+      ),
+    );
+    return picked.name;
+  }
+
+  _BackupTarget _targetFor(AutoBackupSettings settings) =>
+      switch (settings.target) {
+        AutoBackupTarget.server => _ServerTarget(
+          _httpClient(),
+          folder: Uri.parse(settings.folderUrl.trim()),
+          token: settings.token,
+        ),
+        AutoBackupTarget.folder => _FolderTarget(
+          _folder,
+          settings.folderBookmark ??
+              (throw const BackupFolderException('not_found')),
+          onRenewed: (bookmark) =>
+              _saveStatus((fresh) => fresh.copyWith(folderBookmark: bookmark)),
+        ),
+      };
 
   /// Backs up when the automatic backup is on and the last success is at
   /// least the interval old.
@@ -62,15 +98,15 @@ class AutoBackupService {
   Future<AutoBackupOutcome> _upload() async {
     final settings = await _store.load();
     if (!settings.isConfigured) return AutoBackupOutcome.disabled;
-    final client = _httpClient();
+    _BackupTarget? target;
     try {
-      final webDav = _webDav(client, settings);
+      target = _targetFor(settings);
       final archive = await _assembleBackup();
       final bytes = ZipEncoder(password: settings.password).encode(archive);
       final now = _clock();
-      await webDav.ensureFolder();
-      await webDav.put('nutritracker-backup-${_stamp.format(now)}.zip', bytes);
-      await _rotate(webDav, settings.keepCount);
+      await target.prepare();
+      await target.put('nutritracker-backup-${_stamp.format(now)}.zip', bytes);
+      await _rotate(target, settings.keepCount);
       await _saveStatus(
         (fresh) => fresh.copyWith(lastSuccessAt: now, clearLastError: true),
       );
@@ -84,7 +120,7 @@ class AutoBackupService {
       );
       return AutoBackupOutcome.failed;
     } finally {
-      client.close();
+      target?.close();
     }
   }
 
@@ -94,66 +130,53 @@ class AutoBackupService {
     AutoBackupSettings Function(AutoBackupSettings fresh) update,
   ) async => _store.save(update(await _store.load()));
 
-  Future<void> _rotate(WebDavClient webDav, int keepCount) async {
+  Future<void> _rotate(_BackupTarget target, int keepCount) async {
     final backups =
-        (await webDav.list()).where(backupFileName.hasMatch).toList()
+        (await target.list()).where(backupFileName.hasMatch).toList()
           ..sort((a, b) => b.compareTo(a));
     for (final old in backups.skip(keepCount)) {
-      await webDav.delete(old);
+      await target.delete(old);
     }
   }
 
-  /// Checks that [settings] reach a folder the token may use, creating the
-  /// folder when it is missing. Throws on failure.
+  /// Checks that [settings] reach their folder (on the server: one the token
+  /// may use, created when missing). Throws on failure.
   Future<void> testConnection(AutoBackupSettings settings) async {
-    final client = _httpClient();
+    final target = _targetFor(settings);
     try {
-      final webDav = _webDav(client, settings);
-      await webDav.ensureFolder();
-      await webDav.list();
+      await target.prepare();
+      await target.list();
     } finally {
-      client.close();
+      target.close();
     }
   }
 
   /// The backups in the folder, newest first.
   Future<List<String>> listBackups() async {
-    final settings = await _store.load();
-    final client = _httpClient();
+    final target = _targetFor(await _store.load());
     try {
-      return (await _webDav(
-          client,
-          settings,
-        ).list()).where(backupFileName.hasMatch).toList()
+      return (await target.list()).where(backupFileName.hasMatch).toList()
         ..sort((a, b) => b.compareTo(a));
     } finally {
-      client.close();
+      target.close();
     }
   }
 
   /// Downloads and opens backup [name], with the stored password.
   Future<Archive> download(String name) async {
     final settings = await _store.load();
-    final client = _httpClient();
+    final target = _targetFor(settings);
     try {
-      final bytes = await _webDav(client, settings).get(name);
+      final bytes = await target.get(name);
       return ZipDecoder().decodeBytes(bytes, password: settings.password);
     } finally {
-      client.close();
+      target.close();
     }
   }
 
-  static WebDavClient _webDav(
-    http.Client client,
-    AutoBackupSettings settings,
-  ) => WebDavClient(
-    client,
-    folder: Uri.parse(settings.folderUrl.trim()),
-    token: settings.token,
-  );
-
   /// A short, secret-free text for the backup screen.
   static String describe(Object error) {
+    if (error is BackupFolderException) return 'folder ${error.code}';
     if (error is WebDavException) {
       return error.isUnauthorized
           ? 'unauthorized'
@@ -162,4 +185,88 @@ class AutoBackupService {
     if (error is ArgumentError) return 'invalid address';
     return 'unreachable';
   }
+}
+
+/// Where a backup is written: the WebDAV server or a picked folder.
+abstract class _BackupTarget {
+  Future<void> prepare();
+  Future<List<String>> list();
+  Future<void> put(String name, List<int> bytes);
+  Future<List<int>> get(String name);
+  Future<void> delete(String name);
+  void close();
+}
+
+class _ServerTarget implements _BackupTarget {
+  final http.Client _client;
+  final WebDavClient _webDav;
+
+  _ServerTarget(this._client, {required Uri folder, required String token})
+    : _webDav = WebDavClient(_client, folder: folder, token: token);
+
+  @override
+  Future<void> prepare() => _webDav.ensureFolder();
+
+  @override
+  Future<List<String>> list() => _webDav.list();
+
+  @override
+  Future<void> put(String name, List<int> bytes) => _webDav.put(name, bytes);
+
+  @override
+  Future<List<int>> get(String name) => _webDav.get(name);
+
+  @override
+  Future<void> delete(String name) => _webDav.delete(name);
+
+  @override
+  void close() => _client.close();
+}
+
+/// A picked folder; keeps using a bookmark iOS renewed and reports it to
+/// [onRenewed] so it is stored for the next time.
+class _FolderTarget implements _BackupTarget {
+  final BackupFolder _folder;
+  String _bookmark;
+  final Future<void> Function(String bookmark) _onRenewed;
+
+  _FolderTarget(
+    this._folder,
+    this._bookmark, {
+    required Future<void> Function(String bookmark) onRenewed,
+  }) : _onRenewed = onRenewed;
+
+  Future<void> _keep(String? renewed) async {
+    if (renewed == null || renewed == _bookmark) return;
+    _bookmark = renewed;
+    await _onRenewed(renewed);
+  }
+
+  @override
+  Future<void> prepare() async {}
+
+  @override
+  Future<List<String>> list() async {
+    final result = await _folder.list(_bookmark);
+    await _keep(result.bookmark);
+    return result.names;
+  }
+
+  @override
+  Future<void> put(String name, List<int> bytes) async =>
+      _keep(await _folder.write(_bookmark, name, bytes));
+
+  @override
+  Future<List<int>> get(String name) async {
+    final result = await _folder.read(_bookmark, name);
+    await _keep(result.bookmark);
+    return result.bytes;
+  }
+
+  @override
+  Future<void> delete(String name) async =>
+      _keep(await _folder.delete(_bookmark, name));
+
+  @override
+  void close() {}
 }
