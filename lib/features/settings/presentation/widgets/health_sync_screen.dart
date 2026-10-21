@@ -428,7 +428,10 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                       s.healthSyncAutoImportLabel(healthPlatformName),
                     ),
                     value: _importEnabled,
-                    onChanged: _isAvailable && !_busy
+                    // Switching off needs nothing from the platform, so an
+                    // import left on stays switchable off while the health
+                    // store is unavailable; only switching on is blocked.
+                    onChanged: (_isAvailable || _importEnabled) && !_busy
                         ? _onAutoImportChanged
                         : null,
                   ),
@@ -444,7 +447,7 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                     ),
                     subtitle: Text(s.healthSyncWeightImportSubtitle),
                     value: _weightImportEnabled,
-                    onChanged: _isAvailable && !_busy
+                    onChanged: (_isAvailable || _weightImportEnabled) && !_busy
                         ? _onWeightImportChanged
                         : null,
                   ),

@@ -647,6 +647,24 @@ void main() {
       );
     });
 
+    testWidgets('an unavailable health store still lets weight import be '
+        'switched off, and only off', (tester) async {
+      storeConfig(healthImportEnabled: true, healthWeightImportEnabled: true);
+      healthImportRepository.available = false;
+
+      await pumpScreen(tester);
+      await tester.tap(_byIdentifier('health-sync-weight-import'));
+      await tester.pumpAndSettle();
+      await tester.tap(_byIdentifier('health-sync-auto-import'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HealthDisclosureDialog), findsNothing);
+      expect(settingsBloc.weightImportEnabledCalls, [false]);
+      expect(settingsBloc.importEnabledCalls, [false]);
+      expect(tester.widget<SwitchListTile>(_weightSwitch).onChanged, isNull);
+      expect(tester.widget<SwitchListTile>(_workoutSwitch).onChanged, isNull);
+    });
+
     test('the weight disclosure says nothing about body fat', () {
       expect(
         l10nEn.healthSyncWeightDisclosureBody(healthPlatformName),
