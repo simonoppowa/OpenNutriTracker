@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/json_meal_importer.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Outcome of a JSON-paste import. [imported] is the number of entries
 /// written to the diary; [savedAsCustomMeals] is how many of those entries
@@ -63,6 +64,7 @@ class ImportMealsJsonUsecase {
   /// Returns null when the user cancelled the file picker (mirroring the
   /// CSV importer contract).
   Future<ImportMealsJsonResult?> importFromPickedFile() async {
+    final startedOn = ProfileStamp.now();
     final picked = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
@@ -72,12 +74,19 @@ class ImportMealsJsonUsecase {
     }
     final file = File(picked.path!);
     final content = await file.readAsString(encoding: utf8);
-    return importFromJsonString(content);
+    return _importFromJsonString(content, startedOn);
   }
 
   /// Parse [jsonContent] and write any successfully-parsed entries. The
   /// return value is null only when [jsonContent] is empty/whitespace.
   Future<ImportMealsJsonResult> importFromJsonString(String jsonContent) async {
+    return _importFromJsonString(jsonContent, ProfileStamp.now());
+  }
+
+  Future<ImportMealsJsonResult> _importFromJsonString(
+    String jsonContent,
+    ProfileStamp startedOn,
+  ) async {
     final parsed = JsonMealImporter.parse(jsonContent);
 
     // Pre-compute the names already in the custom-meals box (lower-cased)
@@ -93,34 +102,40 @@ class ImportMealsJsonUsecase {
 
     var savedAsCustomMeals = 0;
 
+    var imported = 0;
     for (final intake in parsed.intakes) {
-      await _addIntakeUsecase.addIntake(intake);
-      await _ensureTrackedDay(intake.dateTime);
-      await _addTrackedDayUsecase.addDayCaloriesTracked(
-        intake.dateTime,
-        intake.totalKcal,
-      );
-      await _addTrackedDayUsecase.addDayMacrosTracked(
-        intake.dateTime,
-        carbsTracked: intake.totalCarbsGram,
-        fatTracked: intake.totalFatsGram,
-        proteinTracked: intake.totalProteinsGram,
-      );
-
-      final mealName = intake.meal.name?.trim() ?? '';
-      if (mealName.isEmpty) continue;
-      final nameKey = mealName.toLowerCase();
-      if (existingNames.contains(nameKey)) continue;
-
-      await _customMealDataSource.saveCustomMeal(
-        MealDBO.fromMealEntity(intake.meal),
-      );
-      existingNames.add(nameKey);
-      savedAsCustomMeals++;
+      final written = await withTrackedDayLockOnProfile(() async {
+        await _addIntakeUsecase.addIntake(intake);
+        await _ensureTrackedDay(intake.dateTime);
+        await _addTrackedDayUsecase.addDayCaloriesTracked(
+          intake.dateTime,
+          intake.totalKcal,
+        );
+        await _addTrackedDayUsecase.addDayMacrosTracked(
+          intake.dateTime,
+          carbsTracked: intake.totalCarbsGram,
+          fatTracked: intake.totalFatsGram,
+          proteinTracked: intake.totalProteinsGram,
+        );
+        final mealName = intake.meal.name?.trim() ?? '';
+        if (mealName.isNotEmpty) {
+          final nameKey = mealName.toLowerCase();
+          if (!existingNames.contains(nameKey)) {
+            await _customMealDataSource.saveCustomMeal(
+              MealDBO.fromMealEntity(intake.meal),
+            );
+            existingNames.add(nameKey);
+            savedAsCustomMeals++;
+          }
+        }
+        return true;
+      }, startedOn: startedOn);
+      if (written != true) break;
+      imported++;
     }
 
     return ImportMealsJsonResult(
-      imported: parsed.intakes.length,
+      imported: imported,
       savedAsCustomMeals: savedAsCustomMeals,
       errorMessages: parsed.errors,
     );

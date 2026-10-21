@@ -41,8 +41,20 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   // clamp honour the configured day-start offset (otherwise between midnight
   // and e.g. 4 am Home and Diary disagree on which day is "today").
   DateTime get _currentDate => _diaryBloc.currentDay;
-  var _selectedDate = DateTime.now();
-  var _focusedDate = DateTime.now();
+
+  // Null while the Diary is on "today", which is then the logical day the
+  // bloc resolved, not the calendar date: with "Day starts at" later than
+  // the current time, the calendar date is a day nothing is filed under
+  // yet, and the Diary opened on it empty while Home showed the food
+  // (#1360). A day the user picked stays picked.
+  DateTime? _pickedDate;
+  DateTime get _selectedDate => _pickedDate ?? _currentDate;
+  DateTime get _focusedDate => _selectedDate;
+
+  // The "today" the day view was last loaded for, so a reload that moves
+  // it (a day-boundary change, or a resume past the boundary) moves the
+  // day view along with it.
+  DateTime? _loadedToday;
 
   @override
   void initState() {
@@ -51,6 +63,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     _calendarDayBloc = locator<CalendarDayBloc>();
     _mealDetailBloc = locator<MealDetailBloc>();
     _activityDetailBloc = locator<ActivityDetailBloc>();
+    if (_diaryBloc.state is DiaryLoadedState) _loadedToday = _currentDate;
     super.initState();
   }
 
@@ -62,8 +75,11 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DiaryBloc, DiaryState>(
+    return BlocConsumer<DiaryBloc, DiaryState>(
       bloc: _diaryBloc,
+      listener: (context, state) {
+        if (state is DiaryLoadedState) _followToday();
+      },
       builder: (context, state) {
         if (state is DiaryInitial) {
           _diaryBloc.add(const LoadDiaryYearEvent());
@@ -140,6 +156,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 return DayInfoWidget(
                 trackedDayEntity: state.trackedDayEntity,
                 selectedDay: _selectedDate,
+                currentDay: _currentDate,
                 userActivities: state.userActivityList,
                 breakfastIntake: state.breakfastIntakeList,
                 lunchIntake: state.lunchIntakeList,
@@ -193,15 +210,14 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     }
   }
 
-  void _onDeleteIntakeItem(
-    IntakeEntity intakeEntity,
-    TrackedDayEntity? trackedDayEntity,
-  ) async {
-    await _calendarDayBloc.deleteIntakeItem(
-      context,
-      intakeEntity,
-      trackedDayEntity?.day ?? DateTime.now(),
-    );
+  void _onDeleteIntakeItem(IntakeEntity intakeEntity, DateTime day) async {
+    // The day the entry was listed under when it was long-pressed, not
+    // `trackedDayEntity?.day ?? DateTime.now()`: on a past day with no
+    // tracked-day row that fallback debited today's row for an entry of
+    // another day (#1317). Not the current selection either, which moves
+    // on with "today" if the boundary passes while the dialog is open
+    // (#1360).
+    await _calendarDayBloc.deleteIntakeItem(context, intakeEntity, day);
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
     _diaryBloc.updateHomePage();
@@ -214,12 +230,14 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   void _onDeleteActivityItem(
     UserActivityEntity userActivityEntity,
-    TrackedDayEntity? trackedDayEntity,
+    DateTime day,
   ) async {
+    // The entry's day, for the same reasons as _onDeleteIntakeItem: the
+    // fallback lowered today's goal for a past day's activity (#1317).
     await _calendarDayBloc.deleteUserActivityItem(
       context,
       userActivityEntity,
-      trackedDayEntity?.day ?? DateTime.now(),
+      day,
     );
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
@@ -242,7 +260,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     } else {
       finalType = type.getIntakeType();
     }
-    _mealDetailBloc.addIntake(
+    await _mealDetailBloc.addIntake(
       context,
       intakeEntity.unit,
       intakeEntity.amount.toString(),
@@ -264,7 +282,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       // kcal figure through unchanged so a copied entry keeps its calories.
       final kcal =
           userActivityEntity.userKcal ?? userActivityEntity.burnedKcal;
-      _activityDetailBloc.persistActivity(
+      await _activityDetailBloc.persistActivity(
         kcal.toString(),
         kcal,
         activity,
@@ -277,7 +295,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
         activity,
         userActivityEntity.duration,
       );
-      _activityDetailBloc.persistActivity(
+      await _activityDetailBloc.persistActivity(
         userActivityEntity.duration.toString(),
         burnedKcal,
         activity,
@@ -292,6 +310,9 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     IntakeEntity intakeEntity,
     bool usesImperialUnits,
   ) async {
+    // The day the entry is listed under now: "today" can move on while
+    // the dialog is open (#1360), and the row to adjust is this one.
+    final day = _selectedDate;
     final changeIntakeAmount = await showDialog<double>(
       context: context,
       builder: (context) => EditDialog(
@@ -303,7 +324,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       await _calendarDayBloc.updateIntakeItem(
         intakeEntity.id,
         {'amount': changeIntakeAmount},
-        _selectedDate,
+        day,
       );
       _diaryBloc.add(const LoadDiaryYearEvent());
       _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
@@ -320,6 +341,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     BuildContext context,
     UserActivityEntity activityEntity,
   ) async {
+    // As in _onEditIntakeItem: the entry's day, captured before the dialog.
+    final day = _selectedDate;
     final newDuration = await showDialog<double>(
       context: context,
       builder: (context) =>
@@ -329,7 +352,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       await _calendarDayBloc.updateUserActivityItem(
         activityEntity,
         newDuration,
-        _selectedDate,
+        day,
       );
       _diaryBloc.add(const LoadDiaryYearEvent());
       _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
@@ -347,15 +370,30 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     Map<String, TrackedDayEntity> trackedDaysMap,
   ) {
     setState(() {
-      _selectedDate = newDate;
-      _focusedDate = newDate;
-      _calendarDayBloc.add(LoadCalendarDayEvent(newDate));
+      _pickedDate =
+          DateUtils.isSameDay(newDate, _currentDate) ? null : newDate;
+      _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
     });
     if (newDate.isAfter(_currentDate) && !DateUtils.isSameDay(newDate, _currentDate)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).diaryFutureDateWarning)),
       );
     }
+  }
+
+  /// Keeps the day view on "today" when today moves under it, unless the
+  /// user has picked a day of their own.
+  void _followToday() {
+    final today = _currentDate;
+    final previous = _loadedToday;
+    _loadedToday = today;
+    if (previous == null || DateUtils.isSameDay(previous, today)) return;
+    if (_pickedDate != null) {
+      // The picked day may be the new today; stop treating it as picked.
+      if (DateUtils.isSameDay(_pickedDate, today)) _pickedDate = null;
+      return;
+    }
+    _calendarDayBloc.add(LoadCalendarDayEvent(today));
   }
 
   void _refreshPageOnDayChange() {

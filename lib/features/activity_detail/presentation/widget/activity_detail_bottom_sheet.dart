@@ -18,8 +18,12 @@ import 'package:provider/provider.dart';
 /// from saved" affordance (#70 follow-up) so people who do the same
 /// workout repeatedly can avoid retyping the kcal each time.
 class ActivityDetailBottomSheet extends StatefulWidget {
-  final Function(BuildContext, {String? templateName, bool saveAsTemplate})
-      onAddButtonPressed;
+  final Future<void> Function(
+    BuildContext, {
+    String? templateName,
+    bool saveAsTemplate,
+  })
+  onAddButtonPressed;
   final PhysicalActivityEntity activityEntity;
   final TextEditingController quantityTextController;
   final ActivityDetailBloc activityDetailBloc;
@@ -40,6 +44,30 @@ class ActivityDetailBottomSheet extends StatefulWidget {
 class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
   final TextEditingController _nameController = TextEditingController();
   bool _saveAsTemplate = false;
+
+  /// Set from the first tap on Add until its save ends. The save can wait
+  /// for the tracked-day lock (#1317) with the screen still open, and a
+  /// second tap would log the activity, and credit its energy, twice.
+  bool _saving = false;
+
+  Future<void> _onAddPressed() async {
+    // Checked here, not only through the disabled button: a second tap
+    // can land before the rebuild that disables it.
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      final trimmedName = _nameController.text.trim();
+      await widget.onAddButtonPressed(
+        context,
+        templateName: trimmedName.isEmpty ? null : trimmedName,
+        saveAsTemplate: _saveAsTemplate,
+      );
+    } finally {
+      // A save that succeeds leaves the screen; one that fails lets the
+      // user try again.
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -267,7 +295,9 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                               items: <DropdownMenuItem<String>>[
                                 DropdownMenuItem(
                                   child: Text(
-                                    isCustom ? customUnitSuffix : 'min',
+                                    isCustom
+                                        ? customUnitSuffix
+                                        : S.of(context).minuteShortLabel,
                                   ),
                                 ),
                               ],
@@ -300,16 +330,7 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                         child: Semantics(
                           identifier: 'activity-detail-add-button',
                           child: ElevatedButton.icon(
-                            onPressed: () {
-                              final trimmedName = _nameController.text.trim();
-                              widget.onAddButtonPressed(
-                                context,
-                                templateName: trimmedName.isEmpty
-                                    ? null
-                                    : trimmedName,
-                                saveAsTemplate: _saveAsTemplate,
-                              );
-                            },
+                            onPressed: _saving ? null : _onAddPressed,
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Theme.of(context)
                                   .colorScheme

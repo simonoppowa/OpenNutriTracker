@@ -187,6 +187,31 @@ class ConfigDBO extends HiveObject {
   // user opts out, matching every install that predates the field.
   @HiveField(39)
   bool? defaultToRawFoodUnits;
+  // #1317: the day boundary, in minutes, this profile's tracked-day rows
+  // are keyed by. Per-profile: the boundary is app-wide, but only the
+  // active profile's rows move with it, so a profile that was inactive
+  // when it changed still has its rows keyed by the old one. Activation
+  // moves them from here and records the boundary they are keyed by now.
+  // Null means no build since #1317 has touched the rows, which is every
+  // profile that predates the field. Those builds keyed a row by the
+  // wall-clock date of whatever logged it, so null reads as 0 (the
+  // workout import aside; see `ensureTrackedDaysMatchEntries`).
+  @HiveField(40)
+  int? trackedDaysOffsetMinutes;
+  // Set by [reconcileAppLocale] once the OS has been *seen* holding a per-app
+  // language override — a value read from Android's picker, or the saved
+  // language read back right after the migration push. Never set by the push
+  // attempt alone: on platforms with no per-app override the push no-ops on
+  // every launch and this stays null, so null means "the OS has not been
+  // observed with an override yet", not "the push has not happened". Without
+  // it, an override the user cleared in the OS picker is indistinguishable
+  // from one that was never seeded, and gets silently pushed back on the next
+  // launch. Reset to null when that clear is acted on, so a language picked
+  // in the app afterwards whose push silently failed is retried rather than
+  // read as a second clear. Device-wide, like selectedLocale: it is a fact
+  // about the device.
+  @HiveField(41)
+  bool? localeSyncSeeded;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -226,6 +251,8 @@ class ConfigDBO extends HiveObject {
     this.policyNoticeRevisionSeen,
     this.healthDeletedWorkouts,
     this.defaultToRawFoodUnits,
+    this.trackedDaysOffsetMinutes,
+    this.localeSyncSeeded,
   });
 
   factory ConfigDBO.empty() =>
