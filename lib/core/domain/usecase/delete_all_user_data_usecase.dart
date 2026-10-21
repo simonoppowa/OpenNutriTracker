@@ -93,6 +93,11 @@ class DeleteAllUserDataUsecase {
           'it again from a setting this wipe does not clear',
     );
     await _bestEffort(
+      () => _configRepository.clearReminders(),
+      'Could not empty the reminders; the next launch may schedule them '
+          'again from a list this wipe does not clear',
+    );
+    await _bestEffort(
       () => _notificationService.cancelAllScheduled(),
       'Could not cancel scheduled notifications; an alarm may outlive the '
           'data it was scheduled from',

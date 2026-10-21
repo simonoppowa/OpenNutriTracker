@@ -18,7 +18,6 @@ import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
@@ -27,6 +26,8 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/off_contribution/presentation/off_contribution_screen.dart';
+import 'package:opennutritracker/features/reminders/presentation/reminder_lifecycle.dart';
+import 'package:opennutritracker/features/reminders/presentation/reminders_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/goals_screen.dart';
@@ -444,44 +445,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _SettingsGroup(
                 palette: palette,
                 tiles: [
-                  _SettingsSwitchTile(
+                  _SettingsTile(
+                    identifier: 'settings-reminders',
                     palette: palette,
                     icon: Icons.notifications_rounded,
-                    title: S.of(context).settingsNotificationsLabel,
-                    subtitle: state.notificationsEnabled
-                        ? S
-                              .of(context)
-                              .settingsNotificationsTimeLabel(
-                                _formatNotificationTime(
-                                  state.notificationHour,
-                                  state.notificationMinute,
-                                ),
-                              )
-                        : null,
-                    value: state.notificationsEnabled,
-                    onChanged: (bool value) =>
-                        _onNotificationToggled(context, value, state),
-                  ),
-                  if (state.notificationsEnabled)
-                    _SettingsTile(
-                      palette: palette,
-                      icon: Icons.access_time_rounded,
-                      title: S
-                          .of(context)
-                          .settingsNotificationsTimeLabel(
-                            _formatNotificationTime(
-                              state.notificationHour,
-                              state.notificationMinute,
-                            ),
-                          ),
-                      onTap: () => _pickNotificationTime(
-                        context,
-                        TimeOfDay(
-                          hour: state.notificationHour,
-                          minute: state.notificationMinute,
-                        ),
+                    title: S.of(context).remindersLabel,
+                    showChevron: true,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const RemindersScreen(),
                       ),
                     ),
+                  ),
                 ],
               ),
               const SizedBox(height: Dimens.spacing20),
@@ -661,65 +636,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
-  }
-
-  String _formatNotificationTime(int hour, int minute) {
-    final h = hour.toString().padLeft(2, '0');
-    final m = minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
-
-  Future<void> _onNotificationToggled(
-    BuildContext context,
-    bool enabled,
-    SettingsLoadedState state,
-  ) async {
-    final l10n = S.of(context);
-    final notificationService = locator<NotificationService>();
-    await notificationService.initialize();
-    if (enabled) {
-      final granted = await notificationService.requestPermission();
-      if (!granted) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.notificationsPermissionDeniedSnack)),
-          );
-        }
-        return;
-      }
-      await notificationService.scheduleDailyReminder(
-        hour: state.notificationHour,
-        minute: state.notificationMinute,
-        title: l10n.notificationsDailyReminderTitle,
-        body: l10n.notificationsDailyReminderBody,
-        channelName: l10n.notificationsDailyReminderChannelName,
-        channelDescription: l10n.notificationsDailyReminderChannelDescription,
-      );
-    } else {
-      await notificationService.cancelDailyReminder();
-    }
-    _settingsBloc.setNotificationsEnabled(enabled);
-    _settingsBloc.add(LoadSettingsEvent());
-  }
-
-  Future<void> _pickNotificationTime(
-    BuildContext context,
-    TimeOfDay current,
-  ) async {
-    final l10n = S.of(context);
-    final picked = await showTimePicker(context: context, initialTime: current);
-    if (picked == null) return;
-    _settingsBloc.setNotificationTime(picked.hour, picked.minute);
-    final notificationService = locator<NotificationService>();
-    await notificationService.scheduleDailyReminder(
-      hour: picked.hour,
-      minute: picked.minute,
-      title: l10n.notificationsDailyReminderTitle,
-      body: l10n.notificationsDailyReminderBody,
-      channelName: l10n.notificationsDailyReminderChannelName,
-      channelDescription: l10n.notificationsDailyReminderChannelDescription,
-    );
-    _settingsBloc.add(LoadSettingsEvent());
   }
 
   void _showFoodUnitsDialog(
@@ -1277,6 +1193,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   context,
                   listen: false,
                 ).updateLocale(locale != null ? Locale(locale) : null);
+                unawaited(
+                  syncReminders(
+                    locale: locale != null
+                        ? Locale(locale)
+                        : WidgetsBinding.instance.platformDispatcher.locale,
+                  ),
+                );
                 Navigator.of(context).pop();
               },
               child: Text(S.of(context).dialogOKLabel),

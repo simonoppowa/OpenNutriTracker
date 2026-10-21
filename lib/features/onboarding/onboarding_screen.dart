@@ -11,6 +11,8 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
+import 'package:opennutritracker/features/reminders/data/reminder_scheduler.dart';
+import 'package:opennutritracker/features/reminders/data/reminder_store.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
@@ -462,16 +464,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
       return false;
     }
-    // 8:00 matches the default reminder time in ConfigEntity; the user can
-    // change it later in Settings → Daily Reminder.
-    await notificationService.scheduleDailyReminder(
-      hour: 8,
-      minute: 0,
-      title: l10n.notificationsDailyReminderTitle,
-      body: l10n.notificationsDailyReminderBody,
-      channelName: l10n.notificationsDailyReminderChannelName,
-      channelDescription: l10n.notificationsDailyReminderChannelDescription,
-    );
+    await locator<ReminderStore>().addDailyReminder();
+    await locator<ReminderScheduler>().sync(l10n);
     return true;
   }
 

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:opennutritracker/features/reminders/presentation/reminder_lifecycle.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -16,6 +19,7 @@ void reloadScreensAfterImport() {
   locator<SettingsBloc>().add(LoadSettingsEvent());
   locator<ProfileBloc>().add(LoadProfileEvent());
   locator<WaterQuickAmount>().load();
+  unawaited(syncReminders(always: true));
   final trendsBloc = locator<TrendsBloc>();
   final trendsState = trendsBloc.state;
   if (trendsState is TrendsLoaded) {

@@ -242,6 +242,10 @@ class ConfigDBO extends HiveObject {
   // deficit in the trends, in percent (#59, DeficitThresholdSetting).
   @HiveField(117)
   int? trendsDeficitThresholdPercent;
+  // The reminders as a JSON list (#70, ReminderStore); null until they
+  // were first read, which takes over the daily reminder above.
+  @HiveField(118)
+  String? remindersJson;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -299,6 +303,7 @@ class ConfigDBO extends HiveObject {
     this.nutrientReferenceStandard,
     this.trendsTolerancePercent,
     this.trendsDeficitThresholdPercent,
+    this.remindersJson,
   });
 
   factory ConfigDBO.empty() =>

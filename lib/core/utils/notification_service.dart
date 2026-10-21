@@ -15,6 +15,7 @@ class NotificationService {
   // the system notification settings.
   static const String _channelId = 'daily_reminder';
   static const String _fastingChannelId = 'fasting_complete';
+  static const String _remindersChannelId = 'reminders';
 
   final _log = Logger('NotificationService');
   final FlutterLocalNotificationsPlugin _plugin =
@@ -45,6 +46,16 @@ class NotificationService {
     await _plugin.initialize(settings: initSettings);
     _initialized = true;
     _log.fine('NotificationService initialized');
+  }
+
+  /// Reads the device's time zone again; true when it changed since the last
+  /// read, so weekly reminders can be put back on the local wall time (#71).
+  Future<bool> refreshTimeZone() async {
+    await _ensureInitialized();
+    final identifier = (await FlutterTimezone.getLocalTimezone()).identifier;
+    if (identifier == tz.local.name) return false;
+    tz.setLocalLocation(tz.getLocation(identifier));
+    return true;
   }
 
   /// Requests the OS notification permission (Android 13+ / iOS).
@@ -113,6 +124,54 @@ class NotificationService {
       matchDateTimeComponents: DateTimeComponents.time,
     );
     _log.fine('Daily reminder scheduled at $hour:$minute');
+  }
+
+  /// Schedules a notification every week on [weekday] (Monday is 1) at
+  /// [hour]:[minute] under [id] (#71). Calling it again with the same [id]
+  /// replaces it.
+  Future<void> scheduleWeekly({
+    required int id,
+    required int weekday,
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) async {
+    await _ensureInitialized();
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _remindersChannelId,
+        channelName,
+        channelDescription: channelDescription,
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+      ),
+      iOS: const DarwinNotificationDetails(),
+    );
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: computeNextWeekday(
+        tz.TZDateTime.now(tz.local),
+        weekday,
+        hour,
+        minute,
+      ),
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+    );
+  }
+
+  /// Cancels the notifications under [ids].
+  Future<void> cancelIds(Iterable<int> ids) async {
+    await _ensureInitialized();
+    for (final id in ids) {
+      await _plugin.cancel(id: id);
+    }
   }
 
   /// Cancels any pending daily reminder.
@@ -206,6 +265,37 @@ class NotificationService {
     );
     if (!scheduled.isAfter(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
+    }
+    return scheduled;
+  }
+
+  /// The next [weekday] (Monday is 1) at [hour]:[minute] in the location of
+  /// [now], a week ahead when that moment has passed. Built from calendar
+  /// fields, so a clock change in between keeps the wall time.
+  static tz.TZDateTime computeNextWeekday(
+    tz.TZDateTime now,
+    int weekday,
+    int hour,
+    int minute,
+  ) {
+    final daysAhead = (weekday - now.weekday) % 7;
+    var scheduled = tz.TZDateTime(
+      now.location,
+      now.year,
+      now.month,
+      now.day + daysAhead,
+      hour,
+      minute,
+    );
+    if (!scheduled.isAfter(now)) {
+      scheduled = tz.TZDateTime(
+        now.location,
+        scheduled.year,
+        scheduled.month,
+        scheduled.day + 7,
+        hour,
+        minute,
+      );
     }
     return scheduled;
   }

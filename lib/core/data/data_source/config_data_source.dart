@@ -249,6 +249,13 @@ class ConfigDataSource {
     });
   }
 
+  /// The stored reminders as JSON, null before they were first saved (#70).
+  Future<String?> getRemindersJson() async => _readMerged().remindersJson;
+
+  Future<void> setRemindersJson(String json) async {
+    await _update((c) => c.remindersJson = json);
+  }
+
   Future<String?> getSelectedLocale() async {
     final raw = _readMerged().selectedLocale;
     // Backward-compat: the project used to ship Czech as 'cz' (non-standard).

@@ -126,6 +126,9 @@ class ConfigRepository {
     );
   }
 
+  /// Empties the reminders list (#70).
+  Future<void> clearReminders() => _configDataSource.setRemindersJson('[]');
+
   Future<void> setNotificationsEnabled(bool enabled) async {
     await _configDataSource.setNotificationsEnabled(enabled);
   }

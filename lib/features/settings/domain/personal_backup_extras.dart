@@ -90,6 +90,7 @@ class PersonalBackupExtras {
     'waterQuickAmountMl',
     'offSearchCountry',
     'nutrientReferenceStandard',
+    'remindersJson',
     'trendsTolerancePercent',
     'trendsDeficitThresholdPercent',
   ];

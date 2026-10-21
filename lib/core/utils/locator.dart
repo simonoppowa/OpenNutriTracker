@@ -93,6 +93,8 @@ import 'package:opennutritracker/core/utils/backup_usecases_for.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/profile_box_scope.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
+import 'package:opennutritracker/features/reminders/data/reminder_scheduler.dart';
+import 'package:opennutritracker/features/reminders/data/reminder_store.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
@@ -226,6 +228,10 @@ Future<void> initLocator() async {
   // Notification service (#312)
   locator.registerLazySingleton<NotificationService>(
     () => NotificationService(),
+  );
+  locator.registerLazySingleton(() => ReminderStore(locator()));
+  locator.registerLazySingleton(
+    () => ReminderScheduler(locator(), locator<NotificationService>()),
   );
 
   // Cache manager

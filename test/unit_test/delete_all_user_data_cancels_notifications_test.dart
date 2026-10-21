@@ -18,6 +18,8 @@ import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecas
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
+import 'package:opennutritracker/features/reminders/data/reminder_store.dart';
+import 'package:opennutritracker/features/reminders/domain/reminder.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
 import '../helpers/hive_test_setup.dart';
@@ -189,6 +191,23 @@ void main() {
         reason: 'a cold start would read this and reschedule the reminder the '
             'user just deleted everything to be rid of',
       );
+    });
+
+    test('the reminders list cannot bring them back either (#70)', () async {
+      await ReminderStore(ConfigDataSource(provider)).save(const [
+        Reminder(
+          id: 'w',
+          type: ReminderType.water,
+          hour: 10,
+          minute: 0,
+          weekdays: Reminder.everyDay,
+          enabled: true,
+        ),
+      ]);
+
+      await subject(_RecordingNotificationService(userBox)).deleteAll();
+
+      expect(await ReminderStore(ConfigDataSource(provider)).load(), isEmpty);
     });
 
     test('the device-wide preferences a wipe keeps are untouched', () async {

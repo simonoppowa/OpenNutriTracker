@@ -20,9 +20,9 @@ import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/settings/domain/auto_backup_service.dart';
+import 'package:opennutritracker/features/reminders/presentation/reminder_lifecycle.dart';
 import 'package:opennutritracker/features/settings/presentation/auto_backup_lifecycle.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
-import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
@@ -100,30 +100,6 @@ Future<void> _bootstrapApp() async {
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
 
-  // #312: Restore scheduled notifications after app start / device reboot.
-  // Look up the user's localized strings first — there's no widget tree yet,
-  // so S is driven directly off the saved (or device) locale, resolved against
-  // the supported locales because lookupS throws on unsupported ones. Android
-  // re-applies the channel name/description on every (re)registration, and
-  // they surface in the OS settings, so this keeps them in the user's
-  // language instead of reverting to English on each launch.
-  if (config.notificationsEnabled) {
-    final s = lookupS(
-      basicLocaleListResolution([
-        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
-      ], _appLocales),
-    );
-    final notificationService = locator<NotificationService>();
-    await notificationService.initialize();
-    await notificationService.scheduleDailyReminder(
-      hour: config.notificationHour,
-      minute: config.notificationMinute,
-      title: s.notificationsDailyReminderTitle,
-      body: s.notificationsDailyReminderBody,
-      channelName: s.notificationsDailyReminderChannelName,
-      channelDescription: s.notificationsDailyReminderChannelDescription,
-    );
-  }
   final savedAppTheme = await configRepo.getConfigAppTheme();
   final savedUsesKilojoules = config.usesKilojoules;
   final savedUseMaterialYou = config.useMaterialYou;
@@ -139,6 +115,7 @@ Future<void> _bootstrapApp() async {
     savedAccentColor,
   );
   startAutoBackup(locator<AutoBackupService>());
+  startReminders();
 }
 
 void runAppWithChangeNotifiers(
@@ -214,6 +191,7 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
 
     localeProvider.updateLocale(Locale(systemCode));
     await locator<ConfigRepository>().setSelectedLocale(systemCode);
+    await syncReminders(locale: Locale(systemCode));
   }
 
   @override

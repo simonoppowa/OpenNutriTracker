@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:opennutritracker/features/reminders/presentation/reminder_lifecycle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -245,6 +248,7 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
     locator<SettingsBloc>().add(LoadSettingsEvent());
     locator<ProfileBloc>().add(LoadProfileEvent());
     locator<WaterQuickAmount>().load();
+    unawaited(syncReminders(always: true));
     final trendsBloc = locator<TrendsBloc>();
     final trendsState = trendsBloc.state;
     if (trendsState is TrendsLoaded) {
