@@ -71,6 +71,7 @@ void main() {
 
   /// Opens the editor the way the custom meal list does (`editOnly`).
   Future<void> pumpEditor(WidgetTester tester, MealEntity meal) async {
+    dataSource.library.add(MealDBO.fromMealEntity(meal));
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -199,6 +200,10 @@ void main() {
 
 class _RecordingCustomMealDataSource implements CustomMealDataSource {
   final saves = <(MealDBO, MealDBO?)>[];
+  final library = <MealDBO>[];
+
+  @override
+  List<MealDBO> getAllCustomMeals() => library;
 
   /// When set, every save waits for it, standing in for a slow disk write.
   Completer<void>? gate;

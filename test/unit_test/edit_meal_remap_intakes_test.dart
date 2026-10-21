@@ -288,6 +288,58 @@ void main() {
     expect(db.openedScopedBoxes, isEmpty);
   });
 
+  test('creating a meal from the new-meal placeholder moves nothing, '
+      'and opens no other profile', () async {
+    // "New custom meal" opens the editor on `MealEntity.empty()`, whose fresh
+    // id was never saved: no entry can be logged under it.
+    final placeholder = customMeal(code: 'uuid-never-saved', name: '');
+
+    await bloc.saveCustomMeal(
+      customMeal(code: '4006381333931', name: 'Oats'),
+      previous: placeholder,
+    );
+
+    expect(customMealBox.values.single.code, '4006381333931');
+    expect(db.openedScopedBoxes, isEmpty);
+  });
+
+  test('a Save retried after the move failed leaves one meal, with every '
+      'entry on it', () async {
+    final oats = customMeal(code: '4006381333931', name: 'Oats');
+    await customMealBox.add(MealDBO.fromMealEntity(oats));
+    await intakeBox.add(intakeOf('mine', oats));
+    await otherIntakeBox.add(intakeOf('theirs', oats));
+
+    MealEntity clearBarcode() => bloc.createNewMealEntity(
+      oats,
+      'Oats',
+      '',
+      '100',
+      '100',
+      '100',
+      'g',
+      '89',
+      '23',
+      '0.3',
+      '1.1',
+      barcodeOverride: '',
+    );
+
+    db.failNextScopedOpen = true;
+    await expectLater(
+      bloc.saveCustomMeal(clearBarcode(), previous: oats),
+      throwsA(isA<StateError>()),
+    );
+
+    // The screen stays open and builds the meal again on the next tap.
+    final retried = clearBarcode();
+    await bloc.saveCustomMeal(retried, previous: oats);
+
+    expect(customMealBox.values.map((meal) => meal.code), [retried.code]);
+    expect(storedIntake(intakeBox, 'mine').meal.code, retried.code);
+    expect(storedIntake(otherIntakeBox, 'theirs').meal.code, retried.code);
+  });
+
   test('waits for a running tracked-day write before moving entries', () async {
     final banana = customMeal(code: null, name: 'Banana');
     await customMealBox.add(MealDBO.fromMealEntity(banana));
@@ -316,6 +368,9 @@ class _ProfilesHiveDBProvider extends FakeHiveDBProvider {
   final Box<ProfileDBO> _profiles;
   final Map<String, Box<IntakeDBO>> _scopedIntakeBoxes;
   final openedScopedBoxes = <(String, String)>[];
+
+  /// Makes the next [openScopedBox] fail, as a disk error would.
+  bool failNextScopedOpen = false;
   final closedScopedBoxes = <(String, String)>[];
 
   _ProfilesHiveDBProvider({
@@ -334,6 +389,10 @@ class _ProfilesHiveDBProvider extends FakeHiveDBProvider {
   @override
   Future<Box<E>> openScopedBox<E>(String baseName, String boxSuffix) async {
     expect(baseName, HiveDBProvider.intakeBoxName);
+    if (failNextScopedOpen) {
+      failNextScopedOpen = false;
+      throw StateError('cannot open $baseName$boxSuffix');
+    }
     openedScopedBoxes.add((baseName, boxSuffix));
     return _scopedIntakeBoxes[boxSuffix]! as Box<E>;
   }
