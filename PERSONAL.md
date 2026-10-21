@@ -74,6 +74,7 @@ Datenschutzerklärung und der Code der KI-Funktionen (nur die Einstiege sind weg
 | `NSHealthShareUsageDescription` / `NSHealthUpdateUsageDescription` | Workout-Import aus Apple Health (Upstream); Ausbau in Epic 9 | aktiv |
 | `com.apple.developer.healthkit` | HealthKit | hängt vom KravaSigner-Profil ab, wird in #16 geprüft |
 | App Groups | Widget (Epic 11) | noch nicht vorhanden, Prüfung in #73 |
+| Statistik | Aggregation für beliebige Zeiträume (`periodStats`): Ø kcal, Makros und Wasser nur über Tage mit Einträgen, Zahl der Tage mit und ohne Einträge, Ziel erreicht pro Tag gegen die gespeicherten Tagesziele (Toleranz, Standard ±10 %) | #56 |
 
 Regel: Erlaubt das Provisioning-Profil des Zertifikats ein Entitlement nicht, fällt
 das Feature weg (Epic 9 bzw. 11 werden dann als „not planned“ geschlossen). Es gibt
