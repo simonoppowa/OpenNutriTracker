@@ -21,13 +21,24 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 /// Puts the stored reminders into the system's notification schedule (#71):
 /// clears every reminder slot and the daily reminder of earlier versions,
-/// then schedules the plan of [planReminders]. Run at start, on resume (a
-/// changed time zone), after an edit and after a language change.
+/// then schedules the plan of [planReminders], weekly or once (#72). Run at
+/// start, on every resume (which tops up the meal reminders), after an edit,
+/// after logging or deleting a meal and after a language change.
 class ReminderScheduler {
   final ReminderStore _store;
   final NotificationService _notifications;
+  final DateTime Function() _now;
 
-  ReminderScheduler(this._store, this._notifications);
+  /// The meal reminder types already answered today.
+  final Future<Set<ReminderType>> Function() _loggedToday;
+
+  ReminderScheduler(
+    this._store,
+    this._notifications, {
+    DateTime Function()? now,
+    Future<Set<ReminderType>> Function()? loggedToday,
+  }) : _now = now ?? DateTime.now,
+       _loggedToday = loggedToday ?? (() async => const {});
 
   Future<void> _last = Future.value();
 
@@ -40,21 +51,36 @@ class ReminderScheduler {
   }
 
   Future<void> _sync(S s) async {
-    final plan = planReminders(await _store.load());
+    final plan = planReminders(
+      await _store.load(),
+      now: _now(),
+      loggedToday: await _loggedToday(),
+    );
     await _notifications.cancelDailyReminder();
     await _notifications.cancelIds(reminderNotificationIds);
     for (final planned in plan) {
       final (title, body) = reminderTexts(planned.reminder.type, s);
-      await _notifications.scheduleWeekly(
-        id: planned.id,
-        weekday: planned.weekday,
-        hour: planned.reminder.hour,
-        minute: planned.reminder.minute,
-        title: title,
-        body: body,
-        channelName: s.reminderChannelName,
-        channelDescription: s.reminderChannelDescription,
-      );
+      if (planned.at case final at?) {
+        await _notifications.scheduleOnce(
+          id: planned.id,
+          at: at,
+          title: title,
+          body: body,
+          channelName: s.reminderChannelName,
+          channelDescription: s.reminderChannelDescription,
+        );
+      } else {
+        await _notifications.scheduleWeekly(
+          id: planned.id,
+          weekday: planned.weekday!,
+          hour: planned.reminder.hour,
+          minute: planned.reminder.minute,
+          title: title,
+          body: body,
+          channelName: s.reminderChannelName,
+          channelDescription: s.reminderChannelDescription,
+        );
+      }
     }
   }
 }

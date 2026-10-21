@@ -29,8 +29,20 @@ class _Notifications extends NotificationService {
         ({int id, int weekday, int hour, int minute, String title, String body})
       >[];
 
+  final once = <({int id, DateTime at, String title})>[];
+
   @override
   Future<void> cancelDailyReminder() async => legacyCancelled = true;
+
+  @override
+  Future<void> scheduleOnce({
+    required int id,
+    required DateTime at,
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) async => once.add((id: id, at: at, title: title));
 
   @override
   Future<void> cancelIds(Iterable<int> ids) async {
@@ -175,4 +187,23 @@ void main() {
 
     expect(notifications.log, ['cancel', 'schedule', 'cancel', 'schedule']);
   });
+
+  test(
+    'meal reminders go out once per day, today left out when logged',
+    () async {
+      final notifications = _Notifications();
+
+      await ReminderScheduler(
+        _Store([_reminder(ReminderType.lunch, Reminder.everyDay)]),
+        notifications,
+        now: () => DateTime(2026, 10, 21, 6),
+        loggedToday: () async => {ReminderType.lunch},
+      ).sync(l10nEn);
+
+      expect(notifications.scheduled, isEmpty);
+      expect(notifications.once.first.at, DateTime(2026, 10, 22, 7, 15));
+      expect(notifications.once, hasLength(6));
+      expect(notifications.once.first.title, l10nEn.reminderLunchTitle);
+    },
+  );
 }

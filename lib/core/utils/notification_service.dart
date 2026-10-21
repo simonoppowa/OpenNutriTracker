@@ -166,6 +166,35 @@ class NotificationService {
     );
   }
 
+  /// Schedules a single notification at [at] under [id] (#72).
+  Future<void> scheduleOnce({
+    required int id,
+    required DateTime at,
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) async {
+    await _ensureInitialized();
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(at, tz.local),
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          _remindersChannelId,
+          channelName,
+          channelDescription: channelDescription,
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
   /// Cancels the notifications under [ids].
   Future<void> cancelIds(Iterable<int> ids) async {
     await _ensureInitialized();

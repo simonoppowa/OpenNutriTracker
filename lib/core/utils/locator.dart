@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
@@ -93,7 +95,9 @@ import 'package:opennutritracker/core/utils/backup_usecases_for.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/profile_box_scope.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
+import 'package:opennutritracker/features/reminders/data/meals_logged_today.dart';
 import 'package:opennutritracker/features/reminders/data/reminder_scheduler.dart';
+import 'package:opennutritracker/features/reminders/presentation/reminder_lifecycle.dart';
 import 'package:opennutritracker/features/reminders/data/reminder_store.dart';
 import 'package:opennutritracker/core/utils/profile_bootstrap.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
@@ -231,7 +235,11 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton(() => ReminderStore(locator()));
   locator.registerLazySingleton(
-    () => ReminderScheduler(locator(), locator<NotificationService>()),
+    () => ReminderScheduler(
+      locator(),
+      locator<NotificationService>(),
+      loggedToday: () => mealsLoggedToday(locator(), locator()),
+    ),
   );
 
   // Cache manager
@@ -436,13 +444,22 @@ Future<void> initLocator() async {
     () => GetIntakeUsecase(locator()),
   );
   locator.registerLazySingleton<AddIntakeUsecase>(
-    () => AddIntakeUsecase(locator()),
+    () => AddIntakeUsecase(
+      locator(),
+      onChanged: () => unawaited(syncReminders()),
+    ),
   );
   locator.registerLazySingleton<DeleteIntakeUsecase>(
-    () => DeleteIntakeUsecase(locator()),
+    () => DeleteIntakeUsecase(
+      locator(),
+      onChanged: () => unawaited(syncReminders()),
+    ),
   );
   locator.registerLazySingleton<UpdateIntakeUsecase>(
-    () => UpdateIntakeUsecase(locator()),
+    () => UpdateIntakeUsecase(
+      locator(),
+      onChanged: () => unawaited(syncReminders()),
+    ),
   );
   locator.registerLazySingleton<GetUserActivityUsecase>(
     () => GetUserActivityUsecase(locator()),

@@ -4,7 +4,7 @@ import 'package:opennutritracker/features/reminders/domain/reminder_planner.dart
 
 Reminder _reminder(
   String id, {
-  ReminderType type = ReminderType.breakfast,
+  ReminderType type = ReminderType.water,
   Set<int> weekdays = Reminder.everyDay,
   bool enabled = true,
 }) => Reminder(

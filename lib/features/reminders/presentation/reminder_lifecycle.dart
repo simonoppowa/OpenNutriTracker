@@ -39,20 +39,20 @@ Future<void> syncReminders({Locale? locale, bool always = false}) async {
   }
 }
 
-/// Schedules the reminders at start and again whenever the app comes back
-/// with a different time zone, so weekly reminders keep the local wall time
-/// after travelling (#71).
+/// Schedules the reminders at start and again whenever the app comes back:
+/// that tops up the meal reminders planned a week ahead (#72), and after
+/// reading the time zone again keeps weekly reminders on the local wall
+/// time after travelling (#71).
 void startReminders() {
   unawaited(syncReminders());
   _resumeListener ??= AppLifecycleListener(
     onResume: () async {
       try {
-        if (await locator<NotificationService>().refreshTimeZone()) {
-          await syncReminders();
-        }
+        await locator<NotificationService>().refreshTimeZone();
       } catch (error, stackTrace) {
         _log.warning('Could not check the time zone', error, stackTrace);
       }
+      await syncReminders();
     },
   );
 }
