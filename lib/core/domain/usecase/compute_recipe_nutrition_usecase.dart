@@ -54,6 +54,23 @@ class ComputeRecipeNutritionUseCase {
     }
   }
 
+  /// Per nutrient, the ingredients' amounts summed together with how many
+  /// ingredients gave no value (#54), for showing a recipe's values as "at
+  /// least" where some are missing. Logged recipes do not keep this: their
+  /// snapshot holds only the values per 100 g (a lower bound where an
+  /// ingredient was missing one), and the recipe itself can always count
+  /// it again from its stored ingredient snapshots.
+  Map<NutrientField, NutrientTotal> coverage(
+    List<RecipeIngredientEntity> ingredients,
+  ) => {
+    for (final field in NutrientField.values)
+      field: NutrientTotal.over(
+        ingredients,
+        per100: (i) => field.per100(i.snapshotMeal.nutriments),
+        amountG: (i) => i.convertedAmountG,
+      ),
+  };
+
   ComputeRecipeNutritionResult compute(
     List<RecipeIngredientEntity> ingredients, {
     double? totalWeightOverride,
@@ -80,17 +97,13 @@ class ComputeRecipeNutritionUseCase {
 
     // Per nutrient: the ingredients' amounts summed; a nutrient no
     // ingredient knows stays null instead of a misleading 0 (#46).
-    double? perHundredOf(NutrientField field) {
-      final sum = NutrientTotal.over(
-        ingredients,
-        per100: (i) => field.per100(i.snapshotMeal.nutriments),
-        amountG: (i) => i.convertedAmountG,
-      ).valueOrNull;
-      return sum == null ? null : sum * 100 / totalWeightG;
-    }
-
+    final totals = coverage(ingredients);
     final per = NutrientField.entityFrom({
-      for (final field in NutrientField.values) field: perHundredOf(field),
+      for (final field in NutrientField.values)
+        field: switch (totals[field]!.valueOrNull) {
+          final sum? => sum * 100 / totalWeightG,
+          null => null,
+        },
     });
 
     return ComputeRecipeNutritionResult(

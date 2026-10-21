@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -14,6 +15,7 @@ import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_pa
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detail_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/recipe_builder_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/ingredient_list_item.dart';
+import 'package:opennutritracker/features/recipes/presentation/widgets/recipe_nutrients_table.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/recipe_nutrition_summary.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -34,11 +36,17 @@ class RecipeDetailScreen extends StatefulWidget {
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   late RecipeDetailBloc _bloc;
   bool _initialized = false;
+  bool _showMicronutrients = false;
 
   @override
   void initState() {
     super.initState();
     _bloc = locator<RecipeDetailBloc>();
+    locator<GetConfigUsecase>().getConfig().then((config) {
+      if (mounted) {
+        setState(() => _showMicronutrients = config.showMicronutrients);
+      }
+    });
   }
 
   @override
@@ -149,6 +157,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             nutrimentsPer100: recipe.aggregatedNutrimentsPer100,
             totalWeightG: recipe.totalWeightG,
             servingsCount: recipe.servingsCount,
+          ),
+          const SizedBox(height: Dimens.spacing24),
+          RecipeNutrientsTable(
+            coverage: locator<ComputeRecipeNutritionUseCase>().coverage(
+              recipe.ingredients,
+            ),
+            totalWeightG: recipe.totalWeightG,
+            servingsCount: recipe.servingsCount,
+            showMicronutrients: _showMicronutrients,
           ),
           const SizedBox(height: Dimens.spacing24),
           Text(

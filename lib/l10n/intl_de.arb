@@ -935,6 +935,7 @@
   "recipeNeedsIngredientsLabel": "Mindestens eine Zutat hinzufügen",
   "recipeNoIngredientsLabel": "Noch keine Zutaten",
   "recipeNutritionPer100Label": "Pro 100 g",
+  "recipeIngredientsWithoutValueHint": "{count, plural, =1{1 Zutat} other{{count} Zutaten}} ohne Angabe",
   "recipeNutritionPerServingLabel": "Pro Portion ({grams} g)",
   "recipeNutritionPreviewLabel": "Nährwerte (gesamt)",
   "recipeSaveErrorLabel": "Rezept konnte nicht gespeichert werden.",

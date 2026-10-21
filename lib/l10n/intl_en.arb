@@ -1595,6 +1595,8 @@
   "bodyMeasurementsChartEmpty": "Two measurements of this kind make a chart.",
   "bodyMeasurementDeleteTitle": "Delete this measurement?",
   "nutrientUnknownLabel": "unknown",
+  "recipeIngredientsWithoutValueHint": "{count, plural, =1{1 ingredient} other{{count} ingredients}} without a value",
+  "@recipeIngredientsWithoutValueHint": {"placeholders": {"count": {"type": "int"}}},
   "nutrientPartialHint": "{count, plural, =1{1 entry} other{{count} entries}} without a value",
   "@nutrientPartialHint": {"placeholders": {"count": {"type": "int"}}},
   "nutritionForAmountLabel": "For {amount}",

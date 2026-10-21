@@ -33,7 +33,9 @@ class MealDetailNutrimentsTable extends StatelessWidget {
     this.selectedAmountG,
   });
 
-  static const _mainRows = <(NutrientField, bool)>[
+  /// The main rows in table order, each with whether it is indented under
+  /// the row above (saturated fat under fat).
+  static const mainRows = <(NutrientField, bool)>[
     (NutrientField.energyKcal, false),
     (NutrientField.fat, false),
     (NutrientField.saturatedFat, true),
@@ -43,7 +45,8 @@ class MealDetailNutrimentsTable extends StatelessWidget {
     (NutrientField.proteins, false),
   ];
 
-  static const _microRows = <(NutrientField, bool)>[
+  /// The micronutrient rows in table order, indented like [mainRows].
+  static const microRows = <(NutrientField, bool)>[
     (NutrientField.monounsaturatedFat, true),
     (NutrientField.polyunsaturatedFat, true),
     (NutrientField.transFat, true),
@@ -158,7 +161,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
         const SizedBox(height: Dimens.spacing16),
         table([
           _tableRow('', headers, textStyleBold),
-          for (final entry in _mainRows) row(entry, textStyleNormal),
+          for (final entry in mainRows) row(entry, textStyleNormal),
         ]),
         if (showMicronutrients) ...[
           const SizedBox(height: Dimens.spacing8),
@@ -175,7 +178,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
               initiallyExpanded: product.nutriments.hasMicronutrientData,
               children: [
                 table([
-                  for (final entry in _microRows) row(entry, textStyleNormal),
+                  for (final entry in microRows) row(entry, textStyleNormal),
                 ]),
               ],
             ),

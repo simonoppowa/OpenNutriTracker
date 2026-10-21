@@ -59,6 +59,7 @@ vervollständigt.
 | Rezepte | Ein bestehendes Rezept öffnet mit seinem Endgewicht nach dem Kochen (gespeichertes Gewicht ≠ Summe der Zutaten), statt es beim Bearbeiten stillschweigend auf das Rohgewicht zurückzusetzen; Regressionstests für Snapshot, Portionen, Endgewicht und Duplizieren | #52, #142 |
 | Rezepte | Nährwerte pro Portion (Energie in kcal oder kJ, Makros) im Builder und im Rezeptdetail, sobald Portionen gesetzt sind | #53 |
 | Rezepte | Builder: Feld „Gewicht nach dem Kochen (g)“ mit Hilfetext, darunter „Roh: X g · fertig: Y g“ bzw. die Zutatensumme, und „Summe der Zutaten verwenden“ zum Zurücksetzen | #55 |
+| Rezepte | Rezeptdetail listet alle Nährwerte pro 100 g und pro Portion; fehlt ein Wert bei einzelnen Zutaten, steht „≥ X“ mit „N Zutaten ohne Angabe“, ohne Angabe bei allen „—“; Mikronährstoffe mit der Einstellung „Mikronährstoffe anzeigen“. Entscheidung: geloggte Rezepte speichern keine Abdeckung (ihr Snapshot hat nur die Werte pro 100 g, bei Lücken eine Untergrenze); das Rezept zählt sie jederzeit aus seinen Zutaten-Snapshots nach (`ComputeRecipeNutritionUseCase.coverage`) | #54 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
