@@ -67,12 +67,13 @@ void main() {
   testWidgets('the collapsed summary counts the enabled sources', (
     tester,
   ) async {
-    // The local BLS switched off, plus Open Food Facts, which is always
-    // searched and has no switch: 1 of 2.
+    // The local BLS switched off and the two FDC datasets off by default,
+    // plus Open Food Facts, which is always searched and has no switch:
+    // 1 of 4.
     await pumpPage(tester, toggles: {'bls': false});
 
     expect(
-      find.text(l10nEn.onboardingFoodSourcesEnabledCount(1, 2)),
+      find.text(l10nEn.onboardingFoodSourcesEnabledCount(1, 4)),
       findsOneWidget,
     );
   });
@@ -105,7 +106,7 @@ void main() {
     );
 
     expect(
-      find.text(l10nEn.onboardingFoodSourcesEnabledCount(2, 2)),
+      find.text(l10nEn.onboardingFoodSourcesEnabledCount(4, 4)),
       findsOneWidget,
     );
 
@@ -120,7 +121,7 @@ void main() {
 
     expect(reported?['bls'], isFalse);
     expect(
-      find.text(l10nEn.onboardingFoodSourcesEnabledCount(1, 2)),
+      find.text(l10nEn.onboardingFoodSourcesEnabledCount(3, 4)),
       findsOneWidget,
     );
   });

@@ -412,7 +412,7 @@
   "autoBackupIntervalHours": "{hours} Stunden",
   "autoBackupKeepCount": "{count} Backups",
   "autoBackupServerError": "der Server hat mit Fehler {code} geantwortet",
-  "aboutFoodDataCredits": "Lebensmitteldaten: Bundeslebensmittelschlüssel (BLS) 4.0, © Max Rubner-Institut, Lizenz CC BY 4.0, in App-Einheiten umgerechnet und auf 38 Nährstoffe gekürzt in der App enthalten; Open Food Facts, ODbL.",
+  "aboutFoodDataCredits": "Lebensmitteldaten: Bundeslebensmittelschlüssel (BLS) 4.0, © Max Rubner-Institut, Lizenz CC BY 4.0, in App-Einheiten umgerechnet und auf 38 Nährstoffe gekürzt in der App enthalten; USDA FoodData Central (Foundation Foods, SR Legacy), gemeinfrei (CC0 1.0), in der App enthalten; Open Food Facts, ODbL.",
   "plausibilityTitle": "Diese Werte wirken unstimmig",
   "plausibilityUnclearBody": "Die Nährwerte dieses Produkts passen nicht zusammen. Bitte mit der Verpackung vergleichen.",
   "plausibilityCorrectAction": "Werte korrigieren",

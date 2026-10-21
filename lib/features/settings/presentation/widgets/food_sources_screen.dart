@@ -90,7 +90,9 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
                     title: Text(
                       SPConst.foodSourceDisplayNames[sourceCode] ?? sourceCode,
                     ),
-                    value: _toggles[sourceCode] ?? true,
+                    value:
+                        _toggles[sourceCode] ??
+                        SPConst.isFoodSourceOnByDefault(sourceCode),
                     onChanged: (value) => _toggle(sourceCode, value),
                   ),
               ],

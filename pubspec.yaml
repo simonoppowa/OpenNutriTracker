@@ -130,6 +130,7 @@ flutter:
     # contacts Unsplash's CDN, at seed time or at render time.
     - assets/demo/meals/
     - assets/bls/
+    - assets/fdc/
 
   fonts:
     - family: CustomIcons

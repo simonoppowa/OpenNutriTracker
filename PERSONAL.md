@@ -54,6 +54,7 @@ vervollständigt.
 | Mikronährstoffe | Referenzwerte wählbar: IOM oder DGE (DGE/ÖGE, 3. Auflage 2025, nach Alter/Geschlecht) unter Einstellungen → Nährstoffe; wirkt sofort, fehlende DGE-Werte sichtbar als „IOM/FDA“ markiert; Einstellung `nutrientReferenceStandard` (ConfigDBO-Feld 115, geräteweit, im Backup) | #49 |
 | Mikronährstoffe | Elf weitere Mikronährstoffe: Vitamin E, K, B1, B2, B5, Biotin, Folat, Jod, Selen, Kupfer, Mangan (`MealNutrimentsDBO`, Hive-Felder 100–110, alte Daten lesen sie als unbekannt); gefüllt aus dem lokalen BLS (ohne Selen) und aus OFF (Gramm in mg/µg umgerechnet); in Tagesübersicht, Mahlzeit-Detail, Zielen, Rezepten sowie JSON- und CSV-Export/-Import (Spalten vor `meal_data_version`) | #50 |
 | Mikronährstoffe | Eigene Nährstoffziele gelten ab dem Speichertag weiter: Speichern schreibt sie auf diesen und alle späteren Tage, ein neuer Tag übernimmt die Ziele des letzten früheren Tages; Zurücksetzen löscht alle eigenen Ziele (auch die zehn alten Felder); Upstreams `updateDayNutrientGoals` bleibt für Merges unverändert | #136 |
+| Lebensmittel | FDC Foundation + SR Legacy lokal (englische Namen, eigene Schalter, standardmäßig aus); die lokale Suche zählt englische Plurale wie den Singular und hebt „raw“ wie „roh“ | #80 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
@@ -170,7 +171,14 @@ Onboarding (#100).
   `lib/features/add_meal/data/data_sources/bls_synonyms.dart` (z. B. Brokkoli →
   Broccoli, Hüttenkäse → Körniger Frischkäse). Kommt bei einer häufigen Suche
   nichts, gehört das Wort dort hinein.
-- Kein Supabase/FDC mehr. Upstream nutzte dafür ein Backend des Maintainers ohne
+- **USDA FoodData Central** (Foundation Foods und SR Legacy, gemeinfrei/CC0, #80):
+  liegt als `assets/fdc/fdc.json.gz` in der App (8.114 Lebensmittel, ~0,55 MB
+  komprimiert), erzeugt mit `tool/fdc/fdc_to_asset.py` (Anleitung in
+  `tool/fdc/README.md`). Nur englische Namen, daher pro Datensatz ein eigener
+  Schalter unter Einstellungen → Lebensmitteldatenbanken, beide standardmäßig
+  aus; gedacht für Lücken in BLS und OFF. Die Treffer stehen hinter denen des BLS
+  und verlinken auf die FDC-Seite.
+- Kein Supabase mehr. Upstream nutzte dafür ein Backend des Maintainers ohne
   öffentliche Zugangsdaten.
 
 ## Upstream-Updates übernehmen

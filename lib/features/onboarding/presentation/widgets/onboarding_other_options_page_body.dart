@@ -404,7 +404,11 @@ class _OnboardingOtherOptionsPageBodyState
     final enabled =
         alwaysOnCount +
         SPConst.settingsSelectableFoodSources
-            .where((source) => _foodSourceToggles[source] ?? true)
+            .where(
+              (source) =>
+                  _foodSourceToggles[source] ??
+                  SPConst.isFoodSourceOnByDefault(source),
+            )
             .length;
     final total = alwaysOnCount + SPConst.settingsSelectableFoodSources.length;
 
@@ -434,7 +438,9 @@ class _OnboardingOtherOptionsPageBodyState
                 title: Text(
                   SPConst.foodSourceDisplayNames[sourceCode] ?? sourceCode,
                 ),
-                value: _foodSourceToggles[sourceCode] ?? true,
+                value:
+                    _foodSourceToggles[sourceCode] ??
+                    SPConst.isFoodSourceOnByDefault(sourceCode),
                 onChanged: (value) => _onSourceToggled(sourceCode, value),
               ),
             ),

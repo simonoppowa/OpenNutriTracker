@@ -100,6 +100,8 @@ import 'package:opennutritracker/features/add_activity/presentation/bloc/activit
 import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/local_bls_food_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/local_fdc_food_data_source.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/local_reference_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
@@ -677,7 +679,10 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
   locator.registerLazySingleton<SpFoodDataSource>(
-    () => LocalBlsFoodDataSource(),
+    () => LocalReferenceFoodDataSource([
+      LocalBlsFoodDataSource(),
+      LocalFdcFoodDataSource(),
+    ]),
   );
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));
   locator.registerLazySingleton<WeightLogDataSource>(

@@ -93,6 +93,11 @@ class SPConst {
   /// food_source.code of the Bundeslebensmittelschlüssel.
   static const blsSourceCode = 'bls';
 
+  /// food_source.code of the FDC Foundation Foods and SR Legacy datasets,
+  /// shipped as a local asset in this fork (#80).
+  static const fdcFoundationSourceCode = 'fdc_foundation';
+  static const fdcSrLegacySourceCode = 'fdc_sr_legacy';
+
   /// BLS food-group letters (first character of the BLS code) that denote
   /// beverages: N = alkoholfreie Getränke, P = alkoholische Getränke.
   /// Used to default drinks to millilitre entry in the app.
@@ -165,9 +170,20 @@ class SPConst {
   };
 
   /// Sources offered in Settings → Food databases. This fork has no
-  /// Supabase backend; its one reference database is the BLS shipped as a
-  /// local asset (`LocalBlsFoodDataSource`).
-  static const settingsSelectableFoodSources = ['bls'];
+  /// Supabase backend; its reference databases ship as local assets: the
+  /// BLS (`LocalBlsFoodDataSource`) and the two FDC datasets
+  /// (`LocalFdcFoodDataSource`, #80).
+  static const settingsSelectableFoodSources = [
+    blsSourceCode,
+    fdcFoundationSourceCode,
+    fdcSrLegacySourceCode,
+  ];
+
+  /// Whether [code] is searched while the user has not set its switch: the
+  /// FDC datasets only have English names and start off, as an addition
+  /// for the gaps the BLS and Open Food Facts leave (#80).
+  static bool isFoodSourceOnByDefault(String code) =>
+      !code.startsWith(fdcSourcePrefix);
 
   /// Public website per backend source: the "learn more" link in Settings →
   /// Food databases and the info-button fallback for foods without a

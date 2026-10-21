@@ -71,19 +71,18 @@ const _blsCountries = {'DE', 'AT', 'CH'};
 /// Which reference food sources onboarding starts with.
 ///
 /// Open Food Facts is always searched and is not part of this map. In this
-/// fork the only selectable source is the local BLS, which works offline,
-/// so it starts on for every locale.
+/// fork the selectable sources are local assets: the BLS starts on for every
+/// locale, the FDC datasets start off ([SPConst.isFoodSourceOnByDefault]).
 Map<String, bool> defaultFoodSourceToggles(String localeName) {
   final country = countryCodeFromLocale(localeName);
   final usesBls = country != null && _blsCountries.contains(country);
   return <String, bool>{
     for (final source in SPConst.settingsSelectableFoodSources)
       source: switch (source) {
-        SPConst.blsSourceCode => true,
         // US branded products are the one set that is regionally wrong,
         // not merely foreign.
         'fdc_branded' => !usesBls,
-        _ => true,
+        _ => SPConst.isFoodSourceOnByDefault(source),
       },
   };
 }

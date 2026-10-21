@@ -516,7 +516,7 @@
   "@autoBackupKeepCount": {"placeholders": {"count": {"type": "int"}}},
   "autoBackupServerError": "the server answered with error {code}",
   "@autoBackupServerError": {"placeholders": {"code": {"type": "String"}}},
-  "aboutFoodDataCredits": "Food data: Bundeslebensmittelschlüssel (BLS) 4.0, © Max Rubner-Institut, licensed CC BY 4.0, converted to app units, cut to 38 nutrients and shipped with the app; Open Food Facts, ODbL.",
+  "aboutFoodDataCredits": "Food data: Bundeslebensmittelschlüssel (BLS) 4.0, © Max Rubner-Institut, licensed CC BY 4.0, converted to app units, cut to 38 nutrients and shipped with the app; USDA FoodData Central (Foundation Foods, SR Legacy), public domain (CC0 1.0), shipped with the app; Open Food Facts, ODbL.",
   "plausibilityTitle": "These values look off",
   "plausibilityUnclearBody": "The nutrition values of this product do not add up. Please check them against the label.",
   "plausibilityCorrectAction": "Correct values",

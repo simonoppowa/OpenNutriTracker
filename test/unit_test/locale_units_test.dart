@@ -91,6 +91,19 @@ void main() {
       }
     });
 
+    test('the local FDC datasets start off in every locale', () {
+      for (final locale in ['de_DE', 'en_US']) {
+        final toggles = defaultFoodSourceToggles(locale);
+        expect(toggles[SPConst.fdcFoundationSourceCode], isFalse);
+        expect(toggles[SPConst.fdcSrLegacySourceCode], isFalse);
+      }
+      expect(SPConst.isFoodSourceOnByDefault(SPConst.blsSourceCode), isTrue);
+      expect(
+        SPConst.isFoodSourceOnByDefault(SPConst.fdcSrLegacySourceCode),
+        isFalse,
+      );
+    });
+
     test('covers exactly the selectable sources', () {
       expect(
         defaultFoodSourceToggles('en_US').keys.toSet(),
