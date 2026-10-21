@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/barcode_validator.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
@@ -70,9 +72,14 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   final GetConfigUsecase _getConfigUsecase;
   final CustomMealDataSource _customMealDataSource; // #267
   final ConfigRepository _configRepository;
+  final IntakeRepository _intakeRepository; // #1417
 
-  EditMealBloc(this._getConfigUsecase, this._customMealDataSource, this._configRepository)
-      : super(EditMealInitial()) {
+  EditMealBloc(
+    this._getConfigUsecase,
+    this._customMealDataSource,
+    this._configRepository,
+    this._intakeRepository,
+  ) : super(EditMealInitial()) {
     on<InitializeEditMealEvent>((event, emit) async {
       emit(EditMealLoadingState());
 
@@ -181,14 +188,30 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   ///
   /// [previous] is the meal as it was before the edit: its library entry is
   /// the one replaced, even when the edit changed the barcode or the name
-  /// the meal is found by (#1403).
+  /// the meal is found by (#1403). The diary entries logged under that old
+  /// barcode or name move to the new one, in every profile, so they stay
+  /// the meal's and deleting it removes them too (#1417).
+  ///
+  /// The save and the move run as one step under the tracked-day lock, so
+  /// no profile switch lands between them and swaps the intake box mid-way.
+  /// Not tied to the profile the edit began on: the library is shared and
+  /// the move covers every profile.
   Future<void> saveCustomMeal(
     MealEntity mealEntity, {
     MealEntity? previous,
   }) async {
-    await _customMealDataSource.saveCustomMeal(
-      MealDBO.fromMealEntity(mealEntity),
-      previous: previous == null ? null : MealDBO.fromMealEntity(previous),
-    );
+    final saved = MealDBO.fromMealEntity(mealEntity);
+    final before = previous == null ? null : MealDBO.fromMealEntity(previous);
+    await withTrackedDayLock(() async {
+      await _customMealDataSource.saveCustomMeal(saved, previous: before);
+      final fromKey = before?.code ?? before?.name;
+      final toKey = saved.code ?? saved.name;
+      if (fromKey != null && toKey != null && fromKey != toKey) {
+        await _intakeRepository.moveCustomMealInEveryProfile(
+          fromMealKey: fromKey,
+          toMeal: saved,
+        );
+      }
+    });
   }
 }
