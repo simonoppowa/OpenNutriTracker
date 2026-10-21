@@ -732,6 +732,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
           return ErrorDialog(
             errorText: S.of(context).errorLoadingFavourites,
             onRefreshPressed: _onFavouritesRefreshButtonPressed,
+            retryIdentifier: 'add-meal-favourites-retry',
           );
         }
         return const SizedBox();

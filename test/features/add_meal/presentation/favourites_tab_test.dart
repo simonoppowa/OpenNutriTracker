@@ -157,6 +157,23 @@ void main() {
     expect(find.text(l10nEn.favouritesEmptySubtitle), findsOneWidget);
   });
 
+  testWidgets('a failed load offers a Retry a driver can find', (tester) async {
+    favourites.readError = StateError('box closed');
+    await openFavourites(tester);
+
+    expect(find.text(l10nEn.errorLoadingFavourites), findsOneWidget);
+    final retry = find.bySemanticsIdentifier('add-meal-favourites-retry');
+    expect(retry, findsOneWidget);
+
+    // Nothing changes in the list, so only the tap reloads it.
+    favourites.readError = null;
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nEn.errorLoadingFavourites), findsNothing);
+    expect(find.text(l10nEn.favouritesEmptyTitle), findsOneWidget);
+  });
+
   testWidgets('typing filters the list and stays on Favourites', (
     tester,
   ) async {
