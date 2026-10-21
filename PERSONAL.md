@@ -57,6 +57,7 @@ vervollständigt.
 | Lebensmittel | FDC Foundation + SR Legacy lokal (englische Namen, eigene Schalter, standardmäßig aus); die lokale Suche zählt englische Plurale wie den Singular und hebt „raw“ wie „roh“ | #80 |
 | Rezepte | Ein bestehendes Rezept öffnet mit seinem Endgewicht nach dem Kochen (gespeichertes Gewicht ≠ Summe der Zutaten), statt es beim Bearbeiten stillschweigend auf das Rohgewicht zurückzusetzen; Regressionstests für Snapshot, Portionen, Endgewicht und Duplizieren | #52, #142 |
 | Rezepte | Nährwerte pro Portion (Energie in kcal oder kJ, Makros) im Builder und im Rezeptdetail, sobald Portionen gesetzt sind | #53 |
+| Rezepte | Builder: Feld „Gewicht nach dem Kochen (g)“ mit Hilfetext, darunter „Roh: X g · fertig: Y g“ bzw. die Zutatensumme, und „Summe der Zutaten verwenden“ zum Zurücksetzen | #55 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

@@ -91,6 +91,11 @@ class UpdateTotalWeightEvent extends RecipeBuilderEvent {
   List<Object?> get props => [totalWeightG];
 }
 
+/// Drops the weight after cooking: the total follows the ingredients again.
+class ResetTotalWeightEvent extends RecipeBuilderEvent {
+  const ResetTotalWeightEvent();
+}
+
 class SaveRecipeEvent extends RecipeBuilderEvent {
   const SaveRecipeEvent();
 }

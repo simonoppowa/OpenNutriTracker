@@ -60,6 +60,10 @@ class RecipeBuilderState extends Equatable {
         errorMessage: null,
       );
 
+  /// The ingredients' summed weight, the recipe's weight before cooking.
+  double get rawWeightG =>
+      ingredients.fold(0, (sum, i) => sum + i.convertedAmountG);
+
   RecipeBuilderState copyWith({
     String? id,
     String? name,

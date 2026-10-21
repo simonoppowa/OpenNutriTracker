@@ -35,6 +35,7 @@ class RecipeBuilderBloc
     on<UpdateIngredientEvent>(_onUpdateIngredient);
     on<RemoveIngredientEvent>(_onRemoveIngredient);
     on<UpdateTotalWeightEvent>(_onUpdateTotalWeight);
+    on<ResetTotalWeightEvent>(_onResetTotalWeight);
     on<SaveRecipeEvent>(_onSave);
   }
 
@@ -56,13 +57,15 @@ class RecipeBuilderBloc
       // the field values but treat the builder as a fresh create so save()
       // assigns a new uuid.
       final isDuplicate = r.id.isEmpty;
-      // A stored weight that differs from the ingredients' sum is a weight
-      // after cooking; keep it instead of recomputing it away (#142).
+      // A stored weight above zero that differs from the ingredients' sum
+      // is a weight after cooking; keep it instead of recomputing it away
+      // (#142).
       final rawWeightG = r.ingredients.fold<double>(
         0,
         (sum, i) => sum + i.convertedAmountG,
       );
-      final hasCookedWeight = (r.totalWeightG - rawWeightG).abs() > 1e-6;
+      final hasCookedWeight =
+          r.totalWeightG > 0 && (r.totalWeightG - rawWeightG).abs() > 1e-6;
       emit(
         state.copyWith(
           id: isDuplicate ? null : r.id,
@@ -179,6 +182,20 @@ class RecipeBuilderBloc
       ),
     );
     _recompute(emit);
+  }
+
+  void _onResetTotalWeight(
+    ResetTotalWeightEvent event,
+    Emitter<RecipeBuilderState> emit,
+  ) {
+    final result = _computeUseCase.compute(state.ingredients);
+    emit(
+      state.copyWith(
+        totalWeightOverridden: false,
+        totalWeightG: result.totalWeightG,
+        aggregatedNutrimentsPer100: result.perHundredG,
+      ),
+    );
   }
 
   void _recompute(Emitter<RecipeBuilderState> emit) {

@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/recipes/presentation/widgets/food_sear
 import 'package:opennutritracker/features/recipes/presentation/widgets/ingredient_list_item.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/ingredient_quantity_dialog.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/recipe_nutrition_summary.dart';
+import 'package:opennutritracker/features/recipes/presentation/widgets/recipe_weight_note.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -292,6 +293,13 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
                     _bloc.add(UpdateTotalWeightEvent(parsed));
                   }
                 },
+              ),
+              const SizedBox(height: Dimens.spacing8),
+              RecipeWeightNote(
+                rawWeightG: state.rawWeightG,
+                cookedWeightG: state.totalWeightG,
+                overridden: state.totalWeightOverridden,
+                onReset: () => _bloc.add(const ResetTotalWeightEvent()),
               ),
               const SizedBox(height: Dimens.spacing16),
               RecipeNutritionSummary(
