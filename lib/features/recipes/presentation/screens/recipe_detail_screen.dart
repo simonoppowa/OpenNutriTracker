@@ -148,6 +148,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           RecipeNutritionSummary(
             nutrimentsPer100: recipe.aggregatedNutrimentsPer100,
             totalWeightG: recipe.totalWeightG,
+            servingsCount: recipe.servingsCount,
           ),
           const SizedBox(height: Dimens.spacing24),
           Text(

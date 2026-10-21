@@ -56,6 +56,7 @@ vervollständigt.
 | Mikronährstoffe | Eigene Nährstoffziele gelten ab dem Speichertag weiter: Speichern schreibt sie auf diesen und alle späteren Tage, ein neuer Tag übernimmt die Ziele des letzten früheren Tages; Zurücksetzen löscht alle eigenen Ziele (auch die zehn alten Felder); Upstreams `updateDayNutrientGoals` bleibt für Merges unverändert | #136 |
 | Lebensmittel | FDC Foundation + SR Legacy lokal (englische Namen, eigene Schalter, standardmäßig aus); die lokale Suche zählt englische Plurale wie den Singular und hebt „raw“ wie „roh“ | #80 |
 | Rezepte | Ein bestehendes Rezept öffnet mit seinem Endgewicht nach dem Kochen (gespeichertes Gewicht ≠ Summe der Zutaten), statt es beim Bearbeiten stillschweigend auf das Rohgewicht zurückzusetzen; Regressionstests für Snapshot, Portionen, Endgewicht und Duplizieren | #52, #142 |
+| Rezepte | Nährwerte pro Portion (Energie in kcal oder kJ, Makros) im Builder und im Rezeptdetail, sobald Portionen gesetzt sind | #53 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

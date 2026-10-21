@@ -935,6 +935,7 @@
   "recipeNeedsIngredientsLabel": "Mindestens eine Zutat hinzufügen",
   "recipeNoIngredientsLabel": "Noch keine Zutaten",
   "recipeNutritionPer100Label": "Pro 100 g",
+  "recipeNutritionPerServingLabel": "Pro Portion ({grams} g)",
   "recipeNutritionPreviewLabel": "Nährwerte (gesamt)",
   "recipeSaveErrorLabel": "Rezept konnte nicht gespeichert werden.",
   "recipeSaveForLaterDescription": "Aktiviere dies, um diese Mahlzeit für das nächste Mal in deiner gespeicherten Liste zu behalten. Lass es aus für eine einmalige Mahlzeit, die du nicht noch einmal essen wirst.",

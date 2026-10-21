@@ -297,6 +297,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
               RecipeNutritionSummary(
                 nutrimentsPer100: state.aggregatedNutrimentsPer100,
                 totalWeightG: state.totalWeightG,
+                servingsCount: state.servingsCount,
               ),
               const SizedBox(height: Dimens.spacing32),
             ],

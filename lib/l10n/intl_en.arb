@@ -988,6 +988,14 @@
   "recipeNeedsIngredientsLabel": "Add at least one ingredient",
   "recipeNoIngredientsLabel": "No ingredients yet",
   "recipeNutritionPer100Label": "Per 100 g",
+  "recipeNutritionPerServingLabel": "Per serving ({grams} g)",
+  "@recipeNutritionPerServingLabel": {
+    "placeholders": {
+      "grams": {
+        "type": "String"
+      }
+    }
+  },
   "recipeNutritionPreviewLabel": "Nutrition (total)",
   "recipeSaveErrorLabel": "Could not save recipe.",
   "recipeSaveForLaterDescription": "Turn this on to keep this meal in your saved list for next time. Leave it off for a one-off you won't eat again.",

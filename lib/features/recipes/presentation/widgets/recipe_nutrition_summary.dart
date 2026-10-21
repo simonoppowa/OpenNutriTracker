@@ -12,10 +12,15 @@ class RecipeNutritionSummary extends StatelessWidget {
   final MealNutrimentsEntity nutrimentsPer100;
   final double totalWeightG;
 
+  /// The recipe's portions; with one or more the card also shows the values
+  /// of one portion (#53).
+  final int? servingsCount;
+
   const RecipeNutritionSummary({
     super.key,
     required this.nutrimentsPer100,
     required this.totalWeightG,
+    this.servingsCount,
   });
 
   double _total(double? per100) {
@@ -36,10 +41,19 @@ class RecipeNutritionSummary extends StatelessWidget {
     final energyTotalKcal = _total(nutrimentsPer100.energyKcal100);
     final energyTotalDisplay =
         usesKilojoules ? UnitCalc.kcalToKj(energyTotalKcal) : energyTotalKcal;
-    final energyPer100Kcal = nutrimentsPer100.energyKcal100 ?? 0;
-    final energyPer100Display = usesKilojoules
-        ? UnitCalc.kcalToKj(energyPer100Kcal)
-        : energyPer100Kcal;
+    final servings = servingsCount ?? 0;
+    String summaryLine(String label, double grams) {
+      final factor = grams / 100;
+      final energyKcal = (nutrimentsPer100.energyKcal100 ?? 0) * factor;
+      final energy = usesKilojoules ? UnitCalc.kcalToKj(energyKcal) : energyKcal;
+      String macro(String short, double? per100) =>
+          '${short.toUpperCase()} ${((per100 ?? 0) * factor).toStringAsFixed(1)}g';
+      return '$label · '
+          '${energy.toStringAsFixed(0)} $energyLabel · '
+          '${macro(s.carbsLabelShort, nutrimentsPer100.carbohydrates100)} · '
+          '${macro(s.fatLabelShort, nutrimentsPer100.fat100)} · '
+          '${macro(s.proteinLabelShort, nutrimentsPer100.proteins100)}';
+    }
     return AppCard(
       padding: const EdgeInsets.all(Dimens.spacing16),
       child: Column(
@@ -89,13 +103,21 @@ class RecipeNutritionSummary extends StatelessWidget {
           ),
           Divider(height: Dimens.spacing24 + Dimens.spacing8, color: palette.border),
           Text(
-            '${s.recipeNutritionPer100Label} · '
-            '${energyPer100Display.toStringAsFixed(0)} $energyLabel · '
-            '${s.carbsLabelShort.toUpperCase()} ${(nutrimentsPer100.carbohydrates100 ?? 0).toStringAsFixed(1)}g · '
-            '${s.fatLabelShort.toUpperCase()} ${(nutrimentsPer100.fat100 ?? 0).toStringAsFixed(1)}g · '
-            '${s.proteinLabelShort.toUpperCase()} ${(nutrimentsPer100.proteins100 ?? 0).toStringAsFixed(1)}g',
+            summaryLine(s.recipeNutritionPer100Label, 100),
             style: theme.textTheme.bodySmall?.copyWith(color: palette.textMuted),
           ),
+          if (servings > 0) ...[
+            const SizedBox(height: Dimens.spacing4),
+            Text(
+              summaryLine(
+                s.recipeNutritionPerServingLabel(
+                  (totalWeightG / servings).toStringAsFixed(0),
+                ),
+                totalWeightG / servings,
+              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: palette.textMuted),
+            ),
+          ],
         ],
       ),
     );
