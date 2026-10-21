@@ -663,7 +663,23 @@ class _EditMealScreenState extends State<EditMealScreen> {
     }
   }
 
+  /// Set while a save runs, so a second tap on Save before the first one has
+  /// navigated away does nothing. A second run would build the meal again
+  /// from the same pre-edit [_mealEntity]: after a barcode clear that is a
+  /// fresh internal id matching no entry, and the library got a copy.
+  bool _saving = false;
+
   Future<void> _onSavePressed(bool usesImperialUnits) async {
+    if (_saving) return;
+    _saving = true;
+    try {
+      await _save(usesImperialUnits);
+    } finally {
+      _saving = false;
+    }
+  }
+
+  Future<void> _save(bool usesImperialUnits) async {
     try {
       // Validate meal name: non-empty and contains at least one letter (#211, #214)
       if (!FoodNameValidator.isValid(_nameTextController.text)) {
@@ -726,7 +742,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           _simpleFieldOrZero(_carbsTextController.text),
           _simpleFieldOrZero(_fatTextController.text),
           _simpleFieldOrZero(_proteinTextController.text),
-          barcodeOverride: rawBarcode.isEmpty ? null : rawBarcode,
+          barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
         );
@@ -889,7 +905,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           magnesiumText: magnesiumText,
           vitaminDText: vitaminDText,
           vitaminB12Text: vitaminB12Text,
-          barcodeOverride: rawBarcode.isEmpty ? null : rawBarcode,
+          barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
         );
@@ -901,7 +917,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
       final shouldPersistTemplate = _editOnly || _saveForLater;
       if (newMealEntity.source == MealSourceEntity.custom &&
           shouldPersistTemplate) {
-        await _editMealBloc.saveCustomMeal(newMealEntity);
+        await _editMealBloc.saveCustomMeal(
+          newMealEntity,
+          previous: _mealEntity,
+        );
       }
 
       if (!mounted) return;
