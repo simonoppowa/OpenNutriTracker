@@ -277,16 +277,59 @@ class TrackedDayDataSource {
     }
   }
 
-  /// Replaces the day's own goals for the nutrients without a column of
-  /// their own (#47); an empty [goals] clears them.
-  Future<void> updateDayExtraNutrientGoals(
-    DateTime day,
-    Map<String, double> goals,
-  ) async {
-    final updateDay = await getTrackedDay(day);
-    if (updateDay == null) return;
-    updateDay.extraNutrientGoals = goals.isEmpty ? null : Map.of(goals);
-    await updateDay.save();
+  /// Sets the user's own nutrient goals on [day] and on every later tracked
+  /// day (#136), so they keep applying after the day they were saved on.
+  /// Every goal is replaced: a null clears the goal and an empty
+  /// [extraGoals] clears the goals of the nutrients without a column of
+  /// their own (#47). Days without a row get none.
+  Future<void> setNutrientGoalsFrom(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
+    Map<String, double> extraGoals = const {},
+  }) async {
+    final from = day.toParsedDay();
+    final updates = <String, TrackedDayDBO>{
+      for (final MapEntry(:key, :value) in _trackedDayBox.toMap().entries)
+        if ((key as String).compareTo(from) >= 0)
+          key: value
+            ..fibreGoal = fibreGoal
+            ..satFatGoal = satFatGoal
+            ..sugarsGoal = sugarsGoal
+            ..sodiumGoal = sodiumGoal
+            ..calciumGoal = calciumGoal
+            ..ironGoal = ironGoal
+            ..potassiumGoal = potassiumGoal
+            ..vitaminDGoal = vitaminDGoal
+            ..vitaminB12Goal = vitaminB12Goal
+            ..magnesiumGoal = magnesiumGoal
+            ..extraNutrientGoals = extraGoals.isEmpty
+                ? null
+                : Map.of(extraGoals),
+    };
+    await _trackedDayBox.putAll(updates);
+  }
+
+  /// The latest tracked day on or before [day], whose nutrient goals are the
+  /// ones that apply to [day] (#136); null without one.
+  Future<TrackedDayDBO?> latestTrackedDayUpTo(DateTime day) async {
+    final upTo = day.toParsedDay();
+    String? latest;
+    for (final key in _trackedDayBox.keys.cast<String>()) {
+      if (key.compareTo(upTo) <= 0 &&
+          (latest == null || key.compareTo(latest) > 0)) {
+        latest = key;
+      }
+    }
+    return latest == null ? null : _trackedDayBox.get(latest);
   }
 
   Future<void> reconcileCaloriesAndMacrosTracked(

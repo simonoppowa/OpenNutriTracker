@@ -53,6 +53,7 @@ vervollständigt.
 | Mikronährstoffe | Tagesübersicht zeigt alle 24 Nährstoffe in einklappbaren Gruppen (Energie & Makros, Fettsäuren & Cholesterin, Mineralstoffe, Vitamine); Sichtbarkeit und eigene Ziele auch für die neuen; Ziele im neuen Feld `TrackedDayDBO.extraNutrientGoals` (Hive-Feld 100, im JSON-Backup) | #47 |
 | Mikronährstoffe | Referenzwerte wählbar: IOM oder DGE (DGE/ÖGE, 3. Auflage 2025, nach Alter/Geschlecht) unter Einstellungen → Nährstoffe; wirkt sofort, fehlende DGE-Werte sichtbar als „IOM/FDA“ markiert; Einstellung `nutrientReferenceStandard` (ConfigDBO-Feld 115, geräteweit, im Backup) | #49 |
 | Mikronährstoffe | Elf weitere Mikronährstoffe: Vitamin E, K, B1, B2, B5, Biotin, Folat, Jod, Selen, Kupfer, Mangan (`MealNutrimentsDBO`, Hive-Felder 100–110, alte Daten lesen sie als unbekannt); gefüllt aus dem lokalen BLS (ohne Selen) und aus OFF (Gramm in mg/µg umgerechnet); in Tagesübersicht, Mahlzeit-Detail, Zielen, Rezepten sowie JSON- und CSV-Export/-Import (Spalten vor `meal_data_version`) | #50 |
+| Mikronährstoffe | Eigene Nährstoffziele gelten ab dem Speichertag weiter: Speichern schreibt sie auf diesen und alle späteren Tage, ein neuer Tag übernimmt die Ziele des letzten früheren Tages; Zurücksetzen löscht alle eigenen Ziele (auch die zehn alten Felder); Upstreams `updateDayNutrientGoals` bleibt für Merges unverändert | #136 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur

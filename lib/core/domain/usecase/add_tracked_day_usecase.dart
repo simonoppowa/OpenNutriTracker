@@ -155,12 +155,35 @@ class AddTrackedDayUsecase {
     );
   }
 
-  /// Replaces the day's own goals for the nutrients added to the panel in
-  /// #47, keyed by `NutrientPanelKeys`; an empty map clears them.
-  Future<void> updateDayExtraNutrientGoals(
-    DateTime day,
-    Map<String, double> goals,
-  ) => _trackedDayRepository.updateDayExtraNutrientGoals(day, goals);
+  /// Sets the user's own nutrient goals from [day] on (#136); see
+  /// [TrackedDayRepository.setNutrientGoalsFrom].
+  Future<void> setNutrientGoalsFrom(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
+    Map<String, double> extraGoals = const {},
+  }) => _trackedDayRepository.setNutrientGoalsFrom(
+    day,
+    fibreGoal: fibreGoal,
+    satFatGoal: satFatGoal,
+    sugarsGoal: sugarsGoal,
+    sodiumGoal: sodiumGoal,
+    calciumGoal: calciumGoal,
+    ironGoal: ironGoal,
+    potassiumGoal: potassiumGoal,
+    vitaminDGoal: vitaminDGoal,
+    vitaminB12Goal: vitaminB12Goal,
+    magnesiumGoal: magnesiumGoal,
+    extraGoals: extraGoals,
+  );
 
   /// Overwrite cached tracked values with actual sums to fix stale data (#182)
   Future<void> reconcileDayTracked(DateTime day,

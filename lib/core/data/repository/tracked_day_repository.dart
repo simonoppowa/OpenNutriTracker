@@ -55,6 +55,8 @@ class TrackedDayRepository {
     await _trackedDayDataSource.reduceDayCalorieGoal(day, amount);
   }
 
+  /// Creates the row of [day]; it takes over the user's own nutrient goals
+  /// of the latest earlier day (#136).
   Future<void> addNewTrackedDay(
     DateTime day,
     double totalKcalGoal,
@@ -62,19 +64,20 @@ class TrackedDayRepository {
     double totalFatGoal,
     double totalProteinGoal,
   ) async {
-    await _trackedDayDataSource.saveTrackedDay(
-      TrackedDayDBO(
-        day: day,
-        calorieGoal: totalKcalGoal,
-        caloriesTracked: 0,
-        carbsGoal: totalCarbsGoal,
-        carbsTracked: 0,
-        fatGoal: totalFatGoal,
-        fatTracked: 0,
-        proteinGoal: totalProteinGoal,
-        proteinTracked: 0,
-      ),
+    final newDay = TrackedDayDBO(
+      day: day,
+      calorieGoal: totalKcalGoal,
+      caloriesTracked: 0,
+      carbsGoal: totalCarbsGoal,
+      carbsTracked: 0,
+      fatGoal: totalFatGoal,
+      fatTracked: 0,
+      proteinGoal: totalProteinGoal,
+      proteinTracked: 0,
     );
+    final goalsDay = await _trackedDayDataSource.latestTrackedDayUpTo(day);
+    if (goalsDay != null) newDay.copyNutrientGoalsFrom(goalsDay);
+    await _trackedDayDataSource.saveTrackedDay(newDay);
   }
 
   Future<void> addAllTrackedDays(List<TrackedDayDBO> trackedDaysDBO) async {
@@ -198,11 +201,43 @@ class TrackedDayRepository {
     );
   }
 
-  /// See [TrackedDayDataSource.updateDayExtraNutrientGoals].
-  Future<void> updateDayExtraNutrientGoals(
-    DateTime day,
-    Map<String, double> goals,
-  ) => _trackedDayDataSource.updateDayExtraNutrientGoals(day, goals);
+  /// See [TrackedDayDataSource.setNutrientGoalsFrom].
+  Future<void> setNutrientGoalsFrom(
+    DateTime day, {
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
+    Map<String, double> extraGoals = const {},
+  }) => _trackedDayDataSource.setNutrientGoalsFrom(
+    day,
+    fibreGoal: fibreGoal,
+    satFatGoal: satFatGoal,
+    sugarsGoal: sugarsGoal,
+    sodiumGoal: sodiumGoal,
+    calciumGoal: calciumGoal,
+    ironGoal: ironGoal,
+    potassiumGoal: potassiumGoal,
+    vitaminDGoal: vitaminDGoal,
+    vitaminB12Goal: vitaminB12Goal,
+    magnesiumGoal: magnesiumGoal,
+    extraGoals: extraGoals,
+  );
+
+  /// The day whose nutrient goals apply to [day], see
+  /// [TrackedDayDataSource.latestTrackedDayUpTo].
+  Future<TrackedDayEntity?> getNutrientGoalsDay(DateTime day) async {
+    final trackedDay = await _trackedDayDataSource.latestTrackedDayUpTo(day);
+    return trackedDay == null
+        ? null
+        : TrackedDayEntity.fromTrackedDayDBO(trackedDay);
+  }
 
   Future<void> reconcileDayTracked(DateTime day,
       double calories, double carbs, double fat, double protein) async {

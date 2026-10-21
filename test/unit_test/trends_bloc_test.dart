@@ -37,6 +37,9 @@ class _FakeGetTrackedDayUsecase implements GetTrackedDayUsecase {
 
   @override
   Future<TrackedDayEntity?> getTrackedDay(DateTime day) async => null;
+
+  @override
+  Future<TrackedDayEntity?> getNutrientGoalsDay(DateTime day) async => null;
 }
 
 /// The bloc pulls the full weight history (getAllEntries) and windows it in

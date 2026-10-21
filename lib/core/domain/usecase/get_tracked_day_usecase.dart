@@ -16,4 +16,8 @@ class GetTrackedDayUsecase {
   ) {
     return _trackedDayRepository.getTrackedDayByRange(start, end);
   }
+
+  /// The tracked day whose nutrient goals apply to [day] (#136).
+  Future<TrackedDayEntity?> getNutrientGoalsDay(DateTime day) =>
+      _trackedDayRepository.getNutrientGoalsDay(day);
 }

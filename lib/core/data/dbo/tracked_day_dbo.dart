@@ -119,6 +119,23 @@ class TrackedDayDBO extends HiveObject {
     );
   }
 
+  /// Copies the user's own nutrient goals of [other] onto this day (#136).
+  void copyNutrientGoalsFrom(TrackedDayDBO other) {
+    fibreGoal = other.fibreGoal;
+    satFatGoal = other.satFatGoal;
+    sugarsGoal = other.sugarsGoal;
+    sodiumGoal = other.sodiumGoal;
+    calciumGoal = other.calciumGoal;
+    ironGoal = other.ironGoal;
+    potassiumGoal = other.potassiumGoal;
+    vitaminDGoal = other.vitaminDGoal;
+    vitaminB12Goal = other.vitaminB12Goal;
+    magnesiumGoal = other.magnesiumGoal;
+    extraNutrientGoals = other.extraNutrientGoals == null
+        ? null
+        : Map.of(other.extraNutrientGoals!);
+  }
+
   factory TrackedDayDBO.fromJson(Map<String, dynamic> json) =>
       _$TrackedDayDBOFromJson(json);
 

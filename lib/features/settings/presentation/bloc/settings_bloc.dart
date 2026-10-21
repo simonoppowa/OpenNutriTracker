@@ -249,20 +249,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     await _addConfigUsecase.setConfigMealKcalSharesPct(shares);
   }
 
-  /// #173: read today's per-nutrient goal overrides from the stored
-  /// TrackedDayDBO row. The dialog uses these to pre-fill the sliders
-  /// so users see their previously-saved targets rather than defaults.
-  /// Returns nulls (and a null entity) when nothing has been logged
-  /// for the day yet.
-  Future<TrackedDayEntity?> getTodayTrackedDay(DateTime day) async {
-    return await _getTrackedDayUsecase.getTrackedDay(day);
-  }
-
-  /// #173 (+follow-up): persist user-set per-nutrient goals to today's
-  /// tracked-day row. Must be called after ensuring the row exists (the
-  /// macro updateTrackedDay flow takes care of creating it). Accepts
-  /// the original three nutrients plus the seven from the follow-up.
-  Future<void> setTodayNutrientGoals(
+  /// Saves the user's own nutrient goals for [day] and the days after it
+  /// (#136); a null or a missing key resets that goal to the reference. The
+  /// row of [day] has to exist already (see [ensureTrackedDay]).
+  Future<void> setNutrientGoalsFrom(
     DateTime day, {
     double? fibreGoal,
     double? satFatGoal,
@@ -274,29 +264,26 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
-  }) async {
-    await _addTrackedDayUsecase.updateDayNutrientGoals(
-      day,
-      fibreGoal: fibreGoal,
-      satFatGoal: satFatGoal,
-      sugarsGoal: sugarsGoal,
-      sodiumGoal: sodiumGoal,
-      calciumGoal: calciumGoal,
-      ironGoal: ironGoal,
-      potassiumGoal: potassiumGoal,
-      vitaminDGoal: vitaminDGoal,
-      vitaminB12Goal: vitaminB12Goal,
-      magnesiumGoal: magnesiumGoal,
-    );
-  }
+    Map<String, double> extraGoals = const {},
+  }) => _addTrackedDayUsecase.setNutrientGoalsFrom(
+    day,
+    fibreGoal: fibreGoal,
+    satFatGoal: satFatGoal,
+    sugarsGoal: sugarsGoal,
+    sodiumGoal: sodiumGoal,
+    calciumGoal: calciumGoal,
+    ironGoal: ironGoal,
+    potassiumGoal: potassiumGoal,
+    vitaminDGoal: vitaminDGoal,
+    vitaminB12Goal: vitaminB12Goal,
+    magnesiumGoal: magnesiumGoal,
+    extraGoals: extraGoals,
+  );
 
-  /// Stores today's own goals for the nutrients added to the panel in #47;
-  /// an empty map clears them. Like [setTodayNutrientGoals], the row has to
-  /// exist already.
-  Future<void> setTodayExtraNutrientGoals(
-    DateTime day,
-    Map<String, double> goals,
-  ) => _addTrackedDayUsecase.updateDayExtraNutrientGoals(day, goals);
+  /// The tracked day whose nutrient goals apply to [day], also before
+  /// anything has been logged on it (#136).
+  Future<TrackedDayEntity?> getNutrientGoalsDay(DateTime day) =>
+      _getTrackedDayUsecase.getNutrientGoalsDay(day);
 
   /// Creates the row of [day] with the day's calorie and macro goals when
   /// nothing has been logged yet, so goals saved for it are not dropped.

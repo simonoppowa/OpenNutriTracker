@@ -198,7 +198,9 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
 
   Future<void> _load() async {
     final user = await widget.profileBloc.getUser();
-    final today = await widget.settingsBloc.getTodayTrackedDay(DateTime.now());
+    final today = await widget.settingsBloc.getNutrientGoalsDay(
+      DateTime.now(),
+    );
     if (!mounted) return;
     setState(() {
       _user = user;
@@ -285,7 +287,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     // on the existing one.
     await widget.settingsBloc.ensureTrackedDay(DateTime.now());
     await widget.settingsBloc.updateTrackedDay(DateTime.now());
-    await widget.settingsBloc.setTodayNutrientGoals(
+    await widget.settingsBloc.setNutrientGoalsFrom(
       DateTime.now(),
       fibreGoal: _fibre,
       satFatGoal: _satFat,
@@ -297,10 +299,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
       magnesiumGoal: _magnesium,
       vitaminDGoal: _vitaminD,
       vitaminB12Goal: _vitaminB12,
-    );
-    await widget.settingsBloc.setTodayExtraNutrientGoals(
-      DateTime.now(),
-      Map.of(_extra),
+      extraGoals: Map.of(_extra),
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
