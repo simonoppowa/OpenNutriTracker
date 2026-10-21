@@ -120,6 +120,81 @@ class DailyNutrientPanel extends StatefulWidget {
   static double resolveMagnesiumReference(TrackedDayEntity? trackedDay) =>
       trackedDay?.magnesiumGoal ?? defaultMagnesiumRefMg;
 
+  /// The value the panel measures [key] against, shared with the trends
+  /// statistics (#59): the day's own goal, then with DGE selected the DGE
+  /// value, then the IOM value for [user], then the panel's defaults.
+  /// [fallback] marks an IOM/FDA value shown while DGE is selected.
+  static ({double? amount, bool fallback}) referenceFor(
+    String key, {
+    TrackedDayEntity? trackedDay,
+    UserEntity? user,
+    NutrientReferenceStandard standard = NutrientReferenceStandard.iom,
+  }) {
+    final td = trackedDay;
+    double withDri(double? own, double fallback) {
+      if (own != null) return own;
+      if (user != null) {
+        final dri = getReferenceFor(nutrient: key, user: user);
+        if (dri != null) return dri.amount;
+      }
+      return fallback;
+    }
+
+    final own = NutrientPanelRow.ownGoal(key, td);
+    final dge = own == null && standard == NutrientReferenceStandard.dge
+        ? getDgeReferenceFor(nutrient: key, user: user)?.amount
+        : null;
+    final amount =
+        own ??
+        dge ??
+        switch (key) {
+          NutrientPanelKeys.fiber => withDri(td?.fibreGoal, defaultFibreRefG),
+          NutrientPanelKeys.sodium => withDri(
+            td?.sodiumGoal,
+            defaultSodiumRefMg,
+          ),
+          NutrientPanelKeys.saturatedFat => resolveSatFatReference(td),
+          NutrientPanelKeys.sugar => resolveSugarsReference(td),
+          NutrientPanelKeys.calcium => withDri(
+            td?.calciumGoal,
+            defaultCalciumRefMg,
+          ),
+          NutrientPanelKeys.iron => withDri(
+            td?.ironGoal,
+            _DailyNutrientPanelState._ironRefForUser(user),
+          ),
+          NutrientPanelKeys.potassium => withDri(
+            td?.potassiumGoal,
+            defaultPotassiumRefMg,
+          ),
+          NutrientPanelKeys.vitaminD => withDri(
+            td?.vitaminDGoal,
+            defaultVitaminDRefUg,
+          ),
+          NutrientPanelKeys.vitaminB12 => withDri(
+            td?.vitaminB12Goal,
+            defaultVitaminB12RefUg,
+          ),
+          NutrientPanelKeys.magnesium => withDri(
+            td?.magnesiumGoal,
+            _DailyNutrientPanelState._magnesiumRefForUser(user),
+          ),
+          _ => NutrientPanelRow.extraReference(
+            key,
+            trackedDay: td,
+            user: user,
+          ),
+        };
+    return (
+      amount: amount,
+      fallback:
+          standard == NutrientReferenceStandard.dge &&
+          own == null &&
+          dge == null &&
+          amount != null,
+    );
+  }
+
   @override
   State<DailyNutrientPanel> createState() => _DailyNutrientPanelState();
 }
@@ -262,83 +337,7 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     // Per-nutrient targets — route through the public resolver helpers so
     // the unit tests and the build method share a single source of truth.
     final td = widget.trackedDay;
-    // Helper: prefer the per-day tracked override, then the IOM age-banded
-    // DRI when a user record is available, then the gender-agnostic default
-    // the panel has always used as a last resort. This keeps the existing
-    // resolver helpers as the single source of truth for tests, but layers
-    // the age-aware IOM lookup (#245) on top for users we know enough about.
-    double resolveWithDri(
-      double? Function() trackedOverride,
-      String nutrientKey,
-      double fallback,
-    ) {
-      final tracked = trackedOverride();
-      if (tracked != null) return tracked;
-      if (user != null) {
-        final dri = getReferenceFor(nutrient: nutrientKey, user: user);
-        if (dri != null) return dri.amount;
-      }
-      return fallback;
-    }
-
-    final fiberRefG = resolveWithDri(
-      () => td?.fibreGoal,
-      NutrientPanelKeys.fiber,
-      DailyNutrientPanel.defaultFibreRefG,
-    );
-    final sodiumRefMg = resolveWithDri(
-      () => td?.sodiumGoal,
-      NutrientPanelKeys.sodium,
-      DailyNutrientPanel.defaultSodiumRefMg,
-    );
-    // Saturated fat and sugars have no IOM RDA — the resolver helper still
-    // returns the published FDA Daily Value as the fallback for both.
-    final saturatedFatRefG = DailyNutrientPanel.resolveSatFatReference(td);
-    final sugarRefG = DailyNutrientPanel.resolveSugarsReference(td);
-    final calciumRefMg = resolveWithDri(
-      () => td?.calciumGoal,
-      NutrientPanelKeys.calcium,
-      DailyNutrientPanel.defaultCalciumRefMg,
-    );
-    final ironRefMg = resolveWithDri(
-      () => td?.ironGoal,
-      NutrientPanelKeys.iron,
-      _ironRefForUser(user),
-    );
-    final potassiumRefMg = resolveWithDri(
-      () => td?.potassiumGoal,
-      NutrientPanelKeys.potassium,
-      DailyNutrientPanel.defaultPotassiumRefMg,
-    );
-    final vitaminDRefMcg = resolveWithDri(
-      () => td?.vitaminDGoal,
-      NutrientPanelKeys.vitaminD,
-      DailyNutrientPanel.defaultVitaminDRefUg,
-    );
-    final vitaminB12RefMcg = resolveWithDri(
-      () => td?.vitaminB12Goal,
-      NutrientPanelKeys.vitaminB12,
-      DailyNutrientPanel.defaultVitaminB12RefUg,
-    );
-    final magnesiumRefMg = resolveWithDri(
-      () => td?.magnesiumGoal,
-      NutrientPanelKeys.magnesium,
-      _magnesiumRefForUser(user),
-    );
-
     final s = S.of(context);
-    final references = <String, double?>{
-      NutrientPanelKeys.fiber: fiberRefG,
-      NutrientPanelKeys.sodium: sodiumRefMg,
-      NutrientPanelKeys.saturatedFat: saturatedFatRefG,
-      NutrientPanelKeys.sugar: sugarRefG,
-      NutrientPanelKeys.calcium: calciumRefMg,
-      NutrientPanelKeys.iron: ironRefMg,
-      NutrientPanelKeys.potassium: potassiumRefMg,
-      NutrientPanelKeys.vitaminD: vitaminDRefMcg,
-      NutrientPanelKeys.vitaminB12: vitaminB12RefMcg,
-      NutrientPanelKeys.magnesium: magnesiumRefMg,
-    };
     final useKj =
         Provider.of<EnergyUnitProvider?>(context)?.usesKilojoules ?? false;
     final groups = <NutrientPanelGroup, List<_NutrientRow>>{};
@@ -346,25 +345,14 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
       if (!(visibility[row.key] ?? true)) continue;
       final total = totals.coverage[row.key]!;
       var value = total.sum;
-      final own = NutrientPanelRow.ownGoal(row.key, td);
-      final dge = own == null && standard == NutrientReferenceStandard.dge
-          ? getDgeReferenceFor(nutrient: row.key, user: user)?.amount
-          : null;
-      var reference =
-          own ??
-          dge ??
-          (references.containsKey(row.key)
-              ? references[row.key]
-              : NutrientPanelRow.extraReference(
-                  row.key,
-                  trackedDay: td,
-                  user: user,
-                ));
-      final fallback =
-          standard == NutrientReferenceStandard.dge &&
-          own == null &&
-          dge == null &&
-          reference != null;
+      final resolved = DailyNutrientPanel.referenceFor(
+        row.key,
+        trackedDay: td,
+        user: user,
+        standard: standard,
+      );
+      var reference = resolved.amount;
+      final fallback = resolved.fallback;
       var unit = row.field.unit;
       if (row.key == NutrientPanelKeys.energy) {
         if (useKj) {

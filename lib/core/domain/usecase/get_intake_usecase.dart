@@ -116,4 +116,35 @@ class GetIntakeUsecase {
   Future<List<IntakeEntity>> getCustomMealIntakes() async {
     return _intakeRepository.getCustomMealIntakes();
   }
+
+  /// Every entry of the days from [start] to [end], keyed by the midnight of
+  /// the logical day it belongs to under the day-start offset (#139), for
+  /// statistics over a period (#59). One pass over the log, whatever the
+  /// period's length.
+  Future<Map<DateTime, List<IntakeEntity>>> getIntakesByDayBetween(
+    DateTime start,
+    DateTime end, {
+    int dayStartOffsetHours = 0,
+    int dayStartOffsetMinutes = 0,
+  }) async {
+    final minutes = DayBoundaryCalc.totalMinutesOf(
+      dayStartOffsetHours,
+      dayStartOffsetMinutes,
+    );
+    final first = DateTime(start.year, start.month, start.day);
+    final last = DateTime(end.year, end.month, end.day);
+    final byDay = <DateTime, List<IntakeEntity>>{};
+    for (final intake in await _intakeRepository.getAllIntakesDBO()) {
+      final logical = DayBoundaryCalc.logicalDayOfMinutes(
+        intake.dateTime,
+        minutes,
+      );
+      final day = DateTime(logical.year, logical.month, logical.day);
+      if (day.isBefore(first) || day.isAfter(last)) continue;
+      byDay
+          .putIfAbsent(day, () => [])
+          .add(IntakeEntity.fromIntakeDBO(intake));
+    }
+    return byDay;
+  }
 }

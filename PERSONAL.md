@@ -60,6 +60,10 @@ vervollständigt.
 | Rezepte | Nährwerte pro Portion (Energie in kcal oder kJ, Makros) im Builder und im Rezeptdetail, sobald Portionen gesetzt sind | #53 |
 | Rezepte | Builder: Feld „Gewicht nach dem Kochen (g)“ mit Hilfetext, darunter „Roh: X g · fertig: Y g“ bzw. die Zutatensumme, und „Summe der Zutaten verwenden“ zum Zurücksetzen | #55 |
 | Rezepte | Rezeptdetail listet alle Nährwerte pro 100 g und pro Portion; fehlt ein Wert bei einzelnen Zutaten, steht „≥ X“ mit „N Zutaten ohne Angabe“, ohne Angabe bei allen „—“; Mikronährstoffe mit der Einstellung „Mikronährstoffe anzeigen“. Entscheidung: geloggte Rezepte speichern keine Abdeckung (ihr Snapshot hat nur die Werte pro 100 g, bei Lücken eine Untergrenze); das Rezept zählt sie jederzeit aus seinen Zutaten-Snapshots nach (`ComputeRecipeNutritionUseCase.coverage`) | #54 |
+| Statistik | Aggregation für beliebige Zeiträume (`periodStats`): Ø kcal, Makros und Wasser nur über Tage mit Einträgen, Zahl der Tage mit und ohne Einträge, Ziel erreicht pro Tag gegen die gespeicherten Tagesziele (Toleranz, Standard ±10 %) | #56 |
+| Statistik | Trends: neben 7/30/90/Alle auch Kalenderwoche (Mo–So, KW) und Monat mit ←/→ sowie ein eigener Zeitraum; Karte „Im Zeitraum“ mit Tagen mit Einträgen, Ø Energie/Makros/Wasser und erreichten Kalorien- und Makrozielen; Toleranz ±5/10/15/20 % einstellbar (ConfigDBO-Feld 116, im Backup); Makro- und Wasser-Durchschnitt nur noch über Tage mit Einträgen | #57 |
+| Statistik | Karte „Kalorien und Gewicht“: Energie pro Tag als Balken (Ziel gestrichelt), darüber der geglättete Gewichtstrend (7-Tage-Mittel über die ganze Historie) mit eigener Achse; Tage ohne Einträge ohne Balken, die Gewichtslinie bricht nach mehr als 7 Tagen ohne Messung ab; kcal/kJ und kg/lb/st wie eingestellt | #58 |
+| Statistik | Karte „Häufigste Defizite“ (mit „Mikronährstoffe anzeigen“): Vitamine und Mineralstoffe, die an den meisten Tagen unter X % ihrer Referenz bzw. des eigenen Ziels lagen (X = 50/70/90 %, ConfigDBO-Feld 117, im Backup); Tage, an denen den meisten Einträgen die Angabe fehlt, zählen nicht; Grenzwerte wie Natrium sind nie Defizite. Referenz über dieselbe Funktion wie die Tagesübersicht (`DailyNutrientPanel.referenceFor`) | #59 |
 
 Bewusst behalten, um Upstream-Merges klein zu halten: `android/` (unangetastet),
 die Weblate-Übersetzungen in `lib/l10n/`, das PR-Template, die In-App-Hinweise zur
@@ -74,9 +78,6 @@ Datenschutzerklärung und der Code der KI-Funktionen (nur die Einstiege sind weg
 | `NSHealthShareUsageDescription` / `NSHealthUpdateUsageDescription` | Workout-Import aus Apple Health (Upstream); Ausbau in Epic 9 | aktiv |
 | `com.apple.developer.healthkit` | HealthKit | hängt vom KravaSigner-Profil ab, wird in #16 geprüft |
 | App Groups | Widget (Epic 11) | noch nicht vorhanden, Prüfung in #73 |
-| Statistik | Aggregation für beliebige Zeiträume (`periodStats`): Ø kcal, Makros und Wasser nur über Tage mit Einträgen, Zahl der Tage mit und ohne Einträge, Ziel erreicht pro Tag gegen die gespeicherten Tagesziele (Toleranz, Standard ±10 %) | #56 |
-| Statistik | Trends: neben 7/30/90/Alle auch Kalenderwoche (Mo–So, KW) und Monat mit ←/→ sowie ein eigener Zeitraum; Karte „Im Zeitraum“ mit Tagen mit Einträgen, Ø Energie/Makros/Wasser und erreichten Kalorien- und Makrozielen; Toleranz ±5/10/15/20 % einstellbar (ConfigDBO-Feld 116, im Backup); Makro- und Wasser-Durchschnitt nur noch über Tage mit Einträgen | #57 |
-| Statistik | Karte „Kalorien und Gewicht“: Energie pro Tag als Balken (Ziel gestrichelt), darüber der geglättete Gewichtstrend (7-Tage-Mittel über die ganze Historie) mit eigener Achse; Tage ohne Einträge ohne Balken, die Gewichtslinie bricht nach mehr als 7 Tagen ohne Messung ab; kcal/kJ und kg/lb/st wie eingestellt | #58 |
 
 Regel: Erlaubt das Provisioning-Profil des Zertifikats ein Entitlement nicht, fällt
 das Feature weg (Epic 9 bzw. 11 werden dann als „not planned“ geschlossen). Es gibt

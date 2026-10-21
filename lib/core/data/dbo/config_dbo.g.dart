@@ -71,6 +71,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         offSearchCountry: fields[114] as String?,
         nutrientReferenceStandard: fields[115] as String?,
         trendsTolerancePercent: (fields[116] as num?)?.toInt(),
+        trendsDeficitThresholdPercent: (fields[117] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -80,7 +81,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(57)
+      ..writeByte(58)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -194,7 +195,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(115)
       ..write(obj.nutrientReferenceStandard)
       ..writeByte(116)
-      ..write(obj.trendsTolerancePercent);
+      ..write(obj.trendsTolerancePercent)
+      ..writeByte(117)
+      ..write(obj.trendsDeficitThresholdPercent);
   }
 
   @override
@@ -296,6 +299,8 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         nutrientReferenceStandard: json['nutrientReferenceStandard'] as String?,
         trendsTolerancePercent: (json['trendsTolerancePercent'] as num?)
             ?.toInt(),
+        trendsDeficitThresholdPercent:
+            (json['trendsDeficitThresholdPercent'] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -361,6 +366,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'offSearchCountry': instance.offSearchCountry,
   'nutrientReferenceStandard': instance.nutrientReferenceStandard,
   'trendsTolerancePercent': instance.trendsTolerancePercent,
+  'trendsDeficitThresholdPercent': instance.trendsDeficitThresholdPercent,
 };
 
 const _$AppThemeDBOEnumMap = {

@@ -2,23 +2,31 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/weight_trend_chart.dart';
-import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
+import 'package:opennutritracker/features/settings/domain/nutrient_reference_setting.dart';
+import 'package:opennutritracker/features/trends/domain/deficit_threshold_setting.dart';
 import 'package:opennutritracker/features/trends/domain/energy_weight_series.dart';
+import 'package:opennutritracker/features/trends/domain/nutrient_deficits.dart';
 import 'package:opennutritracker/features/trends/domain/trends_tolerance_setting.dart';
+import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/trends_calc.dart';
 import 'package:opennutritracker/features/trends/presentation/widgets/energy_weight_card.dart';
+import 'package:opennutritracker/features/trends/presentation/widgets/nutrient_deficits_card.dart';
 import 'package:opennutritracker/features/trends/presentation/widgets/period_stats_card.dart';
 import 'package:opennutritracker/features/trends/presentation/widgets/trends_period_selector.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -100,6 +108,7 @@ class _TrendsView extends StatelessWidget {
               ),
               bodyWeightUnit: state.bodyWeightUnit,
             ),
+            _DeficitsSection(state: state),
             const SizedBox(height: Dimens.spacing16),
             _MacrosTrendCard(
                 days: state.days, rangeDays: state.windowDays, palette: palette),
@@ -163,6 +172,103 @@ class _PeriodStatsSectionState extends State<_PeriodStatsSection> {
         setState(() => _percent = percent);
         _setting.save(percent);
       },
+    );
+  }
+}
+
+/// The [NutrientDeficitsCard] of the loaded window (#59), shown with the
+/// "Show micronutrients" setting. It reads the window's entries per day and
+/// measures each day against the reference the daily panel uses for it.
+class _DeficitsSection extends StatefulWidget {
+  final TrendsLoaded state;
+  const _DeficitsSection({required this.state});
+
+  @override
+  State<_DeficitsSection> createState() => _DeficitsSectionState();
+}
+
+class _DeficitsSectionState extends State<_DeficitsSection> {
+  static final _log = Logger('DeficitsSection');
+  final _threshold = locator<DeficitThresholdSetting>();
+  ({bool show, List<NutrientDeficit> deficits, int percent})? _data;
+  int _generation = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(_DeficitsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.state != widget.state) _load();
+  }
+
+  /// Loads the deficits; a call that a newer one overtook drops its result,
+  /// and a failure hides the card.
+  Future<void> _load({int? percent}) async {
+    final generation = ++_generation;
+    final state = widget.state;
+    ({bool show, List<NutrientDeficit> deficits, int percent}) data;
+    try {
+      final config = await locator<GetConfigUsecase>().getConfig();
+      if (!config.showMicronutrients) {
+        data = (show: false, deficits: const [], percent: 0);
+      } else {
+        final threshold = percent ?? await _threshold.percent();
+        final user = await locator<GetUserUsecase>().getUserData();
+        final standard = await locator<NutrientReferenceSetting>().standard();
+        final end = state.windowEnd;
+        final start =
+            DateTime(end.year, end.month, end.day - (state.windowDays - 1));
+        final intakes =
+            await locator<GetIntakeUsecase>().getIntakesByDayBetween(
+          start,
+          end,
+          dayStartOffsetHours: config.dayStartOffsetHours,
+          dayStartOffsetMinutes: config.dayStartOffsetMinutes,
+        );
+        final trackedDays = {
+          for (final d in state.days)
+            DateTime(d.day.year, d.day.month, d.day.day): d,
+        };
+        data = (
+          show: true,
+          deficits: nutrientDeficits(
+            intakesByDay: intakes,
+            referenceOf: (key, day) => DailyNutrientPanel.referenceFor(
+              key,
+              trackedDay: trackedDays[day],
+              user: user,
+              standard: standard,
+            ).amount,
+            threshold: threshold / 100,
+          ),
+          percent: threshold,
+        );
+      }
+    } catch (error, stackTrace) {
+      _log.warning('Nutrient deficits failed', error, stackTrace);
+      data = (show: false, deficits: const [], percent: 0);
+    }
+    if (mounted && generation == _generation) setState(() => _data = data);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = _data;
+    if (data == null || !data.show) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: Dimens.spacing16),
+      child: NutrientDeficitsCard(
+        deficits: data.deficits,
+        thresholdPercent: data.percent,
+        onThresholdChanged: (percent) {
+          _threshold.save(percent);
+          _load(percent: percent);
+        },
+      ),
     );
   }
 }

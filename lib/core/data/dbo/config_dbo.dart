@@ -238,6 +238,10 @@ class ConfigDBO extends HiveObject {
   // trends statistics, in percent (#57, TrendsToleranceSetting).
   @HiveField(116)
   int? trendsTolerancePercent;
+  // Share of the reference below which a day counts as a micronutrient
+  // deficit in the trends, in percent (#59, DeficitThresholdSetting).
+  @HiveField(117)
+  int? trendsDeficitThresholdPercent;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -294,6 +298,7 @@ class ConfigDBO extends HiveObject {
     this.offSearchCountry,
     this.nutrientReferenceStandard,
     this.trendsTolerancePercent,
+    this.trendsDeficitThresholdPercent,
   });
 
   factory ConfigDBO.empty() =>
