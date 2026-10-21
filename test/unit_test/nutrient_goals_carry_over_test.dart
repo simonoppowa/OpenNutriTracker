@@ -37,11 +37,7 @@ void main() {
     repository = TrackedDayRepository(dataSource);
   });
 
-  tearDown(() async {
-    await box.clear();
-    await Hive.close();
-    await Hive.deleteFromDisk();
-  });
+  tearDown(() => Hive.deleteFromDisk());
 
   group('saving goals', () {
     test(
