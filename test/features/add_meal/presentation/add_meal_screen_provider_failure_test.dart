@@ -28,6 +28,8 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/search_product
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
@@ -35,6 +37,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/no_resul
 import 'package:opennutritracker/features/add_meal/presentation/widgets/partial_results_notice.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+import '../../../helpers/fake_favourites.dart';
 import '../../../helpers/test_l10n.dart';
 
 class _FakeProductsRepository implements ProductsRepository {
@@ -155,6 +158,7 @@ final getIt = GetIt.instance;
 
 late _FakeProductsRepository _repository;
 late _FakeCustomMealDataSource _customMeals;
+FakeFavourites? _favourites;
 
 Future<void> _register() async {
   await getIt.reset();
@@ -167,6 +171,15 @@ Future<void> _register() async {
   getIt.registerFactory<FoodBloc>(() => FoodBloc(useCase, config));
   getIt.registerFactory<RecentMealBloc>(
     () => RecentMealBloc(_FakeGetIntakeUsecase(), config),
+  );
+  // #1307: the screen's Favourites source and the stars on its cards.
+  await _favourites?.dispose();
+  final favourites = _favourites = FakeFavourites();
+  getIt.registerFactory<FavouriteMealBloc>(
+    () => FavouriteMealBloc(favourites.get, config),
+  );
+  getIt.registerFactory<FavouriteToggleBloc>(
+    () => FavouriteToggleBloc(favourites.get, favourites.toggle),
   );
 }
 
