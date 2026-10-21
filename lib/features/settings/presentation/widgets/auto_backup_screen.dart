@@ -44,16 +44,22 @@ Future<void> _restoreIntoApp(
 
 /// Settings → Automatic backup: the WebDAV folder, token and schedule, the
 /// state of the last attempt, and the restore from the server.
+///
+/// Opened [forOnboarding] (#100), a restore always replaces everything and
+/// the screen closes with `true` once it succeeded, so onboarding can go
+/// straight into the app; going back closes it with null.
 class AutoBackupScreen extends StatefulWidget {
   final AutoBackupSettingsStore? store;
   final AutoBackupService? service;
   final RestoreArchive restore;
+  final bool forOnboarding;
 
   const AutoBackupScreen({
     super.key,
     this.store,
     this.service,
     this.restore = _restoreIntoApp,
+    this.forOnboarding = false,
   });
 
   @override
@@ -215,7 +221,8 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
     }
     final choice = await showDialog<({String name, bool replace})>(
       context: context,
-      builder: (_) => _RestorePicker(names: available),
+      builder: (_) =>
+          _RestorePicker(names: available, replaceOnly: widget.forOnboarding),
     );
     if (choice == null || !mounted) return;
     if (choice.replace && !await _confirmReplace()) return;
@@ -223,6 +230,10 @@ class _AutoBackupScreenState extends State<AutoBackupScreen> {
       try {
         final archive = await _service.download(choice.name);
         await widget.restore(archive, replaceExisting: choice.replace);
+        if (widget.forOnboarding) {
+          if (mounted) Navigator.of(context).pop(true);
+          return;
+        }
         _show(l10n.autoBackupRestoreDone);
       } catch (error, stackTrace) {
         Logger('AutoBackupScreen').warning('Restore failed', error, stackTrace);
@@ -450,7 +461,10 @@ class _OptionRow extends StatelessWidget {
 class _RestorePicker extends StatefulWidget {
   final List<String> names;
 
-  const _RestorePicker({required this.names});
+  /// Hides the choice and always replaces, for the restore from onboarding.
+  final bool replaceOnly;
+
+  const _RestorePicker({required this.names, this.replaceOnly = false});
 
   @override
   State<_RestorePicker> createState() => _RestorePickerState();
@@ -458,7 +472,7 @@ class _RestorePicker extends StatefulWidget {
 
 class _RestorePickerState extends State<_RestorePicker> {
   late String _selected = widget.names.first;
-  bool _replace = false;
+  late bool _replace = widget.replaceOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -494,16 +508,17 @@ class _RestorePickerState extends State<_RestorePicker> {
                 ),
               ),
             ),
-            Semantics(
-              identifier: 'auto-backup-restore-replace',
-              child: SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: Text(l10n.exportImportReplaceLabel),
-                value: _replace,
-                onChanged: (value) => setState(() => _replace = value),
+            if (!widget.replaceOnly)
+              Semantics(
+                identifier: 'auto-backup-restore-replace',
+                child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: Text(l10n.exportImportReplaceLabel),
+                  value: _replace,
+                  onChanged: (value) => setState(() => _replace = value),
+                ),
               ),
-            ),
           ],
         ),
       ),

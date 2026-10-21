@@ -199,6 +199,83 @@ void main() {
         reason: 'no seeding should have started');
   });
 
+  group('restore a backup (#100)', () {
+    Future<({List<String> calls})> pumpWithRestore(
+      WidgetTester tester, {
+      required bool? result,
+    }) async {
+      final calls = <String>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: S.supportedLocales,
+          home: Scaffold(
+            body: OnboardingIntroPageBody(
+              setPageContent: (_, _) {},
+              openRestore: (_) async {
+                calls.add('open');
+                return result;
+              },
+              onRestored: (_) async => calls.add('restored'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return (calls: calls);
+    }
+
+    Future<void> tapRestore(WidgetTester tester) async {
+      final button = find.bySemanticsIdentifier('onboarding-restore-backup');
+      await tester.ensureVisible(button);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the intro page offers it', (tester) async {
+      await pumpWithRestore(tester, result: null);
+
+      expect(find.text(l10nEn.onboardingRestoreBackupLabel), findsOneWidget);
+    });
+
+    testWidgets('it asks for the privacy policy first', (tester) async {
+      final run = await pumpWithRestore(tester, result: true);
+
+      await tapRestore(tester);
+
+      expect(run.calls, isEmpty);
+      expect(
+        find.text(l10nEn.onboardingBlockedRestorePolicySnack),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a successful restore goes into the app', (tester) async {
+      final run = await pumpWithRestore(tester, result: true);
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pump();
+
+      await tapRestore(tester);
+
+      expect(run.calls, ['open', 'restored']);
+    });
+
+    testWidgets('going back stays in onboarding', (tester) async {
+      final run = await pumpWithRestore(tester, result: null);
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pump();
+
+      await tapRestore(tester);
+
+      expect(run.calls, ['open']);
+    });
+  });
+
   testWidgets('tapping the policy ListTile (not just the checkbox) also toggles',
       (tester) async {
     bool? lastPolicy;

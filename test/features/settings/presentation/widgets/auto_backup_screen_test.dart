@@ -195,4 +195,122 @@ void main() {
     expect(service.downloaded, isEmpty);
     expect(restores, isEmpty);
   });
+
+  group('from onboarding (#100)', () {
+    Future<List<bool?>> pumpFromOnboarding(WidgetTester tester) async {
+      final results = <bool?>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en')],
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async => results.add(
+                await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => AutoBackupScreen(
+                      store: store,
+                      service: service,
+                      forOnboarding: true,
+                      restore: (archive, {required replaceExisting}) async =>
+                          restores.add(replaceExisting),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('onboarding'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('onboarding'));
+      await tester.pumpAndSettle();
+      return results;
+    }
+
+    testWidgets('a restore replaces everything and closes with success', (
+      tester,
+    ) async {
+      service.backups = ['nutritracker-backup-20261019-093000.zip'];
+      final results = await pumpFromOnboarding(tester);
+      await fillIn(tester, folder: 'https://files.example.org/dav/nutri/');
+
+      await tapButton(tester, 'auto-backup-restore');
+      expect(
+        find.bySemanticsIdentifier('auto-backup-restore-replace'),
+        findsNothing,
+      );
+      await tester.tap(find.text('Import'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+
+      expect(restores, [true]);
+      expect(results, [true]);
+      expect(find.text('onboarding'), findsOneWidget);
+    });
+
+    testWidgets('going back returns to onboarding without a restore', (
+      tester,
+    ) async {
+      final results = await pumpFromOnboarding(tester);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(results, [null]);
+      expect(restores, isEmpty);
+    });
+
+    testWidgets('a failed restore stays on the screen', (tester) async {
+      service.backups = ['nutritracker-backup-20261019-093000.zip'];
+      final results = <bool?>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en')],
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async => results.add(
+                await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => AutoBackupScreen(
+                      store: store,
+                      service: service,
+                      forOnboarding: true,
+                      restore: (archive, {required replaceExisting}) async =>
+                          throw StateError('broken archive'),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('onboarding'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('onboarding'));
+      await tester.pumpAndSettle();
+      await fillIn(tester, folder: 'https://files.example.org/dav/nutri/');
+
+      await tapButton(tester, 'auto-backup-restore');
+      await tester.tap(find.text('Import'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+
+      expect(results, isEmpty);
+      expect(find.text('The backup could not be restored.'), findsOneWidget);
+    });
+  });
 }

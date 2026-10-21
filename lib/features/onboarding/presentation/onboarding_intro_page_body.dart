@@ -1,6 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/auto_backup_screen.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
@@ -17,11 +20,45 @@ class OnboardingIntroPageBody extends StatefulWidget {
     required this.setPageContent,
     this.initialAcceptedPolicy = false,
     this.initialAcceptedDataCollection = false,
+    this.openRestore = _openRestore,
+    this.onRestored = _goIntoApp,
   });
 
   final Function(bool active, bool acceptedDataCollection) setPageContent;
   final bool initialAcceptedPolicy;
   final bool initialAcceptedDataCollection;
+
+  /// Opens the restore from the backup server (#100); true once a backup
+  /// replaced everything, null when the user went back.
+  final Future<bool?> Function(BuildContext context) openRestore;
+
+  /// Leaves onboarding after a successful restore.
+  final Future<void> Function(BuildContext context) onRestored;
+
+  static Future<bool?> _openRestore(BuildContext context) =>
+      Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => const AutoBackupScreen(forOnboarding: true),
+        ),
+      );
+
+  /// Goes into the app with the restored profile, or stays in onboarding
+  /// when the backup held none.
+  static Future<void> _goIntoApp(BuildContext context) async {
+    if (!await locator<UserDataSource>().hasUserData()) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).onboardingRestoreNoProfile)),
+        );
+      }
+      return;
+    }
+    if (!context.mounted) return;
+    ProfileSwitchCoordinator.reloadTabBlocs();
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(NavigationOptions.mainRoute, (route) => false);
+  }
 
   @override
   State<OnboardingIntroPageBody> createState() =>
@@ -140,6 +177,16 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8.0),
+                Semantics(
+                  identifier: 'onboarding-restore-backup',
+                  child: TextButton.icon(
+                    onPressed: _acceptedPolicy
+                        ? _restoreBackup
+                        : _restorePolicyRequired,
+                    icon: const Icon(Icons.cloud_download_outlined),
+                    label: Text(S.of(context).onboardingRestoreBackupLabel),
+                  ),
+                ),
                 TextButton.icon(
                   onPressed: () => _openSources(context),
                   icon: const Icon(Icons.menu_book_outlined),
@@ -163,6 +210,24 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
 
+
+  /// Restores everything from the backup server and goes into the app
+  /// (#100); going back leaves onboarding as it was.
+  Future<void> _restoreBackup() async {
+    final restored = await widget.openRestore(context);
+    if (restored != true || !mounted) return;
+    await widget.onRestored(context);
+  }
+
+  void _restorePolicyRequired() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(S.of(context).onboardingBlockedRestorePolicySnack),
+        ),
+      );
+  }
 
   void _openSources(BuildContext context) {
     Navigator.of(
