@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/features/trends/domain/trends_period.dart';
 
 part 'trends_event.dart';
 part 'trends_state.dart';
@@ -37,12 +38,25 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
         // rangeDays 0 is the "All" chip: pull a wide window and let the actual
         // span fall out of the earliest data point below.
-        final isAll = event.rangeDays == 0;
+        final period = event.period;
+        final isAll = period == null && event.rangeDays == 0;
         final fetchDays = isAll ? 3650 : event.rangeDays;
-        final days = await _getTrackedDayUsecase.getTrackedDaysByRange(
-          today.subtract(Duration(days: fetchDays - 1)),
-          endOfToday,
-        );
+        final days = period != null
+            ? await _getTrackedDayUsecase.getTrackedDaysByRange(
+                period.start,
+                DateTime(
+                  period.end.year,
+                  period.end.month,
+                  period.end.day,
+                  23,
+                  59,
+                  59,
+                ),
+              )
+            : await _getTrackedDayUsecase.getTrackedDaysByRange(
+                today.subtract(Duration(days: fetchDays - 1)),
+                endOfToday,
+              );
         // The full weight history; the chart windows it for display. This
         // mirrors the weight-history screen, so a reading from weeks ago
         // still shows once the range is wide enough to include it.
@@ -69,7 +83,9 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         // so the charts begin at the first entry rather than padding empty
         // days in front of it. A 2-day floor keeps a single entry renderable.
         int windowDays;
-        if (!isAll) {
+        if (period != null) {
+          windowDays = period.days;
+        } else if (!isAll) {
           windowDays = event.rangeDays;
         } else {
           DateTime? earliest;
@@ -93,6 +109,8 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         emit(TrendsLoaded(
           rangeDays: event.rangeDays,
           windowDays: windowDays,
+          period: period,
+          windowEnd: period?.end ?? today,
           days: days,
           priorWeek: priorWeek,
           weight: weight,

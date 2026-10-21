@@ -15,6 +15,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/trends/domain/trends_period.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 
 import '../../../../fixture/user_entity_fixtures.dart';
@@ -97,9 +98,10 @@ void main() {
       'weight card)', () async {
     final user = UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight;
     trendsBloc = _FakeTrendsBloc(
-      const TrendsLoaded(
+      TrendsLoaded(
         rangeDays: 30,
         windowDays: 30,
+        windowEnd: DateTime(2026, 1, 1),
         days: <TrackedDayEntity>[],
         priorWeek: <TrackedDayEntity>[],
         weight: [],
@@ -123,6 +125,39 @@ void main() {
     expect(trendsBloc.addedEvents, hasLength(1));
     final event = trendsBloc.addedEvents.single as LoadTrendsEvent;
     expect(event.rangeDays, 30);
+  });
+
+  test('updateUser keeps a selected week (#57)', () async {
+    final user = UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight;
+    final week = TrendsPeriod.week(DateTime(2026, 10, 21));
+    trendsBloc = _FakeTrendsBloc(
+      TrendsLoaded(
+        rangeDays: 7,
+        windowDays: 7,
+        period: week,
+        windowEnd: week.end,
+        days: <TrackedDayEntity>[],
+        priorWeek: <TrackedDayEntity>[],
+        weight: [],
+        bodyWeightUnit: BodyWeightUnit.kg,
+        targetWeightKg: null,
+        waterByDay: {},
+        waterGoalMl: 2000,
+      ),
+    );
+
+    locator.registerSingleton<HomeBloc>(_FakeHomeBloc());
+    locator.registerSingleton<DiaryBloc>(_FakeDiaryBloc());
+    locator.registerSingleton<CalendarDayBloc>(_FakeCalendarDayBloc());
+    locator.registerSingleton<TrendsBloc>(trendsBloc);
+
+    final profileBloc = buildProfileBloc(user);
+    addTearDown(profileBloc.close);
+
+    await profileBloc.updateUser(user);
+
+    final event = trendsBloc.addedEvents.single as LoadTrendsEvent;
+    expect(event.period, week);
   });
 
   test('updateUser refreshes TrendsBloc with the default 7-day range when '

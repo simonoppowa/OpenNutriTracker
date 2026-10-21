@@ -913,9 +913,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _homeBloc.add(const LoadItemsEvent());
       final trendsState = _trendsBloc.state;
       _trendsBloc.add(
-        LoadTrendsEvent(
-          rangeDays: trendsState is TrendsLoaded ? trendsState.rangeDays : 7,
-        ),
+        trendsState is TrendsLoaded
+            ? trendsState.reloadEvent
+            : const LoadTrendsEvent(),
       );
     }
   }

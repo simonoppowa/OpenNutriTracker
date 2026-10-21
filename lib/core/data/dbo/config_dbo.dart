@@ -234,6 +234,10 @@ class ConfigDBO extends HiveObject {
   // NutrientReferenceSetting).
   @HiveField(115)
   String? nutrientReferenceStandard;
+  // Share a value may lie off its goal and still count as met in the
+  // trends statistics, in percent (#57, TrendsToleranceSetting).
+  @HiveField(116)
+  int? trendsTolerancePercent;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -289,6 +293,7 @@ class ConfigDBO extends HiveObject {
     this.autoTrainingDayMode,
     this.offSearchCountry,
     this.nutrientReferenceStandard,
+    this.trendsTolerancePercent,
   });
 
   factory ConfigDBO.empty() =>

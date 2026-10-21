@@ -110,9 +110,10 @@ void main() {
   testWidgets('a finished import reloads the blocs that show goal settings, '
       'keeping the Trends range (#1363)', (tester) async {
     register(
-      const TrendsLoaded(
+      TrendsLoaded(
         rangeDays: 30,
         windowDays: 30,
+        windowEnd: DateTime(2026, 1, 1),
         days: [],
         priorWeek: [],
         weight: [],

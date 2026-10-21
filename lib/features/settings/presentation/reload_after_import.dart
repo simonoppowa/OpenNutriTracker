@@ -19,6 +19,6 @@ void reloadScreensAfterImport() {
   final trendsBloc = locator<TrendsBloc>();
   final trendsState = trendsBloc.state;
   if (trendsState is TrendsLoaded) {
-    trendsBloc.add(LoadTrendsEvent(rangeDays: trendsState.rangeDays));
+    trendsBloc.add(trendsState.reloadEvent);
   }
 }

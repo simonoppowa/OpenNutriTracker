@@ -80,6 +80,7 @@ import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/search/search_region.dart';
 import 'package:opennutritracker/features/settings/domain/nutrient_reference_setting.dart';
+import 'package:opennutritracker/features/trends/domain/trends_tolerance_setting.dart';
 import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
 import 'package:opennutritracker/features/add_meal/data/model_meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/data/model_meal_text_interpreter.dart';
@@ -716,6 +717,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => WaterQuickAmount(locator()));
   locator.registerLazySingleton(() => SearchRegion(locator()));
   locator.registerLazySingleton(() => NutrientReferenceSetting(locator()));
+  locator.registerLazySingleton(() => TrendsToleranceSetting(locator()));
   locator.registerLazySingleton(
     () => CopyEntriesUsecase(
       locator(),
@@ -785,7 +787,7 @@ Future<void> initLocator() async {
         final trendsBloc = locator<TrendsBloc>();
         final trendsState = trendsBloc.state;
         if (trendsState is TrendsLoaded) {
-          trendsBloc.add(LoadTrendsEvent(rangeDays: trendsState.rangeDays));
+          trendsBloc.add(trendsState.reloadEvent);
         }
       },
     ),

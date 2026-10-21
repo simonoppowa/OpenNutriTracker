@@ -90,6 +90,7 @@ class PersonalBackupExtras {
     'waterQuickAmountMl',
     'offSearchCountry',
     'nutrientReferenceStandard',
+    'trendsTolerancePercent',
   ];
 
   final WaterIntakeRepository _waterIntakeRepository;

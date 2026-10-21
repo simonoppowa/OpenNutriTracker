@@ -18,6 +18,8 @@ class TrendsLoading extends TrendsState {
 class TrendsLoaded extends TrendsState {
   final int rangeDays; // the selected range chip: 7, 30, 90, or 0 for "All"
   final int windowDays; // effective span the charts plot over (resolved "All")
+  final TrendsPeriod? period; // the week, month or picked span (#57), if any
+  final DateTime windowEnd; // midnight of the window's last day
   final List<TrackedDayEntity> days; // tracked days over the selected window
   final List<TrackedDayEntity> priorWeek; // the 7 days before this week
   final List<WeightLogEntity> weight; // full weight history, windowed in the UI
@@ -29,6 +31,8 @@ class TrendsLoaded extends TrendsState {
   const TrendsLoaded({
     required this.rangeDays,
     required this.windowDays,
+    this.period,
+    required this.windowEnd,
     required this.days,
     required this.priorWeek,
     required this.weight,
@@ -38,10 +42,17 @@ class TrendsLoaded extends TrendsState {
     required this.waterGoalMl,
   });
 
+  /// Loads the same days or period again, for the screens that refresh the
+  /// trends after a change elsewhere.
+  LoadTrendsEvent get reloadEvent =>
+      LoadTrendsEvent(rangeDays: rangeDays, period: period);
+
   @override
   List<Object?> get props => [
         rangeDays,
         windowDays,
+        period,
+        windowEnd,
         days,
         priorWeek,
         weight,

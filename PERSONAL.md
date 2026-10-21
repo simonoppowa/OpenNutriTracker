@@ -75,6 +75,7 @@ Datenschutzerklärung und der Code der KI-Funktionen (nur die Einstiege sind weg
 | `com.apple.developer.healthkit` | HealthKit | hängt vom KravaSigner-Profil ab, wird in #16 geprüft |
 | App Groups | Widget (Epic 11) | noch nicht vorhanden, Prüfung in #73 |
 | Statistik | Aggregation für beliebige Zeiträume (`periodStats`): Ø kcal, Makros und Wasser nur über Tage mit Einträgen, Zahl der Tage mit und ohne Einträge, Ziel erreicht pro Tag gegen die gespeicherten Tagesziele (Toleranz, Standard ±10 %) | #56 |
+| Statistik | Trends: neben 7/30/90/Alle auch Kalenderwoche (Mo–So, KW) und Monat mit ←/→ sowie ein eigener Zeitraum; Karte „Im Zeitraum“ mit Tagen mit Einträgen, Ø Energie/Makros/Wasser und erreichten Kalorien- und Makrozielen; Toleranz ±5/10/15/20 % einstellbar (ConfigDBO-Feld 116, im Backup); Makro- und Wasser-Durchschnitt nur noch über Tage mit Einträgen | #57 |
 
 Regel: Erlaubt das Provisioning-Profil des Zertifikats ein Entitlement nicht, fällt
 das Feature weg (Epic 9 bzw. 11 werden dann als „not planned“ geschlossen). Es gibt

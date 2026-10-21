@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/features/trends/domain/trends_period.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 
 /// Records the (start, end) ranges it is asked for so the bloc's date-window
@@ -245,6 +246,50 @@ void main() {
     test('"All" with no data falls back to a 30-day window', () async {
       final emitted = await load(const LoadTrendsEvent(rangeDays: 0));
       expect((emitted.last as TrendsLoaded).windowDays, 30);
+    });
+
+    test('a chip carries no period and ends today', () async {
+      final emitted = await load(const LoadTrendsEvent(rangeDays: 30));
+      final loaded = emitted.last as TrendsLoaded;
+
+      expect(loaded.period, isNull);
+      expect(loaded.windowEnd, today);
+    });
+
+    test('a week loads Monday to the end of Sunday (#57)', () async {
+      final week = TrendsPeriod.week(DateTime(2026, 10, 21));
+
+      final emitted = await load(LoadTrendsEvent(period: week));
+      final loaded = emitted.last as TrendsLoaded;
+
+      expect(trackedDay.rangeCalls.first.start, DateTime(2026, 10, 19));
+      expect(
+        trackedDay.rangeCalls.first.end,
+        DateTime(2026, 10, 25, 23, 59, 59),
+      );
+      expect(loaded.period, week);
+      expect(loaded.windowDays, 7);
+      expect(loaded.windowEnd, DateTime(2026, 10, 25));
+    });
+
+    test('a month spans all its days', () async {
+      final emitted = await load(
+        LoadTrendsEvent(period: TrendsPeriod.month(DateTime(2028, 2, 10))),
+      );
+      final loaded = emitted.last as TrendsLoaded;
+
+      expect(loaded.windowDays, 29);
+      expect(loaded.windowEnd, DateTime(2028, 2, 29));
+    });
+
+    test('reloading repeats the days and the period', () async {
+      final week = TrendsPeriod.week(DateTime(2026, 10, 21));
+      final emitted = await load(LoadTrendsEvent(period: week));
+
+      expect(
+        (emitted.last as TrendsLoaded).reloadEvent,
+        LoadTrendsEvent(period: week),
+      );
     });
 
     test('a failing data source surfaces TrendsFailed', () async {

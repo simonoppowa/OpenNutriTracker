@@ -70,6 +70,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         autoTrainingDayMode: fields[113] as String?,
         offSearchCountry: fields[114] as String?,
         nutrientReferenceStandard: fields[115] as String?,
+        trendsTolerancePercent: (fields[116] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -79,7 +80,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(56)
+      ..writeByte(57)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -191,7 +192,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(114)
       ..write(obj.offSearchCountry)
       ..writeByte(115)
-      ..write(obj.nutrientReferenceStandard);
+      ..write(obj.nutrientReferenceStandard)
+      ..writeByte(116)
+      ..write(obj.trendsTolerancePercent);
   }
 
   @override
@@ -270,9 +273,10 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
             ? null
             : DateTime.parse(json['lastBackupAt'] as String),
         backupReminderDays: (json['backupReminderDays'] as num?)?.toInt(),
-        confirmedStoreBarcodes: (json['confirmedStoreBarcodes'] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList(),
+        confirmedStoreBarcodes:
+            (json['confirmedStoreBarcodes'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList(),
         waterQuickAmountMl: (json['waterQuickAmountMl'] as num?)?.toInt(),
         kcalGoalMode: json['kcalGoalMode'] as String?,
         fixedKcalGoal: (json['fixedKcalGoal'] as num?)?.toDouble(),
@@ -280,7 +284,8 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         carbGoalG: (json['carbGoalG'] as num?)?.toDouble(),
         fatGoalG: (json['fatGoalG'] as num?)?.toDouble(),
         proteinGoalG: (json['proteinGoalG'] as num?)?.toDouble(),
-        trainingGoalTargets: json['trainingGoalTargets'] as Map<String, dynamic>?,
+        trainingGoalTargets:
+            json['trainingGoalTargets'] as Map<String, dynamic>?,
         trainingWeekdays: (json['trainingWeekdays'] as List<dynamic>?)
             ?.map((e) => (e as num).toInt())
             .toList(),
@@ -289,6 +294,8 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         autoTrainingDayMode: json['autoTrainingDayMode'] as String?,
         offSearchCountry: json['offSearchCountry'] as String?,
         nutrientReferenceStandard: json['nutrientReferenceStandard'] as String?,
+        trendsTolerancePercent: (json['trendsTolerancePercent'] as num?)
+            ?.toInt(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -353,6 +360,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'autoTrainingDayMode': instance.autoTrainingDayMode,
   'offSearchCountry': instance.offSearchCountry,
   'nutrientReferenceStandard': instance.nutrientReferenceStandard,
+  'trendsTolerancePercent': instance.trendsTolerancePercent,
 };
 
 const _$AppThemeDBOEnumMap = {

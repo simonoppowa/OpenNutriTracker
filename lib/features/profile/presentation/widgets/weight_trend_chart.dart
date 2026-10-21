@@ -19,6 +19,10 @@ class WeightTrendChart extends StatelessWidget {
   final BodyWeightUnit bodyWeightUnit;
   final double? targetWeightKg;
   final int windowDays;
+
+  /// The window's last day; today when null. The Trends view sets it for a
+  /// past week, month or picked span (#57).
+  final DateTime? windowEnd;
   final double chartHeight;
 
   /// Trailing-window length for the moving-average overlay. Null hides the
@@ -33,6 +37,7 @@ class WeightTrendChart extends StatelessWidget {
     required this.bodyWeightUnit,
     required this.targetWeightKg,
     this.windowDays = 30,
+    this.windowEnd,
     this.chartHeight = 220,
     this.movingAverageWindowDays = 7,
   });
@@ -55,7 +60,7 @@ class WeightTrendChart extends StatelessWidget {
     final theme = Theme.of(context);
     final lineColor = theme.colorScheme.primary;
 
-    final now = DateTime.now();
+    final now = windowEnd ?? DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     // windowDays days ending today (today sits at the right edge), matching
     // how the calorie/water charts window their range.

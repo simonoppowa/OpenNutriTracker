@@ -87,10 +87,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     // Refresh Trends Page — preserve whatever range chip is currently
     // selected there rather than resetting it back to the 7-day default.
     final trendsBloc = locator<TrendsBloc>();
-    final rangeDays = trendsBloc.state is TrendsLoaded
-        ? (trendsBloc.state as TrendsLoaded).rangeDays
-        : 7;
-    trendsBloc.add(LoadTrendsEvent(rangeDays: rangeDays));
+    final trendsState = trendsBloc.state;
+    trendsBloc.add(
+      trendsState is TrendsLoaded
+          ? trendsState.reloadEvent
+          : const LoadTrendsEvent(),
+    );
   }
 
   Future<void> _updateTrackedDayCalorieGoal(
