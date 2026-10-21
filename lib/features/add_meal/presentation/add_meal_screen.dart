@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_sea
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/partial_results_notice.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
@@ -166,6 +167,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   void _onFoodRefreshButtonPressed() {
     _foodBloc.add(const RefreshFoodEvent());
+  }
+
+  void _onAllSourcesRefreshButtonPressed() {
+    _onProductsRefreshButtonPressed();
+    _onFoodRefreshButtonPressed();
   }
 
   void _onRecentMealsRefreshButtonPressed() {
@@ -355,12 +361,26 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       // before rendering the merged list — showing whichever
                       // lands first would make results pop in and shift when
                       // the second source arrives. A failed source counts as
-                      // answered, so one outage doesn't block the other's
-                      // results.
+                      // answered so one outage doesn't block the other's
+                      // results, but it is tracked separately from a genuine
+                      // zero-result answer so the two never look the same.
                       if (_productsPending(ps, query) ||
                           _foodPending(fs, query)) {
                         return _pendingSpinner;
                       }
+                      // A provider timeout or rate limit doesn't fail the
+                      // bloc: the use case falls back to local matches and
+                      // flags the gap on the loaded state instead.
+                      final productsFailed = ps is ProductsFailedState ||
+                          (ps is ProductsLoadedState && ps.remoteSourceFailed);
+                      final foodFailed = fs is FoodFailedState ||
+                          (fs is FoodLoadedState && fs.remoteSourceFailed);
+                      final VoidCallback retryFailed =
+                          productsFailed && foodFailed
+                          ? _onAllSourcesRefreshButtonPressed
+                          : (productsFailed
+                                ? _onProductsRefreshButtonPressed
+                                : _onFoodRefreshButtonPressed);
                       final products = ps is ProductsLoadedState
                           ? ps.products
                           : const <MealEntity>[];
@@ -377,20 +397,76 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         if (ps is ProductsInitial && fs is FoodInitial) {
                           return const DefaultsResultsWidget();
                         }
+                        if (productsFailed && foodFailed) {
+                          // Scrollable for the same reason as the partial
+                          // branch below: on a landscape phone the space
+                          // left in this Expanded is shorter than the error,
+                          // which would overflow and push Retry off screen.
+                          return SingleChildScrollView(
+                            child: ErrorDialog(
+                              errorText:
+                                  S.of(context).errorFetchingProductData,
+                              onRefreshPressed:
+                                  _onAllSourcesRefreshButtonPressed,
+                              retryIdentifier: 'search-all-retry',
+                            ),
+                          );
+                        }
+                        // Exactly one source failed: the other genuinely has
+                        // zero matches, so this is not a hard error, but it
+                        // is not a confirmed "no results" from both sources
+                        // either — say so instead of only offering the
+                        // scan/create actions a real zero-result state gets.
+                        if (productsFailed || foodFailed) {
+                          // SingleChildScrollView, not a plain Column: this
+                          // sits directly inside the Expanded above, and
+                          // NoResultsWidget alone already relies on its own
+                          // internal scroll view to stay overflow-safe on a
+                          // short viewport (see the landscape overflow this
+                          // screen hit in #165). Stacking a second widget on
+                          // top of it without that same protection would
+                          // reintroduce that overflow.
+                          return SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                PartialResultsNotice(onRetry: retryFailed),
+                                NoResultsWidget(
+                                  onScanBarcode: _onBarcodeIconPressed,
+                                  onCreateCustomFood: () =>
+                                      _onCustomAddButtonPressed(imperial),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
                         return NoResultsWidget(
                           onScanBarcode: _onBarcodeIconPressed,
                           onCreateCustomFood: () =>
                               _onCustomAddButtonPressed(imperial),
                         );
                       }
-                      return ListView.builder(
-                        itemCount: merged.length,
-                        itemBuilder: (context, index) => MealItemCard(
-                          day: _day,
-                          mealEntity: merged[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: imperial,
-                        ),
+                      return Column(
+                        children: [
+                          // Both down with local matches left: say nothing
+                          // online answered, not that one source is missing.
+                          if (productsFailed || foodFailed)
+                            PartialResultsNotice(
+                              onRetry: retryFailed,
+                              allSourcesDown: productsFailed && foodFailed,
+                            ),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: merged.length,
+                              itemBuilder: (context, index) => MealItemCard(
+                                day: _day,
+                                mealEntity: merged[index],
+                                addMealType: _mealType,
+                                usesImperialUnits: imperial,
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   );
