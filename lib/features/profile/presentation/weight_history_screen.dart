@@ -278,7 +278,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   }
 
   Future<void> _onDelete(WeightLogEntity entry) async {
-    await _deleteUsecase.deleteEntry(entry.date);
+    await _deleteUsecase.deleteEntry(entry);
     await _load();
     reloadDiaryAndTrends();
   }
