@@ -1447,6 +1447,101 @@ void main() {
         expect(server.authorizations, isNot(contains('Bearer google-key')));
       });
 
+      group('a typed key stays with the server it was typed for', () {
+        Finder keyField() => find.bySemanticsIdentifier('ai-assist-key-field');
+        Finder endpointField() =>
+            find.bySemanticsIdentifier('ai-assist-endpoint-field');
+
+        String typedKey(WidgetTester tester) => tester
+            .widget<TextField>(
+              find.descendant(of: keyField(), matching: find.byType(TextField)),
+            )
+            .controller!
+            .text;
+
+        Future<void> leaveEndpoint(WidgetTester tester) async {
+          await tester.testTextInput.receiveAction(TextInputAction.done);
+          await tester.pumpAndSettle();
+        }
+
+        testWidgets('editing to another server clears it', (tester) async {
+          // #1257: A to B, B's key typed, then the address edited to C — the
+          // model-list request to C carried B's key, and Save would have too.
+          final server = _Server.listing(const []);
+          await storage.writeOwnServerConfiguration(
+            endpoint: 'https://a.example.org/v1',
+            model: 'm',
+            provider: AiProvider.ownServer,
+          );
+          await storage.writeApiKey('a-key', provider: AiProvider.ownServer);
+
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pumpAndSettle();
+
+          await tester.enterText(endpointField(), 'https://c.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), isEmpty);
+          await leaveEndpoint(tester);
+
+          expect(server.requests.last.host, 'c.example.org');
+          expect(server.authorizations.last, isNull);
+          for (var i = 0; i < server.requests.length; i++) {
+            if (server.requests[i].host == 'b.example.org') continue;
+            expect(server.authorizations[i], isNot('Bearer b-key'));
+            expect(server.authorizations[i], isNot('Bearer a-key'));
+          }
+        });
+
+        testWidgets('a new route on the same server keeps it', (tester) async {
+          final server = _Server.listing(const []);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pumpAndSettle();
+
+          await tester.enterText(
+            endpointField(),
+            'https://b.example.org/api/v1',
+          );
+          await tester.pump();
+          expect(typedKey(tester), 'b-key');
+          await leaveEndpoint(tester);
+
+          expect(server.requests.last.host, 'b.example.org');
+          expect(server.authorizations.last, 'Bearer b-key');
+        });
+
+        testWidgets('one typed before the address binds to the first server '
+            'it is sent to', (tester) async {
+          final server = _Server.listing(const []);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pump();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), 'b-key');
+          await leaveEndpoint(tester);
+          expect(server.authorizations, ['Bearer b-key']);
+
+          await tester.enterText(endpointField(), 'https://c.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), isEmpty);
+          await leaveEndpoint(tester);
+          expect(server.requests.map((u) => u.host), [
+            'b.example.org',
+            'c.example.org',
+          ]);
+          expect(server.authorizations, ['Bearer b-key', null]);
+        });
+      });
+
       testWidgets('opening the dialog asks the server nothing', (tester) async {
         // The promise the README is built on is about what leaves the device
         // **and when**. For the three hosted providers, opening AI settings

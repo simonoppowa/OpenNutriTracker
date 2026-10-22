@@ -157,6 +157,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
             _endpointController.text,
           ));
 
+  /// The address a key typed in this dialog was typed for, or null while it
+  /// is bound to none yet. A key typed for one server must not follow the
+  /// field to another, before Save or by it (#1257).
+  String? _typedKeyServer;
+
   /// This provider has what it needs to be used — a key for the hosted three,
   /// an **address** for a server the user runs.
   ///
@@ -481,8 +486,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     setState(() {
       // Back on the server the stored key belongs to, the field is hidden
       // again; a key typed for the other server must not be saved over it
-      // from behind the mask.
-      if (_keyIsSaved) _apiKeyController.clear();
+      // from behind the mask. Nor may one typed for a server follow the field
+      // to another; text that is not yet an address names none, so keeps it.
+      final address = _endpointController.text.trim();
+      final bound = _typedKeyServer;
+      if (_keyIsSaved ||
+          (bound != null &&
+              AiCredentialStorage.resolveEndpoint(address) != null &&
+              !AiCredentialStorage.sameServer(bound, address))) {
+        _apiKeyController.clear();
+        _typedKeyServer = null;
+      }
       _endpointError = null;
       _modelsGeneration++;
       _fetchingModels = false;
@@ -490,6 +504,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _modelListFailure = null;
       _modelListHost = null;
     });
+  }
+
+  /// A key typed with an address in the field belongs to that server; one
+  /// typed before there is an address binds to the first one it is sent to.
+  void _keyTyped(String key) {
+    final address = _endpointController.text.trim();
+    _typedKeyServer =
+        key.trim().isEmpty ||
+            AiCredentialStorage.resolveEndpoint(address) == null
+        ? null
+        : address;
   }
 
   /// The user has finished with the address field.
@@ -601,6 +626,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // as a bearer, before any save and even if the dialog was then cancelled
     // (#1257).
     final typedKey = _apiKeyController.text.trim();
+    if (typedKey.isNotEmpty) _typedKeyServer ??= typed;
     final apiKey = typedKey.isNotEmpty
         ? typedKey
         : await widget.storage.apiKeyForServer(typed, provider: provider);
@@ -1115,6 +1141,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                         identifier: 'ai-assist-key-field',
                         child: TextField(
                           controller: _apiKeyController,
+                          onChanged: _keyTyped,
                           autocorrect: false,
                           enableSuggestions: false,
                           obscureText: true,
