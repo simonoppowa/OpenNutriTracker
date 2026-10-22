@@ -243,8 +243,8 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
       locator<DailyReminderScheduler>(),
-      weightLogRepository: locator(),
     ),
   );
   locator.registerLazySingleton<HomeBloc>(

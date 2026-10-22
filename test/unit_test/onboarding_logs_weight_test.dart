@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
@@ -57,7 +58,6 @@ void main() {
   late OnboardingBloc bloc;
 
   final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -100,8 +100,8 @@ void main() {
       AddUserUsecase(userRepository),
       AddConfigUsecase(configRepository),
       GetConfigUsecase(configRepository),
+      AddWeightLogUsecase(weightLogRepository, userRepository),
       DailyReminderScheduler(configRepository, _NoNotifications()),
-      weightLogRepository: weightLogRepository,
     );
   });
 
@@ -124,14 +124,6 @@ void main() {
     useMaterialYou: true,
     accentColor: null,
   );
-
-  test('onboarding logs its weight as today\'s manual entry', () async {
-    await onboard();
-
-    final entry = await weightLogRepository.getEntry(today);
-    expect(entry!.weightKg, equals(80.0));
-    expect(entry.isImported, isFalse);
-  });
 
   test(
     'a reading from between profile creation and onboarding does not '

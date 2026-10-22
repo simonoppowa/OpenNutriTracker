@@ -4,7 +4,6 @@ import 'dart:ui' show Locale;
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/kcal_goal_breakdown_entity.dart';
@@ -12,6 +11,7 @@ import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 import 'package:opennutritracker/core/utils/locale_units.dart';
@@ -33,21 +33,17 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final AddUserUsecase _addUserUsecase;
   final AddConfigUsecase _addConfigUsecase;
   final GetConfigUsecase _getConfigUsecase;
+  final AddWeightLogUsecase _addWeightLogUsecase;
   final DailyReminderScheduler _reminderScheduler;
   final _log = Logger('OnboardingBloc');
-
-  /// Where the onboarding weight is logged. Optional only so tests of the
-  /// rest of the flow need not stand one up.
-  final WeightLogRepository? _weightLogRepository;
 
   OnboardingBloc(
     this._addUserUsecase,
     this._addConfigUsecase,
     this._getConfigUsecase,
-    this._reminderScheduler, {
-    WeightLogRepository? weightLogRepository,
-  }) : _weightLogRepository = weightLogRepository,
-       super(OnboardingInitialState()) {
+    this._addWeightLogUsecase,
+    this._reminderScheduler,
+  ) : super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
       await _seedUnitSelection();
@@ -122,13 +118,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     required int? accentColor,
   }) async {
     await _addUserUsecase.addUser(userEntity);
-    // The weight given here is also today's entry in the weight history, as
-    // a weight entered anywhere else in the app is. It is what tells the
-    // health weight import the user's own weight is from today: without it
-    // a scale reading taken after the profile was created but before
-    // onboarding finished would look newer and replace it.
+    // The weight given here is the first reading, not only the profile's
+    // current value: without it Weight history opened empty on a profile
+    // that plainly has a weight (#1367). It is also what tells the health
+    // weight import the user's own weight is from today: without it a scale
+    // reading taken after the profile was created but before onboarding
+    // finished would look newer and replace it. The log is keyed by day and
+    // every path back into onboarding wipes it first, so this never doubles
+    // up.
     final now = DateTime.now();
-    await _weightLogRepository?.addEntry(
+    await _addWeightLogUsecase.addEntry(
       WeightLogEntity(
         date: DateTime(now.year, now.month, now.day),
         weightKg: userEntity.weightKG,

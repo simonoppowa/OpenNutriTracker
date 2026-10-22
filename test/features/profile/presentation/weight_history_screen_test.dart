@@ -5,9 +5,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
@@ -65,6 +70,22 @@ class _FakeConfigRepository extends Fake implements ConfigRepository {
   Future<ConfigEntity> getConfig() async {
     return ConfigEntity(false, false, false, AppThemeEntity.system);
   }
+}
+
+class _FakeGetUserUsecase extends Fake implements GetUserUsecase {
+  _FakeGetUserUsecase(this.weightKg);
+
+  final double weightKg;
+
+  @override
+  Future<UserEntity> getUserData() async => UserEntity(
+    birthday: DateTime(1990, 6, 15),
+    heightCM: 165,
+    weightKG: weightKg,
+    gender: UserGenderEntity.female,
+    goal: UserWeightGoalEntity.maintainWeight,
+    pal: UserPALEntity.sedentary,
+  );
 }
 
 Widget _wrap(Widget child) {
@@ -224,6 +245,64 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(recorder.trendsReloaded, isTrue);
+  });
+
+  group('Add entry (#1367)', () {
+    Future<String?> prefilled(
+      WidgetTester tester,
+      List<WeightLogEntity> entries, {
+      double? profileKg,
+    }) async {
+      await tester.pumpWidget(
+        _wrap(
+          WeightHistoryScreen(
+            getUsecase: _FakeGetWeightLogUsecase(entries),
+            addUsecase: _FakeAddWeightLogUsecase(),
+            deleteUsecase: _FakeDeleteWeightLogUsecase(),
+            configRepository: _FakeConfigRepository(),
+            getUserUsecase: profileKg == null
+                ? null
+                : _FakeGetUserUsecase(profileKg),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('weight-history-add'));
+      await tester.pumpAndSettle();
+      return tester
+          .widget<TextField>(
+            find.descendant(
+              of: find.bySemanticsIdentifier('weight-history-weight-input'),
+              matching: find.byType(TextField),
+            ),
+          )
+          .controller
+          ?.text;
+    }
+
+    testWidgets('starts from the profile weight, not a made-up 70 kg', (
+      tester,
+    ) async {
+      expect(await prefilled(tester, const [], profileKg: 65), '65');
+    });
+
+    testWidgets('prefers the profile weight to an older reading', (
+      tester,
+    ) async {
+      final entries = [
+        WeightLogEntity(date: DateTime(2026, 1, 1), weightKg: 72),
+      ];
+      expect(await prefilled(tester, entries, profileKg: 65), '65');
+    });
+
+    testWidgets('falls back to the latest reading without a profile', (
+      tester,
+    ) async {
+      final entries = [
+        WeightLogEntity(date: DateTime(2026, 1, 1), weightKg: 72),
+      ];
+      expect(await prefilled(tester, entries), '72');
+    });
   });
 
   testWidgets('deleting a row hands over that row, filed day and all, '
