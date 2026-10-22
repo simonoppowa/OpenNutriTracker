@@ -65,24 +65,30 @@ Rules:
 - Only list food you can actually identify. If you cannot tell what a dish
   is, describe it plainly ("meat stew") rather than naming a specific
   recipe you are guessing at.
-- If the photo contains no food, return an empty list.''';
+- If the photo contains no food, return an empty list.
+- The user may add a note. Trust it over the photo: use it to name a food
+  you cannot identify ("the cheese is sulguni"), and take a count or an
+  amount it states ("2 eggs", "200 g rice") as given. Never invent an
+  amount the note does not state.''';
 
   @override
   Future<MealTextParseResult> interpret(
     MealPhoto photo, {
     String? localeCode,
+    String? note,
   }) async {
     final result = await _api.requestItems(
       content: MealPhotoContent(
         mediaType: photo.mediaType,
         base64Data: base64Encode(photo.bytes),
+        note: note,
       ),
       system: localeCode == null
           ? _systemPrompt
           : '$_systemPrompt\nThe user\'s app language is "$localeCode".',
     );
 
-    return _sizesOnly(_countsOnly(result));
+    return _sizesOnly(_countsOnly(result, note));
   }
 
   /// Drops any amount that is not a whole count of visible things.
@@ -106,17 +112,29 @@ Rules:
   ///
   /// Either way the row falls back to the same default an unquantified item
   /// gets, and the user sets the amount.
-  MealTextParseResult _countsOnly(MealTextParseResult result) =>
-      MealTextParseResult(
-        items: [
-          for (final item in result.items)
-            if (item.unit == null && _isWholeCount(item.quantity))
-              item
-            else
-              ParsedMealItem(query: item.query, quantity: null, unit: null),
-        ],
-        errors: result.errors,
-      );
+  ///
+  /// The one exception is an amount the user's [note] states ("200 g
+  /// rice"): the model may copy it, never estimate one. The note is read
+  /// with the typed path's own parser, so "200g" and "200 g" are the same
+  /// statement.
+  MealTextParseResult _countsOnly(MealTextParseResult result, String? note) {
+    final stated = {
+      if (note != null)
+        for (final item in parseMealText(note).items)
+          if (item.unit != null) (item.quantity, item.unit),
+    };
+    return MealTextParseResult(
+      items: [
+        for (final item in result.items)
+          if ((item.unit == null && _isWholeCount(item.quantity)) ||
+              stated.contains((item.quantity, item.unit)))
+            item
+          else
+            ParsedMealItem(query: item.query, quantity: null, unit: null),
+      ],
+      errors: result.errors,
+    );
+  }
 
   /// Null counts as fine — an item with no amount is the normal case here.
   static bool _isWholeCount(double? quantity) =>

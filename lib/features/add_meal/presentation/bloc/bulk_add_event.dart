@@ -40,10 +40,15 @@ class ReadMealPhotoEvent extends BulkAddEvent {
   /// language the food search is querying.
   final String? localeCode;
 
+  /// What the user had typed in the box, sent with the photo; null when the
+  /// box was empty.
+  final String? note;
+
   const ReadMealPhotoEvent({
     required this.photo,
     required this.usesImperialUnits,
     this.localeCode,
+    this.note,
   });
 
   // The bytes are deliberately not compared: equality on a megabyte of image
@@ -54,6 +59,7 @@ class ReadMealPhotoEvent extends BulkAddEvent {
     photo.bytes.length,
     usesImperialUnits,
     localeCode,
+    note,
   ];
 }
 

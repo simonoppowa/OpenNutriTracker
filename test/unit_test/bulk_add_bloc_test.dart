@@ -882,6 +882,23 @@ void main() {
       return bloc.stream.firstWhere((s) => s is! BulkAddLoadingState);
     }
 
+    test('hands the note typed with the photo to the reader', () async {
+      final reader = _StubPhotoReader(
+        const MealPhotoRead(MealTextParseResult(items: [], errors: [])),
+      );
+      final bloc = blocWith(const {}, photoReader: reader);
+      bloc.add(
+        ReadMealPhotoEvent(
+          photo: _photo,
+          usesImperialUnits: false,
+          note: 'the cheese is sulguni',
+        ),
+      );
+      await bloc.stream.firstWhere((s) => s is! BulkAddLoadingState);
+
+      expect(reader.sawNote, 'the cheese is sulguni');
+    });
+
     test('resolves the foods a photo produced', () async {
       final state = await readPhoto(
         {
@@ -1740,7 +1757,13 @@ class _StubPhotoReader implements ReadMealPhotoUseCase {
   Future<MealPhotoReadResult> read(
     MealPhoto photo, {
     String? localeCode,
-  }) async => reading;
+    String? note,
+  }) async {
+    sawNote = note;
+    return reading;
+  }
+
+  String? sawNote;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

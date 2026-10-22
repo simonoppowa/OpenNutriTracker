@@ -572,4 +572,63 @@ void main() {
       );
     });
   });
+
+  group('with a note from the user', () {
+    test('sends the note after the prompt, quoted as theirs', () async {
+      final client = FakeClient(body: toolReply([]));
+      await interpreterWith(
+        client,
+      ).interpret(_photo, note: ' the cheese is sulguni ');
+
+      final text = (contentBlocksOf(client).last as Map)['text'];
+      expect(
+        text,
+        '$mealPhotoContentPrompt\n'
+        'The user\'s note: "the cheese is sulguni"',
+      );
+    });
+
+    test('a blank note sends the prompt alone', () {
+      expect(mealPhotoContentText('  '), mealPhotoContentPrompt);
+      expect(mealPhotoContentText(null), mealPhotoContentPrompt);
+    });
+
+    test('an amount the note states is kept', () async {
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'rice', 'quantity': 200, 'unit': 'g'},
+          {'query': 'egg', 'quantity': 2},
+        ]),
+      );
+
+      final result = await interpreterWith(
+        client,
+      ).interpret(_photo, note: '200g rice, 2 eggs');
+
+      expect(
+        [for (final i in result.items) (i.query, i.quantity, i.unit)],
+        [('rice', 200.0, 'g'), ('egg', 2.0, null)],
+      );
+    });
+
+    test('an amount the note does not state is still dropped', () async {
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'rice', 'quantity': 200, 'unit': 'g'},
+          {'query': 'sauce', 'quantity': 50, 'unit': 'ml'},
+        ]),
+      );
+
+      // No unit in the note, and a unit in it that is not the model's.
+      for (final note in ['the rice is basmati', '100 g rice']) {
+        final result = await interpreterWith(
+          client,
+        ).interpret(_photo, note: note);
+
+        expect([
+          for (final i in result.items) (i.quantity, i.unit),
+        ], [(null, null), (null, null)], reason: note);
+      }
+    });
+  });
 }
