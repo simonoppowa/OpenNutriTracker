@@ -121,6 +121,18 @@ def _select(root, selector):
     return hits[nth - 1] if len(hits) >= nth else None
 
 
+def _tap_point(node):
+    """Where a tap on NODE lands: its centre, except for a text field whose
+    semantics row is far taller than its box. Settings' nutrient goals merge
+    label, value box and description into one EditText node; the centre is
+    the description, which never focuses the field. The value box sits at
+    the row's top right there."""
+    x1, y1, x2, y2 = _box(node)
+    if "EditText" in node.attrib.get("class", "") and y2 - y1 > 250:
+        return x2 - 160, y1 + 90
+    return (x1 + x2) // 2, (y1 + y2) // 2
+
+
 def _checked_node(path, selector):
     """The selected node, or exit 1 (none) / 3 (occluded) / 5 (foreign package)."""
     root = _load(path)
@@ -131,8 +143,8 @@ def _checked_node(path, selector):
     if allowed and node.attrib.get("package", "") not in allowed:
         print(f"foreign package: {node.attrib.get('package', '')}", file=sys.stderr)
         sys.exit(5)
+    cx, cy = _tap_point(node)
     x1, y1, x2, y2 = _box(node)
-    cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
     rid = node.attrib.get("resource-id", "")
     for occ in root.iter():
         oid = occ.attrib.get("resource-id", "")
@@ -175,8 +187,8 @@ def cmd_ls(path):
 
 
 def cmd_find(path, selector):
-    x1, y1, x2, y2 = _box(_checked_node(path, selector))
-    print(f"{(x1 + x2) // 2} {(y1 + y2) // 2}")
+    cx, cy = _tap_point(_checked_node(path, selector))
+    print(f"{cx} {cy}")
 
 
 def cmd_bounds(path, selector):
