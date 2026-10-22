@@ -5,21 +5,23 @@ Stdlib only. Run it on the laptop, never on the phone, with `python3 -I`:
 
     python3 -I make_fixtures.py OUT_DIR --today YYYY-MM-DD
 
-`--today` is the phone's date on the day the run starts (`adb shell date +%F`).
-Only the diary seed depends on it; everything else is fixed.
+`--today` is the phone's date on the day the run starts (`adb shell date +%F`),
+day 0 in the script. The diary seed and the id-less backup depend on it; on a
+resumed run pass the same day 0 and the files come out identical.
 
 Writes into OUT_DIR:
 
   ont-seed-meals.csv     custom-meal library for 2.4.0's "Mahlzeiten importieren (csv)"
   ont-seed-recipes.json  two recipes for 2.4.0's "Rezepte importieren (json)"
   ont-seed-diary.json    six past days of diary for 2.4.0's "Mahlzeiten importieren (json)"
-  ont-noid.zip           a CSV backup whose three intakes have no id (#1398)
+  ont-noid.zip           a CSV backup whose three intakes on day 0 - 7 have no id (#1398)
   meal-codes.txt         shared meal codes A, B and an invalid one (#1329, #1294)
   expected.json          the numbers the script's steps compare against
 
-Every name is ASCII, so `adb shell input text` can type it. Every file the
-phone sees starts with `ont-`, the only prefix the run may pick in a file
-picker.
+Every name is ASCII, so `adb shell input text` can type it. The files are
+pushed to the phone renamed with the run's prefix (`ont-seed-meals.csv` ->
+`/sdcard/Download/ont-r25-seed-meals.csv`, script step P6), the only prefix a
+file picker step may pick.
 """
 import argparse
 import base64
@@ -100,9 +102,11 @@ DIARY = [
 ]
 
 # --- id-less CSV backup (#1398) ------------------------------------------------
-# A fixed past day no earlier run on this phone wrote to. Two identical rows
-# (both must survive) and one different row; no id on any of them.
-NOID_DAY = "2026-08-15"
+# One week before day 0: outside the six seeded days, after the settings run's
+# data (2026-10-10 .. 10-14), and close enough that the Diary reaches it
+# without paging months back. Two identical rows (both must survive) and one
+# different row; no id on any of them.
+NOID_DAYS_BACK = 7
 NOID_ROWS = [
     ("lunch", 100, "ONT Ohne ID", 200, 20, 10, 5, "12:00:00.000"),
     ("lunch", 100, "ONT Ohne ID", 200, 20, 10, 5, "12:00:00.000"),
@@ -193,7 +197,7 @@ def diary_entries(today):
     return out
 
 
-def write_noid_zip(path):
+def write_noid_zip(path, noid_day):
     intake_header = [
         "id", "date_time", "type", "amount", "unit", "meal_code", "meal_name",
         "meal_brands", "meal_source", "kcal_per_100g", "carbs_per_100g",
@@ -203,20 +207,23 @@ def write_noid_zip(path):
     w = csv.writer(buf, lineterminator="\n")
     w.writerow(intake_header)
     for meal_type, grams, name, kcal, c, fat, p, clock in NOID_ROWS:
-        w.writerow(["", f"{NOID_DAY}T{clock}", meal_type, grams, "g", "", name,
+        w.writerow(["", f"{noid_day}T{clock}", meal_type, grams, "g", "", name,
                     "", "custom", kcal, c, fat, p])
     activity_header = ("id,date,duration,burned_kcal,activity_code,"
                        "specific_activity,description,mets,tags,type\n")
     tracked_header = ("day,calorie_goal,calories_tracked,carbs_goal,"
                       "carbs_tracked,fat_goal,fat_tracked,protein_goal,"
                       "protein_tracked\n")
+    def entry(name):  # a fixed timestamp, so a re-run writes the same bytes
+        return zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("user_intake.csv", buf.getvalue())
-        z.writestr("user_activity.csv", activity_header)
-        z.writestr("user_tracked_day.csv", tracked_header)
+        z.writestr(entry("user_intake.csv"), buf.getvalue(), zipfile.ZIP_DEFLATED)
+        z.writestr(entry("user_activity.csv"), activity_header, zipfile.ZIP_DEFLATED)
+        z.writestr(entry("user_tracked_day.csv"), tracked_header, zipfile.ZIP_DEFLATED)
 
 
-def expected(today, diary):
+def expected(today, diary, noid_day):
     days = {}
     for e in diary:
         d = days.setdefault(e["date"], {"kcal": 0.0, "carbs": 0.0, "fat": 0.0,
@@ -240,7 +247,7 @@ def expected(today, diary):
         "diary_entries": len(diary),
         "recipes": {r["name"]: recipe_totals(r) for r in RECIPES},
         "custom_meals": [m[0] for m in MEALS],
-        "noid": {"day": NOID_DAY, "rows": len(NOID_ROWS),
+        "noid": {"day": noid_day, "rows": len(NOID_ROWS),
                  "kcal_total": r1(noid_kcal)},
         "code_a": {
             "preview_title_de": "3 Einträge importieren?",
@@ -281,7 +288,8 @@ def main():
     diary = diary_entries(today)
     with open(o("ont-seed-diary.json"), "w", encoding="utf-8") as f:
         json.dump(diary, f, ensure_ascii=True, indent=1)
-    write_noid_zip(o("ont-noid.zip"))
+    noid_day = (today - dt.timedelta(days=NOID_DAYS_BACK)).isoformat()
+    write_noid_zip(o("ont-noid.zip"), noid_day)
 
     codes = {
         "CODE_A": encode_code(CODE_A_PAYLOAD),
@@ -296,7 +304,7 @@ def main():
         for k, v in codes.items():
             f.write(f"{k}={v}\n")
     with open(o("expected.json"), "w", encoding="utf-8") as f:
-        json.dump(expected(today, diary), f, ensure_ascii=False, indent=1)
+        json.dump(expected(today, diary, noid_day), f, ensure_ascii=False, indent=1)
     print("\n".join(sorted(os.listdir(a.out_dir))))
     return 0
 
