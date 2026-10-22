@@ -108,14 +108,15 @@ class MergeCustomMealsUseCase {
       // delete, so no profile switch lands between them.
       await _favouriteMealRepository.mergeCustomMealFavourite(loserKey, winner);
       await _customMealDataSource.deleteCustomMeal(loserKey);
+      // The rewritten entries now carry the winner's nutrition; without this
+      // the health store keeps the loser's. Only entries already in the store
+      // are rewritten there — the export skips the rest. Requested inside
+      // the lock, so it binds to this profile before a waiting switch runs.
+      if (rewrites.isNotEmpty) {
+        unawaited(_exportMealIntakeUsecase?.exportUpdatedIntakes(rewrites));
+      }
       return rewrites;
     });
-    // The rewritten entries now carry the winner's nutrition; without this
-    // the health store keeps the loser's. Only entries already in the store
-    // are rewritten there — the export skips the rest.
-    if (rewrites.isNotEmpty) {
-      unawaited(_exportMealIntakeUsecase?.exportUpdatedIntakes(rewrites));
-    }
 
     return MergeCustomMealsResult(
       rewrittenIntakeCount: rewrites.length,
