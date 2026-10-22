@@ -482,8 +482,11 @@ cmd_swipe_in() {  # swipe_in SELECTOR up|down — inside that node only (dialog 
 # and y=2000 (clear of the FAB), then as many swipes back down.
 cmd_scroll_to() {
   [[ $# -ge 1 ]] || _die 2 "scroll_to SELECTOR [max]"
-  local sel="$1" max="${2:-14}" xy rc y dir i
-  for dir in up down; do
+  local sel="$1" max="${2:-14}" xy rc y dir i order="up down"
+  # Already in the dump but above the window: scroll towards it first.
+  _center "$sel"; rc=$?
+  if (( rc == 0 )) && (( ${CENTER#* } <= 300 )); then order="down up"; fi
+  for dir in $order; do
     for ((i = 0; i <= max; i++)); do
       _center "$sel"; rc=$?; xy="$CENTER"
       if (( rc == 0 )); then
