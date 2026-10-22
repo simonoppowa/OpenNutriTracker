@@ -295,7 +295,9 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                               items: <DropdownMenuItem<String>>[
                                 DropdownMenuItem(
                                   child: Text(
-                                    isCustom ? customUnitSuffix : 'min',
+                                    isCustom
+                                        ? customUnitSuffix
+                                        : S.of(context).minuteShortLabel,
                                   ),
                                 ),
                               ],

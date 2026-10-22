@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
@@ -30,12 +31,14 @@ class MergeCustomMealsUseCase {
   final CustomMealDataSource _customMealDataSource;
   final IntakeRepository _intakeRepository;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
+  final FavouriteMealRepository _favouriteMealRepository;
   final ExportMealIntakeUsecase? _exportMealIntakeUsecase;
 
   MergeCustomMealsUseCase(
     this._customMealDataSource,
     this._intakeRepository,
-    this._addTrackedDayUsecase, [
+    this._addTrackedDayUsecase,
+    this._favouriteMealRepository, [
     this._exportMealIntakeUsecase,
   ]);
 
@@ -99,6 +102,12 @@ class MergeCustomMealsUseCase {
           );
         }
       }
+
+      // A starred loser becomes a starred winner, in every profile, before
+      // the loser leaves the library (#1307). Inside the lock with the
+      // delete, so no profile switch lands between them.
+      await _favouriteMealRepository.mergeCustomMealFavourite(loserKey, winner);
+      await _customMealDataSource.deleteCustomMeal(loserKey);
       return rewrites;
     });
     // The rewritten entries now carry the winner's nutrition; without this
@@ -107,8 +116,6 @@ class MergeCustomMealsUseCase {
     if (rewrites.isNotEmpty) {
       unawaited(_exportMealIntakeUsecase?.exportUpdatedIntakes(rewrites));
     }
-
-    await _customMealDataSource.deleteCustomMeal(loserKey);
 
     return MergeCustomMealsResult(
       rewrittenIntakeCount: rewrites.length,

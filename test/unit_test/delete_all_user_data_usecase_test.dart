@@ -8,13 +8,14 @@ import 'package:opennutritracker/core/data/data_source/user_activity_data_source
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
@@ -26,6 +27,7 @@ import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
@@ -166,6 +168,7 @@ class _TestHiveDBProvider extends HiveDBProvider {
   final Box<WeightLogDBO> weight;
   final Box<WaterIntakeDBO> water;
   final Box<FastingSessionDBO> fasting;
+  final Box<FavouriteMealDBO> favourites;
   final Box<ConfigDBO> sharedAppConfig;
 
   _TestHiveDBProvider({
@@ -177,6 +180,7 @@ class _TestHiveDBProvider extends HiveDBProvider {
     required this.weight,
     required this.water,
     required this.fasting,
+    required this.favourites,
     required this.sharedAppConfig,
   });
 
@@ -197,6 +201,8 @@ class _TestHiveDBProvider extends HiveDBProvider {
   @override
   Box<FastingSessionDBO> get fastingBox => fasting;
   @override
+  Box<FavouriteMealDBO> get favouriteMealBox => favourites;
+  @override
   Box<ConfigDBO> get appConfigBox => sharedAppConfig;
 }
 
@@ -209,6 +215,7 @@ void main() {
   late DeleteAllUserDataUsecase sut;
   late Box<ConfigDBO> configBox;
   late Box<ConfigDBO> appConfigBox;
+  late Box<FavouriteMealDBO> favouriteBox;
   late _RecordingWidgetStore widgetStore;
 
   setUp(() async {
@@ -228,6 +235,9 @@ void main() {
       weight: await Hive.openBox<WeightLogDBO>('wipe_weight_$tag'),
       water: await Hive.openBox<WaterIntakeDBO>('wipe_water_$tag'),
       fasting: await Hive.openBox<FastingSessionDBO>('wipe_fasting_$tag'),
+      favourites: favouriteBox = await Hive.openBox<FavouriteMealDBO>(
+        'wipe_favourites_$tag',
+      ),
       sharedAppConfig: appConfigBox,
     );
 
@@ -435,6 +445,22 @@ void main() {
 
     expect(provider.trackedDay.length, 1);
     expect(provider.trackedDay.get('2026-10-04')!.calorieGoal, 2150);
+  });
+
+  test('clears the active profile\'s favourites', () async {
+    // #1307: Favourites are per-profile, so a reset takes them with the
+    // rest of this profile's data.
+    await favouriteBox.put(
+      'off:1',
+      FavouriteMealDBO(
+        meal: MealDBO.fromMealEntity(MealEntity.empty()),
+        addedAt: DateTime(2026, 10, 4),
+      ),
+    );
+
+    await sut.deleteAll();
+
+    expect(favouriteBox.isEmpty, isTrue);
   });
 
   test('clears the home-screen widget', () async {

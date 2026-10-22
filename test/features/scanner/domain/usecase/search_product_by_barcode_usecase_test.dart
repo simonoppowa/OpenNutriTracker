@@ -8,23 +8,30 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 
+import '../../../../helpers/fake_favourites.dart';
+
 void main() {
   group('SearchProductByBarcodeUseCase', () {
     late _FakeProductsRepository repo;
     late _FakeCustomMealDataSource customMealDataSource;
     late _FakeRemoteSearchCacheDataSource cachedOffMealDataSource;
+    late FakeFavourites favourites;
     late SearchProductByBarcodeUseCase useCase;
 
     setUp(() {
       repo = _FakeProductsRepository();
       customMealDataSource = _FakeCustomMealDataSource();
       cachedOffMealDataSource = _FakeRemoteSearchCacheDataSource();
+      favourites = FakeFavourites();
       useCase = SearchProductByBarcodeUseCase(
         repo,
         customMealDataSource,
         cachedOffMealDataSource,
+        favourites.toggle,
       );
     });
+
+    tearDown(() => favourites.dispose());
 
     test(
         'returns the local custom meal without hitting OFF when the barcode '
@@ -186,8 +193,68 @@ void main() {
       expect(repo.getOFFProductByBarcodeCalls, 0);
     });
 
+    test(
+        'a live lookup of a starred product replaces its favourite snapshot '
+        '(#1307)', () async {
+      // Starred earlier; the cache entry has since expired and OFF changed
+      // the product. The scan opens straight on the full record, so no
+      // hydration runs on the detail page to refresh the favourite.
+      favourites.add(_offMeal(code: '7777', kcal: 100));
+      repo.barcodeResult = _offMeal(code: '7777', kcal: 120);
+
+      await useCase.searchProductByBarcode('7777');
+
+      final stored = favourites.stored(_offMeal(code: '7777'))!;
+      expect(stored.nutriments.energyKcal100, 120);
+      expect(stored.detailed, isTrue);
+    });
+
+    test('a live lookup stars nothing that was not starred', () async {
+      repo.barcodeResult = _offMeal(code: '8888');
+
+      await useCase.searchProductByBarcode('8888');
+
+      expect(favourites.all, isEmpty);
+    });
+
+    test(
+        'a cached lookup leaves the favourite alone: the cache is not newer '
+        'than what was starred', () async {
+      favourites.add(_offMeal(code: '6666', kcal: 100));
+      cachedOffMealDataSource.entries
+          .add(_offCacheDbo(code: '6666', name: 'Cached'));
+
+      await useCase.searchProductByBarcode('6666');
+
+      expect(
+        favourites.stored(_offMeal(code: '6666'))!.nutriments.energyKcal100,
+        100,
+      );
+    });
   });
 }
+
+MealEntity _offMeal({required String code, double kcal = 0}) => MealEntity(
+      code: code,
+      name: 'OFF $code',
+      url: null,
+      mealQuantity: '100',
+      mealUnit: 'g',
+      servingQuantity: 30,
+      servingUnit: 'g',
+      servingSize: null,
+      nutriments: MealNutrimentsEntity(
+        energyKcal100: kcal,
+        carbohydrates100: null,
+        fat100: null,
+        proteins100: null,
+        sugars100: null,
+        saturatedFat100: null,
+        fiber100: null,
+      ),
+      source: MealSourceEntity.off,
+      detailed: true,
+    );
 
 MealDBO _offCacheDbo({
   required String code,

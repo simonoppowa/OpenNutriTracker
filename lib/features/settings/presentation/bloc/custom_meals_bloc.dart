@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
@@ -19,6 +20,7 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
   final DeleteIntakeUsecase _deleteIntakeUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final MergeCustomMealsUseCase _mergeCustomMealsUseCase;
+  final FavouriteMealRepository _favouriteMealRepository; // #1307
 
   CustomMealsBloc(
     this._customMealDataSource,
@@ -26,6 +28,7 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
     this._deleteIntakeUsecase,
     this._addTrackedDayUsecase,
     this._mergeCustomMealsUseCase,
+    this._favouriteMealRepository,
   ) : super(CustomMealsInitial()) {
     on<LoadCustomMealsEvent>((event, emit) async {
       emit(CustomMealsLoadingState());
@@ -45,6 +48,11 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
       emit(CustomMealsLoadingState());
       try {
         final deleted = await withTrackedDayLockOnProfile(() async {
+          // A starred meal stays on Favourites as its snapshot; bring that
+          // up to the version being deleted first.
+          await _favouriteMealRepository.keepLatestCustomMealSnapshot(
+            event.mealKey,
+          );
           await _customMealDataSource.deleteCustomMeal(event.mealKey);
 
           final allCustom = await _getIntakeUsecase.getCustomMealIntakes();
