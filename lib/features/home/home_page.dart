@@ -244,11 +244,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 onItemTappedCallback: onActivityItemTapped,
                 onItemDragCallback: onActivityItemDrag,
               ),
-            // #150 follow-up: a 0% share (e.g. OMAD sets snack to 0) hides the
-            // section entirely so the home view doesn't carry an empty header
-            // the user explicitly opted out of. Already-logged intakes for a
-            // hidden section still count toward daily totals.
-            if (breakfastSharePct > 0)
+            // #150 follow-up: a 0% share (e.g. OMAD sets snack to 0) hides an
+            // empty section so the home view doesn't carry a header the user
+            // explicitly opted out of. A section that holds intakes always
+            // shows, so they stay editable and deletable (#1305).
+            if (IntakeVerticalList.isShown(
+              sharePct: breakfastSharePct,
+              intakes: breakfastIntakeList,
+            ))
               IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).breakfastLabel,
@@ -262,7 +265,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 showMealMacros: showMealMacros,
                 mealKcalTarget: breakfastKcalTarget,
               ),
-            if (lunchSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: lunchSharePct,
+              intakes: lunchIntakeList,
+            ))
               IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).lunchLabel,
@@ -276,7 +282,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 showMealMacros: showMealMacros,
                 mealKcalTarget: lunchKcalTarget,
               ),
-            if (dinnerSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: dinnerSharePct,
+              intakes: dinnerIntakeList,
+            ))
               IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).dinnerLabel,
@@ -290,7 +299,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 showMealMacros: showMealMacros,
                 mealKcalTarget: dinnerKcalTarget,
               ),
-            if (snackSharePct > 0)
+            if (IntakeVerticalList.isShown(
+              sharePct: snackSharePct,
+              intakes: snackIntakeList,
+            ))
               IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).snackLabel,
@@ -378,7 +390,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
 
     if (deleteIntake != null) {
-      _homeBloc.deleteUserActivityItem(activityEntity);
+      await _homeBloc.deleteUserActivityItem(activityEntity);
       _homeBloc.add(const LoadItemsEvent());
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -398,7 +410,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
 
     if (deleteIntake != null) {
-      _homeBloc.deleteIntakeItem(intakeEntity);
+      // The write can wait for the tracked-day lock (#1317), and Home
+      // reloads only once it is stored, so it does not show the old totals.
+      await _homeBloc.deleteIntakeItem(intakeEntity);
       _homeBloc.add(const LoadItemsEvent());
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -456,7 +470,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       ),
     );
     if (changeIntakeAmount != null) {
-      _homeBloc.updateIntakeItem(intakeEntity.id, {
+      await _homeBloc.updateIntakeItem(intakeEntity.id, {
         'amount': changeIntakeAmount,
       });
       _homeBloc.add(const LoadItemsEvent());
@@ -468,8 +482,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  void onDeleteIntake(IntakeEntity intake, TrackedDayEntity? trackedDayEntity) {
-    _homeBloc.deleteIntakeItem(intake);
+  Future<void> onDeleteIntake(
+    IntakeEntity intake,
+    TrackedDayEntity? trackedDayEntity,
+  ) async {
+    await _homeBloc.deleteIntakeItem(intake);
     _homeBloc.add(const LoadItemsEvent());
   }
 
@@ -496,7 +513,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       builder: (context) => const DeleteDialog(),
     );
     if (delete == true) {
-      _homeBloc.deleteUserActivityItem(activity);
+      await _homeBloc.deleteUserActivityItem(activity);
       _homeBloc.add(const LoadItemsEvent());
     }
     setState(() {

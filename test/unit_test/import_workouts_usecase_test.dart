@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/data/data_source/user_activity_data_source
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -29,7 +30,10 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
+import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 
 import '../fixture/user_entity_fixtures.dart';
 import '../helpers/fake_hive_db_provider.dart';
@@ -100,6 +104,8 @@ void main() {
   late Box<UserActivityDBO> activityBox;
   late Box<TrackedDayDBO> trackedDayBox;
   late Box<UserDBO> userBox;
+  // Only read by the boundary move, which regroups the rows by the entries.
+  late Box<IntakeDBO> intakeBox;
 
   late ConfigDataSource configDataSource;
   late ConfigRepository configRepository;
@@ -127,6 +133,7 @@ void main() {
       'health_import_tracked_day_test',
     );
     userBox = await Hive.openBox<UserDBO>('health_import_user_test');
+    intakeBox = await Hive.openBox<IntakeDBO>('health_import_intake_test');
     // Explicit rather than relying on the teardown's delete: a box that
     // survives into the next test carries a watermark and an already-imported
     // record with it, which is precisely what these tests are checking.
@@ -134,6 +141,7 @@ void main() {
     await activityBox.clear();
     await trackedDayBox.clear();
     await userBox.clear();
+    await intakeBox.clear();
 
     provider = FakeHiveDBProvider(
       activeProfileId: 'profile-a',
@@ -141,6 +149,7 @@ void main() {
       userActivityBox: activityBox,
       trackedDayBox: trackedDayBox,
       userBox: userBox,
+      intakeBox: intakeBox,
     );
 
     configDataSource = ConfigDataSource(provider);
@@ -196,6 +205,69 @@ void main() {
   });
 
   group('ImportWorkoutsUsecase budget invariant', () {
+    test(
+      'an exact-midnight workout is listed on its credited logical day',
+      () async {
+        await configDataSource.setConfigDayStartOffsetHours(4);
+        healthService.workouts = [_workout(start: DateTime(2026, 5, 23))];
+        final base = await getKcalGoalUsecase.getKcalGoal(
+          totalKcalActivitiesParam: 0,
+        );
+
+        expect(await usecase.importNow(), 1);
+        expect(
+          await userActivityRepository.getAllUserActivityByDate(
+            DateTime(2026, 5, 22),
+            dayStartOffsetHours: 4,
+          ),
+          hasLength(1),
+        );
+        expect(
+          await userActivityRepository.getAllUserActivityByDate(
+            DateTime(2026, 5, 23),
+            dayStartOffsetHours: 4,
+          ),
+          isEmpty,
+        );
+        expect(
+          (await trackedDayRepository.getTrackedDay(
+            DateTime(2026, 5, 22),
+          ))!.calorieGoal,
+          closeTo(base + 500, 0.001),
+        );
+      },
+    );
+
+    test(
+      'reconciliation never credits an exact-midnight workout twice',
+      () async {
+        await configDataSource.setConfigDayStartOffsetHours(4);
+        healthService.workouts = [_workout(start: DateTime(2026, 5, 23))];
+        final base = await getKcalGoalUsecase.getKcalGoal(
+          totalKcalActivitiesParam: 0,
+        );
+        await usecase.importNow();
+
+        for (var pass = 0; pass < 2; pass++) {
+          await ensureTrackedDaysMatchEntries(provider, configDataSource);
+          expect(trackedDayBox.keys, ['2026-05-22']);
+          expect(
+            trackedDayBox.get('2026-05-22')!.calorieGoal,
+            closeTo(base + 500, 0.001),
+          );
+        }
+        await SetDayBoundaryUsecase(
+          provider,
+          configDataSource,
+        ).setDayBoundary(0, 0);
+        expect(trackedDayBox.keys, ['2026-05-23']);
+        expect(
+          trackedDayBox.get('2026-05-23')!.calorieGoal,
+          closeTo(base + 500, 0.001),
+        );
+      },
+    );
+
     test(
       'an imported workout becomes an activity and raises the day goal',
       () async {
@@ -464,6 +536,25 @@ void main() {
       );
     });
 
+    test('a switch while the workout waits for the tracked-day lock files '
+        'nothing', () async {
+      // #1317 review: the switch holds the lock from the box swap on, so
+      // the run gets past its own profile check and then waits for it.
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+      final switchDone = Completer<void>();
+      final switching = withTrackedDayLock(() => switchDone.future);
+
+      final run = usecase.importNow();
+      await pumpEventQueue();
+      provider.activeProfileId = 'profile-b';
+      switchDone.complete();
+      await switching;
+
+      expect(await run, equals(0));
+      expect(await userActivityRepository.getAllUserActivityDBO(), isEmpty);
+      expect(trackedDayBox.isEmpty, isTrue);
+    });
+
     test(
       'a caller on another profile does not join the run in flight',
       () async {
@@ -644,6 +735,30 @@ void main() {
         activity.physicalActivityDBO.specificActivity,
         equals('Rowing machine'),
       );
+    });
+  });
+
+  group('ImportWorkoutsUsecase day boundary', () {
+    test('a boundary moved during the platform read is the one the workout '
+        'is credited under', () async {
+      // 02:30 is the 23rd at a 00:00 boundary and the 22nd at 04:00.
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 2, 30))];
+      healthService.readGate = Completer<void>();
+
+      final run = usecase.importNow();
+      await SetDayBoundaryUsecase(
+        provider,
+        configDataSource,
+      ).setDayBoundary(4, 0);
+      healthService.readGate!.complete();
+
+      expect(await run, equals(1));
+      expect(
+        trackedDayBox.containsKey('2026-05-22'),
+        isTrue,
+        reason: 'the Diary lists the workout on the 22nd now',
+      );
+      expect(trackedDayBox.containsKey('2026-05-23'), isFalse);
     });
   });
 }

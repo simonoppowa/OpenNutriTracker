@@ -15,13 +15,19 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 /// or failed (rate limit, timeout, network error). The UI uses this to
 /// decide whether to render a "no remote results" hint below the custom-meal
 /// matches.
+///
+/// [remoteSourceFailed] is true only when the remote source threw — a
+/// genuine zero-row answer leaves it false. The "All" view needs the two
+/// apart: a provider outage must not read as "no matching foods".
 class SearchProductsResult {
   final List<MealEntity> meals;
   final bool remoteSourceEmpty;
+  final bool remoteSourceFailed;
 
   const SearchProductsResult({
     required this.meals,
     required this.remoteSourceEmpty,
+    this.remoteSourceFailed = false,
   });
 }
 
@@ -64,9 +70,9 @@ class SearchProductsUseCase {
     // unbounded. Items the user actually selects (logs an intake of)
     // get their timestamp refreshed and stay until 90 days after the
     // last selection.
-    await _cacheRemoteResults(remote);
-    return _buildResult(searchString, remote,
-        cacheSource: MealSourceEntity.off);
+    await _cacheRemoteResults(remote.meals);
+    return _buildResult(searchString, remote.meals,
+        remoteFailed: remote.failed, cacheSource: MealSourceEntity.off);
   }
 
   /// Searches the reference-food corpus. "FDC" here names the *data* (USDA
@@ -97,9 +103,9 @@ class SearchProductsUseCase {
         forResolution: forResolution,
       ),
     );
-    await _cacheRemoteResults(remote);
-    return _buildResult(searchString, remote,
-        cacheSource: MealSourceEntity.fdc);
+    await _cacheRemoteResults(remote.meals);
+    return _buildResult(searchString, remote.meals,
+        remoteFailed: remote.failed, cacheSource: MealSourceEntity.fdc);
   }
 
   Future<void> _cacheRemoteResults(List<MealEntity> remote) async {
@@ -116,20 +122,21 @@ class SearchProductsUseCase {
   /// Run a remote search and fall back to an empty list when the source
   /// throws (rate limit, timeout, network failure, etc). The caller still
   /// receives matching custom meals from local intake history even when the
-  /// remote API is unavailable.
-  Future<List<MealEntity>> _safeRemoteCall(
+  /// remote API is unavailable; [failed] tells that fallback apart from a
+  /// source that answered with zero rows.
+  Future<({List<MealEntity> meals, bool failed})> _safeRemoteCall(
     String sourceLabel,
     Future<List<MealEntity>> Function() call,
   ) async {
     try {
-      return await call();
+      return (meals: await call(), failed: false);
     } catch (exception, stack) {
       _log.warning(
         '$sourceLabel search failed; falling back to custom-meal results only',
         exception,
         stack,
       );
-      return const [];
+      return (meals: const <MealEntity>[], failed: true);
     }
   }
 
@@ -137,6 +144,7 @@ class SearchProductsUseCase {
     String searchString,
     List<MealEntity> remoteResults, {
     bool remoteSkipped = false,
+    bool remoteFailed = false,
     required MealSourceEntity cacheSource,
   }) async {
     // When the remote source was deliberately skipped (short query), don't
@@ -149,6 +157,7 @@ class SearchProductsUseCase {
       return SearchProductsResult(
         meals: remoteResults,
         remoteSourceEmpty: remoteSourceEmpty,
+        remoteSourceFailed: remoteFailed,
       );
     }
 
@@ -244,6 +253,7 @@ class SearchProductsUseCase {
         ...remoteResults,
       ]),
       remoteSourceEmpty: remoteSourceEmpty,
+      remoteSourceFailed: remoteFailed,
     );
   }
 

@@ -15,6 +15,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/vertical_list_popup_menu_selections.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
@@ -24,6 +25,8 @@ import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_
 import 'package:opennutritracker/features/home/domain/entity/shared_meal_payload.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/shared_meal_import_dialogs.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/shared_meal_importer.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -36,7 +39,7 @@ class IntakeVerticalList extends StatefulWidget {
   final bool usesImperialUnits;
   final bool showMealMacros;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
-      onDeleteIntakeCallback;
+  onDeleteIntakeCallback;
   final Function(BuildContext, IntakeEntity)? onItemLongPressedCallback;
   final Function(bool)? onItemDragCallback;
   final Function(BuildContext, IntakeEntity, bool)? onItemTappedCallback;
@@ -79,6 +82,16 @@ class IntakeVerticalList extends StatefulWidget {
     this.sortType,
     this.onSortTypeChanged,
   });
+
+  /// Whether a meal section is rendered on Home and in the Diary. A 0 % share
+  /// hides an empty section the user opted out of (OMAD, two-meal), but one
+  /// that already holds intakes always shows: otherwise those entries count
+  /// toward the day's totals with no way to see, edit or delete them (#1305).
+  static bool isShown({
+    required int sharePct,
+    required List<IntakeEntity> intakes,
+  }) =>
+      sharePct > 0 || intakes.isNotEmpty;
 
   @override
   State<IntakeVerticalList> createState() => _IntakeVerticalListState();
@@ -206,6 +219,12 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                     shape: Dimens.shapeM,
                     onSelected:
                         (VerticalListPopupMenuSelections selection) async {
+                      // The section as it was when the menu was used: the
+                      // Diary can move on to another day while a dialog is
+                      // open (#1360), rebuilding this list for that day.
+                      final intakes = widget.intakeList;
+                      final onDeleteIntake = widget.onDeleteIntakeCallback;
+                      final trackedDay = widget.trackedDayEntity;
                       switch (selection) {
                         case VerticalListPopupMenuSelections.onCopy:
                           final copyDialog =
@@ -215,7 +234,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                                   context: context,
                                   builder: (context) => copyDialog);
                           if (selectedMealType != null) {
-                            for (IntakeEntity intake in widget.intakeList) {
+                            for (IntakeEntity intake in intakes) {
                               widget.onCopyIntakeCallback!(
                                   intake, null, selectedMealType);
                             }
@@ -226,9 +245,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                               context: context,
                               builder: (context) => const DeleteAllDialog());
                           if (shouldDeleteIntakes != null) {
-                            for (IntakeEntity intake in widget.intakeList) {
-                              widget.onDeleteIntakeCallback(
-                                  intake, widget.trackedDayEntity);
+                            for (IntakeEntity intake in intakes) {
+                              onDeleteIntake(intake, trackedDay);
                             }
                             break;
                           }
@@ -269,6 +287,28 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                               ),
                             );
                           }
+                        case VerticalListPopupMenuSelections.onImportCode:
+                          final payload = await showDialog<SharedMealPayload>(
+                            context: context,
+                            builder: (_) => const SharedMealCodeDialog(),
+                          );
+                          if (payload != null && context.mounted) {
+                            final imported = await SharedMealImporter(
+                              context,
+                              widget.addMealType.getIntakeType(),
+                              widget.addMealType,
+                              widget.day,
+                            ).importPayload(payload);
+                            if (imported && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    S.of(context).importMealSuccessLabel,
+                                  ),
+                                ),
+                              );
+                            }
+                          }
                       }
                     },
                     itemBuilder: (BuildContext context) =>
@@ -289,6 +329,13 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                           PopupMenuItem<VerticalListPopupMenuSelections>(
                               value: VerticalListPopupMenuSelections.onImport,
                               child: Text(S.of(context).importMealLabel)),
+                          PopupMenuItem<VerticalListPopupMenuSelections>(
+                            value: VerticalListPopupMenuSelections.onImportCode,
+                            child: Semantics(
+                              identifier: 'intake-import-meal-code',
+                              child: Text(S.of(context).pasteCodeLabel),
+                            ),
+                          ),
                         ])),
             ],
           ),
@@ -317,6 +364,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             intake: intakeEntity,
                             firstListElement: false,
                             usesImperialUnits: widget.usesImperialUnits,
+                            sortType: widget.sortType,
                           ),
                         ),
                       ),
@@ -345,6 +393,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       onItemTapped: widget.onItemTappedCallback,
                       firstListElement: false,
                       usesImperialUnits: widget.usesImperialUnits,
+                      sortType: widget.sortType,
                     ),
                   ),
                 PlaceholderCard(
@@ -409,10 +458,18 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
         arguments: AddMealScreenArguments(widget.addMealType, widget.day));
   }
 
-  void _onItemDropped(IntakeEntity entity) {
-    _mealDetailBloc.addIntake(context, entity.unit, entity.amount.toString(),
-        widget.addMealType.getIntakeType(), entity.meal, entity.dateTime);
-    _homeBloc.deleteIntakeItem(entity);
+  Future<void> _onItemDropped(IntakeEntity entity) async {
+    // One move under one tracked-day lock (#1317): taken apart, a profile
+    // switch queued during the add could run before the delete, which
+    // would then debit the incoming profile and leave the outgoing one
+    // with the entry in both meals. The refreshes below wait for both,
+    // so Home does not reload with the entry in both meals either.
+    await withTrackedDayLockOnProfile(() async {
+      await _mealDetailBloc.addIntake(context, entity.unit,
+          entity.amount.toString(), widget.addMealType.getIntakeType(),
+          entity.meal, entity.dateTime);
+      await _homeBloc.deleteIntakeItem(entity);
+    });
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());

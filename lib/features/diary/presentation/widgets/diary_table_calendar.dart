@@ -97,6 +97,9 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           // constraint squeezes its child rather than overflowing (#766).
           daysOfWeekHeight: _weekdayRowHeight(context, weekdayStyle),
           focusedDay: widget.focusedDate,
+          // The package marks DateTime.now() as today unless told
+          // otherwise; the Diary's today is the logical day (#1360).
+          currentDay: widget.currentDate,
           firstDay: widget.currentDate.subtract(widget.calendarDurationDays),
           lastDay: widget.currentDate.add(widget.calendarDurationDays),
           startingDayOfWeek: StartingDayOfWeek.monday,

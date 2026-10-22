@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
@@ -95,6 +96,12 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   late final TextEditingController _vitaminDController;
   late final TextEditingController _vitaminB12Controller;
 
+  /// Fields the user has typed into since they were last filled in. Only
+  /// these are applied: an untouched field shows a rounded value, or a
+  /// static default for a null goal, and re-parsing it would overwrite
+  /// the goal (#1371).
+  final Set<TextEditingController> _editedControllers = {};
+
   @override
   void initState() {
     super.initState();
@@ -125,6 +132,14 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     _vitaminB12Controller.dispose();
     super.dispose();
   }
+
+  /// The fibre reference the Diary panel uses when no goal is set: the
+  /// IOM value for the user's age and gender, 30 g without a profile.
+  double _fibreDefaultForUser() => DailyNutrientPanel.defaultReferenceFor(
+        NutrientPanelKeys.fiber,
+        _user,
+        DailyNutrientPanel.defaultFibreRefG,
+      );
 
   /// Iron RDA splits female 18 / male 8 (mg). 14 mg is the
   /// gender-neutral midpoint we pick for non-binary / unknown,
@@ -158,9 +173,19 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   String _formatGoal(double value) =>
       value >= 10 ? value.round().toString() : value.toStringAsFixed(1);
 
+  /// Whole-step rows show a whole number unless the value itself is
+  /// fractional, as the averaged non-binary fibre reference is (31.5 g /
+  /// 25.5 g), so the field never disagrees with the slider.
+  static String _formatWholeStep(double value) =>
+      value == value.roundToDouble()
+          ? value.round().toString()
+          : value.toStringAsFixed(1);
+
   Future<void> _load() async {
     final user = await widget.profileBloc.getUser();
-    final today = await widget.settingsBloc.getTodayTrackedDay(DateTime.now());
+    final today = await widget.settingsBloc.getTodayTrackedDay(
+      await widget.settingsBloc.getCurrentLogicalDay(),
+    );
     if (!mounted) return;
     setState(() {
       _user = user;
@@ -180,8 +205,9 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   }
 
   void _syncControllers() {
+    _editedControllers.clear();
     _fibreController.text =
-        (_fibre ?? DailyNutrientPanel.defaultFibreRefG).round().toString();
+        _formatWholeStep(_fibre ?? _fibreDefaultForUser());
     _satFatController.text =
         (_satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG)
             .round()
@@ -225,14 +251,42 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     _syncControllers();
   }
 
+  /// Applies whatever is still sitting in each edited text field before
+  /// saving. Without this, typing a value and tapping Save (without
+  /// pressing the keyboard's Done key first) silently dropped the
+  /// typed value. Same fix as the macro split dialog (#525).
+  void _applyPendingTextInputs() {
+    _applyText(_fibreController, _fibreMin, _fibreMax, (v) => _fibre = v);
+    _applyText(_satFatController, _satFatMin, _satFatMax, (v) => _satFat = v);
+    _applyText(_sugarsController, _sugarsMin, _sugarsMax, (v) => _sugars = v);
+    _applyText(_sodiumController, _sodiumMin, _sodiumMax, (v) => _sodium = v);
+    _applyText(
+        _calciumController, _calciumMin, _calciumMax, (v) => _calcium = v);
+    _applyText(_ironController, _ironMin, _ironMax, (v) => _iron = v,
+        decimalStep: true);
+    _applyText(_potassiumController, _potassiumMin, _potassiumMax,
+        (v) => _potassium = v);
+    _applyText(_magnesiumController, _magnesiumMin, _magnesiumMax,
+        (v) => _magnesium = v);
+    _applyText(_vitaminDController, _vitaminDMin, _vitaminDMax,
+        (v) => _vitaminD = v,
+        decimalStep: true);
+    _applyText(_vitaminB12Controller, _vitaminB12Min, _vitaminB12Max,
+        (v) => _vitaminB12 = v,
+        decimalStep: true);
+  }
+
   Future<void> _save() async {
+    _applyPendingTextInputs();
     // Make sure today's tracked-day row exists before we write per-
     // nutrient values onto it. updateTrackedDay creates the row from
     // current macro goals if missing, or refreshes the macro columns
-    // on the existing one.
-    await widget.settingsBloc.updateTrackedDay(DateTime.now());
+    // on the existing one. Both go to the logical day, resolved once
+    // (#1360).
+    final day = await widget.settingsBloc.getCurrentLogicalDay();
+    await widget.settingsBloc.updateTrackedDay(day);
     await widget.settingsBloc.setTodayNutrientGoals(
-      DateTime.now(),
+      day,
       fibreGoal: _fibre,
       satFatGoal: _satFat,
       sugarsGoal: _sugars,
@@ -243,6 +297,13 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
       magnesiumGoal: _magnesium,
       vitaminDGoal: _vitaminD,
       vitaminB12Goal: _vitaminB12,
+      // This screen always holds a complete snapshot of every field
+      // (loaded from disk, then patched by edits/Reset), never a
+      // partial delta — so every value here, including a null left
+      // by Reset, should be written as-is. See the data-source doc
+      // comment on updateDayNutrientGoals for why this needs to
+      // bypass the default null-means-untouched contract (#1349).
+      clearAll: true,
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
@@ -298,12 +359,15 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                 _NutrientRow(
                   label: s.settingsFibreGoalLabel,
                   description: s.settingsFibreGoalDescription,
-                  value: _fibre ?? DailyNutrientPanel.defaultFibreRefG,
+                  value: _fibre ?? _fibreDefaultForUser(),
                   min: _fibreMin,
                   max: _fibreMax,
                   divisions: _fibreDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _fibreController,
                   identifier: 'nutrient-fibre-slider',
+                  // Whole steps, but the non-binary default is fractional.
+                  decimalInput: true,
                   onSliderChanged: (v) => setState(() => _fibre = v),
                   onTextSubmitted: () => _applyText(
                       _fibreController, _fibreMin, _fibreMax, (v) => _fibre = v),
@@ -316,6 +380,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _satFatMin,
                   max: _satFatMax,
                   divisions: _satFatDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _satFatController,
                   identifier: 'nutrient-sat-fat-slider',
                   onSliderChanged: (v) => setState(() => _satFat = v),
@@ -329,6 +394,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _sugarsMin,
                   max: _sugarsMax,
                   divisions: _sugarsDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _sugarsController,
                   identifier: 'nutrient-sugars-slider',
                   onSliderChanged: (v) => setState(() => _sugars = v),
@@ -342,6 +408,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _sodiumMin,
                   max: _sodiumMax,
                   divisions: _sodiumDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _sodiumController,
                   unit: 'mg',
                   identifier: 'nutrient-sodium-slider',
@@ -356,6 +423,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _calciumMin,
                   max: _calciumMax,
                   divisions: _calciumDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _calciumController,
                   unit: 'mg',
                   identifier: 'nutrient-calcium-slider',
@@ -370,6 +438,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _ironMin,
                   max: _ironMax,
                   divisions: _ironDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _ironController,
                   unit: 'mg',
                   decimalStep: true,
@@ -391,6 +460,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _potassiumMin,
                   max: _potassiumMax,
                   divisions: _potassiumDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _potassiumController,
                   unit: 'mg',
                   identifier: 'nutrient-potassium-slider',
@@ -405,6 +475,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _magnesiumMin,
                   max: _magnesiumMax,
                   divisions: _magnesiumDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _magnesiumController,
                   unit: 'mg',
                   identifier: 'nutrient-magnesium-slider',
@@ -419,6 +490,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _vitaminDMin,
                   max: _vitaminDMax,
                   divisions: _vitaminDDivisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _vitaminDController,
                   unit: 'µg',
                   decimalStep: true,
@@ -440,6 +512,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
                   min: _vitaminB12Min,
                   max: _vitaminB12Max,
                   divisions: _vitaminB12Divisions,
+                  onTextEdited: _editedControllers.add,
                   controller: _vitaminB12Controller,
                   unit: 'µg',
                   decimalStep: true,
@@ -461,7 +534,8 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
 
   /// Direct text-input clamp: malformed parses ignore the input and
   /// leave the slider where it was; valid ones snap into the row's
-  /// declared min/max range.
+  /// declared min/max range. A field the user has not edited is left
+  /// alone, so its goal keeps its stored value, null included.
   void _applyText(
     TextEditingController controller,
     double min,
@@ -469,12 +543,16 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     void Function(double) setter, {
     bool decimalStep = false,
   }) {
+    if (!_editedControllers.remove(controller)) return;
     final parsed = double.tryParse(controller.text);
     if (parsed == null) return;
     final clamped = parsed.clamp(min, max).toDouble();
-    setState(() => setter(clamped));
-    controller.text =
-        decimalStep ? clamped.toStringAsFixed(1) : clamped.round().toString();
+    final text =
+        decimalStep ? clamped.toStringAsFixed(1) : _formatWholeStep(clamped);
+    // Keep the goal at what the field shows, so 31.52 is held as 31.5.
+    // This now runs once per edit, so no second pass re-parses the text.
+    setState(() => setter(double.parse(text)));
+    controller.text = text;
   }
 }
 
@@ -489,8 +567,12 @@ class _NutrientRow extends StatelessWidget {
   final String identifier;
   final String unit;
   final bool decimalStep;
+
+  /// Accept a decimal point in the field on a whole-step row.
+  final bool decimalInput;
   final ValueChanged<double> onSliderChanged;
   final VoidCallback onTextSubmitted;
+  final ValueChanged<TextEditingController> onTextEdited;
 
   const _NutrientRow({
     required this.label,
@@ -503,8 +585,10 @@ class _NutrientRow extends StatelessWidget {
     required this.identifier,
     required this.onSliderChanged,
     required this.onTextSubmitted,
+    required this.onTextEdited,
     this.unit = 'g',
     this.decimalStep = false,
+    this.decimalInput = false,
   });
 
   @override
@@ -522,29 +606,47 @@ class _NutrientRow extends StatelessWidget {
                 // Scale with the user's text setting so the value and unit
                 // suffix stay readable at large font scales.
                 width: MediaQuery.textScalerOf(context).scale(124),
-                child: TextField(
-                  controller: controller,
-                  keyboardType: TextInputType.numberWithOptions(
-                    decimal: decimalStep,
-                  ),
-                  inputFormatters: decimalStep
-                      ? [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d*\.?\d*'),
-                          ),
-                        ]
-                      : [FilteringTextInputFormatter.digitsOnly],
-                  textAlign: TextAlign.right,
-                  decoration: InputDecoration(
-                    suffixText: unit,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 12,
+                // Leaving the field applies a typed value, so the slider
+                // follows it once the keyboard closes: the iOS number pad
+                // has no return key, so a submit never comes (#1324).
+                // Untouched fields are skipped by the screen's _applyText.
+                child: Focus(
+                  canRequestFocus: false,
+                  skipTraversal: true,
+                  onFocusChange: (hasFocus) {
+                    if (!hasFocus) onTextSubmitted();
+                  },
+                  child: TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: decimalStep || decimalInput,
                     ),
+                    inputFormatters: decimalStep || decimalInput
+                        ? [
+                            // Accept a comma from comma-decimal keyboards and
+                            // normalise it to a period, so the field always
+                            // holds what double.tryParse reads (#1387).
+                            ...CustomTextInputFormatter.doubleOnly(
+                              maxDecimals: 1,
+                            ),
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*'),
+                            ),
+                          ]
+                        : [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.right,
+                    decoration: InputDecoration(
+                      suffixText: unit,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: (_) => onTextEdited(controller),
+                    onSubmitted: (_) => onTextSubmitted(),
+                    onEditingComplete: onTextSubmitted,
                   ),
-                  onSubmitted: (_) => onTextSubmitted(),
-                  onEditingComplete: onTextSubmitted,
                 ),
               ),
             ],

@@ -1,10 +1,14 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
@@ -12,10 +16,19 @@ import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
+import '../fixture/physical_activity_entity_fixtures.dart';
 import '../helpers/hive_test_setup.dart';
 
 /// In-memory stand-in for the platform keystore. The AI credentials live
@@ -85,6 +98,47 @@ class _SilentNotificationService extends NotificationService {
   Future<void> cancelAllScheduled() async {}
 }
 
+/// Records whether the wipe reached the iOS widget's copy of the figures,
+/// which lives in the App Group rather than in Hive.
+class _RecordingWidgetStore implements CalorieWidgetStore {
+  final bool fails;
+  int clears = 0;
+
+  _RecordingWidgetStore({this.fails = false});
+
+  @override
+  int get generation => 0;
+
+  @override
+  Future<void> write(
+    CalorieWidgetSnapshot snapshot,
+    CalorieWidgetLabels labels, {
+    int? generation,
+  }) async {}
+
+  @override
+  Future<void> clear() async {
+    clears++;
+    if (fails) throw MissingPluginException('home_widget');
+  }
+
+  @override
+  Future<void> relabel(S s) async {}
+}
+
+/// A tracked-day row with no entries' totals, only a goal.
+TrackedDayDBO _row(DateTime day, {double calorieGoal = 2000}) => TrackedDayDBO(
+  day: day,
+  calorieGoal: calorieGoal,
+  caloriesTracked: 0,
+  carbsGoal: 250,
+  carbsTracked: 0,
+  fatGoal: 70,
+  fatTracked: 0,
+  proteinGoal: 100,
+  proteinTracked: 0,
+);
+
 class _TestHiveDBProvider extends HiveDBProvider {
   final Box<ConfigDBO> config;
   final Box<IntakeDBO> intake;
@@ -94,6 +148,7 @@ class _TestHiveDBProvider extends HiveDBProvider {
   final Box<WeightLogDBO> weight;
   final Box<WaterIntakeDBO> water;
   final Box<FastingSessionDBO> fasting;
+  final Box<FavouriteMealDBO> favourites;
   final Box<ConfigDBO> sharedAppConfig;
 
   _TestHiveDBProvider({
@@ -105,6 +160,7 @@ class _TestHiveDBProvider extends HiveDBProvider {
     required this.weight,
     required this.water,
     required this.fasting,
+    required this.favourites,
     required this.sharedAppConfig,
   });
 
@@ -125,6 +181,8 @@ class _TestHiveDBProvider extends HiveDBProvider {
   @override
   Box<FastingSessionDBO> get fastingBox => fasting;
   @override
+  Box<FavouriteMealDBO> get favouriteMealBox => favourites;
+  @override
   Box<ConfigDBO> get appConfigBox => sharedAppConfig;
 }
 
@@ -137,6 +195,8 @@ void main() {
   late DeleteAllUserDataUsecase sut;
   late Box<ConfigDBO> configBox;
   late Box<ConfigDBO> appConfigBox;
+  late Box<FavouriteMealDBO> favouriteBox;
+  late _RecordingWidgetStore widgetStore;
 
   setUp(() async {
     Hive.init('.');
@@ -155,16 +215,23 @@ void main() {
       weight: await Hive.openBox<WeightLogDBO>('wipe_weight_$tag'),
       water: await Hive.openBox<WaterIntakeDBO>('wipe_water_$tag'),
       fasting: await Hive.openBox<FastingSessionDBO>('wipe_fasting_$tag'),
+      favourites: favouriteBox = await Hive.openBox<FavouriteMealDBO>(
+        'wipe_favourites_$tag',
+      ),
       sharedAppConfig: appConfigBox,
     );
 
     backing = _MemoryStorage();
     credentials = AiCredentialStorage(backing);
+    widgetStore = _RecordingWidgetStore();
     sut = DeleteAllUserDataUsecase(
       provider,
-      _SilentNotificationService(),
-      ConfigRepository(ConfigDataSource(provider)),
+      DailyReminderScheduler(
+        ConfigRepository(ConfigDataSource(provider)),
+        _SilentNotificationService(),
+      ),
       credentials,
+      calorieWidgetStore: widgetStore,
     );
   });
 
@@ -223,11 +290,107 @@ void main() {
   });
 
   test('still clears the active profile boxes', () async {
-    await configBox.put('ConfigKey', ConfigDBO.empty());
+    await configBox.put(
+      'ConfigKey',
+      ConfigDBO.empty()
+        ..userKcalAdjustment = 300
+        ..healthImportEnabled = true,
+    );
+    await provider.trackedDay.put('2026-10-04', _row(DateTime(2026, 10, 4)));
 
     await sut.deleteAll();
 
-    expect(configBox.isEmpty, isTrue);
+    // All the profile config keeps is the boundary its rows are keyed by.
+    final config = configBox.get('ConfigKey')!;
+    expect(config.userKcalAdjustment, isNull);
+    expect(config.healthImportEnabled, isNull);
+    expect(provider.trackedDay.isEmpty, isTrue);
+  });
+
+  test('a profile reset, re-onboarded under a kept 04:00 boundary, does not '
+      'credit an activity before the boundary twice on activation', () async {
+    // #1317. The boundary is app-wide, so the reset keeps it, and the
+    // reset profile's rows are keyed by it from the first entry on.
+    final configs = ConfigDataSource(provider);
+    await configs.initializeConfig();
+    await configs.setConfigDayStartOffsetHours(4);
+    await configs.setConfigTrackedDaysOffsetMinutes(240);
+
+    await sut.deleteAll();
+    expect(configs.getConfigNow().trackedDaysOffsetMinutes, 240);
+
+    // Re-onboarded, then a 150 kcal walk logged from Home at 02:00: the
+    // Diary lists it on the 4th, so it raised the 4th's goal from 2000.
+    final at = DateTime(2026, 10, 5, 2);
+    await UserActivityDataSource(provider).addUserActivity(
+      UserActivityDBO.fromUserActivityEntity(
+        UserActivityEntity(
+          'walk',
+          30,
+          150,
+          at,
+          PhysicalActivityFixtures.moderateBicycling,
+        ),
+      ),
+    );
+    await provider.trackedDay.put(
+      '2026-10-04',
+      _row(DateTime(2026, 10, 4), calorieGoal: 2150),
+    );
+
+    await ensureTrackedDaysMatchEntries(provider, configs);
+
+    expect(provider.trackedDay.length, 1);
+    expect(provider.trackedDay.get('2026-10-04')!.calorieGoal, 2150);
+  });
+
+  test('clears the active profile\'s favourites', () async {
+    // #1307: Favourites are per-profile, so a reset takes them with the
+    // rest of this profile's data.
+    await favouriteBox.put(
+      'off:1',
+      FavouriteMealDBO(
+        meal: MealDBO.fromMealEntity(MealEntity.empty()),
+        addedAt: DateTime(2026, 10, 4),
+      ),
+    );
+
+    await sut.deleteAll();
+
+    expect(favouriteBox.isEmpty, isTrue);
+  });
+
+  test('clears the home-screen widget', () async {
+    // The widget reads an App Group copy, not Hive, so without this it kept
+    // showing the deleted profile's intake and goal until the day ended.
+    await sut.deleteAll();
+
+    expect(widgetStore.clears, 1);
+  });
+
+  test('a widget that cannot be cleared does not keep the data', () async {
+    await configBox.put(
+      'ConfigKey',
+      ConfigDBO.empty()..userKcalAdjustment = 300,
+    );
+    await provider.trackedDay.put('2026-10-04', _row(DateTime(2026, 10, 4)));
+    await credentials.setEnabled(true);
+    final failing = _RecordingWidgetStore(fails: true);
+
+    await DeleteAllUserDataUsecase(
+      provider,
+      DailyReminderScheduler(
+        ConfigRepository(ConfigDataSource(provider)),
+        _SilentNotificationService(),
+      ),
+      credentials,
+      calorieWidgetStore: failing,
+    ).deleteAll();
+
+    expect(failing.clears, 1);
+    expect(configBox.get('ConfigKey')!.userKcalAdjustment, isNull);
+    expect(provider.trackedDay.isEmpty, isTrue);
+    expect(await credentials.isEnabled(), isFalse);
   });
 
   test('leaves the shared app settings alone', () async {

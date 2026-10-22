@@ -14,16 +14,18 @@ import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/splash_screen.dart';
 import 'package:opennutritracker/core/presentation/storage_recovery_app.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
+import 'package:opennutritracker/core/presentation/widgets/keyboard_dismisser.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/app_theme.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
 import 'package:opennutritracker/core/utils/app_locale_sync.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/sentry_config.dart';
-import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
@@ -45,6 +47,7 @@ import 'package:opennutritracker/features/home/presentation/screens/import_activ
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/accent_colour_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
@@ -56,6 +59,11 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 /// shipped languages, computed once (WidgetsApp compares the list by
 /// identity, so a fresh list per build would re-resolve on every rebuild).
 final _appLocales = appLocales(S.supportedLocales);
+
+/// Best-effort: a notification plugin that fails is logged, never allowed to
+/// keep the app from opening or to escape a language change.
+Future<void> _refreshDailyReminder(Locale? locale) =>
+    locator<DailyReminderScheduler>().refresh(locale: locale);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,39 +102,31 @@ Future<void> _bootstrapApp() async {
   // Android's own per-app language picker and ours are two doors into the
   // same setting, so ask the system what it holds before trusting what we
   // saved. See [reconcileAppLocale] for which side wins and why.
+  final systemLocale = await AppLocaleService.getApplicationLocale();
   final localeCode = await reconcileAppLocale(
     savedLocaleCode: await configRepo.getSelectedLocale(),
-    systemLocaleTag: await AppLocaleService.getApplicationLocale(),
+    systemLocaleTag: systemLocale.tag,
+    systemTagReadFailed: systemLocale.readFailed,
+    localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
     supportedLocales: _appLocales,
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
+    readSystemTag: AppLocaleService.getApplicationLocale,
+    markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+    clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
 
-  // #312: Restore scheduled notifications after app start / device reboot.
-  // Look up the user's localized strings first — there's no widget tree yet,
-  // so S is driven directly off the saved (or device) locale, resolved against
-  // the supported locales because lookupS throws on unsupported ones. Android
-  // re-applies the channel name/description on every (re)registration, and
-  // they surface in the OS settings, so this keeps them in the user's
-  // language instead of reverting to English on each launch.
-  if (config.notificationsEnabled) {
-    final s = lookupS(
-      basicLocaleListResolution([
-        savedLocale ?? WidgetsBinding.instance.platformDispatcher.locale,
-      ], _appLocales),
-    );
-    final notificationService = locator<NotificationService>();
-    await notificationService.initialize();
-    await notificationService.scheduleDailyReminder(
-      hour: config.notificationHour,
-      minute: config.notificationMinute,
-      title: s.notificationsDailyReminderTitle,
-      body: s.notificationsDailyReminderBody,
-      channelName: s.notificationsDailyReminderChannelName,
-      channelDescription: s.notificationsDailyReminderChannelDescription,
-    );
-  }
+  // #312: Restore scheduled notifications after app start / device reboot,
+  // in the user's language. Android re-applies the channel name/description
+  // on every (re)registration, and they surface in the OS settings, so this
+  // keeps them from reverting to English on each launch. Runs after
+  // [reconcileAppLocale] so it uses the language the app ends up in, not the
+  // one saved before the OS was consulted. A language change while the app
+  // runs reschedules through [LocaleProvider] (#1366).
+  // Not awaited: it queues on the scheduler at once, so Settings still runs
+  // after it, but start-up never waits on (or fails with) the plugin.
+  unawaited(_refreshDailyReminder(savedLocale));
   final hasAcceptedAnonymousData = await configRepo
       .getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
@@ -198,7 +198,12 @@ void runAppWithChangeNotifiers(
         ),
       ),
       ChangeNotifierProvider(
-        create: (_) => LocaleProvider(locale: savedLocale),
+        create: (_) => LocaleProvider(
+          locale: savedLocale,
+          onChanged: (locale) => unawaited(_refreshDailyReminder(locale)),
+          calorieWidgetStore: locator<CalorieWidgetStore>(),
+          relabelCalorieWidget: !userInitialized,
+        ),
       ),
       ChangeNotifierProvider(
         create: (_) => EnergyUnitProvider(usesKilojoules: savedUsesKilojoules),
@@ -241,18 +246,76 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
     unawaited(_adoptSystemLocale());
   }
 
+  /// True while [_adoptSystemLocale] is between its awaits; a second entry
+  /// then only queues a re-run instead of racing the first.
+  bool _adoptingSystemLocale = false;
+  bool _adoptSystemLocaleQueued = false;
+
+  /// The same [reconcileAppLocale] the launch path runs, deliberately: this
+  /// fires for any locale change — the per-app picker, but also a plain
+  /// system-language change on platforms with no per-app override — and a
+  /// second hand-rolled copy of the decision table here could disagree with
+  /// the launch one about the same OS state within one session. Only the
+  /// screen update is local; every persistence decision stays in one place.
+  ///
+  /// Serialized against itself: reconciling can change the locale (the
+  /// migration push), which re-fires [didChangeLocales] while the first run
+  /// is still mid-flight. Overlapping runs would read the same pre-write
+  /// config snapshot and double-apply it, so a run arriving early is queued
+  /// and replayed once the current one finishes — dropped instead of
+  /// queued, it could miss a clear that arrived mid-run.
   Future<void> _adoptSystemLocale() async {
-    final systemCode = supportedLanguageCode(
-      await AppLocaleService.getApplicationLocale(),
-      _appLocales,
+    if (_adoptingSystemLocale) {
+      _adoptSystemLocaleQueued = true;
+      return;
+    }
+    _adoptingSystemLocale = true;
+    try {
+      do {
+        _adoptSystemLocaleQueued = false;
+        // Shared with the in-app picker: see [LocaleSyncLock].
+        await localeSyncLock.run(_reconcileAndAdoptLocale);
+      } while (_adoptSystemLocaleQueued);
+    } finally {
+      _adoptingSystemLocale = false;
+    }
+  }
+
+  Future<void> _reconcileAndAdoptLocale() async {
+    final configRepo = locator<ConfigRepository>();
+    final systemLocale = await AppLocaleService.getApplicationLocale();
+    final localeCode = await reconcileAppLocale(
+      savedLocaleCode: await configRepo.getSelectedLocale(),
+      systemLocaleTag: systemLocale.tag,
+      systemTagReadFailed: systemLocale.readFailed,
+      localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
+      supportedLocales: _appLocales,
+      persistSelectedLocale: configRepo.setSelectedLocale,
+      pushToSystem: AppLocaleService.setApplicationLocale,
+      readSystemTag: AppLocaleService.getApplicationLocale,
+      markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+      clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
     );
-    if (systemCode == null || !mounted) return;
+    // Persistence above deliberately ran to completion regardless of widget
+    // lifetime — what is saved must not depend on whether this State is
+    // still mounted. Only the on-screen update needs the live context.
+    if (!mounted) return;
 
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
-    if (localeProvider.locale?.languageCode == systemCode) return;
+    if (localeProvider.locale?.languageCode == localeCode) {
+      // Reconciliation kept the in-app language. While that is "System
+      // default", this event may be a device language change: MaterialApp
+      // follows it by itself; the reminder the OS holds does not (#1366).
+      localeProvider.systemLocalesChanged();
+      return;
+    }
 
-    localeProvider.updateLocale(Locale(systemCode));
-    await locator<ConfigRepository>().setSelectedLocale(systemCode);
+    localeProvider.updateLocale(localeCode != null ? Locale(localeCode) : null);
+    // The config was rewritten above, and the singleton SettingsBloc only
+    // reloads on LoadSettingsEvent: without this the Language tile and the
+    // picker's preselection keep the pre-reconcile value, and confirming the
+    // picker would push back the override the user just cleared in the OS.
+    locator<SettingsBloc>().add(LoadSettingsEvent());
   }
 
   @override
@@ -302,6 +365,9 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: _appLocales,
+      // Above the Navigator, so dialogs and sheets are covered too.
+      builder: (context, child) =>
+          KeyboardDismisser(child: child ?? const SizedBox.shrink()),
       initialRoute: NavigationOptions.splashRoute,
       routes: {
         NavigationOptions.splashRoute: (context) =>

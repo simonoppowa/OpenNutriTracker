@@ -81,6 +81,22 @@ class DailyNutrientPanel extends StatefulWidget {
   static double resolveFibreReference(TrackedDayEntity? trackedDay) =>
       trackedDay?.fibreGoal ?? defaultFibreRefG;
 
+  /// The reference used when the user has set no goal of their own: the
+  /// IOM row for [user]'s age and gender (#245) when the table has one,
+  /// else [fallback]. The panel and Settings -> Nutrient goals both read
+  /// their defaults through here, so the two cannot disagree (#1365).
+  static double defaultReferenceFor(
+    String nutrientKey,
+    UserEntity? user,
+    double fallback,
+  ) {
+    if (user != null) {
+      final dri = getReferenceFor(nutrient: nutrientKey, user: user);
+      if (dri != null) return dri.amount;
+    }
+    return fallback;
+  }
+
   static double resolveSatFatReference(TrackedDayEntity? trackedDay) =>
       trackedDay?.satFatGoal ?? defaultSaturatedFatRefG;
 
@@ -245,13 +261,8 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
       String nutrientKey,
       double fallback,
     ) {
-      final tracked = trackedOverride();
-      if (tracked != null) return tracked;
-      if (user != null) {
-        final dri = getReferenceFor(nutrient: nutrientKey, user: user);
-        if (dri != null) return dri.amount;
-      }
-      return fallback;
+      return trackedOverride() ??
+          DailyNutrientPanel.defaultReferenceFor(nutrientKey, user, fallback);
     }
 
     final fiberRefG = resolveWithDri(

@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/calories_profile_info_dialog.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -44,17 +45,34 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
 
   late final TextEditingController _kcalController;
 
+  /// Whether the user has typed into the field since it was last filled
+  /// in. Untouched kJ text is a rounded conversion (100 kcal shows as
+  /// 418 kJ), so re-parsing it would drift the stored value (#1371).
+  bool _kcalTextEdited = false;
+
+  /// A typed value is also applied when the field loses focus, so the
+  /// slider follows it once the keyboard closes: the iOS number pad has no
+  /// return key, so a submit never comes (#1324).
+  late final FocusNode _kcalFocusNode;
+
   @override
   void initState() {
     super.initState();
     _kcalController = TextEditingController(text: '0');
+    _kcalFocusNode = FocusNode()..addListener(_onKcalFocusChanged);
     _load();
   }
 
   @override
   void dispose() {
     _kcalController.dispose();
+    _kcalFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onKcalFocusChanged() {
+    if (!mounted || _kcalFocusNode.hasFocus) return;
+    _applyKcalInput();
   }
 
   Future<void> _load() async {
@@ -73,6 +91,8 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   }
 
   void _applyKcalInput() {
+    if (!_kcalTextEdited) return;
+    _kcalTextEdited = false;
     // The text field always reads in whichever unit the user is
     // seeing; convert back to kcal once for storage so the persisted
     // value stays consistent across unit toggles.
@@ -112,14 +132,24 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
   }
 
   Future<void> _save() async {
+    // Apply any value still sitting in the text field. Without this,
+    // typing a number and tapping OK (without pressing the keyboard's
+    // Done key first) silently saved the slider's last value instead.
+    // Same fix as the macro split dialog (#525).
+    _applyKcalInput();
+    // round(), not toInt(): a kJ slider step converts to kcal with float
+    // noise (209.2 / 4.184 = 49.999…) that truncation turns into 49.
     await widget.settingsBloc.setKcalAdjustment(
-      _kcalAdjustment.toInt().toDouble(),
+      _kcalAdjustment.round().toDouble(),
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
     // Recompute today's stored kcal goal so the diary card reflects
     // the new adjustment immediately instead of waiting for tomorrow.
-    await widget.settingsBloc.updateTrackedDay(DateTime.now());
+    await widget.settingsBloc.updateTrackedDay(
+      await widget.settingsBloc.getCurrentLogicalDay(),
+    );
+    reloadDiaryAndTrends();
     if (!mounted) return;
     Navigator.of(context).pop();
   }
@@ -133,7 +163,9 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
         children: [
           Expanded(
             child: Text(
-              s.settingsKcalAdjustmentLabel,
+              context.watch<EnergyUnitProvider>().usesKilojoules
+                  ? s.settingsKjAdjustmentLabel
+                  : s.settingsKcalAdjustmentLabel,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -144,6 +176,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                 ? () {
                     setState(() => _kcalAdjustment = 0);
                     _kcalController.text = '0';
+                    _kcalTextEdited = false;
                   }
                 : null,
             child: Text(s.buttonResetLabel),
@@ -238,6 +271,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                 identifier: 'kcal-adjustment-input',
                                 child: TextField(
                                   controller: _kcalController,
+                                  focusNode: _kcalFocusNode,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                     signed: true,
@@ -257,6 +291,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                       vertical: 12,
                                     ),
                                   ),
+                                  onChanged: (_) => _kcalTextEdited = true,
                                   onSubmitted: (_) => _applyKcalInput(),
                                   onEditingComplete: _applyKcalInput,
                                 ),
@@ -278,6 +313,7 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
                                   : value;
                               setState(() => _kcalAdjustment = asKcal);
                               _kcalController.text = value.round().toString();
+                              _kcalTextEdited = false;
                             },
                           ),
                         ),
