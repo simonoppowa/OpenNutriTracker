@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/switch_profile_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -26,8 +27,13 @@ import 'package:opennutritracker/features/settings/presentation/bloc/settings_bl
 class ProfileSwitchCoordinator {
   final SwitchProfileUsecase _switchProfileUsecase;
   final UserRepository _userRepository;
+  final CalorieWidgetStore _calorieWidgetStore;
 
-  ProfileSwitchCoordinator(this._switchProfileUsecase, this._userRepository);
+  ProfileSwitchCoordinator(
+    this._switchProfileUsecase,
+    this._userRepository, {
+    CalorieWidgetStore? calorieWidgetStore,
+  }) : _calorieWidgetStore = calorieWidgetStore ?? HomeWidgetCalorieStore();
 
   Future<void> switchTo(BuildContext context, ProfileEntity profile) async {
     // Remember where we came from. If we end up routing into onboarding
@@ -38,6 +44,13 @@ class ProfileSwitchCoordinator {
 
     await _switchProfileUsecase.switchProfile(profile);
     final hasUserData = await _userRepository.hasUserData();
+    // The widget still shows the outgoing profile. For an empty profile
+    // nothing republishes it, and for an onboarded one only the Home
+    // reload below does, which an unmounted context skips. Done before the
+    // mounted check: it is about the new active profile, not this screen.
+    // A Home load already reading the outgoing profile is dropped by the
+    // store's generation check.
+    await _clearCalorieWidget();
     if (!context.mounted) return;
 
     if (hasUserData) {
@@ -52,6 +65,14 @@ class ProfileSwitchCoordinator {
         (route) => false,
         arguments: previousProfileId == profile.id ? null : previousProfileId,
       );
+    }
+  }
+
+  Future<void> _clearCalorieWidget() async {
+    try {
+      await _calorieWidgetStore.clear();
+    } catch (_) {
+      // A widget plugin failing must not keep the user off the new profile.
     }
   }
 
