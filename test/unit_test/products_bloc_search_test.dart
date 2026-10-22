@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
 
@@ -25,6 +26,13 @@ class _FakeSearchProductsUseCase implements SearchProductsUseCase {
     calls.add(completer);
     return completer.future;
   }
+
+  @override
+  Future<SearchProductsResult> searchFDCFoodByString(
+    String searchString, {
+    bool skipRemote = false,
+    bool forResolution = false,
+  }) => searchOFFProductsByString(searchString);
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -193,6 +201,103 @@ void main() {
       useCase.calls.single.complete(_emptyResult);
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(bloc.state, isA<ProductsLoadedState>());
+    });
+  });
+  // #1282 review: the restartable transformer only cancels runs of its own
+  // event type, so a Retry still awaiting a provider used to land after a
+  // newer typed search and replace its results with the old query's,
+  // leaving the field's query on a spinner.
+  group('a Retry that finishes after a newer search', () {
+    late _FakeSearchProductsUseCase useCase;
+
+    setUp(() => useCase = _FakeSearchProductsUseCase());
+
+    Future<void> pumpEvents() =>
+        Future<void>.delayed(const Duration(milliseconds: 50));
+
+    test('does not overwrite the newer products results', () async {
+      final bloc = ProductsBloc(useCase, _FakeGetConfigUsecase());
+      addTearDown(bloc.close);
+      bloc.add(const LoadProductsEvent(searchString: 'apple'));
+      await pumpEvents();
+      useCase.calls.single.complete(_emptyResult);
+      await pumpEvents();
+
+      bloc.add(const RefreshProductsEvent());
+      await pumpEvents();
+      bloc.add(const SearchInputChangedEvent(searchString: 'banana'));
+      await _settleDebounce();
+      expect(useCase.queries, ['apple', 'apple', 'banana']);
+
+      useCase.calls[2].complete(_emptyResult);
+      await pumpEvents();
+      useCase.calls[1].complete(_emptyResult);
+      await pumpEvents();
+
+      expect((bloc.state as ProductsLoadedState).query, 'banana');
+    });
+
+    test('does not turn the newer products results into a failure',
+        () async {
+      final bloc = ProductsBloc(useCase, _FakeGetConfigUsecase());
+      addTearDown(bloc.close);
+      bloc.add(const LoadProductsEvent(searchString: 'apple'));
+      await pumpEvents();
+      useCase.calls.single.complete(_emptyResult);
+      await pumpEvents();
+
+      bloc.add(const RefreshProductsEvent());
+      await pumpEvents();
+      bloc.add(const SearchInputChangedEvent(searchString: 'banana'));
+      await _settleDebounce();
+      useCase.calls[2].complete(_emptyResult);
+      await pumpEvents();
+      useCase.calls[1].completeError(Exception('HTTP 500'));
+      await pumpEvents();
+
+      expect((bloc.state as ProductsLoadedState).query, 'banana');
+    });
+
+    test('does not overwrite the newer food results', () async {
+      final bloc = FoodBloc(useCase, _FakeGetConfigUsecase());
+      addTearDown(bloc.close);
+      bloc.add(const LoadFoodEvent(searchString: 'apple'));
+      await pumpEvents();
+      useCase.calls.single.complete(_emptyResult);
+      await pumpEvents();
+
+      bloc.add(const RefreshFoodEvent());
+      await pumpEvents();
+      bloc.add(const SearchFoodInputChangedEvent(searchString: 'banana'));
+      await _settleDebounce();
+
+      useCase.calls[2].complete(_emptyResult);
+      await pumpEvents();
+      useCase.calls[1].complete(_emptyResult);
+      await pumpEvents();
+
+      expect((bloc.state as FoodLoadedState).query, 'banana');
+    });
+
+    test('a duplicate keystroke does not orphan the Retry in flight',
+        () async {
+      final bloc = ProductsBloc(useCase, _FakeGetConfigUsecase());
+      addTearDown(bloc.close);
+      bloc.add(const LoadProductsEvent(searchString: 'apple'));
+      await pumpEvents();
+      useCase.calls.single.complete(_emptyResult);
+      await pumpEvents();
+
+      bloc.add(const RefreshProductsEvent());
+      await pumpEvents();
+      // Same text as on screen: skipped as already answered.
+      bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
+      await _settleDebounce();
+      expect(useCase.calls, hasLength(2));
+
+      useCase.calls[1].complete(_emptyResult);
+      await pumpEvents();
+      expect((bloc.state as ProductsLoadedState).query, 'apple');
     });
   });
 }

@@ -26,6 +26,9 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   Future<void> setKcalAdjustment(double kcalAdjustment) async {}
 
   @override
+  Future<DateTime> getCurrentLogicalDay() async => DateTime(2026, 10, 10);
+
+  @override
   Future<void> updateTrackedDay(DateTime day) async {
     // A real write yields; make sure the reload cannot overtake it.
     await Future<void>.delayed(Duration.zero);

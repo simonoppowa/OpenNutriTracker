@@ -29,6 +29,8 @@ next to its CSV counterpart will not find one.
 | `weight_log.json`                | Weight history.                                          |
 | `custom_activity_templates.json` | Saved custom activities — name and typical kcal.         |
 | `goal_settings.json`             | The profile's goal settings. See [below](#goal_settingsjson). |
+| `user_favourites.json`           | The starred foods and meals, each with a meal snapshot. See [below](#user_favouritesjson). |
+| `tracked_day_boundary.json`      | The day boundary the tracked days are keyed by. See [below](#tracked_day_boundaryjson--tracked_day_boundarycsv). |
 
 **CSV bundle**
 
@@ -37,14 +39,15 @@ next to its CSV counterpart will not find one.
 | `user_intake.csv`       | Same rows as the JSON, with the meal and its nutriments flattened. |
 | `user_activity.csv`     | Flat activities.                                             |
 | `user_tracked_day.csv`  | Flat tracked days — **lossy, see [Round-trip guarantee](#round-trip-guarantee)**. |
+| `tracked_day_boundary.csv` | The day boundary the tracked days are keyed by. See [below](#tracked_day_boundaryjson--tracked_day_boundarycsv). |
 
 **Photos travel with the JSON bundle only.** User-attached photos are added under
-`recipe_images/` and `meal_images/` when you export as JSON, gathered from three places: recipes,
-saved custom meals, and **the diary entries themselves**. That third source is not redundant — a
+`recipe_images/` and `meal_images/` when you export as JSON, gathered from recipes, saved custom
+meals, favourites, and **the diary entries themselves**. The diary entries are not redundant — a
 custom meal logged with *Save for next time* off keeps its photo on the entry without leaving a
-saved meal behind, so gathering only from the first two put the filename in the JSON and left the
-bytes out of the zip ([#1061](https://github.com/simonoppowa/OpenNutriTracker/issues/1061)). A
-photo reachable from any of the three is in the bundle exactly once.
+saved meal behind, so gathering only from recipes and saved meals put the filename in the JSON and
+left the bytes out of the zip ([#1061](https://github.com/simonoppowa/OpenNutriTracker/issues/1061)). A
+photo reachable from any of them is in the bundle exactly once.
 
 A CSV export carries none, and the CSV importer does not restore them — another reason to use
 JSON for anything you intend to restore from.
@@ -58,8 +61,9 @@ and so are the **goal settings** you set under Settings → Calculations, as
 The user can re-import the same zip via **Settings → Import**, in either format.
 Import merges into what is on the device: an intake, activity or recipe whose
 `id` is already stored is replaced by the imported row, as is a Custom activity
-template with the same name, and tracked days and weight-log points replace by
-day. Entries the zip does not carry are kept, and importing the same zip twice
+template with the same name, a favourite for the same food (see
+[`user_favourites.json`](#user_favouritesjson)), and tracked days and
+weight-log points replace by day. Entries the zip does not carry are kept, and importing the same zip twice
 changes nothing. Where the zip holds one `id` (or template name) more than
 once — an install hit by #1357 exports two copies — the copy edited before
 the fix wins: the first row for intakes, the last row for activities and
@@ -273,12 +277,77 @@ Only goals that belong to a profile are in the file:
   switching it on needs the system's permission on the new device, and the
   multiplier is suggested again when it is.
 
+### `tracked_day_boundary.json` / `tracked_day_boundary.csv`
+
+The "Day starts at" boundary, in minutes after midnight, that the bundle's
+tracked days are keyed by
+([#1317](https://github.com/simonoppowa/OpenNutriTracker/issues/1317)). A
+tracked day sits on the day its entries are listed under, and an entry logged
+before the boundary is listed under the day before, so the same history is keyed
+differently under another boundary. On import, the rows from the bundle are moved
+from this boundary to the device's, and so is the energy an activity added to a
+day's goal. The device's own rows are not touched.
+
+Export serializes the entries, tracked days and boundary record under the same
+lock, so a boundary change or profile switch cannot split the snapshot. Photo
+file reads and the save dialog run after that lock is released.
+
+```jsonc
+{
+  "version": 1,                     // format version, as in goal_settings.json
+  "dayStartOffsetMinutes": 240      // 0..1439; 240 is a day starting at 04:00
+}
+```
+
+The CSV bundle carries the same value as a header and one row:
+
+```csv
+day_start_offset_minutes
+240
+```
+
+A value outside 0..1439 rejects the whole zip before anything on the device
+changes. A JSON file with a newer `version` is treated as missing. Zips from
+builds that predate the file don't have one. Those builds keyed each day by the
+wall-clock date of the entry that created it, or by the logical day for an
+imported workout, and the import reads them that way. Older builds ignore the
+file.
+
 ### `user_recipes.json`
 
 Array of recipe records, each holding an `ingredients` list referencing
 external food items by code. The nested-ingredient shape makes CSV a poor fit
 here, so recipes ship as JSON only. See `lib/core/data/dbo/recipe_dbo.dart`
 for the precise field list.
+
+### `user_favourites.json`
+
+Array of the active profile's favourites
+([#1307](https://github.com/simonoppowa/OpenNutriTracker/issues/1307)), each a
+`meal` — the same `MealDBO` shape as an intake's — and the `addedAt` timestamp
+that orders the list. See `lib/core/data/dbo/favourite_meal_dbo.dart`.
+
+```jsonc
+[
+  {
+    "meal": { "code": "1234567890123", "name": "Whole Milk", "source": "off", /* … as in user_intake.json */ },
+    "addedAt": "2026-05-13T08:15:00.000"
+  }
+]
+```
+
+The file is optional on import, so zips from before the list existed still
+restore, and it goes into the profile that is active when you import. A
+favourite has no `id`: its identity is the food's, the meal's `source` plus
+its `code` — or its `name` when it has no code, as for a custom meal saved by
+an older build — the same key the star in the app uses. Giving a saved custom
+meal a barcode changes its `code`, and the app moves its favourite to the new
+key, so an export taken afterwards carries it once. An imported favourite
+replaces the one already on the list for that food, `addedAt` included, so
+importing the same zip twice leaves one entry per food; favourites the zip
+does not carry stay on the list. Where the file lists one food more than once
+(only a hand-edited file can), the last entry wins. Like every other file, it
+is parsed in full before anything on the device changes.
 
 ## CSV schema
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
@@ -18,6 +20,7 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -305,24 +308,101 @@ void main() {
       );
       addTearDown(bloc.close);
 
-      bloc.persistActivity(
+      await bloc.persistActivity(
         '30',
         300,
         PhysicalActivityFixtures.moderateBicycling,
         _day,
       );
 
-      // persistActivity does not hand back its future; wait for the goal
-      // raise it ends with to land.
-      TrackedDayDBO? row;
-      for (var i = 0; i < 100; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-        row = await dataSource.getTrackedDay(_day);
-        if (row != null && row.calorieGoal != 2000) break;
-      }
-
+      final row = await dataSource.getTrackedDay(_day);
       expect(row!.caloriesTracked, 500);
       expect(row.calorieGoal, 2300);
+    });
+  });
+
+  // #1317 review: a write can wait for the tracked-day lock, so callers
+  // refresh after the future it hands back, and that future must not
+  // complete before the entry and its row are stored.
+  group('writers complete only once their row is written', () {
+    late AddTrackedDayUsecase addTrackedDay;
+
+    setUp(() => addTrackedDay = AddTrackedDayUsecase(repository));
+
+    /// Holds the tracked-day lock, as a reconciliation or a profile
+    /// switch does, until the returned completer completes.
+    Completer<void> holdLock() {
+      final release = Completer<void>();
+      unawaited(withTrackedDayLock(() => release.future));
+      return release;
+    }
+
+    test('MealDetailBloc.addIntake', () async {
+      final bloc = MealDetailBloc(
+        _NoopAddIntakeUsecase(),
+        addTrackedDay,
+        _FakeGetKcalGoalUsecase(),
+        _FakeGetMacroGoalUsecase(),
+        _FakeGetTrackedDayUsecase(),
+        _FakeProductsRepository(),
+        _FakeRemoteSearchCacheDataSource(),
+      );
+      addTearDown(bloc.close);
+      final release = holdLock();
+
+      var done = false;
+      final added = bloc
+          .addIntake(
+            _FakeBuildContext(),
+            'g',
+            '200',
+            IntakeTypeEntity.breakfast,
+            _meal,
+            _day,
+          )
+          .then((_) => done = true);
+      await pumpEventQueue();
+      expect(done, isFalse);
+      expect(await dataSource.getTrackedDay(_day), isNull);
+
+      release.complete();
+      await added;
+      expect((await dataSource.getTrackedDay(_day))!.caloriesTracked, 200);
+    });
+
+    test('ActivityDetailBloc.persistActivity, several in a row as the '
+        'activity scanner logs them', () async {
+      final bloc = ActivityDetailBloc(
+        _FakeGetUserUsecase(),
+        _NoopAddUserActivityUsecase(),
+        addTrackedDay,
+        _FakeGetKcalGoalUsecase(),
+        _FakeGetMacroGoalUsecase(),
+        _FakeAddCustomActivityTemplateUsecase(),
+        _FakeGetCustomActivityTemplatesUsecase(),
+      );
+      addTearDown(bloc.close);
+      final release = holdLock();
+
+      var done = false;
+      final imported = () async {
+        for (final kcal in [300.0, 200.0]) {
+          await bloc.persistActivity(
+            '30',
+            kcal,
+            PhysicalActivityFixtures.moderateBicycling,
+            _day,
+          );
+        }
+      }().then((_) => done = true);
+      await pumpEventQueue();
+      expect(done, isFalse);
+      expect(await dataSource.getTrackedDay(_day), isNull);
+
+      release.complete();
+      await imported;
+      // A new day's 1800 kcal goal, raised by both activities.
+      expect((await dataSource.getTrackedDay(_day))!.calorieGoal, 2300);
     });
   });
 }

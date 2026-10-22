@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
@@ -20,6 +21,7 @@ import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
@@ -31,6 +33,7 @@ import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -43,6 +46,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
@@ -99,6 +103,8 @@ final class _PickedFile extends PlatformFile {
 }
 
 class _UnusedSearchCache extends Fake implements RemoteSearchCacheDataSource {}
+
+class _UnusedSetDayBoundary extends Fake implements SetDayBoundaryUsecase {}
 
 class _UnusedImportMealsCsv extends Fake implements ImportMealsCsvUsecase {}
 
@@ -172,6 +178,7 @@ void main() {
     final customMealBox = await open<MealDBO>('custom_meal');
     final weightLogBox = await open<WeightLogDBO>('weight');
     final templateBox = await open<CustomActivityTemplateDBO>('template');
+    final favouriteBox = await open<FavouriteMealDBO>('favourite');
     userBox = await open<UserDBO>('user');
     boxes = [
       userBox,
@@ -184,6 +191,7 @@ void main() {
       customMealBox,
       weightLogBox,
       templateBox,
+      favouriteBox,
     ];
     provider = FakeHiveDBProvider(
       appConfigBox: appConfigBox,
@@ -195,6 +203,7 @@ void main() {
       customMealBox: customMealBox,
       weightLogBox: weightLogBox,
       customActivityTemplateBox: templateBox,
+      favouriteMealBox: favouriteBox,
       userBox: userBox,
     );
     config = ConfigDataSource(provider);
@@ -209,6 +218,11 @@ void main() {
       CustomActivityTemplateDataSource(provider),
     );
     final configRepository = ConfigRepository(config);
+    final favourites = FavouriteMealRepository(
+      FavouriteMealDataSource(provider),
+      CustomMealDataSource(provider),
+      RecipeDataSource(provider),
+    );
     exporter = ExportDataUsecase(
       activities,
       intakes,
@@ -218,6 +232,7 @@ void main() {
       weightLog,
       templates,
       configRepository,
+      favourites,
     );
     importer = ImportDataUsecase(
       activities,
@@ -227,6 +242,7 @@ void main() {
       weightLog,
       templates,
       configRepository,
+      favourites,
       pickFile: () async =>
           _PickedFile('backup.zip', File('${tempDir.path}/backup.zip').uri),
     );
@@ -255,6 +271,7 @@ void main() {
       macroGoal,
       _UnusedSearchCache(),
       GetTrackedDayUsecase(trackedDays),
+      _UnusedSetDayBoundary(),
     );
     exportImportBloc = ExportImportBloc(
       exporter,

@@ -132,6 +132,18 @@ class ConfigRepository {
     await _configDataSource.setSelectedLocale(locale);
   }
 
+  Future<bool> getLocaleSyncSeeded() async {
+    return await _configDataSource.getLocaleSyncSeeded();
+  }
+
+  Future<void> setLocaleSyncSeeded() async {
+    await _configDataSource.setLocaleSyncSeeded();
+  }
+
+  Future<void> clearLocaleSyncSeeded() async {
+    await _configDataSource.clearLocaleSyncSeeded();
+  }
+
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _configDataSource.setConfigShowMicronutrients(show);
   }
@@ -168,14 +180,6 @@ class ConfigRepository {
     Map<String, bool> visibility,
   ) async {
     await _configDataSource.setConfigNutrientPanelVisibility(visibility);
-  }
-
-  Future<void> setConfigDayStartOffsetHours(int hours) async {
-    await _configDataSource.setConfigDayStartOffsetHours(hours);
-  }
-
-  Future<void> setConfigDayStartOffsetMinutes(int minutes) async {
-    await _configDataSource.setConfigDayStartOffsetMinutes(minutes);
   }
 
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {

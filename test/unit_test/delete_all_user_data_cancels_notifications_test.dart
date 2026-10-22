@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
@@ -127,6 +128,8 @@ void main() {
         weightLogBox: await Hive.openBox<WeightLogDBO>('delete_all_weight'),
         waterIntakeBox: await Hive.openBox<WaterIntakeDBO>('delete_all_water'),
         fastingBox: await Hive.openBox<FastingSessionDBO>('delete_all_fast'),
+        favouriteMealBox:
+            await Hive.openBox<FavouriteMealDBO>('delete_all_favourites'),
       );
       final configDataSource = ConfigDataSource(provider);
       configRepository = ConfigRepository(configDataSource);
@@ -185,7 +188,7 @@ void main() {
         reason: 'nothing told the OS to drop the alarm, so it still fires at '
             '08:00 for a profile that no longer exists',
       );
-      expect(configBox.isEmpty, isTrue, reason: 'the wipe must still happen');
+      expect(userBox.isEmpty, isTrue, reason: 'the wipe must still happen');
     });
 
     test('cancelled before the data it belongs to is wiped', () async {
@@ -273,7 +276,7 @@ void main() {
       // can still be uninstalled, data kept against an explicit request
       // cannot be un-kept.
       expect(
-        configBox.isEmpty,
+        userBox.isEmpty,
         isTrue,
         reason: 'the data survived because cancelling an alarm failed',
       );
