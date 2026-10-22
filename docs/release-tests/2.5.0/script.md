@@ -181,7 +181,7 @@ Do: `rt step_begin P4` →
 - `$ADB shell dumpsys package $PKG | grep -E 'firstInstallTime|lastUpdateTime'`
 - `rt step_end …`
 Expect: exactly one package, `$PKG`; `versionName=2.4.0`, `versionCode=66`; a `base.apk` whose sha256 is **not** `95232d69…` (the candidate's); first install 2026-10-11.
-Note: if `.develop` is present, leave it alone. If the installed sha256 is the candidate's, the phone was already upgraded: stop, because path 1 can't start from it.
+Note: if `.develop` is present, leave it alone. If the installed sha256 is the candidate's, the phone was already upgraded: stop, because path 1 can't start from it. **If it is neither the candidate's nor `0cbd3b31…` (true 2.4.0), the code on the phone is a test build, not 2.4.0, and S0a puts 2.4.0 back before anything else touches the app.** At pre-start review (2026-10-22) it was `17cc4fc9…`: the settings run's PR build `e2f4ec9a` (`fix/recipe-total-weight-1277`, i.e. 2.4.0 plus #1280, installed 2026-10-16). It carries #1280, a delta row, so seeding on it would bake a candidate fix into the "before". It changes no `@HiveField`, so the box it wrote is 2.4.0-compatible.
 
 **P5 — The two APKs.**
 Do: `rt step_begin P5` → `(cd $APKS && sha256sum -c *.sha256)`; for each APK `aapt dump badging <apk> | head -1` and `apksigner verify --print-certs <apk> | grep SHA-256` → `rt step_end …`.
@@ -215,6 +215,11 @@ The phone holds 2.4.0 with the settings run's test data (#1430). That data is ke
 3. Record "path 1 runs from a fresh 2.4.0 box, not a lived-in one".
 
 *Blocks if:* nothing in Part 1 judges the candidate. A seeding step that can't be completed is recorded with what's missing, and every later step that needs it is *skipped: no seed*.
+
+**S0a — Put true 2.4.0 back over a test build.** (Only if P4 found a sha256 other than `0cbd3b31…` and other than the candidate's.)
+Do: `rt step_begin S0a` → `rt mark S0a` → `timeout 300 $RT install $APK_240` → **immediately** `rt launch` (as U2: no other `rt` call in between) → `$ADB shell pm path $PKG` + `sha256sum` of that `base.apk` → `rt version` → `rt step_end …`.
+Expect: `Success`; the app in front with its data (the You tab shows the settings run's profile, not onboarding); the installed `base.apk` sha256 is now `0cbd3b31…`; `versionName=2.4.0`, `versionCode=66`; `firstInstallTime` unchanged (2026-10-11).
+Note: same versionCode and certificate, so `install -r` replaces the code and keeps the data. If onboarding appears, the data is gone: switch to the fallback above and record it. If the install needs a person (`INSTALL_FAILED_VERIFICATION_FAILURE`), stop: path 1 can't start from a test build. Record in the results that path 1's box was written by 2.4.0 plus unreleased settings-run builds, none of which changed the schema.
 
 **S1 — Read the profile.**
 Do: `rt tap id=nav-you`; `rt save S1-you`; read the tiles `profile-weight`, `profile-height`, `profile-age`, `profile-gender`, `profile-activity`, `profile-goal`, `profile-target-weight`.
