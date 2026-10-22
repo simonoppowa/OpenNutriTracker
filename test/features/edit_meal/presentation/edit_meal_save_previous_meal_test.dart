@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -38,6 +39,7 @@ void main() {
         _FakeGetConfigUsecase(),
         dataSource,
         _FakeConfigRepository(),
+        _FakeFavouriteMealRepository(),
         intakeRepository,
       ),
     );
@@ -250,6 +252,16 @@ class _FakeConfigRepository implements ConfigRepository {
   @override
   Future<String?> getCustomMealFormMode() async =>
       CustomMealFormMode.simple.name;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+/// #1307 moves a favourite along with the edit; nothing is starred here.
+class _FakeFavouriteMealRepository implements FavouriteMealRepository {
+  @override
+  Future<void> moveFavourite(MealEntity previous, MealEntity updated) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

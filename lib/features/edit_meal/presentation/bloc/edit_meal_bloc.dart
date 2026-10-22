@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/barcode_validator.dart';
@@ -77,6 +78,7 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   final GetConfigUsecase _getConfigUsecase;
   final CustomMealDataSource _customMealDataSource; // #267
   final ConfigRepository _configRepository;
+  final FavouriteMealRepository _favouriteMealRepository; // #1307
   final IntakeRepository _intakeRepository; // #1417
 
   /// The id a cleared barcode is replaced with, made once per editor. A Save
@@ -89,6 +91,7 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     this._getConfigUsecase,
     this._customMealDataSource,
     this._configRepository,
+    this._favouriteMealRepository,
     this._intakeRepository,
   ) : super(EditMealInitial()) {
     on<InitializeEditMealEvent>((event, emit) async {
@@ -209,14 +212,24 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   /// (#1417). A [previous] the library does not hold — the placeholder a new
   /// meal starts from — has no entries, so nothing is searched.
   ///
-  /// The entries move first and the library entry is replaced after, and a
-  /// move that fails puts back what it moved, so a failed Save leaves the
-  /// meal and its entries as they were, and a retry starts over.
+  /// A favourite on it, in any profile, takes the edited version, and moves
+  /// to its key when the edit changed its identity, so it stays starred
+  /// (#1307). Another library entry that already had the new identity is
+  /// dropped by the save; a favourite on it is keyed by that identity, so it
+  /// now resolves to the edited meal, and a profile that starred both keeps
+  /// one entry, starred at the earlier time.
   ///
-  /// The save and the move run as one step under the tracked-day lock, so
-  /// no profile switch lands between them and swaps the intake box mid-way.
-  /// Not tied to the profile the edit began on: the library is shared and
-  /// the move covers every profile.
+  /// The entries move first, then the library entry is replaced, then the
+  /// favourite moves. A failed entry move puts back what it moved, so the
+  /// meal and its entries stay as they were. Once the library holds the
+  /// edited meal the entries are not searched again, so a retry after a
+  /// failed favourite move redoes only the save and the favourite move.
+  ///
+  /// All three run as one step under the tracked-day lock, so no profile
+  /// switch lands between them and swaps the intake or favourites box
+  /// mid-way. Not tied to the profile the edit began on: the library is
+  /// shared and the moves cover every profile, so a switch queued behind it
+  /// just waits rather than dropping the user's save.
   Future<void> saveCustomMeal(
     MealEntity mealEntity, {
     MealEntity? previous,
@@ -238,6 +251,9 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
         );
       }
       await _customMealDataSource.saveCustomMeal(saved, previous: before);
+      if (previous != null) {
+        await _favouriteMealRepository.moveFavourite(previous, mealEntity);
+      }
     });
   }
 }

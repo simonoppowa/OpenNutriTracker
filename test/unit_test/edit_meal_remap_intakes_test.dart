@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -44,6 +45,7 @@ void main() {
   late Box<IntakeDBO> otherIntakeBox;
   late Box<ProfileDBO> profileBox;
   late _ProfilesHiveDBProvider db;
+  late _RecordingFavouriteMealRepository favourites;
   late EditMealBloc bloc;
 
   setUpAll(() {
@@ -80,10 +82,12 @@ void main() {
       intakeBox: intakeBox,
       trackedDayBox: trackedDayBox,
     );
+    favourites = _RecordingFavouriteMealRepository();
     bloc = EditMealBloc(
       _FakeGetConfigUsecase(),
       CustomMealDataSource(db),
       _FakeConfigRepository(),
+      favourites,
       IntakeRepository(IntakeDataSource(db)),
     );
   });
@@ -187,6 +191,8 @@ void main() {
       expect(intake.meal.code, '4006381333931');
       expect(intake.meal.name, 'Rolled oats');
     }
+    // A favourite on the meal follows too (#1307).
+    expect(favourites.moves, [('uuid-oats', '4006381333931')]);
   });
 
   test('changing a barcode moves the entries from the old one', () async {
@@ -248,7 +254,9 @@ void main() {
         CustomMealDataSource(db),
         intakeRepository,
         addTrackedDay,
+        favourites,
       ),
+      favourites,
     );
     addTearDown(customMealsBloc.close);
     customMealsBloc.add(DeleteCustomMealEvent('4006381333931'));
@@ -367,6 +375,8 @@ void main() {
     expect(storedIntake(intakeBox, 'mine').meal.code, 'uuid-oats');
     expect(storedIntake(otherIntakeBox, 'theirs').meal.code, 'uuid-oats');
     expect(customMealBox.values.single.code, 'uuid-oats');
+    // Nor did a favourite on the meal move.
+    expect(favourites.moves, isEmpty);
   });
 
   test('waits for a running tracked-day write before moving entries', () async {
@@ -445,6 +455,29 @@ class _WriteFailingBox implements Box<IntakeDBO> {
   @override
   Future<void> put(dynamic key, IntakeDBO value) async =>
       throw StateError('cannot write $key');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+/// Records the favourite moves a Save makes; the delete and merge paths
+/// find nothing starred.
+class _RecordingFavouriteMealRepository implements FavouriteMealRepository {
+  final moves = <(String?, String?)>[];
+
+  @override
+  Future<void> moveFavourite(MealEntity previous, MealEntity updated) async =>
+      moves.add((previous.code, updated.code));
+
+  @override
+  Future<void> keepLatestCustomMealSnapshot(String libraryKey) async {}
+
+  @override
+  Future<void> mergeCustomMealFavourite(
+    String loserLibraryKey,
+    MealDBO winner,
+  ) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
