@@ -10,6 +10,8 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
+import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_units.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
@@ -57,6 +59,7 @@ void main() {
       AddConfigUsecase(configRepo),
       GetConfigUsecase(configRepo),
       RecordingAddWeightLogUsecase(),
+      DailyReminderScheduler(configRepo, NotificationService()),
     );
     bloc.add(LoadOnboardingEvent());
     await bloc.stream.firstWhere((state) => state is OnboardingLoadedState);
@@ -228,6 +231,7 @@ void main() {
         AddConfigUsecase(configRepo),
         GetConfigUsecase(configRepo),
         RecordingAddWeightLogUsecase(),
+        DailyReminderScheduler(configRepo, NotificationService()),
       );
       addTearDown(bloc.close);
 
@@ -262,6 +266,7 @@ void main() {
         AddConfigUsecase(configRepo),
         GetConfigUsecase(configRepo),
         RecordingAddWeightLogUsecase(),
+        DailyReminderScheduler(configRepo, NotificationService()),
       );
       addTearDown(bloc.close);
 

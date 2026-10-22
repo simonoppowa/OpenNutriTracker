@@ -46,8 +46,10 @@ class _FakeAddWeightLogUsecase extends Fake implements AddWeightLogUsecase {
 
 class _FakeDeleteWeightLogUsecase extends Fake
     implements DeleteWeightLogUsecase {
+  final deleted = <WeightLogEntity>[];
+
   @override
-  Future<void> deleteEntry(DateTime date) async {}
+  Future<void> deleteEntry(WeightLogEntity entry) async => deleted.add(entry);
 }
 
 class _FakeConfigRepository extends Fake implements ConfigRepository {
@@ -86,11 +88,14 @@ Widget _wrap(Widget child) {
   );
 }
 
-Widget _buildScreen(List<WeightLogEntity> entries) {
+Widget _buildScreen(
+  List<WeightLogEntity> entries, {
+  _FakeDeleteWeightLogUsecase? deleteUsecase,
+}) {
   return WeightHistoryScreen(
     getUsecase: _FakeGetWeightLogUsecase(entries),
     addUsecase: _FakeAddWeightLogUsecase(),
-    deleteUsecase: _FakeDeleteWeightLogUsecase(),
+    deleteUsecase: deleteUsecase ?? _FakeDeleteWeightLogUsecase(),
     configRepository: _FakeConfigRepository(),
   );
 }
@@ -285,5 +290,47 @@ void main() {
       ];
       expect(await prefilled(tester, entries), '72');
     });
+  });
+
+  testWidgets('deleting a row hands over that row, filed day and all, '
+      'when its date shows a neighbouring day (#1418)', (tester) async {
+    ReloadRecorder().register();
+    addTearDown(locator.reset);
+    final deleteUsecase = _FakeDeleteWeightLogUsecase();
+    // A time-zone change moved the 10 March row's date onto 11 March, so
+    // both rows show 11 March; only the filed day tells them apart.
+    final entries = [
+      WeightLogEntity(
+        date: DateTime(2026, 3, 11),
+        weightKg: 80.0,
+        filedDay: DateTime(2026, 3, 10),
+      ),
+      WeightLogEntity(
+        date: DateTime(2026, 3, 11),
+        weightKg: 81.0,
+        filedDay: DateTime(2026, 3, 11),
+      ),
+    ];
+
+    await tester.pumpWidget(
+      _wrap(_buildScreen(entries, deleteUsecase: deleteUsecase)),
+    );
+    await tester.pumpAndSettle();
+
+    final shiftedRow = find.ancestor(
+      of: find.text('80 ${l10nEn.kgLabel}'),
+      matching: find.byType(ListTile),
+    );
+    await tester.tap(
+      find.descendant(
+        of: shiftedRow,
+        matching: find.byIcon(Icons.delete_outline),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(deleteUsecase.deleted, hasLength(1));
+    expect(deleteUsecase.deleted.single.weightKg, 80.0);
+    expect(deleteUsecase.deleted.single.filedDay, DateTime(2026, 3, 10));
   });
 }
