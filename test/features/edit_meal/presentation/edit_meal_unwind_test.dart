@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.d
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -107,6 +108,7 @@ void main() {
         _FakeCustomMealDataSource(),
         _FakeConfigRepository(),
         _FakeFavouriteMealRepository(),
+        _FakeIntakeRepository(),
       ),
     );
     getIt.registerLazySingleton<GetConfigUsecase>(_FakeGetConfigUsecase.new);
@@ -242,6 +244,12 @@ class _FakeConfigRepository implements ConfigRepository {
 }
 
 class _FakeCustomMealDataSource implements CustomMealDataSource {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+class _FakeIntakeRepository implements IntakeRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');

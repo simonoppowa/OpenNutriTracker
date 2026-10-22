@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.d
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
@@ -28,15 +29,18 @@ import '../../../helpers/test_l10n.dart';
 void main() {
   final getIt = GetIt.instance;
   late _RecordingCustomMealDataSource dataSource;
+  late _RecordingIntakeRepository intakeRepository;
 
   setUp(() {
     dataSource = _RecordingCustomMealDataSource();
+    intakeRepository = _RecordingIntakeRepository();
     getIt.registerFactory<EditMealBloc>(
       () => EditMealBloc(
         _FakeGetConfigUsecase(),
         dataSource,
         _FakeConfigRepository(),
         _FakeFavouriteMealRepository(),
+        intakeRepository,
       ),
     );
   });
@@ -69,6 +73,7 @@ void main() {
 
   /// Opens the editor the way the custom meal list does (`editOnly`).
   Future<void> pumpEditor(WidgetTester tester, MealEntity meal) async {
+    dataSource.library.add(MealDBO.fromMealEntity(meal));
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -125,6 +130,10 @@ void main() {
     final (saved, previous) = dataSource.saves.single;
     expect(saved.code, equals('4006381333931'));
     expect(previous?.code, equals('uuid-oats'));
+    // The entries logged as the old meal move to its barcode (#1417).
+    expect(intakeRepository.moves, hasLength(1));
+    expect(intakeRepository.moves.single.$1, equals('uuid-oats'));
+    expect(intakeRepository.moves.single.$2.code, equals('4006381333931'));
     expect(find.text('custom meals'), findsOneWidget);
   });
 
@@ -143,6 +152,9 @@ void main() {
     expect(saved.name, equals('Banana, ripe'));
     expect(previous?.code, isNull);
     expect(previous?.name, equals('Banana'));
+    expect(intakeRepository.moves, hasLength(1));
+    expect(intakeRepository.moves.single.$1, equals('Banana'));
+    expect(intakeRepository.moves.single.$2.name, equals('Banana, ripe'));
   });
 
   testWidgets('blanking the barcode field removes the barcode',
@@ -190,6 +202,10 @@ void main() {
 
 class _RecordingCustomMealDataSource implements CustomMealDataSource {
   final saves = <(MealDBO, MealDBO?)>[];
+  final library = <MealDBO>[];
+
+  @override
+  List<MealDBO> getAllCustomMeals() => library;
 
   /// When set, every save waits for it, standing in for a slow disk write.
   Completer<void>? gate;
@@ -198,6 +214,23 @@ class _RecordingCustomMealDataSource implements CustomMealDataSource {
   Future<void> saveCustomMeal(MealDBO mealDBO, {MealDBO? previous}) async {
     saves.add((mealDBO, previous));
     await gate?.future;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+class _RecordingIntakeRepository implements IntakeRepository {
+  final moves = <(String, MealDBO)>[];
+
+  @override
+  Future<int> moveCustomMealInEveryProfile({
+    required String fromMealKey,
+    required MealDBO toMeal,
+  }) async {
+    moves.add((fromMealKey, toMeal));
+    return 0;
   }
 
   @override
