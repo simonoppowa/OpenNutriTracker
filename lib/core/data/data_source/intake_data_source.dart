@@ -227,8 +227,11 @@ class IntakeDataSource {
     try {
       final boxes = [_intakeBox];
       for (final suffix in suffixes) {
+        // Leased, not just opened: a health export may be reading the same
+        // inactive profile's box, and a plain close would pull it from
+        // under it.
         boxes.add(
-          await _db.openScopedBox<IntakeDBO>(
+          await _db.leaseScopedBox<IntakeDBO>(
             HiveDBProvider.intakeBoxName,
             suffix,
           ),
@@ -255,7 +258,7 @@ class IntakeDataSource {
       }
     } finally {
       for (final suffix in opened) {
-        await _db.closeScopedBox<IntakeDBO>(
+        await _db.releaseScopedBox<IntakeDBO>(
           HiveDBProvider.intakeBoxName,
           suffix,
         );
