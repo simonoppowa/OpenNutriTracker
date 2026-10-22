@@ -241,6 +241,11 @@ def _state(root):
             modal = True
         elif not nav and not back and fy1 > height * 0.3:
             modal = True
+    # The add sheet grew recent cards in 2.5.0 (#1320) and now fills the
+    # screen from the top, so the frame test above misses it. Its tiles are
+    # unmistakable, and with the nav bar hidden behind it BACK only closes it.
+    if not nav and any(i.startswith("add-item-") for i in ids):
+        modal = True
     edit = next((n for n in nodes if "EditText" in n.attrib.get("class", "")
                  and n.attrib.get("focused") == "true"), None)
     return {
