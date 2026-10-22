@@ -16,7 +16,12 @@ class DeleteWeightLogUsecase {
     this._userRepository,
   );
 
-  /// Deletes the entry on [date] from the profile active at the call.
+  /// Deletes the stored row [entry] was read from, in the profile active at
+  /// the call: the one filed under [WeightLogEntity.filedDay]. Its
+  /// [WeightLogEntity.date] can show a neighbouring day after a time-zone
+  /// change, and deleting by that would miss the row or remove the
+  /// neighbour's (#1418). An entry not read from the log falls back to its
+  /// date.
   ///
   /// Every repository below resolves its box from whichever profile is
   /// active when it is called, so the whole deletion runs under the lock a
@@ -26,16 +31,20 @@ class DeleteWeightLogUsecase {
   ///
   /// Returns whether the user's current weight changed, in which case the
   /// caller runs the refresh a weight change sets off.
-  Future<bool> deleteEntry(DateTime date) async {
+  Future<bool> deleteEntry(WeightLogEntity entry) async {
+    final filedDay = entry.filedDay ?? entry.date;
     final changed = await withTrackedDayLockOnProfile(
-      () => _deleteEntry(date),
+      () => _deleteEntry(filedDay),
       startedOn: ProfileStamp.now(),
     );
     return changed ?? false;
   }
 
-  Future<bool> _deleteEntry(DateTime date) async {
-    final entry = await _weightLogRepository.getEntry(date);
+  /// Reads the row filed under [filedDay] again under the lock, so the
+  /// tombstones and the current-weight hand-over follow what is stored, not
+  /// the copy the caller showed.
+  Future<bool> _deleteEntry(DateTime filedDay) async {
+    final entry = await _weightLogRepository.getEntry(filedDay);
     final externalId = entry?.externalId;
     if (externalId != null) {
       // The weight import re-reads the day before its watermark, so a
@@ -68,7 +77,7 @@ class DeleteWeightLogUsecase {
         entry.measuredAt ?? endOfDay,
       );
     }
-    await _weightLogRepository.deleteEntry(date);
+    await _weightLogRepository.deleteEntry(filedDay);
     if (entry == null || !entry.isImported) return false;
     return _replaceDeletedCurrentWeight(entry);
   }

@@ -221,6 +221,11 @@ void main() {
     ),
   );
 
+  /// The row filed under [day] as the Weight History lists it, filed day
+  /// included — what a deletion is handed.
+  Future<WeightLogEntity> listedEntry(DateTime day) async =>
+      (await weightLogRepository.getEntry(day))!;
+
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     registerHiveAdaptersOnce();
@@ -646,7 +651,7 @@ void main() {
       healthService.readGate = Completer<void>();
       final run = usecase.importNow();
       await Future<void>.delayed(Duration.zero);
-      await deleteUsecase.deleteEntry(yesterday);
+      await deleteUsecase.deleteEntry(await listedEntry(yesterday));
       healthService.readGate!.complete();
 
       expect(await run, equals(0));
@@ -660,7 +665,7 @@ void main() {
       ];
       await usecase.importNow();
 
-      await deleteUsecase.deleteEntry(yesterday);
+      await deleteUsecase.deleteEntry(await listedEntry(yesterday));
       ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
 
       expect(await usecase.importNow(), equals(0));
@@ -676,7 +681,7 @@ void main() {
           _reading('d', DateTime(2026, 5, 22, 11), 81.0),
         ];
         await usecase.importNow();
-        await deleteUsecase.deleteEntry(yesterday);
+        await deleteUsecase.deleteEntry(await listedEntry(yesterday));
 
         final afterDelete = await configRepository.getConfig();
         expect(
@@ -794,7 +799,7 @@ void main() {
     test('a newer reading on a deleted day is still filed', () async {
       healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 80.2)];
       await usecase.importNow();
-      await deleteUsecase.deleteEntry(today);
+      await deleteUsecase.deleteEntry(await listedEntry(today));
 
       healthService.weights = [
         _reading('c', DateTime(2026, 5, 23, 7), 80.2),
@@ -850,7 +855,7 @@ void main() {
       await usecase.importNow();
       bool? deletedBeforeSwitch;
 
-      final deletion = deleteUsecase.deleteEntry(today);
+      final deletion = deleteUsecase.deleteEntry(await listedEntry(today));
       final switching = withProfileSwitchLock(() async {
         deletedBeforeSwitch = await weightLogRepository.getEntry(today) == null;
         provider.activeProfileId = 'profile-b';
@@ -871,7 +876,7 @@ void main() {
       final release = Completer<void>();
 
       final switching = withProfileSwitchLock(() => release.future);
-      final deletion = deleteUsecase.deleteEntry(today);
+      final deletion = deleteUsecase.deleteEntry(await listedEntry(today));
       release.complete();
       await Future.wait([switching, deletion]);
 
@@ -891,7 +896,7 @@ void main() {
       await usecase.importNow();
       expect((await userRepository.getUserData()).weightKG, equals(78.5));
 
-      expect(await deleteUsecase.deleteEntry(today), isTrue);
+      expect(await deleteUsecase.deleteEntry(await listedEntry(today)), isTrue);
 
       expect((await userRepository.getUserData()).weightKG, equals(82.0));
     });
@@ -919,7 +924,7 @@ void main() {
       await usecase.importNow();
       expect((await userRepository.getUserData()).weightKG, equals(79.5));
 
-      expect(await deleteUsecase.deleteEntry(yesterday), isTrue);
+      expect(await deleteUsecase.deleteEntry(await listedEntry(yesterday)), isTrue);
 
       expect((await userRepository.getUserData()).weightKG, equals(81.0));
     });
@@ -931,7 +936,7 @@ void main() {
       ];
       await usecase.importNow();
 
-      expect(await deleteUsecase.deleteEntry(yesterday), isFalse);
+      expect(await deleteUsecase.deleteEntry(await listedEntry(yesterday)), isFalse);
 
       expect((await userRepository.getUserData()).weightKG, equals(78.5));
     });
@@ -940,7 +945,7 @@ void main() {
       await weightLogRepository.addEntry(
         WeightLogEntity(date: today, weightKg: 79.0),
       );
-      await deleteUsecase.deleteEntry(today);
+      await deleteUsecase.deleteEntry(await listedEntry(today));
 
       expect(
         (await configRepository.getConfig()).healthDeletedExternalIds,
@@ -1155,7 +1160,7 @@ void main() {
       ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
       final run = usecase.importNow();
       await reached;
-      final deletion = deleteUsecase.deleteEntry(yesterday);
+      final deletion = deleteUsecase.deleteEntry(await listedEntry(yesterday));
       await _finishedOrBlocked(deletion);
       release.complete();
       await run;
@@ -1185,7 +1190,7 @@ void main() {
         );
         final release = Completer<void>();
         final reached = users.pause(release);
-        final deletion = deleting.deleteEntry(today);
+        final deletion = deleting.deleteEntry(await listedEntry(today));
         await reached;
         final save = AddWeightLogUsecase(
           weightLogRepository,

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
@@ -19,6 +21,8 @@ import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
+import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
 import '../fixture/user_entity_fixtures.dart';
@@ -33,6 +37,12 @@ class _FakeHealthService extends Fake implements HealthService {
     required DateTime from,
     required DateTime to,
   }) async => weights;
+}
+
+/// The reminder is left off in this test, which cancels it; nothing to do.
+class _NoNotifications extends NotificationService {
+  @override
+  Future<void> cancelDailyReminder() async {}
 }
 
 void main() {
@@ -90,6 +100,7 @@ void main() {
       AddUserUsecase(userRepository),
       AddConfigUsecase(configRepository),
       GetConfigUsecase(configRepository),
+      DailyReminderScheduler(configRepository, _NoNotifications()),
       weightLogRepository: weightLogRepository,
     );
   });
@@ -109,6 +120,7 @@ void main() {
     appTheme: AppThemeEntity.system,
     foodSourceToggles: const {},
     dailyReminderEnabled: false,
+    reminderLocale: const Locale('en'),
     useMaterialYou: true,
     accentColor: null,
   );

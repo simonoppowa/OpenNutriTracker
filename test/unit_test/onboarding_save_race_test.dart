@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -12,6 +13,8 @@ import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
+import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
 /// Fake repository whose every write returns a Future controlled by an
@@ -89,6 +92,12 @@ class _FakeConfigRepository implements ConfigRepository {
       throw UnimplementedError(invocation.memberName.toString());
 }
 
+/// The reminder is left off in this test, which cancels it; nothing to do.
+class _NoNotifications extends NotificationService {
+  @override
+  Future<void> cancelDailyReminder() async {}
+}
+
 void main() {
   group('OnboardingBloc.saveOnboardingData await chain', () {
     late _FakeUserRepository userRepo;
@@ -102,6 +111,7 @@ void main() {
         AddUserUsecase(userRepo),
         AddConfigUsecase(configRepo),
         GetConfigUsecase(configRepo),
+        DailyReminderScheduler(configRepo, _NoNotifications()),
       );
     });
 
@@ -135,6 +145,7 @@ void main() {
           appTheme: AppThemeEntity.system,
           foodSourceToggles: const {},
           dailyReminderEnabled: false,
+          reminderLocale: const Locale('en'),
           useMaterialYou: true,
           accentColor: null,
         );

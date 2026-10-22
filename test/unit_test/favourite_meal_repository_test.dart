@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
@@ -27,6 +28,19 @@ import '../helpers/fake_hive_db_provider.dart';
 import '../helpers/hive_test_setup.dart';
 
 class _FakeConfigRepository implements ConfigRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+/// No diary entries to move: these tests are about the favourites (#1417).
+class _NoIntakesRepository implements IntakeRepository {
+  @override
+  Future<int> moveCustomMealInEveryProfile({
+    required String fromMealKey,
+    required MealDBO toMeal,
+  }) async => 0;
+
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
@@ -355,6 +369,7 @@ void main() {
         CustomMealDataSource(FakeHiveDBProvider(customMealBox: customMealBox)),
         _FakeConfigRepository(),
         repository,
+        _NoIntakesRepository(),
       );
       await bloc.saveCustomMeal(edited, previous: original);
       await bloc.close();
@@ -418,6 +433,7 @@ void main() {
         CustomMealDataSource(FakeHiveDBProvider(customMealBox: customMealBox)),
         _FakeConfigRepository(),
         repository,
+        _NoIntakesRepository(),
       );
       await bloc.saveCustomMeal(edited, previous: original);
       await bloc.close();

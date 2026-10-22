@@ -318,7 +318,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   }
 
   Future<void> _onDelete(WeightLogEntity entry) async {
-    final weightChanged = await _deleteUsecase.deleteEntry(entry.date);
+    final weightChanged = await _deleteUsecase.deleteEntry(entry);
     await _load();
     if (weightChanged && locator.isRegistered<ProfileBloc>()) {
       // The deleted entry was the current weight; BMI and today's calorie

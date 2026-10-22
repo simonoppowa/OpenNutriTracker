@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
@@ -15,6 +17,7 @@ import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 import 'package:opennutritracker/core/utils/locale_units.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
 
@@ -30,6 +33,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final AddUserUsecase _addUserUsecase;
   final AddConfigUsecase _addConfigUsecase;
   final GetConfigUsecase _getConfigUsecase;
+  final DailyReminderScheduler _reminderScheduler;
+  final _log = Logger('OnboardingBloc');
 
   /// Where the onboarding weight is logged. Optional only so tests of the
   /// rest of the flow need not stand one up.
@@ -38,7 +43,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   OnboardingBloc(
     this._addUserUsecase,
     this._addConfigUsecase,
-    this._getConfigUsecase, {
+    this._getConfigUsecase,
+    this._reminderScheduler, {
     WeightLogRepository? weightLogRepository,
   }) : _weightLogRepository = weightLogRepository,
        super(OnboardingInitialState()) {
@@ -111,6 +117,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     required AppThemeEntity appTheme,
     required Map<String, bool> foodSourceToggles,
     required bool dailyReminderEnabled,
+    required Locale reminderLocale,
     required bool useMaterialYou,
     required int? accentColor,
   }) async {
@@ -147,15 +154,15 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     // Food units are chosen explicitly during onboarding, so someone on feet
     // and stones can still log food in grams.
     await _addConfigUsecase.setConfigUsesImperialFoodUnits(foodImperial);
-    // "Other options" page: theme, food databases and the daily reminder
-    // flag. The reminder's permission request and scheduling are handled by
-    // the screen before this is called — dailyReminderEnabled arrives here
-    // already downgraded to false when the permission was denied.
+    // "Other options" page: theme, food databases and the daily reminder.
+    // The screen asks for the notification permission before this is
+    // called, so dailyReminderEnabled arrives here already downgraded to
+    // false when it was denied.
     await _addConfigUsecase.setConfigAppTheme(appTheme);
     if (foodSourceToggles.isNotEmpty) {
       await _addConfigUsecase.setConfigFoodSourceToggles(foodSourceToggles);
     }
-    await _addConfigUsecase.setNotificationsEnabled(dailyReminderEnabled);
+    await _setDailyReminder(dailyReminderEnabled, reminderLocale);
     await _addConfigUsecase.setConfigUseMaterialYou(useMaterialYou);
     await _addConfigUsecase.setConfigAccentColor(accentColor);
     // Defensive: real onboarding always starts from a wiped, un-onboarded
@@ -165,6 +172,21 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     // showing the demo-mode banner by some other, future path into
     // onboarding.
     await _addConfigUsecase.setConfigIsDemoData(false);
+  }
+
+  /// Schedules or cancels the reminder and saves the choice, through the
+  /// scheduler so that a start-up or language refresh still in flight cannot
+  /// cancel the alarm between the two (#1389). It schedules at the saved
+  /// time, 8:00 on a first run. A failure is logged and onboarding still
+  /// finishes: the scheduler reads the saved flag back and brings the alarm
+  /// into line with it, so Settings reads the reminder the way the OS holds
+  /// it.
+  Future<void> _setDailyReminder(bool enabled, Locale locale) async {
+    try {
+      await _reminderScheduler.setEnabled(enabled, locale: locale);
+    } catch (error, stackTrace) {
+      _log.warning('Could not set up the daily reminder', error, stackTrace);
+    }
   }
 
   double? getOverviewCalorieGoal() {

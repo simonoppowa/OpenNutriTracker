@@ -76,14 +76,6 @@ class AddConfigUsecase {
     await _configRepository.setConfigShowMealMacros(show);
   }
 
-  Future<void> setNotificationsEnabled(bool enabled) async {
-    await _configRepository.setNotificationsEnabled(enabled);
-  }
-
-  Future<void> setNotificationTime(int hour, int minute) async {
-    await _configRepository.setNotificationTime(hour, minute);
-  }
-
   Future<void> setSelectedLocale(String? locale) async {
     await _configRepository.setSelectedLocale(locale);
   }

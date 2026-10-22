@@ -243,6 +243,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator<DailyReminderScheduler>(),
       weightLogRepository: locator(),
     ),
   );
@@ -365,7 +366,7 @@ Future<void> initLocator() async {
   );
   locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
   locator.registerFactory<EditMealBloc>(
-    () => EditMealBloc(locator(), locator(), locator(), locator()),
+    () => EditMealBloc(locator(), locator(), locator(), locator(), locator()),
   );
   locator.registerFactory<AddMealBloc>(() => AddMealBloc(locator()));
   locator.registerFactory<BulkAddBloc>(
