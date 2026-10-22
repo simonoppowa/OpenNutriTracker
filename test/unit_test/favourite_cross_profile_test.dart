@@ -93,6 +93,19 @@ class _FakeConfigRepository implements ConfigRepository {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
+/// No diary entries to move: these tests are about the favourites (#1417).
+class _NoIntakesRepository implements IntakeRepository {
+  @override
+  Future<int> moveCustomMealInEveryProfile({
+    required String fromMealKey,
+    required MealDBO toMeal,
+  }) async => 0;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
 MealEntity _meal(String code, {double kcal = 150, String name = 'Oats'}) =>
     MealEntity(
       code: code,
@@ -355,6 +368,7 @@ void main() {
         gated,
         _FakeConfigRepository(),
         repository,
+        _NoIntakesRepository(),
       );
 
       // The edit gives the meal a barcode, then the user switches to B
@@ -416,6 +430,7 @@ void main() {
         library,
         _FakeConfigRepository(),
         repository,
+        _NoIntakesRepository(),
       );
       addTearDown(bloc.close);
 
