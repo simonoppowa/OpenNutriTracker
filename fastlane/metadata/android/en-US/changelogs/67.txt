@@ -1,0 +1,6 @@
+- Favourites: star foods and meals to keep them in a list next to Recently, no logging needed
+- Android: import a meal someone shared as a code, with a preview before it is added
+- Editing a custom meal or recipe updates it instead of adding a copy, and past entries follow
+- Importing a backup no longer doubles your entries and restores your goals too
+- Goal changes in settings are kept when you tap Save and show up in Diary and Trends right away
+- Going over your calorie goal is highlighted
