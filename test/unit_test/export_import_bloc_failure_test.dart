@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
@@ -17,6 +18,7 @@ import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -88,6 +90,11 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
           CustomActivityTemplateDataSource(_provider),
         ),
         ConfigRepository(ConfigDataSource(_provider)),
+        FavouriteMealRepository(
+          FavouriteMealDataSource(_provider),
+          CustomMealDataSource(_provider),
+          RecipeDataSource(_provider),
+        ),
       );
 
   final Object error;
@@ -102,6 +109,7 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
     ExportFormat format = ExportFormat.json,
+    String favouriteJsonFileName = 'user_favourites.json',
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
@@ -160,6 +168,11 @@ ExportImportBloc _bloc({
         CustomActivityTemplateDataSource(_provider),
       ),
       configRepository,
+      FavouriteMealRepository(
+        FavouriteMealDataSource(_provider),
+        CustomMealDataSource(_provider),
+        RecipeDataSource(_provider),
+      ),
       pickFile: pickFile ?? () async => throw StateError('unused'),
     ),
     ImportMealsCsvUsecase(customMealDataSource),
