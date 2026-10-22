@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
@@ -17,6 +18,7 @@ import 'package:opennutritracker/core/data/data_source/user_activity_data_source
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
@@ -24,6 +26,7 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -55,6 +58,21 @@ class _FakePathProvider extends PathProviderPlatform
 
   @override
   Future<String?> getApplicationDocumentsPath() async => root;
+}
+
+class _EmptyFavouriteMealRepository extends FavouriteMealRepository {
+  _EmptyFavouriteMealRepository()
+    : super(
+        FavouriteMealDataSource(FakeHiveDBProvider()),
+        CustomMealDataSource(FakeHiveDBProvider()),
+        RecipeDataSource(FakeHiveDBProvider()),
+      );
+
+  @override
+  Future<List<FavouriteMealDBO>> getAllFavouritesDBO() async => [];
+
+  @override
+  Future<void> addAllFavouriteDBOs(List<FavouriteMealDBO> favourites) async {}
 }
 
 final class _PickedFile extends PlatformFile {
@@ -162,6 +180,7 @@ void main() {
       weightLog,
       templates,
       configRepository,
+      _EmptyFavouriteMealRepository(),
     );
     importer = ImportDataUsecase(
       activities,
@@ -171,6 +190,7 @@ void main() {
       weightLog,
       templates,
       configRepository,
+      _EmptyFavouriteMealRepository(),
       pickFile: () async =>
           _PickedFile('backup.zip', File('${tempDir.path}/backup.zip').uri),
       restoreTrackedDays:

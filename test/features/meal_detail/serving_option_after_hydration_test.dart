@@ -23,6 +23,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -32,6 +33,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
+import '../../helpers/fake_favourites.dart';
 import '../../helpers/test_l10n.dart';
 
 // #1216: "Seabrook sea salted crisps" opened from the search list shows
@@ -144,6 +146,7 @@ void main() {
   final getIt = GetIt.instance;
   MealDetailBloc? bloc;
   late Completer<MealEntity> hydration;
+  late FakeFavourites favourites;
 
   setUp(() {
     bloc = null;
@@ -161,6 +164,11 @@ void main() {
     getIt.registerLazySingleton<GetConfigUsecase>(_FakeGetConfigUsecase.new);
     getIt.registerLazySingleton<GetIntakeUsecase>(_FakeGetIntakeUsecase.new);
     getIt.registerLazySingleton<CacheManager>(_FakeCacheManager.new);
+    // #1307: the detail page's star.
+    favourites = FakeFavourites();
+    getIt.registerFactory<FavouriteToggleBloc>(
+      () => FavouriteToggleBloc(favourites.get, favourites.toggle),
+    );
     getIt.registerLazySingleton<HomeBloc>(_FakeHomeBloc.new);
     getIt.registerLazySingleton<DiaryBloc>(_FakeDiaryBloc.new);
     getIt.registerLazySingleton<CalendarDayBloc>(_FakeCalendarDayBloc.new);
@@ -331,6 +339,36 @@ void main() {
       expect(find.textContaining(l10nEn.servingLabel), findsNothing);
     },
   );
+
+  // #1307: a food starred from its thin search result keeps the full record
+  // once its detail page hydrates it, so the favourite logs the serving and
+  // micronutrients offline and exports them.
+  testWidgets('hydration replaces a starred food\'s thin snapshot', (
+    tester,
+  ) async {
+    final thin = _thin(_seabrookCrispsSearchHit);
+    favourites.add(thin);
+    expect(favourites.stored(thin)!.detailed, isFalse);
+
+    await pumpMealDetail(tester, thin);
+    hydration.complete(_full(_seabrookCrispsProduct));
+    await tester.pumpAndSettle();
+
+    final stored = favourites.stored(thin)!;
+    expect(stored.detailed, isTrue);
+    expect(stored.scalableServingQuantity, closeTo(31.8, 0.01));
+    expect(favourites.all, hasLength(1));
+  });
+
+  testWidgets('hydration stars nothing that was not starred', (tester) async {
+    final thin = _thin(_seabrookCrispsSearchHit);
+
+    await pumpMealDetail(tester, thin);
+    hydration.complete(_full(_seabrookCrispsProduct));
+    await tester.pumpAndSettle();
+
+    expect(favourites.all, isEmpty);
+  });
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
