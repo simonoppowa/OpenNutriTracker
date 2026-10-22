@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
@@ -34,6 +35,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final ProductsRepository _productsRepository;
   final RemoteSearchCacheDataSource _remoteSearchCacheDataSource;
 
+  /// Takes the background refresh's fresh record onto a favourite of the
+  /// food (#1307). Left out where a test does not log a starred food.
+  final ToggleFavouriteMealUsecase? _favourites;
+
   MealDetailBloc(
     this._addIntakeUseCase,
     this._addTrackedDayUsecase,
@@ -41,8 +46,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._getMacroGoalUsecase,
     this._getTrackedDayUsecase,
     this._productsRepository,
-    this._remoteSearchCacheDataSource,
-  ) : super(
+    this._remoteSearchCacheDataSource, {
+    ToggleFavouriteMealUsecase? favourites,
+  }) : _favourites = favourites,
+       super(
           MealDetailInitial(
             totalQuantityConverted: '100',
             selectedUnit: UnitDropdownItem.gml.toString(),
@@ -199,8 +206,9 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       await _remoteSearchCacheDataSource.touch(code);
       return;
     }
+    final MealEntity fresh;
     try {
-      final fresh = await _productsRepository.getOFFProductByBarcode(code);
+      fresh = await _productsRepository.getOFFProductByBarcode(code);
       await _remoteSearchCacheDataSource.cache(MealDBO.fromMealEntity(fresh));
     } catch (e, st) {
       log.warning(
@@ -209,6 +217,15 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         st,
       );
       await _remoteSearchCacheDataSource.touch(code);
+      return;
+    }
+    // A favourite on the food would otherwise keep logging and exporting
+    // the figures it was starred with, when the app has just fetched newer
+    // ones — as the scanner's live lookup does.
+    try {
+      await _favourites?.refreshDetailedSnapshot(fresh);
+    } catch (e, st) {
+      log.warning('Could not refresh a favourite on $code', e, st);
     }
   }
 
