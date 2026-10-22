@@ -233,6 +233,7 @@
   "@additionalInfoLabelSource": {"placeholders": {"sourceName": {"type": "String"}}},
   "foodSourcesAlwaysEnabledLabel": "Always enabled",
   "foodSourcesHelpText": "Search results come from these food databases. Open Food Facts powers the product and barcode search and is always enabled.",
+  "leftoverLabel": "Left over",
   "machineTranslatedNameHint": "Name translated automatically",
   "measureUnitBar": "{count, plural, one{bar} other{bars}}",
   "@measureUnitBar": {"placeholders": {"count": {"type": "num"}}},
