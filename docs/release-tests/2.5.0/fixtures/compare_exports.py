@@ -24,6 +24,7 @@ Days are read as the calendar date of an intake's `dateTime`, which is the
 app's rule while "Day starts at" is 0:00.
 """
 import json
+import re
 import sys
 import zipfile
 from collections import Counter, defaultdict
@@ -40,6 +41,22 @@ FILES = {
     "boundary": "tracked_day_boundary.json",
 }
 EPS = 0.01
+# Hive keeps DateTime to the millisecond, but a record still in memory is
+# exported with microseconds. Compare timestamps to the millisecond, or every
+# entry logged in the same session reads as "changed" after a restart.
+_ISO_US = re.compile(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3})\d*$")
+
+
+def _norm(v):
+    if isinstance(v, dict):
+        return {k: _norm(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_norm(x) for x in v]
+    if isinstance(v, str):
+        m = _ISO_US.match(v)
+        if m:
+            return m.group(1)
+    return v
 
 
 def load(path):
@@ -137,8 +154,8 @@ def diff(base_path, new_path):
         missing = sorted(k for k in bmap if k not in nmap)
         extra = sorted(k for k in nmap if k not in bmap)
         changed = sorted(k for k in bmap if k in nmap
-                         and json.dumps(bmap[k], sort_keys=True)
-                         != json.dumps(nmap[k], sort_keys=True))
+                         and json.dumps(_norm(bmap[k]), sort_keys=True)
+                         != json.dumps(_norm(nmap[k]), sort_keys=True))
         dups = sorted(k for k, c in nk.items() if c > 1)
         print(f"{kind}: base {len(bl)} new {len(nl)} missing {len(missing)}"
               f" extra {len(extra)} changed {len(changed)}"
