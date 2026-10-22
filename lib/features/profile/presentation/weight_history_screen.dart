@@ -69,6 +69,8 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   // Loaded once at mount time so the chart can draw a dashed reference
   // line for the user's #119 target weight. Null when unset.
   double? _targetWeightKg;
+  // The profile's current weight, which Add entry starts from (#1367).
+  double? _profileWeightKg;
   _ChartRange _selectedRange = _ChartRange.days30;
 
   @override
@@ -89,6 +91,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       _bodyWeightUnit = unit;
       _entries = entries;
       _targetWeightKg = user?.targetWeightKg;
+      _profileWeightKg = user?.weightKG;
       _loading = false;
     });
   }
@@ -253,9 +256,12 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   }
 
   Future<void> _onAddEntry() async {
-    final initialWeightKg = _entries.isNotEmpty
-        ? _entries.first.weightKg
-        : 70.0;
+    // The profile weight is the current one: a reading for today updates
+    // it, and so does editing it on the profile. A fixed 70 kg here
+    // contradicted the profile on every log that had no entries (#1367).
+    final initialWeightKg =
+        _profileWeightKg ??
+        (_entries.isNotEmpty ? _entries.first.weightKg : 70.0);
     final result = await showDialog<_NewWeightEntry>(
       context: context,
       builder: (context) => _AddWeightEntryDialog(
@@ -278,7 +284,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   }
 
   Future<void> _onDelete(WeightLogEntity entry) async {
-    await _deleteUsecase.deleteEntry(entry.date);
+    await _deleteUsecase.deleteEntry(entry);
     await _load();
     reloadDiaryAndTrends();
   }

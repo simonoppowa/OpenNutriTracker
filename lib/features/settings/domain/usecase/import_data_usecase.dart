@@ -5,12 +5,14 @@ import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -51,6 +53,7 @@ class ImportDataUsecase {
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
   final ConfigRepository _configRepository;
+  final FavouriteMealRepository _favouriteMealRepository;
 
   /// Seam for tests: `FilePicker.pickFile` is static and needs a platform
   /// channel, so the picker outcomes (#1103: cancel, a pick without a
@@ -67,17 +70,18 @@ class ImportDataUsecase {
     this._recipeRepository,
     this._weightLogRepository,
     this._customActivityTemplateRepository,
-    this._configRepository, {
+    this._configRepository,
+    this._favouriteMealRepository, {
     PickImportFile pickFile = _pickAnyFile,
     RestoreTrackedDays? restoreTrackedDays,
   }) : _pickFile = pickFile,
        _restoreTrackedDays = restoreTrackedDays;
 
   /// Imports user activity, intake, tracked day, and (optionally) recipe,
-  /// weight log, Custom activity template and goal settings data from a
-  /// zip file containing JSON files. Recipe, weight log, template and goal
-  /// settings files are treated as optional so zips exported by older
-  /// versions still import.
+  /// weight log, Custom activity template, goal settings and favourites
+  /// data from a zip file containing JSON files. Recipe, weight log,
+  /// template, goal settings and favourites files are treated as optional
+  /// so zips exported by older versions still import.
   ///
   /// Returns true when the import completed. Throws an
   /// [ExportImportFailure] whose reason says what went wrong — including
@@ -92,6 +96,7 @@ class ImportDataUsecase {
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
     String goalSettingsJsonFileName = 'goal_settings.json',
+    String favouriteJsonFileName = 'user_favourites.json',
   }) async {
     final startedOn = ProfileStamp.now();
     final archive = await _pickAndDecodeArchive();
@@ -141,6 +146,14 @@ class ImportDataUsecase {
         ? null
         : _decodeJsonList(templateFile, CustomActivityTemplateDBO.fromJson);
 
+    // Favourites (#1307), absent from zips written before the list existed.
+    // Their meal snapshots are always stamped with the current
+    // `dataVersion`, so they need no Open Food Facts repair.
+    final favouriteFile = archive.findFile(favouriteJsonFileName);
+    final favouriteDBOs = favouriteFile == null
+        ? null
+        : _decodeJsonList(favouriteFile, FavouriteMealDBO.fromJson);
+
     // The profile's goal settings (#1363), absent from zips written before
     // they were exported. Checked here with everything else, so a bad
     // value rejects the zip before any of the writes below.
@@ -177,6 +190,10 @@ class ImportDataUsecase {
         await _customActivityTemplateRepository.upsertAllTemplateDBOs(
           templateDBOs,
         );
+      }
+      if (favouriteDBOs != null) {
+        // Upsert by identity while retaining favourites not in this backup.
+        await _favouriteMealRepository.addAllFavouriteDBOs(favouriteDBOs);
       }
       if (goalSettings != null) {
         await _configRepository.setConfigGoalSettings(

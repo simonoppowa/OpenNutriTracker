@@ -5,6 +5,8 @@ import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -22,6 +24,7 @@ import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
@@ -32,6 +35,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_det
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
+import '../../../helpers/fake_favourites.dart';
 import '../../../helpers/test_l10n.dart';
 
 /// End-to-end cover for the black screen after logging a recipe.
@@ -103,11 +107,18 @@ void main() {
         _FakeGetConfigUsecase(),
         _FakeCustomMealDataSource(),
         _FakeConfigRepository(),
+        _FakeFavouriteMealRepository(),
+        _FakeIntakeRepository(),
       ),
     );
     getIt.registerLazySingleton<GetConfigUsecase>(_FakeGetConfigUsecase.new);
     getIt.registerLazySingleton<GetIntakeUsecase>(_FakeGetIntakeUsecase.new);
     getIt.registerLazySingleton<CacheManager>(_FakeCacheManager.new);
+    // #1307: the detail page's star.
+    final favourites = FakeFavourites();
+    getIt.registerFactory<FavouriteToggleBloc>(
+      () => FavouriteToggleBloc(favourites.get, favourites.toggle),
+    );
     getIt.registerLazySingleton<HomeBloc>(_FakeHomeBloc.new);
     getIt.registerLazySingleton<DiaryBloc>(_FakeDiaryBloc.new);
     getIt.registerLazySingleton<CalendarDayBloc>(_FakeCalendarDayBloc.new);
@@ -233,6 +244,12 @@ class _FakeConfigRepository implements ConfigRepository {
 }
 
 class _FakeCustomMealDataSource implements CustomMealDataSource {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+class _FakeIntakeRepository implements IntakeRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
@@ -376,4 +393,9 @@ class _FakeCacheManager implements CacheManager {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+class _FakeFavouriteMealRepository implements FavouriteMealRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

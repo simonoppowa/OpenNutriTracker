@@ -29,6 +29,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   // #1363: the profile's goal settings (kcal adjustment, macro split,
   // per-meal shares, water goal).
   static const goalSettingsJsonFileName = 'goal_settings.json';
+  // #1307: the active profile's starred foods and meals.
+  static const favouriteJsonFileName = 'user_favourites.json';
 
   static final _log = Logger('ExportImportBloc');
 
@@ -67,6 +69,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
           customActivityTemplateJsonFileName,
           format: event.format,
           goalSettingsJsonFileName: goalSettingsJsonFileName,
+          favouriteJsonFileName: favouriteJsonFileName,
         );
 
         if (result) {
@@ -93,6 +96,7 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
                 weightLogJsonFileName,
                 customActivityTemplateJsonFileName,
                 goalSettingsJsonFileName: goalSettingsJsonFileName,
+                favouriteJsonFileName: favouriteJsonFileName,
               );
         if (result) {
           await _syncTodayGoals();
