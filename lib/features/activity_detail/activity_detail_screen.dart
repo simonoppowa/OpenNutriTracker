@@ -197,7 +197,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                         // hide it.
                         if (!activityEntity.isCustom)
                           Text(
-                            ' / ${totalQuantity.toInt()} min',
+                            ' / ${totalQuantity.toInt()} ${S.of(context).minuteShortLabel}',
                             style: text.titleMedium?.copyWith(
                               color: palette.textMuted,
                             ),

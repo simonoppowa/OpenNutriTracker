@@ -6,11 +6,13 @@ import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -38,6 +40,7 @@ class ExportDataUsecase {
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
   final ConfigRepository _configRepository;
+  final FavouriteMealRepository _favouriteMealRepository;
 
   ExportDataUsecase(
     this._userActivityRepository,
@@ -48,18 +51,20 @@ class ExportDataUsecase {
     this._weightLogRepository,
     this._customActivityTemplateRepository,
     this._configRepository,
+    this._favouriteMealRepository,
   );
 
-  /// Exports user activity, intake, tracked day, recipe, weight-log and
-  /// Custom activity template data, plus the profile's goal settings, to a
-  /// zip at a user-specified location, in the [format] the user picked.
+  /// Exports user activity, intake, tracked day, recipe, weight-log, Custom
+  /// activity template and favourites data, plus the profile's goal
+  /// settings, to a zip at a user-specified location, in the [format] the
+  /// user picked.
   ///
   /// JSON export contains JSON files only and is what the app re-imports
   /// from. CSV export contains CSV files only and is intended for
   /// opening in a spreadsheet — recipes, photos, the weight log, Custom
-  /// activity templates and goal settings are omitted from CSV because
-  /// their shape doesn't flatten cleanly. A user who wants both can run
-  /// the export twice. See `docs/export-format.md` for the schema.
+  /// activity templates, goal settings and favourites are omitted from CSV
+  /// because their shape doesn't flatten cleanly. A user who wants both can
+  /// run the export twice. See `docs/export-format.md` for the schema.
   Future<bool> exportData(
     String exportZipFileName,
     String userActivityJsonFileName,
@@ -69,6 +74,7 @@ class ExportDataUsecase {
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
     ExportFormat format = ExportFormat.json,
+    String favouriteJsonFileName = 'user_favourites.json',
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
@@ -83,6 +89,7 @@ class ExportDataUsecase {
       weightLogJsonFileName: weightLogJsonFileName,
       customActivityTemplateJsonFileName: customActivityTemplateJsonFileName,
       goalSettingsJsonFileName: goalSettingsJsonFileName,
+      favouriteJsonFileName: favouriteJsonFileName,
       userActivityCsvFileName: userActivityCsvFileName,
       userIntakeCsvFileName: userIntakeCsvFileName,
       trackedDayCsvFileName: trackedDayCsvFileName,
@@ -145,6 +152,7 @@ class ExportDataUsecase {
     required String weightLogJsonFileName,
     required String customActivityTemplateJsonFileName,
     String goalSettingsJsonFileName = 'goal_settings.json',
+    String favouriteJsonFileName = 'user_favourites.json',
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
@@ -241,6 +249,21 @@ class ExportDataUsecase {
           ArchiveFile(recipeJsonFileName, recipeBytes.length, recipeBytes),
         );
 
+        // Export the current library version while preserving when it was
+        // starred. The custom-meal and recipe libraries are not exported.
+        final fullFavourites = await _favouriteMealRepository
+            .getAllFavouritesDBO();
+        final favouriteBytes = utf8.encode(
+          jsonEncode(fullFavourites.map((f) => f.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile(
+            favouriteJsonFileName,
+            favouriteBytes.length,
+            favouriteBytes,
+          ),
+        );
+
         // Every user-attached photo, under its relative slug (e.g.
         // `recipe_images/<id>.webp`). The slug matches what we persist on
         // the DBO, so import can drop the bytes back into place without
@@ -250,6 +273,7 @@ class ExportDataUsecase {
             recipes: fullRecipes,
             customMeals: _customMealDataSource.getAllCustomMeals(),
             intakes: fullIntake,
+            favourites: fullFavourites,
           ),
         );
 
@@ -329,6 +353,7 @@ class ExportDataUsecase {
     required Iterable<RecipeDBO> recipes,
     required Iterable<MealDBO> customMeals,
     required Iterable<IntakeDBO> intakes,
+    Iterable<FavouriteMealDBO> favourites = const [],
   }) {
     final seen = <String>{};
     final paths = <String>[];
@@ -348,6 +373,9 @@ class ExportDataUsecase {
     }
     for (final intake in intakes) {
       add(intake.meal.localImagePath);
+    }
+    for (final favourite in favourites) {
+      add(favourite.meal.localImagePath);
     }
     return paths;
   }

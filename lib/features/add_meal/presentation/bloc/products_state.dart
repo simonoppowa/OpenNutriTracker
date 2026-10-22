@@ -23,6 +23,11 @@ class ProductsLoadedState extends ProductsState {
   /// hint below any custom-meal matches.
   final bool remoteSourceEmpty;
 
+  /// True when the remote OFF source threw (timeout, rate limit, network)
+  /// rather than answering — the use case still returns local matches, so
+  /// this is a loaded state, but the "All" view flags the gap.
+  final bool remoteSourceFailed;
+
   /// The raw search input these results answer. The UI compares it with
   /// the current text-field value to tell "no results for what you typed"
   /// apart from "results for an older query while yours is still
@@ -33,11 +38,13 @@ class ProductsLoadedState extends ProductsState {
     required this.products,
     this.usesImperialUnits = false,
     this.remoteSourceEmpty = false,
+    this.remoteSourceFailed = false,
     this.query = '',
   });
 
   @override
-  List<Object?> get props => [products, remoteSourceEmpty, query];
+  List<Object?> get props =>
+      [products, remoteSourceEmpty, remoteSourceFailed, query];
 }
 
 class ProductsFailedState extends ProductsState {
