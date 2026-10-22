@@ -173,9 +173,107 @@ class IntakeDataSource {
   Future<List<(IntakeDBO, IntakeDBO)>> remapCustomMealOnIntakes({
     required String fromMealKey,
     required MealDBO toMeal,
+  }) => _rewriteCustomMeal(_intakeBox, fromMealKey, (_) => toMeal);
+
+  /// Moves the entries logged with the custom meal known as [fromMealKey]
+  /// to [toMeal]'s identity — its barcode, or its name when it has none —
+  /// in every profile: the active one and each other one in the registry.
+  /// Returns how many entries moved.
+  ///
+  /// Only the meal's `code` and `name` change. Each entry keeps the rest of
+  /// the meal as it was logged, its nutrients included, the way an edit
+  /// that keeps the identity leaves past entries alone; so no tracked-day
+  /// total changes either.
+  ///
+  /// The custom-meal library is shared by every profile while each logs its
+  /// own entries, so an edit in one profile changes the meal behind the
+  /// others' entries too (#1417). Run it under the tracked-day lock, which
+  /// excludes a profile switch, so the active box is the same throughout.
+  ///
+  /// All or nothing: every profile's box is opened before any entry is
+  /// rewritten, and a write that fails puts back the entries already
+  /// rewritten, so a failed move leaves no entry on an identity the library
+  /// does not have.
+  Future<int> moveCustomMealInEveryProfile({
+    required String fromMealKey,
+    required MealDBO toMeal,
+  }) async {
+    MealDBO moved(MealDBO logged) => MealDBO(
+      code: toMeal.code,
+      name: toMeal.name,
+      brands: logged.brands,
+      thumbnailImageUrl: logged.thumbnailImageUrl,
+      mainImageUrl: logged.mainImageUrl,
+      url: logged.url,
+      mealQuantity: logged.mealQuantity,
+      mealUnit: logged.mealUnit,
+      servingQuantity: logged.servingQuantity,
+      servingUnit: logged.servingUnit,
+      servingSize: logged.servingSize,
+      nutriments: logged.nutriments,
+      source: logged.source,
+      localImagePath: logged.localImagePath,
+      detailed: logged.detailed,
+      backendSource: logged.backendSource,
+      machineTranslatedName: logged.machineTranslatedName,
+      dataVersion: logged.dataVersion,
+    );
+
+    final suffixes = [
+      for (final profile in _db.profileBox.values)
+        if (profile.id != _db.activeProfileId) profile.boxSuffix,
+    ];
+    final opened = <String>[];
+    try {
+      final boxes = [_intakeBox];
+      for (final suffix in suffixes) {
+        boxes.add(
+          await _db.openScopedBox<IntakeDBO>(
+            HiveDBProvider.intakeBoxName,
+            suffix,
+          ),
+        );
+        opened.add(suffix);
+      }
+      final undo = <Future<void> Function()>[];
+      try {
+        var count = 0;
+        for (final box in boxes) {
+          count += (await _rewriteCustomMeal(
+            box,
+            fromMealKey,
+            moved,
+            undo: undo,
+          )).length;
+        }
+        return count;
+      } catch (_) {
+        for (final step in undo.reversed) {
+          await step();
+        }
+        rethrow;
+      }
+    } finally {
+      for (final suffix in opened) {
+        await _db.closeScopedBox<IntakeDBO>(
+          HiveDBProvider.intakeBoxName,
+          suffix,
+        );
+      }
+    }
+  }
+
+  /// Gives every custom-meal intake in [box] logged as [fromMealKey] the
+  /// meal [rewrite] makes of its own, keeping the rest of the intake. Each
+  /// rewrite adds a step to [undo] that puts the intake back.
+  static Future<List<(IntakeDBO, IntakeDBO)>> _rewriteCustomMeal(
+    Box<IntakeDBO> box,
+    String fromMealKey,
+    MealDBO Function(MealDBO logged) rewrite, {
+    List<Future<void> Function()>? undo,
   }) async {
     final rewrites = <(IntakeDBO, IntakeDBO)>[];
-    final entries = _intakeBox.toMap().entries.toList();
+    final entries = box.toMap().entries.toList();
     for (final entry in entries) {
       final dbo = entry.value;
       if (dbo.meal.source != MealSourceDBO.custom) continue;
@@ -186,10 +284,11 @@ class IntakeDataSource {
         unit: dbo.unit,
         amount: dbo.amount,
         type: dbo.type,
-        meal: toMeal,
+        meal: rewrite(dbo.meal),
         dateTime: dbo.dateTime,
       );
-      await _intakeBox.put(entry.key, updated);
+      await box.put(entry.key, updated);
+      undo?.add(() => box.put(entry.key, dbo));
       rewrites.add((dbo, updated));
     }
     return rewrites;

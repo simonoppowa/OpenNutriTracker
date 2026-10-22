@@ -355,7 +355,7 @@
       }
     }
   },
-  "customMealsDeleteConfirmContent": "Diary entries logged with this meal will also be removed. Entries logged before you changed its name or barcode may stay in your diary.",
+  "customMealsDeleteConfirmContent": "All diary entries in this profile that use this meal will also be removed.",
   "customMealsDeleteConfirmTitle": "Delete custom meal?",
   "customMealsEmptyLabel": "No custom meals saved yet.",
   "dailyKcalAdjustmentLabel": "Daily Kcal adjustment:",
