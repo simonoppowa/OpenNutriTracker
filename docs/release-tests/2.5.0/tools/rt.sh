@@ -949,7 +949,7 @@ cmd_mark() {  # mark TEXT — a line in logcat and run.log
 cmd_version() { _check_abort; _adb shell dumpsys package "$PKG" | grep -m2 -E 'versionName|versionCode'; }
 cmd_alarms() { _check_abort; _adb shell dumpsys alarm | grep -B2 -A6 "$PKG" | grep -E "$PKG|when|origWhen|type=" | head -20; }
 cmd_notif() { _check_abort; _adb shell dumpsys notification --noredact | grep -A40 "pkg=$PKG" | grep -E "pkg=|android.title|android.text|postTime" | head -12; }
-cmd_clock() { _check_abort; _adb shell date '+%F %T %Z'; }
+cmd_clock() { _check_abort; _adb shell "date '+%F %T %Z'"; }
 
 cmd_help() { sed -n '2,30p' "${BASH_SOURCE[0]}"; echo; echo "Actions: see README.md"; }
 
