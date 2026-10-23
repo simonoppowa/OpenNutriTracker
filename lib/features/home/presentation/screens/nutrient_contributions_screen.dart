@@ -67,9 +67,10 @@ class NutrientContributionsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  // Truncated as the dashboard tile shows them, so the two agree.
                   l10n.nutrientContributionsTotal(
-                    total.round().toString(),
-                    goal.round().toString(),
+                    total.toInt().toString(),
+                    goal.toInt().toString(),
                   ),
                   style: textTheme.titleLarge,
                 ),
@@ -110,7 +111,9 @@ class NutrientContributionsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${contribution.grams.round()} g',
+                    contribution.grams < 0.5
+                        ? '<1 g'
+                        : '${contribution.grams.round()} g',
                     style: textTheme.titleMedium,
                   ),
                   if (total > 0)

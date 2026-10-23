@@ -160,6 +160,7 @@ void main() {
 
       expect(find.byType(NutrientContributionsScreen), findsOneWidget);
       expect(find.text('60 of 93 g'), findsOneWidget);
+      expect(find.text("Today's protein"), findsOneWidget);
       expect(find.text('Apple'), findsNothing);
       expect(
         tester.getTopLeft(find.text('Chicken breast')).dy,

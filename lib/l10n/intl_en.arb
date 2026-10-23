@@ -666,7 +666,7 @@
   "nothingAddedLabel": "Nothing added",
   "nutrientContributionsEmpty": "Nothing logged today has any {nutrient}.",
   "nutrientContributionsHint": "Show which foods it came from",
-  "nutrientContributionsTitle": "Where today's {nutrient} came from",
+  "nutrientContributionsTitle": "Today's {nutrient}",
   "nutrientContributionsTotal": "{intake} of {goal} g",
   "notificationsDailyReminderBody": "Don't forget to log your meals today!",
   "notificationsDailyReminderChannelName": "Daily Reminders",
