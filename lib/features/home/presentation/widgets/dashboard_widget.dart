@@ -1,10 +1,13 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/features/home/domain/entity/nutrient_contribution_entity.dart';
+import 'package:opennutritracker/features/home/presentation/screens/nutrient_contributions_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -22,6 +25,10 @@ class DashboardWidget extends StatefulWidget {
   final double totalFatsGoal;
   final double totalProteinsGoal;
 
+  /// The day's logged foods, which a macro tile breaks its total into
+  /// (#1266).
+  final List<IntakeEntity> intakes;
+
   const DashboardWidget({
     super.key,
     required this.totalKcalSupplied,
@@ -34,6 +41,7 @@ class DashboardWidget extends StatefulWidget {
     required this.totalCarbsGoal,
     required this.totalFatsGoal,
     required this.totalProteinsGoal,
+    this.intakes = const [],
   });
 
   @override
@@ -45,6 +53,19 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const KcalGoalInfoScreen(),
+      ),
+    );
+  }
+
+  void _openNutrientContributions(MacroNutrient nutrient, double total, double goal) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NutrientContributionsScreen(
+          nutrient: nutrient,
+          intakes: widget.intakes,
+          total: total,
+          goal: goal,
+        ),
       ),
     );
   }
@@ -189,6 +210,8 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   goal: widget.totalCarbsGoal,
                   color: palette.carbs,
                   palette: palette,
+                  identifier: 'home-macro-carbs',
+                  onTap: () => _openNutrientContributions(MacroNutrient.carbs, widget.totalCarbsIntake, widget.totalCarbsGoal),
                 ),
               ),
               const SizedBox(width: Dimens.spacing12),
@@ -199,6 +222,8 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   goal: widget.totalFatsGoal,
                   color: palette.fat,
                   palette: palette,
+                  identifier: 'home-macro-fat',
+                  onTap: () => _openNutrientContributions(MacroNutrient.fat, widget.totalFatsIntake, widget.totalFatsGoal),
                 ),
               ),
               const SizedBox(width: Dimens.spacing12),
@@ -209,6 +234,8 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   goal: widget.totalProteinsGoal,
                   color: palette.protein,
                   palette: palette,
+                  identifier: 'home-macro-protein',
+                  onTap: () => _openNutrientContributions(MacroNutrient.protein, widget.totalProteinsIntake, widget.totalProteinsGoal),
                 ),
               ),
             ],
@@ -261,6 +288,8 @@ class _MacroTile extends StatelessWidget {
   final double goal;
   final Color color;
   final AppPalette palette;
+  final String identifier;
+  final VoidCallback onTap;
 
   const _MacroTile({
     required this.label,
@@ -268,41 +297,49 @@ class _MacroTile extends StatelessWidget {
     required this.goal,
     required this.color,
     required this.palette,
+    required this.identifier,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final pct = (goal <= 0) ? 0.0 : (intake / goal).clamp(0.0, 1.0);
-    return AppCard(
-      borderRadius: Dimens.radiusM,
-      padding: const EdgeInsets.fromLTRB(Dimens.spacing16, Dimens.spacing16, Dimens.spacing16, Dimens.spacing16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(width: 9, height: 9, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-              const SizedBox(width: 6),
-              Flexible(child: Text(label, style: textTheme.labelMedium)),
-            ],
-          ),
-          const SizedBox(height: Dimens.spacing12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: pct,
-              minHeight: 8,
-              backgroundColor: palette.surfaceMuted,
-              valueColor: AlwaysStoppedAnimation(color),
+    return Semantics(
+      identifier: identifier,
+      hint: S.of(context).nutrientContributionsHint,
+      button: true,
+      child: AppCard(
+        onTap: onTap,
+        borderRadius: Dimens.radiusM,
+        padding: const EdgeInsets.fromLTRB(Dimens.spacing16, Dimens.spacing16, Dimens.spacing16, Dimens.spacing16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(width: 9, height: 9, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                const SizedBox(width: 6),
+                Flexible(child: Text(label, style: textTheme.labelMedium)),
+              ],
             ),
-          ),
-          const SizedBox(height: Dimens.spacing12),
-          Text(
-            '${intake.toInt()}/${goal.toInt()} g',
-            style: textTheme.bodySmall?.copyWith(color: palette.textStrong, fontWeight: FontWeight.w700),
-          ),
-        ],
+            const SizedBox(height: Dimens.spacing12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: pct,
+                minHeight: 8,
+                backgroundColor: palette.surfaceMuted,
+                valueColor: AlwaysStoppedAnimation(color),
+              ),
+            ),
+            const SizedBox(height: Dimens.spacing12),
+            Text(
+              '${intake.toInt()}/${goal.toInt()} g',
+              style: textTheme.bodySmall?.copyWith(color: palette.textStrong, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
       ),
     );
   }

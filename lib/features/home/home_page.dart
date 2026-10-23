@@ -213,6 +213,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               totalCarbsGoal: totalCarbsGoal,
               totalFatsGoal: totalFatsGoal,
               totalProteinsGoal: totalProteinsGoal,
+              intakes: [
+                ...breakfastIntakeList,
+                ...lunchIntakeList,
+                ...dinnerIntakeList,
+                ...snackIntakeList,
+              ],
             ),
             // Day-one / empty-day guidance: when nothing is logged yet, point
             // the way to the centre + rather than leaving a silent dashboard.

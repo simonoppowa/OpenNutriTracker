@@ -3,10 +3,12 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/kcal_goal_breakdown_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_breakdown_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/features/home/presentation/screens/nutrient_contributions_screen.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goal_info_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -14,6 +16,7 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../fixture/user_entity_fixtures.dart';
+import '../../../../fixture/intake_entity_fixtures.dart';
 
 class _FakeBreakdownUsecase extends Fake implements GetKcalGoalBreakdownUsecase {
   final KcalGoalBreakdownEntity breakdown;
@@ -56,7 +59,10 @@ void main() {
     GetIt.instance.reset();
   });
 
-  DashboardWidget dashboardWidget({required double totalKcalLeft}) {
+  DashboardWidget dashboardWidget({
+    required double totalKcalLeft,
+    List<IntakeEntity> intakes = const [],
+  }) {
     return DashboardWidget(
       totalKcalSupplied: 2800,
       totalKcalBurned: 200,
@@ -68,6 +74,7 @@ void main() {
       totalCarbsGoal: 375,
       totalFatsGoal: 69,
       totalProteinsGoal: 93,
+      intakes: intakes,
     );
   }
 
@@ -125,6 +132,40 @@ void main() {
       expect(find.byType(KcalGoalInfoScreen), findsOneWidget);
 
       semanticsHandle.dispose();
+    },
+  );
+
+  testWidgets(
+    'tapping a macro tile lists the foods its total came from (#1266)',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_wrap(dashboardWidget(
+        totalKcalLeft: 1900,
+        intakes: [
+          intakeOf('Oats', 80, protein100: 13, carbs100: 60),
+          intakeOf('Chicken breast', 150, protein100: 23),
+          intakeOf('Apple', 150, carbs100: 12),
+        ],
+      )));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.identifier == 'home-macro-protein',
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NutrientContributionsScreen), findsOneWidget);
+      expect(find.text('60 of 93 g'), findsOneWidget);
+      expect(find.text('Apple'), findsNothing);
+      expect(
+        tester.getTopLeft(find.text('Chicken breast')).dy,
+        lessThan(tester.getTopLeft(find.text('Oats')).dy),
+      );
+      expect(find.text('35 g'), findsOneWidget);
     },
   );
 }

@@ -113,6 +113,30 @@
       }
     }
   },
+  "@nutrientContributionsEmpty": {
+    "placeholders": {
+      "nutrient": {
+        "type": "String"
+      }
+    }
+  },
+  "@nutrientContributionsTitle": {
+    "placeholders": {
+      "nutrient": {
+        "type": "String"
+      }
+    }
+  },
+  "@nutrientContributionsTotal": {
+    "placeholders": {
+      "intake": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
   "@profileTargetWeightToGo": {
     "placeholders": {
       "value": {
@@ -640,6 +664,10 @@
   "partialResultsAllSourcesDownNotice": "No online food source responded. Showing your saved foods only.",
   "notAvailableLabel": "N/A",
   "nothingAddedLabel": "Nothing added",
+  "nutrientContributionsEmpty": "Nothing logged today has any {nutrient}.",
+  "nutrientContributionsHint": "Show which foods it came from",
+  "nutrientContributionsTitle": "Where today's {nutrient} came from",
+  "nutrientContributionsTotal": "{intake} of {goal} g",
   "notificationsDailyReminderBody": "Don't forget to log your meals today!",
   "notificationsDailyReminderChannelName": "Daily Reminders",
   "notificationsDailyReminderChannelDescription": "Daily meal logging reminder",
