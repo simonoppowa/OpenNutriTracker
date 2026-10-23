@@ -29,6 +29,9 @@ class DashboardWidget extends StatefulWidget {
   /// (#1266).
   final List<IntakeEntity> intakes;
 
+  /// For a food's details, opened from a macro's contributions.
+  final bool usesImperialUnits;
+
   const DashboardWidget({
     super.key,
     required this.totalKcalSupplied,
@@ -42,6 +45,7 @@ class DashboardWidget extends StatefulWidget {
     required this.totalFatsGoal,
     required this.totalProteinsGoal,
     this.intakes = const [],
+    this.usesImperialUnits = false,
   });
 
   @override
@@ -65,6 +69,8 @@ class _DashboardWidgetState extends State<DashboardWidget> {
           intakes: widget.intakes,
           total: total,
           goal: goal,
+          day: DateTime.now(),
+          usesImperialUnits: widget.usesImperialUnits,
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 /// The three macros the dashboard tiles total (#1266).
 enum MacroNutrient {
@@ -21,6 +22,9 @@ class NutrientContributionEntity {
   final String? brands;
   final double grams;
 
+  /// The food as first logged that day, for its details.
+  final MealEntity meal;
+
   /// The meals it was logged in, in the day's order.
   final List<IntakeTypeEntity> meals;
 
@@ -28,6 +32,7 @@ class NutrientContributionEntity {
     required this.name,
     required this.brands,
     required this.grams,
+    required this.meal,
     required this.meals,
   });
 
@@ -48,6 +53,7 @@ class NutrientContributionEntity {
         name: intake.meal.name ?? '',
         brands: intake.meal.brands,
         grams: (previous?.grams ?? 0) + grams,
+        meal: previous?.meal ?? intake.meal,
         meals: [
           ...?previous?.meals,
           if (!(previous?.meals.contains(intake.type) ?? false)) intake.type,

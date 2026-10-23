@@ -219,6 +219,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 ...dinnerIntakeList,
                 ...snackIntakeList,
               ],
+              usesImperialUnits: usesImperialUnits,
             ),
             // Day-one / empty-day guidance: when nothing is logged yet, point
             // the way to the centre + rather than leaving a silent dashboard.

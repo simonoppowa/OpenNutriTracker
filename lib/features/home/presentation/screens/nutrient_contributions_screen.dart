@@ -5,16 +5,23 @@ import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/home/domain/entity/nutrient_contribution_entity.dart';
+import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Which of today's foods a macro total on the dashboard came from (#1266):
 /// the total against its goal, then each food from the most to the least.
+/// Tapping a food opens its details.
 class NutrientContributionsScreen extends StatelessWidget {
   final MacroNutrient nutrient;
   final List<IntakeEntity> intakes;
   final double total;
   final double goal;
+
+  /// The day and units a food's details open with.
+  final DateTime day;
+  final bool usesImperialUnits;
 
   const NutrientContributionsScreen({
     super.key,
@@ -22,6 +29,8 @@ class NutrientContributionsScreen extends StatelessWidget {
     required this.intakes,
     required this.total,
     required this.goal,
+    required this.day,
+    this.usesImperialUnits = false,
   });
 
   static String nutrientLabel(BuildContext context, MacroNutrient nutrient) =>
@@ -96,6 +105,15 @@ class NutrientContributionsScreen extends StatelessWidget {
           for (final contribution in contributions)
             ListTile(
               contentPadding: EdgeInsets.zero,
+              onTap: () => Navigator.of(context).pushNamed(
+                NavigationOptions.mealDetailRoute,
+                arguments: MealDetailScreenArguments(
+                  contribution.meal,
+                  contribution.meals.first,
+                  day,
+                  usesImperialUnits,
+                ),
+              ),
               title: Text(contribution.name),
               subtitle: Text(
                 [
