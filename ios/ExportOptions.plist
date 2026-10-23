@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  App Store export for the `full` flavour, used by the fastlane `build` lane.
+  The archive is signed manually with match profiles; with an embedded
+  extension, exportArchive must be told which profile belongs to which bundle
+  id, or it rejects CalorieWidget.appex. Keep the profile names in step with
+  `enforce_app_store_signing` in ios/fastlane/Fastfile.
+-->
+<plist version="1.0">
+<dict>
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>destination</key>
+	<string>export</string>
+	<key>signingStyle</key>
+	<string>manual</string>
+	<key>teamID</key>
+	<string>79AJPC6DP3</string>
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.opennutritracker.ont.opennutritracker</key>
+		<string>match AppStore com.opennutritracker.ont.opennutritracker</string>
+		<key>com.opennutritracker.ont.opennutritracker.widget</key>
+		<string>match AppStore com.opennutritracker.ont.opennutritracker.widget</string>
+	</dict>
+</dict>
+</plist>
