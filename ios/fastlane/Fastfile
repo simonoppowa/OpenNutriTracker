@@ -24,9 +24,13 @@ platform :ios do
     # ExportOptions.plist rather than --export-method: with the CalorieWidget
     # extension embedded, the export has to be told which match profile signs
     # which bundle id (#1449 follow-up).
-    sh('cd .. && fvm flutter build ipa --release --flavor full --export-options-plist=ios/ExportOptions.plist')
+    #
     # flutter exits 0 when the archive succeeds and only the export fails, so
-    # fail here instead of at the artifact upload.
+    # clear out earlier IPAs first and let latest_ipa_path fail the lane when
+    # this build produced none — otherwise a local beta/release retry would
+    # pick up and upload a stale binary.
+    FileUtils.rm_f(Dir[File.expand_path('../../build/ios/ipa/*.ipa', __dir__)])
+    sh('cd .. && fvm flutter build ipa --release --flavor full --export-options-plist=ios/ExportOptions.plist')
     latest_ipa_path
   end
 
