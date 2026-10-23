@@ -7,7 +7,7 @@ The results of [#1434](https://github.com/simonoppowa/OpenNutriTracker/issues/14
 | Candidate | `develop` at `c293acff4`, debug `full`, APK sha256 `95232d69…a40df0` |
 | Baseline | `v2.4.0` (`680eafaa8`), APK sha256 `0cbd3b31…dee6ab`, put back over the settings run's test build in S0a |
 | Phone | Pixel 6 `18101FDF60010M`, Android 17, `de-DE`, over USB |
-| Run | 2026-10-22 18:04 → 2026-10-23 05:40 CEST, day 0 = 2026-10-22 (the run crossed midnight during DS1) |
+| Run | 2026-10-22 18:04 → 2026-10-23 05:36 CEST, day 0 = 2026-10-22 (the run crossed midnight during DS1) |
 | Evidence | `~/Documents/ont-release-2.5.0-evidence/run-20261022-1804/` (`steps.tsv`, `run.log`, `steps/<ID>/`, `exports/`, `logcat/logcat-001.txt`, `findings.md`, `day0.txt`) |
 | Steps | 139 step IDs with a final status: **129 pass, 1 fail, 2 inconclusive, 7 skip**. No ABORT, no HALT, no crash, no ANR, no ErrorWidget, and no `EXCEPTION CAUGHT` line for the app in the whole logcat. The key audit is clean. |
 
