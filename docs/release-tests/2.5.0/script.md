@@ -582,7 +582,7 @@ Do:
 4. Settings → `rt tap id=settings-nutrient-goals` → read all ten fields → the fibre field (`edit=1`, the field above `nutrient-fibre-slider`) → `rt field edit=1 44` → `rt kb_hide` → read all fields again (rule 7) → `rt tap id=nutrient-goals-save` → Diary → `rt tap "text^=Heutige Nährstoffe"` → `rt save DD2-panel`.
 5. **Always, even if a check above failed:** Settings → `settings-day-boundary` → `rt tap text=Zurücksetzen` → `rt tap id=day-boundary-save` → reopen → it reads `0:00` → *ABBRECHEN*.
 Expect:
-- With the boundary at H+1:00, everything logged on calendar day 0 before H+1:00 now belongs to the logical yesterday, day 0 − 1, which is the current logical day. Every midnight-dated seed entry moves back a day as well (a moment before the boundary files under the day before): day 0 − 1's seed now lists under day 0 − 2, and so on. The Diary **opens on day 0 − 1**: its header names day 0 − 1, the calendar's today marker sits on day 0 − 1, and it lists exactly the entries logged on calendar day 0. Home counts the same entries.
+- With the boundary at H+1:00, everything logged on calendar day 0 before H+1:00 now belongs to the logical yesterday, day 0 − 1, which is the current logical day. Midnight-dated seed entries do **not** move: `DayBoundaryCalc.dayLabelOf` keeps a timestamp that is already a day label (#1317), so day 0 − 1's seed stays on day 0 − 1 (corrected after #1434, where the earlier wording expected them on day 0 − 2). The Diary **opens on day 0 − 1**: its header names day 0 − 1, the calendar's today marker sits on day 0 − 1, and it lists the entries logged on calendar day 0 together with day 0 − 1's seed. Home counts the same entries.
 - The settings run's "before" (2026-10-11, row 11): the Diary stayed on the calendar date, with nothing on it.
 - The fibre goal saved in step 4 shows as "/ 44 g" on the Diary's logical today. 2.4.0 put it on the calendar date (settings-run B6).
 - After step 5, the boundary is `0:00`.
@@ -803,7 +803,7 @@ The key is OpenRouter's (`~/.config/ont-run/ai-key`). The run judges the flow, n
 *Blocks if:* a nutrition value arrives from the model (every row's numbers must come from a food database); the key is shown, logged or kept in the evidence; a crash.
 
 **DAI1 — Save the key.**
-Guard: if the *KI-Unterstützung* subtitle already reads "An — OpenRouter", a key is stored: skip to the Expect check.
+Guard: if the *KI-Unterstützung* subtitle already reads "An — OpenRouter", a key is stored: skip to the Expect check. A key left by an earlier run may not be the key file's and may be rejected (#1434: DAI2 got a 401). If DAI2 then reads "Dein API-Schlüssel wurde abgelehnt", run this step's Do as `DAI1b` (tap `ai-assist-remove-key` first, which reveals `ai-assist-key-field`) and DAI2 as `DAI2b`.
 Do:
 1. Settings → `rt scroll_to id=settings-ai-assist` → `rt get id=settings-ai-assist` → tap it → `rt tap id=ai-assist-provider-openrouter`.
 2. `rt type_secret`: it taps `ai-assist-key-field`, checks it is a password field, types the key from stdin and checks the bullet count.
