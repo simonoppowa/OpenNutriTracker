@@ -13,8 +13,10 @@ Each flavor has its own App Group, so a develop install (for example `just dev_s
 
 The extension bundle ids are:
 
-- full: `com.opennutritracker.ont.opennutritracker.CalorieWidget`
-- develop: `com.opennutritracker.ont.opennutritracker.develop.CalorieWidget`
+- full: `com.opennutritracker.ont.opennutritracker.widget`
+- develop: `com.opennutritracker.ont.opennutritracker.develop.widget`
+
+They were `….CalorieWidget` until 2.5.0's release. That id turned out to be registered to another developer team, and bundle ids are unique across Apple, so the release team could not register it. The Xcode target is still called `CalorieWidget`; only the bundle id changed.
 
 Each flavor's parent app id must stay a prefix of its extension id.
 
@@ -36,7 +38,7 @@ App Store and TestFlight archives, and develop builds on a device, need both gro
 1. In Certificates, Identifiers & Profiles, create both App Groups: `group.com.opennutritracker.ont.opennutritracker` and `group.com.opennutritracker.ont.opennutritracker.develop`.
 2. Enable the full group on `com.opennutritracker.ont.opennutritracker`, and the develop group on `com.opennutritracker.ont.opennutritracker.develop`.
 3. Register the two extension bundle ids and enable the matching group on each: the full group on the full extension, the develop group on the develop extension.
-4. Regenerate the signing profiles (the project uses fastlane match for Release and Profile) so the new ids and the group are included. `ios/fastlane/Matchfile` lists the full extension id, and the `build` lane signs the `CalorieWidget` target with `match AppStore com.opennutritracker.ont.opennutritracker.CalorieWidget`. CI runs match read-only, so that profile has to exist in the match repository before the next release: run `MATCH_READONLY=false bundle exec fastlane ios certs` from `ios/` once, and make sure the Runner profile is regenerated too, since it now carries the App Group. Debug stays on automatic signing.
+4. Regenerate the signing profiles (the project uses fastlane match for Release and Profile) so the new ids and the group are included. `ios/fastlane/Matchfile` lists the full extension id, and the `build` lane signs the `CalorieWidget` target with `match AppStore com.opennutritracker.ont.opennutritracker.widget`. CI runs match read-only, so that profile has to exist in the match repository before the next release: run `MATCH_READONLY=false bundle exec fastlane ios certs` from `ios/` once, and make sure the Runner profile is regenerated too, since it now carries the App Group. Debug stays on automatic signing.
 5. Archive from the `full` scheme. The extension is embedded by the Runner target.
 
 `flutter build ios --no-codesign` does not need those profiles. A signed archive does.

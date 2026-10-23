@@ -80,11 +80,11 @@ platform :ios do
       use_automatic_signing: false,
       path: 'Runner.xcodeproj',
       team_id: '79AJPC6DP3',
-      bundle_identifier: 'com.opennutritracker.ont.opennutritracker.CalorieWidget',
+      bundle_identifier: 'com.opennutritracker.ont.opennutritracker.widget',
       targets: ['CalorieWidget'],
       build_configurations: ['Release-full', 'Profile-full'],
       code_sign_identity: 'Apple Distribution',
-      profile_name: 'match AppStore com.opennutritracker.ont.opennutritracker.CalorieWidget'
+      profile_name: 'match AppStore com.opennutritracker.ont.opennutritracker.widget'
     )
   end
 
