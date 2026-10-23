@@ -722,7 +722,7 @@
   "paLawnBowlingDesc": "петанк, на улице",
   "paMartialArtsModerate": "боевые искусства",
   "paMartialArtsModerateDesc": "разные виды, умеренный темп (напр., дзюдо, джиу-джитсу, карате, кикбоксинг, тхэквондо, тай-бо, муай-тай)",
-  "paMartialArtsSlower": "боевые искусства (более медленные)",
+  "paMartialArtsSlower": "боевые искусства (медленный темп)",
   "paMartialArtsSlowerDesc": "разные виды, медленный темп, новички, отработка техники",
   "paMotoCross": "мотокросс",
   "paMotoCrossDesc": "внедорожный мотоспорт, квадроциклы, общее",
@@ -1551,5 +1551,16 @@
   "paCalisthenicsVigorous": "калистеника (интенсивная)",
   "paCircuitTraining": "круговая тренировка",
   "paCalisthenicsVigorousDesc": "интенсивная нагрузка (прим.: отжимания, приседания, подтягивания, прыжки, берпи)",
-  "paCircuitTrainingDesc": "включая упражнения с гирей, некоторые аэробные упражнения с минимальным отдыхом, высокая интенсивность"
+  "paCircuitTrainingDesc": "включая упражнения с гирей, некоторые аэробные упражнения с минимальным отдыхом, высокая интенсивность",
+  "settingsDeleteAllDataConfirmContent": "Это удаляет ваш профиль, питание, деятельность, историю веса и сеансы голодания только для текущего профиля. Он также удаляет любой ключ провайдера ИИ и адрес сервера, которые разделены каждым профилем на этом устройстве. Общее содержание (таможенные приемы, рецепты, шаблоны деятельности) и Open Food Facts и каталоги USDA Food Data Central не затрагиваются. Это нельзя отменить.",
+  "aiAssistExperimentalLabel": "Экспериментальный",
+  "bulkAddModelHintKeyLabel": "С собственным API-ключом",
+  "aiAssistProviderOwnServerLabel": "Ваш собственный сервер",
+  "aiAssistEndpointFieldLabel": "Адрес сервера",
+  "aiAssistModelFieldLabel": "Название модели",
+  "aiAssistModelRequiredLabel": "Назовите модель, которую должен использовать этот сервер.",
+  "aiAssistEndpointPublicPlaintextLabel": "Этот адрес является публичным и незашифрованным, поэтому запросы на него отклоняются. Используйте https, или частный адрес.",
+  "aiAssistProbeSectionLabel": "Проверка установки",
+  "aiAssistProbePhotoLabel": "Фотографии",
+  "aiAssistPickModelLabel": "Выберите модель"
 }
