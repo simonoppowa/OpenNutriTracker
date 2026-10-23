@@ -274,8 +274,8 @@
       }
     }
   },
-  "deleteTimeDialogContent": "Valóban törölni szeretné a kijelölt elemet?",
-  "deleteTimeDialogPluralContent": "Törölni szeretné ennek az étkezésnek az összes elemét?",
+  "deleteTimeDialogContent": "Törölni szeretné a kijelölt elemet?",
+  "deleteTimeDialogPluralContent": "Törölni szeretné az étkezés összes elemét?",
   "deleteTimeDialogPluralTitle": "Törli az elemeket?",
   "deleteTimeDialogTitle": "Törli az elemet?",
   "dialogCancelLabel": "MÉGSE",
@@ -633,7 +633,7 @@
   "paBilliardsGeneralDesc": "általános",
   "paBowlingGeneral": "tekézés",
   "paBowlingGeneralDesc": "általános",
-  "paBoxingBag": "ökölvívás",
+  "paBoxingBag": "boksz (bokszzsák)",
   "paBoxingBagDesc": "bokszzsák",
   "paBoxingGeneral": "ökölvívás",
   "paBoxingGeneralDesc": "ringben, általános",
@@ -694,7 +694,7 @@
   "paHeadingWinterActivities": "téli programok",
   "paHighIntensityIntervalExercise": "nagy intenzitású intervallumos edzés",
   "paHighIntensityIntervalExerciseDesc": "közepes erőfeszítés",
-  "paHighIntensityIntervalExerciseVigorous": "nagy intenzitású intervallumos edzés",
+  "paHighIntensityIntervalExerciseVigorous": "erőteljes, nagy intenzitású intervallum edzés",
   "paHighIntensityIntervalExerciseVigorousDesc": "hegymászó gyakorlatok, guggolásugrások, tabata, erőteljes erőfeszítés",
   "paHikingCrossCountry": "túrázás",
   "paHikingCrossCountryDesc": "terepfutás",
@@ -722,7 +722,7 @@
   "paLawnBowlingDesc": "boccia, szabadtéri",
   "paMartialArtsModerate": "harcművészetek",
   "paMartialArtsModerateDesc": "különböző típusok, mérsékelt tempó (pl. dzsúdó, dzsúdzsucu, karate, kick-box, taekwondo, tai-bo, muay thai box)",
-  "paMartialArtsSlower": "harcművészetek",
+  "paMartialArtsSlower": "harcművészetek (lassabb tempóban)",
   "paMartialArtsSlowerDesc": "különböző típusok, lassabb tempó, kezdő előadók, gyakorlás",
   "paMotoCross": "motokrossz",
   "paMotoCrossDesc": "terepjáró motorsport, terepjáró, általános",
@@ -757,7 +757,7 @@
   "paRopeSkippingGeneralDesc": "általános",
   "paRugbyCompetitive": "rögbi",
   "paRugbyCompetitiveDesc": "szövetség, csapat, versenyszerű",
-  "paRugbyNonCompetitive": "rögbi",
+  "paRugbyNonCompetitive": "érintéses rögbi",
   "paRugbyNonCompetitiveDesc": "alkalmi, nem versenyszerű",
   "paRunningGeneral": "futás",
   "paRunningGeneralDesc": "általános",
@@ -798,7 +798,6 @@
   "paTaiChiQiGongGeneralDesc": "általános",
   "paTennisGeneral": "tenisz",
   "paTennisGeneralDesc": "általános",
-  "paTrackField": "atlétika",
   "paTrackField1Desc": "(pl. súlylökés, diszkoszvetés, kalapácsvetés)",
   "paTrackField2Desc": "(pl. magasugrás, távolugrás, hármasugrás, gerelyhajítás, rúdugrás)",
   "paTrackField3Desc": "(pl. akadályfutás, gátfutás)",
@@ -915,7 +914,6 @@
   "recipeServingsCountLabel": "Adagok (opcionális)",
   "recipeTagsHelper": "Vesszővel elválasztva, pl. „reggeli, vegán”",
   "recipeTagsLabel": "Címkék",
-  "recipeTotalWeightHelper": "Alapértelmezés szerint az összetevők összege. Folyadékok esetén hozzávetőlegesen 1 ml ≈ 1 g.",
   "recipeTotalWeightLabel": "Teljes tömeg (g)",
   "recipesEmptyHint": "Állítson össze egy ételt több alapanyagból, és később használja fel újra, mint bármely más ételt.",
   "recipesEmptyLabel": "Még nincsenek receptek",
@@ -1649,5 +1647,30 @@
     }
   },
   "settingsDefaultToRawFoodUnitsLabel": "Alapértelmezésben súlyt vagy térfogatot használjon, ne adagot",
-  "settingsDefaultToRawFoodUnitsSubtitle": "Ha egy élelmiszer adagban van feltüntetve, akkor inkább a súly vagy a térfogat alapján rögzítse az adatot. Az adagokat továbbra is kiválaszthatja az egységek legördülő menüből."
+  "settingsDefaultToRawFoodUnitsSubtitle": "Ha egy élelmiszer adagban van feltüntetve, akkor inkább a súly vagy a térfogat alapján rögzítse az adatot. Az adagokat továbbra is kiválaszthatja az egységek legördülő menüből.",
+  "onboardingImplausibleWeightBody": "A(z) {value} szokatlan súly. Megtartja?",
+  "@onboardingImplausibleWeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "noResultsSearchAll": "Összes keresése",
+  "paCalisthenicsVigorous": "testgyakorlatok (intenzív)",
+  "paCalisthenicsVigorousDesc": "intenzív testmozgás (pl. fekvőtámasz, hasizomgyakorlat, húzódzkodás, ugráló felülés, négyütemű fekvőtámasz)",
+  "paCircuitTraining": "köredzés",
+  "paCircuitTrainingDesc": "beleértve a kettlebelleket, néhány aerob gyakorlatot minimális pihenőidővel, magas intenzitással",
+  "paEllipticalTrainer": "elliptikus edzőgép",
+  "paRowingMachine": "evezőgép",
+  "paStairTreadmillErgometer": "lépcsőzőgép",
+  "paTrackField1": "atlétika (dobószámok)",
+  "paTrackField2": "atlétika (ugrószámok és gerelyhajítás)",
+  "paTrackField3": "atlétika (gátfutás)",
+  "paYoga": "jóga",
+  "paYogaDesc": "általános vagy hatha jóga",
+  "recipeTotalWeightCalculatedHelper": "Az összetevők alapján számított érték. A folyadékok esetében a következő közelítést alkalmaztuk: 1 ml ≈ 1 g.",
+  "recipeTotalWeightManualHelper": "Kézzel lett megadva, így az összetevők módosítása nem változtat rajta.",
+  "recipeTotalWeightUseIngredientTotalButton": "Az összes hozzávaló felhasználása",
+  "settingsKjAdjustmentLabel": "Napi kJ-kiigazítás"
 }

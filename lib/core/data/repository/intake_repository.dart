@@ -16,8 +16,8 @@ class IntakeRepository {
     await _intakeDataSource.addIntake(intakeDBO);
   }
 
-  Future<void> addAllIntakeDBOs(List<IntakeDBO> intakeDBOs) async {
-    await _intakeDataSource.addAllIntakes(intakeDBOs);
+  Future<void> upsertAllIntakeDBOs(List<IntakeDBO> intakeDBOs) async {
+    await _intakeDataSource.upsertAllIntakes(intakeDBOs);
   }
 
   Future<void> deleteIntake(IntakeEntity intakeEntity) async {
@@ -91,4 +91,15 @@ class IntakeRepository {
             ))
         .toList();
   }
+
+  /// Moves the entries logged with the custom meal known as [fromMealKey] to
+  /// [toMeal]'s barcode and name, in every profile, after an edit changed
+  /// them (#1417). See [IntakeDataSource.moveCustomMealInEveryProfile].
+  Future<int> moveCustomMealInEveryProfile({
+    required String fromMealKey,
+    required MealDBO toMeal,
+  }) => _intakeDataSource.moveCustomMealInEveryProfile(
+    fromMealKey: fromMealKey,
+    toMeal: toMeal,
+  );
 }

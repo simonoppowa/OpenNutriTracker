@@ -72,7 +72,18 @@ class NotificationService {
     return false;
   }
 
-  /// Schedules a daily recurring notification at [hour]:[minute].
+  /// Schedules a daily recurring notification at [hour]:[minute], replacing
+  /// the one already pending.
+  ///
+  /// Deliberately no cancel first (#1389): if `zonedSchedule` then failed,
+  /// the user would be left with no reminder while the setting still read
+  /// on. Scheduling under the same id replaces the pending one on both
+  /// platforms. On Android the alarm's `PendingIntent` is keyed by the id
+  /// (`getBroadcast` with `FLAG_UPDATE_CURRENT`, and `AlarmManager` drops an
+  /// earlier alarm for an equal intent), and the plugin's cache of scheduled
+  /// notifications only swaps the old entry for the new one once the alarm
+  /// is set. On iOS the plugin adds a `UNNotificationRequest` whose
+  /// identifier is the id, and a request matching a pending one replaces it.
   Future<void> scheduleDailyReminder({
     required int hour,
     required int minute,
@@ -82,7 +93,6 @@ class NotificationService {
     required String channelDescription,
   }) async {
     await _ensureInitialized();
-    await _plugin.cancel(id: _dailyReminderId);
 
     final androidDetails = AndroidNotificationDetails(
       _channelId,
@@ -120,6 +130,13 @@ class NotificationService {
     await _ensureInitialized();
     await _plugin.cancel(id: _dailyReminderId);
     _log.fine('Daily reminder cancelled');
+  }
+
+  /// Whether the OS holds a daily reminder right now.
+  Future<bool> isDailyReminderPending() async {
+    await _ensureInitialized();
+    final pending = await _plugin.pendingNotificationRequests();
+    return pending.any((request) => request.id == _dailyReminderId);
   }
 
   /// Schedules a one-shot notification for the moment a fasting session is

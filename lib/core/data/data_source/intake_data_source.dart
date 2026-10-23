@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/box_upsert.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
@@ -20,10 +21,49 @@ class IntakeDataSource {
     await _intakeBox.add(intakeDBO);
   }
 
-  Future<void> addAllIntakes(List<IntakeDBO> intakeDBOList) async {
-    log.fine('Adding new intake items to db');
-    await _intakeBox.addAll(intakeDBOList);
+  /// Upserts by [IntakeDBO.id]: an intake whose id is already stored
+  /// replaces it, so importing a bundle twice leaves one copy (#1357).
+  /// Where a bundle holds an id twice the first row wins — the old edit
+  /// rewrote the first copy in place. A row with a blank id gets one
+  /// derived from its content first ([withContentIds]).
+  Future<void> upsertAllIntakes(List<IntakeDBO> intakeDBOList) async {
+    log.fine('Upserting intake items into db');
+    await _intakeBox.upsertAllBy(
+      withContentIds(
+        intakeDBOList,
+        idOf: (dbo) => dbo.id,
+        contentOf: _contentOf,
+        withId: (dbo, id) => IntakeDBO(
+          id: id,
+          unit: dbo.unit,
+          amount: dbo.amount,
+          type: dbo.type,
+          meal: dbo.meal,
+          dateTime: dbo.dateTime,
+        ),
+      ),
+      (dbo) => isBlankId(dbo.id) ? null : dbo.id,
+      winner: UpsertWinner.first,
+    );
   }
+
+  /// What a blank-id intake's derived id is made of: when, which meal
+  /// slot, how much of which food. These fields are in every export ever
+  /// written. The nutriments are left out — the import rescales old Open
+  /// Food Facts values (#1152), so they are not a fixed property of the
+  /// backup row — and two rows that differ only there still both stay, as
+  /// any two equal rows do. Changing this list moves every derived id, and
+  /// re-importing an old backup would then duplicate its blank-id rows.
+  static List<String?> _contentOf(IntakeDBO dbo) => [
+    dbo.dateTime.toIso8601String(),
+    dbo.type.name,
+    contentNumber(dbo.amount),
+    dbo.unit,
+    dbo.meal.source.name,
+    dbo.meal.code,
+    dbo.meal.name,
+    dbo.meal.brands,
+  ];
 
   Future<void> deleteIntakeFromId(String intakeId) async {
     log.fine('Deleting intake item from db');
@@ -34,6 +74,8 @@ class IntakeDataSource {
     }
   }
 
+  /// Applies [fields] to every stored copy of [intakeId], so an install
+  /// the old import doubled (#1357) ends up with copies that agree.
   Future<IntakeDBO?> updateIntake(
     String intakeId,
     Map<String, dynamic> fields,
@@ -41,16 +83,20 @@ class IntakeDataSource {
     log.fine(
       'Updating intake $intakeId with fields ${fields.toString()} in db',
     );
-    var intakeObject = _intakeBox.values.indexed
-        .where((indexedDbo) => indexedDbo.$2.id == intakeId)
-        .firstOrNull;
-    if (intakeObject == null) {
+    final copies = _intakeBox
+        .toMap()
+        .entries
+        .where((entry) => entry.value.id == intakeId)
+        .toList();
+    if (copies.isEmpty) {
       log.fine('Cannot update intake $intakeId as it is non existent');
       return null;
     }
-    intakeObject.$2.amount = fields['amount'] ?? intakeObject.$2.amount;
-    await _intakeBox.putAt(intakeObject.$1, intakeObject.$2);
-    return _intakeBox.getAt(intakeObject.$1);
+    for (final copy in copies) {
+      copy.value.amount = fields['amount'] ?? copy.value.amount;
+    }
+    await _intakeBox.putAll({for (final copy in copies) copy.key: copy.value});
+    return _intakeBox.get(copies.first.key);
   }
 
   Future<IntakeDBO?> getIntakeById(String intakeId) async {
@@ -109,10 +155,7 @@ class IntakeDataSource {
         )
         .toList();
 
-    // Surface custom meals before remote-sourced results.
-    final custom = uniqueIntake.where((i) => i.meal.source == MealSourceDBO.custom).toList();
-    final others = uniqueIntake.where((i) => i.meal.source != MealSourceDBO.custom).toList();
-    return [...custom, ...others].take(number).toList();
+    return uniqueIntake.take(number).toList();
   }
 
   Future<List<IntakeDBO>> getCustomMealIntakes() async {
@@ -130,9 +173,107 @@ class IntakeDataSource {
   Future<List<(IntakeDBO, IntakeDBO)>> remapCustomMealOnIntakes({
     required String fromMealKey,
     required MealDBO toMeal,
+  }) => _rewriteCustomMeal(_intakeBox, fromMealKey, (_) => toMeal);
+
+  /// Moves the entries logged with the custom meal known as [fromMealKey]
+  /// to [toMeal]'s identity — its barcode, or its name when it has none —
+  /// in every profile: the active one and each other one in the registry.
+  /// Returns how many entries moved.
+  ///
+  /// Only the meal's `code` and `name` change. Each entry keeps the rest of
+  /// the meal as it was logged, its nutrients included, the way an edit
+  /// that keeps the identity leaves past entries alone; so no tracked-day
+  /// total changes either.
+  ///
+  /// The custom-meal library is shared by every profile while each logs its
+  /// own entries, so an edit in one profile changes the meal behind the
+  /// others' entries too (#1417). Run it under the tracked-day lock, which
+  /// excludes a profile switch, so the active box is the same throughout.
+  ///
+  /// All or nothing: every profile's box is opened before any entry is
+  /// rewritten, and a write that fails puts back the entries already
+  /// rewritten, so a failed move leaves no entry on an identity the library
+  /// does not have.
+  Future<int> moveCustomMealInEveryProfile({
+    required String fromMealKey,
+    required MealDBO toMeal,
+  }) async {
+    MealDBO moved(MealDBO logged) => MealDBO(
+      code: toMeal.code,
+      name: toMeal.name,
+      brands: logged.brands,
+      thumbnailImageUrl: logged.thumbnailImageUrl,
+      mainImageUrl: logged.mainImageUrl,
+      url: logged.url,
+      mealQuantity: logged.mealQuantity,
+      mealUnit: logged.mealUnit,
+      servingQuantity: logged.servingQuantity,
+      servingUnit: logged.servingUnit,
+      servingSize: logged.servingSize,
+      nutriments: logged.nutriments,
+      source: logged.source,
+      localImagePath: logged.localImagePath,
+      detailed: logged.detailed,
+      backendSource: logged.backendSource,
+      machineTranslatedName: logged.machineTranslatedName,
+      dataVersion: logged.dataVersion,
+    );
+
+    final suffixes = [
+      for (final profile in _db.profileBox.values)
+        if (profile.id != _db.activeProfileId) profile.boxSuffix,
+    ];
+    final opened = <String>[];
+    try {
+      final boxes = [_intakeBox];
+      for (final suffix in suffixes) {
+        boxes.add(
+          await _db.openScopedBox<IntakeDBO>(
+            HiveDBProvider.intakeBoxName,
+            suffix,
+          ),
+        );
+        opened.add(suffix);
+      }
+      final undo = <Future<void> Function()>[];
+      try {
+        var count = 0;
+        for (final box in boxes) {
+          count += (await _rewriteCustomMeal(
+            box,
+            fromMealKey,
+            moved,
+            undo: undo,
+          )).length;
+        }
+        return count;
+      } catch (_) {
+        for (final step in undo.reversed) {
+          await step();
+        }
+        rethrow;
+      }
+    } finally {
+      for (final suffix in opened) {
+        await _db.closeScopedBox<IntakeDBO>(
+          HiveDBProvider.intakeBoxName,
+          suffix,
+        );
+      }
+    }
+  }
+
+  /// Gives every custom-meal intake in [box] logged as [fromMealKey] the
+  /// meal [rewrite] makes of its own, keeping the rest of the intake. Each
+  /// rewrite adds a step to [undo] that puts the intake back.
+  static Future<List<(IntakeDBO, IntakeDBO)>> _rewriteCustomMeal(
+    Box<IntakeDBO> box,
+    String fromMealKey,
+    MealDBO Function(MealDBO logged) rewrite, {
+    List<Future<void> Function()>? undo,
   }) async {
     final rewrites = <(IntakeDBO, IntakeDBO)>[];
-    final entries = _intakeBox.toMap().entries.toList();
+    final entries = box.toMap().entries.toList();
     for (final entry in entries) {
       final dbo = entry.value;
       if (dbo.meal.source != MealSourceDBO.custom) continue;
@@ -143,10 +284,11 @@ class IntakeDataSource {
         unit: dbo.unit,
         amount: dbo.amount,
         type: dbo.type,
-        meal: toMeal,
+        meal: rewrite(dbo.meal),
         dateTime: dbo.dateTime,
       );
-      await _intakeBox.put(entry.key, updated);
+      await box.put(entry.key, updated);
+      undo?.add(() => box.put(entry.key, dbo));
       rewrites.add((dbo, updated));
     }
     return rewrites;

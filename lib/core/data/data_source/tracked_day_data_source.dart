@@ -1,6 +1,9 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
@@ -12,8 +15,28 @@ class TrackedDayDataSource {
 
   Box<TrackedDayDBO> get _trackedDayBox => _db.trackedDayBox;
 
+  /// The diary day whose row [day] names (#1317).
+  ///
+  /// Callers hand this source either a day label — a Diary cell, or
+  /// HomeBloc's resolved logical day — or a moment: an entry's own
+  /// timestamp, or a raw `DateTime.now()` from Home. A moment has to land
+  /// on the row of the day the Diary lists an entry stamped with it
+  /// under, or with a day-start boundary configured an entry logged at
+  /// 02:00 is listed on one day while its row is created on the next, and
+  /// the Diary reports "Nothing added" beside it. Labels pass through
+  /// unchanged, so the boundary is only read for a moment.
+  Future<DateTime> _diaryDayOf(DateTime day) async {
+    if (DayBoundaryCalc.isDayLabel(day)) return day;
+    final config = ConfigEntity.fromConfigDBO(
+      await ConfigDataSource(_db).getConfig(),
+    );
+    return DayBoundaryCalc.dayLabelOf(day, config.dayStartOffsetTotalMinutes);
+  }
+
   Future<void> saveTrackedDay(TrackedDayDBO trackedDayDBO) async {
     log.fine('Updating tracked day in db');
+    // Stored as the label too: the Diary calendar keys its map by `day`.
+    trackedDayDBO.day = await _diaryDayOf(trackedDayDBO.day);
     await _trackedDayBox.put(trackedDayDBO.day.toParsedDay(), trackedDayDBO);
   }
 
@@ -25,12 +48,35 @@ class TrackedDayDataSource {
     });
   }
 
+  /// Writes [trackedDayDBO] only when its day has no row yet, and reports
+  /// whether it wrote one. An existing row is never replaced, so totals
+  /// another writer has already added to it survive (#1373).
+  ///
+  /// Nothing is awaited between the check and the put, and Hive enters the
+  /// new row in its in-memory keystore before `put` first awaits, so no
+  /// other writer on this isolate can create the same day in between. A
+  /// caller that checks with [hasTrackedDay] first and then calls
+  /// [saveTrackedDay] has no such guarantee: the day can be created in the
+  /// gap, and the put would then reset it to zero.
+  ///
+  /// Keyed like [saveTrackedDay], by the day the Diary lists the entry
+  /// under (#1317). That lookup awaits the config, so it runs before the
+  /// check, not between it and the put.
+  Future<bool> saveTrackedDayIfAbsent(TrackedDayDBO trackedDayDBO) async {
+    trackedDayDBO.day = await _diaryDayOf(trackedDayDBO.day);
+    final key = trackedDayDBO.day.toParsedDay();
+    if (_trackedDayBox.containsKey(key)) return false;
+    log.fine('Creating tracked day in db');
+    await _trackedDayBox.put(key, trackedDayDBO);
+    return true;
+  }
+
   Future<List<TrackedDayDBO>> getAllTrackedDays() async {
     return _trackedDayBox.values.toList();
   }
 
   Future<TrackedDayDBO?> getTrackedDay(DateTime day) async {
-    return _trackedDayBox.get(day.toParsedDay());
+    return _trackedDayBox.get((await _diaryDayOf(day)).toParsedDay());
   }
 
   Future<List<TrackedDayDBO>> getTrackedDaysInRange(
@@ -47,7 +93,7 @@ class TrackedDayDataSource {
   }
 
   Future<bool> hasTrackedDay(DateTime day) async =>
-      _trackedDayBox.get(day.toParsedDay()) != null;
+      await getTrackedDay(day) != null;
 
   Future<void> updateDayCalorieGoal(DateTime day, double calorieGoal) async {
     log.fine('Updating tracked day total calories');
@@ -227,6 +273,15 @@ class TrackedDayDataSource {
   // default reference". Units follow the convention documented on
   // TrackedDayDBO: g for fibre/satFat/sugars; mg for sodium, calcium,
   // iron, potassium, magnesium, B12; µg for vitamin D.
+  //
+  // [clearAll] (#1349): by default null means "leave this column
+  // untouched" — needed for callers that only ever send a partial
+  // delta. A caller that always holds a *complete* snapshot of every
+  // field (e.g. a form screen that loads all ten values up front) has
+  // no way to express "write null here" with that contract — Reset +
+  // Save could never actually clear a custom goal back to the
+  // default. When true, every argument is written verbatim, nulls
+  // included, bypassing the per-field null-skip below.
   Future<void> updateDayNutrientGoals(
     DateTime day, {
     double? fibreGoal,
@@ -239,10 +294,25 @@ class TrackedDayDataSource {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async {
     log.fine('Updating tracked day nutrient goals');
     final updateDay = await getTrackedDay(day);
     if (updateDay != null) {
+      if (clearAll) {
+        updateDay.fibreGoal = fibreGoal;
+        updateDay.satFatGoal = satFatGoal;
+        updateDay.sugarsGoal = sugarsGoal;
+        updateDay.sodiumGoal = sodiumGoal;
+        updateDay.calciumGoal = calciumGoal;
+        updateDay.ironGoal = ironGoal;
+        updateDay.potassiumGoal = potassiumGoal;
+        updateDay.vitaminDGoal = vitaminDGoal;
+        updateDay.vitaminB12Goal = vitaminB12Goal;
+        updateDay.magnesiumGoal = magnesiumGoal;
+        await updateDay.save();
+        return;
+      }
       if (fibreGoal != null) {
         updateDay.fibreGoal = fibreGoal;
       }

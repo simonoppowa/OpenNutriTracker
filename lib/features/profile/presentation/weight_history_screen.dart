@@ -7,7 +7,9 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/weight_trend_chart.dart';
@@ -67,6 +69,8 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   // Loaded once at mount time so the chart can draw a dashed reference
   // line for the user's #119 target weight. Null when unset.
   double? _targetWeightKg;
+  // The profile's current weight, which Add entry starts from (#1367).
+  double? _profileWeightKg;
   _ChartRange _selectedRange = _ChartRange.days30;
 
   @override
@@ -87,6 +91,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       _bodyWeightUnit = unit;
       _entries = entries;
       _targetWeightKg = user?.targetWeightKg;
+      _profileWeightKg = user?.weightKG;
       _loading = false;
     });
   }
@@ -113,12 +118,10 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
         final oldestDate = nonFutureEntries
             .map((e) => e.date)
             .reduce((a, b) => a.isBefore(b) ? a : b);
-        final oldestDateOnly = DateTime(
-          oldestDate.year,
-          oldestDate.month,
-          oldestDate.day,
-        );
-        final diffDays = today.difference(oldestDateOnly).inDays + 1;
+        // Calendar days, not elapsed 24-hour spans: across a spring-forward
+        // `difference().inDays` comes out one short and the chart window
+        // would start the day after the oldest entry (#1207).
+        final diffDays = CalendarDayCalc.daysBetween(oldestDate, today) + 1;
         return diffDays < 30 ? 30 : diffDays;
     }
   }
@@ -253,9 +256,12 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   }
 
   Future<void> _onAddEntry() async {
-    final initialWeightKg = _entries.isNotEmpty
-        ? _entries.first.weightKg
-        : 70.0;
+    // The profile weight is the current one: a reading for today updates
+    // it, and so does editing it on the profile. A fixed 70 kg here
+    // contradicted the profile on every log that had no entries (#1367).
+    final initialWeightKg =
+        _profileWeightKg ??
+        (_entries.isNotEmpty ? _entries.first.weightKg : 70.0);
     final result = await showDialog<_NewWeightEntry>(
       context: context,
       builder: (context) => _AddWeightEntryDialog(
@@ -274,11 +280,13 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       ),
     );
     await _load();
+    reloadDiaryAndTrends();
   }
 
   Future<void> _onDelete(WeightLogEntity entry) async {
-    await _deleteUsecase.deleteEntry(entry.date);
+    await _deleteUsecase.deleteEntry(entry);
     await _load();
+    reloadDiaryAndTrends();
   }
 }
 

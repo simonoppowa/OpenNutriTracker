@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 
 part 'trends_event.dart';
 part 'trends_state.dart';
@@ -19,6 +20,10 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
   final GetConfigUsecase _getConfigUsecase;
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
 
+  /// The range of the last [LoadTrendsEvent], so a [RefreshTrendsEvent]
+  /// keeps the chip the user picked. Null until the page first loads.
+  int? _rangeDays;
+
   TrendsBloc(
     this._getTrackedDayUsecase,
     this._getWeightLogUsecase,
@@ -26,7 +31,13 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
     this._getConfigUsecase,
     this._getWaterIntakeUsecase,
   ) : super(const TrendsInitial()) {
+    on<RefreshTrendsEvent>((event, emit) {
+      final rangeDays = _rangeDays;
+      if (rangeDays != null) add(LoadTrendsEvent(rangeDays: rangeDays));
+    });
+
     on<LoadTrendsEvent>((event, emit) async {
+      _rangeDays = event.rangeDays;
       emit(const TrendsLoading());
       try {
         final now = DateTime.now();
@@ -85,9 +96,15 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
           for (final k in waterByDay.keys) {
             consider(k);
           }
+          // Calendar days, not elapsed 24-hour spans: across a spring-forward
+          // `difference().inDays` comes out one short and the window would
+          // start the day after the earliest entry (#1207).
           windowDays = earliest == null
               ? 30 // no data yet: a sensible empty-chart width
-              : (today.difference(earliest!).inDays + 1).clamp(2, 3650);
+              : (CalendarDayCalc.daysBetween(earliest!, today) + 1).clamp(
+                  2,
+                  3650,
+                );
         }
 
         emit(TrendsLoaded(

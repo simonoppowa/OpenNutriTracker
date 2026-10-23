@@ -13,7 +13,9 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
@@ -33,6 +35,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final ProductsRepository _productsRepository;
   final RemoteSearchCacheDataSource _remoteSearchCacheDataSource;
 
+  /// Takes the background refresh's fresh record onto a favourite of the
+  /// food (#1307). Left out where a test does not log a starred food.
+  final ToggleFavouriteMealUsecase? _favourites;
+
   MealDetailBloc(
     this._addIntakeUseCase,
     this._addTrackedDayUsecase,
@@ -40,8 +46,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._getMacroGoalUsecase,
     this._getTrackedDayUsecase,
     this._productsRepository,
-    this._remoteSearchCacheDataSource,
-  ) : super(
+    this._remoteSearchCacheDataSource, {
+    ToggleFavouriteMealUsecase? favourites,
+  }) : _favourites = favourites,
+       super(
           MealDetailInitial(
             totalQuantityConverted: '100',
             selectedUnit: UnitDropdownItem.gml.toString(),
@@ -176,8 +184,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // (up to 60 s timeout) before seeing their item logged. Stale meal
     // data in the intake is fine; nutrition values rarely change, and
     // the cache update means the next search shows the freshest data.
-    await _addIntakeUseCase.addIntake(intakeEntity);
-    await _updateTrackedDay(intakeEntity, day);
+    // The entry and its row together, so no reconciliation counts the
+    // entry before the row has it (#1317).
+    await withTrackedDayLockOnProfile(() async {
+      await _addIntakeUseCase.addIntake(intakeEntity);
+      await _updateTrackedDay(intakeEntity, day);
+    });
     unawaited(_refreshCacheForSelectedMeal(meal));
   }
 
@@ -194,8 +206,9 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       await _remoteSearchCacheDataSource.touch(code);
       return;
     }
+    final MealEntity fresh;
     try {
-      final fresh = await _productsRepository.getOFFProductByBarcode(code);
+      fresh = await _productsRepository.getOFFProductByBarcode(code);
       await _remoteSearchCacheDataSource.cache(MealDBO.fromMealEntity(fresh));
     } catch (e, st) {
       log.warning(
@@ -204,6 +217,15 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         st,
       );
       await _remoteSearchCacheDataSource.touch(code);
+      return;
+    }
+    // A favourite on the food would otherwise keep logging and exporting
+    // the figures it was starred with, when the app has just fetched newer
+    // ones — as the scanner's live lookup does.
+    try {
+      await _favourites?.refreshDetailedSnapshot(fresh);
+    } catch (e, st) {
+      log.warning('Could not refresh a favourite on $code', e, st);
     }
   }
 
@@ -224,7 +246,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         totalKcalGoal,
       );
 
-      await _addTrackedDayUsecase.addNewTrackedDay(
+      await _addTrackedDayUsecase.addNewTrackedDayIfAbsent(
         day,
         totalKcalGoal,
         totalCarbsGoal,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -77,16 +78,23 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   bool _loaded = false;
   bool _syncingControllers = false;
 
-  /// The field the user typed in most recently. On save we apply only this
-  /// field's pending (unsubmitted) text — last write wins. Reconciling
-  /// conflicting edits across multiple fields at once isn't worth the
-  /// complexity, and every submit/reset re-syncs the controllers anyway, so
-  /// an already-applied field re-applies as a no-op.
+  /// The field whose typed text has not been applied yet. Only this field's
+  /// text is applied — last write wins. Reconciling conflicting edits across
+  /// multiple fields at once isn't worth the complexity.
+  ///
+  /// Applying clears it. A controller's text is only a rounded copy of its
+  /// value after a sync, so applying it a second time, after a slider has
+  /// moved, would nudge the split away from the one on screen.
   _MacroField? _lastEditedMacro;
 
   late final TextEditingController _carbsController;
   late final TextEditingController _proteinController;
   late final TextEditingController _fatController;
+
+  /// A typed value is applied when its field loses focus, not only on
+  /// submit: the iOS number pad has no return key, so a submit never comes
+  /// and the other two macros never visibly rebalanced (#1324).
+  late final Map<_MacroField, FocusNode> _focusNodes;
 
   @override
   void initState() {
@@ -94,6 +102,10 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     _carbsController = TextEditingController();
     _proteinController = TextEditingController();
     _fatController = TextEditingController();
+    _focusNodes = {
+      for (final field in _MacroField.values)
+        field: FocusNode()..addListener(() => _onFocusChanged(field)),
+    };
     _load();
   }
 
@@ -102,7 +114,15 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     _carbsController.dispose();
     _proteinController.dispose();
     _fatController.dispose();
+    for (final node in _focusNodes.values) {
+      node.dispose();
+    }
     super.dispose();
+  }
+
+  void _onFocusChanged(_MacroField field) {
+    if (!mounted || _focusNodes[field]!.hasFocus) return;
+    if (_lastEditedMacro == field) _applyPendingTextInputs();
   }
 
   Future<void> _load() async {
@@ -240,7 +260,9 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   }
 
   void _applyPendingTextInputs() {
-    switch (_lastEditedMacro) {
+    final pending = _lastEditedMacro;
+    _lastEditedMacro = null;
+    switch (pending) {
       case _MacroField.carbs:
         _applyCarbsInput();
         break;
@@ -272,7 +294,10 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     );
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
-    await widget.settingsBloc.updateTrackedDay(DateTime.now());
+    await widget.settingsBloc.updateTrackedDay(
+      await widget.settingsBloc.getCurrentLogicalDay(),
+    );
+    reloadDiaryAndTrends();
     if (!mounted) return;
     Navigator.of(context).pop();
   }
@@ -296,6 +321,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
           TextButton(
             onPressed: _loaded
                 ? () {
+                    _lastEditedMacro = null;
                     setState(() {
                       _carbsPct = _defaultCarbsPct;
                       _proteinPct = _defaultProteinPct;
@@ -328,6 +354,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     value: _carbsPct,
                     color: Colors.orange,
                     controller: _carbsController,
+                    focusNode: _focusNodes[_MacroField.carbs]!,
                     semanticIdentifier: 'macro-split-carbs',
                     onSliderChanged: (v) => setState(
                       () => _redistribute(
@@ -342,13 +369,14 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     ),
                     onSliderEnd: _syncControllers,
                     onTextChanged: (_) => _markLastEdited(_MacroField.carbs),
-                    onTextSubmitted: _applyCarbsInput,
+                    onTextSubmitted: _applyPendingTextInputs,
                   ),
                   _MacroRow(
                     label: s.proteinLabel,
                     value: _proteinPct,
                     color: Colors.blue,
                     controller: _proteinController,
+                    focusNode: _focusNodes[_MacroField.protein]!,
                     semanticIdentifier: 'macro-split-protein',
                     onSliderChanged: (v) => setState(
                       () => _redistribute(
@@ -363,13 +391,14 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     ),
                     onSliderEnd: _syncControllers,
                     onTextChanged: (_) => _markLastEdited(_MacroField.protein),
-                    onTextSubmitted: _applyProteinInput,
+                    onTextSubmitted: _applyPendingTextInputs,
                   ),
                   _MacroRow(
                     label: s.fatLabel,
                     value: _fatPct,
                     color: Colors.green,
                     controller: _fatController,
+                    focusNode: _focusNodes[_MacroField.fat]!,
                     semanticIdentifier: 'macro-split-fat',
                     onSliderChanged: (v) => setState(
                       () => _redistribute(
@@ -384,7 +413,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                     ),
                     onSliderEnd: _syncControllers,
                     onTextChanged: (_) => _markLastEdited(_MacroField.fat),
-                    onTextSubmitted: _applyFatInput,
+                    onTextSubmitted: _applyPendingTextInputs,
                   ),
                 ],
               ),
@@ -411,6 +440,7 @@ class _MacroRow extends StatelessWidget {
   final double value;
   final Color color;
   final TextEditingController controller;
+  final FocusNode focusNode;
   final String semanticIdentifier;
   final ValueChanged<double> onSliderChanged;
   final VoidCallback onSliderEnd;
@@ -422,6 +452,7 @@ class _MacroRow extends StatelessWidget {
     required this.value,
     required this.color,
     required this.controller,
+    required this.focusNode,
     required this.semanticIdentifier,
     required this.onSliderChanged,
     required this.onSliderEnd,
@@ -447,6 +478,7 @@ class _MacroRow extends StatelessWidget {
               width: MediaQuery.textScalerOf(context).scale(96),
               child: TextField(
                 controller: controller,
+                focusNode: focusNode,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 textAlign: TextAlign.right,

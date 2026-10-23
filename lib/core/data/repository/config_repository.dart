@@ -98,6 +98,24 @@ class ConfigRepository {
     await _configDataSource.setConfigFatGoalPct(fat);
   }
 
+  Future<void> setConfigGoalSettings({
+    required double? kcalAdjustment,
+    required double? carbGoalPct,
+    required double? proteinGoalPct,
+    required double? fatGoalPct,
+    required Map<String, int>? mealKcalSharesPct,
+    required int? dailyWaterGoalMl,
+  }) async {
+    await _configDataSource.setConfigGoalSettings(
+      kcalAdjustment: kcalAdjustment,
+      carbGoalPct: carbGoalPct,
+      proteinGoalPct: proteinGoalPct,
+      fatGoalPct: fatGoalPct,
+      mealKcalSharesPct: mealKcalSharesPct,
+      dailyWaterGoalMl: dailyWaterGoalMl,
+    );
+  }
+
   Future<void> setNotificationsEnabled(bool enabled) async {
     await _configDataSource.setNotificationsEnabled(enabled);
   }
@@ -112,6 +130,18 @@ class ConfigRepository {
 
   Future<void> setSelectedLocale(String? locale) async {
     await _configDataSource.setSelectedLocale(locale);
+  }
+
+  Future<bool> getLocaleSyncSeeded() async {
+    return await _configDataSource.getLocaleSyncSeeded();
+  }
+
+  Future<void> setLocaleSyncSeeded() async {
+    await _configDataSource.setLocaleSyncSeeded();
+  }
+
+  Future<void> clearLocaleSyncSeeded() async {
+    await _configDataSource.clearLocaleSyncSeeded();
   }
 
   Future<void> setConfigShowMicronutrients(bool show) async {
@@ -150,14 +180,6 @@ class ConfigRepository {
     Map<String, bool> visibility,
   ) async {
     await _configDataSource.setConfigNutrientPanelVisibility(visibility);
-  }
-
-  Future<void> setConfigDayStartOffsetHours(int hours) async {
-    await _configDataSource.setConfigDayStartOffsetHours(hours);
-  }
-
-  Future<void> setConfigDayStartOffsetMinutes(int minutes) async {
-    await _configDataSource.setConfigDayStartOffsetMinutes(minutes);
   }
 
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {

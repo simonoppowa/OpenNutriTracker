@@ -450,11 +450,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  /// Requests the notification permission and schedules the daily reminder
-  /// when the user opted in on the "Other options" page. Returns the flag
-  /// to persist: false when the user declined the system permission, so
-  /// the stored config never claims a reminder that cannot fire.
-  Future<bool> _setUpDailyReminder(BuildContext context) async {
+  /// Requests the notification permission when the user opted into the
+  /// daily reminder on the "Other options" page. Returns whether to turn the
+  /// reminder on: false when the user declined the system permission, so
+  /// the stored config never claims a reminder that cannot fire. The bloc
+  /// then schedules it, through the same scheduler as start-up and Settings.
+  Future<bool> _requestDailyReminderPermission(BuildContext context) async {
     if (!_onboardingBloc.userSelection.dailyReminderEnabled) return false;
 
     final l10n = S.of(context);
@@ -469,16 +470,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
       return false;
     }
-    // 8:00 matches the default reminder time in ConfigEntity; the user can
-    // change it later in Settings → Daily Reminder.
-    await notificationService.scheduleDailyReminder(
-      hour: 8,
-      minute: 0,
-      title: l10n.notificationsDailyReminderTitle,
-      body: l10n.notificationsDailyReminderBody,
-      channelName: l10n.notificationsDailyReminderChannelName,
-      channelDescription: l10n.notificationsDailyReminderChannelDescription,
-    );
     return true;
   }
 
@@ -490,7 +481,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final bodyWeightUnit = _onboardingBloc.userSelection.bodyWeightUnit;
     final foodImperial = _onboardingBloc.userSelection.foodUsesImperial;
     if (userEntity != null) {
-      final dailyReminderEnabled = await _setUpDailyReminder(context);
+      final reminderLocale = Localizations.localeOf(context);
+      final dailyReminderEnabled = await _requestDailyReminderPermission(
+        context,
+      );
       await _onboardingBloc.saveOnboardingData(
         userEntity,
         hasAcceptedDataCollection,
@@ -500,6 +494,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         appTheme: _onboardingBloc.userSelection.appTheme,
         foodSourceToggles: _onboardingBloc.userSelection.foodSourceToggles,
         dailyReminderEnabled: dailyReminderEnabled,
+        reminderLocale: reminderLocale,
         useMaterialYou: _onboardingBloc.userSelection.useMaterialYou,
         accentColor: _onboardingBloc.userSelection.accentColor,
       );

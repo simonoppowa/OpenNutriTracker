@@ -25,6 +25,13 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   /// "search only triggers sometimes" bug).
   String? _completedQuery;
 
+  /// Bumped by every search run. The restartable transformer only cancels
+  /// runs of its own event type, so a Retry or submit still awaiting a
+  /// provider could otherwise land after a newer search and replace its
+  /// results with ones for the old query. A run emits only while it is
+  /// still the latest.
+  int _generation = 0;
+
   ProductsBloc(this._searchProductUseCase, this._getConfigUsecase)
       : super(ProductsInitial()) {
     on<LoadProductsEvent>(
@@ -34,29 +41,15 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       (event, emit) => _loadProducts(event.searchString, emit),
       transformer: debounceRestartable(searchDebounceDuration),
     );
+    // Retry re-runs the last query through the normal path, so the result
+    // carries the unit preference and provider-failure flag like any other
+    // search. Blank to the spinner first: Retry needs visible feedback even
+    // when the failed results are still on screen.
     on<RefreshProductsEvent>((event, emit) async {
-      if (_searchString.trim().isEmpty) {
-        _completedQuery = null;
-        emit(ProductsInitial());
-        return;
+      if (_searchString.trim().length >= minQueryLength) {
+        emit(ProductsLoadingState());
       }
-      emit(ProductsLoadingState());
-      try {
-        final result = await _searchProductUseCase.searchOFFProductsByString(
-          _searchString,
-        );
-        if (emit.isDone) return;
-        emit(ProductsLoadedState(
-          products: result.meals,
-          remoteSourceEmpty: result.remoteSourceEmpty,
-          query: _searchString,
-        ));
-        _completedQuery = _searchString;
-      } catch (error) {
-        log.severe(error);
-        _completedQuery = null;
-        emit(ProductsFailedState());
-      }
+      await _loadProducts(_searchString, emit, force: true);
     });
   }
 
@@ -77,6 +70,9 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     // from triggering a search. Reset to Initial so the "start typing"
     // default widget shows.
     if (searchString.trim().length < minQueryLength) {
+      // Supersedes any search still in flight: its results would replace
+      // the reset below.
+      _generation++;
       _searchString = searchString;
       _completedQuery = null;
       if (state is! ProductsInitial) emit(ProductsInitial());
@@ -86,6 +82,9 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     if (!force && searchString == _completedQuery) {
       return;
     }
+    // Bumped only for a run that actually searches: a skipped duplicate
+    // must not orphan the in-flight run it deferred to.
+    final run = ++_generation;
     _searchString = searchString;
     // The no-blank rule keeps existing results visible while a refinement
     // is in flight — but only when there are results to keep. An empty
@@ -101,18 +100,22 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       );
       final config = await _getConfigUsecase.getConfig();
       // Cancelled by a newer debounced event while awaiting: the emit below
-      // would be a no-op, so this run must not register as completed.
-      if (emit.isDone) return;
+      // would be a no-op, so this run must not register as completed. A
+      // newer run of another event type (submit, Retry, typing) is not
+      // cancelled by the transformer, so the generation check drops it too.
+      if (emit.isDone || run != _generation) return;
       emit(
         ProductsLoadedState(
           products: result.meals,
           usesImperialUnits: config.usesImperialFoodUnits,
           remoteSourceEmpty: result.remoteSourceEmpty,
+          remoteSourceFailed: result.remoteSourceFailed,
           query: searchString,
         ),
       );
       _completedQuery = searchString;
     } catch (error) {
+      if (run != _generation) return;
       log.severe(error);
       _completedQuery = null;
       if (!emit.isDone) emit(ProductsFailedState());

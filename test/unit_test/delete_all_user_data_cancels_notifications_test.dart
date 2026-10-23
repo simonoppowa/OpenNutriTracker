@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ui' show Locale;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
@@ -5,6 +8,7 @@ import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
@@ -17,6 +21,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
@@ -66,11 +71,35 @@ class _RecordingNotificationService extends NotificationService {
   int cancels = 0;
   bool? userDataStillOnFileWhenCancelled;
 
+  /// Whether the OS would still hold a daily reminder.
+  bool reminderPending = false;
+
+  /// When set, a reminder being scheduled waits here before it reaches the
+  /// OS — a language refresh caught mid-flight.
+  Completer<void>? scheduleGate;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> scheduleDailyReminder({
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) async {
+    await scheduleGate?.future;
+    reminderPending = true;
+  }
+
   @override
   Future<void> cancelAllScheduled() async {
     cancels++;
     userDataStillOnFileWhenCancelled = _userBox.isNotEmpty;
     if (throws) throw StateError('notification plugin unavailable');
+    reminderPending = false;
   }
 }
 
@@ -99,6 +128,8 @@ void main() {
         weightLogBox: await Hive.openBox<WeightLogDBO>('delete_all_weight'),
         waterIntakeBox: await Hive.openBox<WaterIntakeDBO>('delete_all_water'),
         fastingBox: await Hive.openBox<FastingSessionDBO>('delete_all_fast'),
+        favouriteMealBox:
+            await Hive.openBox<FavouriteMealDBO>('delete_all_favourites'),
       );
       final configDataSource = ConfigDataSource(provider);
       configRepository = ConfigRepository(configDataSource);
@@ -135,13 +166,16 @@ void main() {
 
     tearDown(() async => Hive.deleteFromDisk());
 
-    DeleteAllUserDataUsecase subject(NotificationService notifications) =>
-        DeleteAllUserDataUsecase(
-          provider,
-          notifications,
-          configRepository,
-          AiCredentialStorage(_MemoryStorage()),
-        );
+    // One scheduler per app, as the locator registers it: [reminders] lets a
+    // test hand delete-all the same one a refresh is running through.
+    DeleteAllUserDataUsecase subject(
+      NotificationService notifications, {
+      DailyReminderScheduler? reminders,
+    }) => DeleteAllUserDataUsecase(
+      provider,
+      reminders ?? DailyReminderScheduler(configRepository, notifications),
+      AiCredentialStorage(_MemoryStorage()),
+    );
 
     test('the alarm the OS holds is cancelled, not merely forgotten', () async {
       final notifications = _RecordingNotificationService(userBox);
@@ -154,7 +188,7 @@ void main() {
         reason: 'nothing told the OS to drop the alarm, so it still fires at '
             '08:00 for a profile that no longer exists',
       );
-      expect(configBox.isEmpty, isTrue, reason: 'the wipe must still happen');
+      expect(userBox.isEmpty, isTrue, reason: 'the wipe must still happen');
     });
 
     test('cancelled before the data it belongs to is wiped', () async {
@@ -200,6 +234,35 @@ void main() {
       expect(afterWipe.appTheme.name, 'dark');
     });
 
+    test(
+      'a language refresh in flight cannot bring the reminder back',
+      () async {
+        final notifications = _RecordingNotificationService(userBox);
+        final scheduler = DailyReminderScheduler(
+          configRepository,
+          notifications,
+        );
+
+        // The refresh has read "enabled" and is on its way to the OS when the
+        // user confirms delete-all.
+        final gate = notifications.scheduleGate = Completer<void>();
+        final refresh = scheduler.reschedule(locale: const Locale('en'));
+        await pumpEventQueue();
+        final wipe = subject(notifications, reminders: scheduler).deleteAll();
+        await pumpEventQueue();
+        gate.complete();
+        await Future.wait([refresh, wipe]);
+
+        expect(
+          notifications.reminderPending,
+          isFalse,
+          reason:
+              'the refresh scheduled the reminder after delete-all had '
+              'cancelled it, and the saved setting now reads off',
+        );
+      },
+    );
+
     test('a notification failure does not block the wipe', () async {
       final notifications = _RecordingNotificationService(
         userBox,
@@ -213,7 +276,7 @@ void main() {
       // can still be uninstalled, data kept against an explicit request
       // cannot be un-kept.
       expect(
-        configBox.isEmpty,
+        userBox.isEmpty,
         isTrue,
         reason: 'the data survived because cancelling an alarm failed',
       );
