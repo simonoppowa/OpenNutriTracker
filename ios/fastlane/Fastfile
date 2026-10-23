@@ -20,7 +20,14 @@ platform :ios do
     # No --build-number: flutter takes CFBundleVersion from the pubspec build
     # number (the +N in `version:`), so iOS and Android share one build number
     # sourced from pubspec instead of iOS using the CI run number.
-    sh('cd .. && fvm flutter build ipa --release --flavor full --export-method app-store')
+    #
+    # ExportOptions.plist rather than --export-method: with the CalorieWidget
+    # extension embedded, the export has to be told which match profile signs
+    # which bundle id (#1449 follow-up).
+    sh('cd .. && fvm flutter build ipa --release --flavor full --export-options-plist=ios/ExportOptions.plist')
+    # flutter exits 0 when the archive succeeds and only the export fails, so
+    # fail here instead of at the artifact upload.
+    latest_ipa_path
   end
 
   desc 'Upload the latest IPA to TestFlight'
