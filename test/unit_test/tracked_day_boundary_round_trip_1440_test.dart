@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
@@ -21,23 +22,20 @@ import '../helpers/fake_hive_db_provider.dart';
 import '../helpers/hive_test_setup.dart';
 
 /// #1440: moving "Day starts at" to 23:00 and back to 0:00 replaced
-/// 2026-10-14's stored goals with 2026-10-13's.
+/// 2026-10-14's stored goals with 2026-10-13's and nulled its nutrient
+/// goals.
 ///
 /// Mirrors release run #1434, step DD2: two rows on consecutive days with
-/// different goals, each holding one entry logged from Home at a clock
-/// time before 23:00, and nothing logged on the day after the second.
+/// different goals, as 2.4.0 wrote them (keyed by date, `day` the moment
+/// the row was created), each holding one entry logged from Home at a
+/// clock time before 23:00, and nothing logged on the day after the
+/// second.
 ///
-/// The move to 23:00 lists 2026-10-14's entry under 2026-10-13, so
-/// `reconcileTrackedDays` finds the 14th's row listing nothing while it
-/// still counts calories, and deletes it. The move back lists the entry on
-/// the 14th again, finds no row there, and `_newRow` builds one from the
-/// nearest row (ties go to the earlier day): the 13th's goals and
-/// per-nutrient goals, keyed at midnight. The nutrient-goal save in
-/// between plays no part, and neither does the row's 2.4.0-era `day`.
-///
-/// These tests describe the expected behaviour. On c293acff4 all but the
-/// 04:00 round trip over a day with an entry after 04:00 fail; on 2.4.0
-/// (680eafaa8), where a boundary change is only a config write, all pass.
+/// Under 23:00 a clock-time entry is listed on the day before its
+/// calendar date, so every row's entries move a day back. The pass used
+/// to delete the row its entries left and rebuild a row for the day they
+/// reached from the nearest row's goals; the round trip then rebuilt the
+/// 14th from the 13th. A row now moves with its entries instead.
 final _meal = MealEntity(
   code: null,
   name: 'Toast',
@@ -118,29 +116,46 @@ void main() {
     ),
   );
 
-  /// A row as 2.4.0 wrote it: keyed by date, `day` the creation moment,
-  /// holding one toast.
-  TrackedDayDBO row(
-    DateTime createdAt, {
-    required double kcalGoal,
-    double? ironGoal,
-    double? fibreGoal,
-  }) => TrackedDayDBO(
-    day: createdAt,
-    calorieGoal: kcalGoal,
+  /// The 13th as the run left it: goals from an older weight, fibre 42,
+  /// no per-nutrient goals of its own.
+  TrackedDayDBO the13thRow(DateTime day) => TrackedDayDBO(
+    day: day,
+    calorieGoal: 3004.6,
     caloriesTracked: 200,
-    carbsGoal: kcalGoal / 8,
+    carbsGoal: 375.6,
     carbsTracked: 40,
-    fatGoal: kcalGoal / 30,
+    fatGoal: 106.8,
     fatTracked: 2,
-    proteinGoal: kcalGoal / 20,
+    proteinGoal: 135.2,
     proteinTracked: 6,
-    fibreGoal: fibreGoal,
-    ironGoal: ironGoal,
+    fibreGoal: 42,
   );
 
-  /// 2026-10-13 and 2026-10-14 as the run left them: different goals, an
-  /// entry each before 23:00, and nothing logged on the 15th.
+  /// The 14th: other goals, and every per-nutrient goal set.
+  TrackedDayDBO the14thRow(DateTime day) => TrackedDayDBO(
+    day: day,
+    calorieGoal: 2743.9,
+    caloriesTracked: 200,
+    carbsGoal: 343.0,
+    carbsTracked: 40,
+    fatGoal: 94.5,
+    fatTracked: 2,
+    proteinGoal: 130.3,
+    proteinTracked: 6,
+    fibreGoal: 44,
+    satFatGoal: 20,
+    sugarsGoal: 50,
+    sodiumGoal: 2300,
+    calciumGoal: 1000,
+    ironGoal: 12.5,
+    potassiumGoal: 3500,
+    vitaminDGoal: 15,
+    vitaminB12Goal: 2.4,
+    magnesiumGoal: 400,
+  );
+
+  /// 2026-10-13 and 2026-10-14 with an entry each, and nothing logged on
+  /// the 15th.
   ///
   /// With [labelledRows], `day` is the midnight label 2.5.0 writes instead
   /// of 2.4.0's creation moment.
@@ -154,94 +169,228 @@ void main() {
     await logToast('14th', the14th);
     await trackedDayBox.put(
       '2026-10-13',
-      row(
-        labelledRows ? DateTime(2026, 10, 13) : the13th,
-        kcalGoal: 3004.6,
-        fibreGoal: 42,
-      ),
+      the13thRow(labelledRows ? DateTime(2026, 10, 13) : the13th),
     );
     await trackedDayBox.put(
       '2026-10-14',
-      row(
-        labelledRows ? DateTime(2026, 10, 14) : the14th,
-        kcalGoal: 2743.9,
-        fibreGoal: 44,
-        ironGoal: 12.5,
-      ),
+      the14thRow(labelledRows ? DateTime(2026, 10, 14) : the14th),
     );
   }
 
-  void expectThe14thKeepsItsGoals() {
-    final the14th = trackedDayBox.get('2026-10-14');
-    expect(the14th, isNotNull);
-    expect(the14th!.calorieGoal, 2743.9, reason: 'calorie goal');
-    expect(the14th.carbsGoal, 2743.9 / 8, reason: 'carbs goal');
-    expect(the14th.fibreGoal, 44, reason: 'fibre goal');
-    expect(the14th.ironGoal, 12.5, reason: 'iron goal');
-    expect(the14th.caloriesTracked, 200);
-  }
+  /// Every row, by key, as the Diary reads it.
+  Map<dynamic, TrackedDayEntity> snapshot() => {
+    for (final key in trackedDayBox.keys)
+      key: TrackedDayEntity.fromTrackedDayDBO(trackedDayBox.get(key)!),
+  };
 
-  test('a 23:00 round trip with a nutrient-goal save between keeps the '
-      'goals of 2026-10-14', () async {
-    await seedTwoDays();
-
-    await setDayBoundary.setDayBoundary(23, 0);
-    // Settings → Nutrient goals → Save: the logical day under 23:00.
-    final today = DayBoundaryCalc.currentLogicalDayMinutes(23 * 60);
-    expect(today, DateTime(2026, 10, 21));
-    await addTrackedDay.addNewTrackedDayIfAbsent(today, 2702.4, 337, 90, 135);
-    await addTrackedDay.updateDayNutrientGoals(today, fibreGoal: 44);
-    await setDayBoundary.setDayBoundary(0, 0);
-
-    expectThe14thKeepsItsGoals();
-  });
-
-  test('the same round trip with no save in between', () async {
-    await seedTwoDays();
-
-    await setDayBoundary.setDayBoundary(23, 0);
-    await setDayBoundary.setDayBoundary(0, 0);
-
-    expectThe14thKeepsItsGoals();
-  });
-
-  test('the move to 23:00 alone keeps a row for 2026-10-14', () async {
-    await seedTwoDays();
-
-    await setDayBoundary.setDayBoundary(23, 0);
-
-    // Fails here: the row is deleted, since its day lists nothing.
-    expect(trackedDayBox.containsKey('2026-10-14'), isTrue);
-  });
-
-  group('how wide the trigger is', () {
-    test('rows written by 2.5.0, keyed at midnight, go the same way', () async {
-      await seedTwoDays(labelledRows: true);
+  group('a 23:00 round trip over rows 2.4.0 keyed by clock time', () {
+    test('gives every row back with all its goals, its key and its '
+        'day', () async {
+      await seedTwoDays();
+      final before = snapshot();
 
       await setDayBoundary.setDayBoundary(23, 0);
       await setDayBoundary.setDayBoundary(0, 0);
 
-      expectThe14thKeepsItsGoals();
+      expect(snapshot(), before);
     });
 
-    test('a 04:00 round trip keeps the goals of a day with an entry after '
-        '04:00', () async {
+    test('the same with a nutrient-goal save between', () async {
       await seedTwoDays();
+      final before = snapshot();
 
-      await setDayBoundary.setDayBoundary(4, 0);
+      await setDayBoundary.setDayBoundary(23, 0);
+      // Settings → Nutrient goals → Save: the logical day under 23:00.
+      final today = DayBoundaryCalc.currentLogicalDayMinutes(23 * 60);
+      expect(today, DateTime(2026, 10, 21));
+      await addTrackedDay.addNewTrackedDayIfAbsent(today, 2702.4, 337, 90, 135);
+      await addTrackedDay.updateDayNutrientGoals(today, fibreGoal: 44);
       await setDayBoundary.setDayBoundary(0, 0);
 
-      expectThe14thKeepsItsGoals();
+      final after = snapshot();
+      expect(after.remove('2026-10-21')!.fibreGoal, 44);
+      expect(after, before);
     });
 
-    test('a 04:00 round trip keeps the goals of a day whose only entry was '
-        'before 04:00', () async {
-      await seedTwoDays(onThe14th: DateTime(2026, 10, 14, 1, 30));
+    test('under 23:00 each row is on the day its entry is listed '
+        'under', () async {
+      await seedTwoDays();
+      final the13th = TrackedDayEntity.fromTrackedDayDBO(
+        trackedDayBox.get('2026-10-13')!,
+      );
+      final the14th = TrackedDayEntity.fromTrackedDayDBO(
+        trackedDayBox.get('2026-10-14')!,
+      );
 
-      await setDayBoundary.setDayBoundary(4, 0);
+      await setDayBoundary.setDayBoundary(23, 0);
+
+      final moved = snapshot();
+      expect(moved.keys, unorderedEquals(['2026-10-12', '2026-10-13']));
+      expect(
+        moved['2026-10-12'],
+        _onDay(the13th, DateTime(2026, 10, 12, 17, 45, 46, 541)),
+      );
+      expect(
+        moved['2026-10-13'],
+        _onDay(the14th, DateTime(2026, 10, 13, 20, 17, 10, 732)),
+      );
+    });
+
+    test('rows written by 2.5.0, keyed at midnight, come back the '
+        'same', () async {
+      await seedTwoDays(labelledRows: true);
+      final before = snapshot();
+
+      await setDayBoundary.setDayBoundary(23, 0);
       await setDayBoundary.setDayBoundary(0, 0);
 
-      expectThe14thKeepsItsGoals();
+      expect(snapshot(), before);
     });
   });
+
+  test('a 04:00 round trip leaves a day with an entry after 04:00 as it '
+      'was', () async {
+    await seedTwoDays();
+    final before = snapshot();
+
+    await setDayBoundary.setDayBoundary(4, 0);
+    await setDayBoundary.setDayBoundary(0, 0);
+
+    expect(snapshot(), before);
+  });
+
+  group('a day whose only entry joins a day with a row of its own', () {
+    // Under 04:00 the 14th's 01:30 toast is listed on the 13th, which
+    // keeps its own 17:45 toast, so the 14th's row has nowhere to go.
+    final early = DateTime(2026, 10, 14, 1, 30);
+
+    test('keeps its row and goals while it lists nothing', () async {
+      await seedTwoDays(onThe14th: early);
+
+      await setDayBoundary.setDayBoundary(4, 0);
+
+      final the13th = trackedDayBox.get('2026-10-13')!;
+      expect(the13th.caloriesTracked, 400);
+      expect(the13th.calorieGoal, 3004.6);
+      final the14th = trackedDayBox.get('2026-10-14');
+      expect(the14th, isNotNull, reason: 'its goals are its own');
+      expect(the14th!.caloriesTracked, 0);
+      expect(the14th.carbsTracked, 0);
+      expect(the14th.calorieGoal, 2743.9);
+      expect(the14th.ironGoal, 12.5);
+    });
+
+    test('a 04:00 round trip gives every row back', () async {
+      await seedTwoDays(onThe14th: early);
+      final before = snapshot();
+
+      await setDayBoundary.setDayBoundary(4, 0);
+      await setDayBoundary.setDayBoundary(0, 0);
+
+      expect(snapshot(), before);
+    });
+  });
+
+  test('a day split by the move gives its early entry the goals it was '
+      'logged under, and a round trip adds no row', () async {
+    // The 13th and the 15th have rows with other goals; nothing was
+    // logged on the 14th. Under 04:00 the 15th's 02:00 toast is listed on
+    // the 14th, and its 12:00 toast keeps the 15th's row where it is.
+    await logToast('13th', DateTime(2026, 10, 13, 12));
+    await logToast('15th-early', DateTime(2026, 10, 15, 2));
+    await logToast('15th-noon', DateTime(2026, 10, 15, 12));
+    await trackedDayBox.put('2026-10-13', the13thRow(DateTime(2026, 10, 13)));
+    await trackedDayBox.put(
+      '2026-10-15',
+      the14thRow(DateTime(2026, 10, 15))
+        ..caloriesTracked = 400
+        ..carbsTracked = 80
+        ..fatTracked = 4
+        ..proteinTracked = 12,
+    );
+    final before = snapshot();
+
+    await setDayBoundary.setDayBoundary(4, 0);
+
+    final the14th = trackedDayBox.get('2026-10-14')!;
+    expect(the14th.caloriesTracked, 200);
+    expect(the14th.calorieGoal, 2743.9, reason: 'the 15th\'s, not the 13th\'s');
+    expect(the14th.ironGoal, 12.5);
+    expect(trackedDayBox.get('2026-10-15')!.caloriesTracked, 200);
+
+    await setDayBoundary.setDayBoundary(0, 0);
+
+    expect(snapshot(), before);
+  });
+
+  // #1441: Home shows the current goals, the Diary the logical today's
+  // row. With the boundary moved past the hour, the logical today used to
+  // keep yesterday's row, set under an older macro split.
+  test('under 23:00 the logical today has the row today\'s entries were '
+      'logged under, with today\'s macro split', () async {
+    // Yesterday under 50/19/31, today under 45/21/34, both 2934 kcal.
+    await logToast('21st', DateTime(2026, 10, 21, 12));
+    await logToast('22nd', DateTime(2026, 10, 22, 19));
+    await trackedDayBox.put(
+      '2026-10-21',
+      TrackedDayDBO(
+        day: DateTime(2026, 10, 21),
+        calorieGoal: 2934,
+        caloriesTracked: 200,
+        carbsGoal: 366.8,
+        carbsTracked: 40,
+        fatGoal: 61.9,
+        fatTracked: 2,
+        proteinGoal: 227.4,
+        proteinTracked: 6,
+      ),
+    );
+    await trackedDayBox.put(
+      '2026-10-22',
+      TrackedDayDBO(
+        day: DateTime(2026, 10, 22),
+        calorieGoal: 2934,
+        caloriesTracked: 200,
+        carbsGoal: 330.1,
+        carbsTracked: 40,
+        fatGoal: 68.5,
+        fatTracked: 2,
+        proteinGoal: 249.4,
+        proteinTracked: 6,
+      ),
+    );
+
+    await setDayBoundary.setDayBoundary(23, 0);
+
+    final today = DayBoundaryCalc.currentLogicalDayMinutes(23 * 60);
+    expect(today, DateTime(2026, 10, 21));
+    final row = trackedDayBox.get('2026-10-21')!;
+    expect(row.caloriesTracked, 200);
+    expect(row.carbsGoal, 330.1);
+    expect(row.fatGoal, 68.5);
+    expect(row.proteinGoal, 249.4);
+  });
 }
+
+/// [row] with its `day` moved to [day].
+TrackedDayEntity _onDay(TrackedDayEntity row, DateTime day) => TrackedDayEntity(
+  day: day,
+  calorieGoal: row.calorieGoal,
+  caloriesTracked: row.caloriesTracked,
+  carbsGoal: row.carbsGoal,
+  carbsTracked: row.carbsTracked,
+  fatGoal: row.fatGoal,
+  fatTracked: row.fatTracked,
+  proteinGoal: row.proteinGoal,
+  proteinTracked: row.proteinTracked,
+  fibreGoal: row.fibreGoal,
+  satFatGoal: row.satFatGoal,
+  sugarsGoal: row.sugarsGoal,
+  sodiumGoal: row.sodiumGoal,
+  calciumGoal: row.calciumGoal,
+  ironGoal: row.ironGoal,
+  potassiumGoal: row.potassiumGoal,
+  vitaminDGoal: row.vitaminDGoal,
+  vitaminB12Goal: row.vitaminB12Goal,
+  magnesiumGoal: row.magnesiumGoal,
+);
