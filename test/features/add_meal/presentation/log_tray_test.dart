@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
@@ -42,6 +47,8 @@ MealEntity _meal(
   double? servingQuantity,
   String? servingSize,
   bool complete = true,
+  MealSourceEntity source = MealSourceEntity.custom,
+  bool detailed = false,
 }) => MealEntity(
   code: name,
   name: name,
@@ -60,7 +67,8 @@ MealEntity _meal(
     saturatedFat100: null,
     fiber100: null,
   ),
-  source: MealSourceEntity.custom,
+  source: source,
+  detailed: detailed,
 );
 
 IntakeEntity _intake(MealEntity meal) => IntakeEntity(
@@ -114,9 +122,34 @@ class _FakeSearch implements SearchProductsUseCase {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
+class _FakeCache extends Fake implements RemoteSearchCacheDataSource {
+  @override
+  MealDBO? getDetailedByBarcode(String barcode) => null;
+
+  @override
+  Future<void> cache(MealDBO meal) async {}
+}
+
+/// Answers a barcode lookup with [full], or fails when it is null.
+class _FakeProducts extends Fake implements ProductsRepository {
+  MealEntity? full;
+  var lookups = 0;
+
+  @override
+  Future<MealEntity> getOFFProductByBarcode(String barcode) async {
+    lookups++;
+    final meal = full;
+    if (meal == null) throw StateError('offline');
+    return meal;
+  }
+}
+
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   final writes = <({String unit, String amount, String? name})>[];
   int? failAt;
+
+  /// When set, every write waits on it.
+  Completer<void>? gate;
 
   @override
   Future<void> addIntake(
@@ -128,6 +161,7 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
     DateTime day,
   ) async {
     if (failAt == writes.length) throw StateError('write failed');
+    await gate?.future;
     writes.add((unit: unit, amount: amountText, name: meal.name));
   }
 }
@@ -153,6 +187,7 @@ final getIt = GetIt.instance;
 FakeFavourites? _favourites;
 late _FakeMealDetailBloc _mealDetailBloc;
 late _FakeHomeBloc _homeBloc;
+late _FakeProducts _products;
 
 Future<void> _register(List<MealEntity> recent) async {
   await getIt.reset();
@@ -181,6 +216,9 @@ Future<void> _register(List<MealEntity> recent) async {
   getIt.registerFactory<HomeBloc>(() => _homeBloc);
   getIt.registerFactory<DiaryBloc>(() => _FakeDiaryBloc());
   getIt.registerFactory<CalendarDayBloc>(() => _FakeCalendarDayBloc());
+  _products = _FakeProducts();
+  getIt.registerSingleton<RemoteSearchCacheDataSource>(_FakeCache());
+  getIt.registerSingleton<ProductsRepository>(_products);
 }
 
 /// Main at the bottom, the add-food screen pushed over it, and a recording
@@ -277,9 +315,21 @@ void main() {
 
       tray.removeAt(0);
       expect(tray.items.map((i) => i.meal.name), ['B', 'A']);
+
+      // By identity: an equal-looking entry that was not named stays.
+      final again = LogTrayItem(
+        meal: b,
+        unit: 'g',
+        amount: 200,
+        amountLabel: '',
+      );
+      tray.add(again);
+      tray.removeAll([tray.items.first]);
+      expect(tray.items.map((i) => i.meal.name), ['A', 'B']);
+      expect(identical(tray.items.last, again), isTrue);
       tray.clear();
       expect(tray.isEmpty, isTrue);
-      expect(notified, 4);
+      expect(notified, 6);
     });
   });
 
@@ -494,6 +544,75 @@ void main() {
       await tester.tap(_logButton());
       await tester.pumpAndSettle();
       expect(_mealDetailBloc.writes.single.name, 'Cake');
+    });
+
+    testWidgets('+ on a thin search hit uses the full record\'s serving', (
+      tester,
+    ) async {
+      await _register([_meal('Granola', source: MealSourceEntity.off)]);
+      _products.full = _meal(
+        'Granola',
+        source: MealSourceEntity.off,
+        servingQuantity: 45,
+        servingSize: '45 g',
+        detailed: true,
+      );
+      await _openAddMeal(tester, []);
+
+      await _tapPlus(tester, 'Granola');
+      await tester.pumpAndSettle();
+      await tester.tap(_logButton());
+      await tester.pumpAndSettle();
+
+      expect(_products.lookups, 1);
+      final write = _mealDetailBloc.writes.single;
+      expect(write.unit, 'serving');
+      expect(write.amount, '45.0');
+    });
+
+    testWidgets('+ keeps the thin record when the lookup fails', (
+      tester,
+    ) async {
+      await _register([_meal('Granola', source: MealSourceEntity.off)]);
+      await _openAddMeal(tester, []);
+
+      await _tapPlus(tester, 'Granola');
+      await tester.pumpAndSettle();
+      await tester.tap(_logButton());
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes.single.unit, 'g');
+      expect(_mealDetailBloc.writes.single.amount, '100.0');
+    });
+
+    testWidgets('the list cannot change while it is being written', (
+      tester,
+    ) async {
+      await _register([_meal('Oats'), _meal('Milk')]);
+      await _openAddMeal(tester, []);
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+      await _tapPlus(tester, 'Milk');
+      await tester.pumpAndSettle();
+      final gate = _mealDetailBloc.gate = Completer<void>();
+
+      await tester.tap(_logButton());
+      await tester.pump();
+      await tester.tap(
+        find.bySemanticsIdentifier('add-meal-tray-remove').first,
+        warnIfMissed: false,
+      );
+      await tester.tap(
+        find.bySemanticsIdentifier('add-meal-tray-clear'),
+        warnIfMissed: false,
+      );
+      await tester.pump();
+      expect(find.text(l10nEn.bulkAddSubmitLabel(2)), findsOneWidget);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(_mealDetailBloc.writes.map((w) => w.name), ['Oats', 'Milk']);
+      expect(find.byKey(const Key('main')), findsOneWidget);
     });
 
     testWidgets('a food missing a macro opens its detail instead', (

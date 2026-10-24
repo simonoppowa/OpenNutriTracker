@@ -4,9 +4,11 @@ import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
+import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
@@ -33,6 +35,7 @@ import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_scree
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -64,6 +67,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
   /// the bottom logs. Handed to the screens this one opens.
   final _logTray = LogTray();
   bool _logging = false;
+
+  /// Codes whose + is still fetching the full record.
+  final _quickAdding = <String>{};
 
   // Single smart search: one field, one results list, and source-filter chips.
   // Opens on Recent (fast re-logging); typing searches Products by default,
@@ -116,9 +122,15 @@ class _AddMealScreenState extends State<AddMealScreen> {
         // Leaving with items on the list would drop them without a word.
         canPop: _logTray.isEmpty,
         onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _confirmDiscardTray();
+          if (!didPop && !_logging) _confirmDiscardTray();
         },
-        child: _buildScaffold(context, palette),
+        // Nothing on the screen takes input while the list is being
+        // written: an item added or removed mid-write would be dropped by
+        // the return to the day, or logged after being removed.
+        child: AbsorbPointer(
+          absorbing: _logging,
+          child: _buildScaffold(context, palette),
+        ),
       ),
     );
   }
@@ -840,7 +852,20 @@ class _AddMealScreenState extends State<AddMealScreen> {
     onQuickAdd: () => _onQuickAddToTray(meal, usesImperialUnits),
   );
 
-  void _onQuickAddToTray(MealEntity meal, bool usesImperialUnits) {
+  Future<void> _onQuickAddToTray(
+    MealEntity meal,
+    bool usesImperialUnits,
+  ) async {
+    final code = meal.code ?? '';
+    // A second tap while the first is still fetching would add it twice.
+    if (_quickAdding.contains(code)) return;
+    _quickAdding.add(code);
+    try {
+      meal = await _detailedForQuickAdd(meal);
+    } finally {
+      _quickAdding.remove(code);
+    }
+    if (!mounted) return;
     final state = _addMealBloc.state;
     final item = defaultLogTrayItem(
       context,
@@ -868,13 +893,32 @@ class _AddMealScreenState extends State<AddMealScreen> {
     _logTray.add(item);
   }
 
+  /// The full record behind a thin Open Food Facts search hit, so the +
+  /// picks the serving the detail screen would pick. Falls back to the thin
+  /// record when the fetch fails, as the detail screen does.
+  Future<MealEntity> _detailedForQuickAdd(MealEntity meal) async {
+    try {
+      return await fetchDetailedOffMeal(
+            meal,
+            locator<RemoteSearchCacheDataSource>(),
+            locator<ProductsRepository>(),
+          ) ??
+          meal;
+    } catch (e, stackTrace) {
+      _log.warning('Quick-add hydration failed', e, stackTrace);
+      return meal;
+    }
+  }
+
   /// Writes the whole list, then returns to the day it was logged to.
   Future<void> _logAll() async {
     if (_logging || _logTray.isEmpty) return;
+    // The screen ignores input until this returns (see build), so the list
+    // cannot change under the writes below.
     setState(() => _logging = true);
     final mealDetailBloc = locator<MealDetailBloc>();
     final type = _mealType.getIntakeType();
-    var written = 0;
+    final written = <LogTrayItem>[];
     try {
       // Sequential, not concurrent: the tracked-day totals are a
       // read-modify-write, and overlapping writes would lose updates.
@@ -887,23 +931,21 @@ class _AddMealScreenState extends State<AddMealScreen> {
           item.meal,
           _day,
         );
-        written++;
+        written.add(item);
       }
     } catch (e, stackTrace) {
       _log.severe('Logging the to-log list failed', e, stackTrace);
       if (!mounted) return;
       // What was written stays written; only the rest waits for a retry,
       // so trying again cannot log anything twice.
-      for (var i = 0; i < written; i++) {
-        _logTray.removeAt(0);
-      }
+      _logTray.removeAll(written);
       setState(() => _logging = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context).logTrayLogFailedLabel)),
       );
       return;
     } finally {
-      _refreshLoggedDays(written);
+      _refreshLoggedDays(written.length);
     }
     if (!mounted) return;
     _logTray.clear();

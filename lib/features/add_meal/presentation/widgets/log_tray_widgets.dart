@@ -134,10 +134,16 @@ class _LogTrayRow extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: onRemove,
-            tooltip: S.of(context).logTrayRemoveLabel,
-            icon: Icon(Icons.close_rounded, color: palette.textMuted),
+          // One identifier for every row's control: the rows are found by
+          // their food's name, and an index in the id would shift whenever
+          // an earlier row is removed.
+          Semantics(
+            identifier: 'add-meal-tray-remove',
+            child: IconButton(
+              onPressed: onRemove,
+              tooltip: S.of(context).logTrayRemoveLabel,
+              icon: Icon(Icons.close_rounded, color: palette.textMuted),
+            ),
           ),
         ],
       ),

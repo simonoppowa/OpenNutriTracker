@@ -67,6 +67,15 @@ class LogTray extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Removes exactly these entries, by identity rather than position: two
+  /// helpings of the same food are two entries, and only the ones named
+  /// here go.
+  void removeAll(Iterable<LogTrayItem> items) {
+    final gone = items.toList();
+    _items.removeWhere((item) => gone.any((g) => identical(g, item)));
+    notifyListeners();
+  }
+
   void clear() {
     _items.clear();
     notifyListeners();
