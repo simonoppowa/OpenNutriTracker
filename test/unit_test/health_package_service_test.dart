@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:health/health.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
@@ -53,6 +54,17 @@ class _FakeHealth extends Fake implements Health {
 class _FakeWorkoutReader extends Fake implements HealthConnectWorkoutReader {
   List<ExternalWorkout> sessions = const [];
   int calls = 0;
+  bool permissionsHeld = true;
+  Object? permissionsError;
+  int permissionChecks = 0;
+
+  @override
+  Future<bool> hasWorkoutReadPermissions() async {
+    permissionChecks++;
+    final error = permissionsError;
+    if (error != null) throw error;
+    return permissionsHeld;
+  }
 
   @override
   Future<List<ExternalWorkout>> readExerciseSessions({
@@ -395,13 +407,46 @@ void main() {
     });
 
     test('a definite refusal still aborts before any read', () async {
-      health.workoutPermissions = false;
+      reader.permissionsHeld = false;
 
       expect(
         () => service.readWorkouts(from: from, to: to),
         throwsStateError,
       );
       expect(reader.calls, 0);
+    });
+
+    // The plugin's hasPermissions runs getGrantedPermissions() in a coroutine
+    // with no handler, so a rate-limited Health Connect there ended the
+    // process (Sentry OPENNUTRITRACKER-6T). The grant check must not touch it.
+    test('the grant check never goes through the plugin', () async {
+      health.workoutPermissions = false;
+
+      await service.readWorkouts(from: from, to: to);
+
+      expect(reader.permissionChecks, 1);
+      expect(health.recheckedTypes, isNull);
+    });
+
+    test('a failing grant check surfaces as an error, not a read', () async {
+      reader.permissionsError = PlatformException(
+        code: HealthConnectWorkoutReader.rateLimitedCode,
+      );
+
+      await expectLater(
+        service.readWorkouts(from: from, to: to),
+        throwsA(isA<PlatformException>()),
+      );
+      expect(reader.calls, 0);
+    });
+
+    test('requestPermissions re-checks the grants through the same path',
+        () async {
+      reader.permissionsHeld = false;
+
+      expect(await service.requestPermissions(), isFalse);
+      expect(reader.permissionChecks, 1);
+      expect(health.recheckedTypes, isNull);
     });
   });
 }
