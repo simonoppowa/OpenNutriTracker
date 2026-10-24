@@ -9,6 +9,8 @@ import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
+import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
@@ -45,12 +47,17 @@ class BulkAddScreenArguments {
   /// setup when no model that can read a photo is configured yet.
   final bool startWithPhoto;
 
+  /// The add-food screen's "To log" list. With one, the button puts the
+  /// checked rows on it and returns there instead of logging them.
+  final LogTray? logTray;
+
   const BulkAddScreenArguments(
     this.intakeTypeEntity,
     this.day,
     this.usesImperialUnits, {
     this.initialText,
     this.startWithPhoto = false,
+    this.logTray,
   });
 }
 
@@ -1501,7 +1508,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             // instead of squeezing it — the label is the action.
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final label = S.of(context).bulkAddSubmitLabel(count);
+                final label = _args.logTray == null
+                    ? S.of(context).bulkAddSubmitLabel(count)
+                    : S.of(context).bulkAddToListLabel(count);
                 final kcal = count > 0
                     ? EnergyDisplay.formatWithUnit(context, total)
                     : null;
@@ -1714,6 +1723,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       builder: (_) => QuickAddBottomSheet(
         intakeType: _args.intakeTypeEntity,
         day: _args.day,
+        logTray: _args.logTray,
       ),
     );
   }
@@ -1794,6 +1804,32 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           ),
         ),
       );
+      return;
+    }
+
+    final logTray = _args.logTray;
+    if (logTray != null) {
+      // The same validated rows, onto the list instead of into the diary.
+      // The review this screen exists for (#599) has happened by now; the
+      // list only defers the write.
+      logTray.addAll([
+        for (final write in writes)
+          LogTrayItem(
+            meal: write.row.meal!,
+            unit: storedUnit(write.row.effectiveUnit),
+            amount: write.amount,
+            amountLabel:
+                '${write.row.amountText.trim()} '
+                '${_unitLabel(context, write.row.effectiveUnit, write.row)}',
+          ),
+      ]);
+      setState(() => _quantityErrors.clear());
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.of(context).logTrayAddedLabel)));
+      Navigator.of(
+        context,
+      ).popUntil(namedRouteOrFirst(NavigationOptions.addMealRoute));
       return;
     }
 
