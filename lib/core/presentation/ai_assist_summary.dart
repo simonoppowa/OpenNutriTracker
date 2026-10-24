@@ -1,4 +1,5 @@
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/gemini_endpoint.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// What the AI meal assistance row says beneath its title, in one place.
@@ -89,6 +90,16 @@ String _ownServerDisclosure(S s, String typedEndpoint) {
   // it.
   final display = AiCredentialStorage.displayHost(typed);
   if (display == null) return '';
+  // Google's hosted Gemini API is reachable through this provider, and it is
+  // not a server the user runs: the other two strings would tell someone
+  // sending meals to Google that no third party receives them. Decided by the
+  // same check that shapes the request, so the paragraph and the wire cannot
+  // disagree about who is on the other end. Scheme-independent: Google
+  // serves this over HTTPS, and a plain-HTTP address that resolves publicly
+  // is refused by `GuardedPlaintextClient` before anything is sent.
+  if (isGeminiEndpoint(Uri.parse(typed))) {
+    return s.aiAssistDisclosureOwnServerGemini(display);
+  }
   // Which of the two this connection is, read off the scheme as typed, and
   // nothing beyond that. It deliberately does **not** say the address is
   // private: nothing checks that today — #758 may — and the string it picks
