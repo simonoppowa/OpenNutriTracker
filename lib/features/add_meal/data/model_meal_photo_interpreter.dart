@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
 
 /// Reads a photograph of a meal with a model and returns the foods it can
 /// identify, so the existing search can resolve each one against Open Food
@@ -116,18 +117,44 @@ Rules:
   /// The one exception is an amount the user's [note] states ("200 g
   /// rice"): the model may copy it, never estimate one. The note is read
   /// with the typed path's own parser, so "200g" and "200 g" are the same
-  /// statement.
+  /// statement. Each stated amount goes to one item only: first to an item
+  /// whose name shares a word with the food the note gives it to, then by
+  /// the amount alone. A model told a count has no unit may copy "200 g
+  /// rice" as a bare 200, which reads as 200 servings: an item the note
+  /// names with the stated number takes the stated unit.
   MealTextParseResult _countsOnly(MealTextParseResult result, String? note) {
-    final stated = {
+    final stated = [
       if (note != null)
         for (final item in parseMealText(note).items)
-          if (item.unit != null) (item.quantity, item.unit),
-    };
+          if (item.unit != null)
+            (item.quantity, item.unit, tokenize(item.query)),
+    ];
+    // Each kept item's index, with the unit it keeps.
+    final kept = <int, String?>{};
+    for (final byName in [true, false]) {
+      for (final (i, item) in result.items.indexed) {
+        if (kept.containsKey(i)) continue;
+        final match = stated.indexWhere(
+          (s) =>
+              s.$1 == item.quantity &&
+              (s.$2 == item.unit || (byName && item.unit == null)) &&
+              (!byName || s.$3.any(tokenize(item.query).contains)),
+        );
+        if (match < 0) continue;
+        kept[i] = stated.removeAt(match).$2;
+      }
+    }
     return MealTextParseResult(
       items: [
-        for (final item in result.items)
-          if ((item.unit == null && _isWholeCount(item.quantity)) ||
-              stated.contains((item.quantity, item.unit)))
+        for (final (i, item) in result.items.indexed)
+          if (kept.containsKey(i))
+            ParsedMealItem(
+              query: item.query,
+              quantity: item.quantity,
+              unit: kept[i],
+              portion: item.portion,
+            )
+          else if (item.unit == null && _isWholeCount(item.quantity))
             item
           else
             ParsedMealItem(query: item.query, quantity: null, unit: null),

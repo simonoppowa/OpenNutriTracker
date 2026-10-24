@@ -630,5 +630,60 @@ void main() {
         ], [(null, null), (null, null)], reason: note);
       }
     });
+
+    test('an amount the note states once is kept once', () async {
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'rice', 'quantity': 200, 'unit': 'g'},
+          {'query': 'chicken', 'quantity': 200, 'unit': 'g'},
+        ]),
+      );
+
+      final result = await interpreterWith(
+        client,
+      ).interpret(_photo, note: '200 g rice');
+
+      expect(
+        [for (final i in result.items) (i.query, i.quantity, i.unit)],
+        [('rice', 200.0, 'g'), ('chicken', null, null)],
+      );
+    });
+
+    test('a stated amount goes to the food the note names', () async {
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'chicken', 'quantity': 200, 'unit': 'g'},
+          {'query': 'white rice', 'quantity': 200, 'unit': 'g'},
+        ]),
+      );
+
+      final result = await interpreterWith(
+        client,
+      ).interpret(_photo, note: '200 g rice');
+
+      expect(
+        [for (final i in result.items) (i.query, i.quantity, i.unit)],
+        [('chicken', null, null), ('white rice', 200.0, 'g')],
+      );
+    });
+
+    test('a stated amount copied without its unit takes the unit back', () async {
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'rice', 'quantity': 200},
+          {'query': 'egg', 'quantity': 2},
+        ]),
+      );
+
+      final result = await interpreterWith(
+        client,
+      ).interpret(_photo, note: '200 g rice');
+
+      // Not 200 servings of rice; the eggs' count is the model's own.
+      expect(
+        [for (final i in result.items) (i.query, i.quantity, i.unit)],
+        [('rice', 200.0, 'g'), ('egg', 2.0, null)],
+      );
+    });
   });
 }
