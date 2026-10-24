@@ -109,4 +109,60 @@ void main() {
       throwsA(isA<PlatformException>()),
     );
   });
+
+  group('hasWorkoutReadPermissions', () {
+    test('relays the platform\'s answer', () async {
+      response = true;
+      expect(await reader.hasWorkoutReadPermissions(), isTrue);
+      expect(lastCall?.method, 'hasWorkoutReadPermissions');
+
+      response = false;
+      expect(await reader.hasWorkoutReadPermissions(), isFalse);
+    });
+
+    test('an empty answer is not a grant', () async {
+      response = null;
+      expect(await reader.hasWorkoutReadPermissions(), isFalse);
+    });
+
+    test('a refusal arrives as a PlatformException the caller can catch',
+        () async {
+      response = PlatformException(
+        code: HealthConnectWorkoutReader.rateLimitedCode,
+        message: 'Rate limited request quota has been exceeded.',
+      );
+
+      await expectLater(
+        reader.hasWorkoutReadPermissions(),
+        throwsA(
+          isA<PlatformException>().having(
+            (e) => HealthConnectWorkoutReader.isRateLimited(e),
+            'isRateLimited',
+            isTrue,
+          ),
+        ),
+      );
+    });
+  });
+
+  group('isRateLimited', () {
+    test('only the rate-limited code counts', () {
+      expect(
+        HealthConnectWorkoutReader.isRateLimited(
+          PlatformException(code: 'health_connect_rate_limited'),
+        ),
+        isTrue,
+      );
+      expect(
+        HealthConnectWorkoutReader.isRateLimited(
+          PlatformException(code: 'health_connect_unavailable'),
+        ),
+        isFalse,
+      );
+      expect(
+        HealthConnectWorkoutReader.isRateLimited(StateError('rate limited')),
+        isFalse,
+      );
+    });
+  });
 }

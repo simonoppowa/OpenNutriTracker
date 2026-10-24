@@ -85,34 +85,25 @@ class MainActivity : FlutterFragmentActivity() {
                             )
                             return@setMethodCallHandler
                         }
-                        healthConnectScope.launch {
-                            try {
-                                result.success(
-                                    HealthConnectWorkoutReader.readExerciseSessions(
-                                        applicationContext,
-                                        from,
-                                        to,
-                                    ),
-                                )
-                            } catch (e: CancellationException) {
-                                // The activity went away mid-read and
-                                // [onDestroy] cancelled the scope. Cancellation
-                                // is control flow, not a failure: rethrow it so
-                                // the coroutine actually ends, rather than
-                                // catching it below and answering a channel
-                                // whose engine is gone.
-                                throw e
-                            } catch (e: SecurityException) {
-                                // A revoked grant. Distinguished from the rest
-                                // so Dart can tell the user to re-grant instead
-                                // of reporting a generic failure.
-                                result.error("permission_denied", e.message, null)
-                            } catch (e: Exception) {
-                                // Health Connect uninstalled or updating, a
-                                // client that will not initialise, an IO fault.
-                                result.error("health_connect_unavailable", e.message, null)
-                            }
+                        answerFromHealthConnect(result) {
+                            HealthConnectWorkoutReader.readExerciseSessions(
+                                applicationContext,
+                                from,
+                                to,
+                            )
                         }
+                    }
+                    // Whether the two grants a workout import needs are still
+                    // held. Asked here rather than through the health plugin's
+                    // `hasPermissions`, which calls `getGrantedPermissions()`
+                    // in a coroutine with no handler: a rate-limited or dead
+                    // Health Connect there is an uncaught exception on the
+                    // main thread, which ends the process and cannot be caught
+                    // from Dart.
+                    "hasWorkoutReadPermissions" -> answerFromHealthConnect(result) {
+                        HealthConnectWorkoutReader.hasWorkoutReadPermissions(
+                            applicationContext,
+                        )
                     }
                     else -> result.notImplemented()
                 }
@@ -142,6 +133,56 @@ class MainActivity : FlutterFragmentActivity() {
                 }
             }
     }
+
+    /**
+     * Runs a Health Connect read and answers [result] with its outcome, mapping
+     * every failure to an error code Dart can act on instead of letting it
+     * escape the coroutine.
+     *
+     *  * `permission_denied` for a revoked grant;
+     *  * `health_connect_rate_limited` when Health Connect's request quota is
+     *    spent ("Rate limited request quota has been exceeded"), which clears
+     *    on its own and is worth backing off from rather than retrying;
+     *  * `health_connect_unavailable` for anything else.
+     */
+    private fun answerFromHealthConnect(
+        result: MethodChannel.Result,
+        read: suspend () -> Any?,
+    ) {
+        healthConnectScope.launch {
+            try {
+                result.success(read())
+            } catch (e: CancellationException) {
+                // The activity went away mid-read and [onDestroy] cancelled the
+                // scope. Cancellation is control flow, not a failure: rethrow
+                // it so the coroutine actually ends, rather than catching it
+                // below and answering a channel whose engine is gone.
+                throw e
+            } catch (e: SecurityException) {
+                // A revoked grant. Distinguished from the rest so Dart can tell
+                // the user to re-grant instead of reporting a generic failure.
+                result.error("permission_denied", e.message, null)
+            } catch (e: Exception) {
+                if (isRateLimited(e)) {
+                    result.error("health_connect_rate_limited", e.message, null)
+                } else {
+                    // Health Connect uninstalled or updating, a client that
+                    // will not initialise, an IO fault.
+                    result.error("health_connect_unavailable", e.message, null)
+                }
+            }
+        }
+    }
+
+    /**
+     * Health Connect reports an exhausted request quota as a RemoteException
+     * ("Request rejected. Rate limited request quota has been exceeded...")
+     * that the client may wrap, so the whole cause chain is searched.
+     */
+    private fun isRateLimited(error: Throwable): Boolean =
+        generateSequence(error) { it.cause }.any {
+            it.message?.contains("rate limited", ignoreCase = true) == true
+        }
 
     /**
      * The activity is `launchMode="singleTop"`, so Health Connect reaching a

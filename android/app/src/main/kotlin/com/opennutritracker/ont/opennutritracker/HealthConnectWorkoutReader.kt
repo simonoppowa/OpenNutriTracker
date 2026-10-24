@@ -1,7 +1,9 @@
 package com.opennutritracker.ont.opennutritracker
 
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import android.content.Context
@@ -29,6 +31,23 @@ import java.time.Instant
  * which needs only `READ_TOTAL_CALORIES_BURNED`.
  */
 object HealthConnectWorkoutReader {
+
+    /**
+     * Whether both grants a workout import reads with are held:
+     * `READ_EXERCISE` for the sessions and `READ_TOTAL_CALORIES_BURNED` for
+     * their energy. The health plugin answers the same question in a
+     * coroutine with no exception handler, so a Health Connect that refuses
+     * the call (rate limited, updating, dead) takes the process down; here the
+     * failure reaches the caller's catch instead.
+     */
+    suspend fun hasWorkoutReadPermissions(context: Context): Boolean {
+        val client = HealthConnectClient.getOrCreate(context)
+        val needed = setOf(
+            HealthPermission.getReadPermission(ExerciseSessionRecord::class),
+            HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
+        )
+        return client.permissionController.getGrantedPermissions().containsAll(needed)
+    }
 
     /**
      * Sessions that START inside `[from, to)`, as plain maps for the method
