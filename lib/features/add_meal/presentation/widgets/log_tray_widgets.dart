@@ -28,9 +28,14 @@ class LogTrayList extends StatelessWidget {
           padding: const EdgeInsetsDirectional.only(start: Dimens.spacing4),
           child: Row(
             children: [
+              // One line beside Clear at any text size (AGENTS.md, row
+              // titles): it shrinks before it ellipsizes.
               Expanded(
-                child: Text(
+                child: AutoSizeText(
                   S.of(context).logTrayTitle(items.length).toUpperCase(),
+                  maxLines: 1,
+                  minFontSize: 10,
+                  overflow: TextOverflow.ellipsis,
                   style: textTheme.labelLarge?.copyWith(
                     color: accent,
                     fontWeight: FontWeight.w800,
