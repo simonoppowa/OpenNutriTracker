@@ -61,6 +61,8 @@ class ConfigDataSource {
       merged.healthImportEnabled = profile.healthImportEnabled;
       merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
       merged.healthLastImportAt = profile.healthLastImportAt;
+      merged.healthWeightImportEnabled = profile.healthWeightImportEnabled;
+      merged.healthWeightLastImportAt = profile.healthWeightLastImportAt;
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
       merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
       merged.trackedDaysOffsetMinutes = profile.trackedDaysOffsetMinutes;
@@ -78,6 +80,8 @@ class ConfigDataSource {
       merged.healthImportEnabled = null;
       merged.healthWorkoutKcalMultiplier = null;
       merged.healthLastImportAt = null;
+      merged.healthWeightImportEnabled = null;
+      merged.healthWeightLastImportAt = null;
       merged.healthDeletedExternalIds = null;
       merged.healthDeletedWorkouts = null;
       merged.trackedDaysOffsetMinutes = null;
@@ -410,6 +414,14 @@ class ConfigDataSource {
 
   Future<void> setConfigHealthLastImportAt(DateTime? importedAt) async {
     await _update((c) => c.healthLastImportAt = importedAt);
+  }
+
+  Future<void> setConfigHealthWeightImportEnabled(bool enabled) async {
+    await _update((c) => c.healthWeightImportEnabled = enabled);
+  }
+
+  Future<void> setConfigHealthWeightLastImportAt(DateTime? importedAt) async {
+    await _update((c) => c.healthWeightLastImportAt = importedAt);
   }
 
   /// Records that the imported workout behind [externalId], which started at

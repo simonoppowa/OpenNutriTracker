@@ -120,8 +120,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     await _addUserUsecase.addUser(userEntity);
     // The weight given here is the first reading, not only the profile's
     // current value: without it Weight history opened empty on a profile
-    // that plainly has a weight (#1367). The log is keyed by day and every
-    // path back into onboarding wipes it first, so this never doubles up.
+    // that plainly has a weight (#1367). It is also what tells the health
+    // weight import the user's own weight is from today: without it a scale
+    // reading taken after the profile was created but before onboarding
+    // finished would look newer and replace it. The log is keyed by day and
+    // every path back into onboarding wipes it first, so this never doubles
+    // up.
     final now = DateTime.now();
     await _addWeightLogUsecase.addEntry(
       WeightLogEntity(
