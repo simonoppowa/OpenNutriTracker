@@ -9,7 +9,7 @@ import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// Import flow for user-supplied food data. A SegmentedButton at the top
 /// lets the user pick whether they're working with CSV files (meals or
@@ -30,10 +30,10 @@ class ImportCustomFoodDataDialog extends StatefulWidget {
 
 class _ImportCustomFoodDataDialogState
     extends State<ImportCustomFoodDataDialog> {
-  static final _offAndroidUrl = Uri.parse(
-      'https://play.google.com/store/apps/details?id=org.openfoodfacts.scanner');
-  static final _offIosUrl = Uri.parse(
-      'https://apps.apple.com/us/app/open-food-facts-product-scan/id588797948');
+  static const _offAndroidUrl =
+      'https://play.google.com/store/apps/details?id=org.openfoodfacts.scanner';
+  static const _offIosUrl =
+      'https://apps.apple.com/us/app/open-food-facts-product-scan/id588797948';
 
   final _exportImportBloc = locator<ExportImportBloc>();
   final _homeBloc = locator<HomeBloc>();
@@ -282,8 +282,7 @@ class _ImportCustomFoodDataDialogState
                         decoration: TextDecoration.underline,
                       ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(_offAndroidUrl,
-                        mode: LaunchMode.externalApplication),
+                    ..onTap = () => tryLaunchExternalUrl(_offAndroidUrl),
                 ),
                 const TextSpan(text: ' / '),
                 TextSpan(
@@ -293,8 +292,7 @@ class _ImportCustomFoodDataDialogState
                         decoration: TextDecoration.underline,
                       ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () => launchUrl(_offIosUrl,
-                        mode: LaunchMode.externalApplication),
+                    ..onTap = () => tryLaunchExternalUrl(_offIosUrl),
                 ),
               ],
             ),
