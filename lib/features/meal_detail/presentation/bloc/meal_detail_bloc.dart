@@ -18,6 +18,7 @@ import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
 import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -136,15 +137,13 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       try {
         // A full cache entry (from an earlier scan/hydration) lets us skip the
         // network entirely and works offline; otherwise fetch and cache it.
-        final cached = _remoteSearchCacheDataSource.getDetailedByBarcode(code);
-        final full = cached != null
-            ? MealEntity.fromMealDBO(cached)
-            : await _productsRepository.getOFFProductByBarcode(code);
-        if (cached == null) {
-          await _remoteSearchCacheDataSource.cache(
-            MealDBO.fromMealEntity(full),
-          );
-        }
+        // Shared with the + on a search result, which has to pick its default
+        // amount from the same record.
+        final full = await fetchDetailedOffMeal(
+          meal,
+          _remoteSearchCacheDataSource,
+          _productsRepository,
+        );
         emit(state.copyWith(hydratedMeal: full, isHydrating: false));
       } catch (e, st) {
         // Soft failure: keep the thin result so the user can still log

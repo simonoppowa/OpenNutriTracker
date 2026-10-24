@@ -24,6 +24,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/own_server_wait_indicator.dart';
@@ -490,6 +491,9 @@ Widget _app({
   bool imperial = false,
   Locale? locale,
   List<RouteSettings>? pushed,
+  String? initialText,
+  bool startWithPhoto = false,
+  LogTray? logTray,
 }) => ChangeNotifierProvider<EnergyUnitProvider>(
   create: (_) => EnergyUnitProvider(usesKilojoules: false),
   child: MaterialApp(
@@ -529,6 +533,9 @@ Widget _app({
             IntakeTypeEntity.breakfast,
             DateTime(2026, 8, 10),
             imperial,
+            initialText: initialText,
+            startWithPhoto: startWithPhoto,
+            logTray: logTray,
           ),
         ),
         builder: (_) => const BulkAddScreen(),
@@ -2686,6 +2693,88 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Apple'), findsOneWidget);
+    });
+  });
+  group('opened from the add-food screen', () {
+    testWidgets('a description is matched on arrival and reviewed', (
+      tester,
+    ) async {
+      await _register({
+        'toast': [_meal('Toast')],
+      });
+      await tester.pumpWidget(_app(initialText: '100g toast'));
+      await tester.pumpAndSettle();
+      tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      // No second tap on Find foods: the rows are already there, the title
+      // says what the screen is for now, and the same button re-reads.
+      expect(find.text('Toast'), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddReviewTitle), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddUpdateMatchesLabel), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddSubmitLabel(1)), findsOneWidget);
+    });
+
+    testWidgets('with a list, the rows go on it and nothing is logged', (
+      tester,
+    ) async {
+      await _register({
+        'toast': [_meal('Toast')],
+        'banana': [_meal('Banana')],
+      });
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      await tester.pumpWidget(
+        _app(initialText: '200g toast, 50g banana', logTray: tray),
+      );
+      await tester.pumpAndSettle();
+      tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.bulkAddToListLabel(2)), findsOneWidget);
+      await tester.tap(find.bySemanticsIdentifier('bulk-add-submit'));
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes, isEmpty);
+      expect(tray.items.map((i) => i.meal.name), ['Toast', 'Banana']);
+      expect(tray.items.map((i) => i.amount), [200, 50]);
+      expect(tray.items.first.amountLabel, '200 ${l10nEn.gramUnit}');
+      // Back where the list lives.
+      expect(find.byType(BulkAddScreen), findsNothing);
+    });
+
+    testWidgets('Snap meal with no model set up opens the AI setup', (
+      tester,
+    ) async {
+      await _register(const {});
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(_app(pushed: pushed, startWithPhoto: true));
+      await tester.pumpAndSettle();
+      tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      final settings = pushed
+          .where((route) => route.name == NavigationOptions.settingsRoute)
+          .toList();
+      expect(settings, hasLength(1));
+      expect(
+        settings.single.arguments,
+        isA<SettingsScreenArguments>().having(
+          (arguments) => arguments.openAiAssist,
+          'openAiAssist',
+          isTrue,
+        ),
+      );
+
+      // Backing out without configuring anything leaves the user on the
+      // screen, where the meal can still be typed.
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsIdentifier('bulk-add-input'), findsOneWidget);
+      expect(
+        pushed.where((r) => r.name == NavigationOptions.settingsRoute),
+        hasLength(1),
+      );
     });
   });
 }

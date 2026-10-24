@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/favourite_toggle_button.dart';
 import 'package:opennutritracker/features/add_meal/util/food_emoji_resolver.dart';
@@ -25,6 +26,14 @@ class MealItemCard extends StatelessWidget {
   final bool usesImperialUnits;
   final String? favouriteSemanticsIdentifier;
 
+  /// The add-food screen's "To log" list. With one, opening the food adds
+  /// to it instead of logging, and [onQuickAdd] answers the +.
+  final LogTray? logTray;
+
+  /// What the + does when there is a list: add the food at its default
+  /// amount without opening it. Null keeps the + opening the detail screen.
+  final VoidCallback? onQuickAdd;
+
   const MealItemCard({
     super.key,
     required this.day,
@@ -32,6 +41,8 @@ class MealItemCard extends StatelessWidget {
     required this.addMealType,
     required this.usesImperialUnits,
     this.favouriteSemanticsIdentifier,
+    this.logTray,
+    this.onQuickAdd,
   });
 
   @override
@@ -102,7 +113,7 @@ class MealItemCard extends StatelessWidget {
                   shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
                 ),
                 icon: const Icon(Icons.add_rounded, size: 24),
-                onPressed: () => _onItemPressed(context),
+                onPressed: onQuickAdd ?? () => _onItemPressed(context),
               ),
             ),
           ],
@@ -241,6 +252,7 @@ class MealItemCard extends StatelessWidget {
         addMealType.getIntakeType(),
         day,
         usesImperialUnits,
+        logTray: logTray,
       ),
     );
   }

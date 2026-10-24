@@ -25,6 +25,7 @@ import 'package:opennutritracker/core/utils/food_name_validator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
@@ -46,6 +47,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   late DateTime _day;
   late IntakeTypeEntity _intakeTypeEntity;
   late bool _usesImperialUnits;
+  LogTray? _logTray;
 
   late bool _editOnly;
 
@@ -131,6 +133,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _intakeTypeEntity = args.intakeTypeEntity;
     _usesImperialUnits = args.usesImperialUnits;
     _editOnly = args.editOnly;
+    _logTray = args.logTray;
 
     _nameTextController.text = _mealEntity.name ?? "";
     _brandsTextController.text = _mealEntity.brands ?? "";
@@ -936,6 +939,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             _intakeTypeEntity,
             _day,
             usesImperialUnits,
+            logTray: _logTray,
           ),
         );
       }
@@ -1092,12 +1096,17 @@ class EditMealScreenArguments {
   final bool usesImperialUnits;
   final bool editOnly;
 
+  /// The add-food screen's "To log" list, handed on to the detail screen a
+  /// new food opens in so that it adds there instead of logging.
+  final LogTray? logTray;
+
   EditMealScreenArguments(
     this.day,
     this.mealEntity,
     this.intakeTypeEntity,
     this.usesImperialUnits, {
     this.editOnly = false,
+    this.logTray,
   });
 }
 
