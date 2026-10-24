@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ActivityInfoButton extends StatelessWidget {
   const ActivityInfoButton({super.key});
@@ -11,7 +11,7 @@ class ActivityInfoButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: _launchUrl,
+      onPressed: () => _launchUrl(context),
       child: Text(
         S.of(context).additionalInfoLabelCompendium2011,
         style: Theme.of(
@@ -22,10 +22,14 @@ class ActivityInfoButton extends StatelessWidget {
     );
   }
 
-  Future<void> _launchUrl() async {
-    if (!await launchUrl(
-      Uri.parse(url),
-      mode: LaunchMode.externalApplication,
-    )) {}
+  Future<void> _launchUrl(BuildContext context) async {
+    // Resolve what the failure path needs before the await; the context must
+    // not be touched afterwards.
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningBrowser;
+
+    if (await tryLaunchExternalUrl(url)) return;
+
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 }

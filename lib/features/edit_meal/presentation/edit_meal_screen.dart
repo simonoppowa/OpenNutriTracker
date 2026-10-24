@@ -144,7 +144,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
         (existingCode != null && isBarcodeFormatValid(existingCode))
             ? existingCode
             : "";
-    _mealQuantityTextController.text = _mealEntity.mealQuantity ?? "";
+    _mealQuantityTextController.text =
+        _mealEntity.mealQuantity?.withDotDecimal() ?? "";
     _servingQuantityTextController.text =
         _mealEntity.servingQuantity.toStringOrEmpty();
     // Seed the energy field in the user's currently-selected unit (#177

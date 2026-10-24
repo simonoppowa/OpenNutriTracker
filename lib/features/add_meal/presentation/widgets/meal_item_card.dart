@@ -16,6 +16,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/favourit
 import 'package:opennutritracker/features/add_meal/util/food_emoji_resolver.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 
 class MealItemCard extends StatelessWidget {
   final DateTime day;
@@ -175,7 +176,7 @@ class MealItemCard extends StatelessWidget {
         : null;
     final quantity = mealEntity.mealQuantity != null
         ? MealValueUnitText(
-            value: double.parse(mealEntity.mealQuantity ?? "0"),
+            value: mealEntity.mealQuantity?.toLenientDoubleOrNull() ?? 0,
             meal: mealEntity,
             usesImperialUnits: usesImperialUnits,
           )
