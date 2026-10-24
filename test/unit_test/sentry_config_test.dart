@@ -116,6 +116,18 @@ void main() {
       expect(await configured().beforeSend!(event, Hint()), isNull);
     });
 
+    test('drops an event that only has a serialised OSError', () async {
+      final event = SentryEvent(
+        exceptions: [
+          SentryException(
+            type: 'OSError',
+            value: 'OS Error: No address associated with hostname, errno = 7',
+          ),
+        ],
+      );
+      expect(await configured().beforeSend!(event, Hint()), isNull);
+    });
+
     final kept = <String, Object>{
       'TypeError': TypeError(),
       'FormatException': const FormatException('bad json'),

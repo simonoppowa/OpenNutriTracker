@@ -128,6 +128,9 @@ bool isExpectedError(SentryEvent event) {
     final type = exception.type;
     if (type == 'ProductNotFoundException' ||
         type == 'SocketException' ||
+        // The OS error Sentry splits out of a SocketException as its own
+        // entry; the offline issues are titled by it.
+        type == 'OSError' ||
         type == 'HandshakeException' ||
         type == 'TlsException' ||
         type == 'ClientException' ||
