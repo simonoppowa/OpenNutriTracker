@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
@@ -19,6 +20,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_disclosure_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_export_disclosure_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -78,6 +80,7 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
   bool _busy = false;
 
   bool _importEnabled = false;
+  bool _exportEnabled = false;
 
   /// The stored credit, null until the user opts in. Kept apart from
   /// [_multiplier] so the enable flow knows whether to seed a suggestion.
@@ -103,6 +106,7 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     setState(() {
       _isAvailable = isAvailable;
       _importEnabled = config.healthImportEnabled;
+      _exportEnabled = config.healthExportEnabled;
       _storedMultiplier = config.healthWorkoutKcalMultiplier;
       _multiplier = config.effectiveHealthWorkoutKcalMultiplier;
       _lastImportAt = config.healthLastImportAt;
@@ -194,6 +198,54 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _onAutoExportChanged(bool enabled) async {
+    if (!enabled) {
+      setState(() => _exportEnabled = false);
+      await locator<SettingsBloc>().setHealthExportEnabled(false);
+      return;
+    }
+
+    if (!await _confirmExportDisclosure()) return;
+
+    setState(() => _busy = true);
+    try {
+      final granted = await locator<HealthExportRepository>()
+          .requestPermissions();
+      if (!mounted) return;
+      if (!granted) {
+        setState(() => _exportEnabled = false);
+        _showMessage(
+          S
+              .of(context)
+              .healthSyncExportPermissionDeniedLabel(healthPlatformName),
+        );
+        return;
+      }
+
+      await locator<SettingsBloc>().setHealthExportEnabled(true);
+      if (!mounted) return;
+      setState(() => _exportEnabled = true);
+    } catch (error, stackTrace) {
+      _log.warning('Enabling meal export failed', error, stackTrace);
+      if (!mounted) return;
+      setState(() => _exportEnabled = false);
+      _showMessage(
+        S.of(context).healthSyncExportPermissionDeniedLabel(healthPlatformName),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<bool> _confirmExportDisclosure() async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const HealthExportDisclosureDialog(),
+    );
+    return accepted ?? false;
   }
 
   /// Runs an import the user is waiting on, and tells them how it went.
@@ -358,6 +410,25 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                     onTap: _onImportNowPressed,
                   ),
                 ),
+                const Divider(),
+                Semantics(
+                  identifier: 'health-sync-auto-export',
+                  child: SwitchListTile(
+                    secondary: const Icon(Icons.upload_rounded),
+                    title: Text(
+                      s.healthSyncAutoExportLabel(healthPlatformName),
+                    ),
+                    value: _exportEnabled,
+                    // Turning export off only stores the setting, so it stays
+                    // possible while the health store is unavailable.
+                    onChanged: (_isAvailable || _exportEnabled) && !_busy
+                        ? _onAutoExportChanged
+                        : null,
+                  ),
+                ),
+                // TODO: Add "Export now" backfill button for nutrition data (follow-up to issue #1245)
+                // TODO: Add hydration / water intake export section (follow-up to issue #1245)
+                const Divider(),
                 // Health Connect can send the user straight here to ask what
                 // the app wants their data for (#927), and the policy is the
                 // rest of that answer. Reachable from settings too, but a

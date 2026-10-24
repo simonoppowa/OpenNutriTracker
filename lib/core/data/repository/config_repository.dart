@@ -214,6 +214,49 @@ class ConfigRepository {
     await _configDataSource.setConfigHealthImportEnabled(enabled);
   }
 
+  Future<void> setConfigHealthExportEnabled(bool enabled) async {
+    await _configDataSource.setConfigHealthExportEnabled(enabled);
+  }
+
+  Future<Set<DateTime>> getHealthPendingExportWindows() async =>
+      _configDataSource.getHealthPendingExportWindows().toSet();
+
+  Future<void> updateHealthPendingExportWindows({
+    Set<DateTime> add = const {},
+    Set<DateTime> remove = const {},
+  }) async {
+    await _configDataSource.updateHealthPendingExportWindows(
+      add: add,
+      remove: remove,
+    );
+  }
+
+  Future<Set<String>> getHealthPendingRecordWrites() async =>
+      _configDataSource.getHealthPendingRecordWrites().toSet();
+
+  Future<void> updateHealthPendingRecordWrites({
+    Set<String> add = const {},
+    Set<String> remove = const {},
+  }) async {
+    await _configDataSource.updateHealthPendingRecordWrites(
+      add: add,
+      remove: remove,
+    );
+  }
+
+  Future<Set<String>> getHealthPendingRecordDeletes() async =>
+      _configDataSource.getHealthPendingRecordDeletes().toSet();
+
+  Future<void> updateHealthPendingRecordDeletes({
+    Set<String> add = const {},
+    Set<String> remove = const {},
+  }) async {
+    await _configDataSource.updateHealthPendingRecordDeletes(
+      add: add,
+      remove: remove,
+    );
+  }
+
   Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {
     await _configDataSource.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Result of a merge: how many past diary entries were rewritten so the
@@ -29,13 +32,15 @@ class MergeCustomMealsUseCase {
   final IntakeRepository _intakeRepository;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final FavouriteMealRepository _favouriteMealRepository;
+  final ExportMealIntakeUsecase? _exportMealIntakeUsecase;
 
   MergeCustomMealsUseCase(
     this._customMealDataSource,
     this._intakeRepository,
     this._addTrackedDayUsecase,
-    this._favouriteMealRepository,
-  );
+    this._favouriteMealRepository, [
+    this._exportMealIntakeUsecase,
+  ]);
 
   /// [loserKey] / [winnerKey] are the dedup keys used everywhere else in
   /// the custom-meal layer (`meal.code ?? meal.name`).
@@ -103,6 +108,13 @@ class MergeCustomMealsUseCase {
       // delete, so no profile switch lands between them.
       await _favouriteMealRepository.mergeCustomMealFavourite(loserKey, winner);
       await _customMealDataSource.deleteCustomMeal(loserKey);
+      // The rewritten entries now carry the winner's nutrition; without this
+      // the health store keeps the loser's. Only entries already in the store
+      // are rewritten there — the export skips the rest. Requested inside
+      // the lock, so it binds to this profile before a waiting switch runs.
+      if (rewrites.isNotEmpty) {
+        unawaited(_exportMealIntakeUsecase?.exportUpdatedIntakes(rewrites));
+      }
       return rewrites;
     });
 

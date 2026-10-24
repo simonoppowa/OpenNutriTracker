@@ -4,6 +4,7 @@ import 'dart:math' show max;
 import 'package:health/health.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
@@ -62,6 +63,9 @@ class HealthPackageService implements HealthService {
   /// class doc.
   static const _iosBodyCompositionType = HealthDataType.BODY_FAT_PERCENTAGE;
 
+  /// Nutrition data type used for writing meals to Health Connect and Apple Health.
+  static const _nutritionType = HealthDataType.NUTRITION;
+
   List<HealthDataType> get _readTypes => [
     _workoutType,
     if (_platform == HealthTargetPlatform.android) _androidEnergyType,
@@ -86,13 +90,29 @@ class HealthPackageService implements HealthService {
   final Health _health;
   final HealthConnectWorkoutReader _workoutReader;
   final HealthTargetPlatform _platform;
+  final DateTime Function() _now;
+
+  /// The last client record version handed to Health Connect, which keeps
+  /// the record whose version is highest. Wall-clock time on its own would
+  /// go backwards when the clock is corrected, and an edit written after
+  /// that would be ignored; this keeps versions rising within a run.
+  static double _lastRecordVersion = 0;
 
   HealthPackageService(
     this._health, {
     HealthConnectWorkoutReader? workoutReader,
     HealthTargetPlatform? platform,
+    DateTime Function()? now,
   }) : _workoutReader = workoutReader ?? HealthConnectWorkoutReader(),
-       _platform = platform ?? HealthTargetPlatform.current;
+       _platform = platform ?? HealthTargetPlatform.current,
+       _now = now ?? DateTime.now;
+
+  double _nextRecordVersion() {
+    final now = _now().millisecondsSinceEpoch.toDouble();
+    return _lastRecordVersion = now > _lastRecordVersion
+        ? now
+        : _lastRecordVersion + 1;
+  }
 
   /// Builds a configured service. [Health.configure] resolves the device id
   /// and has to run before any query, so it happens here rather than lazily
@@ -323,4 +343,128 @@ class HealthPackageService implements HealthService {
   /// as-is. No living adult is under 1% body fat, so a value at or below 1 is
   /// unambiguously the fractional spelling.
   double _bodyFatAsPercent(double raw) => raw <= 1 ? raw * 100 : raw;
+
+  @override
+  Future<bool> requestNutritionWritePermissions() async {
+    final granted = await _health.requestAuthorization(
+      const [_nutritionType],
+      permissions: const [HealthDataAccess.WRITE],
+    );
+    if (!granted) return false;
+    final hasPerm = await _health.hasPermissions(
+      const [_nutritionType],
+      permissions: const [HealthDataAccess.WRITE],
+    );
+    return hasPerm != false;
+  }
+
+  @override
+  bool get hasRecordIdentity => _platform == HealthTargetPlatform.android;
+
+  @override
+  Future<bool> writeMeal(ExternalMealIntake intake) async {
+    try {
+      final mealType = _mapMealType(intake.mealTypeName);
+      return await _health.writeMeal(
+        mealType: mealType,
+        startTime: intake.dateTime,
+        endTime: intake.dateTime.add(ExternalMealIntake.sampleDuration),
+        clientRecordId: intake.id,
+        clientRecordVersion: _nextRecordVersion(),
+        name: intake.name,
+        caloriesConsumed: intake.calories,
+        carbohydrates: intake.carbohydrates,
+        protein: intake.protein,
+        fatTotal: intake.fatTotal,
+        fiber: intake.fiber,
+        sugar: intake.sugar,
+        fatSaturated: intake.fatSaturated,
+        fatMonounsaturated: intake.fatMonounsaturated,
+        fatPolyunsaturated: intake.fatPolyunsaturated,
+        fatTransMonoenoic: intake.fatTrans,
+        cholesterol: intake.cholesterol,
+        sodium: intake.sodium,
+        potassium: intake.potassium,
+        calcium: intake.calcium,
+        iron: intake.iron,
+        magnesium: intake.magnesium,
+        phosphorus: intake.phosphorus,
+        zinc: intake.zinc,
+        vitaminA: intake.vitaminA,
+        vitaminC: intake.vitaminC,
+        vitaminD: intake.vitaminD,
+        b6Pyridoxine: intake.vitaminB6,
+        b12Cobalamin: intake.vitaminB12,
+        b3Niacin: intake.niacin,
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to write meal intake ${intake.id} to health store',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> deleteMeal(String clientRecordId) async {
+    if (_platform != HealthTargetPlatform.android) return false;
+    try {
+      return await _health.deleteByClientRecordId(
+        dataTypeKey: _nutritionType,
+        clientRecordId: clientRecordId,
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to delete meal intake $clientRecordId from health store',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> deleteMealWindow(DateTime start) async {
+    if (_platform != HealthTargetPlatform.ios) return false;
+    try {
+      // The plugin's iOS side drops clientRecordId on write and has no
+      // delete by it, and the UUID its reader returns for a meal is one of
+      // the meal's nutrient samples, not the meal itself. So this removes
+      // every meal this app wrote starting in the window, from any profile;
+      // the caller rewrites the ones the diaries still hold. The end stops a
+      // millisecond short so the window is `[start, start + sampleDuration)`
+      // whether HealthKit treats its end bound as inclusive or not.
+      return await _health.delete(
+        type: _nutritionType,
+        startTime: start,
+        endTime: start
+            .add(ExternalMealIntake.sampleDuration)
+            .subtract(const Duration(milliseconds: 1)),
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to delete the meal window at $start from health store',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  static MealType _mapMealType(String typeName) {
+    switch (typeName) {
+      case 'BREAKFAST':
+        return MealType.BREAKFAST;
+      case 'LUNCH':
+        return MealType.LUNCH;
+      case 'DINNER':
+        return MealType.DINNER;
+      case 'SNACK':
+        return MealType.SNACK;
+      default:
+        return MealType.UNKNOWN;
+    }
+  }
 }

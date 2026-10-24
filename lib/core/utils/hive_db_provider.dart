@@ -62,6 +62,12 @@ class HiveDBProvider extends ChangeNotifier {
   // intentionally keeps cancelled and completed sessions side by side with no
   // success/failure label on the record — see `FastingSessionDBO`.
   static const fastingBoxName = 'FastingBox';
+  // #1393: what the meal export has put in the health store — intake id to
+  // the start time, in milliseconds since the epoch, of its record. Kept
+  // apart from the diary, since a record outlives an edit made while export
+  // is off, or a deletion, until the store lets it go. Per-profile, so a
+  // profile's box-set takes it along when the profile is deleted.
+  static const healthExportLedgerBoxName = 'HealthExportLedgerBox';
   // #1307: the foods and meals the user starred. Per-profile — it is the
   // list of what *this* person usually eats, unlike the shared custom-meal
   // and recipe libraries it may point into.
@@ -89,6 +95,7 @@ class HiveDBProvider extends ChangeNotifier {
     weightLogBoxName,
     waterIntakeBoxName,
     fastingBoxName,
+    healthExportLedgerBoxName,
     favouriteMealBoxName,
   ];
 
@@ -117,6 +124,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WeightLogDBO>? _weightLogBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
+  Box<int>? _healthExportLedgerBox;
   Box<FavouriteMealDBO>? _favouriteMealBox;
 
   late final HiveAesCipher _cipher;
@@ -124,7 +132,16 @@ class HiveDBProvider extends ChangeNotifier {
   String _activeBoxSuffix = '';
   bool _switching = false;
 
+  /// Outstanding [leaseScopedBox] leases, by lower-cased box name: Hive
+  /// lower-cases every name, so that is what [Box.name] reports.
+  final Map<String, int> _scopedLeases = {};
+
   String get activeProfileId => _activeProfileId;
+
+  /// Whether a profile switch is closing one box-set and opening another
+  /// right now. Code reading boxes across profiles checks it so it never
+  /// closes a box-set that is about to become the active one.
+  bool get isSwitching => _switching;
 
   Box<ConfigDBO> get configBox => _requireBox(_configBox, configBoxName);
   Box<IntakeDBO> get intakeBox => _requireBox(_intakeBox, intakeBoxName);
@@ -139,6 +156,8 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
       _requireBox(_fastingBox, fastingBoxName);
+  Box<int> get healthExportLedgerBox =>
+      _requireBox(_healthExportLedgerBox, healthExportLedgerBoxName);
   Box<FavouriteMealDBO> get favouriteMealBox =>
       _requireBox(_favouriteMealBox, favouriteMealBoxName);
 
@@ -238,22 +257,35 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(waterIntakeBoxName, suffix),
     );
     _fastingBox = await _openEncryptedBox(boxNameFor(fastingBoxName, suffix));
+    _healthExportLedgerBox = await _openEncryptedBox(
+      boxNameFor(healthExportLedgerBoxName, suffix),
+    );
     _favouriteMealBox = await _openEncryptedBox(
       boxNameFor(favouriteMealBoxName, suffix),
     );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
+    // A box someone holds a scoped lease on stays open; the last release
+    // closes it, now that it no longer belongs to the active profile.
+    Future<void> close(Box<dynamic>? box) async {
+      if (box == null || _scopedLeases.containsKey(box.name.toLowerCase())) {
+        return;
+      }
+      await box.close();
+    }
+
     await Future.wait([
-      if (_configBox != null) _configBox!.close(),
-      if (_intakeBox != null) _intakeBox!.close(),
-      if (_userActivityBox != null) _userActivityBox!.close(),
-      if (_userBox != null) _userBox!.close(),
-      if (_trackedDayBox != null) _trackedDayBox!.close(),
-      if (_weightLogBox != null) _weightLogBox!.close(),
-      if (_waterIntakeBox != null) _waterIntakeBox!.close(),
-      if (_fastingBox != null) _fastingBox!.close(),
-      if (_favouriteMealBox != null) _favouriteMealBox!.close(),
+      close(_configBox),
+      close(_intakeBox),
+      close(_userActivityBox),
+      close(_userBox),
+      close(_trackedDayBox),
+      close(_weightLogBox),
+      close(_waterIntakeBox),
+      close(_fastingBox),
+      close(_healthExportLedgerBox),
+      close(_favouriteMealBox),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -263,6 +295,7 @@ class HiveDBProvider extends ChangeNotifier {
     _weightLogBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
+    _healthExportLedgerBox = null;
     _favouriteMealBox = null;
   }
 
@@ -310,6 +343,44 @@ class HiveDBProvider extends ChangeNotifier {
     if (Hive.isBoxOpen(name)) {
       await Hive.box<E>(name).close();
     }
+  }
+
+  /// Opens [baseName] for [boxSuffix] like [openScopedBox], and takes a lease
+  /// on it. Hive hands every caller the same instance of an open box, so two
+  /// flows working on one inactive profile at once share it, and whichever
+  /// closed it first would pull it from under the other. Leases are counted:
+  /// the box closes on the last [releaseScopedBox], and never while it
+  /// belongs to the active profile (or the one a switch is opening).
+  Future<Box<E>> leaseScopedBox<E>(String baseName, String boxSuffix) async {
+    final name = boxNameFor(baseName, boxSuffix).toLowerCase();
+    // Counted before the await, so a release landing meanwhile cannot close
+    // the box this caller is about to get.
+    _scopedLeases[name] = (_scopedLeases[name] ?? 0) + 1;
+    try {
+      return await openScopedBox<E>(baseName, boxSuffix);
+    } catch (_) {
+      _dropScopedLease(name);
+      rethrow;
+    }
+  }
+
+  /// Gives back a lease from [leaseScopedBox], closing the box with the last.
+  Future<void> releaseScopedBox<E>(String baseName, String boxSuffix) async {
+    final name = boxNameFor(baseName, boxSuffix).toLowerCase();
+    if (!_dropScopedLease(name)) return;
+    if (boxSuffix == _activeBoxSuffix) return;
+    await closeScopedBox<E>(baseName, boxSuffix);
+  }
+
+  /// Whether that was the last lease on [name].
+  bool _dropScopedLease(String name) {
+    final remaining = (_scopedLeases[name] ?? 1) - 1;
+    if (remaining > 0) {
+      _scopedLeases[name] = remaining;
+      return false;
+    }
+    _scopedLeases.remove(name);
+    return true;
   }
 
   /// Permanently removes the box-set belonging to [boxSuffix] from disk.

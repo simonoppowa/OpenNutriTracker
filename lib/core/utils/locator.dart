@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_export_diary_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service_factory.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
@@ -19,6 +20,8 @@ import 'package:opennutritracker/core/data/data_source/weight_log_data_source.da
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/data/repository/health_export_diary_repository.dart';
+import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
@@ -48,6 +51,7 @@ import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_all_recipes_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templates_usecase.dart';
@@ -197,6 +201,7 @@ Future<void> initLocator() async {
       locator(),
       locator<DailyReminderScheduler>(),
       locator<AiCredentialStorage>(),
+      exportMealIntakeUsecase: locator<ExportMealIntakeUsecase>(),
       calorieWidgetStore: locator<CalorieWidgetStore>(),
     ),
   );
@@ -430,10 +435,10 @@ Future<void> initLocator() async {
     () => UpdateProfileUsecase(locator()),
   );
   locator.registerLazySingleton<DeleteProfileUsecase>(
-    () => DeleteProfileUsecase(locator(), locator(), locator()),
+    () => DeleteProfileUsecase(locator(), locator(), locator(), locator()),
   );
   locator.registerLazySingleton<SendIntakeToProfilesUsecase>(
-    () => SendIntakeToProfilesUsecase(locator()),
+    () => SendIntakeToProfilesUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<ProfileSwitchCoordinator>(
     () => ProfileSwitchCoordinator(
@@ -466,17 +471,20 @@ Future<void> initLocator() async {
       locator<ToggleFavouriteMealUsecase>(),
     ),
   );
+  locator.registerLazySingleton<ExportMealIntakeUsecase>(
+    () => ExportMealIntakeUsecase(locator(), locator(), locator()),
+  );
   locator.registerLazySingleton<GetIntakeUsecase>(
     () => GetIntakeUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<AddIntakeUsecase>(
-    () => AddIntakeUsecase(locator()),
+    () => AddIntakeUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<DeleteIntakeUsecase>(
-    () => DeleteIntakeUsecase(locator()),
+    () => DeleteIntakeUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<UpdateIntakeUsecase>(
-    () => UpdateIntakeUsecase(locator()),
+    () => UpdateIntakeUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<GetUserActivityUsecase>(
     () => GetUserActivityUsecase(locator()),
@@ -590,6 +598,7 @@ Future<void> initLocator() async {
             importedActivities: importedActivities,
             keyedByOffsetMinutes: keyedByOffsetMinutes,
           ),
+      exportMealIntakeUsecase: locator(),
     ),
   );
   locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));
@@ -623,7 +632,13 @@ Future<void> initLocator() async {
     () => DeleteRecipeUseCase(locator(), locator()),
   );
   locator.registerLazySingleton(
-    () => MergeCustomMealsUseCase(locator(), locator(), locator(), locator()),
+    () => MergeCustomMealsUseCase(
+      locator(),
+      locator(),
+      locator(),
+      locator<FavouriteMealRepository>(),
+      locator<ExportMealIntakeUsecase>(),
+    ),
   );
 
   // Repositories
@@ -669,6 +684,12 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<HealthImportRepository>(
     () => HealthImportRepository(locator()),
+  );
+  locator.registerLazySingleton<HealthExportRepository>(
+    () => HealthExportRepository(locator()),
+  );
+  locator.registerLazySingleton<HealthExportDiaryRepository>(
+    () => HealthExportDiaryRepository(locator()),
   );
 
   // DataSources
@@ -716,6 +737,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<ProfileDataSource>(
     () => ProfileDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<HealthExportDiaryDataSource>(
+    () => HealthExportDiaryDataSource(hiveDBProvider),
   );
   // Probed once here rather than per call: resolving the platform health
   // store needs an await, and a plugin that can't initialise falls back to a

@@ -15,7 +15,9 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
 
 import '../helpers/hive_test_setup.dart';
@@ -67,6 +69,19 @@ IntakeDBO _intake({
       dateTime: at ?? DateTime.utc(2025, 1, 1),
     );
 
+class _FakeExportMealIntakeUsecase extends Fake
+    implements ExportMealIntakeUsecase {
+  final List<List<(IntakeEntity, IntakeEntity)>> exportedEdits = [];
+
+  @override
+  Future<bool> exportUpdatedIntakes(
+    List<(IntakeEntity, IntakeEntity)> edits,
+  ) async {
+    exportedEdits.add(edits);
+    return true;
+  }
+}
+
 void main() {
   group('MergeCustomMealsUseCase', () {
     late Box<MealDBO> customBox;
@@ -75,6 +90,7 @@ void main() {
     late Box<FavouriteMealDBO> favouriteBox;
     late Box<ProfileDBO> profileBox;
     late MergeCustomMealsUseCase usecase;
+    late _FakeExportMealIntakeUsecase export;
 
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -92,6 +108,7 @@ void main() {
       final intakeRepo = IntakeRepository(IntakeDataSource(FakeHiveDBProvider(intakeBox: intakeBox)));
       final trackedRepo =
           TrackedDayRepository(TrackedDayDataSource(FakeHiveDBProvider(trackedDayBox: trackedDayBox)));
+      export = _FakeExportMealIntakeUsecase();
       favouriteBox =
           await Hive.openBox<FavouriteMealDBO>('merge_favourites_$stamp');
       profileBox = await Hive.openBox<ProfileDBO>('merge_profiles_$stamp');
@@ -108,6 +125,7 @@ void main() {
           customDs,
           RecipeDataSource(favouriteProvider),
         ),
+        export,
       );
     });
 
@@ -198,6 +216,33 @@ void main() {
       // And keeps its original id so existing references stay valid.
       final rewrittenIds = intakeBox.values.map((i) => i.id).toSet();
       expect(rewrittenIds, equals({'i1', 'i2', 'i3'}));
+    });
+
+    // #1393 review: the rewrite bypasses UpdateIntakeUsecase, so the health
+    // store kept the loser's nutrition unless the merge exports it itself.
+    test('exports every rewritten intake as a before/after edit', () async {
+      final loser = _customMeal(code: 'L', name: 'Apple (dup)', kcal: 50);
+      final winner = _customMeal(code: 'W', name: 'Apple', kcal: 80);
+      await customBox.add(loser);
+      await customBox.add(winner);
+      await intakeBox.add(_intake(id: 'i1', meal: loser));
+      await intakeBox.add(_intake(id: 'i2', meal: loser));
+
+      await usecase.merge(loserKey: 'L', winnerKey: 'W');
+
+      final edits = export.exportedEdits.single;
+      expect(edits.map((edit) => edit.$1.id), ['i1', 'i2']);
+      expect(edits.map((edit) => edit.$1.meal.code), ['L', 'L']);
+      expect(edits.map((edit) => edit.$2.meal.code), ['W', 'W']);
+    });
+
+    test('exports nothing when no intake was rewritten', () async {
+      await customBox.add(_customMeal(code: 'L', name: 'Apple (dup)'));
+      await customBox.add(_customMeal(code: 'W', name: 'Apple'));
+
+      await usecase.merge(loserKey: 'L', winnerKey: 'W');
+
+      expect(export.exportedEdits, isEmpty);
     });
   });
 }

@@ -46,6 +46,9 @@ class SettingsLoadedState extends SettingsState {
   final bool healthImportEnabled;
   final double? healthWorkoutKcalMultiplier;
 
+  /// Whether nutrition data is exported to Health Connect / Apple Health.
+  final bool healthExportEnabled;
+
   /// #1126: whether the meal-detail unit dropdown defaults to weight/volume
   /// even when the food has a scalable serving. False = pre-existing
   /// behaviour.
@@ -76,6 +79,7 @@ class SettingsLoadedState extends SettingsState {
     this.isDemoData = false,
     this.healthImportEnabled = false,
     this.healthWorkoutKcalMultiplier,
+    this.healthExportEnabled = false,
     this.defaultToRawFoodUnits = false,
   });
 
@@ -105,6 +109,7 @@ class SettingsLoadedState extends SettingsState {
         isDemoData,
         healthImportEnabled,
         healthWorkoutKcalMultiplier,
+        healthExportEnabled,
         defaultToRawFoodUnits,
       ];
 }

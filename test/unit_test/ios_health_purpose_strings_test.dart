@@ -31,28 +31,36 @@ void main() {
       expect(share, contains('workouts'));
     });
 
-    // The one that was missing. Apple rejects the upload without it, and the
-    // rejection arrives only after a full build, sign and package cycle.
-    test('the write string is present, despite the app never writing', () {
+    test('the write string is present and describes meal export', () {
       expect(
         valueFor('NSHealthUpdateUsageDescription'),
         isNotNull,
-        reason: 'altool rejects the build with error 90683 without this key, '
-            'even though no write call exists anywhere in lib/',
+        reason: 'altool rejects the build with error 90683 without this key',
       );
     });
 
-    // A write string that claimed the app writes data would contradict both
-    // the read string beside it and the in-app disclosure (#926), which tell
-    // the user nothing is written back.
-    test('the write string does not claim the app writes to Health', () {
+    test('the write string explains meal and nutrition export', () {
       final update = valueFor('NSHealthUpdateUsageDescription')!;
       expect(
         update.toLowerCase(),
-        contains('does not write'),
-        reason: 'the read string and the #926 disclosure both promise nothing '
-            'is written back; this must not contradict them',
+        contains('meal'),
+        reason:
+            'The write string explains that meals are exported when opted in',
       );
+    });
+
+    // #1393 review: the export writes micronutrients too
+    // (HealthPackageService.writeMeal), so the purpose string has to say so.
+    test('the write string discloses the micronutrients written', () {
+      final update = valueFor('NSHealthUpdateUsageDescription')!;
+      for (final nutrient in const [
+        'cholesterol',
+        'sodium',
+        'minerals',
+        'vitamins',
+      ]) {
+        expect(update, contains(nutrient));
+      }
     });
   });
 }

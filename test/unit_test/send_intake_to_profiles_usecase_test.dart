@@ -11,6 +11,7 @@ import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/send_intake_to_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -47,6 +48,17 @@ class _TestHiveDBProvider extends HiveDBProvider {
   @override
   Box<ConfigDBO> get appConfigBox =>
       _scoped[HiveDBProvider.configBoxName] as Box<ConfigDBO>;
+}
+
+class _FakeExportMealIntakeUsecase extends Fake
+    implements ExportMealIntakeUsecase {
+  final List<(String?, IntakeEntity)> exported = [];
+
+  @override
+  Future<bool> exportIntake(IntakeEntity intake, {String? profileId}) async {
+    exported.add((profileId, intake));
+    return true;
+  }
 }
 
 void main() {
@@ -225,4 +237,57 @@ void main() {
       });
     },
   );
+
+  // #1393 review: the health export reads inactive profiles' boxes too, and
+  // Hive hands both flows the same instance. Whichever finishes first must
+  // not close a box the other is still using.
+  test('a box another flow still holds is not closed with the copy', () async {
+    final target = ProfileEntity(
+      id: 'target',
+      name: 'Target',
+      createdAt: DateTime(2026, 1, 1),
+      boxSuffix: 'target',
+    );
+    await provider.leaseScopedBox<IntakeDBO>(
+      HiveDBProvider.intakeBoxName,
+      'target',
+    );
+
+    await sut.copyToProfiles([buildIntake()], [target]);
+
+    expect(
+      provider.closedBoxes,
+      isNot(contains((HiveDBProvider.intakeBoxName, 'target'))),
+    );
+    expect(provider.closedBoxes, hasLength(4));
+
+    await provider.releaseScopedBox<IntakeDBO>(
+      HiveDBProvider.intakeBoxName,
+      'target',
+    );
+    expect(
+      provider.closedBoxes,
+      contains((HiveDBProvider.intakeBoxName, 'target')),
+    );
+  });
+
+  // #1393 review: the copy is a new entry in the target's diary, but it was
+  // written straight to the repository and never reached the export.
+  test('each copy is handed to the export for the target profile', () async {
+    final export = _FakeExportMealIntakeUsecase();
+    final exporting = SendIntakeToProfilesUsecase(provider, export);
+    final target = ProfileEntity(
+      id: 'target',
+      name: 'Target',
+      createdAt: DateTime(2026, 1, 1),
+      boxSuffix: 'target',
+    );
+
+    await exporting.copyToProfiles([buildIntake()], [target]);
+
+    final (profileId, copy) = export.exported.single;
+    expect(profileId, 'target');
+    expect(copy.id, intakeBox.values.single.id);
+    expect(copy.id, isNot('source-intake'));
+  });
 }

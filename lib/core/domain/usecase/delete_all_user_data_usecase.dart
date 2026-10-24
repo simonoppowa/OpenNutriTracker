@@ -1,5 +1,6 @@
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -27,15 +28,17 @@ class DeleteAllUserDataUsecase {
   final HiveDBProvider _hiveDBProvider;
   final DailyReminderScheduler _reminders;
   final AiCredentialStorage _aiCredentials;
+  final ExportMealIntakeUsecase? _exportMealIntakeUsecase;
   final CalorieWidgetStore _calorieWidgetStore;
 
   DeleteAllUserDataUsecase(
     this._hiveDBProvider,
     this._reminders,
     this._aiCredentials, {
+    ExportMealIntakeUsecase? exportMealIntakeUsecase,
     CalorieWidgetStore? calorieWidgetStore,
-  }) : _calorieWidgetStore =
-           calorieWidgetStore ?? HomeWidgetCalorieStore();
+  }) : _exportMealIntakeUsecase = exportMealIntakeUsecase,
+       _calorieWidgetStore = calorieWidgetStore ?? HomeWidgetCalorieStore();
 
   Future<void> deleteAll() async {
     _log.info('Clearing the active profile\'s Hive boxes on user request');
@@ -60,6 +63,15 @@ class DeleteAllUserDataUsecase {
     // clear: rows it writes from here on are keyed by it, not by the
     // midnight an unrecorded history is assumed to use (#1317).
     await withTrackedDayLock(() async {
+      // The meals this profile exported to Health Connect / Apple Health are
+      // addressed by the ids and times about to be cleared, so they are read
+      // first and their deletion queued. Under the same lock as the clear:
+      // a diary write still under way finishes, and requests its export,
+      // before the read, so the read accounts for it. Never throws, so it
+      // cannot stop the wipe; the deletions finish in the background.
+      await _exportMealIntakeUsecase?.forgetProfile(
+        _hiveDBProvider.activeProfileId,
+      );
       await Future.wait([
         _hiveDBProvider.configBox.clear(),
         _hiveDBProvider.intakeBox.clear(),

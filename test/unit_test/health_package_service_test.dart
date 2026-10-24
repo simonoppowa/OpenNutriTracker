@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:health/health.dart';
+import 'package:opennutritracker/core/data/data_source/health/external_meal_intake.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_package_service.dart';
@@ -46,6 +47,50 @@ class _FakeHealth extends Fake implements Health {
   }) async {
     queriedTypes.add(types);
     return dataPoints;
+  }
+
+  /// Every time-window delete, as (type, start, end).
+  final windowDeletes = <(HealthDataType, DateTime, DateTime?)>[];
+
+  /// Every delete by client record id, as (type, id).
+  final idDeletes = <(HealthDataType, String)>[];
+
+  @override
+  Future<bool> delete({
+    required HealthDataType type,
+    required DateTime startTime,
+    DateTime? endTime,
+  }) async {
+    windowDeletes.add((type, startTime, endTime));
+    return true;
+  }
+
+  @override
+  Future<bool> deleteByClientRecordId({
+    required HealthDataType dataTypeKey,
+    required String clientRecordId,
+    String? recordId,
+  }) async {
+    idDeletes.add((dataTypeKey, clientRecordId));
+    return true;
+  }
+}
+
+/// Records the client record version and trans fat of each meal write.
+/// Caught in [noSuchMethod] rather than overridden, so the plugin's long
+/// parameter list is not restated here.
+class _VersionRecordingHealth extends _FakeHealth {
+  final versions = <double?>[];
+  final transFats = <double?>[];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #writeMeal) {
+      versions.add(invocation.namedArguments[#clientRecordVersion] as double?);
+      transFats.add(invocation.namedArguments[#fatTransMonoenoic] as double?);
+      return Future.value(true);
+    }
+    return super.noSuchMethod(invocation);
   }
 }
 
@@ -403,5 +448,98 @@ void main() {
       );
       expect(reader.calls, 0);
     });
+  });
+
+  // #1393 review: the plugin's iOS side has no delete by record id, only by
+  // time window, and one window can hold several exported meals.
+  group('meal deletes', () {
+    const id = 'ont_intake_a';
+    final at = DateTime(2026, 6, 15, 12, 30);
+
+    test('on Android delete by client record id, never by window', () async {
+      final health = _FakeHealth();
+      final service = HealthPackageService(
+        health,
+        workoutReader: _FakeWorkoutReader(),
+        platform: HealthTargetPlatform.android,
+      );
+
+      expect(service.hasRecordIdentity, isTrue);
+      expect(await service.deleteMeal(id), isTrue);
+      expect(await service.deleteMealWindow(at), isFalse);
+
+      expect(health.idDeletes, [(HealthDataType.NUTRITION, id)]);
+      expect(health.windowDeletes, isEmpty);
+    });
+
+    test('on iOS delete the minute at the meal, never by id', () async {
+      final health = _FakeHealth();
+      final service = HealthPackageService(
+        health,
+        platform: HealthTargetPlatform.ios,
+      );
+
+      expect(service.hasRecordIdentity, isFalse);
+      expect(await service.deleteMealWindow(at), isTrue);
+      expect(await service.deleteMeal(id), isFalse);
+
+      // A millisecond short, so the window is half-open whichever way
+      // HealthKit reads its end bound.
+      expect(health.windowDeletes, [
+        (
+          HealthDataType.NUTRITION,
+          at,
+          at.add(const Duration(seconds: 59, milliseconds: 999)),
+        ),
+      ]);
+      expect(health.idDeletes, isEmpty);
+    });
+  });
+
+  // #1393 review: Health Connect keeps the record with the highest version,
+  // so an edit written after the clock was set back must still outrank it.
+  test('record versions keep rising when the clock goes back', () async {
+    final health = _VersionRecordingHealth();
+    var now = DateTime(2026, 6, 15, 12);
+    final service = HealthPackageService(
+      health,
+      workoutReader: _FakeWorkoutReader(),
+      platform: HealthTargetPlatform.android,
+      now: () => now,
+    );
+    final meal = ExternalMealIntake(
+      id: 'ont_intake_a',
+      mealTypeName: 'LUNCH',
+      dateTime: DateTime(2026, 6, 15, 12, 30),
+    );
+
+    expect(await service.writeMeal(meal), isTrue);
+    now = now.subtract(const Duration(hours: 1));
+    expect(await service.writeMeal(meal), isTrue);
+
+    expect(health.versions, hasLength(2));
+    expect(health.versions[1]!, greaterThan(health.versions[0]!));
+  });
+
+  // #1393 review: the disclosure promises the types of fat, and Health
+  // Connect has a trans fat field.
+  test('trans fat is written with the meal', () async {
+    final health = _VersionRecordingHealth();
+    final service = HealthPackageService(
+      health,
+      workoutReader: _FakeWorkoutReader(),
+      platform: HealthTargetPlatform.android,
+    );
+
+    await service.writeMeal(
+      ExternalMealIntake(
+        id: 'ont_intake_a',
+        mealTypeName: 'LUNCH',
+        dateTime: DateTime(2026, 6, 15, 12, 30),
+        fatTrans: 0.6,
+      ),
+    );
+
+    expect(health.transFats, [0.6]);
   });
 }

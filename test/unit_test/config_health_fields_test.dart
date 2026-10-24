@@ -10,6 +10,7 @@ import '../helpers/hive_test_setup.dart';
 
 ConfigDBO _dbo({
   bool? healthImportEnabled,
+  bool? healthExportEnabled,
   double? healthWorkoutKcalMultiplier,
   DateTime? healthLastImportAt,
 }) => ConfigDBO(
@@ -18,6 +19,7 @@ ConfigDBO _dbo({
   false,
   AppThemeDBO.system,
   healthImportEnabled: healthImportEnabled,
+  healthExportEnabled: healthExportEnabled,
   healthWorkoutKcalMultiplier: healthWorkoutKcalMultiplier,
   healthLastImportAt: healthLastImportAt,
 );
@@ -28,6 +30,7 @@ void main() {
       final config = ConfigEntity.fromConfigDBO(ConfigDBO.empty());
 
       expect(config.healthImportEnabled, isFalse);
+      expect(config.healthExportEnabled, isFalse);
       expect(config.healthWorkoutKcalMultiplier, isNull);
       expect(config.healthLastImportAt, isNull);
     });
@@ -85,10 +88,15 @@ void main() {
     test('the opt-in flag and the watermark round-trip', () {
       final watermark = DateTime.utc(2026, 5, 23, 14, 30);
       final config = ConfigEntity.fromConfigDBO(
-        _dbo(healthImportEnabled: true, healthLastImportAt: watermark),
+        _dbo(
+          healthImportEnabled: true,
+          healthExportEnabled: true,
+          healthLastImportAt: watermark,
+        ),
       );
 
       expect(config.healthImportEnabled, isTrue);
+      expect(config.healthExportEnabled, isTrue);
       expect(config.healthLastImportAt, equals(watermark));
     });
   });
@@ -130,6 +138,7 @@ void main() {
       final profileA = sourceFor(profileABox);
       await profileA.initializeConfig();
       await profileA.setConfigHealthImportEnabled(true);
+      await profileA.setConfigHealthExportEnabled(true);
       await profileA.setConfigHealthWorkoutKcalMultiplier(0.7);
       await profileA.setConfigHealthLastImportAt(DateTime(2026, 5, 23, 12));
 
@@ -138,8 +147,29 @@ void main() {
       final config = await profileB.getConfig();
 
       expect(config.healthImportEnabled, isNull);
+      expect(config.healthExportEnabled, isNull);
       expect(config.healthWorkoutKcalMultiplier, isNull);
       expect(config.healthLastImportAt, isNull);
+    });
+
+    // #1393 review: what is left for the health store to redo is
+    // device-wide, and has to outlive whichever profile is active and every
+    // later settings write.
+    test('pending health work is shared and outlives other writes', () async {
+      final profileA = sourceFor(profileABox);
+      await profileA.initializeConfig();
+      final window = DateTime(2026, 6, 15, 12, 30);
+      await profileA.updateHealthPendingExportWindows(add: [window]);
+      await profileA.updateHealthPendingRecordDeletes(add: ['a', 'b']);
+      await profileA.setConfigHealthExportEnabled(true);
+      await profileA.updateHealthPendingRecordDeletes(remove: ['a']);
+
+      final profileB = sourceFor(profileBBox);
+      expect(profileB.getHealthPendingExportWindows(), [window]);
+      expect(profileB.getHealthPendingRecordDeletes(), ['b']);
+
+      await profileB.updateHealthPendingExportWindows(remove: [window]);
+      expect(profileA.getHealthPendingExportWindows(), isEmpty);
     });
 
     test('each profile keeps its own settings and watermark', () async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
@@ -16,6 +18,7 @@ import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -32,8 +35,12 @@ import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 /// duplicated with a fresh id; the source profile keeps its own copy.
 class SendIntakeToProfilesUsecase {
   final HiveDBProvider _hiveDBProvider;
+  final ExportMealIntakeUsecase? _exportMealIntakeUsecase;
 
-  SendIntakeToProfilesUsecase(this._hiveDBProvider);
+  SendIntakeToProfilesUsecase(
+    this._hiveDBProvider, [
+    this._exportMealIntakeUsecase,
+  ]);
 
   Future<void> copyToProfiles(
     List<IntakeEntity> intakes,
@@ -57,23 +64,23 @@ class SendIntakeToProfilesUsecase {
     if (target.id == _hiveDBProvider.activeProfileId) return;
 
     final scoped = ScopedHiveDBProvider(
-      intakeBox: await _hiveDBProvider.openScopedBox<IntakeDBO>(
+      intakeBox: await _hiveDBProvider.leaseScopedBox<IntakeDBO>(
         HiveDBProvider.intakeBoxName,
         suffix,
       ),
-      trackedDayBox: await _hiveDBProvider.openScopedBox<TrackedDayDBO>(
+      trackedDayBox: await _hiveDBProvider.leaseScopedBox<TrackedDayDBO>(
         HiveDBProvider.trackedDayBoxName,
         suffix,
       ),
-      userBox: await _hiveDBProvider.openScopedBox<UserDBO>(
+      userBox: await _hiveDBProvider.leaseScopedBox<UserDBO>(
         HiveDBProvider.userBoxName,
         suffix,
       ),
-      configBox: await _hiveDBProvider.openScopedBox<ConfigDBO>(
+      configBox: await _hiveDBProvider.leaseScopedBox<ConfigDBO>(
         HiveDBProvider.configBoxName,
         suffix,
       ),
-      userActivityBox: await _hiveDBProvider.openScopedBox<UserActivityDBO>(
+      userActivityBox: await _hiveDBProvider.leaseScopedBox<UserActivityDBO>(
         HiveDBProvider.userActivityBoxName,
         suffix,
       ),
@@ -113,6 +120,7 @@ class SendIntakeToProfilesUsecase {
       await withTrackedDayLock(() async {
         await ensureTrackedDaysMatchEntries(scoped, ConfigDataSource(scoped));
         await _copyIntakes(
+          target.id,
           intakes,
           intakeRepository,
           addTrackedDay,
@@ -130,6 +138,7 @@ class SendIntakeToProfilesUsecase {
   }
 
   Future<void> _copyIntakes(
+    String targetId,
     List<IntakeEntity> intakes,
     IntakeRepository intakeRepository,
     AddTrackedDayUsecase addTrackedDay,
@@ -146,6 +155,11 @@ class SendIntakeToProfilesUsecase {
         dateTime: intake.dateTime,
       );
       await intakeRepository.addIntake(copy);
+      // A new entry in the target's diary, so exported if the target opts
+      // in, as a meal logged there directly would be.
+      unawaited(
+        _exportMealIntakeUsecase?.exportIntake(copy, profileId: targetId),
+      );
 
       final day = copy.dateTime;
       if (!await addTrackedDay.hasTrackedDay(day)) {
@@ -169,20 +183,23 @@ class SendIntakeToProfilesUsecase {
   }
 
   Future<void> _closeScoped(String suffix) => Future.wait([
-    _hiveDBProvider.closeScopedBox<IntakeDBO>(
+    _hiveDBProvider.releaseScopedBox<IntakeDBO>(
       HiveDBProvider.intakeBoxName,
       suffix,
     ),
-    _hiveDBProvider.closeScopedBox<TrackedDayDBO>(
+    _hiveDBProvider.releaseScopedBox<TrackedDayDBO>(
       HiveDBProvider.trackedDayBoxName,
       suffix,
     ),
-    _hiveDBProvider.closeScopedBox<UserDBO>(HiveDBProvider.userBoxName, suffix),
-    _hiveDBProvider.closeScopedBox<ConfigDBO>(
+    _hiveDBProvider.releaseScopedBox<UserDBO>(
+      HiveDBProvider.userBoxName,
+      suffix,
+    ),
+    _hiveDBProvider.releaseScopedBox<ConfigDBO>(
       HiveDBProvider.configBoxName,
       suffix,
     ),
-    _hiveDBProvider.closeScopedBox<UserActivityDBO>(
+    _hiveDBProvider.releaseScopedBox<UserActivityDBO>(
       HiveDBProvider.userActivityBoxName,
       suffix,
     ),

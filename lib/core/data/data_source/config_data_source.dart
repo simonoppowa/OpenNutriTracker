@@ -30,6 +30,10 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 class ConfigDataSource {
   static const _configKey = "ConfigKey";
 
+  /// The key both config boxes store their single record under, for code
+  /// that reads another profile's box without going through this class.
+  static const configKey = _configKey;
+
   final _log = Logger('ConfigDataSource');
   final HiveDBProvider _db;
 
@@ -59,6 +63,7 @@ class ConfigDataSource {
       merged.mealKcalSharesPct = profile.mealKcalSharesPct;
       merged.dailyWaterGoalMl = profile.dailyWaterGoalMl;
       merged.healthImportEnabled = profile.healthImportEnabled;
+      merged.healthExportEnabled = profile.healthExportEnabled;
       merged.healthWorkoutKcalMultiplier = profile.healthWorkoutKcalMultiplier;
       merged.healthLastImportAt = profile.healthLastImportAt;
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
@@ -76,6 +81,7 @@ class ConfigDataSource {
       merged.mealKcalSharesPct = null;
       merged.dailyWaterGoalMl = null;
       merged.healthImportEnabled = null;
+      merged.healthExportEnabled = null;
       merged.healthWorkoutKcalMultiplier = null;
       merged.healthLastImportAt = null;
       merged.healthDeletedExternalIds = null;
@@ -402,6 +408,73 @@ class ConfigDataSource {
 
   Future<void> setConfigHealthImportEnabled(bool enabled) async {
     await _update((c) => c.healthImportEnabled = enabled);
+  }
+
+  Future<void> setConfigHealthExportEnabled(bool enabled) async {
+    await _update((c) => c.healthExportEnabled = enabled);
+  }
+
+  /// HealthKit windows still waiting for a complete rewrite. Device-wide, so
+  /// read from the shared app box alone: unlike the merged reads, this works
+  /// while a profile switch has the per-profile boxes closed.
+  List<DateTime> getHealthPendingExportWindows() => List.of(
+    _appBox.get(_configKey)?.healthPendingExportWindows ?? const <DateTime>[],
+  );
+
+  /// Adds [add] to and drops [remove] from the stored windows, in the shared
+  /// app box alone, for the same reason.
+  Future<void> updateHealthPendingExportWindows({
+    Iterable<DateTime> add = const [],
+    Iterable<DateTime> remove = const [],
+  }) => _updateAppOnly((config) {
+    final windows = {...?config.healthPendingExportWindows, ...add}
+      ..removeAll(remove);
+    config.healthPendingExportWindows = windows.isEmpty
+        ? null
+        : windows.toList();
+  });
+
+  /// Health Connect record ids still waiting to be deleted. Device-wide, so
+  /// kept in the shared app box alone, like the windows above.
+  List<String> getHealthPendingRecordDeletes() => List.of(
+    _appBox.get(_configKey)?.healthPendingRecordDeletes ?? const <String>[],
+  );
+
+  Future<void> updateHealthPendingRecordDeletes({
+    Iterable<String> add = const [],
+    Iterable<String> remove = const [],
+  }) => _updateAppOnly((config) {
+    final ids = {...?config.healthPendingRecordDeletes, ...add}
+      ..removeAll(remove);
+    config.healthPendingRecordDeletes = ids.isEmpty ? null : ids.toList();
+  });
+
+  /// Health Connect meal writes still waiting to land, as
+  /// `profileId/intakeId`. Device-wide, in the shared app box alone.
+  List<String> getHealthPendingRecordWrites() => List.of(
+    _appBox.get(_configKey)?.healthPendingRecordWrites ?? const <String>[],
+  );
+
+  Future<void> updateHealthPendingRecordWrites({
+    Iterable<String> add = const [],
+    Iterable<String> remove = const [],
+  }) => _updateAppOnly((config) {
+    final keys = {...?config.healthPendingRecordWrites, ...add}
+      ..removeAll(remove);
+    config.healthPendingRecordWrites = keys.isEmpty ? null : keys.toList();
+  });
+
+  /// Changes the shared app box's record alone. The read and the start of
+  /// the write happen in one synchronous step, so two updates cannot lose
+  /// each other's changes; and every merged write copies the app box's value
+  /// along, so these fields survive other settings changes.
+  Future<void> _updateAppOnly(void Function(ConfigDBO config) mutate) {
+    final stored = _appBox.get(_configKey);
+    final config = stored == null
+        ? ConfigDBO.empty()
+        : ConfigDBO.fromJson(stored.toJson());
+    mutate(config);
+    return _appBox.put(_configKey, config);
   }
 
   Future<void> setConfigHealthWorkoutKcalMultiplier(double multiplier) async {

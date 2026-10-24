@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,7 +15,10 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_meal_intake_usecase.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
@@ -21,6 +26,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
@@ -96,6 +102,20 @@ class _MemoryStorage implements FlutterSecureStorage {
 class _SilentNotificationService extends NotificationService {
   @override
   Future<void> cancelAllScheduled() async {}
+}
+
+/// Records what the diary held when the wipe asked for its health records.
+class _FakeExportMealIntakeUsecase extends Fake
+    implements ExportMealIntakeUsecase {
+  final Box<IntakeDBO> diary;
+  final List<(String, int)> forgotten = [];
+
+  _FakeExportMealIntakeUsecase(this.diary);
+
+  @override
+  Future<void> forgetProfile(String profileId) async {
+    forgotten.add((profileId, diary.length));
+  }
 }
 
 /// Records whether the wipe reached the iOS widget's copy of the figures,
@@ -237,6 +257,89 @@ void main() {
 
   tearDown(() async {
     await Hive.deleteFromDisk();
+  });
+
+  // #1393 review: the exported Health records are addressed by the ids and
+  // times this wipe clears, so they have to be read out first.
+  test('hands the diary to the health export before clearing it', () async {
+    await provider.intake.add(
+      IntakeDBO(
+        id: 'i1',
+        unit: 'g',
+        amount: 100,
+        type: IntakeTypeDBO.lunch,
+        meal: MealDBO(
+          code: 'm',
+          name: 'm',
+          brands: null,
+          thumbnailImageUrl: null,
+          mainImageUrl: null,
+          url: null,
+          mealQuantity: '100',
+          mealUnit: 'g',
+          servingQuantity: null,
+          servingUnit: 'g',
+          servingSize: null,
+          nutriments: MealNutrimentsDBO(
+            energyKcal100: 100,
+            carbohydrates100: 10,
+            fat100: 2,
+            proteins100: 5,
+            sugars100: null,
+            saturatedFat100: null,
+            fiber100: null,
+          ),
+          source: MealSourceDBO.custom,
+        ),
+        dateTime: DateTime(2026, 6, 15, 12, 30),
+      ),
+    );
+    final export = _FakeExportMealIntakeUsecase(provider.intake);
+    final wipe = DeleteAllUserDataUsecase(
+      provider,
+      DailyReminderScheduler(
+        ConfigRepository(ConfigDataSource(provider)),
+        _SilentNotificationService(),
+      ),
+      credentials,
+      exportMealIntakeUsecase: export,
+      calorieWidgetStore: widgetStore,
+    );
+
+    await wipe.deleteAll();
+
+    expect(export.forgotten, [(provider.activeProfileId, 1)]);
+    expect(provider.intake.isEmpty, isTrue);
+  });
+
+  // Codex: a diary write paused under the writers' lock resumed after the
+  // health export had read the diary, and requested its export too late
+  // for the wipe to account for it.
+  test('the health export reads the diary after a write under way', () async {
+    final export = _FakeExportMealIntakeUsecase(provider.intake);
+    final release = Completer<void>();
+    // Released even if an expectation fails, so the lock is not left held.
+    addTearDown(() {
+      if (!release.isCompleted) release.complete();
+    });
+    final writing = withTrackedDayLock(() => release.future);
+    final wiping = DeleteAllUserDataUsecase(
+      provider,
+      DailyReminderScheduler(
+        ConfigRepository(ConfigDataSource(provider)),
+        _SilentNotificationService(),
+      ),
+      credentials,
+      exportMealIntakeUsecase: export,
+      calorieWidgetStore: widgetStore,
+    ).deleteAll();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(export.forgotten, isEmpty);
+
+    release.complete();
+    await Future.wait([writing, wiping]);
+    expect(export.forgotten, [(provider.activeProfileId, 0)]);
   });
 
   test('takes the AI credentials with it', () async {
