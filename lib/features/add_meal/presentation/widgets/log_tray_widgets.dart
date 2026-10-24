@@ -132,6 +132,8 @@ class _LogTrayRow extends StatelessWidget {
                 Text(
                   '${item.amountLabel} · '
                   '${logTrayKcalLabel(context, item.kcal)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: textTheme.bodyMedium?.copyWith(
                     color: palette.textMuted,
                   ),

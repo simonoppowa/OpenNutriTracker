@@ -540,9 +540,13 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             ),
           ),
           const SizedBox(width: 12),
+          // One line beside Retake at any text size (AGENTS.md, row titles).
           Expanded(
-            child: Text(
+            child: AutoSizeText(
               S.of(context).bulkAddYourPhotoLabel,
+              maxLines: 1,
+              minFontSize: 12,
+              overflow: TextOverflow.ellipsis,
               style: theme.textTheme.titleSmall,
             ),
           ),
