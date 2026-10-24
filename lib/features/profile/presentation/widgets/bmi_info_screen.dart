@@ -10,7 +10,7 @@ import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// Transparency screen for the BMI shown on the Profile tab: the inputs,
 /// the formula with the user's numbers substituted in, and the full WHO
@@ -148,15 +148,10 @@ class _BmiInfoScreenState extends State<BmiInfoScreen> {
   }
 
   Future<void> _launchWiki(BuildContext context) async {
-    final uri = Uri.parse(URLConst.wikiCalculationsURL);
-    final l10n = S.of(context);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.errorOpeningBrowser)),
-      );
-    }
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningBrowser;
+    if (await tryLaunchExternalUrl(URLConst.wikiCalculationsURL)) return;
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 }
 
