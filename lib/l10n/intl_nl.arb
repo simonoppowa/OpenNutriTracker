@@ -1,1 +1,25 @@
-{}
+{
+  "activityExample": "bv. lopen, fietsen, yoga...",
+  "activityLabel": "Activiteit",
+  "addItemLabel": "Nieuw item toevoegen:",
+  "addLabel": "Toevoegen",
+  "additionalInfoLabelCustom": "Aangepaste maaltijd",
+  "foodSourcesAlwaysEnabledLabel": "Altijd ingeschakeld",
+  "machineTranslatedNameHint": "Naam automatisch vertaald",
+  "settingsFoodSourcesLabel": "Voedseldatabanken",
+  "onboardingOtherOptionsLabel": "Andere keuzes",
+  "onboardingOtherOptionsSubtitle": "De app personaliseren - je kan alles later veranderen in de instellingen",
+  "additionalInfoLabelOFF": "Meer informatie op\nOpenFoodFacts",
+  "additionalInfoLabelRecipe": "Aangepast recept",
+  "additionalInfoLabelUnknown": "Onbekende maaltijd",
+  "ageLabel": "Leeftijd",
+  "allItemsLabel": "Alles",
+  "appVersionName": "Versie {versionNumber}",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  }
+}
