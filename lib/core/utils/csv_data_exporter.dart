@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/utils/csv_row_parser.dart';
+import 'package:opennutritracker/core/utils/web_url.dart';
 
 /// Serializes the three exportable Hive datasets (intakes, user activities,
 /// tracked days) to flat CSV alongside the existing JSON export. The same
@@ -253,7 +254,7 @@ class CsvDataExporter {
         brands: _nullable(row['meal_brands']),
         thumbnailImageUrl: _nullable(row['meal_thumbnail_url']),
         mainImageUrl: _nullable(row['meal_main_image_url']),
-        url: _nullable(row['meal_url']),
+        url: normalizeWebUrl(row['meal_url']),
         mealQuantity: _nullable(row['meal_quantity']),
         mealUnit: _nullable(row['meal_unit']),
         servingQuantity: _double(row['meal_serving_quantity']),

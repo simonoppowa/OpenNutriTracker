@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/app_locale.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
+import 'package:opennutritracker/core/utils/web_url.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
@@ -345,7 +346,7 @@ class MealEntity extends Equatable {
     brands: mealDBO.brands,
     thumbnailImageUrl: mealDBO.thumbnailImageUrl,
     mainImageUrl: mealDBO.mainImageUrl,
-    url: mealDBO.url,
+    url: normalizeWebUrl(mealDBO.url),
     mealQuantity: mealDBO.mealQuantity,
     mealUnit: mealDBO.mealUnit,
     servingQuantity: mealDBO.servingQuantity,
@@ -383,7 +384,7 @@ class MealEntity extends Equatable {
       brands: offProduct.brands,
       thumbnailImageUrl: offProduct.image_front_thumb_url,
       mainImageUrl: offProduct.image_front_url,
-      url: offProduct.url,
+      url: normalizeWebUrl(offProduct.url),
       mealQuantity: offProduct.product_quantity?.toString(),
       mealUnit: unit,
       servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
@@ -419,7 +420,7 @@ class MealEntity extends Equatable {
       code: fdcId,
       name: fdcFood.description,
       brands: fdcFood.brandName,
-      url: FDCConst.getFoodDetailUrlString(fdcId),
+      url: normalizeWebUrl(FDCConst.getFoodDetailUrlString(fdcId)),
       mealQuantity: fdcFood.packageWeight,
       mealUnit: fdcFood.servingSizeUnit,
       servingQuantity: fdcFood.servingSize,
@@ -439,7 +440,9 @@ class MealEntity extends Equatable {
       // Only USDA FDC foods have a public detail page to link to; foods
       // from the other backend sources (BLS, INDB, TBCA...) link nowhere.
       url: foodItem.isFdc
-          ? FDCConst.getFoodDetailUrlString(foodItem.sourceCode)
+          ? normalizeWebUrl(
+              FDCConst.getFoodDetailUrlString(foodItem.sourceCode),
+            )
           : null,
       mealQuantity: null,
       mealUnit: defaultUnit,
