@@ -13,6 +13,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart'
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 
 /// A number immediately followed by a metric mass or volume unit, as it
 /// appears inside an Open Food Facts `serving_size` string.
@@ -385,7 +386,7 @@ class MealEntity extends Equatable {
       thumbnailImageUrl: offProduct.image_front_thumb_url,
       mainImageUrl: offProduct.image_front_url,
       url: normalizeWebUrl(offProduct.url),
-      mealQuantity: offProduct.product_quantity?.toString(),
+      mealQuantity: offProduct.product_quantity?.toString().withDotDecimal(),
       mealUnit: unit,
       servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
       servingUnit: unit,

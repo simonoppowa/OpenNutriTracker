@@ -46,6 +46,21 @@ extension CastString on String {
       return (value != null && value.isFinite) ? value : null;
     }
   }
+
+  /// Like [toDoubleOrNull], but also accepts a comma as the decimal mark and
+  /// ignores surrounding whitespace. For text that was stored rather than
+  /// typed into a [CustomTextInputFormatter] field, such as a meal quantity
+  /// that arrived as `"137,0"` from a decimal-comma locale.
+  double? toLenientDoubleOrNull() =>
+      trim().replaceAll(',', '.').toDoubleOrNull();
+
+  /// This text with a decimal comma turned into a period (`"137,0"` becomes
+  /// `"137.0"`), so it parses everywhere. Text that is not a number, or that
+  /// has no comma, is returned unchanged.
+  String withDotDecimal() {
+    if (!contains(',')) return this;
+    return toLenientDoubleOrNull()?.toString() ?? this;
+  }
 }
 
 extension Round on double {
