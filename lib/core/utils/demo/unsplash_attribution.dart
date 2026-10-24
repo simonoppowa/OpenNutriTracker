@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// Photographer credit for one curated Unsplash photo used by the
 /// demo-data seeder (`demo_seeder.dart`). Unsplash's general License
@@ -144,17 +144,9 @@ class _CreditText extends StatelessWidget {
         child: Semantics(
           identifier: 'unsplash-photo-credit',
           child: InkWell(
-            onTap: () async {
-              try {
-                await launchUrl(
-                  Uri.parse(credit.profileUrl),
-                  mode: LaunchMode.externalApplication,
-                );
-              } catch (_) {
-                // Optional credit link — failure must not surface as an
-                // unhandled async error from a gesture callback.
-              }
-            },
+            // Optional credit link: a failure to open is logged by the helper
+            // and must not surface as an unhandled async error.
+            onTap: () => tryLaunchExternalUrl(credit.profileUrl),
             child: Text(
               'Photo: ${credit.name} / Unsplash',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(

@@ -45,6 +45,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/diary_day_boundary_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_adjustment_dialog.dart';
@@ -1391,20 +1392,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _reportError(BuildContext context) async {
-    final reportUri = Uri.parse(
-      "mailto:${AppConst.reportErrorEmail}?subject=Report_Error",
-    );
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningEmail;
 
-    if (await canLaunchUrl(reportUri)) {
-      launchUrl(reportUri);
-    } else {
-      // Cannot open email app, show error snackbar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningEmail)),
-        );
-      }
+    // Cannot open email app: show error snackbar.
+    if (await tryLaunchExternalUrl(
+      "mailto:${AppConst.reportErrorEmail}?subject=Report_Error",
+      mode: LaunchMode.platformDefault,
+    )) {
+      return;
     }
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 
   void _showPrivacyDialog(
@@ -1525,28 +1523,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _launchSourceCodeUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);
-    _launchUrl(context, sourceCodeUri);
+    _launchUrl(context, AppConst.sourceCodeUrl);
   }
 
   void _launchPrivacyPolicyUrl(BuildContext context) async {
-    final privacyPolicyUri = Uri.parse(
+    _launchUrl(
+      context,
       URLConst.privacyPolicyFor(Localizations.localeOf(context).languageCode),
     );
-    _launchUrl(context, privacyPolicyUri);
   }
 
-  void _launchUrl(BuildContext context, Uri url) async {
-    if (await canLaunchUrl(url)) {
-      launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      // Cannot open browser app, show error snackbar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningBrowser)),
-        );
-      }
-    }
+  void _launchUrl(BuildContext context, String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningBrowser;
+
+    // Cannot open browser app: show error snackbar.
+    if (await tryLaunchExternalUrl(url)) return;
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 }
 

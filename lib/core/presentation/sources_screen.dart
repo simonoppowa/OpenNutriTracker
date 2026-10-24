@@ -3,7 +3,7 @@ import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// Surfaces the peer-reviewed sources behind every health/medical
 /// calculation OpenNutriTracker shows. Reachable from the Home dashboard,
@@ -177,15 +177,10 @@ class _SourceCard extends StatelessWidget {
   const _SourceCard({required this.entry});
 
   Future<void> _launch(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    final l10n = S.of(context);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.errorOpeningBrowser)),
-      );
-    }
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningBrowser;
+    if (await tryLaunchExternalUrl(url)) return;
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 
   @override
