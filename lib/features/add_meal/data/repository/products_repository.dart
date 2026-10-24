@@ -7,6 +7,7 @@ import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_dat
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class ProductsRepository {
@@ -173,7 +174,9 @@ class ProductsRepository {
   Future<MealEntity> getOFFProductByBarcode(String barcode) async {
     final productResponse = await _offDataSource.fetchBarcodeResults(barcode);
 
-    return MealEntity.fromOFFProduct(productResponse.product, detailed: true);
+    final product = productResponse.product;
+    if (product == null) throw ProductNotFoundException();
+    return MealEntity.fromOFFProduct(product, detailed: true);
   }
 
   /// Drops items whose nutriments fail the physical-plausibility rules from
