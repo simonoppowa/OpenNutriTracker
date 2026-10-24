@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
@@ -40,6 +41,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   /// food (#1307). Left out where a test does not log a starred food.
   final ToggleFavouriteMealUsecase? _favourites;
 
+  /// Takes a stored intake back out when the tracked-day update after it
+  /// fails (#1461). Left out where a test never fails that update.
+  final DeleteIntakeUsecase? _deleteIntakeUsecase;
+
   MealDetailBloc(
     this._addIntakeUseCase,
     this._addTrackedDayUsecase,
@@ -49,7 +54,9 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._productsRepository,
     this._remoteSearchCacheDataSource, {
     ToggleFavouriteMealUsecase? favourites,
+    DeleteIntakeUsecase? deleteIntake,
   }) : _favourites = favourites,
+       _deleteIntakeUsecase = deleteIntake,
        super(
           MealDetailInitial(
             totalQuantityConverted: '100',
@@ -185,9 +192,20 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // the cache update means the next search shows the freshest data.
     // The entry and its row together, so no reconciliation counts the
     // entry before the row has it (#1317).
+    //
+    // All or nothing (#1461): a failure after the intake is stored takes it
+    // back out, with whatever the day's totals had already been given, so
+    // the caller's retry starts from where the first attempt did instead of
+    // logging the food a second time.
     await withTrackedDayLockOnProfile(() async {
       await _addIntakeUseCase.addIntake(intakeEntity);
-      await _updateTrackedDay(intakeEntity, day);
+      final undo = <Future<void> Function()>[];
+      try {
+        await _updateTrackedDay(intakeEntity, day, undo);
+      } catch (e, st) {
+        await _rollBackIntake(intakeEntity, undo, e, st);
+        rethrow;
+      }
     });
     unawaited(_refreshCacheForSelectedMeal(meal));
   }
@@ -228,9 +246,41 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     }
   }
 
+  /// Undoes a half-written [addIntake]: the totals already added, newest
+  /// first, then the intake itself. Inside the same lock as the write, so
+  /// nothing else saw the half-written state.
+  ///
+  /// Best effort. A rollback that fails too is logged and left; the caller
+  /// still gets the original error, which is the one that explains what
+  /// happened.
+  Future<void> _rollBackIntake(
+    IntakeEntity intakeEntity,
+    List<Future<void> Function()> undo,
+    Object error,
+    StackTrace stackTrace,
+  ) async {
+    log.warning(
+      'Tracked-day update failed; rolling back the intake',
+      error,
+      stackTrace,
+    );
+    try {
+      for (final step in undo.reversed) {
+        await step();
+      }
+      await _deleteIntakeUsecase?.deleteIntake(intakeEntity);
+    } catch (e, st) {
+      log.severe('Rolling back a failed intake save failed', e, st);
+    }
+  }
+
+  /// Adds [intakeEntity] to the day's totals, recording in [undo] how to
+  /// take back each step that completed. Creating the day's row is not
+  /// recorded: an empty row is what the day would have had anyway.
   Future<void> _updateTrackedDay(
     IntakeEntity intakeEntity,
     DateTime day,
+    List<Future<void> Function()> undo,
   ) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
@@ -257,6 +307,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     await _addTrackedDayUsecase.addDayCaloriesTracked(
       day,
       intakeEntity.totalKcal,
+    );
+    undo.add(
+      () => _addTrackedDayUsecase.removeDayCaloriesTracked(
+        day,
+        intakeEntity.totalKcal,
+      ),
     );
     await _addTrackedDayUsecase.addDayMacrosTracked(
       day,

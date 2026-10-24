@@ -361,6 +361,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       favourites: locator<ToggleFavouriteMealUsecase>(),
+      deleteIntake: locator<DeleteIntakeUsecase>(),
     ),
   );
   locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
