@@ -51,7 +51,7 @@ class LogTrayList extends StatelessWidget {
                     foregroundColor: palette.textMuted,
                     visualDensity: VisualDensity.compact,
                   ),
-                  child: Text(S.of(context).logTrayClearLabel),
+                  child: Text(S.of(context).profileTargetWeightClearAction),
                 ),
               ),
             ],

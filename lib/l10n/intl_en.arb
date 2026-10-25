@@ -1416,7 +1416,6 @@
   "@bulkAddToListLabel": {"placeholders": {"count": {"type": "int"}}},
   "logTrayTitle": "To log · {count}",
   "@logTrayTitle": {"placeholders": {"count": {"type": "int"}}},
-  "logTrayClearLabel": "Clear",
   "logTrayRemoveLabel": "Remove from list",
   "logTrayAddedLabel": "Added to list",
   "logTrayLogFailedLabel": "Couldn't log these items. Try again.",
