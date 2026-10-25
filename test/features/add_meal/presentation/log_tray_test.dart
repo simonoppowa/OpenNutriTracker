@@ -135,9 +135,13 @@ class _FakeProducts extends Fake implements ProductsRepository {
   MealEntity? full;
   var lookups = 0;
 
+  /// When set, every lookup waits on it.
+  Completer<void>? gate;
+
   @override
   Future<MealEntity> getOFFProductByBarcode(String barcode) async {
     lookups++;
+    await gate?.future;
     final meal = full;
     if (meal == null) throw StateError('offline');
     return meal;
@@ -583,6 +587,42 @@ void main() {
 
       expect(_mealDetailBloc.writes.single.unit, 'g');
       expect(_mealDetailBloc.writes.single.amount, '100.0');
+    });
+
+    testWidgets('logging waits for a + that is still fetching its food', (
+      tester,
+    ) async {
+      await _register([
+        _meal('Oats'),
+        _meal('Granola', source: MealSourceEntity.off),
+      ]);
+      _products.full = _meal(
+        'Granola',
+        source: MealSourceEntity.off,
+        servingQuantity: 45,
+        servingSize: '45 g',
+        detailed: true,
+      );
+      await _openAddMeal(tester, []);
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+      final gate = _products.gate = Completer<void>();
+
+      await _tapPlus(tester, 'Granola');
+      await tester.pump();
+      final log = find.descendant(
+        of: _logButton(),
+        matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+      );
+      expect(tester.widget<ButtonStyleButton>(log).onPressed, isNull);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(tester.widget<ButtonStyleButton>(log).onPressed, isNotNull);
+      await tester.tap(log);
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes.map((w) => w.name), ['Oats', 'Granola']);
     });
 
     testWidgets('the list cannot change while it is being written', (
