@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
@@ -14,11 +15,15 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 
-/// The intake box: what is stored, by id.
+/// The intake box and the day's row. The totals stand for the cached Hive
+/// record: whatever they hold is what the next save writes, which is how a
+/// half-applied update survives a failed save in the real data source.
 class _Store {
   final intakes = <String, IntakeEntity>{};
   double kcal = 0;
   double carbs = 0;
+  double fat = 0;
+  double protein = 0;
 }
 
 class _FakeAddIntake extends Fake implements AddIntakeUsecase {
@@ -42,7 +47,9 @@ class _FakeDeleteIntake extends Fake implements DeleteIntakeUsecase {
   }
 }
 
-/// The day's totals, with a switch to fail either half of the update.
+/// The day's totals, with a switch to fail either half of the update. A
+/// failing write changes the record first and then throws, as
+/// `TrackedDayDataSource` does when `save()` fails.
 class _FakeTrackedDay extends Fake implements AddTrackedDayUsecase {
   final _Store store;
   bool failCalories = false;
@@ -54,13 +61,24 @@ class _FakeTrackedDay extends Fake implements AddTrackedDayUsecase {
 
   @override
   Future<void> addDayCaloriesTracked(DateTime day, double calories) async {
-    if (failCalories) throw StateError('calories failed');
     store.kcal += calories;
+    if (failCalories) throw StateError('calories failed');
   }
 
   @override
-  Future<void> removeDayCaloriesTracked(DateTime day, double calories) async =>
-      store.kcal -= calories;
+  Future<void> reconcileDayTracked(
+    DateTime day,
+    double calories,
+    double carbs,
+    double fat,
+    double protein,
+  ) async {
+    store
+      ..kcal = calories
+      ..carbs = carbs
+      ..fat = fat
+      ..protein = protein;
+  }
 
   @override
   Future<void> addDayMacrosTracked(
@@ -69,8 +87,10 @@ class _FakeTrackedDay extends Fake implements AddTrackedDayUsecase {
     double? fatTracked,
     double? proteinTracked,
   }) async {
-    if (failMacros) throw StateError('macros failed');
     store.carbs += carbsTracked ?? 0;
+    store.fat += fatTracked ?? 0;
+    store.protein += proteinTracked ?? 0;
+    if (failMacros) throw StateError('macros failed');
   }
 }
 
@@ -112,7 +132,7 @@ void main() {
       trackedDay,
       _UnusedKcalGoal(),
       _UnusedMacroGoal(),
-      _UnusedTrackedDay(),
+      _FakeGetTrackedDay(store),
       _UnusedProducts(),
       _UnusedCache(),
       deleteIntake: deleteIntake,
@@ -133,13 +153,21 @@ void main() {
   test(
     'a failed totals update leaves no intake and no partial total',
     () async {
+      // Something already logged that day, which the rollback must keep.
+      store
+        ..kcal = 300
+        ..carbs = 30
+        ..fat = 10
+        ..protein = 12;
       trackedDay.failMacros = true;
 
       await expectLater(logToast(), throwsStateError);
 
       expect(store.intakes, isEmpty);
-      expect(store.kcal, 0);
-      expect(store.carbs, 0);
+      expect(store.kcal, 300);
+      expect(store.carbs, 30);
+      expect(store.fat, 10);
+      expect(store.protein, 12);
     },
   );
 
@@ -155,17 +183,15 @@ void main() {
     expect(store.carbs, 20);
   });
 
-  test(
-    'a failure before any total was added only removes the intake',
-    () async {
-      trackedDay.failCalories = true;
+  test('a calorie save that fails halfway is taken back too', () async {
+    trackedDay.failCalories = true;
 
-      await expectLater(logToast(), throwsStateError);
+    await expectLater(logToast(), throwsStateError);
 
-      expect(store.intakes, isEmpty);
-      expect(store.kcal, 0);
-    },
-  );
+    expect(store.intakes, isEmpty);
+    expect(store.kcal, 0);
+    expect(store.carbs, 0);
+  });
 
   test('a rollback that fails too still reports the original error', () async {
     trackedDay.failMacros = true;
@@ -177,8 +203,9 @@ void main() {
         isA<StateError>().having((e) => e.message, 'message', 'macros failed'),
       ),
     );
-    // The totals were still taken back; only the delete was lost.
+    // The totals were still put back; only the delete was lost.
     expect(store.kcal, 0);
+    expect(store.carbs, 0);
   });
 
   test('a save that succeeds is untouched by any of this', () async {
@@ -193,7 +220,22 @@ class _UnusedKcalGoal extends Fake implements GetKcalGoalUsecase {}
 
 class _UnusedMacroGoal extends Fake implements GetMacroGoalUsecase {}
 
-class _UnusedTrackedDay extends Fake implements GetTrackedDayUsecase {}
+/// Reads the day's row as it stands, copied out like the real entity is.
+class _FakeGetTrackedDay extends Fake implements GetTrackedDayUsecase {
+  final _Store store;
+  _FakeGetTrackedDay(this.store);
+
+  @override
+  Future<TrackedDayEntity?> getTrackedDay(DateTime day) async =>
+      TrackedDayEntity(
+        day: day,
+        calorieGoal: 2000,
+        caloriesTracked: store.kcal,
+        carbsTracked: store.carbs,
+        fatTracked: store.fat,
+        proteinTracked: store.protein,
+      );
+}
 
 class _UnusedProducts extends Fake implements ProductsRepository {}
 

@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
@@ -194,16 +195,20 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // entry before the row has it (#1317).
     //
     // All or nothing (#1461): a failure after the intake is stored takes it
-    // back out, with whatever the day's totals had already been given, so
-    // the caller's retry starts from where the first attempt did instead of
+    // back out and puts the day's totals back to what they were, so the
+    // caller's retry starts from where the first attempt did instead of
     // logging the food a second time.
     await withTrackedDayLockOnProfile(() async {
       await _addIntakeUseCase.addIntake(intakeEntity);
-      final undo = <Future<void> Function()>[];
+      TrackedDayEntity? before;
       try {
-        await _updateTrackedDay(intakeEntity, day, undo);
+        await _updateTrackedDay(
+          intakeEntity,
+          day,
+          onBefore: (totals) => before = totals,
+        );
       } catch (e, st) {
-        await _rollBackIntake(intakeEntity, undo, e, st);
+        await _rollBackIntake(intakeEntity, day, before, e, st);
         rethrow;
       }
     });
@@ -246,16 +251,23 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     }
   }
 
-  /// Undoes a half-written [addIntake]: the totals already added, newest
-  /// first, then the intake itself. Inside the same lock as the write, so
-  /// nothing else saw the half-written state.
+  /// Undoes a half-written [addIntake]: the day's totals back to [before],
+  /// then the intake itself. Inside the same lock as the write, so nothing
+  /// else saw the half-written state.
+  ///
+  /// The totals are written back whole rather than subtracted step by step.
+  /// The data source changes the cached day record before it saves, so a
+  /// save that throws can leave the increment in memory, where the next
+  /// save (a subtraction included) would persist it. Writing back the values
+  /// read before the update does not depend on how far the update got.
   ///
   /// Best effort. A rollback that fails too is logged and left; the caller
   /// still gets the original error, which is the one that explains what
   /// happened.
   Future<void> _rollBackIntake(
     IntakeEntity intakeEntity,
-    List<Future<void> Function()> undo,
+    DateTime day,
+    TrackedDayEntity? before,
     Object error,
     StackTrace stackTrace,
   ) async {
@@ -265,8 +277,14 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       stackTrace,
     );
     try {
-      for (final step in undo.reversed) {
-        await step();
+      if (before != null) {
+        await _addTrackedDayUsecase.reconcileDayTracked(
+          day,
+          before.caloriesTracked,
+          before.carbsTracked ?? 0,
+          before.fatTracked ?? 0,
+          before.proteinTracked ?? 0,
+        );
       }
       await _deleteIntakeUsecase?.deleteIntake(intakeEntity);
     } catch (e, st) {
@@ -274,14 +292,15 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     }
   }
 
-  /// Adds [intakeEntity] to the day's totals, recording in [undo] how to
-  /// take back each step that completed. Creating the day's row is not
-  /// recorded: an empty row is what the day would have had anyway.
+  /// Adds [intakeEntity] to the day's totals, handing [onBefore] the totals
+  /// as they stood before anything was added. Creating the day's row comes
+  /// first and is not undone: an empty row is what the day would have had
+  /// anyway.
   Future<void> _updateTrackedDay(
     IntakeEntity intakeEntity,
-    DateTime day,
-    List<Future<void> Function()> undo,
-  ) async {
+    DateTime day, {
+    required void Function(TrackedDayEntity totals) onBefore,
+  }) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
       final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
@@ -304,15 +323,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       );
     }
 
+    final totals = await _getTrackedDayUsecase.getTrackedDay(day);
+    if (totals != null) onBefore(totals);
+
     await _addTrackedDayUsecase.addDayCaloriesTracked(
       day,
       intakeEntity.totalKcal,
-    );
-    undo.add(
-      () => _addTrackedDayUsecase.removeDayCaloriesTracked(
-        day,
-        intakeEntity.totalKcal,
-      ),
     );
     await _addTrackedDayUsecase.addDayMacrosTracked(
       day,

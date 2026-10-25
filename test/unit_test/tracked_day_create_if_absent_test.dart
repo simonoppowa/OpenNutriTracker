@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
@@ -100,7 +101,12 @@ class _NoopAddUserActivityUsecase extends Fake
   Future<void> addUserActivity(UserActivityEntity userActivityEntity) async {}
 }
 
-class _FakeGetTrackedDayUsecase extends Fake implements GetTrackedDayUsecase {}
+/// `addIntake` reads the day's totals before adding to them, to restore
+/// them if the update fails (#1461); nothing here exercises that.
+class _FakeGetTrackedDayUsecase extends Fake implements GetTrackedDayUsecase {
+  @override
+  Future<TrackedDayEntity?> getTrackedDay(DateTime day) async => null;
+}
 
 class _FakeProductsRepository extends Fake implements ProductsRepository {}
 
