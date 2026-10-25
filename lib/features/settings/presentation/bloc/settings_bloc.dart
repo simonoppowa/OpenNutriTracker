@@ -120,3 +120,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 }
 
 enum SystemDropDownType { metric, imperial }
+
+enum BackupIntervalDropDownType { daily, weekly, monthly }
+
+enum BackupCountDropDownType { one, two, three }

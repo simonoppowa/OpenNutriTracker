@@ -823,6 +823,146 @@ class S {
     return Intl.message('Import', name: 'importAction', desc: '', args: []);
   }
 
+  /// `Automatic Backup`
+  String get automaticBackupLabel {
+    return Intl.message(
+      'Automatic Backup',
+      name: 'automaticBackupLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable automatic backups`
+  String get enableAutomaticBackupLabel {
+    return Intl.message(
+      'Enable automatic backups',
+      name: 'enableAutomaticBackupLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Backup status`
+  String get backupStatusLabel {
+    return Intl.message(
+      'Backup status',
+      name: 'backupStatusLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Backup location`
+  String get backupLocationLabel {
+    return Intl.message(
+      'Backup location',
+      name: 'backupLocationLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `none`
+  String get backupNotSetLabel {
+    return Intl.message('none', name: 'backupNotSetLabel', desc: '', args: []);
+  }
+
+  /// `Backup interval`
+  String get backupIntervalLabel {
+    return Intl.message(
+      'Backup interval',
+      name: 'backupIntervalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `daily`
+  String get backupIntervalDailyLabel {
+    return Intl.message(
+      'daily',
+      name: 'backupIntervalDailyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `weekly`
+  String get backupIntervalWeeklyLabel {
+    return Intl.message(
+      'weekly',
+      name: 'backupIntervalWeeklyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `monthly`
+  String get backupIntervalMonthlyLabel {
+    return Intl.message(
+      'monthly',
+      name: 'backupIntervalMonthlyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Backup count`
+  String get backupCountLabel {
+    return Intl.message(
+      'Backup count',
+      name: 'backupCountLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `1`
+  String get backupCountOneLabel {
+    return Intl.message('1', name: 'backupCountOneLabel', desc: '', args: []);
+  }
+
+  /// `2`
+  String get backupCountTwoLabel {
+    return Intl.message('2', name: 'backupCountTwoLabel', desc: '', args: []);
+  }
+
+  /// `3`
+  String get backupCountThreeLabel {
+    return Intl.message('3', name: 'backupCountThreeLabel', desc: '', args: []);
+  }
+
+  /// `Last backup:`
+  String get backupStatusLastBackupLabel {
+    return Intl.message(
+      'Last backup:',
+      name: 'backupStatusLastBackupLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Next backup:`
+  String get backupStatusNextBackupLabel {
+    return Intl.message(
+      'Next backup:',
+      name: 'backupStatusNextBackupLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `never`
+  String get backupStatusNeverLabel {
+    return Intl.message(
+      'never',
+      name: 'backupStatusNeverLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Today`
   String get dateTodayLabel {
     return Intl.message('Today', name: 'dateTodayLabel', desc: '', args: []);

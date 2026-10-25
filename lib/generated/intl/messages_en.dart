@@ -61,6 +61,33 @@ class MessageLookup extends MessageLookupByLibrary {
     "appLicenseLabel": MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
     "appTitle": MessageLookupByLibrary.simpleMessage("OpenNutriTracker"),
     "appVersionName": m0,
+    "automaticBackupLabel": MessageLookupByLibrary.simpleMessage(
+      "Automatic Backup",
+    ),
+    "backupCountLabel": MessageLookupByLibrary.simpleMessage("Backup count"),
+    "backupCountOneLabel": MessageLookupByLibrary.simpleMessage("1"),
+    "backupCountThreeLabel": MessageLookupByLibrary.simpleMessage("3"),
+    "backupCountTwoLabel": MessageLookupByLibrary.simpleMessage("2"),
+    "backupIntervalDailyLabel": MessageLookupByLibrary.simpleMessage("daily"),
+    "backupIntervalLabel": MessageLookupByLibrary.simpleMessage(
+      "Backup interval",
+    ),
+    "backupIntervalMonthlyLabel": MessageLookupByLibrary.simpleMessage(
+      "monthly",
+    ),
+    "backupIntervalWeeklyLabel": MessageLookupByLibrary.simpleMessage("weekly"),
+    "backupLocationLabel": MessageLookupByLibrary.simpleMessage(
+      "Backup location",
+    ),
+    "backupNotSetLabel": MessageLookupByLibrary.simpleMessage("none"),
+    "backupStatusLabel": MessageLookupByLibrary.simpleMessage("Backup status"),
+    "backupStatusLastBackupLabel": MessageLookupByLibrary.simpleMessage(
+      "Last backup:",
+    ),
+    "backupStatusNeverLabel": MessageLookupByLibrary.simpleMessage("never"),
+    "backupStatusNextBackupLabel": MessageLookupByLibrary.simpleMessage(
+      "Next backup:",
+    ),
     "betaVersionName": MessageLookupByLibrary.simpleMessage("[Beta]"),
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",
@@ -141,6 +168,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "editItemDialogTitle": MessageLookupByLibrary.simpleMessage("Edit item"),
     "editMealLabel": MessageLookupByLibrary.simpleMessage("Edit meal"),
+    "enableAutomaticBackupLabel": MessageLookupByLibrary.simpleMessage(
+      "Enable automatic backups",
+    ),
     "energyLabel": MessageLookupByLibrary.simpleMessage("energy"),
     "errorFetchingProductData": MessageLookupByLibrary.simpleMessage(
       "Error while fetching product data",
