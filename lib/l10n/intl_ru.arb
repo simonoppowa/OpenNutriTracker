@@ -1694,5 +1694,7 @@
   "bulkAddYourPhotoLabel": "Ваше фото",
   "addToListLabel": "Добавить в список",
   "logTrayRemoveLabel": "Удалить из списка",
-  "logTrayAddedLabel": "Добавлено в список"
+  "logTrayAddedLabel": "Добавлено в список",
+  "bulkAddWaitCancelLabel": "Отмена",
+  "logTrayClearLabel": "Очистить"
 }
