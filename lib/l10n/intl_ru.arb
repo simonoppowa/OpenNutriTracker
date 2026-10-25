@@ -1686,5 +1686,13 @@
       }
     }
   },
-  "logTrayLogFailedLabel": "Не удалось записать эти позции. Попробуйте ещё раз."
+  "logTrayLogFailedLabel": "Не удалось записать эти позции. Попробуйте ещё раз.",
+  "aiAssistModelRecommendedLabel": "Рекомендовано",
+  "aiAssistModelCheaperLabel": "Дешевле и слабее на некачественных фотографиях",
+  "aiAssistRemoveKeyLabel": "Удалить ключ",
+  "bulkAddPhotoUnavailableLabel": "Включите помощь ИИ в настройках для чтения фотографий",
+  "bulkAddYourPhotoLabel": "Ваше фото",
+  "addToListLabel": "Добавить в список",
+  "logTrayRemoveLabel": "Удалить из списка",
+  "logTrayAddedLabel": "Добавлено в список"
 }
