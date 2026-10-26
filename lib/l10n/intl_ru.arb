@@ -1622,5 +1622,79 @@
       }
     }
   },
-  "aiAssistModelsInsecureLabel": "Ничего не было отправлено: этот адрес является публичным и незашифрованным. Используйте https или введите название модели вручную."
+  "aiAssistModelsInsecureLabel": "Ничего не было отправлено: этот адрес является публичным и незашифрованным. Используйте https или введите название модели вручную.",
+  "aiAssistProviderLabel": "Провайдер",
+  "aiAssistModelLabel": "Модель",
+  "aiAssistServedByLabel": "Предоставлено {provider}",
+  "@aiAssistServedByLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelCheapestLabel": "Самая дешёвая в списке",
+  "aiAssistNoKeyForProviderLabel": "Нет сохраненного ключа для этого провайдера.",
+  "aiAssistKeyFieldLabel": "API ключ {provider}",
+  "@aiAssistKeyFieldLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistKeySavedLabel": "Ключ сохранен",
+  "bulkAddModelKeyRejectedLabel": "ИИ не сработал: ваш API ключ был отклонен.",
+  "bulkAddModelUnsupportedLabel": "ИИ не сработал: не удалось использовать выбранную модель.",
+  "bulkAddModelNoCreditLabel": "ИИ не сработал: на вашем аккаунте у провайдера исчерпан баланс.",
+  "bulkAddModelInsecureServerLabel": "ИИ не сработал: этот адрес является публичным и незашифрованным.",
+  "bulkAddModelTimedOutLabel": "ИИ не сработал: ваш сервер не ответил вовремя.",
+  "bulkAddWaitElapsedLabel": "Ожидание вашего сервера · {seconds} с",
+  "@bulkAddWaitElapsedLabel": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddWaitModelLoadingLabel": "Ваш сервер может загружать свою модель. Первый запрос после простоя может занять минуту или две, это нормально.",
+  "bulkAddPhotoDisclosureCommon": "OpenNutriTracker не хранит копию фото, и она никогда не экспортируется.",
+  "bulkAddPhotoDisclosureAnthropic": "Фото отправляется Antrhopic, чтобы идентифицировать продукты на нём.",
+  "bulkAddPhotoDisclosureOpenRouter": "Фото отправляется в OpenRouter, который передает его {provider} для идентификации продуктов на нём.",
+  "@bulkAddPhotoDisclosureOpenRouter": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddPhotoDisclosureOpenAI": "Фото отправляется в OpenAI для идентификации продуктов на нем. OpenAI держит его до 30 дней для мониторинга за злоупотреблениями, и дольше, если закон требует этого или оно необходимо для защиты их сервисов или третьей стороны от вреда.",
+  "bulkAddPhotoDisclosureOwnServer": "Фотография отправляется на {host}, чтобы идентифицировать продукты на ней.",
+  "@bulkAddPhotoDisclosureOwnServer": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddReviewTitle": "Просмотреть элементы",
+  "bulkAddToListLabel": "Добавить {count} элементов",
+  "@bulkAddToListLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "logTrayLogFailedLabel": "Не удалось записать эти позции. Попробуйте ещё раз.",
+  "aiAssistModelRecommendedLabel": "Рекомендовано",
+  "aiAssistModelCheaperLabel": "Дешевле и слабее на некачественных фотографиях",
+  "aiAssistRemoveKeyLabel": "Удалить ключ",
+  "bulkAddPhotoUnavailableLabel": "Включите помощь ИИ в настройках для чтения фотографий",
+  "bulkAddYourPhotoLabel": "Ваше фото",
+  "addToListLabel": "Добавить в список",
+  "logTrayRemoveLabel": "Удалить из списка",
+  "logTrayAddedLabel": "Добавлено в список",
+  "bulkAddWaitCancelLabel": "Отмена",
+  "logTrayClearLabel": "Очистить"
 }
