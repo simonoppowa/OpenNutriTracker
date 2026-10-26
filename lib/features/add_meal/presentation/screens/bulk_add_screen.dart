@@ -1485,12 +1485,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   Widget _buildSubmitBar(BuildContext context, BulkAddLoadedState state) {
     final count = state.loggableCount;
     // The total of what the button will log, so the batch can be judged
-    // before it reaches the diary rather than after.
-    var total = 0.0;
+    // before it reaches the diary rather than after. Kept per row so the
+    // total is the sum of the rows as shown (#1469).
+    final rowKcals = <double>[];
     for (final row in state.loggableRows) {
       final quantity = double.tryParse(row.amountText.replaceAll(',', '.'));
       if (quantity == null || quantity <= 0) continue;
-      total += kcalForQuantity(quantity, row.effectiveUnit, row.meal!) ?? 0;
+      rowKcals.add(
+        kcalForQuantity(quantity, row.effectiveUnit, row.meal!) ?? 0,
+      );
     }
     return SafeArea(
       top: false,
@@ -1516,7 +1519,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                     ? S.of(context).bulkAddSubmitLabel(count)
                     : S.of(context).bulkAddToListLabel(count);
                 final kcal = count > 0
-                    ? EnergyDisplay.formatWithUnit(context, total)
+                    ? EnergyDisplay.formatSumWithUnit(context, rowKcals)
                     : null;
                 final style = Theme.of(context).textTheme.labelLarge;
                 final iconWidth = MediaQuery.textScalerOf(context).scale(32);

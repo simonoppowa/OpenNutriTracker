@@ -432,7 +432,7 @@ class _MacroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = S.of(context);
-    final goalKcal = breakdown.totalKcalGoal.toInt();
+    final goalKcal = breakdown.totalKcalGoal.round();
     return _SectionCard(
       title: l10n.kcalGoalInfoMacroSection,
       children: [
@@ -577,7 +577,7 @@ class _FormulaText extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = rawText ??
-        '$formula\n= ${resultKcal!.toInt()} ${S.of(context).kcalLabel}';
+        '$formula\n= ${resultKcal!.round()} ${S.of(context).kcalLabel}';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(Dimens.spacing8),

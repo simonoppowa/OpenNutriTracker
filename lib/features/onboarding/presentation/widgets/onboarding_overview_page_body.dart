@@ -43,7 +43,7 @@ class OnboardingOverviewPageBody extends StatelessWidget {
     final usesKilojoules = context.watch<EnergyUnitProvider>().usesKilojoules;
     final parsedKcalGoal = double.tryParse(calorieGoalDayString) ?? 0;
     final displayGoalString = usesKilojoules
-        ? UnitCalc.kcalToKj(parsedKcalGoal).toInt().toString()
+        ? UnitCalc.kcalToKj(parsedKcalGoal).round().toString()
         : calorieGoalDayString;
     final perDayLabel = usesKilojoules
         ? S.of(context).onboardingKjPerDayLabel

@@ -421,11 +421,11 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
         context.watch<EnergyUnitProvider>().usesKilojoules;
     final clampedKcal = actualKcal < 0 ? 0.0 : actualKcal;
     final displayActual = usesKilojoules
-        ? UnitCalc.kcalToKj(clampedKcal).toInt()
-        : clampedKcal.toInt();
+        ? UnitCalc.kcalToKj(clampedKcal).round()
+        : clampedKcal.round();
     final displayGoal = usesKilojoules
-        ? UnitCalc.kcalToKj(trackedDay.calorieGoal).toInt()
-        : trackedDay.calorieGoal.toInt();
+        ? UnitCalc.kcalToKj(trackedDay.calorieGoal).round()
+        : trackedDay.calorieGoal.round();
     final unit = usesKilojoules ? S.of(context).kjLabel : S.of(context).kcalLabel;
     return '$displayActual/$displayGoal $unit';
   }

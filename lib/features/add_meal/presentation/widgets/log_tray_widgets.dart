@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -172,7 +173,12 @@ class LogTrayLogButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = S.of(context).bulkAddSubmitLabel(tray.length);
-    final kcal = logTrayKcalLabel(context, tray.totalKcal);
+    // The sum of the rows as shown above it, not the rounded exact sum,
+    // so the list adds up on screen (#1469).
+    final kcal = EnergyDisplay.formatSumWithUnit(
+      context,
+      tray.items.map((item) => item.kcal),
+    );
     return Semantics(
       identifier: 'add-meal-tray-log',
       child: FilledButton(
