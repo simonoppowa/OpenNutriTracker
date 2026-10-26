@@ -112,6 +112,10 @@ class _FakeSearch implements SearchProductsUseCase {
     bool forResolution = false,
   }) async => const SearchProductsResult(meals: [], remoteSourceEmpty: false);
 
+  // No full record behind any hit: these tests are about the screen.
+  @override
+  Future<MealEntity?> fetchFullOffRecord(MealEntity meal) async => null;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

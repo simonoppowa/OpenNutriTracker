@@ -13,6 +13,8 @@ MealEntity meal(
   int portions = 0,
   bool portionsUnavailable = false,
   bool detailed = false,
+  double? servingQuantity,
+  bool machineTranslatedName = false,
 }) => MealEntity(
   code: code ?? name,
   name: name,
@@ -22,7 +24,8 @@ MealEntity meal(
   url: null,
   mealQuantity: null,
   mealUnit: null,
-  servingQuantity: null,
+  servingQuantity: servingQuantity,
+  machineTranslatedName: machineTranslatedName,
   servingUnit: null,
   servingSize: null,
   source: source,
@@ -702,6 +705,98 @@ void main() {
         'eggs',
       );
       expect(plain, greaterThan(branded));
+    });
+  });
+
+  group('a counted item prefers a record that can count it (#1472)', () {
+    // `2 Eier` with no unit is held back on any record without a
+    // `servingQuantity` (#973). The names are the issue's: two OFF
+    // products titled "Eier" tie on the text, and only one of them
+    // declares a serving.
+    final lidl = meal('Eier', brands: 'Lidl', code: 'lidl');
+    final aldi = meal(
+      'Eier',
+      brands: 'Aldi',
+      code: 'aldi',
+      servingQuantity: 59,
+    );
+
+    test('the one with a serving goes first under a count', () {
+      expect(
+        rankForResolution([lidl, aldi], 'Eier', counted: true).first.brands,
+        'Aldi',
+      );
+    });
+
+    test('without a count the order is what it always was', () {
+      expect(rankForResolution([lidl, aldi], 'Eier').first.brands, 'Lidl');
+    });
+
+    test('a backend record with portions overtakes an OFF product without '
+        'a serving it trails by less than the penalty', () {
+      // A machine-translated record is 0.03 down on the same title; an
+      // OFF product that cannot count `1 Vollkornbrot` is 0.15 down.
+      final off = meal('Vollkornbrot', brands: 'Kaufland');
+      final backend = meal(
+        'Vollkornbrot',
+        source: MealSourceEntity.fdc,
+        code: 'fdc',
+        portions: 2,
+        servingQuantity: 40,
+        machineTranslatedName: true,
+      );
+
+      expect(
+        rankForResolution([off, backend], 'Vollkornbrot').first.source,
+        MealSourceEntity.off,
+      );
+      expect(
+        rankForResolution(
+          [off, backend],
+          'Vollkornbrot',
+          counted: true,
+        ).first.source,
+        MealSourceEntity.fdc,
+      );
+    });
+
+    test('a dish that can be counted does not overtake the plain food', () {
+      // The German pool for "Eier" holds portions only on FDC survey
+      // dishes. A held-back row is a prompt; "Eier Benedict" in the diary
+      // is a wrong food.
+      final dish = meal(
+        'Eier Benedict',
+        source: MealSourceEntity.fdc,
+        code: 'benedict',
+        portions: 3,
+        servingQuantity: 200,
+        machineTranslatedName: true,
+      );
+
+      expect(
+        rankForResolution([dish, lidl], 'Eier', counted: true).first.name,
+        'Eier',
+      );
+    });
+
+    test('a bare backend record is not penalised twice', () {
+      // `noPortionsPenalty` already speaks for it; the count rule is for
+      // the records that one does not reach.
+      final bare = meal('Vollkornbrot', source: MealSourceEntity.fdc);
+
+      expect(cannotHonourCount(bare), isFalse);
+      expect(
+        rankScoreForResolution(bare, 'Vollkornbrot', counted: true),
+        scoreMealForResolution(bare, 'Vollkornbrot'),
+      );
+    });
+
+    test('the penalty moves the order, not the confidence', () {
+      expect(scoreMealForResolution(lidl, 'Eier'), 1.0);
+      expect(
+        rankScoreForResolution(lidl, 'Eier', counted: true),
+        closeTo(1.0 - noPortionsPenalty, 1e-9),
+      );
     });
   });
 }
