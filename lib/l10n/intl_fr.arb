@@ -1295,5 +1295,6 @@
       }
     }
   },
-  "dataCollectionLabel": "Envoyer des rapports d'erreur pour aider à corriger les bugs. Aucune donnée relative à l'alimentation ou au poids n'est incluse."
+  "dataCollectionLabel": "Envoyer des rapports d'erreur pour aider à corriger les bugs. Aucune donnée relative à l'alimentation ou au poids n'est incluse.",
+  "policyChangeNoticeTitle": "Nous avons mis à jour la politique de confidentialité"
 }
