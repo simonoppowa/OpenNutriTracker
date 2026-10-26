@@ -246,7 +246,7 @@
       }
     }
   },
-  "customMealsDeleteConfirmContent": "Az összes, ezt az étkezést tartalmazó naplóbejegyzés is törlésre kerül.",
+  "customMealsDeleteConfirmContent": "A profilban található összes olyan naplóbejegyzés is törlésre kerül, amely ezt az étkezést tartalmazza.",
   "customMealsDeleteConfirmTitle": "Törli az egyéni étkezést?",
   "customMealsEmptyLabel": "Még nincs elmentett egyéni étkezés.",
   "dailyKcalAdjustmentLabel": "Napi kalória beállítás:",
@@ -343,7 +343,7 @@
   "errorProductNotFound": "A termék nem található",
   "exportAction": "Exportálás",
   "exportImportAppDataLabel": "Alkalmazásadatok exportálása/importálása",
-  "exportImportCsvRecipesNote": "A CSV-fájl tárolja a tevékenységeit, az étkezési naplóit és a nyomon követett napokat. A receptek és a csatolt fotók kizárólag JSON formátumban vannak elmentve — váltson át JSON-ra, ha ezeket is szeretné a biztonsági másolatba felvenni.",
+  "exportImportCsvRecipesNote": "A CSV formátum megőrzi az aktivitásait, az étkezési naplóit és a rögzített napokat. A receptek, a kedvencek és a csatolt fényképek kizárólag JSON formátumban érhetők el – váltson JSON-ra, ha ezeket is szeretné viszontlátni a biztonsági mentéseiben.",
   "exportImportDescription": "Az alkalmazás adatait ZIP-fájlba exportálhatja, majd később importálhatja. Ez akkor hasznos, ha biztonsági másolatot szeretne készíteni az adatairól, vagy azokat egy másik eszközre szeretné átvinni.\n\nAz alkalmazás nem használ felhőszolgáltatást az adatok tárolásához.",
   "exportImportErrorLabel": "Exportálási/importálási hiba",
   "exportImportSuccessLabel": "Az exportálás/importálás sikeres volt",
@@ -1672,5 +1672,38 @@
   "recipeTotalWeightCalculatedHelper": "Az összetevők alapján számított érték. A folyadékok esetében a következő közelítést alkalmaztuk: 1 ml ≈ 1 g.",
   "recipeTotalWeightManualHelper": "Kézzel lett megadva, így az összetevők módosítása nem változtat rajta.",
   "recipeTotalWeightUseIngredientTotalButton": "Az összes hozzávaló felhasználása",
-  "settingsKjAdjustmentLabel": "Napi kJ-kiigazítás"
+  "settingsKjAdjustmentLabel": "Napi kJ-kiigazítás",
+  "calorieWidgetAccessibilityLabel": "{consumed} / {goal} kilokalória",
+  "@calorieWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS home-screen calorie widget.",
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetDescription": "A mai bevitt kalóriák és a célja.",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetGoalLabel": "ennyiből: {goal}",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetOpenAppHint": "Alkalmazás megnyitása",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
+  "errorLoadingFavourites": "Hiba a kedvencek betöltése közben",
+  "favouriteAddTooltip": "Hozzáadás a kedvencekhez",
+  "favouriteRemoveTooltip": "Eltávolítás a kedvencek közül",
+  "favouritesEmptySubtitle": "Érintse meg a csillagot bármely étel vagy étkezés mellett, hogy itt maradjon, és készen álljon a rögzítésre."
 }
