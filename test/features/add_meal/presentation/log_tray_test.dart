@@ -29,6 +29,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bl
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/log_tray_widgets.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
@@ -330,6 +331,56 @@ void main() {
       tray.clear();
       expect(tray.isEmpty, isTrue);
       expect(notified, 6);
+    });
+  });
+
+  group('the log button', () {
+    Future<void> pumpButton(WidgetTester tester, int items) async {
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      for (var i = 0; i < items; i++) {
+        tray.add(
+          LogTrayItem(
+            meal: _meal('M$i'),
+            unit: 'g',
+            amount: 100,
+            amountLabel: '',
+          ),
+        );
+      }
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => EnergyUnitProvider(usesKilojoules: false),
+          child: MaterialApp(
+            localizationsDelegates: const [
+              S.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: S.supportedLocales,
+            home: Scaffold(
+              body: LogTrayLogButton(tray: tray, onPressed: () {}),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    // #1470: one item read "Log 1 items".
+    testWidgets('one item reads singular', (tester) async {
+      await pumpButton(tester, 1);
+      expect(find.text('Log 1 item'), findsOneWidget);
+    });
+
+    testWidgets('two items read plural', (tester) async {
+      await pumpButton(tester, 2);
+      expect(find.text('Log 2 items'), findsOneWidget);
+    });
+
+    test('the review screen\'s add-to-list label agrees', () {
+      expect(l10nEn.bulkAddToListLabel(1), 'Add 1 item');
+      expect(l10nEn.bulkAddToListLabel(2), 'Add 2 items');
     });
   });
 
