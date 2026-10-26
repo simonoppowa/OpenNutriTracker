@@ -126,6 +126,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
+    final missingFieldsText = S.of(
+      context,
+    ).missingProductInfoFields(_missingRequiredProductInfo().join(', '));
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     return BottomSheet(
@@ -280,7 +283,8 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                       ),
                       productMissingRequiredInfo
                           ? Text(
-                              S.of(context).missingProductInfo,
+                              '${S.of(context).missingProductInfo}\n'
+                              '$missingFieldsText',
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(context).colorScheme.error,
@@ -298,16 +302,20 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     );
   }
 
-  bool _hasRequiredProductInfoMissing() {
+  bool _hasRequiredProductInfoMissing() =>
+      _missingRequiredProductInfo().isNotEmpty;
+
+  /// The labels of the required values the product lacks, so the warning
+  /// can say which one is missing (#1474).
+  List<String> _missingRequiredProductInfo() {
     final productNutriments = widget.product.nutriments;
-    if (productNutriments.energyKcal100 == null ||
-        productNutriments.carbohydrates100 == null ||
-        productNutriments.fat100 == null ||
-        productNutriments.proteins100 == null) {
-      return true;
-    } else {
-      return false;
-    }
+    final s = S.of(context);
+    return [
+      if (productNutriments.energyKcal100 == null) s.energyLabel,
+      if (productNutriments.carbohydrates100 == null) s.carbohydrateLabel,
+      if (productNutriments.fat100 == null) s.fatLabel,
+      if (productNutriments.proteins100 == null) s.proteinLabel,
+    ];
   }
 
   Future<void> onAddButtonPressed(BuildContext context) async {

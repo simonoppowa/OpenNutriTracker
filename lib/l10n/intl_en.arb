@@ -586,6 +586,16 @@
   "micronutrientsLabel": "Micronutrients",
   "milliliterUnit": "ml",
   "missingProductInfo": "Product missing required kcal or macronutrients information",
+  "missingProductInfoFields": "Missing: {fields}",
+  "@missingProductInfoFields": {
+    "description": "Under the missing-information warning on the food detail screen; names the required values the food lacks. {fields} is a comma-separated list of the nutrient labels, e.g. 'Missing: fat, protein'.",
+    "placeholders": {
+      "fields": {
+        "type": "String",
+        "example": "fat, protein"
+      }
+    }
+  },
   "monounsaturatedFatLabel": "monounsaturated fat",
   "newCustomMealLabel": "New Custom Food",
   "niacinLabel": "niacin (B3)",
