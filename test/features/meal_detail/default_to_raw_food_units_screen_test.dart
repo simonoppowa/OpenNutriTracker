@@ -349,7 +349,10 @@ class _FakeProductsRepository implements ProductsRepository {
   _FakeProductsRepository(this.hydratedProvider);
 
   @override
-  Future<MealEntity> getOFFProductByBarcode(String barcode) async {
+  Future<MealEntity> getOFFProductByBarcode(
+    String barcode, {
+    String? knownName,
+  }) async {
     final hydrated = hydratedProvider();
     if (hydrated == null) {
       throw StateError('No hydrated product configured for barcode $barcode');

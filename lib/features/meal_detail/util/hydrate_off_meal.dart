@@ -12,6 +12,12 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 /// result has to do the same to promise the same default. A cached full
 /// record answers offline; otherwise it is fetched and cached. Throws when
 /// the fetch fails — the callers keep the thin record then.
+///
+/// The full record keeps [meal]'s name unless it names the product in the
+/// app's language. A Recent entry logged in German must not turn Romanian
+/// when added in an English UI (#1475). A cached record's name was picked
+/// in whatever language the app had when it was cached, so [meal]'s name
+/// wins over it outright.
 Future<MealEntity?> fetchDetailedOffMeal(
   MealEntity meal,
   RemoteSearchCacheDataSource cache,
@@ -25,8 +31,17 @@ Future<MealEntity?> fetchDetailedOffMeal(
     return null;
   }
   final cached = cache.getDetailedByBarcode(code);
-  if (cached != null) return MealEntity.fromMealDBO(cached);
-  final full = await products.getOFFProductByBarcode(code);
+  if (cached != null) {
+    final cachedMeal = MealEntity.fromMealDBO(cached);
+    final name = meal.name;
+    return name == null || name.isEmpty
+        ? cachedMeal
+        : cachedMeal.withName(name);
+  }
+  final full = await products.getOFFProductByBarcode(
+    code,
+    knownName: meal.name,
+  );
   await cache.cache(MealDBO.fromMealEntity(full));
   return full;
 }
