@@ -108,6 +108,10 @@ class CsvDataExporter {
   /// Build the intakes CSV string from a list of [IntakeDBO]. Each row
   /// flattens the embedded [MealDBO] and its nutriments so the file can
   /// be opened in a spreadsheet without further joins.
+  ///
+  /// The quantity and URL are cleaned the way the importer cleans them
+  /// (#1476), so a row stored with `"137,0"` or a `javascript:` URL before
+  /// 2.6.0 cannot carry either into a backup an older build restores.
   static String intakesToCsv(List<IntakeDBO> intakes) {
     final buf = StringBuffer();
     buf.writeln(intakeColumns.join(','));
@@ -124,14 +128,14 @@ class CsvDataExporter {
         _cell(meal.name),
         _cell(meal.brands),
         _cell(meal.source.name),
-        _cell(meal.mealQuantity),
+        _cell(meal.mealQuantity?.withDotDecimal()),
         _cell(meal.mealUnit),
         _num(meal.servingQuantity),
         _cell(meal.servingUnit),
         _cell(meal.servingSize),
         _cell(meal.thumbnailImageUrl),
         _cell(meal.mainImageUrl),
-        _cell(meal.url),
+        _cell(normalizeWebUrl(meal.url)),
         _num(n.energyKcal100),
         _num(n.carbohydrates100),
         _num(n.fat100),

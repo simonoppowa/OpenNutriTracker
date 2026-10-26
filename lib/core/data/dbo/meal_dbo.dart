@@ -1,6 +1,8 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/core/utils/web_url.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 part 'meal_dbo.g.dart';
@@ -144,7 +146,15 @@ class MealDBO extends HiveObject {
   factory MealDBO.fromJson(Map<String, dynamic> json) =>
       _$MealDBOFromJson(json);
 
-  Map<String, dynamic> toJson() => _$MealDBOToJson(this);
+  /// Used only by the JSON export, which reaches every meal through here:
+  /// intakes, recipe ingredients and favourites. [mealQuantity] goes out
+  /// with a decimal point and [url] only as a web URL (#1476). A row stored
+  /// before 2.6.0 can hold `"137,0"` or a `javascript:` URL, which 2.6.0
+  /// tolerates on display, but a backup carrying either brings back the
+  /// #1456 crash when it is restored onto 2.5.0 or older.
+  Map<String, dynamic> toJson() => _$MealDBOToJson(this)
+    ..['mealQuantity'] = mealQuantity?.withDotDecimal()
+    ..['url'] = normalizeWebUrl(url);
 }
 
 @HiveType(typeId: 14)
