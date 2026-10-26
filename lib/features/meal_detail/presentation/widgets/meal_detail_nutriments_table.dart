@@ -7,6 +7,10 @@ import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+/// Shown in place of a nutrient value the food doesn't carry, so a missing
+/// value never reads as a real 0 (#1474).
+const missingNutrientPlaceholder = '—';
+
 class MealDetailNutrimentsTable extends StatelessWidget {
   final MealEntity product;
   final bool usesImperialUnits;
@@ -66,38 +70,40 @@ class MealDetailNutrimentsTable extends StatelessWidget {
             _getNutrimentsTableRow("", headerText, textStyleBold),
             _getNutrimentsTableRow(
               S.of(context).energyLabel,
-              EnergyDisplay.formatWithUnit(context,
-                  _adjustValueForServing(n.energyKcal100?.toDouble() ?? 0)),
+              n.energyKcal100 == null
+                  ? missingNutrientPlaceholder
+                  : EnergyDisplay.formatWithUnit(context,
+                      _adjustValueForServing(n.energyKcal100!.toDouble())),
               textStyleNormal,
             ),
             _getNutrimentsTableRow(
               S.of(context).fatLabel,
-              "${_adjustValueForServing(n.fat100 ?? 0).roundToPrecision(2)}g",
+              _formatValue(n.fat100, 'g'),
               textStyleNormal,
             ),
             _getNutrimentsTableRow(
               '   ${S.of(context).saturatedFatLabel}',
-              "${_adjustValueForServing(n.saturatedFat100 ?? 0).roundToPrecision(2)}g",
+              _formatValue(n.saturatedFat100, 'g'),
               textStyleNormal,
             ),
             _getNutrimentsTableRow(
               S.of(context).carbohydrateLabel,
-              "${_adjustValueForServing(n.carbohydrates100 ?? 0).roundToPrecision(2)}g",
+              _formatValue(n.carbohydrates100, 'g'),
               textStyleNormal,
             ),
             _getNutrimentsTableRow(
               '    ${S.of(context).sugarLabel}',
-              "${_adjustValueForServing(n.sugars100 ?? 0).roundToPrecision(2)}g",
+              _formatValue(n.sugars100, 'g'),
               textStyleNormal,
             ),
             _getNutrimentsTableRow(
               S.of(context).fiberLabel,
-              "${_adjustValueForServing(n.fiber100 ?? 0).roundToPrecision(2)}g",
+              _formatValue(n.fiber100, 'g'),
               textStyleNormal,
             ),
             _getNutrimentsTableRow(
               S.of(context).proteinLabel,
-              "${_adjustValueForServing(n.proteins100 ?? 0).roundToPrecision(2)}g",
+              _formatValue(n.proteins100, 'g'),
               textStyleNormal,
             ),
             ],
@@ -257,8 +263,8 @@ class MealDetailNutrimentsTable extends StatelessWidget {
     return (value * servingQuantity!) / 100;
   }
 
-  String _formatMicroValue(double? valuePer100, String unit) {
-    if (valuePer100 == null) return '—';
+  String _formatValue(double? valuePer100, String unit) {
+    if (valuePer100 == null) return missingNutrientPlaceholder;
     final adjusted = _adjustValueForServing(valuePer100);
     return '${adjusted.roundToPrecision(2)}$unit';
   }
@@ -271,7 +277,7 @@ class MealDetailNutrimentsTable extends StatelessWidget {
   ) {
     return _getNutrimentsTableRow(
       label,
-      _formatMicroValue(valuePer100, unit),
+      _formatValue(valuePer100, unit),
       textStyle,
     );
   }

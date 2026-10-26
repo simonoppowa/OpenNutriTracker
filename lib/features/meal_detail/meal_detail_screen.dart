@@ -429,7 +429,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   Row(
                     children: [
                       Text(
-                        EnergyDisplay.formatWithUnit(context, totalKcal),
+                        // A value the food lacks shows as missing, not as
+                        // the bloc's 0 (#1474).
+                        meal.nutriments.energyKcal100 == null
+                            ? missingNutrientPlaceholder
+                            : EnergyDisplay.formatWithUnit(context, totalKcal),
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall
@@ -454,17 +458,23 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     children: [
                       MealDetailMacroNutrients(
                         typeString: S.of(context).carbsLabel,
-                        value: totalCarbs,
+                        value: meal.nutriments.carbohydrates100 == null
+                            ? null
+                            : totalCarbs,
                         color: palette.carbs,
                       ),
                       MealDetailMacroNutrients(
                         typeString: S.of(context).fatLabel,
-                        value: totalFat,
+                        value: meal.nutriments.fat100 == null
+                            ? null
+                            : totalFat,
                         color: palette.fat,
                       ),
                       MealDetailMacroNutrients(
                         typeString: S.of(context).proteinLabel,
-                        value: totalProtein,
+                        value: meal.nutriments.proteins100 == null
+                            ? null
+                            : totalProtein,
                         color: palette.protein,
                       ),
                     ],

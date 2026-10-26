@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_nutriments_table.dart';
 
 class MealDetailMacroNutrients extends StatelessWidget {
   final String typeString;
@@ -33,7 +34,9 @@ class MealDetailMacroNutrients extends StatelessWidget {
           const SizedBox(height: Dimens.spacing8),
         ],
         Text(
-          '${value?.roundToPrecision(1) ?? "?"} g',
+          value == null
+              ? missingNutrientPlaceholder
+              : '${value!.roundToPrecision(1)} g',
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: Dimens.spacing4),
