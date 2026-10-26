@@ -90,6 +90,32 @@ class _EmptyStorage implements FlutterSecureStorage {
     WindowsOptions? wOptions,
   }) async => null;
 
+  /// Dropped, so the store stays empty. The dialog's Cancel puts the
+  /// provider tag back on its way out, and a write that threw would leave
+  /// the dialog open.
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {}
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {}
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -252,6 +278,38 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AiAssistDialog), findsOneWidget);
+  });
+
+  testWidgets('opened from its own tile, the dialog closes back onto '
+      'Settings (#1471)', (tester) async {
+    // The other half of #1471: only a route pushed to host the dialog
+    // closes with it. Someone who came to Settings and opened the row
+    // themselves is still in Settings when they cancel.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final tile = find.bySemanticsIdentifier('settings-ai-assist');
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(tile);
+    await tester.pumpAndSettle();
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(find.byType(AiAssistDialog), findsOneWidget);
+
+    await tester.tap(find.bySemanticsIdentifier('ai-assist-cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AiAssistDialog), findsNothing);
+    expect(find.byType(SettingsScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('arguments that ask for nothing leave the screen alone', (

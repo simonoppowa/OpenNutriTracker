@@ -66,7 +66,8 @@ import 'package:opennutritracker/features/settings/presentation/widgets/per_meal
 /// Arguments are optional — every other way in pushes the route without
 /// them, and a null or foreign `arguments` is simply the plain screen.
 class SettingsScreenArguments {
-  /// Open the AI assistance dialog as soon as the screen is up.
+  /// Open the AI assistance dialog as soon as the screen is up, and close
+  /// the screen with it: the route is only there to host the dialog (#1471).
   final bool openAiAssist;
 
   const SettingsScreenArguments({this.openAiAssist = false});
@@ -169,8 +170,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // `showDialog` pushes a route.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      unawaited(_openAiAssistDialog(context));
+      unawaited(_hostAiAssistDialog());
     });
+  }
+
+  /// The dialog a caller asked for, and the route closed behind it.
+  ///
+  /// A caller that asks for the AI dialog wanted the dialog, not Settings:
+  /// every one of them is the bulk-add screen, sending the user here to set
+  /// up a provider and expecting them back. Closing the dialog used to leave
+  /// the full Settings list in between, one Back away from where they came
+  /// from (#1471). The caller re-reads the keystore on the pop, so leaving
+  /// with Cancel or OK both answer it.
+  ///
+  /// Only while this route is still the top one: anything pushed over it in
+  /// the meantime is not this method's to close.
+  Future<void> _hostAiAssistDialog() async {
+    await _openAiAssistDialog(context);
+    if (!mounted || !(ModalRoute.isCurrentOf(context) ?? false)) return;
+    Navigator.of(context).pop();
   }
 
   @override
