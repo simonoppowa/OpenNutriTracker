@@ -489,11 +489,13 @@ class SpFoodDataSource {
 /// for twenty survey dishes. `sp_food_data_source_ranking_test` pins the
 /// Food tab's twenty as the same twenty with the column as without.
 ///
-/// The Food tab ranks its twenty for display with `scoreMealRelevance`,
-/// which matches exactly and adds contains and prefix bonuses; where it
-/// disagrees with the soft score it reorders the twenty for a list the
-/// user reads, and nothing the user could have scrolled to is lost by
-/// choosing them this way.
+/// The Food tab lists its twenty in this order, below the user's own
+/// foods and the records they have logged (`SearchProductsUseCase`,
+/// #1473). The All tab re-ranks them beside Open Food Facts with
+/// `scoreMealRelevance`, which matches exactly and adds contains and
+/// prefix bonuses; where it disagrees with the soft score it reorders the
+/// twenty for a list the user reads, and nothing the user could have
+/// scrolled to is lost by choosing them this way.
 @visibleForTesting
 List<SpFoodDTO> rankAndTruncateFoodsByName(
   List<SpFoodDTO> foods,

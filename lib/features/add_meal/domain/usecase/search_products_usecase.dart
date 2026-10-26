@@ -196,9 +196,7 @@ class SearchProductsUseCase {
         .where((meal) => _mealMatchesSearch(meal, normalizedSearchString))
         .toList();
 
-    // Sorted with the most recently touched entries first so an item the
-    // user just selected (logged) appears at the top of the next search
-    // result list, ahead of other cached items they haven't touched.
+    // Sorted with the most recently touched entries first.
     //
     // The cache box holds both OFF and FDC entries (cacheFromSearch writes
     // whatever either remote returned), so filter to the source of the tab
@@ -221,8 +219,8 @@ class SearchProductsUseCase {
     // resolver, which scores portions (#1164) and offers them for picking
     // (#968), saw none on this path from the first search on. Every
     // persisted field agrees between the two — the cache was just written
-    // from the page — so the fresh entity stands in the cached copy's slot:
-    // the position is the cache's, the data the page's (see [_freshest]).
+    // from the page — so the fresh entity stands in for the cached copy
+    // (see [_freshest]).
     final config = await _getConfigUsecase.getConfig();
     final freshByKey = {
       for (final meal in remoteResults) _dedupKey(meal): meal,
@@ -238,19 +236,41 @@ class SearchProductsUseCase {
         .map((meal) => _freshest(meal, freshByKey))
         .toList();
 
-    // Cache-first ordering: cached entries appear before fresh remote
-    // results. The dedup helper takes the first occurrence, so a cached
-    // entry's position wins when its code matches a fresh remote one —
-    // keeps the search list stable from the user's perspective ("the
-    // version I saw yesterday is still at the top"). Fresh remote data
-    // still wins on the per-item refresh path triggered by intake-add.
+    // The page in the order its source ranked it, each record as the
+    // cached copy above has it — which is the fresh one but for the
+    // hydrated product [_freshest] keeps.
+    final cachedByKey = {for (final meal in fromCache) _dedupKey(meal): meal};
+    final fromRemote = [
+      for (final meal in remoteResults) cachedByKey[_dedupKey(meal)] ?? meal,
+    ];
+
+    // Only what the user has logged goes above the page. Everything else
+    // the cache holds is there because a search page once listed it —
+    // cacheFromSearch stamps every new row with the time it was seen —
+    // so a cache-first list was the page re-sorted by when its rows were
+    // first seen: rows new to the cache all at the top, under one
+    // timestamp, in whatever order an unstable sort left them, and a row
+    // an earlier search had cached below every one of them. That is how
+    // "banane" showed puddings and baby foods above "Banane, roh", and
+    // "apfel" a baby juice above "Apfel, roh" (#1473). Logged records
+    // keep their place at the top, most recently touched first; the
+    // cache's other matches follow the page, where they still answer a
+    // search the remote could not.
+    final loggedKeys = {
+      for (final intake in recentIntake)
+        if (intake.meal.source == cacheSource) _dedupKey(intake.meal),
+    };
+    bool logged(MealEntity meal) => loggedKeys.contains(_dedupKey(meal));
+
     return SearchProductsResult(
       meals: _deduplicateMeals([
         ...fromCustomMealBox,
         ...fromRecipes,
         ...fromIntakeHistory,
+        ...fromCache.where(logged),
+        ...fromRemote.where(logged),
+        ...fromRemote,
         ...fromCache,
-        ...remoteResults,
       ]),
       remoteSourceEmpty: remoteSourceEmpty,
       remoteSourceFailed: remoteFailed,
