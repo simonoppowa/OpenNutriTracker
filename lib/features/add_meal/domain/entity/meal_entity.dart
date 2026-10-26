@@ -328,6 +328,30 @@ class MealEntity extends Equatable {
     detailed: detailed,
   );
 
+  /// The same meal under [newName]; nothing else moves.
+  MealEntity withName(String? newName) => MealEntity(
+    code: code,
+    name: newName,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: servingSize,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: servingSizeIsLocalized,
+    portions: portions,
+    portionsUnavailable: portionsUnavailable,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
+
   factory MealEntity.empty() => MealEntity(
     code: IdGenerator.getUniqueID(),
     name: null,
@@ -363,9 +387,14 @@ class MealEntity extends Equatable {
 
   /// [detailed] is true for full-product responses (the v2 barcode endpoint),
   /// false for the thin Search-a-licious text-search projection.
+  ///
+  /// [knownName] is the name the meal already carries when this record
+  /// replaces it; it stands in when the product has no name in the app's
+  /// language (see [OFFProductDTO.getLocaleName]).
   factory MealEntity.fromOFFProduct(
     OFFProductDTO offProduct, {
     bool detailed = false,
+    String? knownName,
   }) {
     // Unit precedence: OFF's normalised serving unit, then the unit parsed
     // from the serving_size text ("30 g"), then the package quantity string.
@@ -381,6 +410,7 @@ class MealEntity extends Equatable {
       code: offProduct.code,
       name: offProduct.getLocaleName(
         SupportedLanguage.fromCode(AppLocale.localeName),
+        knownName: knownName,
       ),
       brands: offProduct.brands,
       thumbnailImageUrl: offProduct.image_front_thumb_url,

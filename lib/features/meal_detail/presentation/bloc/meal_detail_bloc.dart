@@ -230,7 +230,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     }
     final MealEntity fresh;
     try {
-      fresh = await _productsRepository.getOFFProductByBarcode(code);
+      // The logged name stands in where OFF has none in the app's
+      // language, so the cache and a favourite keep it (#1475).
+      fresh = await _productsRepository.getOFFProductByBarcode(
+        code,
+        knownName: meal.name,
+      );
       await _remoteSearchCacheDataSource.cache(MealDBO.fromMealEntity(fresh));
     } catch (e, st) {
       log.warning(

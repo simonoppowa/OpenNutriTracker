@@ -60,7 +60,10 @@ class _FakeProductsRepository extends Fake implements ProductsRepository {
   final MealEntity fresh;
 
   @override
-  Future<MealEntity> getOFFProductByBarcode(String barcode) async => fresh;
+  Future<MealEntity> getOFFProductByBarcode(
+    String barcode, {
+    String? knownName,
+  }) async => fresh;
 }
 
 class _FakeRemoteSearchCache extends Fake

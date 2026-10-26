@@ -136,7 +136,10 @@ class _FakeProducts extends Fake implements ProductsRepository {
   var lookups = 0;
 
   @override
-  Future<MealEntity> getOFFProductByBarcode(String barcode) async {
+  Future<MealEntity> getOFFProductByBarcode(
+    String barcode, {
+    String? knownName,
+  }) async {
     lookups++;
     final meal = full;
     if (meal == null) throw StateError('offline');
