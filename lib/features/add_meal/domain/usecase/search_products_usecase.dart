@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
 
 /// Output of a product/food search. [meals] is the deduplicated list shown
 /// to the user (custom-meal matches first, then remote results).
@@ -107,6 +108,13 @@ class SearchProductsUseCase {
     return _buildResult(searchString, remote.meals,
         remoteFailed: remote.failed, cacheSource: MealSourceEntity.fdc);
   }
+
+  /// The full Open Food Facts record behind a thin text-search hit, or null
+  /// when [meal] is not one — see [fetchDetailedOffMeal], which the + on a
+  /// search result and meal detail already use. Cache first, then the v2
+  /// product endpoint; throws when that fetch fails.
+  Future<MealEntity?> fetchFullOffRecord(MealEntity meal) =>
+      fetchDetailedOffMeal(meal, _cachedOffMealDataSource, _productsRepository);
 
   Future<void> _cacheRemoteResults(List<MealEntity> remote) async {
     if (remote.isEmpty) return;
