@@ -29,18 +29,18 @@ The device run for [#1464](https://github.com/simonoppowa/OpenNutriTracker/pull/
 | English pass | E1–E4 | pass (E3 skip) | English strings for every #1460 screen, no raw keys or `{count}`. Back to German, no per-app locale. E3 skipped: ru and nl aren't in `shippedLocales`, so #1454/#1462 are inert. |
 | Wrap-up | W1–W3 | W2 aborted | Key audit clean, no app crash/ANR in the logcat. W2 removed the AI key, then aborted on the closing tap; see *Abort* below. |
 
-## Ship-with (to file)
+## Ship-with (filed)
 
-| # | Step | Finding | Suggested label |
+| # | Step | Finding | Issue |
 | :-- | :-- | :-- | :-- |
-| 1 | AF3–AF5 | The To-log rows and total each truncate (`EnergyDisplay.formatValue` → `toInt()`), so rows "80 + 14" sit over a total of "95"; the detail screen rounds the same 80.85 kcal to "+81". Display only, ≤ 1 kcal; stored values are exact. | low |
-| 2 | AF3, E2 | The log button reads "1 Einträge speichern" / "Log 1 items": `bulkAddSubmitLabel` has no plural form, and #1460 puts it under every add path. | low |
-| 3 | AI1 | Snap meal with no key → AI dialog → ABBRECHEN leaves you on the full Settings screen; it takes a second Back to reach the review screen. The code comment says backing out "leaves them here". | low |
-| 4 | AI4 | "2 Eier und eine Scheibe Vollkornbrot" matched OFF products without a serving (Eier/Lidl, Vollkornbrot/Kaufland); both rows held out ("Einheit für diese Menge prüfen", "Add 0 items") until a weight was typed. The dropdown offers only g / oz / g/ml. Designed (#973), but the first Describe can end with nothing to add. | low |
-| 5 | AF4 | Backend search ranking: "banane" (Lebensmittel) shows puddings, baby food and smoothies, no plain banana in the first dozen; "apfel" leads with an FDC baby juice. Not in the 2.6.0 delta (first device run with a reachable backend). | low |
-| 6 | AF4 | BLS "Apfel getrocknet" lacks a macro, so + opens detail with Add disabled. The screen then shows "0.0 g Fett", which reads as a real value. | low |
-| 7 | E2 | In English, OFF "Vollkornbrot Kaufland" shows as "pâine integrala cu secară" (name fallback picks another language). | low |
-| 8 | K10 | #1456 normalises comma quantities on import and parses them leniently on display, but doesn't rewrite stored records, so a CSV export still writes `137,0` and the `javascript:` URL. A backup taken on 2.6.0 can still crash ≤ 2.5.0's Recent list. Edge case. | low |
+| 1 | AF3–AF5 | The To-log rows and total each truncate (`EnergyDisplay.formatValue` → `toInt()`), so rows "80 + 14" sit over a total of "95"; the detail screen rounds the same 80.85 kcal to "+81". Display only, ≤ 1 kcal; stored values are exact. | [#1469](https://github.com/simonoppowa/OpenNutriTracker/issues/1469) (low) |
+| 2 | AF3, E2 | The log button reads "1 Einträge speichern" / "Log 1 items": `bulkAddSubmitLabel` has no plural form, and #1460 puts it under every add path. | [#1470](https://github.com/simonoppowa/OpenNutriTracker/issues/1470) (low) |
+| 3 | AI1 | Snap meal with no key → AI dialog → ABBRECHEN leaves you on the full Settings screen; it takes a second Back to reach the review screen. The code comment says backing out "leaves them here". | [#1471](https://github.com/simonoppowa/OpenNutriTracker/issues/1471) (low) |
+| 4 | AI4 | "2 Eier und eine Scheibe Vollkornbrot" matched OFF products without a serving (Eier/Lidl, Vollkornbrot/Kaufland); both rows held out ("Einheit für diese Menge prüfen", "Add 0 items") until a weight was typed. The dropdown offers only g / oz / g/ml. Designed (#973), but the first Describe can end with nothing to add. | [#1472](https://github.com/simonoppowa/OpenNutriTracker/issues/1472) (low) |
+| 5 | AF4 | Backend search ranking: "banane" (Lebensmittel) shows puddings, baby food and smoothies, no plain banana in the first dozen; "apfel" leads with an FDC baby juice. Not in the 2.6.0 delta (first device run with a reachable backend). | [#1473](https://github.com/simonoppowa/OpenNutriTracker/issues/1473) (low) |
+| 6 | AF4 | BLS "Apfel getrocknet" lacks a macro, so + opens detail with Add disabled. The screen then shows "0.0 g Fett", which reads as a real value. | [#1474](https://github.com/simonoppowa/OpenNutriTracker/issues/1474) (low) |
+| 7 | E2 | In English, OFF "Vollkornbrot Kaufland" shows as "pâine integrala cu secară" (name fallback picks another language). | [#1475](https://github.com/simonoppowa/OpenNutriTracker/issues/1475) (low) |
+| 8 | K10 | #1456 normalises comma quantities on import and parses them leniently on display, but doesn't rewrite stored records, so a CSV export still writes `137,0` and the `javascript:` URL. A backup taken on 2.6.0 can still crash ≤ 2.5.0's Recent list. Edge case. | [#1476](https://github.com/simonoppowa/OpenNutriTracker/issues/1476) (low) |
 
 Noted, pre-existing: CSV round-trips drop `detailed`, `machineTranslatedName` and `backendSource` (no numbers change). Expected English in the German UI as the script lists it.
 
