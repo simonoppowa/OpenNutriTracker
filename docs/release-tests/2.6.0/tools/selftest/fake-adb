@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# A stand-in for adb, for selftest.sh only. State lives in $FAKE; every call is
+# appended to $FAKE/calls.log, input events also to $FAKE/input.log.
+# shellcheck disable=SC2016
+set -u
+F="$FAKE"
+echo "$*" >> "$F/calls.log"
+get() { cat "$F/$1" 2>/dev/null || echo "${2:-}"; }
+
+if [[ "${1:-}" == devices ]]; then
+  printf 'List of devices attached\n%s\tdevice\n\n' "$(get serial 18101FDF60010M)"
+  exit 0
+fi
+[[ "${1:-}" == -s ]] || { echo "fake-adb: no -s" >&2; exit 1; }
+shift 2
+[[ -e "$F/offline" ]] && { echo "error: device offline" >&2; exit 1; }
+
+input() {
+  echo "$*" >> "$F/input.log"
+  if [[ -f "$F/focus_after_input" ]]; then mv "$F/focus_after_input" "$F/focus"; fi
+  if [[ -f "$F/screen_after_input" ]]; then mv "$F/screen_after_input" "$F/screen.raw"; fi
+  if [[ -f "$F/crash_after_input" ]]; then
+    mv "$F/crash_after_input" "$F/crash.txt"; : > "$F/pid"
+  fi
+}
+
+case "$1" in
+  wait-for-device) [[ -e "$F/offline" ]] && exit 1; exit 0 ;;
+  install) echo Success; exit 0 ;;
+  exec-out)
+    case "$2" in
+      uiautomator) cat "$F/dump.xml"; echo "UI hierchary dumped to: /dev/tty" ;;
+      screencap) cat "$F/screen.raw" ;;
+    esac
+    exit 0 ;;
+  logcat)
+    if [[ "$*" == *"-b crash"* ]]; then cat "$F/crash.txt" 2>/dev/null; exit 0; fi
+    # the background capture: lives until the test's fake phone is deleted
+    while [[ -d "$F" ]]; do sleep 1; done; exit 0 ;;
+  shell) shift ;;
+  *) echo "fake-adb: $*" >&2; exit 1 ;;
+esac
+
+cmd="$*"
+case "$cmd" in
+  *"dumpsys window"*"pidof"*)
+    echo "  mCurrentFocus=$(get focus)"
+    echo "PID=$(get pid)"
+    echo "NOW=10-22 14:00:00.000" ;;
+  *'read -r k; input text'*)
+    cat > "$F/typed.txt"; input "text <stdin>" ;;
+  input\ *) input "${cmd#input }" ;;
+  "dumpsys input_method"*) echo "  mInputShown=$(get kb false)" ;;
+  "dumpsys package"*)
+    echo "    versionName=$(get version 2.4.0)"
+    echo "    versionCode=66 minSdk=24 targetSdk=36"
+    echo "    runtime permissions:"
+    while read -r p; do [[ -n "$p" ]] && echo "        $p: granted=true, flags=[ USER_SET ]"; done < <(get grants) ;;
+  "dumpsys battery"*)
+    printf '  AC powered: false\n  USB powered: %s\n  level: %s\n  temperature: 300\n' "$(get usb true)" "$(get battery 80)" ;;
+  "dumpsys power"*) echo "  mWakefulness=$(get wake Awake)" ;;
+  "pm grant"*) echo "${cmd##* }" >> "$F/grants" ;;
+  "pm clear"*) : > "$F/grants"; : > "$F/pid"; echo Success ;;
+  "am start"*)
+    echo "Window{1 u0 com.opennutritracker.ont.opennutritracker/com.opennutritracker.ont.opennutritracker.MainActivity}" > "$F/focus"
+    echo $((RANDOM + 1000)) > "$F/pid"; echo "Status: ok" ;;
+  "am force-stop"*) : > "$F/pid" ;;
+  "settings get system show_password") get show_password 0 ;;
+  "settings get global stay_on_while_plugged_in") echo 15 ;;
+  "settings get global adb_allowed_connection_time") echo 0 ;;
+  "settings get global "*) echo 0.0 ;;
+  "locksettings get-disabled") echo true ;;
+  "getprop ro.serialno") get serial 18101FDF60010M ;;
+  "getprop ro.product.device") echo oriole ;;
+  "getprop ro.build.version.sdk") echo 37 ;;
+  "df -k /data") printf 'Filesystem 1K-blocks Used Available Use%% Mounted\n/dev/x 115621972 70056024 45434876 61%% /data\n' ;;
+  "log -t"*) ;;
+  "date "*) echo "2026-10-22 14:00:00 CEST" ;;
+  *) echo "fake-adb: unhandled shell '$cmd'" >&2 ;;
+esac
+exit 0
