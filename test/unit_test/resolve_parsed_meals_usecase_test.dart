@@ -601,6 +601,24 @@ void main() {
       },
     );
 
+    test('the bound counts what a hit gains once detailed', () async {
+      // A cached, detailed "Apple" with no serving sorts at 0.85 under the
+      // count; thin "Apples" scores 0.833 but 0.863 once detailed, and its
+      // full record declares a serving, so it has to be looked up.
+      final fake = _FakeSearch(
+        off: {
+          'apple': [full('Apple', 'cached'), thin('Apples', 'bag')],
+        },
+        fullRecords: {'bag': full('Apples', 'bag', serving: 150)},
+      );
+      final resolved = await ResolveParsedMealsUseCase(
+        fake,
+      ).resolve([const ParsedMealItem(query: 'apple', quantity: 2)]);
+
+      expect(fake.fullRecordLookups, ['bag']);
+      expect(resolved.single.selected!.brands, 'bag');
+    });
+
     test('a first candidate that can already count needs no lookup', () async {
       final fake = _FakeSearch(
         off: {

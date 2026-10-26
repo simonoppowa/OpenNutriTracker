@@ -196,10 +196,13 @@ class ResolveParsedMealsUseCase {
   /// either stays uncountable, and its row is held back exactly as before.
   ///
   /// Only hits that could overtake the current first candidate are looked
-  /// up: a full record gains at most [noPortionsPenalty] over its thin
-  /// copy, so one whose text score does not beat the first candidate's
-  /// sort score cannot move it. None when the first candidate is the
-  /// user's own, which no remote record outranks. A lookup that fails
+  /// up. A full record that declares a serving sorts at its text score
+  /// plus [detailedBonus], capped at 1.0 ([_scoreOnceDetailed]), so a hit
+  /// that does not beat the first candidate's sort score even then cannot
+  /// move it. Without the bonus the bound skipped a winner: a detailed
+  /// "Apple" with no serving sorts at 0.85 on `apple`, and thin "Apples"
+  /// at 0.833 is 0.863 once detailed. None when the first candidate is
+  /// the user's own, which no remote record outranks. A lookup that fails
   /// leaves the thin hit where it was.
   Future<List<MealEntity>> _withFullOffRecords(
     List<MealEntity> ranked,
@@ -218,7 +221,7 @@ class ResolveParsedMealsUseCase {
               meal.source == MealSourceEntity.off &&
               !meal.detailed &&
               cannotHonourCount(meal) &&
-              scoreMealForResolution(meal, query) > bar,
+              _scoreOnceDetailed(meal, query) > bar,
         )
         .take(_maxOffLookups)
         .toList();
@@ -231,6 +234,11 @@ class ResolveParsedMealsUseCase {
     }
     return [for (final meal in ranked) replacements[meal] ?? meal];
   }
+
+  /// What [meal] would score as a full record, which is what the resolver
+  /// clamps it to: one already at 1.0 gains nothing from the bonus.
+  static double _scoreOnceDetailed(MealEntity meal, String query) =>
+      (scoreMealForResolution(meal, query) + detailedBonus).clamp(0.0, 1.0);
 
   Future<MealEntity?> _fullOffRecord(MealEntity meal) async {
     try {

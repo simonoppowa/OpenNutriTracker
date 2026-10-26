@@ -28,7 +28,10 @@ import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
 
 /// Quality tie-breakers, matching the shared ranker so that near-equal text
 /// matches resolve the same way in both places.
-const _detailedBonus = 0.03;
+///
+/// The detail bonus is public because the resolver's full-record lookup
+/// has to know what a thin hit gains once it is detailed (#1472).
+const detailedBonus = 0.03;
 const _machineTranslatedPenalty = 0.03;
 
 /// Taken off a backend record that carries no labelled portion (#1164) —
@@ -128,7 +131,7 @@ double scoreMealForResolution(MealEntity meal, String query) {
   final brandScore = scoreText(meal.brands, queryTokens);
   var score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
 
-  if (meal.detailed) score += _detailedBonus;
+  if (meal.detailed) score += detailedBonus;
   if (meal.machineTranslatedName) score -= _machineTranslatedPenalty;
 
   // Backend records only. `MealEntity.portions` is filled from the
