@@ -983,7 +983,7 @@
   "settingsDisclaimerLabel": "Jogi nyilatkozat",
   "settingsDistanceLabel": "Távolság",
   "settingsEnergyUnitLabel": "Energiaegység",
-  "settingsFibreGoalDescription": "A napi rostbeviteli célérték grammban kifejezve. Az alapértelmezett referenciaérték 30 g.",
+  "settingsFibreGoalDescription": "Napi rostcél (grammban). Az alapértelmezett érték életkortól és nemtől függően változik (21–38 g).",
   "settingsFibreGoalLabel": "Rostbeviteli célérték",
   "settingsImperialLabel": "Angol mértékegységek (font, láb, uncia)",
   "settingsKcalAdjustmentLabel": "Napi kalória beállítás",
@@ -1342,7 +1342,7 @@
   "bulkAddTitle": "Több elem hozzáadása",
   "bulkAddInputHint": "2 tojás, 100 g pirítós, feketekávé",
   "bulkAddParseLabel": "Élelmiszerek keresése",
-  "bulkAddSubmitLabel": "{count} elem naplózása",
+  "bulkAddSubmitLabel": "{count, plural, =1 {1 elem naplózása} other {{count} elem naplózása}}",
   "@bulkAddSubmitLabel": {
     "placeholders": {
       "count": {
@@ -1705,5 +1705,56 @@
   "errorLoadingFavourites": "Hiba a kedvencek betöltése közben",
   "favouriteAddTooltip": "Hozzáadás a kedvencekhez",
   "favouriteRemoveTooltip": "Eltávolítás a kedvencek közül",
-  "favouritesEmptySubtitle": "Érintse meg a csillagot bármely étel vagy étkezés mellett, hogy itt maradjon, és készen álljon a rögzítésre."
+  "favouritesEmptySubtitle": "Érintse meg a csillagot bármely étel vagy étkezés mellett, hogy itt maradjon, és készen álljon a rögzítésre.",
+  "favouritesEmptyTitle": "Még nincsenek kedvencek",
+  "favouritesLabel": "Kedvencek",
+  "sharedMealParseLabel": "Elemzés",
+  "sharedMealInvalidCodeLabel": "Írjon be egy érvényes közös étkezési kódot.",
+  "sharedMealUnnamedLabel": "Megnevezetlen étel",
+  "sharedMealUnavailableLabel": "Nem érhető el — ez az elem kihagyásra kerül.",
+  "sharedMealTotalLabel": "Összes",
+  "sharedMealPartialTotalLabel": "Összesen (hiányos)",
+  "minuteShortLabel": "perc",
+  "@minuteShortLabel": {
+    "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
+  },
+  "missingProductInfoFields": "Hiányzik: {fields}",
+  "@missingProductInfoFields": {
+    "description": "Under the missing-information warning on the food detail screen; names the required values the food lacks. {fields} is a comma-separated list of the nutrient labels, e.g. 'Missing: fat, protein'.",
+    "placeholders": {
+      "fields": {
+        "type": "String",
+        "example": "fat, protein"
+      }
+    }
+  },
+  "partialResultsNotice": "Egy élelmiszer-forrás nem adott választ. Lehet, hogy néhány eredmény hiányzik.",
+  "partialResultsAllSourcesDownNotice": "Egyetlen online élelmiszer-forrás sem válaszolt. Csak a mentett élelmiszerek jelennek meg.",
+  "addMealSnapMealLabel": "Gyorsétkezés",
+  "addMealDescribeLabel": "Leírás",
+  "bulkAddReviewTitle": "Elemek áttekintése",
+  "bulkAddUpdateMatchesLabel": "Találatok frissítése",
+  "bulkAddYourPhotoLabel": "A fényképe",
+  "bulkAddRetakeLabel": "Újrafelvétel",
+  "addToListLabel": "Hozzáadás a listához",
+  "bulkAddToListLabel": "{count, plural, =1 {1 tétel hozzáadása} other {{count} tétel hozzáadása}}",
+  "@bulkAddToListLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "logTrayTitle": "Naplózandó · {count}",
+  "@logTrayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "logTrayClearLabel": "Törlés",
+  "logTrayRemoveLabel": "Törlés a listából",
+  "logTrayAddedLabel": "Hozzáadva a listához",
+  "logTrayLogFailedLabel": "Nem sikerült rögzíteni ezeket az elemeket. Próbálja meg újra."
 }
