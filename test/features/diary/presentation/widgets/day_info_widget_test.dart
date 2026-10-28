@@ -4,6 +4,8 @@ import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -14,6 +16,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_det
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 import '../../../../helpers/test_l10n.dart';
+import '../../../../fixture/physical_activity_entity_fixtures.dart';
 
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {}
 
@@ -73,42 +76,54 @@ final _dinner = _intake(IntakeTypeEntity.dinner, 'Dinner Stew');
 Future<void> _pumpOmadDay(
   WidgetTester tester, {
   required List<IntakeEntity> breakfastIntake,
+  List<IntakeEntity>? dinnerIntake,
+  List<UserActivityEntity> activities = const [],
+  TrackedDayEntity? trackedDay,
   void Function(IntakeEntity intake, DateTime day)? onDeleteIntake,
   void Function(IntakeEntity intake)? onCopyIntake,
+  void Function(IntakeEntity intake)? onTransferIntake,
+  void Function(List<IntakeEntity>, DateTime)? onTransferDay,
   // A past day unless a test says otherwise.
   DateTime? currentDay,
 }) async {
-  await tester.pumpWidget(ChangeNotifierProvider<EnergyUnitProvider>(
-    create: (_) => EnergyUnitProvider(),
-    child: MaterialApp(
-      localizationsDelegates: const [S.delegate],
-      supportedLocales: S.supportedLocales,
-      home: Scaffold(
-        body: SingleChildScrollView(
-          child: DayInfoWidget(
-            selectedDay: DateTime(2026, 6, 15),
-            currentDay: currentDay ?? DateTime(2026, 6, 16),
-            trackedDayEntity: null,
-            userActivities: const [],
-            breakfastIntake: breakfastIntake,
-            lunchIntake: const [],
-            dinnerIntake: [_dinner],
-            snackIntake: const [],
-            usesImperialUnits: false,
-            showActivityTracking: false,
-            onDeleteIntake: onDeleteIntake ?? (_, _) {},
-            onDeleteActivity: (_, _) {},
-            onCopyIntake: (intake, _, _) => onCopyIntake?.call(intake),
-            onCopyActivity: (_, _) {},
-            breakfastSharePct: 0,
-            lunchSharePct: 0,
-            dinnerSharePct: 100,
-            snackSharePct: 0,
+  await tester.pumpWidget(
+    ChangeNotifierProvider<EnergyUnitProvider>(
+      create: (_) => EnergyUnitProvider(),
+      child: MaterialApp(
+        localizationsDelegates: const [S.delegate],
+        supportedLocales: S.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: DayInfoWidget(
+              selectedDay: DateTime(2026, 6, 15),
+              currentDay: currentDay ?? DateTime(2026, 6, 16),
+              trackedDayEntity: trackedDay,
+              userActivities: activities,
+              breakfastIntake: breakfastIntake,
+              lunchIntake: const [],
+              dinnerIntake: dinnerIntake ?? [_dinner],
+              snackIntake: const [],
+              usesImperialUnits: false,
+              showActivityTracking: false,
+              onDeleteIntake: onDeleteIntake ?? (_, _) {},
+              onDeleteActivity: (_, _) {},
+              onTransferIntake: (intake) async =>
+                  onTransferIntake?.call(intake),
+              onTransferActivity: (_) async {},
+              onTransferDay: (intakes, _, day) async =>
+                  onTransferDay?.call(intakes, day),
+              onCopyIntake: (intake, _, _) => onCopyIntake?.call(intake),
+              onCopyActivity: (_, _) {},
+              breakfastSharePct: 0,
+              lunchSharePct: 0,
+              dinnerSharePct: 100,
+              snackSharePct: 0,
+            ),
           ),
         ),
       ),
     ),
-  ));
+  );
   await tester.pump();
 }
 
@@ -126,16 +141,100 @@ void main() {
     GetIt.instance.reset();
   });
 
+  testWidgets(
+    'an empty day hides its zero-calorie card but keeps the empty hint',
+    (tester) async {
+      await _pumpOmadDay(
+        tester,
+        breakfastIntake: const [],
+        dinnerIntake: const [],
+        trackedDay: TrackedDayEntity(
+          day: DateTime(2026, 6, 15),
+          calorieGoal: 2200,
+          caloriesTracked: 0,
+        ),
+      );
+      expect(find.text(l10nEn.nothingAddedLabel), findsOneWidget);
+      expect(find.textContaining('/2200'), findsNothing);
+      expect(find.text(l10nEn.diaryCopyMoveDayLabel), findsNothing);
+    },
+  );
+
+  testWidgets('an activity-only day still shows its calorie card', (
+    tester,
+  ) async {
+    await _pumpOmadDay(
+      tester,
+      breakfastIntake: const [],
+      dinnerIntake: const [],
+      activities: [
+        UserActivityEntity(
+          'activity',
+          30,
+          0,
+          DateTime(2026, 6, 15, 12),
+          PhysicalActivityFixtures.moderateBicycling,
+        ),
+      ],
+      trackedDay: TrackedDayEntity(
+        day: DateTime(2026, 6, 15),
+        calorieGoal: 2200,
+        caloriesTracked: 0,
+      ),
+    );
+    expect(find.text(l10nEn.nothingAddedLabel), findsNothing);
+    expect(find.textContaining('/2200'), findsOneWidget);
+  });
+
+  testWidgets('whole-day action supplies all foods and the displayed date', (
+    tester,
+  ) async {
+    List<IntakeEntity>? selected;
+    DateTime? selectedDate;
+    await _pumpOmadDay(
+      tester,
+      breakfastIntake: [_intake(IntakeTypeEntity.breakfast, 'Porridge')],
+      onTransferDay: (intakes, day) {
+        selected = intakes;
+        selectedDate = day;
+      },
+    );
+    await tester.tap(find.text(l10nEn.diaryCopyMoveDayLabel));
+    expect(selected?.map((item) => item.meal.name), [
+      'Porridge',
+      'Dinner Stew',
+    ]);
+    expect(selectedDate, DateTime(2026, 6, 15));
+  });
+
+  testWidgets('each food has a visible transfer action', (tester) async {
+    final selected = <IntakeEntity>[];
+    await _pumpOmadDay(
+      tester,
+      breakfastIntake: const [],
+      onTransferIntake: selected.add,
+    );
+    await tester.tap(
+      find
+          .byWidgetPredicate(
+            (widget) =>
+                widget is Semantics &&
+                widget.properties.identifier == 'diary-transfer-intake',
+          )
+          .first,
+    );
+    expect(selected, [_dinner]);
+  });
+
   // #1305: OMAD puts breakfast, lunch and snack at 0 %. Food that still lands
   // in breakfast must get a section, or it counts toward the day with no way
   // to see, edit or delete it. Empty 0 % sections stay hidden.
-  testWidgets('a 0 % meal section with intakes is shown, an empty one is not',
-      (WidgetTester tester) async {
+  testWidgets('a 0 % meal section with intakes is shown, an empty one is not', (
+    WidgetTester tester,
+  ) async {
     await _pumpOmadDay(
       tester,
-      breakfastIntake: [
-        _intake(IntakeTypeEntity.breakfast, 'Hidden Porridge'),
-      ],
+      breakfastIntake: [_intake(IntakeTypeEntity.breakfast, 'Hidden Porridge')],
     );
 
     expect(find.text(l10nEn.breakfastLabel), findsOneWidget);
@@ -148,8 +247,9 @@ void main() {
   // #1305: showing the entry is half the fix; it must also be deletable
   // through the same long-press flow as any other entry. Once it is gone the
   // empty 0 % section hides again.
-  testWidgets('an entry in a 0 % meal section can be deleted',
-      (WidgetTester tester) async {
+  testWidgets('an entry in a 0 % meal section can be deleted', (
+    WidgetTester tester,
+  ) async {
     final porridge = _intake(IntakeTypeEntity.breakfast, 'Hidden Porridge');
     final deleted = <IntakeEntity>[];
     await _pumpOmadDay(

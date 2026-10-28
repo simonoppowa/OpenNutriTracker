@@ -31,6 +31,8 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bl
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
+import 'package:opennutritracker/features/meal_detail/util/quick_serving_option.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
@@ -81,6 +83,253 @@ class _AddMealScreenState extends State<AddMealScreen> {
   // case still upgrades to All on first keystroke, matching existing
   // behavior for someone who never touched the chips).
   bool _stickOnRecent = false;
+  bool _selectionMode = false;
+  final Map<String, MealEntity> _selectedMeals = {};
+  String? _shownAllQuery;
+  List<MealEntity> _shownAllResults = const [];
+  String? _shownProductsQuery;
+  List<MealEntity> _shownProductsResults = const [];
+  String? _shownFoodQuery;
+  List<MealEntity> _shownFoodResults = const [];
+
+  String _mealKey(MealEntity meal) =>
+      '${meal.source.name}|${meal.code ?? ''}|${meal.name ?? ''}|${meal.brands ?? ''}';
+
+  Widget _selectableCard(MealEntity meal, bool imperial) {
+    if (!_selectionMode) return _mealCard(meal, imperial);
+    final key = _mealKey(meal);
+    return MealItemCard(
+      day: _day,
+      mealEntity: meal,
+      addMealType: _mealType,
+      usesImperialUnits: imperial,
+      selectionMode: _selectionMode,
+      selected: _selectedMeals.containsKey(key),
+      onSelectionChanged: () => setState(() {
+        if (_selectedMeals.containsKey(key)) {
+          _selectedMeals.remove(key);
+        } else {
+          _selectedMeals[key] = meal;
+        }
+      }),
+    );
+  }
+
+  Future<void> _reviewSelected() async {
+    final meals = _selectedMeals.values.toList();
+    final amounts = [
+      for (var index = 0; index < meals.length; index++)
+        TextEditingController(text: '100'),
+    ];
+    final units = [for (final meal in meals) meal.isLiquid ? 'ml' : 'g'];
+    var saving = false;
+    String? error;
+    final route = DialogRoute<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, update) => AlertDialog(
+          title: Text(S.of(context).reviewSelectedFoodsTitle),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                for (var index = 0; index < meals.length; index++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          meals[index].name ?? '?',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: amounts[index],
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).quantityLabel,
+                                  border: const OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 112,
+                              child: DropdownButtonFormField<String>(
+                                key: ValueKey(
+                                  'review-unit-$index-${units[index]}',
+                                ),
+                                initialValue: units[index],
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).unitLabel,
+                                  border: const OutlineInputBorder(),
+                                ),
+                                items: [
+                                  DropdownMenuItem(
+                                    value: meals[index].isLiquid ? 'ml' : 'g',
+                                    child: Text(
+                                      meals[index].isLiquid ? 'ml' : 'g',
+                                    ),
+                                  ),
+                                  if (meals[index].scalableServingQuantity !=
+                                      null)
+                                    DropdownMenuItem(
+                                      value: 'serving',
+                                      child: Text(S.of(context).servingLabel),
+                                    ),
+                                ],
+                                onChanged: saving
+                                    ? null
+                                    : (unit) {
+                                        if (unit != null) {
+                                          update(() => units[index] = unit);
+                                        }
+                                      },
+                              ),
+                            ),
+                          ],
+                        ),
+                        Builder(
+                          builder: (chipContext) {
+                            final options = quickServingOptionsFor(
+                              meals[index],
+                              S.of(chipContext).gramUnit,
+                            );
+                            if (options.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Wrap(
+                                spacing: 8,
+                                children: [
+                                  for (final option in options)
+                                    ActionChip(
+                                      label: Text(option.label),
+                                      onPressed: saving
+                                          ? null
+                                          : () => update(() {
+                                              amounts[index].text =
+                                                  option.quantity ==
+                                                      option.quantity
+                                                          .roundToDouble()
+                                                  ? option.quantity
+                                                        .toInt()
+                                                        .toString()
+                                                  : option.quantity.toString();
+                                              units[index] = option.unit;
+                                            }),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                if (error != null)
+                  Text(
+                    error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(dialogContext),
+              child: Text(S.of(context).dialogCancelLabel),
+            ),
+            FilledButton(
+              onPressed: saving
+                  ? null
+                  : () async {
+                      final parsed = amounts
+                          .map(
+                            (c) => double.tryParse(
+                              c.text.trim().replaceAll(',', '.'),
+                            ),
+                          )
+                          .toList();
+                      if (parsed.any(
+                        (value) =>
+                            value == null || !value.isFinite || value <= 0,
+                      )) {
+                        update(
+                          () => error = S.of(context).enterPositiveAmountsLabel,
+                        );
+                        return;
+                      }
+                      update(() {
+                        saving = true;
+                        error = null;
+                      });
+                      try {
+                        final bloc = locator<MealDetailBloc>();
+                        for (var index = 0; index < meals.length; index++) {
+                          await bloc.addIntake(
+                            dialogContext,
+                            units[index],
+                            convertQuantityToBaseUnit(
+                              parsed[index]!,
+                              units[index],
+                              meals[index],
+                            ).toString(),
+                            _mealType.getIntakeType(),
+                            meals[index],
+                            _day,
+                          );
+                        }
+                        locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+                        locator<CalendarDayBloc>().add(
+                          LoadCalendarDayEvent(_day),
+                        );
+                        locator<HomeBloc>().add(const LoadItemsEvent());
+                        if (dialogContext.mounted) {
+                          Navigator.pop(dialogContext);
+                        }
+                        if (mounted) {
+                          setState(() {
+                            _selectedMeals.clear();
+                            _selectionMode = false;
+                          });
+                        }
+                      } catch (_) {
+                        update(() {
+                          saving = false;
+                          error = S.of(context).bulkAddSearchFailedLabel;
+                        });
+                      }
+                    },
+              child: Text(S.of(context).addSelectedFoodsLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+    try {
+      await Navigator.of(context).push(route);
+    } finally {
+      await route.completed;
+      for (final controller in amounts) {
+        controller.dispose();
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -171,7 +420,22 @@ class _AddMealScreenState extends State<AddMealScreen> {
       ),
       // Below the results rather than over them, so the last result stays
       // reachable while the list is waiting.
-      bottomNavigationBar: _logTray.isEmpty
+      bottomNavigationBar: _selectionMode
+          ? SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: FilledButton(
+                  onPressed: _selectedMeals.isEmpty ? null : _reviewSelected,
+                  child: Text(
+                    S
+                        .of(context)
+                        .reviewSelectedFoodsCount(_selectedMeals.length),
+                  ),
+                ),
+              ),
+            )
+          : _logTray.isEmpty
           ? null
           : SafeArea(
               top: false,
@@ -224,6 +488,28 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           onDescribePressed: () =>
                               setState(() => _describeOpen = !_describeOpen),
                           describeOpen: _describeOpen,
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Semantics(
+                            identifier: 'add-meal-select-multiple',
+                            child: TextButton.icon(
+                              icon: Icon(
+                                _selectionMode
+                                    ? Icons.close
+                                    : Icons.checklist_rounded,
+                              ),
+                              label: Text(
+                                _selectionMode
+                                    ? S.of(context).cancelSelectionLabel
+                                    : S.of(context).selectMultipleFoodsLabel,
+                              ),
+                              onPressed: () => setState(() {
+                                _selectionMode = !_selectionMode;
+                                if (!_selectionMode) _selectedMeals.clear();
+                              }),
+                            ),
+                          ),
                         ),
                         if (_describeOpen) ...[
                           const SizedBox(height: Dimens.spacing12),
@@ -497,9 +783,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       // A provider timeout or rate limit doesn't fail the
                       // bloc: the use case falls back to local matches and
                       // flags the gap on the loaded state instead.
-                      final productsFailed = ps is ProductsFailedState ||
+                      final productsFailed =
+                          ps is ProductsFailedState ||
                           (ps is ProductsLoadedState && ps.remoteSourceFailed);
-                      final foodFailed = fs is FoodFailedState ||
+                      final foodFailed =
+                          fs is FoodFailedState ||
                           (fs is FoodLoadedState && fs.remoteSourceFailed);
                       final VoidCallback retryFailed =
                           productsFailed && foodFailed
@@ -513,13 +801,23 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       final foods = fs is FoodLoadedState
                           ? fs.food
                           : const <MealEntity>[];
-                      final merged = mergeAndRankMeals(products, foods, query);
+                      final ranked = mergeAndRankMeals(products, foods, query);
+                      if (_shownAllQuery != query) {
+                        _shownAllQuery = query;
+                        _shownAllResults = const [];
+                      }
+                      final merged = _shownAllResults =
+                          appendStableSearchResults(_shownAllResults, ranked);
+                      final remotePending =
+                          (ps is ProductsLoadedState && ps.remotePending) ||
+                          (fs is FoodLoadedState && fs.remotePending);
                       final imperial = ps is ProductsLoadedState
                           ? ps.usesImperialUnits
                           : (fs is FoodLoadedState
                                 ? fs.usesImperialUnits
                                 : false);
                       if (merged.isEmpty) {
+                        if (remotePending) return _pendingSpinner;
                         if (ps is ProductsInitial && fs is FoodInitial) {
                           return const DefaultsResultsWidget();
                         }
@@ -530,8 +828,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           // which would overflow and push Retry off screen.
                           return SingleChildScrollView(
                             child: ErrorDialog(
-                              errorText:
-                                  S.of(context).errorFetchingProductData,
+                              errorText: S
+                                  .of(context)
+                                  .partialResultsBothUnavailable,
                               onRefreshPressed:
                                   _onAllSourcesRefreshButtonPressed,
                               retryIdentifier: 'search-all-retry',
@@ -556,7 +855,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                PartialResultsNotice(onRetry: retryFailed),
+                                PartialResultsNotice(
+                                  onRetry: retryFailed,
+                                  failedSource: productsFailed
+                                      ? SearchFailedSource.openFoodFacts
+                                      : SearchFailedSource.foodDatabase,
+                                ),
                                 NoResultsWidget(
                                   onScanBarcode: _onBarcodeIconPressed,
                                   onCreateCustomFood: () =>
@@ -580,6 +884,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                             PartialResultsNotice(
                               onRetry: retryFailed,
                               allSourcesDown: productsFailed && foodFailed,
+                              failedSource: productsFailed
+                                  ? SearchFailedSource.openFoodFacts
+                                  : SearchFailedSource.foodDatabase,
                             ),
                           Expanded(
                             child: Semantics(
@@ -588,10 +895,21 @@ class _AddMealScreenState extends State<AddMealScreen> {
                               child: ListView.builder(
                                 itemCount: merged.length,
                                 itemBuilder: (context, index) =>
-                                    _mealCard(merged[index], imperial),
+                                    _selectableCard(merged[index], imperial),
                               ),
                             ),
                           ),
+                          if (remotePending)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
                         ],
                       );
                     },
@@ -615,37 +933,81 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 } else if (state is ProductsLoadingState) {
                   return _pendingSpinner;
                 } else if (state is ProductsLoadedState) {
-                  if (state.products.isEmpty) {
+                  if (_shownProductsQuery != query) {
+                    _shownProductsQuery = query;
+                    _shownProductsResults = const [];
+                  }
+                  final products = state.query == query
+                      ? _shownProductsResults = appendStableSearchResults(
+                          _shownProductsResults,
+                          state.products,
+                        )
+                      : state.products;
+                  if (products.isEmpty) {
                     return Flexible(
-                      child: _productsPending(state, query)
+                      child:
+                          _productsPending(state, query) || state.remotePending
                           ? _pendingSpinner
-                          : NoResultsWidget(
-                              onScanBarcode: _onBarcodeIconPressed,
-                              onCreateCustomFood: () =>
-                                  _onCustomAddButtonPressed(
-                                    state.usesImperialUnits,
+                          : SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (state.remoteSourceFailed)
+                                    PartialResultsNotice(
+                                      onRetry: _onProductsRefreshButtonPressed,
+                                      failedSource:
+                                          SearchFailedSource.openFoodFacts,
+                                    ),
+                                  NoResultsWidget(
+                                    onScanBarcode: _onBarcodeIconPressed,
+                                    onCreateCustomFood: () =>
+                                        _onCustomAddButtonPressed(
+                                          state.usesImperialUnits,
+                                        ),
                                   ),
+                                ],
+                              ),
                             ),
                     );
                   }
                   return Flexible(
-                    child: Semantics(
-                      identifier: 'add-meal-products-list',
-                      container: true,
-                      child: ListView.builder(
-                        itemCount:
-                            state.products.length +
-                            (state.remoteSourceEmpty ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == state.products.length) {
-                            return const NoResultsWidget();
-                          }
-                          return _mealCard(
-                            state.products[index],
-                            state.usesImperialUnits,
-                          );
-                        },
-                      ),
+                    child: Column(
+                      children: [
+                        if (state.remoteSourceFailed)
+                          PartialResultsNotice(
+                            onRetry: _onProductsRefreshButtonPressed,
+                            failedSource: SearchFailedSource.openFoodFacts,
+                          ),
+                        Expanded(
+                          child: Semantics(
+                            identifier: 'add-meal-products-list',
+                            container: true,
+                            child: ListView.builder(
+                              itemCount:
+                                  products.length +
+                                  (state.remoteSourceEmpty ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index == products.length) {
+                                  return const NoResultsWidget();
+                                }
+                                return _selectableCard(
+                                  products[index],
+                                  state.usesImperialUnits,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        if (state.remotePending)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                      ],
                     ),
                   );
                 } else if (state is ProductsFailedState) {
@@ -673,36 +1035,80 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 } else if (state is FoodLoadingState) {
                   return _pendingSpinner;
                 } else if (state is FoodLoadedState) {
-                  if (state.food.isEmpty) {
+                  if (_shownFoodQuery != query) {
+                    _shownFoodQuery = query;
+                    _shownFoodResults = const [];
+                  }
+                  final foods = state.query == query
+                      ? _shownFoodResults = appendStableSearchResults(
+                          _shownFoodResults,
+                          state.food,
+                        )
+                      : state.food;
+                  if (foods.isEmpty) {
                     return Flexible(
-                      child: _foodPending(state, query)
+                      child: _foodPending(state, query) || state.remotePending
                           ? _pendingSpinner
-                          : NoResultsWidget(
-                              onScanBarcode: _onBarcodeIconPressed,
-                              onCreateCustomFood: () =>
-                                  _onCustomAddButtonPressed(
-                                    state.usesImperialUnits,
+                          : SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (state.remoteSourceFailed)
+                                    PartialResultsNotice(
+                                      onRetry: _onFoodRefreshButtonPressed,
+                                      failedSource:
+                                          SearchFailedSource.foodDatabase,
+                                    ),
+                                  NoResultsWidget(
+                                    onScanBarcode: _onBarcodeIconPressed,
+                                    onCreateCustomFood: () =>
+                                        _onCustomAddButtonPressed(
+                                          state.usesImperialUnits,
+                                        ),
                                   ),
+                                ],
+                              ),
                             ),
                     );
                   }
                   return Flexible(
-                    child: Semantics(
-                      identifier: 'add-meal-food-list',
-                      container: true,
-                      child: ListView.builder(
-                        itemCount:
-                          state.food.length + (state.remoteSourceEmpty ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == state.food.length) {
-                            return const NoResultsWidget();
-                          }
-                          return _mealCard(
-                            state.food[index],
-                            state.usesImperialUnits,
-                          );
-                        },
-                      ),
+                    child: Column(
+                      children: [
+                        if (state.remoteSourceFailed)
+                          PartialResultsNotice(
+                            onRetry: _onFoodRefreshButtonPressed,
+                            failedSource: SearchFailedSource.foodDatabase,
+                          ),
+                        Expanded(
+                          child: Semantics(
+                            identifier: 'add-meal-food-list',
+                            container: true,
+                            child: ListView.builder(
+                              itemCount:
+                                  foods.length +
+                                  (state.remoteSourceEmpty ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index == foods.length) {
+                                  return const NoResultsWidget();
+                                }
+                                return _selectableCard(
+                                  foods[index],
+                                  state.usesImperialUnits,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        if (state.remotePending)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                      ],
                     ),
                   );
                 } else if (state is FoodFailedState) {
@@ -738,7 +1144,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   child: ListView.builder(
                     itemCount: state.recentMeals.length,
                     itemBuilder: (context, index) {
-                      return _mealCard(
+                      return _selectableCard(
                         state.recentMeals[index],
                         state.usesImperialUnits,
                       );
@@ -798,8 +1204,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
               container: true,
               child: ListView.builder(
                 itemCount: state.favourites.length,
-                itemBuilder: (context, index) =>
-                    _mealCard(state.favourites[index], state.usesImperialUnits),
+                itemBuilder: (context, index) => _selectableCard(
+                  state.favourites[index],
+                  state.usesImperialUnits,
+                ),
               ),
             );
           }

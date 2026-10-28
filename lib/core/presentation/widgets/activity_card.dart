@@ -15,6 +15,7 @@ class ActivityCard extends StatelessWidget {
   final Function(BuildContext, UserActivityEntity)? onItemTapped;
   final Function(bool isDragging)? onItemDragCallback;
   final bool firstListElement;
+  final Future<void> Function(UserActivityEntity activity)? onTransfer;
 
   const ActivityCard({
     super.key,
@@ -23,6 +24,7 @@ class ActivityCard extends StatelessWidget {
     required this.firstListElement,
     this.onItemTapped,
     this.onItemDragCallback,
+    this.onTransfer,
   });
 
   @override
@@ -74,7 +76,9 @@ class ActivityCard extends StatelessWidget {
                     children: [
                       AutoSizeText(
                         activityEntity.physicalActivityEntity.getName(context),
-                        style: textTheme.titleSmall?.copyWith(color: palette.textStrong),
+                        style: textTheme.titleSmall?.copyWith(
+                          color: palette.textStrong,
+                        ),
                         maxLines: 1,
                         minFontSize: 11,
                         overflow: TextOverflow.ellipsis,
@@ -82,7 +86,9 @@ class ActivityCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '${activityEntity.duration.toInt()} ${S.of(context).minuteShortLabel}',
-                        style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: palette.textMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -95,6 +101,15 @@ class ActivityCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                if (onTransfer != null)
+                  Semantics(
+                    identifier: 'diary-transfer-activity',
+                    child: IconButton(
+                      tooltip: S.of(context).diaryTransferTitle,
+                      icon: const Icon(Icons.more_vert_rounded),
+                      onPressed: () => onTransfer!(activityEntity),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -108,7 +123,8 @@ class ActivityCard extends StatelessWidget {
       data: activityEntity,
       onDragStarted: () => onItemDragCallback!.call(true),
       onDragEnd: (_) => onItemDragCallback!.call(false),
-      onDraggableCanceled: (velocity, offset) => onItemDragCallback!.call(false),
+      onDraggableCanceled: (velocity, offset) =>
+          onItemDragCallback!.call(false),
       feedback: Material(
         color: Colors.transparent,
         child: SizedBox(

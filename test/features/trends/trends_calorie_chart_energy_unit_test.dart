@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
@@ -47,12 +48,14 @@ class _SeededTrendsBloc extends TrendsBloc {
 
   @override
   void add(TrendsEvent event) {}
+
+  void setLoaded(TrendsLoaded state) => emit(state);
 }
 
 const _trackedKcal = 1039.0;
 const _goalKcal = 2000.0;
 
-TrendsLoaded _loadedToday() {
+TrendsLoaded _loadedToday({Map<String, bool> visibility = const {}}) {
   final now = DateTime.now();
   return TrendsLoaded(
     rangeDays: 7,
@@ -70,6 +73,7 @@ TrendsLoaded _loadedToday() {
     targetWeightKg: null,
     waterByDay: const {},
     waterGoalMl: 0,
+    metricVisibility: visibility,
   );
 }
 
@@ -135,5 +139,57 @@ void main() {
     expect(today.y, _trackedKcal);
     expect(_tooltipFor(chart, today), '1039');
     expect(chart.data.extraLinesData.horizontalLines.single.y, _goalKcal);
+  });
+
+  testWidgets('daily averages include calories in the selected energy unit', (
+    tester,
+  ) async {
+    await _pumpCaloriesChart(tester, usesKilojoules: true);
+    expect(find.text('Calories'), findsNWidgets(2));
+    expect(find.text('621 / 1195 kJ'), findsOneWidget);
+  });
+
+  testWidgets('daily averages hide only metrics switched off', (tester) async {
+    (locator<TrendsBloc>() as _SeededTrendsBloc).setLoaded(
+      _loadedToday(visibility: const {ConfigEntity.trendsFatKey: false}),
+    );
+    await _pumpCaloriesChart(tester, usesKilojoules: false);
+    expect(find.text('fat'), findsNothing);
+    expect(find.text('carbs'), findsOneWidget);
+    expect(find.text('protein'), findsOneWidget);
+  });
+
+  testWidgets('edit dialog keeps Save disabled when all metrics are hidden', (
+    tester,
+  ) async {
+    await _pumpCaloriesChart(tester, usesKilojoules: false);
+    final edit = find.bySemanticsIdentifier('trends-edit-average');
+    await tester.ensureVisible(edit);
+    await tester.tap(edit);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose daily averages'), findsOneWidget);
+    for (var index = 0; index < 4; index++) {
+      await tester.tap(find.byType(CheckboxListTile).at(index));
+      await tester.pump();
+    }
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('custom range rejects days outside 2 to 3650', (tester) async {
+    await _pumpCaloriesChart(tester, usesKilojoules: false);
+    final custom = find.text('Custom');
+    await tester.ensureVisible(custom);
+    await tester.tap(custom);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Custom trend range'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '1');
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pump();
+    expect(find.text('Enter a number from 2 to 3650 days.'), findsOneWidget);
   });
 }

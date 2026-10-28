@@ -3,6 +3,8 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+enum SearchFailedSource { openFoodFacts, foodDatabase }
+
 /// A slim inline banner for the "All" search tab: one product/food source
 /// answered while the other errored. Distinct from [EmptyHint] (a full
 /// centered state) and [ErrorDialog] (a full-screen takeover) — this sits
@@ -15,11 +17,13 @@ import 'package:opennutritracker/generated/l10n.dart';
 class PartialResultsNotice extends StatelessWidget {
   final VoidCallback onRetry;
   final bool allSourcesDown;
+  final SearchFailedSource? failedSource;
 
   const PartialResultsNotice({
     super.key,
     required this.onRetry,
     this.allSourcesDown = false,
+    this.failedSource,
   });
 
   @override
@@ -39,7 +43,13 @@ class PartialResultsNotice extends StatelessWidget {
             child: Text(
               allSourcesDown
                   ? S.of(context).partialResultsAllSourcesDownNotice
-                  : S.of(context).partialResultsNotice,
+                  : switch (failedSource) {
+                      SearchFailedSource.openFoodFacts =>
+                        S.of(context).partialResultsOffUnavailable,
+                      SearchFailedSource.foodDatabase =>
+                        S.of(context).partialResultsFoodUnavailable,
+                      null => S.of(context).partialResultsNotice,
+                    },
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: palette.textMuted),

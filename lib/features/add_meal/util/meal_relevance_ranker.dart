@@ -59,7 +59,10 @@ double scoreMealRelevance(MealEntity meal, String query) {
 /// sources (e.g. a not-yet-deduplicated OFF/Supabase pair) can compare equal
 /// and would otherwise collide onto the same map key.
 List<MealEntity> rankMealsByRelevance(List<MealEntity> meals, String query) {
-  final decorated = [for (final meal in meals) (meal: meal, score: scoreMealRelevance(meal, query))];
+  final decorated = [
+    for (final meal in meals)
+      (meal: meal, score: scoreMealRelevance(meal, query)),
+  ];
   mergeSort(decorated, compare: (a, b) => b.score.compareTo(a.score));
   return [for (final entry in decorated) entry.meal];
 }
@@ -86,15 +89,58 @@ List<MealEntity> rankMealsByRelevance(List<MealEntity> meals, String query) {
 /// away, even if a remote result happens to share a name, and backend
 /// (FDC/BLS/...) records are never merged with anything — see the note on
 /// [_nearDuplicateKey] for why (#1164).
-List<MealEntity> mergeAndRankMeals(List<MealEntity> a, List<MealEntity> b, String query) {
+List<MealEntity> mergeAndRankMeals(
+  List<MealEntity> a,
+  List<MealEntity> b,
+  String query,
+) {
   final own = <MealEntity>[];
   final rest = <MealEntity>[];
   for (final meal in _deduplicateAcrossSources([...a, ...b])) {
-    final isOwn = meal.source == MealSourceEntity.custom || meal.source == MealSourceEntity.recipe;
+    final isOwn =
+        meal.source == MealSourceEntity.custom ||
+        meal.source == MealSourceEntity.recipe;
     (isOwn ? own : rest).add(meal);
   }
   final collapsedRest = _collapseNearDuplicates(rest, query);
-  return [...rankMealsByRelevance(own, query), ...rankMealsByRelevance(collapsedRest, query)];
+  return [
+    ...rankMealsByRelevance(own, query),
+    ...rankMealsByRelevance(collapsedRest, query),
+  ];
+}
+
+/// Keep the positions already shown while a second online source finishes.
+/// A refreshed copy of the same item replaces its earlier cached copy in
+/// place, and genuinely new matches are appended in relevance order.
+List<MealEntity> appendStableSearchResults(
+  List<MealEntity> shown,
+  List<MealEntity> latest,
+) {
+  final result = [...shown];
+  String exactKey(MealEntity meal) =>
+      '${meal.source.name}:${meal.code ?? meal.name ?? identityHashCode(meal)}';
+  final positions = <String, int>{
+    for (var i = 0; i < result.length; i++) exactKey(result[i]): i,
+  };
+  final offGroups = <String>{
+    for (final meal in result)
+      if (meal.source == MealSourceEntity.off) _nearDuplicateKey(meal),
+  };
+  for (final meal in latest) {
+    final key = exactKey(meal);
+    final existing = positions[key];
+    if (existing != null) {
+      result[existing] = meal;
+      continue;
+    }
+    if (meal.source == MealSourceEntity.off &&
+        !offGroups.add(_nearDuplicateKey(meal))) {
+      continue;
+    }
+    positions[key] = result.length;
+    result.add(meal);
+  }
+  return result;
 }
 
 /// Same dedup key as `SearchProductsUseCase._deduplicateMeals` (source +
@@ -178,7 +224,9 @@ String _nearDuplicateKey(MealEntity meal) {
   // would otherwise collapse every unrelated nameless meal into one.
   // meal.code is nullable: fall back to identityHashCode so two distinct
   // nameless meals without codes don't share the same key.
-  if (name.isEmpty) return 'noname:${meal.source.name}:${meal.code ?? identityHashCode(meal)}';
+  if (name.isEmpty) {
+    return 'noname:${meal.source.name}:${meal.code ?? identityHashCode(meal)}';
+  }
   final brand = _normalize(meal.brands);
   return brand.isEmpty ? name : '$name|$brand';
 }
@@ -201,11 +249,7 @@ MealEntity _highestScoring(List<MealEntity> group, String query) {
 /// never the contains/prefix bonuses, which read the title as before — so
 /// an unnamed qualifier costs nothing and a named one counts for the
 /// record that carries it.
-double _textScore(
-  String? text,
-  String normalizedQuery, {
-  String? qualifiers,
-}) {
+double _textScore(String? text, String normalizedQuery, {String? qualifiers}) {
   final normalizedText = _normalize(text);
   if (normalizedText.isEmpty) return 0.0;
   if (normalizedText == normalizedQuery) return 1.0;
@@ -232,10 +276,13 @@ double _textScore(
   return (overlap + containsBonus + prefixBonus).clamp(0.0, 0.9);
 }
 
-String _normalize(String? text) => text?.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ') ?? '';
+String _normalize(String? text) =>
+    text?.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ') ?? '';
 
-Set<String> _tokenize(String normalizedText) =>
-    normalizedText.split(RegExp(r'[^\p{L}\p{N}]+', unicode: true)).where((token) => token.isNotEmpty).toSet();
+Set<String> _tokenize(String normalizedText) => normalizedText
+    .split(RegExp(r'[^\p{L}\p{N}]+', unicode: true))
+    .where((token) => token.isNotEmpty)
+    .toSet();
 
 /// 2 * |intersection| / (|a| + |b|), the standard token-set similarity
 /// measure — cheap to compute and, unlike edit distance, order-independent

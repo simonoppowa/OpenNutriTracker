@@ -18,6 +18,10 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/edit_meal/domain/nutrition_import_parser.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/nutrition_import_dialog.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/nutrition_import_saver.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -89,6 +93,77 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     return !_saving && hasTitle && energy != null && energy > 0;
   }
 
+  Future<void> _openNutritionPaste() async {
+    final entry = await showDialog<NutritionEntry>(
+      context: context,
+      builder: (_) => NutritionImportDialog(saveAll: _saveNutritionBatch),
+    );
+    if (!mounted || entry == null) return;
+
+    final kcal =
+        entry.values['kcal'] ??
+        (entry.values['kj'] == null ? null : entry.values['kj']! / 4.184);
+    final usesKj = context.read<EnergyUnitProvider>().usesKilojoules;
+    final imported = <TextEditingController, String>{
+      if (entry.name.trim().isNotEmpty) _titleController: entry.name.trim(),
+      if (kcal != null)
+        _energyController: (usesKj ? UnitCalc.kcalToKj(kcal) : kcal).toString(),
+      if (entry.values['carbs'] != null)
+        _carbsController: entry.values['carbs']!.toString(),
+      if (entry.values['fat'] != null)
+        _fatController: entry.values['fat']!.toString(),
+      if (entry.values['protein'] != null)
+        _proteinController: entry.values['protein']!.toString(),
+    };
+    final replacements = imported.entries
+        .where(
+          (item) =>
+              item.key.text.trim().isNotEmpty &&
+              item.key.text.trim() != item.value,
+        )
+        .length;
+    if (replacements > 0) {
+      final replace = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(S.of(dialogContext).nutritionReplaceTitle),
+          content: Text(S.of(dialogContext).nutritionReplaceBody(replacements)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(S.of(dialogContext).nutritionCancelAction),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(S.of(dialogContext).nutritionReplaceAction),
+            ),
+          ],
+        ),
+      );
+      if (replace != true || !mounted) return;
+    }
+    setState(() {
+      for (final item in imported.entries) {
+        item.key.text = item.value;
+      }
+    });
+  }
+
+  Future<String> _saveNutritionBatch(List<NutritionEntry> entries) async {
+    final selection = await saveImportedNutritionEntries(
+      locator<EditMealBloc>(),
+      entries,
+    );
+    if (!mounted) return '';
+    return S
+        .of(context)
+        .nutritionBatchSummary(
+          selection.entries.length,
+          selection.duplicates,
+          selection.invalid,
+        );
+  }
+
   Future<void> _onSubmit() async {
     if (!_canSubmit) return;
     setState(() => _saving = true);
@@ -145,15 +220,11 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
       // removes every route (including this sheet's), so reading from
       // context afterwards would be looking up a deactivated widget.
       final addedMessage = S.of(context).quickAddAddedSnack(mealTypeLabel);
-      Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
-        NavigationOptions.mainRoute,
-        (route) => false,
-      );
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text(addedMessage),
-        ),
-      );
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).pushNamedAndRemoveUntil(NavigationOptions.mainRoute, (route) => false);
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text(addedMessage)));
     } catch (e, st) {
       _log.severe('Quick Add save failed', e, st);
       Sentry.captureException(e, stackTrace: st);
@@ -261,6 +332,15 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
                 textAlign: TextAlign.center,
               ),
             ),
+            Semantics(
+              identifier: 'quick-add-paste-nutrition',
+              child: OutlinedButton.icon(
+                onPressed: _openNutritionPaste,
+                icon: const Icon(Icons.content_paste_outlined),
+                label: Text(s.nutritionPasteAction),
+              ),
+            ),
+            const SizedBox(height: 12),
             _field(
               controller: _titleController,
               identifier: 'quick-add-title',
@@ -272,7 +352,9 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
             _field(
               controller: _energyController,
               identifier: 'quick-add-energy',
-              label: usesKj ? s.quickAddEnergyLabelKj : s.quickAddEnergyLabelKcal,
+              label: usesKj
+                  ? s.quickAddEnergyLabelKj
+                  : s.quickAddEnergyLabelKcal,
               isRequired: true,
               numeric: true,
             ),
@@ -335,7 +417,9 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
           keyboardType: numeric
               ? const TextInputType.numberWithOptions(decimal: true)
               : TextInputType.text,
-          inputFormatters: numeric ? CustomTextInputFormatter.doubleOnly() : null,
+          inputFormatters: numeric
+              ? CustomTextInputFormatter.doubleOnly()
+              : null,
           decoration: InputDecoration(
             labelText: isRequired ? '$label *' : label,
             border: const OutlineInputBorder(),
