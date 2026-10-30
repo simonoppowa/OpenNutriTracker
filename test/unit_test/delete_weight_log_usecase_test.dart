@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
@@ -31,11 +35,16 @@ void main() {
     box = await Hive.openBox<WeightLogDBO>(
       'delete_weight_log_test_${DateTime.now().microsecondsSinceEpoch}',
     );
-    final repository = WeightLogRepository(
-      WeightLogDataSource(FakeHiveDBProvider(weightLogBox: box)),
-    );
+    final provider = FakeHiveDBProvider(weightLogBox: box);
+    final repository = WeightLogRepository(WeightLogDataSource(provider));
     getUsecase = GetWeightLogUsecase(repository);
-    deleteUsecase = DeleteWeightLogUsecase(repository);
+    // The rows here are manual entries, which leave the health import's
+    // tombstones and the current weight alone; neither repository is read.
+    deleteUsecase = DeleteWeightLogUsecase(
+      repository,
+      ConfigRepository(ConfigDataSource(provider)),
+      UserRepository(UserDataSource(provider)),
+    );
   });
 
   tearDown(() async {

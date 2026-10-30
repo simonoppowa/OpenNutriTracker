@@ -30,6 +30,9 @@ class _FakeProfileBloc extends Bloc<ProfileEvent, ProfileState>
 
   @override
   Future<void> updateUser(UserEntity userEntity) async {}
+
+  @override
+  Future<void> reloadAfterWeightImport() async {}
 }
 
 class _SingleProfileGetProfilesUsecase implements GetProfilesUsecase {

@@ -31,6 +31,14 @@ void main() {
       expect(share, contains('workouts'));
     });
 
+    // Weight import asks for read access, and iOS shows this string — not
+    // the write string — on that prompt.
+    test('the read string names body weight and why it is read', () {
+      final share = valueFor('NSHealthShareUsageDescription')!;
+      expect(share, contains('body weight'));
+      expect(share, contains('weight history'));
+    });
+
     // The one that was missing. Apple rejects the upload without it, and the
     // rejection arrives only after a full build, sign and package cycle.
     test('the write string is present, despite the app never writing', () {
