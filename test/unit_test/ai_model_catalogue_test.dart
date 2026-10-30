@@ -40,14 +40,14 @@ void main() {
       // the photo sheet had named the old one — it interpolates `servedBy`.
       // #688 refused a smaller version of this.
       final unchosen = AiModelCatalogue.resolve(AiProvider.openrouter, null)!;
-      expect(unchosen.id, 'anthropic/claude-sonnet-5');
+      expect(unchosen.id, 'anthropic/claude-sonnet-5.5');
       expect(unchosen.servedBy, 'Anthropic');
     });
 
     test('a retired id falls back rather than 404ing forever', () {
       expect(
         AiModelCatalogue.resolve(AiProvider.openrouter, 'anthropic/gone')!.id,
-        'anthropic/claude-sonnet-5',
+        'anthropic/claude-sonnet-5.5',
       );
     });
   });
@@ -85,16 +85,19 @@ void main() {
       }
     });
 
-    test('only the OpenRouter list claims a cheapest, and luna holds it', () {
-      // The superlative is safe because luna sits below every sibling on both
-      // the prompt and the completion axis. It is only meaningful among
+    test('only the OpenRouter list claims a cheapest, and Haiku 5.5 holds '
+        'it', () {
+      // The superlative is safe because no sibling is below Haiku 5.5
+      // ($0.10/$0.50) on the prompt or the completion axis; GPT-6 luna ties
+      // it, and says only that it is cheaper than the recommended model. It
+      // is only meaningful among
       // siblings, so it must not appear on a list where there is nothing to
       // be cheapest *than*.
       for (final provider in AiProvider.values) {
         final models = AiModelCatalogue.forProvider(provider);
         final cheapest = models.where((m) => m.note == AiModelNote.cheapest);
         if (provider == AiProvider.openrouter) {
-          expect(cheapest.single.id, 'openai/gpt-5.6-luna');
+          expect(cheapest.single.id, 'anthropic/claude-haiku-5.5');
           expect(models.length, greaterThan(1));
         } else {
           expect(cheapest, isEmpty, reason: provider.name);
@@ -138,5 +141,27 @@ void main() {
         expect(model.providers.length, 1, reason: model.id);
       }
     });
+  });
+
+  test('a stored GPT-5.6 choice moves to its successor, same vendor', () {
+    // The fallback is the list's head, which on OpenRouter is another
+    // company (#726).
+    for (final (provider, old, successor) in [
+      (AiProvider.openrouter, 'openai/gpt-5.6-luna', 'openai/gpt-6-luna'),
+      (AiProvider.openrouter, 'openai/gpt-5.6-terra', 'openai/gpt-6.1-terra'),
+      (AiProvider.openai, 'gpt-5.6-luna', 'gpt-6-luna'),
+      (AiProvider.openai, 'gpt-5.6-terra', 'gpt-6.1-terra'),
+    ]) {
+      final model = AiModelCatalogue.resolve(provider, old)!;
+      expect(model.id, successor);
+      expect(model.servedBy, 'OpenAI');
+    }
+  });
+
+  test('a stored Haiku 4.5 choice on the direct path moves to Haiku 5.5', () {
+    expect(
+      AiModelCatalogue.resolve(AiProvider.anthropic, 'claude-haiku-4-5')!.id,
+      'claude-haiku-5-5',
+    );
   });
 }

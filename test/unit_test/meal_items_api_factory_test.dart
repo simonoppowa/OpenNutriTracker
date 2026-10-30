@@ -146,7 +146,7 @@ void main() {
       );
 
       expect(client.body!['model'], AiModelCatalogue.openrouter.first.id);
-      expect(client.body!['model'], 'anthropic/claude-sonnet-5');
+      expect(client.body!['model'], 'anthropic/claude-sonnet-5.5');
     });
 
     test('OpenAI defaults to the screened conservative reader', () async {
@@ -158,7 +158,7 @@ void main() {
       );
 
       expect(client.body!['model'], AiModelCatalogue.openai.first.id);
-      expect(client.body!['model'], 'gpt-5.6-luna');
+      expect(client.body!['model'], 'gpt-6-luna');
     });
 
     test('honours a stored choice', () async {
@@ -166,11 +166,11 @@ void main() {
         const AiSelection(
           provider: AiProvider.openrouter,
           apiKey: 'sk-or',
-          modelId: 'anthropic/claude-haiku-4.5',
+          modelId: 'anthropic/claude-haiku-5.5',
         ),
       );
 
-      expect(client.body!['model'], 'anthropic/claude-haiku-4.5');
+      expect(client.body!['model'], 'anthropic/claude-haiku-5.5');
     });
 
     test('falls back when the stored model has been retired', () async {
@@ -196,7 +196,7 @@ void main() {
         const AiSelection(
           provider: AiProvider.anthropic,
           apiKey: 'sk-ant',
-          modelId: 'anthropic/claude-sonnet-5',
+          modelId: 'anthropic/claude-sonnet-5.5',
         ),
       );
 
@@ -206,10 +206,13 @@ void main() {
   });
 
   group('pinning', () {
-    test('every curated OpenRouter model is pinned, fallbacks off', () async {
+    test('every curated OpenRouter model is pinned, fallbacks off; only a '
+        'model asked not to think skips the parameter filter', () async {
       // #656: the policy fit that justified Anthropic survives only under
       // provider.only. An unpinned entry on this list would silently be a
-      // different company's terms.
+      // different company's terms. OpenRouter's filter refuses a forced
+      // tool_choice to Haiku 5.5 on every endpoint (404); the pin still
+      // names who serves it.
       for (final model in AiModelCatalogue.openrouter) {
         final client = await send(
           AiSelection(
@@ -222,7 +225,11 @@ void main() {
         final provider = client.body!['provider'] as Map;
         expect(provider['only'], isNotEmpty, reason: model.id);
         expect(provider['allow_fallbacks'], false, reason: model.id);
-        expect(provider['require_parameters'], true, reason: model.id);
+        expect(
+          provider['require_parameters'],
+          model.toolCall == AiToolCall.forcedThinkingOff ? isNull : true,
+          reason: model.id,
+        );
       }
     });
 
@@ -391,5 +398,51 @@ void main() {
           as Map)['parameters'],
       expected,
     );
+  });
+
+  group('each model is asked for its tool call the way it accepts', () {
+    // Haiku 5.5 thinks by default and refuses a forced call while it does;
+    // Sonnet 5.5 refuses a forced call outright (400).
+    test('Anthropic: Haiku 5.5 forced with thinking off', () async {
+      final client = await send(
+        const AiSelection(provider: AiProvider.anthropic, apiKey: 'sk-ant'),
+      );
+
+      expect(client.body!['model'], 'claude-haiku-5-5');
+      expect(client.body!['tool_choice'], {
+        'type': 'tool',
+        'name': 'log_meal_items',
+      });
+      expect(client.body!['thinking'], {'type': 'disabled'});
+    });
+
+    test('OpenRouter: Haiku 5.5 forced with reasoning off', () async {
+      final client = await send(
+        const AiSelection(
+          provider: AiProvider.openrouter,
+          apiKey: 'sk-or',
+          modelId: 'anthropic/claude-haiku-5.5',
+        ),
+      );
+
+      expect(client.body!['tool_choice'], isA<Map>());
+      expect(client.body!['reasoning'], {'enabled': false});
+    });
+
+    test('OpenRouter: Sonnet 5.5 not forced, with room to think', () async {
+      final client = await send(
+        const AiSelection(provider: AiProvider.openrouter, apiKey: 'sk-or'),
+      );
+
+      expect(client.body!['model'], 'anthropic/claude-sonnet-5.5');
+      expect(client.body!['tool_choice'], isNot(isA<Map>()));
+      expect(client.body!.containsKey('reasoning'), isFalse);
+    });
+
+    test('OpenAI models are forced, as before', () async {
+      for (final model in AiModelCatalogue.openai) {
+        expect(model.toolCall, AiToolCall.forced, reason: model.id);
+      }
+    });
   });
 }

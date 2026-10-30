@@ -1377,6 +1377,10 @@
   "aiAssistModelCheaperLabel": "Cheaper, and weaker on poor-quality photos",
   "aiAssistModelMoreItemsLabel": "Lists more items from a photo",
   "aiAssistModelCheapestLabel": "Cheapest on this list",
+  "aiAssistModelCheaperThanRecommendedLabel": "Cheaper than the recommended model",
+  "@aiAssistModelCheaperThanRecommendedLabel": {
+    "description": "Note under a model in the AI settings: it costs less than the first (recommended) model. A price fact only, no claim about quality."
+  },
   "aiAssistNoKeyForProviderLabel": "No key saved for this provider.",
   "aiAssistKeyFieldLabel": "{provider} API key",
   "@aiAssistKeyFieldLabel": {"placeholders": {"provider": {"type": "String"}}},
