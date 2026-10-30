@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/app_locale.dart';
@@ -219,10 +220,16 @@ class RemoteSearchCacheDataSource {
   /// Returns cached entries sorted with the most recently touched first.
   /// Entries with no timestamp record sort last. Used by search to put
   /// items the user just selected at the top of the result list.
+  ///
+  /// Stable, so entries touched at the same moment — every new row of one
+  /// search page, which [cacheFromSearch] stamps with one time — keep the
+  /// order they were cached in, which is the order the page ranked them.
+  /// `List.sort` is a quicksort above 32 elements and scrambled them
+  /// (#1473).
   List<MealDBO> getAllByMostRecentlyTouched() {
     if (!_readable()) return [];
     final entries = _cacheBox.values.toList();
-    entries.sort((a, b) {
+    mergeSort(entries, compare: (a, b) {
       final aTs = _timestampFor(a) ?? 0;
       final bTs = _timestampFor(b) ?? 0;
       return bTs.compareTo(aTs);

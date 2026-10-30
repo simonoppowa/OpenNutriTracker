@@ -343,7 +343,10 @@ class _FakeProductsRepository implements ProductsRepository {
   int getOFFProductByBarcodeCalls = 0;
 
   @override
-  Future<MealEntity> getOFFProductByBarcode(String barcode) async {
+  Future<MealEntity> getOFFProductByBarcode(
+    String barcode, {
+    String? knownName,
+  }) async {
     getOFFProductByBarcodeCalls++;
     return barcodeResult!;
   }

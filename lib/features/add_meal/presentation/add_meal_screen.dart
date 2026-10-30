@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/navigation_predicates.dart';
+import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
@@ -13,6 +17,9 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_m
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/log_tray_widgets.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/add_food_methods.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,7 +29,13 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/partial_
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -35,6 +48,7 @@ class AddMealScreen extends StatefulWidget {
 }
 
 class _AddMealScreenState extends State<AddMealScreen> {
+  final _log = Logger('AddMealScreen');
   final ValueNotifier<String> _searchStringListener = ValueNotifier('');
 
   late AddMealType _mealType;
@@ -44,6 +58,18 @@ class _AddMealScreenState extends State<AddMealScreen> {
   late FoodBloc _foodBloc;
   late RecentMealBloc _recentMealBloc;
   late FavouriteMealBloc _favouriteMealBloc;
+  late AddMealBloc _addMealBloc;
+
+  /// Whether the Describe tile's panel is open under the tiles.
+  bool _describeOpen = false;
+
+  /// What every entry method on this screen adds to, and the one button at
+  /// the bottom logs. Handed to the screens this one opens.
+  final _logTray = LogTray();
+  bool _logging = false;
+
+  /// Codes whose + is still fetching the full record.
+  final _quickAdding = <String>{};
 
   // Single smart search: one field, one results list, and source-filter chips.
   // Opens on Recent (fast re-logging); typing searches Products by default,
@@ -62,6 +88,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     _foodBloc = locator<FoodBloc>();
     _recentMealBloc = locator<RecentMealBloc>();
     _favouriteMealBloc = locator<FavouriteMealBloc>();
+    // Held, not looked up where it is read: a factory registration hands out
+    // a fresh instance per lookup, whose state would always be initial.
+    _addMealBloc = locator<AddMealBloc>()..add(InitializeAddMealEvent());
     super.initState();
   }
 
@@ -78,6 +107,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
   void dispose() {
     _searchStringListener.dispose();
     _favouriteMealBloc.close();
+    _addMealBloc.close();
+    _logTray.dispose();
     super.dispose();
   }
 
@@ -85,6 +116,26 @@ class _AddMealScreenState extends State<AddMealScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
+    return ListenableBuilder(
+      listenable: _logTray,
+      builder: (context, _) => PopScope(
+        // Leaving with items on the list would drop them without a word.
+        canPop: _logTray.isEmpty,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && !_logging) _confirmDiscardTray();
+        },
+        // Nothing on the screen takes input while the list is being
+        // written: an item added or removed mid-write would be dropped by
+        // the return to the day, or logged after being removed.
+        child: AbsorbPointer(
+          absorbing: _logging,
+          child: _buildScaffold(context, palette),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, AppPalette palette) {
     return Scaffold(
       // Let the keyboard overlay the results rather than compress the body.
       // In landscape the space above the keyboard is shorter than the pinned
@@ -101,30 +152,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
             ),
           ),
           BlocBuilder<AddMealBloc, AddMealState>(
-            bloc: locator<AddMealBloc>()..add(InitializeAddMealEvent()),
+            bloc: _addMealBloc,
             builder: (BuildContext context, AddMealState state) {
               if (state is AddMealLoadedState) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Semantics(
-                      identifier: 'add-meal-bulk-add',
-                      child: IconButton(
-                        onPressed: () =>
-                            _onBulkAddPressed(state.usesImperialUnits),
-                        icon: const Icon(Icons.playlist_add),
-                        tooltip: S.of(context).bulkAddTitle,
-                      ),
-                    ),
-                    Semantics(
-                      identifier: 'add-meal-custom-add',
-                      child: IconButton(
-                        onPressed: () =>
-                            _onCustomAddButtonPressed(state.usesImperialUnits),
-                        icon: const Icon(Icons.add_circle_outline),
-                      ),
-                    ),
-                  ],
+                return Semantics(
+                  identifier: 'add-meal-custom-add',
+                  child: IconButton(
+                    onPressed: () =>
+                        _onCustomAddButtonPressed(state.usesImperialUnits),
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
                 );
               }
               return const SizedBox();
@@ -132,33 +169,97 @@ class _AddMealScreenState extends State<AddMealScreen> {
           ),
         ],
       ),
+      // Below the results rather than over them, so the last result stays
+      // reachable while the list is waiting.
+      bottomNavigationBar: _logTray.isEmpty
+          ? null
+          : SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Dimens.spacing16,
+                  Dimens.spacing8,
+                  Dimens.spacing16,
+                  Dimens.spacing16,
+                ),
+                child: LogTrayLogButton(
+                  tray: _logTray,
+                  // Also waits for a + still fetching its food: that item
+                  // would land on the list mid-write, miss the write, and
+                  // be cleared with the rest.
+                  onPressed: _logging || _quickAdding.isNotEmpty
+                      ? null
+                      : _logAll,
+                ),
+              ),
+            ),
       body: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
-          child: Column(
-            children: [
-              const SizedBox(height: Dimens.spacing8),
-              MealSearchBar(
-                searchStringListener: _searchStringListener,
-                onSearchSubmit: _onSearchSubmit,
-                onSearchChanged: _onSearchChanged,
-                onBarcodePressed: _onBarcodeIconPressed,
-              ),
-              const SizedBox(height: Dimens.spacing12),
-              _buildSourceChips(context, palette),
-              const SizedBox(height: Dimens.spacing12),
-              // Rebuild on every keystroke so the empty-state logic can tell
-              // "no results for this query" apart from "a newer query is
-              // still debouncing/searching" — the latter shows a spinner.
-              Expanded(
-                child: ValueListenableBuilder<String>(
-                  valueListenable: _searchStringListener,
-                  builder: (context, query, _) =>
-                      _buildResults(context, palette, query),
+          child: LayoutBuilder(
+            builder: (context, constraints) => Column(
+              children: [
+                const SizedBox(height: Dimens.spacing8),
+                // The entry block is bounded and scrolls past its ceiling: the
+                // tiles and the open describe panel are taller than what a
+                // landscape phone leaves above the keyboard, and the results
+                // below must keep a share of the screen (#165).
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: constraints.maxHeight * 0.5,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // The barcode lives on its own tile now, so the field
+                        // carries no suffix icon of its own.
+                        MealSearchBar(
+                          searchStringListener: _searchStringListener,
+                          onSearchSubmit: _onSearchSubmit,
+                          onSearchChanged: _onSearchChanged,
+                          onBarcodePressed: null,
+                        ),
+                        const SizedBox(height: Dimens.spacing12),
+                        AddFoodMethodTiles(
+                          onBarcodePressed: _onBarcodeIconPressed,
+                          onSnapMealPressed: () =>
+                              _openBulkAdd(startWithPhoto: true),
+                          onDescribePressed: () =>
+                              setState(() => _describeOpen = !_describeOpen),
+                          describeOpen: _describeOpen,
+                        ),
+                        if (_describeOpen) ...[
+                          const SizedBox(height: Dimens.spacing12),
+                          DescribeMealPanel(
+                            onFindFoods: (text) =>
+                                _openBulkAdd(initialText: text),
+                          ),
+                        ],
+                        if (!_logTray.isEmpty) ...[
+                          const SizedBox(height: Dimens.spacing16),
+                          LogTrayList(tray: _logTray),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: Dimens.spacing12),
+                _buildSourceChips(context, palette),
+                const SizedBox(height: Dimens.spacing12),
+                // Rebuild on every keystroke so the empty-state logic can tell
+                // "no results for this query" apart from "a newer query is
+                // still debouncing/searching" — the latter shows a spinner.
+                Expanded(
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: _searchStringListener,
+                    builder: (context, query, _) =>
+                        _buildResults(context, palette, query),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -223,6 +324,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
           _day,
           _mealType.getIntakeType(),
           initialBarcode: trimmed,
+          logTray: _logTray,
         ),
       );
       return;
@@ -490,12 +592,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                               container: true,
                               child: ListView.builder(
                                 itemCount: merged.length,
-                                itemBuilder: (context, index) => MealItemCard(
-                                  day: _day,
-                                  mealEntity: merged[index],
-                                  addMealType: _mealType,
-                                  usesImperialUnits: imperial,
-                                ),
+                                itemBuilder: (context, index) =>
+                                    _mealCard(merged[index], imperial),
                               ),
                             ),
                           ),
@@ -547,11 +645,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           if (index == state.products.length) {
                             return const NoResultsWidget();
                           }
-                          return MealItemCard(
-                            day: _day,
-                            mealEntity: state.products[index],
-                            addMealType: _mealType,
-                            usesImperialUnits: state.usesImperialUnits,
+                          return _mealCard(
+                            state.products[index],
+                            state.usesImperialUnits,
                           );
                         },
                       ),
@@ -606,11 +702,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           if (index == state.food.length) {
                             return const NoResultsWidget();
                           }
-                          return MealItemCard(
-                            day: _day,
-                            mealEntity: state.food[index],
-                            addMealType: _mealType,
-                            usesImperialUnits: state.usesImperialUnits,
+                          return _mealCard(
+                            state.food[index],
+                            state.usesImperialUnits,
                           );
                         },
                       ),
@@ -649,20 +743,22 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   child: ListView.builder(
                     itemCount: state.recentMeals.length,
                     itemBuilder: (context, index) {
-                      return MealItemCard(
-                        day: _day,
-                        mealEntity: state.recentMeals[index],
-                        addMealType: _mealType,
-                        usesImperialUnits: state.usesImperialUnits,
+                      return _mealCard(
+                        state.recentMeals[index],
+                        state.usesImperialUnits,
                       );
                     },
                   ),
                 );
               }
               if (query.trim().isEmpty) {
-                return EmptyHint(
-                  icon: Icons.history_rounded,
-                  title: S.of(context).noMealsRecentlyAddedLabel,
+                // Scrollable: the entry tiles above leave a landscape phone
+                // less height here than the hint needs (#165).
+                return SingleChildScrollView(
+                  child: EmptyHint(
+                    icon: Icons.history_rounded,
+                    title: S.of(context).noMealsRecentlyAddedLabel,
+                  ),
                 );
               }
               return NoResultsWidget(
@@ -707,20 +803,19 @@ class _AddMealScreenState extends State<AddMealScreen> {
               container: true,
               child: ListView.builder(
                 itemCount: state.favourites.length,
-                itemBuilder: (context, index) => MealItemCard(
-                  day: _day,
-                  mealEntity: state.favourites[index],
-                  addMealType: _mealType,
-                  usesImperialUnits: state.usesImperialUnits,
-                ),
+                itemBuilder: (context, index) =>
+                    _mealCard(state.favourites[index], state.usesImperialUnits),
               ),
             );
           }
           if (query.trim().isEmpty) {
-            return EmptyHint(
-              icon: Icons.star_outline_rounded,
-              title: S.of(context).favouritesEmptyTitle,
-              subtitle: S.of(context).favouritesEmptySubtitle,
+            // Scrollable for the same reason as the empty Recent hint.
+            return SingleChildScrollView(
+              child: EmptyHint(
+                icon: Icons.star_outline_rounded,
+                title: S.of(context).favouritesEmptyTitle,
+                subtitle: S.of(context).favouritesEmptySubtitle,
+              ),
             );
           }
           return NoResultsWidget(
@@ -743,19 +838,185 @@ class _AddMealScreenState extends State<AddMealScreen> {
   void _onBarcodeIconPressed() {
     Navigator.of(context).pushNamed(
       NavigationOptions.scannerRoute,
-      arguments: ScannerScreenArguments(_day, _mealType.getIntakeType()),
+      arguments: ScannerScreenArguments(
+        _day,
+        _mealType.getIntakeType(),
+        logTray: _logTray,
+      ),
     );
   }
 
-  void _onBulkAddPressed(bool usesImperialUnits) {
-    Navigator.of(context).pushNamed(
+  /// A search result, wired to this screen's list: opening it adds there,
+  /// and its + adds the default amount without opening it.
+  Widget _mealCard(MealEntity meal, bool usesImperialUnits) => MealItemCard(
+    day: _day,
+    mealEntity: meal,
+    addMealType: _mealType,
+    usesImperialUnits: usesImperialUnits,
+    logTray: _logTray,
+    onQuickAdd: () => _onQuickAddToTray(meal, usesImperialUnits),
+  );
+
+  Future<void> _onQuickAddToTray(
+    MealEntity meal,
+    bool usesImperialUnits,
+  ) async {
+    final code = meal.code ?? '';
+    // A second tap while the first is still fetching would add it twice.
+    if (_quickAdding.contains(code)) return;
+    // Through setState: the log button waits for these (see build).
+    setState(() => _quickAdding.add(code));
+    try {
+      meal = await _detailedForQuickAdd(meal);
+    } finally {
+      if (mounted) setState(() => _quickAdding.remove(code));
+    }
+    if (!mounted) return;
+    final state = _addMealBloc.state;
+    final item = defaultLogTrayItem(
+      context,
+      meal,
+      usesImperialUnits: usesImperialUnits,
+      defaultToRawFoodUnits:
+          state is AddMealLoadedState && state.defaultToRawFoodUnits,
+    );
+    if (item == null) {
+      // Missing the values an amount needs; the detail screen says so.
+      Navigator.of(context).pushNamed(
+        NavigationOptions.mealDetailRoute,
+        arguments: MealDetailScreenArguments(
+          meal,
+          _mealType.getIntakeType(),
+          _day,
+          usesImperialUnits,
+          logTray: _logTray,
+        ),
+      );
+      return;
+    }
+    // No snackbar: the count on the log button is the confirmation, and a
+    // snackbar would sit over the next result someone is about to tap.
+    _logTray.add(item);
+  }
+
+  /// The full record behind a thin Open Food Facts search hit, so the +
+  /// picks the serving the detail screen would pick. Falls back to the thin
+  /// record when the fetch fails, as the detail screen does.
+  Future<MealEntity> _detailedForQuickAdd(MealEntity meal) async {
+    try {
+      return await fetchDetailedOffMeal(
+            meal,
+            locator<RemoteSearchCacheDataSource>(),
+            locator<ProductsRepository>(),
+          ) ??
+          meal;
+    } catch (e, stackTrace) {
+      _log.warning('Quick-add hydration failed', e, stackTrace);
+      return meal;
+    }
+  }
+
+  /// Writes the whole list, then returns to the day it was logged to.
+  Future<void> _logAll() async {
+    if (_logging || _quickAdding.isNotEmpty || _logTray.isEmpty) return;
+    // The screen ignores input until this returns (see build), so the list
+    // cannot change under the writes below.
+    setState(() => _logging = true);
+    final mealDetailBloc = locator<MealDetailBloc>();
+    final type = _mealType.getIntakeType();
+    final written = <LogTrayItem>[];
+    try {
+      // Sequential, not concurrent: the tracked-day totals are a
+      // read-modify-write, and overlapping writes would lose updates.
+      for (final item in _logTray.items) {
+        await mealDetailBloc.addIntake(
+          context,
+          item.unit,
+          item.amount.toString(),
+          type,
+          item.meal,
+          _day,
+        );
+        written.add(item);
+      }
+    } catch (e, stackTrace) {
+      _log.severe('Logging the to-log list failed', e, stackTrace);
+      if (!mounted) return;
+      // What was written stays written; only the rest waits for a retry,
+      // so trying again cannot log anything twice.
+      _logTray.removeAll(written);
+      setState(() => _logging = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).logTrayLogFailedLabel)),
+      );
+      return;
+    } finally {
+      _refreshLoggedDays(written.length);
+    }
+    if (!mounted) return;
+    _logTray.clear();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
+    Navigator.of(
+      context,
+    ).popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
+  }
+
+  void _refreshLoggedDays(int written) {
+    if (written == 0) return;
+    locator<HomeBloc>().add(const LoadItemsEvent());
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(const RefreshCalendarDayEvent());
+  }
+
+  Future<void> _confirmDiscardTray() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(S.of(dialogContext).discardChangesTitle),
+        content: Text(S.of(dialogContext).discardChangesContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(S.of(dialogContext).dialogCancelLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(S.of(dialogContext).discardChangesConfirmLabel),
+          ),
+        ],
+      ),
+    );
+    if (discard != true || !mounted) return;
+    _logTray.clear();
+    Navigator.of(context).pop();
+  }
+
+  /// Snap meal and Describe both end on the review screen: a photo or a
+  /// description becomes rows the user checks before anything is logged.
+  Future<void> _openBulkAdd({
+    String? initialText,
+    bool startWithPhoto = false,
+  }) async {
+    final state = _addMealBloc.state;
+    final before = _logTray.length;
+    await Navigator.of(context).pushNamed(
       NavigationOptions.bulkAddRoute,
       arguments: BulkAddScreenArguments(
         _mealType.getIntakeType(),
         _day,
-        usesImperialUnits,
+        state is AddMealLoadedState && state.usesImperialUnits,
+        initialText: initialText,
+        startWithPhoto: startWithPhoto,
+        logTray: _logTray,
       ),
     );
+    // The description has become rows on the list; the panel that held it
+    // has done its job.
+    if (mounted && _logTray.length > before && _describeOpen) {
+      setState(() => _describeOpen = false);
+    }
   }
 
   void _onQuickAddPressed() {
@@ -763,8 +1024,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (sheetContext) =>
-          QuickAddBottomSheet(intakeType: _mealType.getIntakeType(), day: _day),
+      builder: (sheetContext) => QuickAddBottomSheet(
+        intakeType: _mealType.getIntakeType(),
+        day: _day,
+        logTray: _logTray,
+      ),
     );
   }
 
@@ -801,6 +1065,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
         MealEntity.empty(),
         _mealType.getIntakeType(),
         usesImperialUnits,
+        logTray: _logTray,
       ),
     );
   }

@@ -311,7 +311,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           image: _defaultImageWidget,
           bodyWidget: OnboardingOverviewPageBody(
             calorieGoalDayString:
-                _onboardingBloc.getOverviewCalorieGoal()?.toInt().toString() ??
+                _onboardingBloc.getOverviewCalorieGoal()?.round().toString() ??
                     "?",
             carbsGoalString:
                 _onboardingBloc.getOverviewCarbsGoal()?.toInt().toString() ??

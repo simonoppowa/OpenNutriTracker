@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/app_locale.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
+import 'package:opennutritracker/core/utils/web_url.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_dto.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
@@ -12,6 +13,7 @@ import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart'
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/util/backend_title.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 
 /// A number immediately followed by a metric mass or volume unit, as it
 /// appears inside an Open Food Facts `serving_size` string.
@@ -326,6 +328,30 @@ class MealEntity extends Equatable {
     detailed: detailed,
   );
 
+  /// The same meal under [newName]; nothing else moves.
+  MealEntity withName(String? newName) => MealEntity(
+    code: code,
+    name: newName,
+    brands: brands,
+    thumbnailImageUrl: thumbnailImageUrl,
+    mainImageUrl: mainImageUrl,
+    url: url,
+    mealQuantity: mealQuantity,
+    mealUnit: mealUnit,
+    servingQuantity: servingQuantity,
+    servingUnit: servingUnit,
+    servingSize: servingSize,
+    nutriments: nutriments,
+    source: source,
+    backendSource: backendSource,
+    machineTranslatedName: machineTranslatedName,
+    servingSizeIsLocalized: servingSizeIsLocalized,
+    portions: portions,
+    portionsUnavailable: portionsUnavailable,
+    localImagePath: localImagePath,
+    detailed: detailed,
+  );
+
   factory MealEntity.empty() => MealEntity(
     code: IdGenerator.getUniqueID(),
     name: null,
@@ -345,7 +371,7 @@ class MealEntity extends Equatable {
     brands: mealDBO.brands,
     thumbnailImageUrl: mealDBO.thumbnailImageUrl,
     mainImageUrl: mealDBO.mainImageUrl,
-    url: mealDBO.url,
+    url: normalizeWebUrl(mealDBO.url),
     mealQuantity: mealDBO.mealQuantity,
     mealUnit: mealDBO.mealUnit,
     servingQuantity: mealDBO.servingQuantity,
@@ -361,9 +387,14 @@ class MealEntity extends Equatable {
 
   /// [detailed] is true for full-product responses (the v2 barcode endpoint),
   /// false for the thin Search-a-licious text-search projection.
+  ///
+  /// [knownName] is the name the meal already carries when this record
+  /// replaces it; it stands in when the product has no name in the app's
+  /// language (see [OFFProductDTO.getLocaleName]).
   factory MealEntity.fromOFFProduct(
     OFFProductDTO offProduct, {
     bool detailed = false,
+    String? knownName,
   }) {
     // Unit precedence: OFF's normalised serving unit, then the unit parsed
     // from the serving_size text ("30 g"), then the package quantity string.
@@ -379,12 +410,13 @@ class MealEntity extends Equatable {
       code: offProduct.code,
       name: offProduct.getLocaleName(
         SupportedLanguage.fromCode(AppLocale.localeName),
+        knownName: knownName,
       ),
       brands: offProduct.brands,
       thumbnailImageUrl: offProduct.image_front_thumb_url,
       mainImageUrl: offProduct.image_front_url,
-      url: offProduct.url,
-      mealQuantity: offProduct.product_quantity?.toString(),
+      url: normalizeWebUrl(offProduct.url),
+      mealQuantity: offProduct.product_quantity?.toString().withDotDecimal(),
       mealUnit: unit,
       servingQuantity: _tryQuantityCast(offProduct.serving_quantity),
       servingUnit: unit,
@@ -419,7 +451,7 @@ class MealEntity extends Equatable {
       code: fdcId,
       name: fdcFood.description,
       brands: fdcFood.brandName,
-      url: FDCConst.getFoodDetailUrlString(fdcId),
+      url: normalizeWebUrl(FDCConst.getFoodDetailUrlString(fdcId)),
       mealQuantity: fdcFood.packageWeight,
       mealUnit: fdcFood.servingSizeUnit,
       servingQuantity: fdcFood.servingSize,
@@ -439,7 +471,9 @@ class MealEntity extends Equatable {
       // Only USDA FDC foods have a public detail page to link to; foods
       // from the other backend sources (BLS, INDB, TBCA...) link nowhere.
       url: foodItem.isFdc
-          ? FDCConst.getFoodDetailUrlString(foodItem.sourceCode)
+          ? normalizeWebUrl(
+              FDCConst.getFoodDetailUrlString(foodItem.sourceCode),
+            )
           : null,
       mealQuantity: null,
       mealUnit: defaultUnit,

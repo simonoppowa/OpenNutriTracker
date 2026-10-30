@@ -123,11 +123,24 @@ class HealthPackageService implements HealthService {
     // so a refusal there is not a failure. hasPermissions answers null where
     // the platform will not say (iOS never reports read grants) — same rule
     // as [readWorkouts], only a definite refusal counts.
-    final hasWorkoutPermissions = await _health.hasPermissions(
+    return await _hasWorkoutReadPermissions() != false;
+  }
+
+  /// Whether the grants a workout read needs are held; null where the
+  /// platform will not say (iOS never reports read grants).
+  ///
+  /// On Android this goes through [HealthConnectWorkoutReader] rather than
+  /// the plugin, whose own answer comes from an unguarded coroutine that
+  /// takes the process down when Health Connect refuses the call — see
+  /// [HealthConnectWorkoutReader.hasWorkoutReadPermissions].
+  Future<bool?> _hasWorkoutReadPermissions() async {
+    if (_platform == HealthTargetPlatform.android) {
+      return await _workoutReader.hasWorkoutReadPermissions();
+    }
+    return await _health.hasPermissions(
       _workoutReadTypes,
       permissions: List.filled(_workoutReadTypes.length, HealthDataAccess.READ),
     );
-    return hasWorkoutPermissions != false;
   }
 
   @override
@@ -140,10 +153,7 @@ class HealthPackageService implements HealthService {
     // new" and advance the watermark. Check first and fail loudly instead.
     // hasPermissions answers null where the platform will not say (iOS never
     // reports read grants); only a definite refusal aborts.
-    final hasPermissions = await _health.hasPermissions(
-      _workoutReadTypes,
-      permissions: List.filled(_workoutReadTypes.length, HealthDataAccess.READ),
-    );
+    final hasPermissions = await _hasWorkoutReadPermissions();
     if (hasPermissions == false) {
       throw StateError(
         'Missing health read permissions for a workout import; '

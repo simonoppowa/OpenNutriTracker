@@ -511,8 +511,8 @@ void main() {
     );
 
     test(
-      'cache-first ordering deduplicates cached + remote entries with the '
-      'same code (only one entry surfaces, position determined by the cache)',
+      'deduplicates cached + remote entries with the same code (only one '
+      'entry surfaces)',
       () async {
         cachedOffMealDataSource.meals.add(_offCacheDbo(
           code: 'off-1',
@@ -531,8 +531,7 @@ void main() {
         // surfaced is the fresh one, standing in the cached entry's slot:
         // cacheFromSearch has just refreshed the cache from the same page,
         // so the two agree on everything the cache can hold, and the user
-        // sees the freshest information without losing their
-        // position-in-list.
+        // sees the freshest information.
         expect(result.meals, hasLength(1));
         expect(result.meals.single.code, 'off-1');
         expect(result.meals.single.name, 'Tofu Fresh Name');
@@ -547,11 +546,12 @@ void main() {
     // and offers them for picking (#968), and saw none on that path.
     test(
       'a backend record the fresh page returned surfaces as the fresh '
-      'entity, in the cached entry\'s position',
+      'entity, in the page\'s position',
       () async {
         // Two records already cached from an earlier search, cheese the
         // more recently touched; the fresh page lists them the other way
-        // round, each with the portions the cache cannot keep.
+        // round, each with the portions the cache cannot keep. Neither is
+        // logged, so the page's order stands (#1473).
         cachedOffMealDataSource.meals.addAll([
           _fdcCacheDbo(code: 'fdc-egg', name: 'Egg, whole, raw'),
           _fdcCacheDbo(code: 'fdc-cheese', name: 'Cheese, cheddar'),
@@ -592,11 +592,11 @@ void main() {
 
         final result = await useCase.searchFDCFoodByString('e');
 
-        // The cache's order, the page's data.
-        expect(result.meals.map((m) => m.code), ['fdc-cheese', 'fdc-egg']);
-        expect(result.meals[0].portions, hasLength(1));
-        expect(result.meals[1].portions, hasLength(2));
-        expect(result.meals[1].scoringName, 'Egg');
+        // The page's order, the page's data.
+        expect(result.meals.map((m) => m.code), ['fdc-egg', 'fdc-cheese']);
+        expect(result.meals[0].portions, hasLength(2));
+        expect(result.meals[0].scoringName, 'Egg');
+        expect(result.meals[1].portions, hasLength(1));
       },
     );
 
@@ -739,13 +739,29 @@ void main() {
       '(regression: previously, bulk-caching wiped the timestamp of a just-'
       'logged item, breaking the promote-recent ordering)',
       () async {
-        // User selected banana-b earlier, so its timestamp is high.
+        // User logged both, banana-b more recently, so its timestamp is
+        // high. Logged records go above the page in the cache's order;
+        // unlogged ones take the page's (#1473).
         cachedOffMealDataSource.meals.addAll([
           _offCacheDbo(code: 'banana-a', name: 'Banana A'),
           _offCacheDbo(code: 'banana-b', name: 'Banana B'),
         ]);
         cachedOffMealDataSource.setTimestamp('banana-a', 100);
         cachedOffMealDataSource.setTimestamp('banana-b', 999);
+        getIntakeUsecase.recentIntake = [
+          _intake(
+              'i-b',
+              _meal(
+                  code: 'banana-b',
+                  name: 'Banana B',
+                  source: MealSourceEntity.off)),
+          _intake(
+              'i-a',
+              _meal(
+                  code: 'banana-a',
+                  name: 'Banana A',
+                  source: MealSourceEntity.off)),
+        ];
 
         // Now the user searches "banana" again. Remote returns the same
         // products. cacheFromSearch must NOT reset banana-b's high

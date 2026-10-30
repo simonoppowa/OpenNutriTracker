@@ -611,7 +611,7 @@
   "ozUnit": "унц.",
   "paActiveVideoGames": "активные видеоигры",
   "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, общее",
-  "paAmericanFootballGeneral": "футбол (американский)",
+  "paAmericanFootballGeneral": "Американский футбол",
   "paAmericanFootballGeneralDesc": "тач, флаг, общее",
   "paArcheryGeneral": "стрельба из лука",
   "paArcheryGeneralDesc": "не охота",
@@ -633,7 +633,7 @@
   "paBilliardsGeneralDesc": "общее",
   "paBowlingGeneral": "боулинг",
   "paBowlingGeneralDesc": "общее",
-  "paBoxingBag": "бокс",
+  "paBoxingBag": "бокс (боксерская груша)",
   "paBoxingBagDesc": "боксёрская груша",
   "paBoxingGeneral": "бокс",
   "paBoxingGeneralDesc": "на ринге, общее",
@@ -667,7 +667,7 @@
   "paDartsWallDesc": "настенный или на лужайке",
   "paDivingGeneral": "дайвинг",
   "paDivingGeneralDesc": "подводное плавание, скуба-дайвинг, общее",
-  "paDivingSpringboardPlatform": "прыжки в воду",
+  "paDivingSpringboardPlatform": "прыжки в воду с платформы",
   "paDivingSpringboardPlatformDesc": "с трамплина или вышки",
   "paFencing": "фехтование",
   "paFencingDesc": "общее",
@@ -722,7 +722,7 @@
   "paLawnBowlingDesc": "петанк, на улице",
   "paMartialArtsModerate": "боевые искусства",
   "paMartialArtsModerateDesc": "разные виды, умеренный темп (напр., дзюдо, джиу-джитсу, карате, кикбоксинг, тхэквондо, тай-бо, муай-тай)",
-  "paMartialArtsSlower": "боевые искусства",
+  "paMartialArtsSlower": "боевые искусства (медленный темп)",
   "paMartialArtsSlowerDesc": "разные виды, медленный темп, новички, отработка техники",
   "paMotoCross": "мотокросс",
   "paMotoCrossDesc": "внедорожный мотоспорт, квадроциклы, общее",
@@ -757,7 +757,7 @@
   "paRopeSkippingGeneralDesc": "общее",
   "paRugbyCompetitive": "регби",
   "paRugbyCompetitiveDesc": "юнион, команда, соревновательный",
-  "paRugbyNonCompetitive": "регби",
+  "paRugbyNonCompetitive": "контактный регби",
   "paRugbyNonCompetitiveDesc": "тач-регби, несоревновательный",
   "paRunningGeneral": "бег",
   "paRunningGeneralDesc": "общее",
@@ -983,7 +983,7 @@
   "settingsDisclaimerLabel": "Предупреждение",
   "settingsDistanceLabel": "Расстояние",
   "settingsEnergyUnitLabel": "Единица энергии",
-  "settingsFibreGoalDescription": "Дневная норма клетчатки в граммах. По умолчанию — 30 г.",
+  "settingsFibreGoalDescription": "Дневная норма клетчатки в граммах. По умолчанию варьируется по возрасту и полу (от 21г до 38г).",
   "settingsFibreGoalLabel": "Норма клетчатки",
   "settingsImperialLabel": "Имперская (фунты, футы, унции)",
   "settingsKcalAdjustmentLabel": "Дневная корректировка ккал",
@@ -1269,5 +1269,432 @@
   "quickAddActivityAddedSnack": "Активность добавлена",
   "quickAddActivityNameLabel": "Название (необязательно)",
   "scannerLockOrientationTooltip": "Закрепить книжную ориентацию",
-  "scannerUnlockOrientationTooltip": "Разрешить поворот"
+  "scannerUnlockOrientationTooltip": "Разрешить поворот",
+  "calorieWidgetAccessibilityLabel": "{consumed} из {goal} килокалорий",
+  "@calorieWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS home-screen calorie widget.",
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetDescription": "Съеденные сегодня килокалории и Ваша цель.",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetGoalLabel": "из {goal}",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetOpenAppHint": "Открыть приложение",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
+  "dataCollectionLabel": "Отправьте отчет о вылете, чтобы помочь исправить ошибки. Журнал еды или данные о весе не будут включены.",
+  "policyChangeNoticeTitle": "Мы обновили политику конфиденциальности",
+  "policyChangeNoticeBody": "Ничто в работе приложения не изменилось. Что изменилось, так это то, как много мы Вам говорим.\n\nСервисы, которые всегда получали ваши поисквые запросы, теперь явно названы. Существует новый раздел, охватывающий данные о здоровье, для импорта тренировок, который Вы можете включить. И теперь мы раскрываем приблизительное местоположение, которое наши сервера записывают вместе с запросом и держат в течение 24 часов.\n\nВаш дневник остается на вашем устройстве, как всегда.",
+  "policyChangeNoticeReadAction": "Прочитать политику",
+  "policyChangeNoticeDismissAction": "Понятно",
+  "disclaimerAcknowledgeLabel": "Я понимаю",
+  "errorLoadingFavourites": "Ошибка при загрузке избранного",
+  "exportImportErrorUnreadableLabel": "Не удалось прочитать выбранный файл. Выберите .zip бэкап, который экспортировал OpenNutriTracker.",
+  "exportImportErrorWriteFailedLabel": "Не удалось сохранить файл по выбранному пути. Попробуйте другую папку.",
+  "favouriteAddTooltip": "Добавить в избранное",
+  "favouriteRemoveTooltip": "Убрать из избранного",
+  "favouritesEmptySubtitle": "Нажмите на звезду на любом продукте или еде, чтобы сохранить здесь, под рукой.",
+  "favouritesEmptyTitle": "Пока в избранном пусто",
+  "favouritesLabel": "Избранное",
+  "sharedMealUnnamedLabel": "Продукт без имени",
+  "minuteShortLabel": "мин",
+  "@minuteShortLabel": {
+    "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
+  },
+  "noResultsSubtitle": "Продукты по поиску не найдены. Попробуйте другое название, отсканируйте штрих-код или создайте свой.",
+  "noResultsScanBarcode": "Сканировать штрихкод",
+  "noResultsCreateCustomFood": "Создать свой продукт",
+  "noResultsSearchAll": "Поиск везде",
+  "partialResultsNotice": "Один из источников данных не ответил. Некоторые результаты могут отсутствовать.",
+  "partialResultsAllSourcesDownNotice": "Ни один онлайн источник данных не ответил. Показаны только сохраненные продукты.",
+  "onboardingAdultEquationNotice": "Цели калорий рассчитаны с помощью уравнений для взрослых. В возрасте до 19, проконсультируйтесь с врачом или диетологом.",
+  "onboardingBlockedActivitySnack": "Выберите уровень вашей активности, чтобы продолжить",
+  "onboardingBlockedBodySnack": "Введите корректные рост и вес, чтобы продолжить",
+  "onboardingBlockedDemoPolicySnack": "Примите политику конфиденциальности, чтобы попробовать демо",
+  "onboardingBlockedGoalSnack": "Выберите целевой вес, чтобы продолжить",
+  "onboardingBlockedOverviewSnack": "Некоторые детали отсутствуют. Вернитесь и завершите предыдущие шаги.",
+  "onboardingBlockedPolicySnack": "Прмите политику конфеденциальности, чтобы продолжить",
+  "onboardingBlockedProfileSnack": "Введите пол и дату рождения, чтобы продолжить",
+  "onboardingFoodSourcesEnabledCount": "{enabled} из {total} включены",
+  "@onboardingFoodSourcesEnabledCount": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingGoalSuggestionBmi": "Ваш ИМТ {bmi} — ВОЗ: {status}.",
+  "@onboardingGoalSuggestionBmi": {
+    "placeholders": {
+      "bmi": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingGoalSuggestionTarget": "На основе введенного целевого веса.",
+  "onboardingHealthyRangeLabel": "Здоровый диапазон для {height}: {range}",
+  "@onboardingHealthyRangeLabel": {
+    "placeholders": {
+      "height": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeSource": "ВОЗ, ИМТ 18.5–24.9",
+  "onboardingImplausibleChange": "Изменить",
+  "onboardingImplausibleHeightBody": "{value} необычный рост. Оставить?",
+  "@onboardingImplausibleHeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingImplausibleKeep": "Оставить",
+  "onboardingImplausibleTitle": "Перепроверьте значение",
+  "onboardingImplausibleWeightBody": "{value} необычный вес. Оставить?",
+  "@onboardingImplausibleWeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "paEllipticalTrainer": "эллиптический тренажёр",
+  "paRowingMachine": "гребный тренажёр",
+  "paYoga": "йога",
+  "recipeTotalWeightCalculatedHelper": "По умолчанию — сумма ингредиентов. Жидкости приблизительно считаются как 1 мл ≈ 1 г.",
+  "recipeTotalWeightManualHelper": "Введено вручную, поэтому изменение ингредиентов не изменит его.",
+  "recipeTotalWeightUseIngredientTotalButton": "Использовать суммарный вес ингредиентов",
+  "sendCrashReports": "Отправить отчет о вылете",
+  "settingsKjAdjustmentLabel": "Ежедневная корректировка кДж",
+  "settingsDefaultToRawFoodUnitsLabel": "По умолчанию использовать вес или объем, а не порции",
+  "settingsDefaultToRawFoodUnitsSubtitle": "Когда продукт имеет порции, записывать вес или объем. Вы всё ещё можете выбрать порции в меню единиц измерения.",
+  "bulkAddTitle": "Добавить несколько пунктов",
+  "bulkAddInputHint": "2 яйца, 100 г тостов, черный кофе",
+  "bulkAddParseLabel": "Найти продукты",
+  "bulkAddSubmitLabel": "Записать {count} позиций",
+  "@bulkAddSubmitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddSkipLabel": "Пропустить",
+  "bulkAddNothingToLogLabel": "Пока нечего записывать",
+  "bulkAddDefaultAmountLabel": "Количество не указано",
+  "bulkAddErrorInvalidName": "Позиция {number}: некорректное название продукта",
+  "@bulkAddErrorInvalidName": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddErrorQuantityTooSmall": "Позиция {number}: количесто должно быть больше 0",
+  "@bulkAddErrorQuantityTooSmall": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddErrorQuantityTooLarge": "Позиция {number}: количество должно быть {bound} или меньше",
+  "@bulkAddErrorQuantityTooLarge": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddRowQuantityInvalid": "Введите число с точностью до сотых",
+  "bulkAddRowQuantityTooSmall": "Количество должно быть больше 0",
+  "bulkAddRowQuantityTooLarge": "Количество должно быть {bound} или меньше",
+  "@bulkAddRowQuantityTooLarge": {
+    "placeholders": {
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAiAssistLabel": "ИИ помощник",
+  "settingsAiAssistNotConfiguredLabel": "Выключен — нет ключа",
+  "settingsAiAssistOnLabel": "Включен",
+  "settingsAiAssistPausedLabel": "Приостановлен — ключ сохранен",
+  "settingsAiAssistEnabledLabel": "Использовать ИИ помощника",
+  "bulkAddPhotoKeyRejectedLabel": "Ваш API ключ был отклонён. Проверьте его в Настройках.",
+  "bulkAddPhotoCameraFailedLabel": "Не удалось открыть камеру. Проверьте разрешение на камеру и попробуйте ещё раз.",
+  "bulkAddPhotoUnreadableLabel": "Не удалось использовать это изображение. Попробуйте другое фото.",
+  "bulkAddPhotoUnsupportedLabel": "Эта модель не может распознавать фотографии. Выберите другую в Настройках или введите позиции вручную.",
+  "bulkAddPhotoFailedLabel": "Не удалось распознать фото. Проверьте соединение и попробуйте ещё раз.",
+  "bulkAddPhotoNoCreditLabel": "Не удалось оплатить запрос: на Вашей учетной записи закончился баланс. Пополните у провайдера или введите позиции вручную.",
+  "bulkAddPhotoNoFoodLabel": "Не удалось распознать еду на фото. Попробуйте другое фото или введите позиции вручную.",
+  "settingsHealthSyncSubtitle": "Импорт тренировок",
+  "healthSyncAutoImportLabel": "Автоматически импортировать тренировки из {platform}",
+  "@healthSyncAutoImportLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncKcalMultiplierValueLabel": "{percent}%",
+  "@healthSyncKcalMultiplierValueLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncSuggestedLabel": "Предложено для Вас: {percent}%",
+  "@healthSyncSuggestedLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "healthSyncImportNowLabel": "Импортировать сейчас",
+  "healthSyncLastImportLabel": "Последний импорт: {time}",
+  "@healthSyncLastImportLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncNeverImportedLabel": "Пока нет импортированных тренировок",
+  "healthSyncPermissionDeniedLabel": "Доступ к {platform} не был предоставлен. Дайте разрешение OpenNutriTracker читать тренировки и импортировать их.",
+  "@healthSyncPermissionDeniedLabel": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureTitle": "Импортировать тренировки из {platform}?",
+  "@healthSyncDisclosureTitle": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureBody": "OpenNutriTracker будет видеть Ваши завершенные тренировки в {platform} — их тип, когда они проходили, как долго они длились и сколько энергозатрат они зафиксировали.\n\nТренировки записаны в Вашем дневнике как активности, которые можно редактировать и удалять, а энергозатраты этих тренировок поднимают цель по калориям в этот день на ту часть, которую Вы выберете.",
+  "@healthSyncDisclosureBody": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureBodyFatAddendum": "OpenNutriTracker также сможет видеть последний отчет о проценте жира, который есть в {platform}. Этот процент жира будет использован, чтобы предложить эту долю.",
+  "@healthSyncDisclosureBodyFatAddendum": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureFooter": "Ничего не записывается в {platform} и ничего никуда не отправляется — все остается на устройстве.\n\nВы можете отключить это в любое время, что остановит доступ к информации.",
+  "@healthSyncDisclosureFooter": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "healthSyncDisclosureContinueAction": "Продолжить",
+  "healthSyncUnavailableLabel": "Данные о состоянии здоровья на этом устройстве отсутствуют. Для импорта тренировок необходимы Health Connect на Android или Apple Health на iOS.",
+  "sharedMealUnavailableLabel": "Недоступно — этот элемент будет пропущен.",
+  "sharedMealTotalLabel": "Итого",
+  "sharedMealPartialTotalLabel": "Итого (неполный)",
+  "onboardingGoalSuggestedBadge": "Предлагаем",
+  "onboardingHealthyRangeApply": "Использовать {weight}",
+  "@onboardingHealthyRangeApply": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "paCalisthenicsVigorous": "калистеника (интенсивная)",
+  "paCircuitTraining": "круговая тренировка",
+  "paCalisthenicsVigorousDesc": "интенсивная нагрузка (прим.: отжимания, приседания, подтягивания, прыжки, берпи)",
+  "paCircuitTrainingDesc": "включая упражнения с гирей, некоторые аэробные упражнения с минимальным отдыхом, высокая интенсивность",
+  "settingsDeleteAllDataConfirmContent": "Это удаляет ваш профиль, питание, деятельность, историю веса и сеансы голодания только для текущего профиля. Он также удаляет любой ключ провайдера ИИ и адрес сервера, которые разделены каждым профилем на этом устройстве. Общее содержание (таможенные приемы, рецепты, шаблоны деятельности) и Open Food Facts и каталоги USDA Food Data Central не затрагиваются. Это нельзя отменить.",
+  "aiAssistExperimentalLabel": "Экспериментальный",
+  "bulkAddModelHintKeyLabel": "С собственным API-ключом",
+  "aiAssistProviderOwnServerLabel": "Ваш собственный сервер",
+  "aiAssistEndpointFieldLabel": "Адрес сервера",
+  "aiAssistModelFieldLabel": "Название модели",
+  "aiAssistModelRequiredLabel": "Назовите модель, которую должен использовать этот сервер.",
+  "aiAssistEndpointPublicPlaintextLabel": "Этот адрес является публичным и незашифрованным, поэтому запросы на него отклоняются. Используйте https, или частный адрес.",
+  "aiAssistProbeSectionLabel": "Проверка установки",
+  "aiAssistProbePhotoLabel": "Фотографии",
+  "aiAssistPickModelLabel": "Выберите модель",
+  "paStairTreadmillErgometer": "Тренажер лестница",
+  "paYogaDesc": "общая, хатха",
+  "suggestedLabel": "Предлагаем",
+  "bulkAddIncludeLabel": "Добавить",
+  "bulkAddCheckAmountLabel": "Проверьте единицы для этого количества",
+  "aiAssistExperimentalNote": "Эта функция может быть изменена или удалена, и предлагаемые провайдеры и модели тоже могут измениться.",
+  "aiConsentTitle": "Прежде чем включить",
+  "bulkAddModelHintLabel": "Модель может прочесть это для Вас",
+  "aiConsentChangeProviderNote": "Вы можете изменить провайдера позже. Условия каждого провайдера отображаются в Настройках, и ничего из того, что вы вводите или фотографируете, не отправляется до тех пор, пока вы не используете эту функцию.",
+  "aiConsentOwnServerCheckNote": "Сохранение адреса вашего сервера также спрашивает, какие модели он предлагает, и запускает одну проверку настройки — фиксированную строку-пример и пример фотографии от нас, никогда из вашего.",
+  "aiConsentAgreeLabel": "Я ПОНИМАЮ",
+  "aiAssistDisclosureCommon": "Ваш дневник и ваш профиль никогда не отправляются. Пищевая ценность всегда приходят из баз данных продуктов, никогда не из модели. Ключ хранится только на этом устройстве: OpenNutriTracker никогда не видит его и не платит за его использование.",
+  "aiAssistDisclosureAnthropic": "С сохраненным ключом текст, который вы вводите на экране добавления нескольких элементов и любая фотография, которую вы выбираете распознать там, отправляется в Anthropic. Фотографии отправляются для этого одного запроса и никогда не сохраняются.",
+  "aiAssistDisclosureOpenRouter": "С сохраненным ключом текст, который вы вводите на экране добавления нескольких элементов и любая фотография, которую вы выбираете распознать там, отправляется в OpenRouter, которая перенаправляет их провайдеру, предоставляющему услуги выбранной модели. OpenRouter также перенаправляет данные аккаунта этому провайдеру с каждым запросом, это не может быть отключено. OpenRouter не держит содержание запроса ни для чего, кроме маршрутизации, обнаружения недобросовестного использования, соблюдения безопасности, выставления счетов и проверки на соответствие законодательству. Поставщик модели обрабатывает и сохраняет Вашу информацию по своей политике конфиденциальности.",
+  "aiAssistDisclosureOpenAI": "С сохраненным ключом текст, который вы вводите на экране добавления нескольких элементов и любая фотография, которую вы выбираете распознать там, отправляется в OpenAI. OpenAI сохраняет отправляемое им в течение 30 дней, чтобы мониторить на недобросовестное использование и дольше, если того требует закон или если это необходимо, чтобы защитить их сервисы или совместителей от вреда.",
+  "aiAssistDisclosureOwnServerSecure": "С сохраненным адресом текст, который вы вводите на экране добавления нескольких элементов и любая фотография, которую вы выбираете распознать там, отправляется на {host} — сервер, который содержите Вы. Ни одна третья сторона не получает Ваш запрос, данный проект не имеет связи с сервером и не может обещать ничего о том, что он сохраняет. Соединение зашифровано.",
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistDisclosureOwnServerPlaintext": "С сохраненным адресом текст, который вы вводите на экране добавления нескольких элементов и любая фотография, которую вы выбираете распознать там, отправляется на {host} — сервер, который содержите Вы. Ни одна третья сторона не получает Ваш запрос, данный проект не имеет связи с сервером и не может обещать ничего о том, что он сохраняет. Этот адрес — простой HTTP, так что соединение не зашифровано: все в сети могут читать трафик между этим телефоном и сервером.",
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistEndpointInvalidLabel": "Введите адрес, начинающийся с http:// или https://",
+  "aiAssistProbeCheckLabel": "Проверить этот сервер",
+  "aiAssistProbeNoAnswerLabel": "Проверили — ответа не вернулось, поэтому ничего не узнали об этом сервере. Попробуйте снова, когда он доступен.",
+  "aiAssistLoadModelsLabel": "Загрузить модели",
+  "aiAssistModelsUnreachableLabel": "Невозможно достичь {host}. Он может быть выключен, в другой сети или за VPN — вместо этого введите имя модели.",
+  "@aiAssistModelsUnreachableLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsEmptyLabel": "{host} ответил, и не предоставил список моделей. Введите название модели вручную.",
+  "@aiAssistModelsEmptyLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsRejectedLabel": "{host} ответил, но не списком моделей. Проверьте адрес или введите название модели вручную.",
+  "@aiAssistModelsRejectedLabel": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelsInsecureLabel": "Ничего не было отправлено: этот адрес является публичным и незашифрованным. Используйте https или введите название модели вручную.",
+  "aiAssistProviderLabel": "Провайдер",
+  "aiAssistModelLabel": "Модель",
+  "aiAssistServedByLabel": "Предоставлено {provider}",
+  "@aiAssistServedByLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelCheapestLabel": "Самая дешёвая в списке",
+  "aiAssistNoKeyForProviderLabel": "Нет сохраненного ключа для этого провайдера.",
+  "aiAssistKeyFieldLabel": "API ключ {provider}",
+  "@aiAssistKeyFieldLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistKeySavedLabel": "Ключ сохранен",
+  "bulkAddModelKeyRejectedLabel": "ИИ не сработал: ваш API ключ был отклонен.",
+  "bulkAddModelUnsupportedLabel": "ИИ не сработал: не удалось использовать выбранную модель.",
+  "bulkAddModelNoCreditLabel": "ИИ не сработал: на вашем аккаунте у провайдера исчерпан баланс.",
+  "bulkAddModelInsecureServerLabel": "ИИ не сработал: этот адрес является публичным и незашифрованным.",
+  "bulkAddModelTimedOutLabel": "ИИ не сработал: ваш сервер не ответил вовремя.",
+  "bulkAddWaitElapsedLabel": "Ожидание вашего сервера · {seconds} с",
+  "@bulkAddWaitElapsedLabel": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddWaitModelLoadingLabel": "Ваш сервер может загружать свою модель. Первый запрос после простоя может занять минуту или две, это нормально.",
+  "bulkAddPhotoDisclosureCommon": "OpenNutriTracker не хранит копию фото, и она никогда не экспортируется.",
+  "bulkAddPhotoDisclosureAnthropic": "Фото отправляется Antrhopic, чтобы идентифицировать продукты на нём.",
+  "bulkAddPhotoDisclosureOpenRouter": "Фото отправляется в OpenRouter, который передает его {provider} для идентификации продуктов на нём.",
+  "@bulkAddPhotoDisclosureOpenRouter": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddPhotoDisclosureOpenAI": "Фото отправляется в OpenAI для идентификации продуктов на нем. OpenAI держит его до 30 дней для мониторинга за злоупотреблениями, и дольше, если закон требует этого или оно необходимо для защиты их сервисов или третьей стороны от вреда.",
+  "bulkAddPhotoDisclosureOwnServer": "Фотография отправляется на {host}, чтобы идентифицировать продукты на ней.",
+  "@bulkAddPhotoDisclosureOwnServer": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "bulkAddReviewTitle": "Просмотреть элементы",
+  "bulkAddToListLabel": "Добавить {count} элементов",
+  "@bulkAddToListLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "logTrayLogFailedLabel": "Не удалось записать эти позции. Попробуйте ещё раз.",
+  "aiAssistModelRecommendedLabel": "Рекомендовано",
+  "aiAssistModelCheaperLabel": "Дешевле и слабее на некачественных фотографиях",
+  "aiAssistRemoveKeyLabel": "Удалить ключ",
+  "bulkAddPhotoUnavailableLabel": "Включите помощь ИИ в настройках для чтения фотографий",
+  "bulkAddYourPhotoLabel": "Ваше фото",
+  "addToListLabel": "Добавить в список",
+  "logTrayRemoveLabel": "Удалить из списка",
+  "logTrayAddedLabel": "Добавлено в список",
+  "bulkAddWaitCancelLabel": "Отмена",
+  "logTrayClearLabel": "Очистить"
 }

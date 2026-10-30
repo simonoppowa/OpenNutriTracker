@@ -6,6 +6,8 @@ import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/utils/csv_row_parser.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/core/utils/web_url.dart';
 
 /// Serializes the three exportable Hive datasets (intakes, user activities,
 /// tracked days) to flat CSV alongside the existing JSON export. The same
@@ -106,6 +108,10 @@ class CsvDataExporter {
   /// Build the intakes CSV string from a list of [IntakeDBO]. Each row
   /// flattens the embedded [MealDBO] and its nutriments so the file can
   /// be opened in a spreadsheet without further joins.
+  ///
+  /// The quantity and URL are cleaned the way the importer cleans them
+  /// (#1476), so a row stored with `"137,0"` or a `javascript:` URL before
+  /// 2.6.0 cannot carry either into a backup an older build restores.
   static String intakesToCsv(List<IntakeDBO> intakes) {
     final buf = StringBuffer();
     buf.writeln(intakeColumns.join(','));
@@ -122,14 +128,14 @@ class CsvDataExporter {
         _cell(meal.name),
         _cell(meal.brands),
         _cell(meal.source.name),
-        _cell(meal.mealQuantity),
+        _cell(meal.mealQuantity?.withDotDecimal()),
         _cell(meal.mealUnit),
         _num(meal.servingQuantity),
         _cell(meal.servingUnit),
         _cell(meal.servingSize),
         _cell(meal.thumbnailImageUrl),
         _cell(meal.mainImageUrl),
-        _cell(meal.url),
+        _cell(normalizeWebUrl(meal.url)),
         _num(n.energyKcal100),
         _num(n.carbohydrates100),
         _num(n.fat100),
@@ -253,8 +259,8 @@ class CsvDataExporter {
         brands: _nullable(row['meal_brands']),
         thumbnailImageUrl: _nullable(row['meal_thumbnail_url']),
         mainImageUrl: _nullable(row['meal_main_image_url']),
-        url: _nullable(row['meal_url']),
-        mealQuantity: _nullable(row['meal_quantity']),
+        url: normalizeWebUrl(row['meal_url']),
+        mealQuantity: _nullable(row['meal_quantity'])?.withDotDecimal(),
         mealUnit: _nullable(row['meal_unit']),
         servingQuantity: _double(row['meal_serving_quantity']),
         servingUnit: _nullable(row['meal_serving_unit']),

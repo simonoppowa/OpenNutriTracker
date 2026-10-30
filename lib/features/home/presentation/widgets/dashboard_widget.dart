@@ -104,7 +104,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     Expanded(
                       child: _MiniStat(
                         icon: Icons.arrow_downward_rounded,
-                        value: '${displaySupplied.toInt()}',
+                        value: '${displaySupplied.round()}',
                         label: S.of(context).suppliedLabel,
                         color: palette.proteinColor,
                       ),
@@ -112,7 +112,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     Expanded(
                       child: _MiniStat(
                         icon: Icons.local_fire_department_rounded,
-                        value: '${displayBurned.toInt()}',
+                        value: '${displayBurned.round()}',
                         label: S.of(context).burnedLabel,
                         color: palette.carbsColor,
                         trailing: true,
@@ -123,7 +123,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                 const SizedBox(height: Dimens.spacing16),
                 Semantics(
                   identifier: 'home-kcal-gauge',
-                  label: '${displayValue.toInt()} $kcalLabelText',
+                  label: '${displayValue.round()} $kcalLabelText',
                   hint: S.of(context).settingsKcalGoalInfoLabel,
                   button: true,
                   excludeSemantics: true,
@@ -165,7 +165,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                             AnimatedFlipCounter(
                               duration: const Duration(milliseconds: 800),
                               curve: AppMotion.emphasized,
-                              value: displayValue.toInt(),
+                              value: displayValue.round(),
                               textStyle: textTheme.displaySmall?.copyWith(height: 1),
                             ),
                             const SizedBox(height: 2),

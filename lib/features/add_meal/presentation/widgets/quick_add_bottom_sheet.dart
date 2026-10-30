@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -26,10 +27,16 @@ class QuickAddBottomSheet extends StatefulWidget {
   final IntakeTypeEntity intakeType;
   final DateTime day;
 
+  /// The add-food screen's "To log" list. With one, the entry goes on the
+  /// list and the sheet closes, instead of logging and leaving for home —
+  /// which would drop everything already on the list.
+  final LogTray? logTray;
+
   const QuickAddBottomSheet({
     super.key,
     required this.intakeType,
     required this.day,
+    this.logTray,
   });
 
   @override
@@ -102,6 +109,19 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
         protein: protein,
         title: title,
       );
+      final logTray = widget.logTray;
+      if (logTray != null) {
+        logTray.add(
+          LogTrayItem(
+            meal: intake.meal,
+            unit: intake.unit,
+            amount: intake.amount,
+            amountLabel: S.of(context).quickAddCardLabel,
+          ),
+        );
+        Navigator.of(context).pop();
+        return;
+      }
       // The entry and its row together, so no reconciliation counts the
       // entry before the row has it (#1317).
       final saved = await withTrackedDayLockOnProfile(() async {

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -10,16 +11,33 @@ import '../fixture/backend_sibling_fixtures.dart';
 MealEntity meal(
   String name, {
   MealSourceEntity source = MealSourceEntity.off,
+  String? code,
+  String? brands,
+  double? servingQuantity,
+  bool detailed = false,
+  int portions = 0,
+  bool machineTranslatedName = false,
 }) => MealEntity(
-  code: name,
+  code: code ?? name,
   name: name,
+  brands: brands,
   url: null,
   mealQuantity: null,
   mealUnit: null,
-  servingQuantity: null,
+  servingQuantity: servingQuantity,
   servingUnit: null,
   servingSize: null,
   source: source,
+  detailed: detailed,
+  machineTranslatedName: machineTranslatedName,
+  portions: [
+    for (var i = 0; i < portions; i++)
+      MealPortionEntity(
+        label: '1 portion $i',
+        gramWeight: 50,
+        localized: false,
+      ),
+  ],
   nutriments: MealNutrimentsEntity.empty(),
 );
 
@@ -30,6 +48,12 @@ class _FakeSearch implements SearchProductsUseCase {
   final Map<String, List<MealEntity>> supabase;
   final Set<String> throwOff;
   final Set<String> throwSupabase;
+
+  /// The full Open Food Facts record behind a thin hit, by code; a code in
+  /// [throwFullRecord] fails the lookup instead.
+  final Map<String, MealEntity> fullRecords;
+  final Set<String> throwFullRecord;
+  final List<String> fullRecordLookups = [];
   final List<String> started = [];
   final List<String> finished = [];
   int maxConcurrent = 0;
@@ -40,10 +64,14 @@ class _FakeSearch implements SearchProductsUseCase {
     Map<String, List<MealEntity>>? supabase,
     Set<String>? throwOff,
     Set<String>? throwSupabase,
+    Map<String, MealEntity>? fullRecords,
+    Set<String>? throwFullRecord,
   }) : off = off ?? {},
        supabase = supabase ?? {},
        throwOff = throwOff ?? {},
-       throwSupabase = throwSupabase ?? {};
+       throwSupabase = throwSupabase ?? {},
+       fullRecords = fullRecords ?? {},
+       throwFullRecord = throwFullRecord ?? {};
 
   Future<SearchProductsResult> _respond(
     String tag,
@@ -86,6 +114,14 @@ class _FakeSearch implements SearchProductsUseCase {
       throw StateError('Supabase is down');
     }
     return _respond('sp', searchString, supabase);
+  }
+
+  @override
+  Future<MealEntity?> fetchFullOffRecord(MealEntity meal) async {
+    final code = meal.code!;
+    fullRecordLookups.add(code);
+    if (throwFullRecord.contains(code)) throw StateError('OFF is down');
+    return fullRecords[code];
   }
 
   @override
@@ -425,6 +461,185 @@ void main() {
       ).resolve([item('orange juice')]);
 
       expect(resolved.single.confidence, closeTo(0.85, 1e-9));
+    });
+  });
+
+  group('a counted item looks behind thin Open Food Facts hits (#1472)', () {
+    // "2 Eier und eine Scheibe Vollkornbrot", as the 2.6.0 Pixel run read
+    // it. The pools are shaped like the live ones: a text-search hit from
+    // Open Food Facts carries no serving fields, and the German backend
+    // pool holds a portionless BLS record and an FDC survey dish with
+    // portions. Only some full product records declare a serving.
+    MealEntity thin(String name, String brand) =>
+        meal(name, code: brand, brands: brand);
+    MealEntity full(String name, String brand, {double? serving}) => meal(
+      name,
+      code: brand,
+      brands: brand,
+      servingQuantity: serving,
+      detailed: true,
+    );
+
+    final offEier = [thin('Eier', 'lidl'), thin('Eier', 'aldi')];
+    final backendEier = [
+      meal('Eier gekocht', source: MealSourceEntity.fdc, code: '10003161'),
+      meal(
+        'Eier Benedict',
+        source: MealSourceEntity.fdc,
+        code: '2707180',
+        portions: 3,
+        servingQuantity: 200,
+        machineTranslatedName: true,
+      ),
+    ];
+    final offBrot = [
+      thin('Vollkornbrot', 'kaufland'),
+      thin('Vollkornbrot', 'jacquet'),
+    ];
+    final backendBrot = [
+      meal('Vollkornbrot', source: MealSourceEntity.fdc, code: '10002122'),
+      meal(
+        'Brot, Vollkornbrot, nach eigenem Rezept gebacken oder in der '
+        'Bäckerei gekauft',
+        source: MealSourceEntity.fdc,
+        code: '2707711',
+        portions: 4,
+        servingQuantity: 32,
+        machineTranslatedName: true,
+      ),
+    ];
+    final fullRecords = {
+      'lidl': full('Eier', 'lidl'),
+      'aldi': full('Eier', 'aldi', serving: 59),
+      'kaufland': full('Vollkornbrot', 'kaufland'),
+      'jacquet': full('Vollkornbrot', 'jacquet', serving: 62.5),
+    };
+
+    _FakeSearch search({
+      Map<String, MealEntity>? records,
+      Set<String>? throwFullRecord,
+    }) => _FakeSearch(
+      off: {'Eier': offEier, 'Vollkornbrot': offBrot},
+      supabase: {'Eier': backendEier, 'Vollkornbrot': backendBrot},
+      fullRecords: records ?? fullRecords,
+      throwFullRecord: throwFullRecord,
+    );
+
+    const eggs = ParsedMealItem(query: 'Eier', quantity: 2);
+    const slice = ParsedMealItem(
+      query: 'Vollkornbrot',
+      quantity: 1,
+      portion: 'slice',
+    );
+
+    test('the product that declares a serving is selected', () async {
+      final resolved = await ResolveParsedMealsUseCase(
+        search(),
+      ).resolve([eggs, slice]);
+
+      expect(resolved[0].selected!.brands, 'aldi');
+      expect(resolved[0].selected!.servingQuantity, 59);
+      expect(resolved[1].selected!.brands, 'jacquet');
+      expect(resolved[1].selected!.servingQuantity, 62.5);
+      // The full records take the thin hits' places in the list.
+      expect(
+        resolved[0].candidates.where((m) => m.source == MealSourceEntity.off),
+        everyElement(predicate<MealEntity>((m) => m.detailed)),
+      );
+    });
+
+    test('nothing countable keeps the plain food, never a dish', () async {
+      final resolved = await ResolveParsedMealsUseCase(
+        search(records: const {}),
+      ).resolve([eggs]);
+
+      // Held back on the review screen, as #973 decided — but still eggs.
+      expect(resolved.single.selected!.name, 'Eier');
+      expect(resolved.single.selected!.servingQuantity, isNull);
+    });
+
+    test('a failed lookup leaves the thin hit and fails nothing', () async {
+      final resolved = await ResolveParsedMealsUseCase(
+        search(throwFullRecord: {'lidl', 'aldi'}),
+      ).resolve([eggs]);
+
+      expect(resolved.single.isResolved, isTrue);
+      expect(resolved.single.selected!.name, 'Eier');
+    });
+
+    test('a weight or no number at all looks nothing up', () async {
+      final fake = search();
+      await ResolveParsedMealsUseCase(fake).resolve([
+        const ParsedMealItem(query: 'Eier', quantity: 120, unit: 'g'),
+        const ParsedMealItem(query: 'Vollkornbrot'),
+      ]);
+
+      expect(fake.fullRecordLookups, isEmpty);
+    });
+
+    test('a stated serving counts as a count', () async {
+      final resolved = await ResolveParsedMealsUseCase(search()).resolve([
+        const ParsedMealItem(query: 'Eier', quantity: 2, unit: 'serving'),
+      ]);
+
+      expect(resolved.single.selected!.brands, 'aldi');
+    });
+
+    test(
+      'a hit that cannot overtake the first candidate is not looked up',
+      () async {
+        // "Frische Eier" scores 0.667 on `Eier`; the first candidate's sort
+        // score is 0.85, so even a serving would not move it.
+        final fake = _FakeSearch(
+          off: {
+            'Eier': [thin('Eier', 'lidl'), thin('Frische Eier', 'rewe')],
+          },
+        );
+        await ResolveParsedMealsUseCase(fake).resolve([eggs]);
+
+        expect(fake.fullRecordLookups, ['lidl']);
+      },
+    );
+
+    test('the bound counts what a hit gains once detailed', () async {
+      // A cached, detailed "Apple" with no serving sorts at 0.85 under the
+      // count; thin "Apples" scores 0.833 but 0.863 once detailed, and its
+      // full record declares a serving, so it has to be looked up.
+      final fake = _FakeSearch(
+        off: {
+          'apple': [full('Apple', 'cached'), thin('Apples', 'bag')],
+        },
+        fullRecords: {'bag': full('Apples', 'bag', serving: 150)},
+      );
+      final resolved = await ResolveParsedMealsUseCase(
+        fake,
+      ).resolve([const ParsedMealItem(query: 'apple', quantity: 2)]);
+
+      expect(fake.fullRecordLookups, ['bag']);
+      expect(resolved.single.selected!.brands, 'bag');
+    });
+
+    test('a first candidate that can already count needs no lookup', () async {
+      final fake = _FakeSearch(
+        off: {
+          'Eier': [full('Eier', 'aldi', serving: 59), thin('Eier', 'lidl')],
+        },
+      );
+      final resolved = await ResolveParsedMealsUseCase(fake).resolve([eggs]);
+
+      expect(fake.fullRecordLookups, isEmpty);
+      expect(resolved.single.selected!.brands, 'aldi');
+    });
+
+    test('no more than five hits are looked up for one item', () async {
+      final fake = _FakeSearch(
+        off: {
+          'Eier': [for (var i = 0; i < 8; i++) thin('Eier', 'brand$i')],
+        },
+      );
+      await ResolveParsedMealsUseCase(fake).resolve([eggs]);
+
+      expect(fake.fullRecordLookups, hasLength(5));
     });
   });
 }

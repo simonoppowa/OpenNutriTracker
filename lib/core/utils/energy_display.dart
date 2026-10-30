@@ -31,14 +31,34 @@ class EnergyDisplay {
     return useKj ? UnitCalc.kcalToKj(kcal) : kcal;
   }
 
+  /// The whole number a stored kcal value shows as in the
+  /// currently-selected unit. Rounded to nearest, not truncated, so the
+  /// same value reads the same on every screen (#1469).
+  static int displayValue(BuildContext context, double kcal) {
+    return convert(context, kcal).round();
+  }
+
   /// Format a stored kcal value as an integer string in the
   /// currently-selected unit (without the unit suffix).
   static String formatValue(BuildContext context, double kcal) {
-    return convert(context, kcal).toInt().toString();
+    return displayValue(context, kcal).toString();
   }
 
   /// Convenience: format a stored kcal value as `"<value> <unit>"`.
   static String formatWithUnit(BuildContext context, double kcal) {
     return '${formatValue(context, kcal)} ${unitLabel(context)}';
+  }
+
+  /// The total under a list of rows that each show [kcals] through
+  /// [formatWithUnit]: the sum of the rounded rows, so the figures on
+  /// screen add up. Rounding the exact sum instead can drift from the
+  /// rows by up to half a unit per row: 80.4 + 14.4 shows as "80" and
+  /// "14", which this totals as "94" where the exact sum reads "95".
+  static String formatSumWithUnit(
+    BuildContext context,
+    Iterable<double> kcals,
+  ) {
+    final sum = kcals.fold(0, (sum, kcal) => sum + displayValue(context, kcal));
+    return '$sum ${unitLabel(context)}';
   }
 }

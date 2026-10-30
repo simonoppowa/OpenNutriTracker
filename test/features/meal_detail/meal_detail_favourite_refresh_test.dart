@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -46,7 +47,12 @@ class _FakeGetKcalGoalUsecase extends Fake implements GetKcalGoalUsecase {}
 
 class _FakeGetMacroGoalUsecase extends Fake implements GetMacroGoalUsecase {}
 
-class _FakeGetTrackedDayUsecase extends Fake implements GetTrackedDayUsecase {}
+/// `addIntake` reads the day's totals before adding to them, to restore
+/// them if the update fails (#1461); nothing here exercises that.
+class _FakeGetTrackedDayUsecase extends Fake implements GetTrackedDayUsecase {
+  @override
+  Future<TrackedDayEntity?> getTrackedDay(DateTime day) async => null;
+}
 
 class _FakeProductsRepository extends Fake implements ProductsRepository {
   _FakeProductsRepository(this.fresh);
@@ -54,7 +60,10 @@ class _FakeProductsRepository extends Fake implements ProductsRepository {
   final MealEntity fresh;
 
   @override
-  Future<MealEntity> getOFFProductByBarcode(String barcode) async => fresh;
+  Future<MealEntity> getOFFProductByBarcode(
+    String barcode, {
+    String? knownName,
+  }) async => fresh;
 }
 
 class _FakeRemoteSearchCache extends Fake

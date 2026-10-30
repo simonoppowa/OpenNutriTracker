@@ -586,6 +586,16 @@
   "micronutrientsLabel": "Micronutrients",
   "milliliterUnit": "ml",
   "missingProductInfo": "Product missing required kcal or macronutrients information",
+  "missingProductInfoFields": "Missing: {fields}",
+  "@missingProductInfoFields": {
+    "description": "Under the missing-information warning on the food detail screen; names the required values the food lacks. {fields} is a comma-separated list of the nutrient labels, e.g. 'Missing: fat, protein'.",
+    "placeholders": {
+      "fields": {
+        "type": "String",
+        "example": "fat, protein"
+      }
+    }
+  },
   "monounsaturatedFatLabel": "monounsaturated fat",
   "newCustomMealLabel": "New Custom Food",
   "niacinLabel": "niacin (B3)",
@@ -1264,7 +1274,7 @@
   "bulkAddTitle": "Add several items",
   "bulkAddInputHint": "2 eggs, 100g toast, black coffee",
   "bulkAddParseLabel": "Find foods",
-  "bulkAddSubmitLabel": "Log {count} items",
+  "bulkAddSubmitLabel": "{count, plural, =1{Log 1 item} other{Log {count} items}}",
   "bulkAddNoMatchLabel": "Couldn't match this item",
   "bulkAddUncertainLabel": "Check this match",
   "bulkAddSkipLabel": "Skip",
@@ -1405,6 +1415,20 @@
   "bulkAddPhotoUnsupportedLabel": "That model can't read photos. Choose a different one in Settings, or type the items instead.",
   "bulkAddPhotoNoCreditLabel": "That request couldn't be paid for: your provider account is out of credit. Top up with your provider, or type the items instead.",
   "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead.",
+  "addMealSnapMealLabel": "Snap meal",
+  "addMealDescribeLabel": "Describe",
+  "bulkAddReviewTitle": "Review items",
+  "bulkAddUpdateMatchesLabel": "Update matches",
+  "bulkAddYourPhotoLabel": "Your photo",
+  "bulkAddRetakeLabel": "Retake",
+  "addToListLabel": "Add to list",
+  "bulkAddToListLabel": "{count, plural, =1{Add 1 item} other{Add {count} items}}",
+  "@bulkAddToListLabel": {"placeholders": {"count": {"type": "int"}}},
+  "logTrayTitle": "To log · {count}",
+  "@logTrayTitle": {"placeholders": {"count": {"type": "int"}}},
+  "logTrayRemoveLabel": "Remove from list",
+  "logTrayAddedLabel": "Added to list",
+  "logTrayLogFailedLabel": "Couldn't log these items. Try again.",
   "settingsHealthSyncSubtitle": "Import workouts",
   "healthSyncAutoImportLabel": "Automatically import workouts from {platform}",
   "@healthSyncAutoImportLabel": {"placeholders": {"platform": {"type": "String"}}},

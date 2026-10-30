@@ -11,7 +11,7 @@ import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// Transparency screen: shows every variable and intermediate step behind
 /// today's kcal goal, so the number on the home screen is fully auditable
@@ -123,15 +123,10 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
   }
 
   Future<void> _launchWiki(BuildContext context) async {
-    final uri = Uri.parse(URLConst.wikiCalculationsURL);
-    final l10n = S.of(context);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.errorOpeningBrowser)));
-    }
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningBrowser;
+    if (await tryLaunchExternalUrl(URLConst.wikiCalculationsURL)) return;
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 }
 
@@ -437,7 +432,7 @@ class _MacroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = S.of(context);
-    final goalKcal = breakdown.totalKcalGoal.toInt();
+    final goalKcal = breakdown.totalKcalGoal.round();
     return _SectionCard(
       title: l10n.kcalGoalInfoMacroSection,
       children: [
@@ -582,7 +577,7 @@ class _FormulaText extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = rawText ??
-        '$formula\n= ${resultKcal!.toInt()} ${S.of(context).kcalLabel}';
+        '$formula\n= ${resultKcal!.round()} ${S.of(context).kcalLabel}';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(Dimens.spacing8),

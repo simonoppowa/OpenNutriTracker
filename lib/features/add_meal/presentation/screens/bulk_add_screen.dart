@@ -9,6 +9,8 @@ import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
+import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
@@ -36,11 +38,27 @@ class BulkAddScreenArguments {
   final DateTime day;
   final bool usesImperialUnits;
 
+  /// A description typed on the add-food screen. Matched as soon as the
+  /// screen opens, so the user lands on the rows rather than on a second
+  /// copy of the field they just filled in.
+  final String? initialText;
+
+  /// Opened from the Snap meal tile: go straight to the camera, or to the AI
+  /// setup when no model that can read a photo is configured yet.
+  final bool startWithPhoto;
+
+  /// The add-food screen's "To log" list. With one, the button puts the
+  /// checked rows on it and returns there instead of logging them.
+  final LogTray? logTray;
+
   const BulkAddScreenArguments(
     this.intakeTypeEntity,
     this.day,
-    this.usesImperialUnits,
-  );
+    this.usesImperialUnits, {
+    this.initialText,
+    this.startWithPhoto = false,
+    this.logTray,
+  });
 }
 
 /// Type a whole meal, confirm what it matched, log it in one go.
@@ -215,6 +233,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   late BulkAddScreenArguments _args;
   bool _submitting = false;
 
+  /// Whether the entry point in [_args] has been acted on. Dependencies can
+  /// change more than once over the screen's life, and a second camera or a
+  /// second search would replace whatever the user has done since.
+  bool _startHandled = false;
+
   /// Opens settings, and re-reads the three answers above once it pops.
   ///
   /// Every route out of this screen that can change them comes through here,
@@ -283,6 +306,38 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     super.didChangeDependencies();
     _args =
         ModalRoute.of(context)!.settings.arguments as BulkAddScreenArguments;
+    if (!_startHandled) {
+      _startHandled = true;
+      final initialText = _args.initialText;
+      if (initialText != null && initialText.trim().isNotEmpty) {
+        _textController.text = initialText;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _onParsePressed();
+        });
+      } else if (_args.startWithPhoto) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => unawaited(_startWithPhoto()),
+        );
+      }
+    }
+  }
+
+  /// The Snap meal tile's way in. Offered to everyone, so it has to have
+  /// somewhere to go for a user with no model: the same AI dialog the
+  /// failure notices open, and the camera after it once a model that can
+  /// see is set up. Backing out of the dialog leaves them here, where they
+  /// can still type the meal instead.
+  Future<void> _startWithPhoto() async {
+    if (!mounted) return;
+    if (!await _photoAvailable) {
+      if (!mounted) return;
+      await _openSettings(
+        arguments: const SettingsScreenArguments(openAiAssist: true),
+      );
+      if (!mounted || !await _photoAvailable) return;
+    }
+    if (!mounted) return;
+    await _onPhotoPressed();
   }
 
   @override
@@ -301,7 +356,17 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.of(context).bulkAddTitle),
+        // Once there are rows the screen is a review, whichever way in the
+        // user came — typed here, described on the add-food screen, or
+        // photographed.
+        title: BlocBuilder<BulkAddBloc, BulkAddState>(
+          bloc: _bloc,
+          builder: (context, state) => Text(
+            state is BulkAddLoadedState && state.rows.isNotEmpty
+                ? S.of(context).bulkAddReviewTitle
+                : S.of(context).bulkAddTitle,
+          ),
+        ),
         actions: [
           // Only offered when the user has a key enabled. There is no
           // offline way to read a photo, so showing the action to everyone
@@ -342,10 +407,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                 // at large text scales would take multi-line entry away from
                 // exactly the users who need the biggest text, on a screen
                 // that exists for typing several items at once.
-                _buildInput(
-                  context,
-                  maxFieldHeight: constraints.maxHeight * 0.3,
-                ),
+                if (state is BulkAddLoadedState &&
+                    state.source == BulkAddReadSource.photo)
+                  _buildPhotoSource(context)
+                else
+                  _buildInput(
+                    context,
+                    state,
+                    maxFieldHeight: constraints.maxHeight * 0.3,
+                  ),
                 const Divider(height: 1),
                 Expanded(child: _buildBody(context, state)),
                 if (state is BulkAddLoadedState)
@@ -449,8 +519,52 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     },
   );
 
+  /// Stands in for the text field once a photo has been read: there is no
+  /// typed line to edit, so the one thing to offer is another photo.
+  Widget _buildPhotoSource(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              Icons.image_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 12),
+          // One line beside Retake at any text size (AGENTS.md, row titles).
+          Expanded(
+            child: AutoSizeText(
+              S.of(context).bulkAddYourPhotoLabel,
+              maxLines: 1,
+              minFontSize: 12,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall,
+            ),
+          ),
+          Semantics(
+            identifier: 'bulk-add-photo-retake',
+            child: TextButton(
+              onPressed: _onPhotoPressed,
+              child: Text(S.of(context).bulkAddRetakeLabel),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInput(
-    BuildContext context, {
+    BuildContext context,
+    BulkAddState state, {
     required double maxFieldHeight,
   }) => Padding(
     padding: const EdgeInsets.all(16),
@@ -472,19 +586,35 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               keyboardType: TextInputType.multiline,
               decoration: InputDecoration(
                 hintText: S.of(context).bulkAddInputHint,
-                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.secondaryContainer,
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ),
         ),
         const SizedBox(height: 12),
+        // With rows on screen the same action re-reads an edited line, and
+        // steps back to an outlined button so it does not compete with the
+        // save button below.
         Semantics(
           identifier: 'bulk-add-parse',
-          child: FilledButton.icon(
-            onPressed: _onParsePressed,
-            icon: const Icon(Icons.search),
-            label: Text(S.of(context).bulkAddParseLabel),
-          ),
+          child: state is BulkAddLoadedState && state.rows.isNotEmpty
+              ? OutlinedButton.icon(
+                  onPressed: _onParsePressed,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(S.of(context).bulkAddUpdateMatchesLabel),
+                  style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
+                )
+              : FilledButton.icon(
+                  onPressed: _onParsePressed,
+                  icon: const Icon(Icons.search),
+                  label: Text(S.of(context).bulkAddParseLabel),
+                  style: FilledButton.styleFrom(shape: const StadiumBorder()),
+                ),
         ),
       ],
     ),
@@ -728,7 +858,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                           Icon(
                             icon,
                             size: 16,
-                            color: emphasised ? scheme.onErrorContainer : null,
+                            color: emphasised
+                                ? scheme.onErrorContainer
+                                : scheme.primary,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -931,7 +1063,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                     maxLines: 1,
                     minFontSize: 12,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleSmall?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
                       decoration: row.skipped
                           ? TextDecoration.lineThrough
                           : null,
@@ -947,7 +1080,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                   // field that gives the mistake away is the one a warning
                   // used to hide, so it is now unconditional.
                   if (meal?.brands != null)
-                    Text(meal!.brands!, style: theme.textTheme.bodySmall),
+                    Text(
+                      meal!.brands!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   if (!row.isResolved)
                     Text(
                       S.of(context).bulkAddNoMatchLabel,
@@ -1084,12 +1222,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     // 288px slot and overflowed by 244. It scales now, like the other fixed
     // widths in the app. #824.
     final fieldWidth = MediaQuery.textScalerOf(context).scale(110);
-    final unitWidth = _unitDropdownWidth(context, row);
+    final unitWidth = _unitDropdownWidth(context, row) + _unitPillPadding;
     final energyText = _energyLabel(context, row);
-    final energyWidth = _textWidth(
-      context,
-      energyText,
-      theme.textTheme.titleSmall,
+    final detailText = _energyDetailLabel(context, row);
+    final energyWidth = math.max(
+      _textWidth(context, energyText, theme.textTheme.titleSmall),
+      _textWidth(context, detailText, theme.textTheme.bodySmall),
     );
     // Nothing flexes 532px into 288px. Where the three do not fit, they take
     // a line each rather than share one: the unit is a whole word in some
@@ -1108,7 +1246,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       decoration: InputDecoration(
         labelText: S.of(context).quantityLabel,
         isDense: true,
-        border: const OutlineInputBorder(),
+        filled: true,
+        fillColor: theme.colorScheme.secondaryContainer,
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(23)),
+          borderSide: BorderSide.none,
+        ),
       ),
       onChanged: (value) {
         // The complaint belonged to the text that is no longer there.
@@ -1122,18 +1265,46 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       },
     );
 
-    final unit = DropdownButton<String>(
-      value: row.effectiveUnit,
-      items: _unitItems(context, row),
-      // Only when it has a line to fill; on a shared line it takes the width
-      // its longest unit needs, which is what `stacked` was measured against.
-      isExpanded: stacked,
-      onChanged: (value) {
-        if (value != null) _bloc.add(ChangeRowUnitEvent(index, value));
-      },
+    // A pill like the amount beside it, rather than an underlined dropdown.
+    final unit = Container(
+      padding: const EdgeInsets.symmetric(horizontal: _unitPillPadding / 2),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(23),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: row.effectiveUnit,
+          items: _unitItems(context, row),
+          borderRadius: BorderRadius.circular(16),
+          // Only when it has a line to fill; on a shared line it takes the
+          // width its longest unit needs, which is what `stacked` was
+          // measured against.
+          isExpanded: stacked,
+          onChanged: (value) {
+            if (value != null) _bloc.add(ChangeRowUnitEvent(index, value));
+          },
+        ),
+      ),
     );
 
-    final energy = Text(energyText, style: theme.textTheme.titleSmall);
+    // The figure, and under it what it is made of: the macros for a weight
+    // or volume, or the weight a count of portions stands for — "3 eggs" is
+    // only checkable once it says how many grams that was taken to be.
+    final energy = Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(energyText, style: theme.textTheme.titleSmall),
+        if (detailText.isNotEmpty)
+          Text(
+            detailText,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+      ],
+    );
 
     final error = _quantityErrors[index];
 
@@ -1212,6 +1383,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   }
 
   static const _dropdownArrowWidth = 24.0;
+  static const _unitPillPadding = 24.0;
 
   /// Empty when the amount is not yet usable or the food has no energy value.
   String _energyLabel(BuildContext context, BulkAddRow row) {
@@ -1221,6 +1393,38 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     if (quantity == null || quantity <= 0) return '';
     final kcal = kcalForQuantity(quantity, row.effectiveUnit, meal);
     return kcal == null ? '' : EnergyDisplay.formatWithUnit(context, kcal);
+  }
+
+  /// The line under the energy figure, or empty when there is nothing to
+  /// say yet.
+  String _energyDetailLabel(BuildContext context, BulkAddRow row) {
+    final meal = row.meal;
+    if (meal == null) return '';
+    final quantity = double.tryParse(row.amountText.replaceAll(',', '.'));
+    if (quantity == null || quantity <= 0) return '';
+    final unit = row.effectiveUnit;
+    final base = convertQuantityToBaseUnit(quantity, unit, meal);
+    final s = S.of(context);
+    if (isPortionUnit(unit)) {
+      final baseUnit = meal.isLiquid ? s.milliliterUnit : s.gramUnit;
+      return '≈ ${base.round()} $baseUnit';
+    }
+    final n = meal.nutriments;
+    String part(String label, double? per100) => per100 == null
+        ? ''
+        : '${label.toUpperCase()} ${_oneDecimal(per100 * base / 100)}';
+    return [
+      part(s.proteinLabelShort, n.proteins100),
+      part(s.carbsLabelShort, n.carbohydrates100),
+      part(s.fatLabelShort, n.fat100),
+    ].where((p) => p.isNotEmpty).join(' · ');
+  }
+
+  static String _oneDecimal(double value) {
+    final rounded = (value * 10).round() / 10;
+    return rounded == rounded.roundToDouble()
+        ? rounded.toStringAsFixed(0)
+        : rounded.toStringAsFixed(1);
   }
 
   List<DropdownMenuItem<String>> _unitItems(
@@ -1280,18 +1484,71 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
 
   Widget _buildSubmitBar(BuildContext context, BulkAddLoadedState state) {
     final count = state.loggableCount;
+    // The total of what the button will log, so the batch can be judged
+    // before it reaches the diary rather than after. Kept per row so the
+    // total is the sum of the rows as shown (#1469).
+    final rowKcals = <double>[];
+    for (final row in state.loggableRows) {
+      final quantity = double.tryParse(row.amountText.replaceAll(',', '.'));
+      if (quantity == null || quantity <= 0) continue;
+      rowKcals.add(
+        kcalForQuantity(quantity, row.effectiveUnit, row.meal!) ?? 0,
+      );
+    }
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Semantics(
           identifier: 'bulk-add-submit',
-          child: FilledButton.icon(
+          child: FilledButton(
             onPressed: count == 0 || _submitting
                 ? null
                 : () => _onSubmitPressed(state),
-            icon: const Icon(Icons.add_rounded),
-            label: Text(S.of(context).bulkAddSubmitLabel(count)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(54),
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              shape: const StadiumBorder(),
+            ),
+            // One line where label and total fit side by side, which is every
+            // ordinary text size; otherwise the total moves under the label
+            // instead of squeezing it — the label is the action.
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final label = _args.logTray == null
+                    ? S.of(context).bulkAddSubmitLabel(count)
+                    : S.of(context).bulkAddToListLabel(count);
+                final kcal = count > 0
+                    ? EnergyDisplay.formatSumWithUnit(context, rowKcals)
+                    : null;
+                final style = Theme.of(context).textTheme.labelLarge;
+                final iconWidth = MediaQuery.textScalerOf(context).scale(32);
+                final fits =
+                    kcal == null ||
+                    iconWidth +
+                            _textWidth(context, label, style) +
+                            12 +
+                            _textWidth(context, kcal, style) <=
+                        constraints.maxWidth;
+                final labelRow = Row(
+                  mainAxisSize: fits ? MainAxisSize.max : MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add_rounded),
+                    const SizedBox(width: 8),
+                    if (fits) Text(label) else Flexible(child: Text(label)),
+                    if (fits && kcal != null) ...[const Spacer(), Text(kcal)],
+                  ],
+                );
+                if (fits) return labelRow;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [labelRow, Text(kcal)],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -1473,6 +1730,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       builder: (_) => QuickAddBottomSheet(
         intakeType: _args.intakeTypeEntity,
         day: _args.day,
+        logTray: _args.logTray,
       ),
     );
   }
@@ -1553,6 +1811,32 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           ),
         ),
       );
+      return;
+    }
+
+    final logTray = _args.logTray;
+    if (logTray != null) {
+      // The same validated rows, onto the list instead of into the diary.
+      // The review this screen exists for (#599) has happened by now; the
+      // list only defers the write.
+      logTray.addAll([
+        for (final write in writes)
+          LogTrayItem(
+            meal: write.row.meal!,
+            unit: storedUnit(write.row.effectiveUnit),
+            amount: write.amount,
+            amountLabel:
+                '${write.row.amountText.trim()} '
+                '${_unitLabel(context, write.row.effectiveUnit, write.row)}',
+          ),
+      ]);
+      setState(() => _quantityErrors.clear());
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.of(context).logTrayAddedLabel)));
+      Navigator.of(
+        context,
+      ).popUntil(namedRouteOrFirst(NavigationOptions.addMealRoute));
       return;
     }
 

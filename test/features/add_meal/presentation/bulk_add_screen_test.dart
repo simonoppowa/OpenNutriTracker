@@ -15,6 +15,7 @@ import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
+import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -24,6 +25,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/bulk_add_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/own_server_wait_indicator.dart';
@@ -31,7 +33,11 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
+import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../helpers/test_l10n.dart';
@@ -90,6 +96,30 @@ class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
   void add(CalendarDayEvent event) {}
 }
 
+/// What the real settings screen needs beyond the blocs [_register] already
+/// provides. A fixed loaded state renders the list without Hive behind it.
+class _FakeSettingsBloc extends Fake implements SettingsBloc {
+  @override
+  SettingsState get state =>
+      const SettingsLoadedState('1.0.0', false, AppThemeEntity.system, false);
+
+  @override
+  Stream<SettingsState> get stream => const Stream<SettingsState>.empty();
+
+  @override
+  void add(SettingsEvent event) {}
+}
+
+class _FakeProfileBloc extends Fake implements ProfileBloc {}
+
+class _FakeTrendsBloc extends Fake implements TrendsBloc {
+  @override
+  void add(TrendsEvent event) {}
+}
+
+/// Never asked: only an own-server save starts a probe.
+class _FakeProber extends Fake implements AiEndpointProber {}
+
 class _FakeSearch implements SearchProductsUseCase {
   final Map<String, List<MealEntity>> results;
 
@@ -110,6 +140,10 @@ class _FakeSearch implements SearchProductsUseCase {
     bool skipRemote = false,
     bool forResolution = false,
   }) async => const SearchProductsResult(meals: [], remoteSourceEmpty: false);
+
+  // No full record behind any hit: these tests are about the screen.
+  @override
+  Future<MealEntity?> fetchFullOffRecord(MealEntity meal) async => null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -490,6 +524,10 @@ Widget _app({
   bool imperial = false,
   Locale? locale,
   List<RouteSettings>? pushed,
+  String? initialText,
+  bool startWithPhoto = false,
+  LogTray? logTray,
+  bool realSettings = false,
 }) => ChangeNotifierProvider<EnergyUnitProvider>(
   create: (_) => EnergyUnitProvider(usesKilojoules: false),
   child: MaterialApp(
@@ -518,8 +556,9 @@ Widget _app({
       if (settings.name == NavigationOptions.settingsRoute) {
         return MaterialPageRoute<void>(
           settings: settings,
-          builder: (_) =>
-              const Scaffold(key: Key('settings-stub'), body: SizedBox()),
+          builder: (_) => realSettings
+              ? const SettingsScreen()
+              : const Scaffold(key: Key('settings-stub'), body: SizedBox()),
         );
       }
       return MaterialPageRoute<void>(
@@ -529,6 +568,9 @@ Widget _app({
             IntakeTypeEntity.breakfast,
             DateTime(2026, 8, 10),
             imperial,
+            initialText: initialText,
+            startWithPhoto: startWithPhoto,
+            logTray: logTray,
           ),
         ),
         builder: (_) => const BulkAddScreen(),
@@ -2686,6 +2728,166 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Apple'), findsOneWidget);
+    });
+  });
+  group('opened from the add-food screen', () {
+    testWidgets('a description is matched on arrival and reviewed', (
+      tester,
+    ) async {
+      await _register({
+        'toast': [_meal('Toast')],
+      });
+      await tester.pumpWidget(_app(initialText: '100g toast'));
+      await tester.pumpAndSettle();
+      tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      // No second tap on Find foods: the rows are already there, the title
+      // says what the screen is for now, and the same button re-reads.
+      expect(find.text('Toast'), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddReviewTitle), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddUpdateMatchesLabel), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddSubmitLabel(1)), findsOneWidget);
+    });
+
+    testWidgets('with a list, the rows go on it and nothing is logged', (
+      tester,
+    ) async {
+      await _register({
+        'toast': [_meal('Toast')],
+        'banana': [_meal('Banana')],
+      });
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      await tester.pumpWidget(
+        _app(initialText: '200g toast, 50g banana', logTray: tray),
+      );
+      await tester.pumpAndSettle();
+      tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.bulkAddToListLabel(2)), findsOneWidget);
+      await tester.tap(find.bySemanticsIdentifier('bulk-add-submit'));
+      await tester.pumpAndSettle();
+
+      expect(_mealDetailBloc.writes, isEmpty);
+      expect(tray.items.map((i) => i.meal.name), ['Toast', 'Banana']);
+      expect(tray.items.map((i) => i.amount), [200, 50]);
+      expect(tray.items.first.amountLabel, '200 ${l10nEn.gramUnit}');
+      // Back where the list lives.
+      expect(find.byType(BulkAddScreen), findsNothing);
+    });
+
+    testWidgets('Snap meal with no model set up opens the AI setup', (
+      tester,
+    ) async {
+      await _register(const {});
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(_app(pushed: pushed, startWithPhoto: true));
+      await tester.pumpAndSettle();
+      tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+      await tester.pumpAndSettle();
+
+      final settings = pushed
+          .where((route) => route.name == NavigationOptions.settingsRoute)
+          .toList();
+      expect(settings, hasLength(1));
+      expect(
+        settings.single.arguments,
+        isA<SettingsScreenArguments>().having(
+          (arguments) => arguments.openAiAssist,
+          'openAiAssist',
+          isTrue,
+        ),
+      );
+
+      // Backing out without configuring anything leaves the user on the
+      // screen, where the meal can still be typed.
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsIdentifier('bulk-add-input'), findsOneWidget);
+      expect(
+        pushed.where((r) => r.name == NavigationOptions.settingsRoute),
+        hasLength(1),
+      );
+    });
+
+    group('closing the AI setup lands back here (#1471)', () {
+      // The stub above pops when told to, so it could not see the bug: the
+      // real Settings route, pushed only to host the dialog, stayed up after
+      // the dialog closed, and the user needed a second Back to get here.
+      Future<void> arrange(WidgetTester tester) async {
+        await _register(const {});
+        getIt.unregister<AiCredentialStorage>();
+        // One store for both screens, so a key saved in the dialog is the
+        // key this screen reads when the route pops.
+        final storage = AiCredentialStorage(_MapStorage(const {}));
+        getIt.registerSingleton<AiCredentialStorage>(storage);
+        getIt.registerSingleton<AiEndpointProbeRunner>(
+          AiEndpointProbeRunner(storage, _FakeProber()),
+        );
+        getIt.registerSingleton<SettingsBloc>(_FakeSettingsBloc());
+        getIt.registerSingleton<ProfileBloc>(_FakeProfileBloc());
+        getIt.registerSingleton<TrendsBloc>(_FakeTrendsBloc());
+
+        await tester.pumpWidget(_app(startWithPhoto: true, realSettings: true));
+        await tester.pumpAndSettle();
+        tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+        await tester.pumpAndSettle();
+        expect(find.byType(AiAssistDialog), findsOneWidget);
+      }
+
+      // Offstage too: a Settings route covered by this one is the bug.
+      final settings = find.byType(SettingsScreen, skipOffstage: false);
+
+      testWidgets('Cancel', (tester) async {
+        await arrange(tester);
+
+        await tester.tap(find.bySemanticsIdentifier('ai-assist-cancel'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AiAssistDialog), findsNothing);
+        expect(settings, findsNothing);
+        expect(
+          ModalRoute.of(tester.element(find.byType(BulkAddScreen)))!.isCurrent,
+          isTrue,
+        );
+        // Where the meal can still be typed, as `_startWithPhoto` promises.
+        expect(find.bySemanticsIdentifier('bulk-add-input'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('OK after saving a key, and the camera path carries on', (
+        tester,
+      ) async {
+        await arrange(tester);
+
+        final key = find.bySemanticsIdentifier('ai-assist-key-field');
+        await tester.ensureVisible(key);
+        await tester.enterText(
+          find.descendant(of: key, matching: find.byType(TextField)),
+          'sk-test',
+        );
+        final ok = find.bySemanticsIdentifier('ai-assist-save-key');
+        await tester.ensureVisible(ok);
+        await tester.pumpAndSettle();
+        await tester.tap(ok);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AiAssistDialog), findsNothing);
+        expect(settings, findsNothing);
+        // The keystore is re-read on the pop (#992), so the photo path goes
+        // on to the disclosure sheet over this screen.
+        expect(
+          find.bySemanticsIdentifier('bulk-add-photo-camera'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining(l10nEn.bulkAddPhotoDisclosureAnthropic),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+      });
     });
   });
 }

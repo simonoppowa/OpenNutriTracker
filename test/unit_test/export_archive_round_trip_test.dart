@@ -148,15 +148,20 @@ class _StubFavouriteMealRepository extends FavouriteMealRepository {
   Future<List<FavouriteMealDBO>> getAllFavouritesDBO() async => [];
 }
 
-MealDBO _meal({required String id, String? localImagePath}) {
+MealDBO _meal({
+  required String id,
+  String? localImagePath,
+  String? url,
+  String? mealQuantity = '100',
+}) {
   return MealDBO(
     code: id,
     name: 'One-off soup',
     brands: null,
     thumbnailImageUrl: null,
     mainImageUrl: null,
-    url: null,
-    mealQuantity: '100',
+    url: url,
+    mealQuantity: mealQuantity,
     mealUnit: 'g',
     servingQuantity: 100,
     servingUnit: 'g',
@@ -328,6 +333,91 @@ void main() {
         if (!days.release.isCompleted) days.release.complete();
         await Hive.close();
       }
+    });
+  }
+
+  // The row of the 2.6.0 release run's comma fixture
+  // (`docs/release-tests/2.6.0/fixtures/make_comma_fixture.py`), stored the
+  // way 2.5.0's CSV import left it. Exported unchanged, it brings back the
+  // #1456 crash on any build that restores it without 2.6.0's cleaning.
+  for (final format in ExportFormat.values) {
+    test('${format.name} export writes a stored comma quantity with a dot '
+        'and drops an unsafe URL (#1476)', () async {
+      final intake = IntakeDBO(
+        id: 'ont-r26-comma-1',
+        unit: 'g',
+        amount: 137,
+        type: IntakeTypeDBO.lunch,
+        meal: _meal(
+          id: 'ont-r26-comma',
+          mealQuantity: '137,0',
+          url: 'javascript:alert(1)',
+        ),
+        dateTime: DateTime(2026, 10, 23, 12, 30),
+      );
+      // A clean row next to it, which the export must leave alone.
+      const offUrl = 'https://world.openfoodfacts.org/product/4000417025005';
+      final clean = IntakeDBO(
+        id: 'clean-1',
+        unit: 'g',
+        amount: 250,
+        type: IntakeTypeDBO.dinner,
+        meal: _meal(id: 'clean', mealQuantity: '250', url: offUrl),
+        dateTime: DateTime(2026, 10, 23, 19),
+      );
+
+      final archive =
+          await ExportDataUsecase(
+            _StubUserActivityRepository(),
+            _StubIntakeRepository([intake, clean]),
+            _StubTrackedDayRepository(),
+            _StubRecipeRepository(),
+            _StubCustomMealDataSource([]),
+            _StubWeightLogRepository(),
+            _StubTemplateRepository(),
+            _StubConfigRepository(),
+            _StubFavouriteMealRepository(),
+          ).assembleArchive(
+            format: format,
+            userActivityJsonFileName: 'user_activity.json',
+            userIntakeJsonFileName: 'user_intake.json',
+            trackedDayJsonFileName: 'user_tracked_day.json',
+            recipeJsonFileName: 'user_recipes.json',
+            weightLogJsonFileName: 'weight_log.json',
+            customActivityTemplateJsonFileName:
+                'custom_activity_templates.json',
+          );
+
+      String contents(String name) =>
+          utf8.decode(archive.findFile(name)!.content as List<int>);
+      if (format == ExportFormat.json) {
+        final rows = jsonDecode(contents('user_intake.json')) as List;
+        final meal = rows[0]['meal'] as Map<String, dynamic>;
+        expect(meal['mealQuantity'], '137.0');
+        expect(meal.containsKey('url'), isTrue);
+        expect(meal['url'], isNull);
+        final cleanMeal = rows[1]['meal'] as Map<String, dynamic>;
+        expect(cleanMeal['mealQuantity'], '250');
+        expect(cleanMeal['url'], offUrl);
+      } else {
+        final lines = const LineSplitter().convert(contents('user_intake.csv'));
+        final header = lines.first.split(',');
+        String cell(int row, String column) {
+          final cells = lines[row].split(',');
+          expect(cells, hasLength(header.length));
+          return cells[header.indexOf(column)];
+        }
+
+        expect(cell(1, 'meal_quantity'), '137.0');
+        expect(cell(1, 'meal_url'), isEmpty);
+        expect(cell(2, 'meal_quantity'), '250');
+        expect(cell(2, 'meal_url'), offUrl);
+      }
+      expect(contents('user_intake.${format.name}'), isNot(contains('137,0')));
+      expect(
+        contents('user_intake.${format.name}'),
+        isNot(contains('javascript')),
+      );
     });
   }
 

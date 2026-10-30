@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
@@ -47,6 +48,9 @@ class _FakeHealthService extends Fake implements HealthService {
   double? bodyFatPercent;
   bool throwOnRead = false;
 
+  /// Thrown by a read instead of the revoked-permission error, when set.
+  Object? errorOnRead;
+
   /// Holds a read open so a second caller can arrive mid-import.
   Completer<void>? readGate;
 
@@ -70,6 +74,8 @@ class _FakeHealthService extends Fake implements HealthService {
     lastTo = to;
     final gate = readGate;
     if (gate != null) await gate.future;
+    final error = errorOnRead;
+    if (error != null) throw error;
     if (throwOnRead) {
       throw StateError('Health Connect permission revoked');
     }
@@ -476,6 +482,57 @@ void main() {
 
       expect(await usecase.importIfDue(), equals(0));
       expect(() => usecase.importNow(), throwsStateError);
+    });
+
+    // Health Connect meters every app's requests; once the quota is spent each
+    // read is refused until it refills. Retrying at every resume only spends
+    // it again, so the background path waits the back-off out.
+    test('a rate-limited read parks background imports for the back-off, '
+        'then retries', () async {
+      healthService.errorOnRead = PlatformException(
+        code: 'health_connect_rate_limited',
+        message: 'Rate limited request quota has been exceeded.',
+      );
+
+      expect(await usecase.importIfDue(), equals(0));
+      expect(healthService.readWorkoutsCalls, equals(1));
+
+      // Still inside the back-off: not even the 15-minute debounce applies,
+      // because the watermark never moved.
+      ImportWorkoutsUsecase.clock = () => now.add(const Duration(minutes: 30));
+      expect(await usecase.importIfDue(), equals(0));
+      expect(healthService.readWorkoutsCalls, equals(1));
+
+      healthService.errorOnRead = null;
+      healthService.workouts = [_workout(start: DateTime(2026, 5, 23, 7, 0))];
+      ImportWorkoutsUsecase.clock = () =>
+          now.add(ImportWorkoutsUsecase.rateLimitBackoff);
+      expect(await usecase.importIfDue(), equals(1));
+      expect(healthService.readWorkoutsCalls, equals(2));
+    });
+
+    test('a rate limit leaves the watermark alone and the user-initiated '
+        'path still asks', () async {
+      healthService.errorOnRead = PlatformException(
+        code: 'health_connect_rate_limited',
+      );
+
+      await usecase.importIfDue();
+
+      final config = await configRepository.getConfig();
+      expect(config.healthLastImportAt, isNull);
+      expect(() => usecase.importNow(), throwsA(isA<PlatformException>()));
+    });
+
+    test('any other platform error does not start a back-off', () async {
+      healthService.errorOnRead = PlatformException(
+        code: 'health_connect_unavailable',
+      );
+
+      await usecase.importIfDue();
+      await usecase.importIfDue();
+
+      expect(healthService.readWorkoutsCalls, equals(2));
     });
   });
 

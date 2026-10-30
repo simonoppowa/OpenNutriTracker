@@ -28,7 +28,10 @@ import 'package:opennutritracker/features/add_meal/util/soft_text_score.dart';
 
 /// Quality tie-breakers, matching the shared ranker so that near-equal text
 /// matches resolve the same way in both places.
-const _detailedBonus = 0.03;
+///
+/// The detail bonus is public because the resolver's full-record lookup
+/// has to know what a thin hit gains once it is detailed (#1472).
+const detailedBonus = 0.03;
 const _machineTranslatedPenalty = 0.03;
 
 /// Taken off a backend record that carries no labelled portion (#1164) —
@@ -128,7 +131,7 @@ double scoreMealForResolution(MealEntity meal, String query) {
   final brandScore = scoreText(meal.brands, queryTokens);
   var score = nameScore >= brandScore ? nameScore : brandScore * 0.6;
 
-  if (meal.detailed) score += _detailedBonus;
+  if (meal.detailed) score += detailedBonus;
   if (meal.machineTranslatedName) score -= _machineTranslatedPenalty;
 
   // Backend records only. `MealEntity.portions` is filled from the
@@ -149,6 +152,44 @@ double scoreMealForResolution(MealEntity meal, String query) {
   return score.clamp(0.0, 1.0);
 }
 
+/// True when [meal], as the review row will hold it, has nothing a count
+/// can be read as — no `servingQuantity` — so `BulkAddRow` holds a counted
+/// row on it back from the batch (#973).
+///
+/// Backend records are left out because [noPortionsPenalty] already
+/// speaks for them: their serving is the portion `food_summary` picked,
+/// and a record with no portion is penalised whether or not a count was
+/// given. Everything else carried no such rule, and an Open Food Facts
+/// text-search hit is a thin projection with no serving fields at all
+/// (`MealEntity.detailed`), so under a count every one of them sorted as
+/// if it could be counted and none of them could (#1472).
+bool cannotHonourCount(MealEntity meal) =>
+    meal.source != MealSourceEntity.fdc && meal.servingQuantity == null;
+
+/// The score the resolver sorts by: [scoreMealForResolution], less
+/// [noPortionsPenalty] when the item gave a count ([counted]) and [meal]
+/// cannot honour it ([cannotHonourCount]).
+///
+/// The same size as the backend's penalty because it is the same
+/// question — can this record scale the amount the row will log — asked
+/// of the records that one does not reach. And it buys only a near-tie:
+/// "Eier" with no serving drops to 0.85 behind "Eier" with one at 1.0,
+/// but stays ahead of "Eier Benedict" (0.637) whatever that one carries.
+/// A held-back row is a prompt; a confidently wrong food is not.
+///
+/// Ordering only. The confidence the review screen reads is still
+/// [scoreMealForResolution] — how well the text matched — and a row that
+/// cannot honour its count already says so through `amountNeedsCheck`;
+/// marking it a guess as well would put two warnings on one decision.
+double rankScoreForResolution(
+  MealEntity meal,
+  String query, {
+  bool counted = false,
+}) {
+  final score = scoreMealForResolution(meal, query);
+  return counted && cannotHonourCount(meal) ? score - noPortionsPenalty : score;
+}
+
 /// Re-orders [meals] for the resolver, **preserving the own-content tier**
 /// that `mergeAndRankMeals` established — the user's own custom meals and
 /// recipes stay ahead of remote results regardless of score, and only the
@@ -158,7 +199,15 @@ double scoreMealForResolution(MealEntity meal, String query) {
 /// number of labelled portions, and then the sort is stable, so what is
 /// left of a tie keeps the order the shared ranker left it in — see
 /// [_sorted].
-List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
+///
+/// [counted] is true when the item gave a number with no weight to read
+/// it as — `2 Eier`, or `3 serving` — and then a record that cannot
+/// honour it sorts [noPortionsPenalty] lower ([rankScoreForResolution]).
+List<MealEntity> rankForResolution(
+  List<MealEntity> meals,
+  String query, {
+  bool counted = false,
+}) {
   final own = <MealEntity>[];
   final rest = <MealEntity>[];
   for (final meal in meals) {
@@ -167,7 +216,7 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
         meal.source == MealSourceEntity.recipe;
     (isOwn ? own : rest).add(meal);
   }
-  return [..._sorted(own, query), ..._sorted(rest, query)];
+  return [..._sorted(own, query, counted), ..._sorted(rest, query, counted)];
 }
 
 /// Highest score first; among equal scores, the shortest description
@@ -262,13 +311,16 @@ List<MealEntity> rankForResolution(List<MealEntity> meals, String query) {
 /// page did not return ties on it with everything, whatever the backend has
 /// for it — see [noPortionsPenalty]. (A record the page did return reaches
 /// here as the fresh entity, portions and all.)
-List<MealEntity> _sorted(List<MealEntity> meals, String query) {
+List<MealEntity> _sorted(List<MealEntity> meals, String query, bool counted) {
   // Parallel (meal, score) records rather than a map: MealEntity's Equatable
   // props are just [code, name], so two rows from different sources can
   // compare equal and would collide on a map key.
   final decorated = [
     for (final meal in meals)
-      (meal: meal, score: scoreMealForResolution(meal, query)),
+      (
+        meal: meal,
+        score: rankScoreForResolution(meal, query, counted: counted),
+      ),
   ];
   mergeSort(decorated, compare: (a, b) {
     final byScore = b.score.compareTo(a.score);

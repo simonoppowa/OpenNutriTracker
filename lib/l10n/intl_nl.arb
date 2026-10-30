@@ -1,1 +1,425 @@
-{}
+{
+  "activityExample": "bv. lopen, fietsen, yoga...",
+  "activityLabel": "Activiteit",
+  "addItemLabel": "Nieuw item toevoegen:",
+  "addLabel": "Toevoegen",
+  "additionalInfoLabelCustom": "Aangepaste maaltijd",
+  "foodSourcesAlwaysEnabledLabel": "Altijd ingeschakeld",
+  "machineTranslatedNameHint": "Naam automatisch vertaald",
+  "settingsFoodSourcesLabel": "Voedseldatabanken",
+  "onboardingOtherOptionsLabel": "Andere keuzes",
+  "onboardingOtherOptionsSubtitle": "De app personaliseren - je kan alles later veranderen in de instellingen",
+  "additionalInfoLabelOFF": "Meer informatie op\nOpenFoodFacts",
+  "additionalInfoLabelRecipe": "Aangepast recept",
+  "additionalInfoLabelUnknown": "Onbekende maaltijd",
+  "ageLabel": "Leeftijd",
+  "allItemsLabel": "Alles",
+  "appVersionName": "Versie {versionNumber}",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "measureUnitBar": "{count, plural, one{reep} other{repen}}",
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitBottle": "{count, plural, one{fles} other{flessen}}",
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCan": "{count, plural, one{blik} other{blikken}}",
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCup": "{count, plural, one{kop} other{koppen}}",
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitEgg": "{count, plural, one{ei} other{eieren}}",
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPackage": "{count, plural, one{pak} other{pakken}}",
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPiece": "{count, plural, one{stuk} other{stuks}}",
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPortion": "{count, plural, one{portie} other{porties}}",
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitSlice": "{count, plural, one{plak} other{plakken}}",
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTablespoon": "{count, plural, one{eetlepel} other{eetlepels}}",
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTeaspoon": "{count, plural, one{theelepel} other{theelepels}}",
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "appLicenseLabel": "GPL-3.0 licentie",
+  "appTitle": "OpenNutriTracker",
+  "barcodeInvalidEan13CheckDigit": "Deze 13-cijferige barcode lijkt foutief: het laatste cijfer komt niet overeen met de rest",
+  "bmiInfo": "Body Mass Index (BMI) is een cijfer om overgewicht en obesitas weer te geven bij volwassenen. Het wordt berekend door het gewicht in kilogram te delen door de hoogte in meter in het kwadraat (kg/m²).\n\nBMI maakt geen verschil tussen vet en spiermassa en kan misleidend zijn voor sommige personen.",
+  "bmiInfoClassificationSection": "WHO classificatie",
+  "bmiInfoFormulaSection": "Formule",
+  "bmiInfoScreenTitle": "Hoe je BMI wordt berekend",
+  "bmiLabel": "BMI",
+  "breakfastExample": "bv. ontbijtgranen, melk, koffie...",
+  "breakfastLabel": "Ontbijt",
+  "burnedLabel": "verbrand",
+  "buttonNextLabel": "VOLGENDE",
+  "buttonResetLabel": "Resetten",
+  "buttonSaveLabel": "Bewaar",
+  "buttonStartLabel": "START",
+  "buttonYesLabel": "JA",
+  "calciumLabel": "calcium",
+  "calculationsMacronutrientsDistributionLabel": "Macro's verdeling",
+  "calculationsMacrosDistribution": "{pctCarbs}% koolhydraten, {pctFats}% vetten, {pctProteins}% proteïnen",
+  "@calculationsMacrosDistribution": {
+    "placeholders": {
+      "pctCarbs": {},
+      "pctFats": {},
+      "pctProteins": {}
+    }
+  },
+  "calculationsRecommendedLabel": "(aanbevolen)",
+  "calorieWidgetDescription": "Geconsumeerde calorieën vandaag en je doel.",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetGoalLabel": "van {goal}",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetOpenAppHint": "De app openen",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
+  "caloriesProfileAveragedLabel": "Gemiddelde referentie (standaard)",
+  "caloriesProfileInfoTitle": "Referentie calorieën",
+  "carbohydrateLabel": "koolhydraten",
+  "carbsLabel": "koolhydraten",
+  "carbsLabelShort": "k",
+  "cholesterolLabel": "cholesterol",
+  "chooseWeightGoalLabel": "Kies gewicht doel",
+  "clearOffCacheConfirmTitle": "Gebufferde items verwijderen?",
+  "cmLabel": "cm",
+  "codeCopiedLabel": "Code gekopieerd",
+  "copyCodeLabel": "Code kopiëren",
+  "deleteTimeDialogTitle": "Item verwijderen?",
+  "dialogCancelLabel": "ANNULEER",
+  "dialogCopyLabel": "Kopiëren naar vandaag",
+  "dialogDeleteLabel": "VERWIJDEREN",
+  "dialogOKLabel": "OK",
+  "diaryFutureDateWarning": "Je bent een datum in de toekomst aan het bewerken",
+  "diaryLabel": "Dagboek",
+  "diaryNutrientPanelTitle": "Voedingswaarden vandaag",
+  "driPanelInfoTitle": "Referentie-inname",
+  "driPanelReferenceLabel": "ref {value}",
+  "@driPanelReferenceLabel": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diarySortByCarbs": "Koolhydraten (hoog naar laag)",
+  "diarySortByFat": "Vetten (hoog naar laag)",
+  "diarySortByKcal": "Calorieën (hoog naar laag)",
+  "diarySortByLabel": "Sorteren op",
+  "diarySortByProtein": "Proteïnen (hoog naar laag)",
+  "dinnerExample": "bv. soep, kip, wijn...",
+  "dinnerLabel": "Avondeten",
+  "discardChangesConfirmLabel": "Weggooien",
+  "discardChangesContent": "Onbewerkte aanpassingen gaan verloren.",
+  "discardChangesTitle": "Aanpassingen weggooien?",
+  "disclaimerAcknowledgeLabel": "I begrijp het",
+  "duplicateMealDialogContent": "Dit item is al toegevoegd aan je maaltijd vandaag. Nogmaals toevoegen?",
+  "duplicateRecipeLabel": "Duplicaat",
+  "editItemDialogTitle": "Item bewerken",
+  "editMealLabel": "Maaltijd bewerken",
+  "editRecipeTitle": "Recept bewerken",
+  "energyLabel": "energie",
+  "energyLeftLabel": "links",
+  "energyTooMuchLabel": "te veel",
+  "energyUnitKcalLabel": "Kilocalorieën (kcal)",
+  "energyUnitKjLabel": "Kilojoules (kJ)",
+  "errorFetchingProductData": "Fout bij het ophalen van productdata",
+  "errorLoadingActivities": "Fout bij het laden van activiteiten",
+  "errorLoadingFavourites": "Fout bij het laden van favorieten",
+  "errorMealSave": "Fout bij het opslaan van maaltijd. Heb je geldige informatie opgegeven?",
+  "errorOpeningBrowser": "Fout bij het openen van browser app",
+  "errorOpeningEmail": "Fout bij het openen van e-mail app",
+  "errorProductNotFound": "Product niet gevonden",
+  "exportAction": "Exporteren",
+  "exportImportAppDataLabel": "App data exporteren / importeren",
+  "exportImportErrorLabel": "Fout bij exporteren / importeren",
+  "exportImportErrorUnreadableLabel": "Het gekozen bestand kan niet worden gelezen. Kies een .zip backup dat OpenNutriTracker heeft geëxporteerd.",
+  "exportImportErrorWriteFailedLabel": "Het bestand kon niet worden opgeslagen op de gekozen locatie. Probeer een andere map.",
+  "exportImportSuccessLabel": "Exporteren / importeren voltooid",
+  "fatLabelShort": "v",
+  "favouriteAddTooltip": "Toevoegen aan favorieten",
+  "favouriteRemoveTooltip": "Verwijderen uit favorieten",
+  "favouritesEmptySubtitle": "Klik op de ster bij een voedselitem of maaltijd om het hier te bewaren.",
+  "favouritesEmptyTitle": "Nog geen favorieten",
+  "favouritesLabel": "Favorieten",
+  "genderFemaleLabel": "vrouw",
+  "genderLabel": "Gender",
+  "genderMaleLabel": "man",
+  "genderNonBinaryLabel": "niet-binair",
+  "goalGainWeight": "Bijkomen",
+  "goalLabel": "Doel",
+  "goalLoseWeight": "Afvallen",
+  "goalMaintainWeight": "Op gewicht blijven",
+  "gramUnit": "g",
+  "heightLabel": "Lengte",
+  "homeLabel": "Home",
+  "homeFirstMealHint": "Klik op + om je eerste maaltijd of activiteit te registreren",
+  "homeDemoBannerLabel": "Je bent voorbeelddata aan het bekijken",
+  "homeDemoBannerAction": "Stel je profiel in",
+  "homeDemoBannerConfirmTitle": "Je eigen profiel instellen?",
+  "homeDemoBannerConfirmContent": "Voorbeelddata wordt verwijderd en je zal je eigen profiel aanmaken. Deze actie kan niet ongedaan worden gemaakt.",
+  "homeDemoBannerConfirmAction": "Doorgaan",
+  "trendsDailyAverageLabel": "Dagelijks gemiddelde",
+  "trendsLabel": "Trends",
+  "youLabel": "Jij",
+  "trendsCaloriesLabel": "Calorieën",
+  "trendsBestStreakLabel": "beste",
+  "trendsPerWeekSuffix": "/week",
+  "trendsWeeksToGoalLabel": "weken tot doel",
+  "trendsWaterLabel": "Water",
+  "importAction": "Importeren",
+  "importActivityConfirmContent": "Deze activiteiten worden toegevoegd aan vandaag.",
+  "importActivityConfirmTitle": "{count} activiteiten importeren?",
+  "@importActivityConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importActivityLabel": "Gedeelde training importeren",
+  "importActivitySuccessLabel": "Training geïmporteerd",
+  "importCustomFoodDataDescription": "Je eigen maaltijden importeren vanuit een CSV-bestand of door JSON te plakken. Download een voorbeeld om de verwachte vorm en vereiste velden te bekijken.",
+  "importMealConfirmContent": "Deze items zullen worden toegevoegd aan {mealType}.",
+  "@importMealConfirmContent": {
+    "placeholders": {
+      "mealType": {
+        "type": "String"
+      }
+    }
+  },
+  "importMealConfirmTitle": "{count} items importeren?",
+  "@importMealConfirmTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importMealErrorLabel": "Ongeldige QR-code",
+  "importMealLabel": "Gedeelde maaltijd importeren",
+  "sharedMealUnavailableLabel": "Niet beschikbaar - dit item wordt overgeslagen.",
+  "sharedMealTotalLabel": "Totaal",
+  "sharedMealPartialTotalLabel": "Totaal (onvolledig)",
+  "importMealSuccessLabel": "Maaltijd geïmporteerd",
+  "importMealsCsvAction": "Maaltijden importeren (csv)",
+  "importMealsJsonAction": "Maaltijden importeren (json)",
+  "importOffFetchFailedLabel": "{count} item(s) konden niet worden opgehaald van OpenFoodFacts.",
+  "@importOffFetchFailedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRecipeConfirmContent": "Dit recept met {count} ingredient(en) importeren?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRecipeLabel": "Recept importeren",
+  "importRecipeSuccessLabel": "Recept geïmporteerd",
+  "importRecipesCsvAction": "Recepten importeren (csv)",
+  "importRecipesJsonAction": "Recepten importeren (json)",
+  "inconsistentNutritionWarningBody": "Deze waarden komen niet helemaal overeen - de calorieën die je hebt opgegeven komen niet overeen met de energie in koolhydraten, vetten en proteïnen hieronder. Toch opslaan, of nakijken?",
+  "inconsistentNutritionWarningEdit": "Nakijken",
+  "inconsistentNutritionWarningSaveAnyway": "Toch opslaan",
+  "inconsistentNutritionWarningTitle": "Waarden komen niet helemaal overeen",
+  "infoAddedActivityLabel": "Nieuwe activiteit toegevoegd",
+  "infoAddedIntakeLabel": "Nieuwe intake toegevoegd",
+  "ironLabel": "ijzer",
+  "itemDeletedSnackbar": "Item verwijderd",
+  "itemUpdatedSnackbar": "Item aangepast",
+  "kcalGoalInfoActivityExplanation": "Verbrande calorieën door geregistreerde activiteiten worden toegevoegd bovenop je doel, zodat je gepland tekort of overschot hetzelfde blijft op trainingsdagen.",
+  "kcalGoalInfoActivitySection": "Stap 4 · Training vandaag",
+  "kcalGoalInfoAdjustmentExplanationFlat": "Je gewichtsdoel maakt een vaste dagelijkse aanpassing: -500 kcal bij afvallen, +500 kcal bij bijkomen, 0 bij gewicht behouden.",
+  "kcalGoalInfoAdjustmentSection": "Stap 2 · Gewichtsdoel aanpassing",
+  "kcalGoalInfoAppliedAdjustmentLabel": "Toegepaste aanpassing",
+  "kcalGoalInfoFemaleReferenceLabel": "Referentie vrouw",
+  "kcalGoalInfoInputsSection": "Jouw invoer",
+  "kcalGoalInfoMacroSection": "Macronutriënten verdeling",
+  "kcalGoalInfoMaleReferenceLabel": "Referentie man",
+  "kcalGoalInfoManualExplanation": "Een vaste afwijking die je zelf kan kiezen in de instellingen, als je weet dat je noden afwijken van de schatting.",
+  "kcalGoalInfoManualSection": "Stap 3 · Manuele aanpassing",
+  "kcalGoalInfoPaRowLabel": "Activiteitscoëfficient (PA)",
+  "kcalGoalInfoPalRowLabel": "Fysiek activiteitsniveau (PAL)",
+  "kcalGoalInfoResultSection": "Caloriedoel vandaag",
+  "kcalGoalInfoTdeeResultLabel": "Jouw TDEE",
+  "kcalLabel": "kcal",
+  "kcalLeftLabel": "kcal over",
+  "kcalTooMuchLabel": "kcal te veel",
+  "kgLabel": "kg",
+  "kjLabel": "kJ",
+  "minuteShortLabel": "min",
+  "@minuteShortLabel": {
+    "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
+  },
+  "lunchExample": "bv. pizza, salade, rijst...",
+  "lunchLabel": "Lunch",
+  "macroDistributionLabel": "Macronutriënten verdeling:",
+  "magnesiumLabel": "magnesium",
+  "mealBrandsLabel": "Merken",
+  "mealCarbsLabel": "Koolhydraten",
+  "mealDetailCurrentSelectionLabel": "(+{kcal} kcal huidige selectie)",
+  "@mealDetailCurrentSelectionLabel": {
+    "placeholders": {
+      "kcal": {
+        "type": "String"
+      }
+    }
+  },
+  "mealDetailDayTotalLabel": "Dagtotaal: {consumed} / {goal}",
+  "@mealDetailDayTotalLabel": {
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "mealEnergyLabel": "Energie",
+  "mealFatLabel": "Vetten",
+  "mealImageLabel": "Foto toevoegen",
+  "mealImagePickFromGallery": "Kiezen van galerij",
+  "mealImageRemove": "Foto verwijderen",
+  "mealImageReplace": "Foto vervangen",
+  "mealImageTakePhoto": "Foto nemen",
+  "mealKcalLabel": "kcal",
+  "mealNameLabel": "Naam maaltijd",
+  "mealNameValidationError": "Naam maaltijd moet minstens 1 letter bevatten",
+  "mealNutrientsPerQtyLabel": "Per {qty} {unit}",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNutrientsTotalLabel": "Totaal aantal",
+  "mealPatternMediterranean": "Mediteraans",
+  "mealPatternStandard": "Standaard",
+  "mealProteinLabel": "Proteïnen",
+  "micronutrientsLabel": "Micronutriënten",
+  "milliliterUnit": "ml",
+  "missingProductInfo": "Product ontbreekt vereiste kcal of macronutriënten gegevens",
+  "monounsaturatedFatLabel": "mono-onverzadigde vetten",
+  "noActivityRecentlyAddedLabel": "Geen recente activiteit toegevoegd",
+  "noMealsRecentlyAddedLabel": "Geen recente maaltijden toegevoegd",
+  "noResultsFound": "Geen resultaten gevonden",
+  "noResultsSubtitle": "Geen items gevonden. Probeer een andere naam, scan de barcode, of maak zelf aan.",
+  "noResultsScanBarcode": "Scan barcode",
+  "noResultsCreateCustomFood": "Aangepast item maken",
+  "noResultsSearchAll": "Alles doorzoeken",
+  "partialResultsNotice": "Eén gegevensbron heeft niet geantwoord. Sommige resultaten kunnen ontbreken.",
+  "partialResultsAllSourcesDownNotice": "Geen online gegevensbronnen hebben geantwoord. Alleen opgeslagen items tonen.",
+  "notAvailableLabel": "N/A",
+  "nothingAddedLabel": "Niets toegevoegd",
+  "notificationsDailyReminderBody": "Vergeet je maaltijden niet te registreren vandaag!",
+  "notificationsDailyReminderChannelName": "Dagelijkse herinneringen",
+  "notificationsDailyReminderTitle": "OpenNutriTracker",
+  "nutrientPanelAllHiddenLabel": "Alle voedingswaarden verborgen - zet een of meerdere aan in Instellingen → Voedingswaarden.",
+  "nutrientPanelLimitLabel": "limiet",
+  "nutrientPanelDayLabel": "Dag",
+  "nutrientPanelWeekLabel": "Week",
+  "nutritionInfoLabel": "Informatie voedingswaarden",
+  "nutritionalStatusNormalWeight": "Normaal gewicht",
+  "nutritionalStatusObeseClassI": "Obesitas klasse I",
+  "nutritionalStatusObeseClassII": "Obesitas klasse II",
+  "nutritionalStatusObeseClassIII": "Obesitas klasse III",
+  "nutritionalStatusPreObesity": "Overgewicht",
+  "nutritionalStatusRiskAverage": "Gemiddelde",
+  "nutritionalStatusRiskIncreased": "Verhoogd",
+  "nutritionalStatusRiskLow": "Laag\n(maar risico op andere\nmedische problemen verhoogd)",
+  "nutritionalStatusRiskModerate": "Gemiddeld",
+  "nutritionalStatusRiskSevere": "Hoog",
+  "nutritionalStatusRiskVerySevere": "Zeer hoog",
+  "nutritionalStatusUnderweight": "Ondergewicht"
+}

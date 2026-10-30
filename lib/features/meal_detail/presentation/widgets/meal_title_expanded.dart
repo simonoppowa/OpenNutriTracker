@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 
 class MealTitleExpanded extends StatelessWidget {
   final MealEntity meal;
@@ -82,7 +83,7 @@ class MealTitleExpanded extends StatelessWidget {
             meal.mealQuantity != null
                 ? Center(
                     child: MealValueUnitText(
-                      value: double.tryParse(meal.mealQuantity ?? '') ?? 0,
+                      value: meal.mealQuantity?.toLenientDoubleOrNull() ?? 0,
                       meal: meal,
                       usesImperialUnits: usesImperialUnits,
                       textStyle:

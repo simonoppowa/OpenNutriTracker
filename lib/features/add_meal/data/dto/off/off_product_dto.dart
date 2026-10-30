@@ -2,6 +2,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_json_helpers.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
 
 part 'off_product_dto.g.dart';
@@ -19,6 +20,11 @@ String? _brandsFromJson(dynamic value) {
   return text.isEmpty ? null : text;
 }
 
+OFFProductNutrimentsDTO? _nutrimentsFromJson(dynamic value) {
+  final map = offMapFromJson(value);
+  return map == null ? null : OFFProductNutrimentsDTO.fromJson(map);
+}
+
 @JsonSerializable()
 class OFFProductDTO {
   final String? code;
@@ -29,8 +35,8 @@ class OFFProductDTO {
   // OFF carries product names in many languages — these are the other
   // locales SupportedLanguage names (cs / it / sk / tr / uk / hu / es). Each
   // must also be requested in OFFConst's field lists, or OFF never sends
-  // it. When any are missing or blank for a particular product the lookup
-  // falls through to product_name / product_name_en / etc as before.
+  // it. When the user's language is missing or blank for a particular
+  // product, getLocaleName falls back as its comment describes.
   final String? product_name_cs;
   final String? product_name_it;
   final String? product_name_sk;
@@ -66,61 +72,68 @@ class OFFProductDTO {
   // or never-scanned products. Used to re-rank text-search results so popular,
   // well-maintained products surface first. Only present on Search-a-licious
   // results — the v2 barcode endpoint omits it, which is fine (single product).
+  @JsonKey(fromJson: offNumFromJson)
   final num? popularity_key;
 
   // Open Food Facts country tags (e.g. `en:united-kingdom`). Used to softly
   // boost products sold in the user's country up the search ranking. Only
   // present on Search-a-licious results.
+  @JsonKey(fromJson: offStringListFromJson)
   final List<String>? countries_tags;
 
+  // A null or non-object `nutriments` reads as absent.
+  @JsonKey(fromJson: _nutrimentsFromJson)
   final OFFProductNutrimentsDTO? nutriments;
 
-  String? getLocaleName(SupportedLanguage supportedLanguage) {
-    String? localeName;
-    switch (supportedLanguage) {
-      case SupportedLanguage.en:
-        localeName = product_name_en;
-        break;
-      case SupportedLanguage.de:
-        localeName = product_name_de;
-        break;
-      case SupportedLanguage.cs:
-        localeName = product_name_cs;
-        break;
-      case SupportedLanguage.it:
-        localeName = product_name_it;
-        break;
-      case SupportedLanguage.sk:
-        localeName = product_name_sk;
-        break;
-      case SupportedLanguage.tr:
-        localeName = product_name_tr;
-        break;
-      case SupportedLanguage.uk:
-        localeName = product_name_uk;
-        break;
-      case SupportedLanguage.hu:
-        localeName = product_name_hu;
-        break;
-      case SupportedLanguage.es:
-        localeName = product_name_es;
-        break;
-      case SupportedLanguage.pl:
-      case SupportedLanguage.zh:
-        // OFF doesn't surface separate `product_name_pl` / `_zh` fields
-        // for most products; the unsuffixed product_name covers them in
-        // practice.
-        localeName = product_name;
-        break;
+  /// The product's name for [supportedLanguage], or the best stand-in.
+  ///
+  /// The order: the name in that language; then [knownName], the name the
+  /// meal already carries (what a Recent entry or favourite was logged
+  /// with, or what the search hit showed), so hydrating it doesn't swap
+  /// that name for another language's; then a name in another language
+  /// the app ships, English first; then OFF's `product_name`; then French.
+  ///
+  /// `product_name` comes that late because it is the name in the
+  /// product's main language, which can be one the app doesn't offer: a
+  /// Kaufland bread with a German name has a Romanian `product_name`, and
+  /// an English UI showed that (#1475). Polish and Chinese have no
+  /// requested field of their own, so for them `product_name` is the
+  /// name in their language, as before.
+  String? getLocaleName(
+    SupportedLanguage supportedLanguage, {
+    String? knownName,
+  }) {
+    final String? localeName = switch (supportedLanguage) {
+      SupportedLanguage.pl || SupportedLanguage.zh => product_name,
+      _ => _nameIn(supportedLanguage),
+    };
+    if (_present(localeName)) return localeName;
+    if (_present(knownName)) return knownName;
+    for (final language in SupportedLanguage.values) {
+      final name = _nameIn(language);
+      if (_present(name)) return name;
     }
-
-    // If local language is not available, return available language
-    if (localeName == null || localeName.isEmpty) {
-      localeName =
-          product_name ?? product_name_en ?? product_name_fr ?? product_name_de;
-    }
-    return localeName;
+    if (_present(product_name)) return product_name;
+    if (_present(product_name_fr)) return product_name_fr;
+    return null;
   }
+
+  /// The `product_name_<language>` field, or null for a language OFF is
+  /// not asked to name products in (Polish, Chinese).
+  String? _nameIn(SupportedLanguage language) => switch (language) {
+    SupportedLanguage.en => product_name_en,
+    SupportedLanguage.de => product_name_de,
+    SupportedLanguage.cs => product_name_cs,
+    SupportedLanguage.it => product_name_it,
+    SupportedLanguage.sk => product_name_sk,
+    SupportedLanguage.tr => product_name_tr,
+    SupportedLanguage.uk => product_name_uk,
+    SupportedLanguage.hu => product_name_hu,
+    SupportedLanguage.es => product_name_es,
+    SupportedLanguage.pl || SupportedLanguage.zh => null,
+  };
+
+  static bool _present(String? name) => name != null && name.isNotEmpty;
 
   OFFProductDTO({
     required this.code,
