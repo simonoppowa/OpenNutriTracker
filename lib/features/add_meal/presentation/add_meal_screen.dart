@@ -184,7 +184,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 ),
                 child: LogTrayLogButton(
                   tray: _logTray,
-                  onPressed: _logging ? null : _logAll,
+                  // Also waits for a + still fetching its food: that item
+                  // would land on the list mid-write, miss the write, and
+                  // be cleared with the rest.
+                  onPressed: _logging || _quickAdding.isNotEmpty
+                      ? null
+                      : _logAll,
                 ),
               ),
             ),
@@ -859,11 +864,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
     final code = meal.code ?? '';
     // A second tap while the first is still fetching would add it twice.
     if (_quickAdding.contains(code)) return;
-    _quickAdding.add(code);
+    // Through setState: the log button waits for these (see build).
+    setState(() => _quickAdding.add(code));
     try {
       meal = await _detailedForQuickAdd(meal);
     } finally {
-      _quickAdding.remove(code);
+      if (mounted) setState(() => _quickAdding.remove(code));
     }
     if (!mounted) return;
     final state = _addMealBloc.state;
@@ -912,7 +918,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   /// Writes the whole list, then returns to the day it was logged to.
   Future<void> _logAll() async {
-    if (_logging || _logTray.isEmpty) return;
+    if (_logging || _quickAdding.isNotEmpty || _logTray.isEmpty) return;
     // The screen ignores input until this returns (see build), so the list
     // cannot change under the writes below.
     setState(() => _logging = true);
