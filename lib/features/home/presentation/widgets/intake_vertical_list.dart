@@ -401,6 +401,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                   onTap: () => _onPlaceholderCardTapped(context),
                   firstListElement: true,
                   semanticIdentifier: 'add-meal-placeholder',
+                  label: S.of(context).addToSectionLabel(widget.title),
                 ),
               ],
             );

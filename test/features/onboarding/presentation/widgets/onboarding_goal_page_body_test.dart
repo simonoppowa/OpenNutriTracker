@@ -33,10 +33,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// The badge sits in the same Row as its chip, which is how we tell which
+  /// The badge sits in the same Wrap as its chip, which is how we tell which
   /// option was marked.
   Finder badgeBesideChip(String chipLabel) => find.descendant(
-    of: find.ancestor(of: find.text(chipLabel), matching: find.byType(Row)),
+    of: find.ancestor(of: find.text(chipLabel), matching: find.byType(Wrap)),
     matching: find.text(l10nEn.onboardingGoalSuggestedBadge),
   );
 
