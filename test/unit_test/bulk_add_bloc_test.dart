@@ -333,6 +333,36 @@ void main() {
   });
 
   group('a bare count (#622)', () {
+    test('flags a count past what a recipe batch makes', () async {
+      // A recipe's serving is a share of the batch: "14 pelmeni" against six
+      // servings of pelmeni would log more than twice the batch. Five tarts
+      // of a twelve-tart batch are five servings, as before.
+      MealEntity recipe(String name, int servings) => MealEntity(
+        code: name,
+        name: name,
+        url: null,
+        mealQuantity: '1200.0',
+        mealUnit: 'g',
+        servingQuantity: 1200 / servings,
+        servingUnit: 'g',
+        servingSize: '$servings servings',
+        source: MealSourceEntity.recipe,
+        nutriments: MealNutrimentsEntity.empty(),
+      );
+      final bloc = blocWith({
+        'pelmeni': [recipe('Pelmeni', 6)],
+        'tarts': [recipe('Tarts', 12)],
+      });
+
+      final state = await parse(bloc, '14 pelmeni, 5 tarts');
+
+      expect(state.rows[0].unit, 'serving');
+      expect(state.rows[0].amountNeedsCheck, isTrue);
+      expect(state.rows[0].willBeLogged, isFalse);
+      expect(state.rows[1].amountNeedsCheck, isFalse);
+      expect(state.loggableCount, 1);
+    });
+
     test('counts a food that has serving data as servings', () async {
       // "2 eggs" means two of them. When the record carries serving data
       // that is exactly a serving, so the unit must be `serving` and not
