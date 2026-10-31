@@ -214,6 +214,7 @@ void main() {
       'keywords.txt': 100,
       'promotional_text.txt': 170,
       'description.txt': 4000,
+      'release_notes.txt': 4000,
       // Both URL fields are pinned so the set stays complete. The marketing
       // URL renders as the product page's "Developer Website" row and was
       // simply absent — the GitHub Pages site was removed in #786, so the
