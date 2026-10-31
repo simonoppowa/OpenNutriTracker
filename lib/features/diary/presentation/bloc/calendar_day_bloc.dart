@@ -11,10 +11,12 @@ import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
@@ -35,6 +37,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final UpdateUserActivityUsecase _updateUserActivityUsecase;
   final GetConfigUsecase _getConfigUsecase;
   final AddConfigUsecase _addConfigUsecase;
+  final GetMacroGoalUsecase _getMacroGoalUsecase;
 
   DateTime? _currentDay;
 
@@ -49,6 +52,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     this._updateUserActivityUsecase,
     this._getConfigUsecase,
     this._addConfigUsecase,
+    this._getMacroGoalUsecase,
   ) : super(CalendarDayInitial()) {
     on<LoadCalendarDayEvent>((event, emit) async {
       emit(CalendarDayLoading());
@@ -118,8 +122,36 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       dayStartOffsetMinutes: dayStartOffsetMinutes,
     );
 
-    final trackedDayEntity = await _getTrackedDayUsecase.getTrackedDay(day);
+    final storedTrackedDay = await _getTrackedDayUsecase.getTrackedDay(day);
     final configData = await _getConfigUsecase.getConfig();
+
+    // #1441: Home computes macro targets live from the current
+    // config split (carbs/fat/protein %); the Diary read them off the
+    // stored row, which was written under whatever split was in effect
+    // at the time. When the user changes the split and the day boundary
+    // moves far enough that the logical today's date equals a past
+    // calendar date, the two screens showed different targets for the
+    // same logical day. Restamp the goals on the logical today so Diary
+    // tracks Home, while past days still show the split they were
+    // tracked under.
+    final logicalToday = DayBoundaryCalc.currentLogicalDayLabel(
+      configData.dayStartOffsetHours,
+      configData.dayStartOffsetMinutes,
+    );
+    final trackedDayEntity =
+        storedTrackedDay != null && _dateLabel(day) == logicalToday
+            ? storedTrackedDay.copyWith(
+                carbsGoal: await _getMacroGoalUsecase.getCarbsGoal(
+                  storedTrackedDay.calorieGoal,
+                ),
+                fatGoal: await _getMacroGoalUsecase.getFatsGoal(
+                  storedTrackedDay.calorieGoal,
+                ),
+                proteinGoal: await _getMacroGoalUsecase.getProteinsGoal(
+                  storedTrackedDay.calorieGoal,
+                ),
+              )
+            : storedTrackedDay;
 
     // #150: only surface per-meal targets when this calendar day has a
     // tracked daily kcal goal — otherwise the share has nothing to divide
