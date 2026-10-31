@@ -503,7 +503,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         : servingLabel;
     return DropdownMenuItem(
       value: UnitDropdownItem.serving.toString(),
-      child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 1),
+      // The serving's weight ends the text; at a large font it wraps
+      // rather than being cut off.
+      child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 3),
     );
   }
 

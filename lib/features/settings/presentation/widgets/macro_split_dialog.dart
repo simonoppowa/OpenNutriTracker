@@ -513,6 +513,8 @@ class _MacroRow extends StatelessWidget {
                 _MacroSplitDialogState._maxMacroPct,
               ),
               divisions: macroRange.toInt(),
+              // Read as the share it sets, not the slider's position.
+              semanticFormatterCallback: (v) => '${v.round()}%',
               onChanged: (v) {
                 final rounded = v.round().toDouble();
                 if (100 - rounded >= 10) {

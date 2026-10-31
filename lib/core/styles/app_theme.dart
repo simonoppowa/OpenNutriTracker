@@ -116,6 +116,37 @@ ThemeData buildAppTheme(AppPalette p) {
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusL),
     ),
+    // An off switch's thumb and outline in the muted text colour, 3:1
+    // against the card (WCAG 1.4.11); the hairline `outline` it took before
+    // was about 1.2:1.
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected) || states.contains(WidgetState.disabled)
+            ? null
+            : p.textMuted,
+      ),
+      trackOutlineColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected) || states.contains(WidgetState.disabled)
+            ? null
+            : p.textMuted,
+      ),
+    ),
+    // The chosen segment in the accent with its on-colour, so the choice
+    // shows without the check mark (WCAG 1.4.11); `secondaryContainer`, its
+    // default, is about 1.1:1 against the rest.
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? scheme.primary : null,
+        ),
+        foregroundColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? scheme.onPrimary : null,
+        ),
+        iconColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected) ? scheme.onPrimary : null,
+        ),
+      ),
+    ),
     listTileTheme: const ListTileThemeData(shape: RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM)),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: p.surface,
