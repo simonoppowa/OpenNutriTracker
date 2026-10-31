@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/diary/domain/usecase/get_diary_entry_day_keys_usecase.dart';
 
 part 'diary_event.dart';
 
@@ -15,11 +16,15 @@ part 'diary_state.dart';
 class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final GetTrackedDayUsecase _getDayTrackedUsecase;
   final GetConfigUsecase _getConfigUsecase;
+  final GetDiaryEntryDayKeysUsecase _getEntryDayKeysUsecase;
 
   DateTime currentDay = DateTime.now();
 
-  DiaryBloc(this._getDayTrackedUsecase, this._getConfigUsecase)
-      : super(DiaryInitial()) {
+  DiaryBloc(
+    this._getDayTrackedUsecase,
+    this._getConfigUsecase,
+    this._getEntryDayKeysUsecase,
+  ) : super(DiaryInitial()) {
     on<LoadDiaryYearEvent>((event, emit) async {
       emit(DiaryLoadingState());
 
@@ -41,18 +46,24 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
         currentDay.subtract(yearDuration),
         currentDay.add(yearDuration),
       );
+      final entryDayKeys = await _getEntryDayKeysUsecase.getEntryDayKeys(
+        config.dayStartOffsetTotalMinutes,
+      );
 
       final trackedDaysMap = {
         for (var trackedDay in trackedDays)
-          trackedDay.day.toParsedDay(): trackedDay,
+          if (entryDayKeys.contains(trackedDay.day.toParsedDay()))
+            trackedDay.day.toParsedDay(): trackedDay,
       };
 
-      emit(DiaryLoadedState(
-        trackedDaysMap,
-        usesImperialUnits,
-        showMealMacros: showMealMacros,
-        showActivityTracking: showActivityTracking,
-      ));
+      emit(
+        DiaryLoadedState(
+          trackedDaysMap,
+          usesImperialUnits,
+          showMealMacros: showMealMacros,
+          showActivityTracking: showActivityTracking,
+        ),
+      );
     });
   }
 

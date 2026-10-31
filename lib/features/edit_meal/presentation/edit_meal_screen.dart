@@ -27,6 +27,9 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/edit_meal/domain/nutrition_import_parser.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/nutrition_import_dialog.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
@@ -57,6 +60,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   /// bloc finishes loading, and persisted back whenever the user toggles.
   CustomMealFormMode _formMode = CustomMealFormMode.simple;
   bool _formModeHydrated = false;
+  bool _importedMetricMode = false;
 
   final _nameTextController = TextEditingController();
   final _brandsTextController = TextEditingController();
@@ -265,7 +269,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
               child: Semantics(
                 identifier: 'edit-meal-save',
                 child: FilledButton(
-                  onPressed: () => _onSavePressed(_usesImperialUnits),
+                  onPressed: () => _onSavePressed(_usesImperialUnits && !_importedMetricMode),
                   style: FilledButton.styleFrom(
                     shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
                   ),
@@ -408,6 +412,17 @@ class _EditMealScreenState extends State<EditMealScreen> {
                 ? S.of(context).customMealFormSimpleHelp
                 : S.of(context).customMealFormAdvancedHelp,
             style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (_mealEntity.source == MealSourceEntity.custom) ...[
+          Semantics(
+            identifier: 'edit-meal-paste-nutrition',
+            child: OutlinedButton.icon(
+              onPressed: _openNutritionImport,
+              icon: const Icon(Icons.content_paste),
+              label: Text(S.of(context).nutritionPasteAction),
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -608,6 +623,159 @@ class _EditMealScreenState extends State<EditMealScreen> {
     );
   }
 
+  Future<void> _openNutritionImport() async {
+    final entry = await showDialog<NutritionEntry>(
+      context: context,
+      builder: (_) => NutritionImportDialog(saveAll: _saveNutritionBatch),
+    );
+    if (!mounted || entry == null) return;
+    await _applyImportedNutrition(entry);
+  }
+
+  Future<void> _applyImportedNutrition(NutritionEntry entry) async {
+    final values = entry.toPer100();
+    final usesKj = Provider.of<EnergyUnitProvider>(
+      context,
+      listen: false,
+    ).usesKilojoules;
+    final energy = values['kcal'];
+    final imported = <TextEditingController, String>{
+      _nameTextController: entry.name,
+      _brandsTextController: entry.brand,
+      if (energy != null)
+        _kcalTextController: (usesKj ? UnitCalc.kcalToKj(energy) : energy)
+            .toString(),
+      for (final item in <String, TextEditingController>{
+        'carbs': _carbsTextController,
+        'fat': _fatTextController,
+        'protein': _proteinTextController,
+        'fiber': _fiberTextController,
+        'saturatedFat': _saturatedFatTextController,
+        'sugars': _sugarsTextController,
+        'sodium': _sodiumTextController,
+        'calcium': _calciumTextController,
+        'iron': _ironTextController,
+        'potassium': _potassiumTextController,
+        'magnesium': _magnesiumTextController,
+        'vitaminD': _vitaminDTextController,
+        'vitaminB12': _vitaminB12TextController,
+      }.entries)
+        if (values[item.key] != null) item.value: values[item.key]!.toString(),
+    };
+    final replaced = imported.entries
+        .where(
+          (item) =>
+              item.key.text.trim().isNotEmpty &&
+              item.key.text.trim() != item.value.trim(),
+        )
+        .length;
+    if (replaced > 0) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(S.of(context).nutritionReplaceTitle),
+          content: Text(
+            S.of(context).nutritionReplaceBody(replaced),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(S.of(context).nutritionCancelAction),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(S.of(context).nutritionReplaceAction),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+    final oldUnit = selectedUnit ?? 'g';
+    final oldMealQuantity = _usesImperialUnits && !_importedMetricMode &&
+            _mealQuantityTextController.text.isNotEmpty
+        ? _convertToMetric(_mealQuantityTextController.text, oldUnit)
+        : _mealQuantityTextController.text;
+    final oldServingQuantity = _usesImperialUnits && !_importedMetricMode &&
+            _servingQuantityTextController.text.isNotEmpty
+        ? _convertToMetric(_servingQuantityTextController.text, oldUnit)
+        : _servingQuantityTextController.text;
+    setState(() {
+      _importedMetricMode = true;
+      _mealUnitButtonSegment = [
+        ButtonSegment(value: 'g', label: Text(S.of(context).gramUnit)),
+        ButtonSegment(value: 'ml', label: Text(S.of(context).milliliterUnit)),
+        ButtonSegment(value: 'g/ml', label: Text(S.of(context).gramMilliliterUnit)),
+      ];
+      _mealQuantityTextController.text = oldMealQuantity;
+      _servingQuantityTextController.text = oldServingQuantity;
+      _formMode = CustomMealFormMode.advanced;
+      _isTotal = false;
+      selectedUnit = entry.basis == NutritionBasis.per100ml
+          ? 'ml'
+          : entry.basis == NutritionBasis.per100g
+          ? 'g'
+          : entry.servingUnit;
+      _baseQuantityTextController.text = '100';
+      if (_mealQuantityTextController.text.isEmpty) {
+        _mealQuantityTextController.text = '100';
+      }
+      if (entry.servingSize != null) {
+        _servingQuantityTextController.text = entry.servingSize.toString();
+      }
+      for (final item in imported.entries) {
+        if (item.value.isNotEmpty) item.key.text = item.value;
+      }
+    });
+  }
+
+  Future<String> _saveNutritionBatch(List<NutritionEntry> entries) async {
+    final s = S.of(context);
+    final selection = selectNutritionBatch(entries, _editMealBloc.customMealNames);
+    var saved = 0;
+    for (final entry in selection.entries) {
+      final values = entry.toPer100();
+      final unit = entry.basis == NutritionBasis.per100ml
+          ? 'ml'
+          : entry.basis == NutritionBasis.per100g
+          ? 'g'
+          : entry.servingUnit!;
+      final meal = MealEntity(
+        code: MealEntity.empty().code,
+        name: entry.name.trim(),
+        brands: entry.brand.trim(),
+        url: null,
+        mealQuantity: '100',
+        mealUnit: unit,
+        servingQuantity: entry.servingSize,
+        servingUnit: unit,
+        servingSize: entry.servingSize == null
+            ? null
+            : '${entry.servingSize} $unit',
+        source: MealSourceEntity.custom,
+        nutriments: MealNutrimentsEntity(
+          energyKcal100: values['kcal'],
+          carbohydrates100: values['carbs'],
+          fat100: values['fat'],
+          proteins100: values['protein'],
+          sugars100: values['sugars'],
+          saturatedFat100: values['saturatedFat'],
+          fiber100: values['fiber'],
+          sodium100: values['sodium'],
+          calcium100: values['calcium'],
+          iron100: values['iron'],
+          potassium100: values['potassium'],
+          magnesium100: values['magnesium'],
+          vitaminD100: values['vitaminD'],
+          vitaminB12100: values['vitaminB12'],
+        ),
+      );
+      await _editMealBloc.saveCustomMeal(meal);
+      saved++;
+    }
+    return s.nutritionBatchSummary(saved, selection.duplicates, selection.invalid);
+  }
+
   Widget _buildMicroField(
     TextEditingController controller,
     String label,
@@ -647,7 +815,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   String _massUnitSuffix(BuildContext context) {
     final s = S.of(context);
     final unit = selectedUnit ?? _units[2];
-    if (_usesImperialUnits) {
+    if (_usesImperialUnits && !_importedMetricMode) {
       switch (unit) {
         case 'g':
           return s.ozUnit;
@@ -690,6 +858,18 @@ class _EditMealScreenState extends State<EditMealScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(S.of(context).mealNameValidationError)));
         return;
+      }
+
+      if (_mealEntity.source == MealSourceEntity.custom) {
+        final duplicate = _editMealBloc.hasOtherCustomMealWithName(
+          _nameTextController.text, _mealEntity.code,
+        );
+        if (duplicate) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(S.of(context).nutritionDuplicateMessage),
+          ));
+          return;
+        }
       }
 
       // Validate barcode shape if the user typed or scanned one (#167).
@@ -765,8 +945,9 @@ class _EditMealScreenState extends State<EditMealScreen> {
         final enteredKcal = enteredEnergyRaw == null
             ? null
             : (usesKjOnSave
-                ? double.parse(
-                    UnitCalc.kjToKcal(enteredEnergyRaw).toStringAsFixed(1))
+                ? (_importedMetricMode
+                    ? UnitCalc.kjToKcal(enteredEnergyRaw)
+                    : double.parse(UnitCalc.kjToKcal(enteredEnergyRaw).toStringAsFixed(1)))
                 : enteredEnergyRaw);
         final enteredCarbs = double.tryParse(_carbsTextController.text);
         final enteredFat = double.tryParse(_fatTextController.text);

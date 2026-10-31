@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
@@ -37,9 +38,13 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
     });
 
     on<LoadTrendsEvent>((event, emit) async {
-      _rangeDays = event.rangeDays;
       emit(const TrendsLoading());
       try {
+        final config = await _getConfigUsecase.getConfig();
+        final selectedRange = ConfigEntity.validTrendsRange(
+          event.rangeDays ?? config.trendsSelectedRangeDays,
+        );
+        _rangeDays = selectedRange;
         final now = DateTime.now();
         final today = DateTime(now.year, now.month, now.day);
         // Today's tracked day is stamped with the time it was created, so the
@@ -48,8 +53,8 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
         // rangeDays 0 is the "All" chip: pull a wide window and let the actual
         // span fall out of the earliest data point below.
-        final isAll = event.rangeDays == 0;
-        final fetchDays = isAll ? 3650 : event.rangeDays;
+        final isAll = selectedRange == 0;
+        final fetchDays = isAll ? 3650 : selectedRange;
         final days = await _getTrackedDayUsecase.getTrackedDaysByRange(
           today.subtract(Duration(days: fetchDays - 1)),
           endOfToday,
@@ -65,7 +70,6 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
           DateTime(now.year, now.month, now.day - 7, 23, 59, 59),
         );
         final user = await _getUserUsecase.getUserData();
-        final config = await _getConfigUsecase.getConfig();
 
         // Water totalled per calendar day; the card fills missing days with 0.
         final waterEntries = await _getWaterIntakeUsecase.getAllEntries();
@@ -81,12 +85,13 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         // days in front of it. A 2-day floor keeps a single entry renderable.
         int windowDays;
         if (!isAll) {
-          windowDays = event.rangeDays;
+          windowDays = selectedRange;
         } else {
           DateTime? earliest;
           void consider(DateTime d) {
             if (earliest == null || d.isBefore(earliest!)) earliest = d;
           }
+
           for (final d in days) {
             consider(DateTime(d.day.year, d.day.month, d.day.day));
           }
@@ -107,20 +112,24 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
                 );
         }
 
-        emit(TrendsLoaded(
-          rangeDays: event.rangeDays,
-          windowDays: windowDays,
-          days: days,
-          priorWeek: priorWeek,
-          weight: weight,
-          bodyWeightUnit: config.bodyWeightUnit,
-          targetWeightKg: user.targetWeightKg,
-          waterByDay: waterByDay,
-          waterGoalMl: config.effectiveDailyWaterGoalMl(
-            user.gender,
-            caloriesProfile: user.caloriesProfile,
+        emit(
+          TrendsLoaded(
+            rangeDays: selectedRange,
+            windowDays: windowDays,
+            days: days,
+            priorWeek: priorWeek,
+            weight: weight,
+            bodyWeightUnit: config.bodyWeightUnit,
+            targetWeightKg: user.targetWeightKg,
+            waterByDay: waterByDay,
+            waterGoalMl: config.effectiveDailyWaterGoalMl(
+              user.gender,
+              caloriesProfile: user.caloriesProfile,
+            ),
+            metricVisibility: config.trendsMetricVisibility,
+            customRangeDays: config.trendsCustomRangeDays,
           ),
-        ));
+        );
       } catch (e) {
         emit(TrendsFailed(e.toString()));
       }
