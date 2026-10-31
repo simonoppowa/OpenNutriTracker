@@ -23,12 +23,13 @@ class RecipeBuilderBloc
     on<UpdateDescriptionEvent>(_onUpdateDescription);
     on<UpdateServingsCountEvent>(_onUpdateServings);
     on<UpdateTagsEvent>((event, emit) {
-      emit(state.copyWith(tags: event.tags));
+      emit(state.copyWith(tags: event.tags, isDirty: true));
     });
     on<UpdateImagePathEvent>((event, emit) {
       emit(state.copyWith(
         imagePath: event.imagePath,
         clearImagePath: event.imagePath == null,
+        isDirty: true,
       ));
     });
     on<AddIngredientEvent>(_onAddIngredient);
@@ -92,14 +93,14 @@ class RecipeBuilderBloc
     UpdateNameEvent event,
     Emitter<RecipeBuilderState> emit,
   ) {
-    emit(state.copyWith(name: event.name));
+    emit(state.copyWith(name: event.name, isDirty: true));
   }
 
   void _onUpdateDescription(
     UpdateDescriptionEvent event,
     Emitter<RecipeBuilderState> emit,
   ) {
-    emit(state.copyWith(description: event.description));
+    emit(state.copyWith(description: event.description, isDirty: true));
   }
 
   void _onUpdateServings(
@@ -110,6 +111,7 @@ class RecipeBuilderBloc
       state.copyWith(
         servingsCount: event.servingsCount,
         clearServingsCount: event.servingsCount == null,
+        isDirty: true,
       ),
     );
   }
@@ -131,7 +133,10 @@ class RecipeBuilderBloc
       convertedAmountG: convertedG,
     );
     emit(
-      state.copyWith(ingredients: [...state.ingredients, newIngredient]),
+      state.copyWith(
+        ingredients: [...state.ingredients, newIngredient],
+        isDirty: true,
+      ),
     );
     _recompute(emit);
   }
@@ -155,7 +160,7 @@ class RecipeBuilderBloc
     );
     final newList = List<RecipeIngredientEntity>.from(state.ingredients);
     newList[event.index] = updated;
-    emit(state.copyWith(ingredients: newList));
+    emit(state.copyWith(ingredients: newList, isDirty: true));
     _recompute(emit);
   }
 
@@ -166,7 +171,7 @@ class RecipeBuilderBloc
     if (event.index < 0 || event.index >= state.ingredients.length) return;
     final newList = List<RecipeIngredientEntity>.from(state.ingredients)
       ..removeAt(event.index);
-    emit(state.copyWith(ingredients: newList));
+    emit(state.copyWith(ingredients: newList, isDirty: true));
     _recompute(emit);
   }
 
@@ -178,6 +183,7 @@ class RecipeBuilderBloc
       state.copyWith(
         totalWeightG: event.totalWeightG,
         totalWeightOverridden: true,
+        isDirty: true,
       ),
     );
     _recompute(emit);
@@ -187,7 +193,7 @@ class RecipeBuilderBloc
     ResetTotalWeightEvent event,
     Emitter<RecipeBuilderState> emit,
   ) {
-    emit(state.copyWith(totalWeightOverridden: false));
+    emit(state.copyWith(totalWeightOverridden: false, isDirty: true));
     _recompute(emit);
   }
 
