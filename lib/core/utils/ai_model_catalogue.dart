@@ -31,7 +31,22 @@ enum AiModelNote {
   /// it" rule below is intact. It does go stale silently if OpenRouter
   /// reprices, and nothing in the app checks.
   cheapest,
+
+  /// Below the list's head on both the prompt and the completion price, read
+  /// off the provider's own endpoint data like [cheapest]. Says nothing of
+  /// quality: [cheaper]'s "weaker on poor-quality photos" was measured on
+  /// Haiku 4.5, and nothing measured luna's.
+  cheaperThanRecommended,
 }
+
+/// How a request asks [AiModel] for its one tool call.
+///
+/// The Claude 5.5 generation changed what a forced call may carry: Haiku 5.5
+/// thinks by default, and a forced tool call with thinking on is refused, so
+/// it is sent with thinking off; Sonnet 5.5 and Opus 5.5 refuse a forced
+/// call outright (400), so they are asked with `auto`, a reply without the
+/// call landing as the existing *no tool call* failure.
+enum AiToolCall { forced, forcedThinkingOff, auto }
 
 /// One model the app is willing to send a meal to.
 class AiModel {
@@ -57,11 +72,14 @@ class AiModel {
   /// by position, and on a list of one, which has nothing to compare to.
   final AiModelNote? note;
 
+  final AiToolCall toolCall;
+
   const AiModel({
     required this.id,
     required this.servedBy,
     this.providers = const [],
     this.note,
+    this.toolCall = AiToolCall.forced,
   });
 }
 
@@ -99,8 +117,15 @@ abstract final class AiModelCatalogue {
   /// The direct path has never offered a choice, and this does not add one.
   /// Changing which model an existing user's requests go to is exactly the
   /// silent behaviour change pinning exists to prevent.
+  /// Haiku 5.5 replaces Haiku 4.5. A stored id no longer listed resolves to
+  /// the first, so a user on Haiku 4.5 moves to Haiku 5.5 and stays with
+  /// Anthropic.
   static const anthropic = <AiModel>[
-    AiModel(id: 'claude-haiku-4-5', servedBy: 'Anthropic'),
+    AiModel(
+      id: 'claude-haiku-5-5',
+      servedBy: 'Anthropic',
+      toolCall: AiToolCall.forcedThinkingOff,
+    ),
   ];
 
   /// Ordered: the default is first.
@@ -134,26 +159,35 @@ abstract final class AiModelCatalogue {
   /// from the direct API. 22 live calls, no invariant violations, and a
   /// withdrawn `openai/*` id answered 404 rather than OpenAI's native 400 —
   /// so the loud-failure promise above needs no `error.code` reader here.
+  /// Sonnet 5.5 and Haiku 5.5 replace Sonnet 5 and Haiku 4.5, and GPT-6
+  /// luna and GPT-6.1 terra the GPT-5.6 pair. Haiku 5.5 ($0.10/$0.50 per
+  /// million tokens) is the cheapest row, tied with GPT-6 luna: it keeps the
+  /// cheapest note, and luna one that claims only its price, since the
+  /// cheaper note's quality claim was measured on Haiku 4.5. Terra ($1/$5)
+  /// still returned more items a photo than luna (2.71 against 2.58 over 65
+  /// photos, 2026-10-28).
   static const openrouter = <AiModel>[
     AiModel(
-      id: 'anthropic/claude-sonnet-5',
+      id: 'anthropic/claude-sonnet-5.5',
       servedBy: 'Anthropic',
       providers: ['anthropic'],
+      toolCall: AiToolCall.auto,
     ),
     AiModel(
-      id: 'anthropic/claude-haiku-4.5',
+      id: 'anthropic/claude-haiku-5.5',
       servedBy: 'Anthropic',
       providers: ['anthropic'],
-      note: AiModelNote.cheaper,
+      note: AiModelNote.cheapest,
+      toolCall: AiToolCall.forcedThinkingOff,
     ),
     AiModel(
-      id: 'openai/gpt-5.6-luna',
+      id: 'openai/gpt-6-luna',
       servedBy: 'OpenAI',
       providers: ['openai'],
-      note: AiModelNote.cheapest,
+      note: AiModelNote.cheaperThanRecommended,
     ),
     AiModel(
-      id: 'openai/gpt-5.6-terra',
+      id: 'openai/gpt-6.1-terra',
       servedBy: 'OpenAI',
       providers: ['openai'],
       note: AiModelNote.moreItems,
@@ -180,10 +214,11 @@ abstract final class AiModelCatalogue {
   ///
   /// `providers` stays empty: that field pins an OpenRouter route, and a
   /// direct path has no broker to constrain.
+  /// GPT-6 luna and GPT-6.1 terra replace the GPT-5.6 pair.
   static const openai = <AiModel>[
-    AiModel(id: 'gpt-5.6-luna', servedBy: 'OpenAI'),
+    AiModel(id: 'gpt-6-luna', servedBy: 'OpenAI'),
     AiModel(
-      id: 'gpt-5.6-terra',
+      id: 'gpt-6.1-terra',
       servedBy: 'OpenAI',
       note: AiModelNote.moreItems,
     ),
@@ -217,10 +252,21 @@ abstract final class AiModelCatalogue {
   /// after an update that retires a model. Falling back beats leaving them
   /// pointed at an id that can only 404.
   static AiModel? resolve(AiProvider provider, String? id) {
+    id = _successors[id] ?? id;
     final models = forProvider(provider);
     for (final model in models) {
       if (model.id == id) return model;
     }
     return models.isEmpty ? null : models.first;
   }
+
+  /// A stored GPT-5.6 choice moves to its successor, not to the list's
+  /// head: on OpenRouter that is Sonnet, and the fallback would send the
+  /// user's photos to another company (#726).
+  static const _successors = {
+    'openai/gpt-5.6-luna': 'openai/gpt-6-luna',
+    'openai/gpt-5.6-terra': 'openai/gpt-6.1-terra',
+    'gpt-5.6-luna': 'gpt-6-luna',
+    'gpt-5.6-terra': 'gpt-6.1-terra',
+  };
 }
