@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
@@ -91,6 +92,15 @@ class _Unused5 extends Fake implements UpdateUserActivityUsecase {}
 
 class _Unused6 extends Fake implements AddConfigUsecase {}
 
+class _MacroGoals extends Fake implements GetMacroGoalUsecase {
+  @override
+  Future<double> getCarbsGoal(double totalCalorieGoal) async => 0;
+  @override
+  Future<double> getFatsGoal(double totalCalorieGoal) async => 0;
+  @override
+  Future<double> getProteinsGoal(double totalCalorieGoal) async => 0;
+}
+
 void main() {
   final oldDay = DateTime(2026, 10, 11);
   final newDay = DateTime(2026, 10, 10);
@@ -110,6 +120,7 @@ void main() {
         _Unused5(),
         _Config(),
         _Unused6(),
+        _MacroGoals(),
       );
       addTearDown(bloc.close);
       final shown = <DateTime>[];
