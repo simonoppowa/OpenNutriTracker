@@ -158,6 +158,16 @@ class WeightTrendChart extends StatelessWidget {
         .clamp(1.0, double.infinity)
         .toDouble();
 
+    // Below ~3 kg/lb of spread the ticks sit less than a unit apart and a
+    // zero-decimal label would round two neighbours to the same whole
+    // number ("62, 62, 63, 63" in #1445). Pair a half-unit interval with a
+    // one-decimal label so no two ticks ever print the same text. Stones
+    // is always one decimal because 2.20462/14 rarely lands on a whole.
+    final narrowRange = (maxY - minY) < 3;
+    final yAxisDecimals =
+        bodyWeightUnit == BodyWeightUnit.st || narrowRange ? 1 : 0;
+    final yAxisInterval = yAxisDecimals == 1 ? 0.5 : 1.0;
+
     return Padding(
       key: const Key('weightHistoryChart'),
       padding: const EdgeInsets.fromLTRB(16, 16, 24, 16),
@@ -182,10 +192,9 @@ class WeightTrendChart extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 40,
+                  interval: yAxisInterval,
                   getTitlesWidget: (value, meta) => Text(
-                    value.toStringAsFixed(
-                      bodyWeightUnit == BodyWeightUnit.st ? 1 : 0,
-                    ),
+                    value.toStringAsFixed(yAxisDecimals),
                     style: theme.textTheme.labelSmall,
                   ),
                 ),
