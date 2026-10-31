@@ -110,6 +110,14 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
   /// retired".
   final MealInterpreterFailure Function(int statusCode) failureFor;
 
+  /// What an error body says that its status does not, or null to leave it
+  /// to [failureFor].
+  ///
+  /// Null unless a destination needs it. Google answers a bad Gemini key
+  /// with a **400**, the status [failureFor] reads as a rejected request, and
+  /// only the body's `API_KEY_INVALID` tells the two apart (#1257).
+  final MealInterpreterFailure? Function(String body)? failureFromBody;
+
   /// No default. Which model is fit for this is a curation question with an
   /// answer that will change, and a constant here would quietly become that
   /// answer.
@@ -140,6 +148,7 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
     this.broker,
     this.toolChoice = ToolChoiceMode.namedFunction,
     this.failureFor = openRouterFailureFor,
+    this.failureFromBody,
     this.timeout = defaultTimeout,
     this.timeoutFailure = MealInterpreterFailure.transient,
   });
@@ -305,7 +314,9 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
       _log.warning('Interpreter call failed with ${response.statusCode}');
       throw MealInterpreterException(
         'provider returned ${response.statusCode}',
-        failure: failureFor(response.statusCode),
+        failure:
+            failureFromBody?.call(response.body) ??
+            failureFor(response.statusCode),
         statusCode: response.statusCode,
       );
     }

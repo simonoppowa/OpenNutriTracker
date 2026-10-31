@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/core/utils/gemini_endpoint.dart';
+import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
+import 'package:opennutritracker/features/add_meal/data/openai_compatible_meal_items_api.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 void main() {
@@ -122,6 +125,117 @@ void main() {
         reason: 'the paragraph would be rendering the password on screen',
       );
       expect(rendered, contains('box.local:11434'));
+    });
+  });
+
+  group('Google\'s Gemini API reached as "your own server"', () {
+    // #1257: the address is Google's hosted service, not a machine the user
+    // runs, so "a server you run" and "No third party receives it" would be
+    // false on the screen that asks for consent.
+    const gemini =
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+
+    test('names Google, not a server the user runs', () {
+      final s = lookupS(const Locale('en'));
+      final rendered = aiDisclosureFor(
+        s,
+        provider: AiProvider.ownServer,
+        typedEndpoint: gemini,
+      );
+
+      expect(
+        rendered,
+        s.aiAssistDisclosureOwnServerGemini(
+          'generativelanguage.googleapis.com',
+        ),
+      );
+      expect(rendered, contains('Google'));
+      expect(rendered, contains('photo'));
+      expect(rendered, isNot(contains('No third party')));
+      expect(rendered, isNot(contains('a server you run.')));
+    });
+
+    test('however the host is capitalised or the address is typed', () {
+      final s = lookupS(const Locale('en'));
+      final expected = s.aiAssistDisclosureOwnServerGemini(
+        'generativelanguage.googleapis.com',
+      );
+      for (final typed in [
+        'https://GenerativeLanguage.GoogleApis.com/v1beta/openai/',
+        '  https://generativelanguage.googleapis.com/v1beta/openai/  ',
+        'https://generativelanguage.googleapis.com:443/v1beta/openai/',
+      ]) {
+        expect(
+          aiDisclosureFor(
+            s,
+            provider: AiProvider.ownServer,
+            typedEndpoint: typed,
+          ),
+          expected,
+          reason: typed,
+        );
+      }
+    });
+
+    test('other hosts keep the own-server paragraph', () {
+      final s = lookupS(const Locale('en'));
+      for (final typed in [
+        'https://box.local:11434/v1',
+        'http://192.168.1.5:8080/v1',
+        'https://generativelanguage.googleapis.com.example.org/v1',
+      ]) {
+        final rendered = aiDisclosureFor(
+          s,
+          provider: AiProvider.ownServer,
+          typedEndpoint: typed,
+        );
+        expect(rendered, contains('a server you run'), reason: typed);
+        expect(rendered, isNot(contains('Gemini')), reason: typed);
+      }
+    });
+
+    test('the paragraph and the request agree on who is Google', () {
+      // One check decides both, so a look-alike cannot get the Gemini
+      // request shape while being described as the user's own machine, or
+      // the reverse.
+      expect(isGeminiEndpoint(Uri.parse(gemini)), isTrue);
+      expect(
+        ownServerToolChoice(Uri.parse(gemini)),
+        ToolChoiceMode.namedFunction,
+      );
+      expect(
+        isGeminiEndpoint(Uri.parse('https://googleapis.com/v1')),
+        isFalse,
+      );
+    });
+
+    test('the absolute form, with its root dot, is Google too', () {
+      // DNS reaches Google either way, so the paragraph, the request shape
+      // and the route completion all have to treat it as Google.
+      const absolute =
+          'https://generativelanguage.googleapis.com./v1beta/openai/';
+      final s = lookupS(const Locale('en'));
+
+      expect(isGeminiEndpoint(Uri.parse(absolute)), isTrue);
+      expect(
+        aiDisclosureFor(
+          s,
+          provider: AiProvider.ownServer,
+          typedEndpoint: absolute,
+        ),
+        contains('Google'),
+      );
+      expect(
+        AiCredentialStorage.resolveEndpoint(absolute).toString(),
+        'https://generativelanguage.googleapis.com./v1beta/openai/chat/completions',
+      );
+      expect(
+        isGeminiEndpoint(
+          Uri.parse('https://generativelanguage.googleapis.com../v1'),
+        ),
+        isFalse,
+        reason: 'one root dot, not any number of them',
+      );
     });
   });
 }
