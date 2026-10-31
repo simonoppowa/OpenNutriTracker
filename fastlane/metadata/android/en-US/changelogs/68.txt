@@ -1,0 +1,6 @@
+- Adding food: Barcode, Snap meal and Describe now sit right under the search field
+- Collect several foods on a "To log" list and log them all with one tap
+- The + on a search result adds the food straight to that list
+- Review screen for described or photographed meals: clearer amounts, macros per line and a total
+- Fixed: retrying a failed save could log the same food twice
+- Fewer crashes from unusual Open Food Facts data and links
