@@ -176,6 +176,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
       ),
       onChange: onPageChanged,
+      // Without this the package's default ("Page X of Y") stays English
+      // and shows in the accessibility tree even when the rest of the
+      // onboarding is translated (#1446). Everything else on the page uses
+      // S.of(context), so a screen-reader user hears a mixed-language
+      // description.
+      progressSemantic: (current, total) =>
+          S.of(context).onboardingPageProgressSemantic(current, total),
       pages: _getPageViewModels(),
     );
   }
