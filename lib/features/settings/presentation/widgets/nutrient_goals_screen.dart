@@ -170,13 +170,13 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     }
   }
 
-  String _formatGoal(double value) =>
-      value >= 10 ? value.round().toString() : value.toStringAsFixed(1);
-
-  /// Whole-step rows show a whole number unless the value itself is
-  /// fractional, as the averaged non-binary fibre reference is (31.5 g /
-  /// 25.5 g), so the field never disagrees with the slider.
-  static String _formatWholeStep(double value) =>
+  /// Shows a whole number when the value is one, otherwise one decimal.
+  ///
+  /// Keeps a user-typed fraction intact (`12.5` reopens as `12.5`, #1444),
+  /// avoids a cosmetic `.0` on round defaults, and never disagrees with
+  /// the slider on a reference that is itself fractional, such as the
+  /// averaged non-binary fibre reference (31.5 g / 25.5 g).
+  static String _formatGoal(double value) =>
       value == value.roundToDouble()
           ? value.round().toString()
           : value.toStringAsFixed(1);
@@ -207,7 +207,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
   void _syncControllers() {
     _editedControllers.clear();
     _fibreController.text =
-        _formatWholeStep(_fibre ?? _fibreDefaultForUser());
+        _formatGoal(_fibre ?? _fibreDefaultForUser());
     _satFatController.text =
         (_satFat ?? DailyNutrientPanel.defaultSaturatedFatRefG)
             .round()
@@ -548,7 +548,7 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     if (parsed == null) return;
     final clamped = parsed.clamp(min, max).toDouble();
     final text =
-        decimalStep ? clamped.toStringAsFixed(1) : _formatWholeStep(clamped);
+        decimalStep ? clamped.toStringAsFixed(1) : _formatGoal(clamped);
     // Keep the goal at what the field shows, so 31.52 is held as 31.5.
     // This now runs once per edit, so no second pass re-parses the text.
     setState(() => setter(double.parse(text)));
