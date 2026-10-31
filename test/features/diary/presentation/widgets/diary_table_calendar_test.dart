@@ -5,9 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-Widget _app({required double textScale}) => MediaQuery(
+Widget _app({
+  double textScale = 1.0,
+  Locale locale = const Locale('en'),
+}) =>
+    MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
       child: MaterialApp(
+        locale: locale,
         localizationsDelegates: const [
           S.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -64,5 +69,37 @@ void main() {
             '${given}px, so the top and bottom of the label are cut off',
       );
     }
+  });
+
+  // #1442. `table_calendar` with no `locale:` falls back to `en_US`, so the
+  // month header and the day-of-week headings stayed English even when the
+  // rest of the Diary followed the app locale. The header and the headings
+  // both come from the same formatter, so the header is the one we check.
+  testWidgets(
+    'the month header follows the app locale (German August → "August")',
+    (tester) async {
+      await tester.pumpWidget(_app(locale: const Locale('de')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('August 2026'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the month header follows the app locale (Spanish August → "agosto")',
+    (tester) async {
+      await tester.pumpWidget(_app(locale: const Locale('es')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('agosto de 2026'), findsOneWidget);
+    },
+  );
+
+  testWidgets('the month header stays English when the app is English',
+      (tester) async {
+    await tester.pumpWidget(_app(locale: const Locale('en')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('August 2026'), findsOneWidget);
   });
 }
