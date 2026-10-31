@@ -92,6 +92,53 @@ class TrackedDayEntity extends Equatable {
     );
   }
 
+  /// A copy with only the fields the caller passes replaced. Used where a
+  /// stored row needs its goals re-stamped for display without touching
+  /// the tracked totals or metadata (e.g. the Diary showing the logical
+  /// today under the current macro split, #1441).
+  TrackedDayEntity copyWith({
+    DateTime? day,
+    double? calorieGoal,
+    double? caloriesTracked,
+    double? carbsGoal,
+    double? carbsTracked,
+    double? fatGoal,
+    double? fatTracked,
+    double? proteinGoal,
+    double? proteinTracked,
+    double? fibreGoal,
+    double? satFatGoal,
+    double? sugarsGoal,
+    double? sodiumGoal,
+    double? calciumGoal,
+    double? ironGoal,
+    double? potassiumGoal,
+    double? vitaminDGoal,
+    double? vitaminB12Goal,
+    double? magnesiumGoal,
+  }) =>
+      TrackedDayEntity(
+        day: day ?? this.day,
+        calorieGoal: calorieGoal ?? this.calorieGoal,
+        caloriesTracked: caloriesTracked ?? this.caloriesTracked,
+        carbsGoal: carbsGoal ?? this.carbsGoal,
+        carbsTracked: carbsTracked ?? this.carbsTracked,
+        fatGoal: fatGoal ?? this.fatGoal,
+        fatTracked: fatTracked ?? this.fatTracked,
+        proteinGoal: proteinGoal ?? this.proteinGoal,
+        proteinTracked: proteinTracked ?? this.proteinTracked,
+        fibreGoal: fibreGoal ?? this.fibreGoal,
+        satFatGoal: satFatGoal ?? this.satFatGoal,
+        sugarsGoal: sugarsGoal ?? this.sugarsGoal,
+        sodiumGoal: sodiumGoal ?? this.sodiumGoal,
+        calciumGoal: calciumGoal ?? this.calciumGoal,
+        ironGoal: ironGoal ?? this.ironGoal,
+        potassiumGoal: potassiumGoal ?? this.potassiumGoal,
+        vitaminDGoal: vitaminDGoal ?? this.vitaminDGoal,
+        vitaminB12Goal: vitaminB12Goal ?? this.vitaminB12Goal,
+        magnesiumGoal: magnesiumGoal ?? this.magnesiumGoal,
+      );
+
   // TODO: make enum class for rating
   Color getCalendarDayRatingColor(BuildContext context) {
     if (_hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked)) {
