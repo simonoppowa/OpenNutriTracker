@@ -24,6 +24,13 @@ class RecipeBuilderState extends Equatable {
   final SaveError? saveError;
   final String? errorMessage;
 
+  /// True once the user has edited any field after the builder loaded. It
+  /// is set by every mutator event and cleared on initialize and save, so
+  /// the "Discard changes?" prompt only fires on a Back after a real edit
+  /// (#1443). An existing recipe loads with its fields already populated,
+  /// so "any field non-empty" is the wrong signal.
+  final bool isDirty;
+
   const RecipeBuilderState({
     required this.id,
     required this.name,
@@ -40,6 +47,7 @@ class RecipeBuilderState extends Equatable {
     required this.didSave,
     required this.saveError,
     required this.errorMessage,
+    required this.isDirty,
   });
 
   factory RecipeBuilderState.initial() => RecipeBuilderState(
@@ -58,6 +66,7 @@ class RecipeBuilderState extends Equatable {
         didSave: false,
         saveError: null,
         errorMessage: null,
+        isDirty: false,
       );
 
   RecipeBuilderState copyWith({
@@ -76,6 +85,7 @@ class RecipeBuilderState extends Equatable {
     bool? didSave,
     SaveError? saveError,
     String? errorMessage,
+    bool? isDirty,
     bool clearServingsCount = false,
     bool clearSaveError = false,
     bool clearImagePath = false,
@@ -99,6 +109,7 @@ class RecipeBuilderState extends Equatable {
       didSave: didSave ?? this.didSave,
       saveError: clearSaveError ? null : (saveError ?? this.saveError),
       errorMessage: errorMessage ?? this.errorMessage,
+      isDirty: isDirty ?? this.isDirty,
     );
   }
 
@@ -119,5 +130,6 @@ class RecipeBuilderState extends Equatable {
         didSave,
         saveError,
         errorMessage,
+        isDirty,
       ];
 }

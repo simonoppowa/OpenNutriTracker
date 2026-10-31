@@ -164,4 +164,45 @@ void main() {
     expect(find.text(l10nEn.recipeTotalWeightManualHelper), findsOneWidget);
     expect(reset(), findsOneWidget);
   });
+
+  // #1443: opening an existing recipe pre-populates every editable field,
+  // so the old any-field-non-empty signal reported dirty right after load
+  // and Back asked to discard without the user having touched anything.
+  // After the fix, the discard prompt only fires when a real edit changed
+  // the state.
+  group('discard-on-Back', () {
+    Finder discardTitle() => find.text(l10nEn.discardChangesTitle);
+
+    Future<void> pressBack(WidgetTester tester) async {
+      final element = tester.element(find.byType(RecipeBuilderScreen));
+      Navigator.of(element).maybePop();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'an existing recipe left untouched does not ask to discard',
+      (tester) async {
+        await pumpBuilder(tester, _soup(totalWeightG: 720));
+
+        await pressBack(tester);
+
+        expect(discardTitle(), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'typing a new total weight brings the discard prompt back',
+      (tester) async {
+        await pumpBuilder(tester, _soup(totalWeightG: 800));
+
+        await tester.ensureVisible(weightField());
+        await tester.enterText(weightField(), '650');
+        await tester.pumpAndSettle();
+
+        await pressBack(tester);
+
+        expect(discardTitle(), findsOneWidget);
+      },
+    );
+  });
 }
