@@ -330,12 +330,11 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
 
   bool _hasUnsavedChanges(RecipeBuilderState state) {
     if (state.didSave || state.isSaving) return false;
-    return state.name.trim().isNotEmpty ||
-        (state.description?.trim().isNotEmpty ?? false) ||
-        state.ingredients.isNotEmpty ||
-        state.servingsCount != null ||
-        state.tags.isNotEmpty ||
-        state.imagePath != null;
+    // Any-field-non-empty is wrong for an existing recipe: the fields come
+    // in populated by _onInitialize and would always report dirty, so Back
+    // asked to discard even when nothing was touched (#1443). The bloc
+    // sets isDirty on every real mutator event, so the check is just that.
+    return state.isDirty;
   }
 
   Future<bool?> _confirmDiscard(BuildContext context) {
