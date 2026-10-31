@@ -101,7 +101,7 @@ every call site that sends the key:
 - It is written through `flutter_secure_storage` to the platform keystore, using
   the hardened options on
   [`SecureAppStorageProvider`](../lib/core/utils/secure_app_storage_provider.dart)
-  — `AES_CBC_PKCS7Padding` and `resetOnError: false`.
+  — AES-GCM (the plugin default) and `resetOnError: false`.
 - `readApiKey` is called at request time and the value is not retained: the
   class documents this as *"nothing should hold a credential in memory longer
   than the request that needs it."*
