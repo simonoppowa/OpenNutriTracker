@@ -71,6 +71,13 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           Dimens.spacing12,
         ),
         child: TableCalendar(
+          // Without this, `table_calendar` falls back to `en_US` and the
+          // month header, day-of-week headings and selected-day label stay
+          // English while the rest of the Diary follows the app locale
+          // (#1442). `GlobalMaterialLocalizations` is wired in `main.dart`,
+          // so the intl date symbols for every supported locale are already
+          // loaded by the time this builds.
+          locale: Localizations.localeOf(context).toLanguageTag(),
           headerStyle: HeaderStyle(
             titleCentered: true,
             formatButtonVisible: false,
