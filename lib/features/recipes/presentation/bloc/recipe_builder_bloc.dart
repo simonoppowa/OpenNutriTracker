@@ -16,6 +16,12 @@ class RecipeBuilderBloc
   final ComputeRecipeNutritionUseCase _computeUseCase;
   final SaveRecipeUseCase _saveUseCase;
 
+  /// The state an existing recipe opened with, after the first recompute.
+  /// An opened recipe is never empty, so Back compares against this to
+  /// tell whether anything was edited (#1443).
+  RecipeBuilderState? get loadedState => _loadedState;
+  RecipeBuilderState? _loadedState;
+
   RecipeBuilderBloc(this._computeUseCase, this._saveUseCase)
       : super(RecipeBuilderState.initial()) {
     on<InitializeBuilderEvent>(_onInitialize);
@@ -85,6 +91,7 @@ class RecipeBuilderBloc
         ),
       );
       _recompute(emit);
+      _loadedState = state;
     }
   }
 

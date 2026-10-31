@@ -164,4 +164,69 @@ void main() {
     expect(find.text(l10nEn.recipeTotalWeightManualHelper), findsOneWidget);
     expect(reset(), findsOneWidget);
   });
+
+  /// Pushed over a blank page, as the recipe detail screen opens it, so
+  /// that Back has somewhere to go.
+  Future<void> pumpPushedBuilder(
+    WidgetTester tester,
+    RecipeEntity existing,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final navigator = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      ChangeNotifierProvider<EnergyUnitProvider>(
+        create: (_) => EnergyUnitProvider(),
+        child: MaterialApp(
+          navigatorKey: navigator,
+          localizationsDelegates: const [S.delegate],
+          supportedLocales: S.supportedLocales,
+          home: const Scaffold(),
+        ),
+      ),
+    );
+    navigator.currentState!.push(
+      MaterialPageRoute<void>(
+        settings: RouteSettings(
+          arguments: RecipeBuilderArguments(existing: existing),
+        ),
+        builder: (_) => const RecipeBuilderScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  // #1443: an opened recipe is never empty, so Back asked to discard
+  // changes even when nothing had been touched.
+  for (final totalWeightG in [800.0, 720.0]) {
+    testWidgets(
+        'Back leaves an unedited recipe without asking '
+        '(total ${totalWeightG.toStringAsFixed(0)} g)', (tester) async {
+      await pumpPushedBuilder(tester, _soup(totalWeightG: totalWeightG));
+      expect(find.byType(RecipeBuilderScreen), findsOneWidget);
+
+      // What Android's back gesture delivers.
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.discardChangesTitle), findsNothing);
+      expect(find.byType(RecipeBuilderScreen), findsNothing);
+    });
+  }
+
+  testWidgets('Back still asks once the recipe was edited', (tester) async {
+    await pumpPushedBuilder(tester, _soup(totalWeightG: 800));
+
+    await tester.enterText(
+      find.widgetWithText(TextField, l10nEn.recipeNameLabel),
+      'Soup with leeks',
+    );
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nEn.discardChangesTitle), findsOneWidget);
+    expect(find.byType(RecipeBuilderScreen), findsOneWidget);
+  });
 }

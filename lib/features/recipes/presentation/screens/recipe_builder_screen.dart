@@ -330,6 +330,9 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
 
   bool _hasUnsavedChanges(RecipeBuilderState state) {
     if (state.didSave || state.isSaving) return false;
+    // An opened recipe is never empty, so the checks below would always
+    // ask. Compare it with what was loaded instead (#1443).
+    if (state.isExistingRecipe) return state != _bloc.loadedState;
     return state.name.trim().isNotEmpty ||
         (state.description?.trim().isNotEmpty ?? false) ||
         state.ingredients.isNotEmpty ||
