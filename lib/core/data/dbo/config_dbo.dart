@@ -212,6 +212,8 @@ class ConfigDBO extends HiveObject {
   // about the device.
   @HiveField(41)
   bool? localeSyncSeeded;
+  @HiveField(42)
+  bool? useTextForWeightInput;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -253,6 +255,7 @@ class ConfigDBO extends HiveObject {
     this.defaultToRawFoodUnits,
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
+    this.useTextForWeightInput,
   });
 
   factory ConfigDBO.empty() =>

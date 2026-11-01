@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:horizontal_picker/horizontal_picker.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_picker_bounds.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -39,12 +41,14 @@ class SetTargetWeightDialog extends StatefulWidget {
   final bool hasExistingTarget;
 
   final BodyWeightUnit unit;
+  final ConfigRepository? configRepository;
 
   const SetTargetWeightDialog({
     super.key,
     required this.initialKg,
     required this.hasExistingTarget,
     required this.unit,
+    this.configRepository,
   });
 
   @override
@@ -52,17 +56,50 @@ class SetTargetWeightDialog extends StatefulWidget {
 }
 
 class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
+  late final ConfigRepository? _configRepository =
+      widget.configRepository ??
+      (locator.isRegistered<ConfigRepository>()
+          ? locator<ConfigRepository>()
+          : null);
+
   // Picker display value for kg / lb paths.
   late double _pickerDisplayWeight;
 
-  // Stones path: kg from BodyWeightInput, null if invalid/empty.
-  double? _stKg;
+  // Text input path: kg from BodyWeightInput, null if invalid/empty.
+  double? _textKg;
+
+  bool _useTextInput = false;
+
+  bool get _isTextMode => widget.unit == BodyWeightUnit.st || _useTextInput;
 
   @override
   void initState() {
     super.initState();
     _pickerDisplayWeight = _toDisplay(widget.initialKg);
-    _stKg = widget.initialKg;
+    _textKg = widget.initialKg;
+    _loadInputPreference();
+  }
+
+  Future<void> _loadInputPreference() async {
+    final useText =
+        await _configRepository?.getUseTextForWeightInput() ?? false;
+    if (!mounted) return;
+    setState(() {
+      _useTextInput = useText;
+    });
+  }
+
+  Future<void> _toggleInputMode(bool useText) async {
+    if (_useTextInput == useText) return;
+    setState(() {
+      _useTextInput = useText;
+      if (useText) {
+        _textKg = _pickerWeightToKg(_pickerDisplayWeight);
+      } else if (_textKg != null) {
+        _pickerDisplayWeight = _toDisplay(_textKg!);
+      }
+    });
+    await _configRepository?.setUseTextForWeightInput(useText);
   }
 
   double _toDisplay(double kg) {
@@ -89,8 +126,8 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
 
   void _submitValue() {
     final double kg;
-    if (widget.unit == BodyWeightUnit.st) {
-      final valid = _stKg;
+    if (_isTextMode) {
+      final valid = _textKg;
       if (valid == null) {
         Navigator.of(context).pop();
         return;
@@ -114,39 +151,76 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
     final maxWeight = maxSelectableWeight(_pickerDisplayWeight, isImperial);
 
     return AlertDialog(
-      title: Text(S.of(context).profileTargetWeightLabel),
-      content: Wrap(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            children: [
-              if (widget.unit == BodyWeightUnit.st)
-                BodyWeightInput(
-                  initialKg: widget.initialKg,
-                  unit: BodyWeightUnit.st,
-                  identifierPrefix: 'set-target-weight-dialog',
-                  autofocus: true,
-                  onChangedKg: (kg) => setState(() => _stKg = kg),
-                )
-              else
-                HorizontalPicker(
-                  height: 100,
-                  backgroundColor: Colors.transparent,
-                  minValue: minWeight,
-                  maxValue: maxWeight,
-                  initialPosition: InitialPosition.center,
-                  divisions: 1000,
-                  suffix: isImperial
-                      ? S.of(context).lbsLabel
-                      : S.of(context).kgLabel,
-                  onChanged: (value) {
-                    setState(() {
-                      _pickerDisplayWeight = value;
-                    });
-                  },
-                ),
-            ],
+          Expanded(
+            child: Text(
+              S.of(context).profileTargetWeightLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          if (widget.unit != BodyWeightUnit.st) ...[
+            const SizedBox(width: 12),
+            Semantics(
+              identifier: 'target-weight-dialog-mode-toggle',
+              child: SegmentedButton<bool>(
+                showSelectedIcon: false,
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                segments: const [
+                  ButtonSegment<bool>(
+                    value: false,
+                    icon: Icon(Icons.linear_scale, size: 18),
+                  ),
+                  ButtonSegment<bool>(
+                    value: true,
+                    icon: Icon(Icons.keyboard_alt_outlined, size: 18),
+                  ),
+                ],
+                selected: {_useTextInput},
+                onSelectionChanged: (selection) =>
+                    _toggleInputMode(selection.first),
+              ),
+            ),
+          ],
         ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_isTextMode)
+              BodyWeightInput(
+                initialKg: _textKg ?? widget.initialKg,
+                unit: widget.unit,
+                identifierPrefix: 'set-target-weight-dialog',
+                autofocus: true,
+                onChangedKg: (kg) => setState(() => _textKg = kg),
+              )
+            else
+              HorizontalPicker(
+                height: 100,
+                backgroundColor: Colors.transparent,
+                minValue: minWeight,
+                maxValue: maxWeight,
+                initialPosition: InitialPosition.center,
+                divisions: 1000,
+                suffix: isImperial
+                    ? S.of(context).lbsLabel
+                    : S.of(context).kgLabel,
+                onChanged: (value) {
+                  setState(() {
+                    _pickerDisplayWeight = value;
+                  });
+                },
+              ),
+          ],
+        ),
       ),
       actions: <Widget>[
         if (widget.hasExistingTarget)

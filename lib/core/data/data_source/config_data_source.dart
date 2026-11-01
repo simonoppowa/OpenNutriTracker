@@ -386,6 +386,13 @@ class ConfigDataSource {
     await _update((c) => c.scannerPortraitLock = value);
   }
 
+  Future<bool> getUseTextForWeightInput() async =>
+      _readMerged().useTextForWeightInput ?? false;
+
+  Future<void> setUseTextForWeightInput(bool useText) async {
+    await _update((c) => c.useTextForWeightInput = useText);
+  }
+
   /// Per-source enable flags for the food search, keyed by backend
   /// food_source code. Null means the user never touched the setting —
   /// every source is enabled. Returned as a defensive copy.
