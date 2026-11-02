@@ -19,6 +19,7 @@ void main() {
   late List<String> calls;
   late Set<String> groups;
   late List<MapEntry<String, Object?>> saves;
+  Map<Object?, Object?> _lastUpdateArgs = {};
   String? failOn;
 
   setUp(() {
@@ -27,6 +28,7 @@ void main() {
     failOn = null;
     calls = [];
     groups = {};
+    _lastUpdateArgs = {};
     PackageInfo.setMockInitialValues(
       appName: 'OpenNutriTracker',
       packageName: 'com.opennutritracker.ont.opennutritracker',
@@ -37,6 +39,9 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
           calls.add(call.method);
+          if (call.method == 'updateWidget') {
+            _lastUpdateArgs = (call.arguments as Map<Object?, Object?>?) ?? {};
+          }
           final args = call.arguments as Map<Object?, Object?>?;
           groups.addAll(
             [args?['appGroupId'], args?['groupId']].whereType<String>(),
@@ -80,7 +85,7 @@ void main() {
   const labelsKey = CalorieWidgetLabels.storageKey;
 
   test('a snapshot is one stored value, with the labels for its figures', () async {
-    final store = HomeWidgetCalorieStore(isIOS: false);
+    final store = HomeWidgetCalorieStore();
 
     await store.write(snapshot, german);
 
@@ -103,8 +108,73 @@ void main() {
     });
   });
 
+  test('a snapshot with macros keeps the ring keys and adds the rows', () async {
+    // Older readers (the iOS extension today) decode only the keys they
+    // know, so the macros travel as an addition, never a reshape.
+    final store = HomeWidgetCalorieStore();
+    final withMacros = CalorieWidgetSnapshot.fromHome(
+      consumedKcal: 180,
+      goalKcal: 2000,
+      offsetMinutes: 0,
+      now: DateTime(2026, 9, 23, 13, 0),
+      macros: const CalorieWidgetMacros(
+        proteinIntakeG: 9,
+        proteinGoalG: 75,
+        carbsIntakeG: 20,
+        carbsGoalG: 300,
+        fatsIntakeG: 4,
+        fatsGoalG: 67,
+      ),
+    );
+
+    await store.write(withMacros, german);
+
+    expect(jsonDecode(stored[snapshotKey]! as String), {
+      'hasData': true,
+      'day': '2026-09-23',
+      'offsetMinutes': 0,
+      'consumed': 180,
+      'goal': 2000,
+      'macros': {
+        'protein': {'g': 9, 'goalG': 75},
+        'carbs': {'g': 20, 'goalG': 300},
+        'fat': {'g': 4, 'goalG': 67},
+      },
+      'labels': german.figureJson(),
+    });
+
+    // A language change rewrites only the labels around the figures; the
+    // macro rows survive untouched.
+    await store.relabel(lookupS(const Locale('en')));
+    expect(jsonDecode(stored[snapshotKey]! as String)['macros'], {
+      'protein': {'g': 9, 'goalG': 75},
+      'carbs': {'g': 20, 'goalG': 300},
+      'fat': {'g': 4, 'goalG': 67},
+    });
+  });
+
+  test('a write tells the Android provider to re-read as well', () async {
+    final store = HomeWidgetCalorieStore();
+
+    await store.write(snapshot, german);
+    calls.clear();
+
+    await store.clear();
+
+    // A placed Android widget drops the figures the same moment the
+    // extension does.
+    expect(calls.last, 'updateWidget');
+    // The qualified name is identical for both flavours, so a develop
+    // install reaches its own provider without the suffix problem.
+    expect(
+      _lastUpdateArgs['qualifiedAndroidName'],
+      CalorieWidgetSnapshot.androidWidgetQualifiedName,
+    );
+    expect(_lastUpdateArgs['ios'], CalorieWidgetSnapshot.iosWidgetKind);
+  });
+
   test('clear removes the figures and keeps the translated labels', () async {
-    final store = HomeWidgetCalorieStore(isIOS: false);
+    final store = HomeWidgetCalorieStore();
     await store.write(snapshot, german);
 
     await store.clear();
@@ -117,7 +187,7 @@ void main() {
   test('a write that fails leaves the previous snapshot whole', () async {
     // Yesterday's snapshot must not be read with today's day id and half
     // of today's figures.
-    final store = HomeWidgetCalorieStore(isIOS: false);
+    final store = HomeWidgetCalorieStore();
     await store.write(snapshot, german);
     final today = CalorieWidgetSnapshot.fromHome(
       consumedKcal: 640,
@@ -138,7 +208,7 @@ void main() {
   test('a write read before a clear is dropped, a fresh one is not', () async {
     // Home read the outgoing profile's totals, then a profile switch or
     // delete-all cleared the widget before Home published them.
-    final store = HomeWidgetCalorieStore(isIOS: false);
+    final store = HomeWidgetCalorieStore();
     final readAt = store.generation;
     await store.clear();
 
@@ -152,7 +222,7 @@ void main() {
   test('a write and a clear issued together leave no figures', () async {
     // They run one at a time, so the clear cannot land between the write's
     // two values.
-    final store = HomeWidgetCalorieStore(isIOS: false);
+    final store = HomeWidgetCalorieStore();
     await Future.wait([
       store.write(snapshot, german, generation: store.generation),
       store.clear(),
@@ -162,7 +232,7 @@ void main() {
   });
 
   test('clear reloads the iOS widget so it drops the old figures', () async {
-    final store = HomeWidgetCalorieStore(isIOS: true);
+    final store = HomeWidgetCalorieStore();
     await store.write(snapshot, german);
     calls.clear();
 
@@ -196,7 +266,6 @@ void main() {
       // `just dev_seed` next to the App Store build: its demo figures and
       // its wipe must stay in the develop group.
       final store = HomeWidgetCalorieStore(
-        isIOS: true,
         bundleId: () async =>
             'com.opennutritracker.ont.opennutritracker.develop',
       );
@@ -209,7 +278,7 @@ void main() {
     });
 
     test('by default the group comes from the running bundle id', () async {
-      final store = HomeWidgetCalorieStore(isIOS: true);
+      final store = HomeWidgetCalorieStore();
 
       await store.write(snapshot, german);
 
@@ -226,7 +295,7 @@ void main() {
     );
 
     test('relabel translates the labels around the stored figures', () async {
-      final store = HomeWidgetCalorieStore(isIOS: true);
+      final store = HomeWidgetCalorieStore();
       await store.write(snapshot, english);
       calls.clear();
 
@@ -240,7 +309,7 @@ void main() {
     });
 
     test('relabel after a wipe writes no figure labels', () async {
-      final store = HomeWidgetCalorieStore(isIOS: false);
+      final store = HomeWidgetCalorieStore();
       await store.write(snapshot, english);
       await store.clear();
 
