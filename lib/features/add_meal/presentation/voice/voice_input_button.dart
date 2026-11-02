@@ -13,7 +13,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// text so the screen can match it straight away. What was already typed is
 /// kept, and dictation appends to it.
 ///
-/// The chip offers the app language, the device language and English, so a
+/// The chip offers the app language, the device languages and English, so a
 /// bilingual user can switch without changing either setting. The choice is
 /// remembered.
 ///
@@ -78,12 +78,16 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
     setState(() => _language = DictationLanguage(stored!));
   }
 
-  /// The app language, the device language and English, without repeats.
+  /// The app language, every language in the device's preference list,
+  /// and English, without repeats.
+  ///
+  /// The whole list rather than the first entry: a phone set to "English,
+  /// Spanish" is exactly the bilingual user this chip is for, and reading
+  /// only the first language left them with nothing to switch to.
   List<DictationLanguage> _offered(BuildContext context) => {
     DictationLanguage(Localizations.localeOf(context).languageCode),
-    DictationLanguage(
-      WidgetsBinding.instance.platformDispatcher.locale.languageCode,
-    ),
+    for (final locale in WidgetsBinding.instance.platformDispatcher.locales)
+      DictationLanguage(locale.languageCode),
     DictationLanguage.english,
   }.toList();
 

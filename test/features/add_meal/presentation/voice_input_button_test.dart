@@ -165,6 +165,8 @@ void main() {
   testWidgets('offers the app language beside English, not a fixed list', (
     tester,
   ) async {
+    tester.platformDispatcher.localesTestValue = const [Locale('en', 'US')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     await pump(tester, locale: const Locale('de'));
     await tester.pumpAndSettle();
     expect(find.text('DE'), findsOneWidget);
@@ -175,6 +177,32 @@ void main() {
     await tester.pumpAndSettle();
     // The test device is en_US, so German and English are the whole cycle.
     expect(find.text('DE'), findsOneWidget);
+  });
+
+  testWidgets('offers every device language, not only the first', (
+    tester,
+  ) async {
+    // The phone this was found on: "English (Germany), Spanish (US)", app
+    // in English. Reading only the first device language left the chip with
+    // nothing to switch to.
+    tester.platformDispatcher.localesTestValue = const [
+      Locale('en', 'DE'),
+      Locale('es', 'US'),
+    ];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+    await pump(tester, locale: const Locale('en'));
+    await tester.pumpAndSettle();
+    expect(find.text('EN'), findsOneWidget);
+    await tester.tap(find.text('EN'));
+    await tester.pumpAndSettle();
+    expect(find.text('ES'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.mic_rounded));
+    await tester.pump();
+    expect(service.languages.single, const DictationLanguage('es'));
+    service.endSegment();
+    await tester.pump(const Duration(seconds: 1));
   });
 
   testWidgets('a denied permission is explained', (tester) async {

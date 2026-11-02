@@ -102,8 +102,9 @@ class SpeechToTextDictationService implements DictationService {
     end?.call();
   }
 
-  /// The recognizer locale for [language], preferring the device's own
-  /// region ("es_AR" on an Argentine phone) over a generic one.
+  /// The recognizer locale for [language], preferring the region the device
+  /// lists for that language ("es_AR" on an Argentine phone) over a
+  /// generic one.
   Future<String> _localeIdFor(DictationLanguage language) async {
     final cached = _localeIds[language];
     if (cached != null) return cached;
@@ -113,7 +114,18 @@ class SpeechToTextDictationService implements DictationService {
       final available = (await _speech.locales())
           .map((l) => l.localeId.replaceAll('-', '_'))
           .toList();
-      final country = PlatformDispatcher.instance.locale.countryCode;
+      // The region the user pairs with this language on the device: a
+      // phone set to "English (Germany), Spanish (US)" dictates Spanish as
+      // es_US, not es_DE.
+      final dispatcher = PlatformDispatcher.instance;
+      final country =
+          dispatcher.locales
+              .where(
+                (l) => l.languageCode == language.code && l.countryCode != null,
+              )
+              .map((l) => l.countryCode)
+              .firstOrNull ??
+          dispatcher.locale.countryCode;
       final regional = '${language.code}_$country';
       final system = (await _speech.systemLocale())?.localeId.replaceAll(
         '-',
