@@ -19,7 +19,7 @@ void main() {
   late List<String> calls;
   late Set<String> groups;
   late List<MapEntry<String, Object?>> saves;
-  Map<Object?, Object?> _lastUpdateArgs = {};
+  Map<Object?, Object?> lastUpdateArgs = {};
   String? failOn;
 
   setUp(() {
@@ -28,7 +28,7 @@ void main() {
     failOn = null;
     calls = [];
     groups = {};
-    _lastUpdateArgs = {};
+    lastUpdateArgs = {};
     PackageInfo.setMockInitialValues(
       appName: 'OpenNutriTracker',
       packageName: 'com.opennutritracker.ont.opennutritracker',
@@ -40,7 +40,7 @@ void main() {
         .setMockMethodCallHandler(channel, (call) async {
           calls.add(call.method);
           if (call.method == 'updateWidget') {
-            _lastUpdateArgs = (call.arguments as Map<Object?, Object?>?) ?? {};
+            lastUpdateArgs = (call.arguments as Map<Object?, Object?>?) ?? {};
           }
           final args = call.arguments as Map<Object?, Object?>?;
           groups.addAll(
@@ -167,10 +167,10 @@ void main() {
     // The qualified name is identical for both flavours, so a develop
     // install reaches its own provider without the suffix problem.
     expect(
-      _lastUpdateArgs['qualifiedAndroidName'],
+      lastUpdateArgs['qualifiedAndroidName'],
       CalorieWidgetSnapshot.androidWidgetQualifiedName,
     );
-    expect(_lastUpdateArgs['ios'], CalorieWidgetSnapshot.iosWidgetKind);
+    expect(lastUpdateArgs['ios'], CalorieWidgetSnapshot.iosWidgetKind);
   });
 
   test('clear removes the figures and keeps the translated labels', () async {
