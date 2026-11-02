@@ -23,6 +23,7 @@ import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart'
 import 'package:opennutritracker/features/add_meal/util/portion_label.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/add_meal/presentation/voice/voice_input_button.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/own_server_wait_indicator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -586,6 +587,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               keyboardType: TextInputType.multiline,
               decoration: InputDecoration(
                 hintText: S.of(context).bulkAddInputHint,
+                // Dictate the meal, then match it straight away.
+                suffixIcon: VoiceInputButton(
+                  controller: _textController,
+                  onDictated: (_) => _onParsePressed(),
+                ),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.secondaryContainer,
                 border: const OutlineInputBorder(

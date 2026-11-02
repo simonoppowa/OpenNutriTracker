@@ -94,6 +94,10 @@ dependencies:
   # sits behind HealthService so the plugin never loads under `flutter test`.
   health: ^13.3.2
 
+  # Dictating a meal on the Describe fields. Uses the platform recognizer
+  # (Android SpeechRecognizer / iOS SFSpeech); no audio is sent by the app.
+  speech_to_text: ^7.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

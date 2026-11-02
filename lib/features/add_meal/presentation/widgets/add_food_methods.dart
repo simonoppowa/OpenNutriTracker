@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/features/add_meal/presentation/voice/voice_input_button.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// The three ways into the add-food screen besides typing a search: scan a
@@ -254,6 +255,11 @@ class _DescribeMealPanelState extends State<DescribeMealPanel> {
                 hintText: S.of(context).bulkAddInputHint,
                 hintStyle: textTheme.bodyLarge?.copyWith(
                   color: palette.textMuted,
+                ),
+                // Dictate the meal and go straight to the matches.
+                suffixIcon: VoiceInputButton(
+                  controller: _controller,
+                  onDictated: widget.onFindFoods,
                 ),
                 filled: false,
                 border: InputBorder.none,

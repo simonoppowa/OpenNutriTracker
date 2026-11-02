@@ -61,6 +61,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>The microphone is used only while you tap the microphone on a meal description, so you can say what you ate instead of typing it.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Speech recognition turns what you say into the meal description text. The text is then matched against the food databases like a typed description.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera permission is used to scan barcodes, to attach a photo to a custom meal so it's easier to recognise in your saved list, and — only if you turn on AI meal assistance — to photograph a meal so the provider you configured can read what is in it. That photo is sent for that one request; the app saves no copy of its own and deletes the camera's temporary file as soon as it has been encoded, so the photo is not in your saved meals and not in your exports.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
