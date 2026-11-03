@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 Widget _app({
   double textScale = 1.0,
   Locale locale = const Locale('en'),
+  Map<String, TrackedDayEntity> trackedDaysMap = const {},
 }) =>
     MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
@@ -27,7 +29,7 @@ Widget _app({
             focusedDate: DateTime(2026, 8, 24),
             currentDate: DateTime(2026, 8, 24),
             selectedDate: DateTime(2026, 8, 24),
-            trackedDaysMap: const {},
+            trackedDaysMap: trackedDaysMap,
           ),
         ),
       ),
@@ -101,5 +103,37 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('August 2026'), findsOneWidget);
+  });
+
+  testWidgets('a day whose row counts nothing eaten gets no marker (#1440)',
+      (tester) async {
+    // A day-boundary move keeps the row of a day it left with no entries,
+    // for its goals, with nothing counted. Only the day that counts food
+    // is marked.
+    TrackedDayEntity day(int date, double tracked) => TrackedDayEntity(
+          day: DateTime(2026, 8, date),
+          calorieGoal: 2000,
+          caloriesTracked: tracked,
+          carbsTracked: tracked / 10,
+          fatTracked: 0,
+          proteinTracked: 0,
+        );
+    final eaten = day(20, 1800);
+    final kept = day(21, 0);
+    expect(eaten.hasConsumed, isTrue);
+    expect(kept.hasConsumed, isFalse);
+
+    await tester.pumpWidget(_app(
+      textScale: 1,
+      trackedDaysMap: {'2026-08-20': eaten, '2026-08-21': kept},
+    ));
+    await tester.pumpAndSettle();
+
+    final markers = find.byWidgetPredicate(
+      (w) =>
+          w is Container &&
+          w.constraints == const BoxConstraints.tightFor(width: 5, height: 5),
+    );
+    expect(markers, findsOneWidget);
   });
 }

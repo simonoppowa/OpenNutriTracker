@@ -141,7 +141,9 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           calendarBuilders: CalendarBuilders(
             markerBuilder: (context, date, events) {
               final trackedDay = widget.trackedDaysMap[date.toParsedDay()];
-              if (trackedDay != null) {
+              // A day with nothing eaten gets no marker, even with a row
+              // that keeps its goals (#1440).
+              if (trackedDay != null && trackedDay.hasConsumed) {
                 return Container(
                   margin: const EdgeInsets.only(top: 10),
                   padding: const EdgeInsets.all(1),
