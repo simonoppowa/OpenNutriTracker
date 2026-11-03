@@ -232,7 +232,8 @@ void main() {
           expect(library.getAllCustomMeals().first.code, 'unrelated');
 
           final corrected = edited!;
-          expect(corrected.nutriments.energyKcal100, 220);
+          // 920.5 kJ is approximately 220 kcal; saves retain conversion precision.
+          expect(corrected.nutriments.energyKcal100, closeTo(220, 0.01));
           expect(corrected.nutriments.carbohydrates100, 30);
           expect(corrected.nutriments.fiber100, 6);
           expect(corrected.code, _barcode);
@@ -262,7 +263,10 @@ void main() {
           var rescanned = await reopenedScanner.searchProductByBarcode(
             _barcode,
           );
-          expect(rescanned.nutriments.energyKcal100, saveForLater ? 220 : 180);
+          expect(
+            rescanned.nutriments.energyKcal100,
+            closeTo(saveForLater ? 220 : 180, 0.01),
+          );
           expect(
             rescanned.source,
             saveForLater ? MealSourceEntity.custom : MealSourceEntity.off,
@@ -282,7 +286,7 @@ void main() {
             expect(double.parse(rescanned.mealQuantity!), closeTo(400, 0.3));
             expect(rescanned.servingQuantity, closeTo(40, 0.1));
             expect(rescanned.mealUnit, 'g');
-            expect(rescanned.nutriments.energyKcal100, 220);
+            expect(rescanned.nutriments.energyKcal100, closeTo(220, 0.01));
             expect(rescanned.nutriments.fiber100, 6);
             expect(library.getAllCustomMeals(), hasLength(2));
           }
@@ -318,7 +322,10 @@ void main() {
             DateTime(2026, 10, 31),
           );
           await tester.pumpAndSettle();
-          expect(logged.intakes.single.meal.nutriments.energyKcal100, 220);
+          expect(
+            logged.intakes.single.meal.nutriments.energyKcal100,
+            closeTo(220, 0.01),
+          );
           expect(logged.intakes.single.totalKcal, closeTo(176, 0.5));
           expect(logged.intakes.single.totalCarbsGram, closeTo(24, 0.1));
           expect(totals.kcal, closeTo(176, 0.5));

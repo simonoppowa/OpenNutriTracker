@@ -146,8 +146,9 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       return nutrimentValue != null ? nutrimentValue * factorTo100g : null;
     }
 
+    // Only typed values use the input basis; old values are already per 100.
     double? fromTextOrOld(String? text, double? oldValue) =>
-        multiplyIfNotNull(text?.toDoubleOrNull() ?? oldValue);
+        multiplyIfNotNull(text?.toDoubleOrNull()) ?? oldValue;
 
     final newMealNutriments = MealNutrimentsEntity(
       energyKcal100: multiplyIfNotNull(kcalText.toDoubleOrNull()),
@@ -190,7 +191,16 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       // the meal-detail serving option read "Serving (50.0 50)" instead of
       // "Serving (50 g)" (#495).
       servingUnit: unitText,
-      servingSize: oldMealEntity.servingSize,
+      // Missing legacy units use the form's default, not an edited serving.
+      servingSize:
+          servingQuantityText.toDoubleOrNull() ==
+                  oldMealEntity.servingQuantity &&
+              unitText ==
+                  (oldMealEntity.servingUnit ??
+                      oldMealEntity.mealUnit ??
+                      'g/ml')
+          ? oldMealEntity.servingSize
+          : null,
       nutriments: newMealNutriments,
       // Food edits are personal data, not OFF records that hydration or a
       // refresh may replace. Recipes keep their separate library identity.
