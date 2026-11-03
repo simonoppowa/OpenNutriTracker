@@ -276,6 +276,8 @@ void main() {
       expect(_searchAll(), findsOneWidget);
       expect(_intakeUsecase.recentReads, readsBeforeTyping);
 
+      await tester.ensureVisible(_searchAll());
+      await tester.pumpAndSettle();
       await tester.tap(_searchAll());
       await tester.pumpAndSettle();
       expect(_search.offQueries, contains('zz'));
