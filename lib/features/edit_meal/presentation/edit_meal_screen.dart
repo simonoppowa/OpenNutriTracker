@@ -282,7 +282,19 @@ class _EditMealScreenState extends State<EditMealScreen> {
               return _getLoadingContent();
             } else if (state is EditMealLoadedState) {
               if (!_formModeHydrated) {
-                _formMode = state.formMode;
+                // Simple saves 100/100 g/ml; use Advanced when that would
+                // overwrite an existing food's package or serving metadata.
+                final canUseSimple =
+                    _mealEntity.source == MealSourceEntity.custom &&
+                    (_mealEntity.name == null ||
+                        (double.tryParse(_mealEntity.mealQuantity ?? '') ==
+                                100 &&
+                            _mealEntity.servingQuantity == 100 &&
+                            {'g/ml', 'gml'}.contains(_mealEntity.mealUnit) &&
+                            {'g/ml', 'gml'}.contains(_mealEntity.servingUnit)));
+                _formMode = canUseSimple
+                    ? state.formMode
+                    : CustomMealFormMode.advanced;
                 _formModeHydrated = true;
               }
               return _getLoadedContent(state.usesImperialUnits, usesKj);

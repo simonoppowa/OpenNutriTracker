@@ -106,27 +106,31 @@ class _NoIntakesRepository implements IntakeRepository {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
-MealEntity _meal(String code, {double kcal = 150, String name = 'Oats'}) =>
-    MealEntity(
-      code: code,
-      name: name,
-      url: null,
-      mealQuantity: '100',
-      mealUnit: 'g',
-      servingQuantity: null,
-      servingUnit: null,
-      servingSize: null,
-      nutriments: MealNutrimentsEntity(
-        energyKcal100: kcal,
-        carbohydrates100: null,
-        fat100: null,
-        proteins100: null,
-        sugars100: null,
-        saturatedFat100: null,
-        fiber100: null,
-      ),
-      source: MealSourceEntity.custom,
-    );
+MealEntity _meal(
+  String code, {
+  double kcal = 150,
+  String name = 'Oats',
+  MealSourceEntity source = MealSourceEntity.custom,
+}) => MealEntity(
+  code: code,
+  name: name,
+  url: null,
+  mealQuantity: '100',
+  mealUnit: 'g',
+  servingQuantity: null,
+  servingUnit: null,
+  servingSize: null,
+  nutriments: MealNutrimentsEntity(
+    energyKcal100: kcal,
+    carbohydrates100: null,
+    fat100: null,
+    proteins100: null,
+    sugars100: null,
+    saturatedFat100: null,
+    fiber100: null,
+  ),
+  source: source,
+);
 
 RecipeEntity _recipe(String name) => RecipeEntity(
   id: 'r1',
@@ -202,6 +206,50 @@ void main() {
     await recipeBox.deleteFromDisk();
     await profileBox.deleteFromDisk();
   });
+
+  test(
+    'saving an OFF correction moves existing stars to the personal food in every profile',
+    () async {
+      final original = _meal('4006381333931', source: MealSourceEntity.off);
+      for (final id in ['a', 'b']) {
+        await favourites[id]!.put(
+          'off:4006381333931',
+          _favourite(original, starredAt),
+        );
+      }
+      final bloc = EditMealBloc(
+        _FakeGetConfigUsecase(),
+        CustomMealDataSource(provider),
+        _FakeConfigRepository(),
+        repository,
+        _NoIntakesRepository(),
+      );
+      addTearDown(bloc.close);
+      final corrected = bloc.createNewMealEntity(
+        original,
+        'Personal oats',
+        '',
+        '400',
+        '40',
+        '100',
+        'g',
+        '180',
+        '20',
+        '8',
+        '7',
+      );
+      await bloc.saveCustomMeal(corrected, previous: original);
+      for (final id in ['a', 'b']) {
+        provider.activate(id);
+        final shown = await repository.getAllFavourites();
+        expect(shown.single.source, MealSourceEntity.custom);
+        expect(shown.single.nutriments.energyKcal100, 180);
+        expect(favourites[id]!.values.single.addedAt, starredAt);
+        expect(favourites[id]!.containsKey('off:4006381333931'), isFalse);
+      }
+      expect(favourites['c']!.isEmpty, isTrue);
+    },
+  );
 
   test(
     'a custom meal deleted in one profile keeps its latest version in every '

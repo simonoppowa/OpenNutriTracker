@@ -135,6 +135,43 @@ void main() {
   IntakeDBO storedIntake(Box<IntakeDBO> box, String id) =>
       box.values.singleWhere((intake) => intake.id == id);
 
+  test(
+    'saving a scanned correction leaves existing intakes in every profile unchanged',
+    () async {
+      final original = customMeal(
+        code: '4006381333931',
+        name: 'Scanned oats',
+        source: MealSourceEntity.off,
+      );
+      await intakeBox.add(intakeOf('original', original));
+      await otherIntakeBox.add(intakeOf('other-profile', original));
+      final corrected = bloc.createNewMealEntity(
+        original,
+        'Personal oats',
+        '',
+        '400',
+        '40',
+        '100',
+        'g',
+        '180',
+        '20',
+        '8',
+        '7',
+      );
+      await bloc.saveCustomMeal(corrected, previous: original);
+      for (final box in [intakeBox, otherIntakeBox]) {
+        final intake = box.values.single;
+        expect(intake.meal.source, MealSourceDBO.off);
+        expect(intake.meal.nutriments.energyKcal100, 89);
+        expect(intake.meal.code, '4006381333931');
+        expect(intake.amount, 100);
+        expect(intake.dateTime, day);
+      }
+      expect(customMealBox.values.single.source, MealSourceDBO.custom);
+      expect(customMealBox.values.single.nutriments.energyKcal100, 180);
+    },
+  );
+
   test('renaming a meal without a barcode renames its past diary entries, '
       'and keeps what they logged', () async {
     final banana = customMeal(code: null, name: 'Banana');

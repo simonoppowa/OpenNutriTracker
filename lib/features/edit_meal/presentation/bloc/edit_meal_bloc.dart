@@ -192,7 +192,12 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       servingUnit: unitText,
       servingSize: oldMealEntity.servingSize,
       nutriments: newMealNutriments,
-      source: oldMealEntity.source,
+      // Food edits are personal data, not OFF records that hydration or a
+      // refresh may replace. Recipes keep their separate library identity.
+      source: oldMealEntity.source == MealSourceEntity.recipe
+          ? MealSourceEntity.recipe
+          : MealSourceEntity.custom,
+      detailed: true,
       // #64 follow-up: a freshly-picked local photo wins over what was
       // on the old entity; a clear flag means the user removed the
       // photo and the slug should be wiped from the saved meal.
