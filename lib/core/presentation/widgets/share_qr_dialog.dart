@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -37,9 +38,37 @@ class ShareQrDialog extends StatefulWidget {
 
 class _ShareQrDialogState extends State<ShareQrDialog> {
   static const int _errorCorrectionLevel = QrErrorCorrectLevel.M;
-  static const int _quietZoneModules = 3;
+  static const int _quietZoneModules = 4;
 
   final GlobalKey _shareButtonKey = GlobalKey();
+  late QrValidationResult _validation = _validateQr();
+
+  @override
+  void didUpdateWidget(covariant ShareQrDialog oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.code != widget.code) _validation = _validateQr();
+  }
+
+  QrValidationResult _validateQr() {
+    final result = QrValidator.validate(
+      data: widget.code,
+      version: QrVersions.auto,
+      errorCorrectionLevel: _errorCorrectionLevel,
+    );
+    if (!result.isValid || result.qrCode == null) return result;
+    try {
+      // qr defers the version-40 capacity check until matrix generation.
+      QrImage(result.qrCode!);
+      return result;
+    } on InputTooLongException catch (error) {
+      return QrValidationResult(
+        status: QrValidationStatus.contentTooLong,
+        error: error,
+      );
+    } on Exception catch (error) {
+      return QrValidationResult(status: QrValidationStatus.error, error: error);
+    }
+  }
 
   static final ButtonStyle _pillStyle = OutlinedButton.styleFrom(
     shape: const StadiumBorder(),
@@ -47,46 +76,76 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final qr = _validation.qrCode;
+    final screen = MediaQuery.sizeOf(context);
+    // Keep the whole QR visible, leaving room for the title and actions.
+    final availableSize = math.max(
+      0.0,
+      math.min(screen.width - 80, screen.height - 240),
+    );
+    final size = math.min(
+      math.max(260.0, ((qr?.moduleCount ?? 0) + 2 * _quietZoneModules) * 4.0),
+      availableSize,
+    );
     return AlertDialog(
+      insetPadding: const EdgeInsets.all(16),
+      constraints: BoxConstraints(maxWidth: size + 48),
       title: Text(widget.title),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: 260,
-              height: 260,
-              child: QrImageView(
-                data: widget.code,
-                version: QrVersions.auto,
-                errorCorrectionLevel: _errorCorrectionLevel,
-                backgroundColor: Colors.white,
-                padding: const EdgeInsets.all(16.0),
+            if (qr != null)
+              SizedBox.square(
+                dimension: size,
+                child: QrImageView.withQr(
+                  qr: qr,
+                  size: size,
+                  backgroundColor: Colors.white,
+                  padding: EdgeInsets.all(
+                    _quietZoneModules *
+                        size /
+                        (qr.moduleCount + 2 * _quietZoneModules),
+                  ),
+                  errorStateBuilder: (context, _) =>
+                      Text(S.of(context).shareQrUnavailableLabel),
+                ),
+              )
+            else
+              Text(
+                _validation.status == QrValidationStatus.contentTooLong
+                    ? S.of(context).shareQrTooLargeLabel
+                    : S.of(context).shareQrUnavailableLabel,
               ),
-            ),
             const SizedBox(height: Dimens.spacing12),
             Wrap(
               spacing: Dimens.spacing8,
               runSpacing: Dimens.spacing8,
               alignment: WrapAlignment.center,
               children: [
-                OutlinedButton.icon(
-                  style: _pillStyle,
-                  icon: const Icon(Icons.copy_rounded, size: 18),
-                  label: Text(S.of(context).copyCodeLabel),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: widget.code));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(S.of(context).codeCopiedLabel)),
-                    );
-                  },
+                Semantics(
+                  identifier: 'share-copy-code',
+                  child: OutlinedButton.icon(
+                    style: _pillStyle,
+                    icon: const Icon(Icons.copy_rounded, size: 18),
+                    label: Text(S.of(context).copyCodeLabel),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: widget.code));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(S.of(context).codeCopiedLabel)),
+                      );
+                    },
+                  ),
                 ),
-                OutlinedButton.icon(
-                  key: _shareButtonKey,
-                  style: _pillStyle,
-                  icon: const Icon(Icons.share_rounded, size: 18),
-                  label: Text(S.of(context).shareCodeLabel),
-                  onPressed: _share,
+                Semantics(
+                  identifier: 'share-code',
+                  child: OutlinedButton.icon(
+                    key: _shareButtonKey,
+                    style: _pillStyle,
+                    icon: const Icon(Icons.share_rounded, size: 18),
+                    label: Text(S.of(context).shareCodeLabel),
+                    onPressed: _share,
+                  ),
                 ),
               ],
             ),
@@ -119,23 +178,37 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
 
   Future<void> _share() async {
     final origin = _shareButtonOrigin();
+    final sharePlus = widget.sharePlus ?? SharePlus.instance;
+    final qr = _validation.qrCode;
+    if (qr != null) {
+      try {
+        final qrBytes = widget.qrImageRenderer != null
+            ? await widget.qrImageRenderer!(widget.code)
+            : await _renderQrToImage(qr);
+        if (qrBytes.isEmpty) throw StateError('Empty QR image');
+        final tempDir = await getTemporaryDirectory();
+        final file = File('${tempDir.path}/${widget.fileBaseName}.png');
+        await file.writeAsBytes(qrBytes);
+        await sharePlus.share(
+          ShareParams(
+            files: [XFile(file.path)],
+            text: widget.code,
+            sharePositionOrigin: origin,
+          ),
+        );
+        return;
+      } catch (_) {
+        // Image rendering, writing or sharing failed; retain the exact code.
+      }
+    }
     try {
-      final qrBytes = await (widget.qrImageRenderer ?? _renderQrToImage)(
-        widget.code,
-      );
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/${widget.fileBaseName}.png');
-      await file.writeAsBytes(qrBytes);
-      await (widget.sharePlus ?? SharePlus.instance).share(
-        ShareParams(
-          files: [XFile(file.path)],
-          text: widget.code,
-          sharePositionOrigin: origin,
-        ),
+      await sharePlus.share(
+        ShareParams(text: widget.code, sharePositionOrigin: origin),
       );
     } catch (_) {
-      await (widget.sharePlus ?? SharePlus.instance).share(
-        ShareParams(text: widget.code, sharePositionOrigin: origin),
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).shareCodeErrorLabel)),
       );
     }
   }
@@ -147,18 +220,18 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
     return box.localToGlobal(Offset.zero) & box.size;
   }
 
-  Future<List<int>> _renderQrToImage(String data) async {
-    const size = 512.0;
-    final validation = QrValidator.validate(
-      data: data,
-      version: QrVersions.auto,
-      errorCorrectionLevel: _errorCorrectionLevel,
+  Future<List<int>> _renderQrToImage(QrCode qr) async {
+    final pixelsPerModule = math.max(
+      4,
+      (512 / (qr.moduleCount + 2 * _quietZoneModules)).ceil(),
     );
-    final qrCode = validation.qrCode!;
-    final margin = _quietZoneModules * size / qrCode.moduleCount;
+    final size =
+        (qr.moduleCount + 2 * _quietZoneModules) * pixelsPerModule.toDouble();
+    final margin = _quietZoneModules * pixelsPerModule.toDouble();
     final contentSize = size - 2 * margin;
     final painter = QrPainter.withQr(
-      qr: qrCode,
+      qr: qr,
+      gapless: true,
       eyeStyle: const QrEyeStyle(
         color: Color(0xFF000000),
         eyeShape: QrEyeShape.square,
@@ -171,7 +244,7 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
     canvas.drawRect(
-      const ui.Rect.fromLTWH(0, 0, size, size),
+      ui.Rect.fromLTWH(0, 0, size, size),
       ui.Paint()..color = const Color(0xFFFFFFFF),
     );
     canvas.save();
@@ -179,8 +252,17 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
     painter.paint(canvas, Size(contentSize, contentSize));
     canvas.restore();
     final picture = recorder.endRecording();
-    final image = await picture.toImage(size.toInt(), size.toInt());
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    return byteData!.buffer.asUint8List();
+    try {
+      final image = await picture.toImage(size.toInt(), size.toInt());
+      try {
+        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        if (byteData == null) throw StateError('Could not encode QR image');
+        return byteData.buffer.asUint8List();
+      } finally {
+        image.dispose();
+      }
+    } finally {
+      picture.dispose();
+    }
   }
 }
