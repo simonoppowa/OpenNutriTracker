@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_to_profile_sheet.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_all_dialog.dart';
+import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
@@ -391,6 +392,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       intake: intakeEntity,
                       onItemLongPressed: widget.onItemLongPressedCallback,
                       onItemTapped: widget.onItemTappedCallback,
+                      onDelete: () => _confirmDeleteIntake(intakeEntity),
                       firstListElement: false,
                       usesImperialUnits: widget.usesImperialUnits,
                       sortType: widget.sortType,
@@ -408,6 +410,20 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
         ),
       ],
     );
+  }
+
+  Future<void> _confirmDeleteIntake(IntakeEntity intake) async {
+    if (!mounted) return;
+    // Keep the displayed day's callback if the Diary moves during confirmation.
+    final onDeleteIntake = widget.onDeleteIntakeCallback;
+    final trackedDay = widget.trackedDayEntity;
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (_) => const DeleteDialog(),
+    );
+    if (shouldDelete == true) {
+      onDeleteIntake(intake, trackedDay);
+    }
   }
 
   Widget _buildSortMenu(BuildContext context) {

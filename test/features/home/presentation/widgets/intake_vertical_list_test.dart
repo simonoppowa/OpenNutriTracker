@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
+import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
+import 'package:opennutritracker/features/home/domain/entity/shared_meal_payload.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
@@ -47,6 +50,8 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   });
 }
 
+class _FakeRecipeRepository extends Fake implements RecipeRepository {}
+
 class _FakeHomeBloc extends Fake implements HomeBloc {
   @override
   Future<void> deleteIntakeItem(IntakeEntity intakeEntity) =>
@@ -88,6 +93,8 @@ class _SingleProfileGetProfilesUsecase implements GetProfilesUsecase {
 }
 
 IntakeEntity _buildIntake({
+  String id = 'test-intake',
+  String name = 'Test Meal',
   required double amount,
   required double kcal100,
   required double carbs100,
@@ -95,14 +102,14 @@ IntakeEntity _buildIntake({
   required double protein100,
 }) {
   return IntakeEntity(
-    id: 'test-intake',
+    id: id,
     unit: 'g',
     amount: amount,
     type: IntakeTypeEntity.breakfast,
     dateTime: DateTime(2026, 1, 1),
     meal: MealEntity(
       code: 'test-meal',
-      name: 'Test Meal',
+      name: name,
       url: null,
       mealQuantity: '100',
       mealUnit: 'g',
@@ -139,6 +146,7 @@ void main() {
     final locator = GetIt.instance;
     locator.registerFactory<MealDetailBloc>(_FakeMealDetailBloc.new);
     locator.registerFactory<HomeBloc>(_FakeHomeBloc.new);
+    locator.registerFactory<RecipeRepository>(_FakeRecipeRepository.new);
     locator.registerFactory<DiaryBloc>(_FakeDiaryBloc.new);
     locator.registerFactory<CalendarDayBloc>(_FakeCalendarDayBloc.new);
     locator.registerFactory<GetProfilesUsecase>(
@@ -169,6 +177,161 @@ void main() {
       '5 ${l10nEn.proteinLabelShort}';
 
   String headerKcalOnly() => '200 ${l10nEn.kcalLabel}';
+
+  testWidgets(
+    'food menu cancels safely then deletes only the selected intake',
+    (tester) async {
+      final selected = _buildIntake(
+        id: 'selected',
+        name: 'Selected food',
+        amount: 60,
+        kcal100: 200,
+        carbs100: 20,
+        fat100: 10,
+        protein100: 5,
+      );
+      final deleted = <IntakeEntity>[];
+      await tester.pumpWidget(
+        _wrapWithMaterial(
+          IntakeVerticalList(
+            day: DateTime(2026, 1, 1),
+            title: 'Breakfast',
+            listIcon: Icons.bakery_dining_outlined,
+            addMealType: AddMealType.breakfastType,
+            intakeList: [intakes.single, selected],
+            usesImperialUnits: false,
+            onDeleteIntakeCallback: (intake, _) => deleted.add(intake),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Future<void> openDelete() async {
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const ValueKey('selected')),
+            matching: find.byIcon(Icons.more_vert_rounded),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.dialogDeleteLabel));
+        await tester.pumpAndSettle();
+        expect(find.text(l10nEn.deleteTimeDialogTitle), findsOneWidget);
+      }
+
+      await openDelete();
+      expect(deleted, isEmpty);
+      await tester.tap(find.text(l10nEn.dialogCancelLabel));
+      await tester.pumpAndSettle();
+      expect(deleted, isEmpty);
+      expect(find.text('Test Meal'), findsOneWidget);
+      expect(find.text('Selected food'), findsOneWidget);
+
+      await openDelete();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+      expect(deleted, [selected]);
+    },
+  );
+
+  testWidgets('retained food delete popup ignores a disposed intake list', (
+    tester,
+  ) async {
+    var showList = true;
+    late StateSetter setHostState;
+    final deleted = <IntakeEntity>[];
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        StatefulBuilder(
+          builder: (context, setState) {
+            setHostState = setState;
+            return showList
+                ? IntakeVerticalList(
+                    day: DateTime(2026, 1, 1),
+                    title: 'Breakfast',
+                    listIcon: Icons.bakery_dining_outlined,
+                    addMealType: AddMealType.breakfastType,
+                    intakeList: intakes,
+                    usesImperialUnits: false,
+                    onDeleteIntakeCallback: (intake, _) => deleted.add(intake),
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final listState = tester.state(find.byType(IntakeVerticalList));
+    final navigator = tester.state(find.byType(Navigator));
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('test-intake')),
+        matching: find.byIcon(Icons.more_vert_rounded),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(l10nEn.dialogDeleteLabel), findsOneWidget);
+
+    setHostState(() => showList = false);
+    await tester.pumpAndSettle();
+    expect(listState.mounted, isFalse);
+    expect(find.byType(IntakeVerticalList), findsNothing);
+    expect(tester.state(find.byType(Navigator)), same(navigator));
+    expect(find.text(l10nEn.dialogDeleteLabel), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text(l10nEn.dialogDeleteLabel));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text(l10nEn.deleteTimeDialogTitle), findsNothing);
+    expect(deleted, isEmpty);
+  });
+
+  testWidgets('row taps and section sharing still use existing paths', (
+    tester,
+  ) async {
+    final sibling = _buildIntake(
+      id: 'sibling',
+      name: 'Sibling food',
+      amount: 50,
+      kcal100: 200,
+      carbs100: 20,
+      fat100: 10,
+      protein100: 5,
+    );
+    final tapped = <IntakeEntity>[];
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: [intakes.single, sibling],
+          usesImperialUnits: false,
+          onDeleteIntakeCallback: (_, _) {},
+          onItemTappedCallback: (_, intake, _) => tapped.add(intake),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sibling food'));
+    expect(tapped, [sibling]);
+    await tester.tap(find.bySemanticsIdentifier('intake-section-menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.shareMealLabel));
+    await tester.pumpAndSettle();
+    final dialog = tester.widget<ShareQrDialog>(find.byType(ShareQrDialog));
+    final payload = SharedMealPayload.fromJsonString(dialog.code);
+    expect(payload.items.map((item) => item.name), [
+      'Test Meal',
+      'Sibling food',
+    ]);
+    expect(payload.items.map((item) => item.amount), [100, 50]);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('passes macro sort to rows and drag feedback', (tester) async {
     await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(

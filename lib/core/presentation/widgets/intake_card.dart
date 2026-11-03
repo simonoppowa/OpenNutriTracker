@@ -25,6 +25,7 @@ class IntakeCard extends StatelessWidget {
   final IntakeEntity intake;
   final Function(BuildContext, IntakeEntity)? onItemLongPressed;
   final Function(BuildContext, IntakeEntity, bool)? onItemTapped;
+  final VoidCallback? onDelete;
   final bool firstListElement;
   final bool usesImperialUnits;
   final DiarySortType? sortType;
@@ -34,6 +35,7 @@ class IntakeCard extends StatelessWidget {
     required this.intake,
     this.onItemLongPressed,
     this.onItemTapped,
+    this.onDelete,
     required this.firstListElement,
     required this.usesImperialUnits,
     this.sortType,
@@ -137,6 +139,27 @@ class IntakeCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (onDelete != null)
+                  Semantics(
+                    identifier: 'intake-item-menu',
+                    container: true,
+                    child: PopupMenuButton<void>(
+                      icon: Icon(
+                        Icons.more_vert_rounded,
+                        color: palette.textMuted,
+                      ),
+                      shape: Dimens.shapeM,
+                      itemBuilder: (_) => [
+                        PopupMenuItem<void>(
+                          onTap: onDelete,
+                          child: Semantics(
+                            identifier: 'intake-delete-food',
+                            child: Text(s.dialogDeleteLabel),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
