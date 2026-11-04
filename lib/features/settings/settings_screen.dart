@@ -103,6 +103,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Null when the stored name is unrecognised — see #753.
   AiProvider? _aiProvider;
 
+  /// Whether the user hid the AI features (#1518). Starts from the value read
+  /// at app start, so the AI meal assistance row does not flash.
+  late bool _aiHidden = _aiCredentials.hiddenIfKnown ?? false;
+
   /// Whether the route's arguments have been acted on.
   ///
   /// `didChangeDependencies` runs again for anything this screen depends on —
@@ -425,6 +429,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _settingsBloc.add(LoadSettingsEvent());
                     },
                   ),
+                  // #1518: one switch for every AI surface — the Snap meal tile,
+                  // the AI badges, the set-up offer and the AI meal
+                  // assistance row — and, while off, nothing is sent to a
+                  // model. Device-wide, like the keys it sits beside.
+                  _SettingsSwitchTile(
+                    identifier: 'settings-show-ai',
+                    palette: palette,
+                    icon: Icons.auto_awesome_rounded,
+                    title: S.of(context).settingsShowAiFeaturesLabel,
+                    subtitle: S.of(context).settingsShowAiFeaturesSubtitle,
+                    value: !_aiHidden,
+                    onChanged: (bool value) async {
+                      setState(() => _aiHidden = !value);
+                      await _aiCredentials.setHidden(!value);
+                      await _refreshAiAssistState();
+                    },
+                  ),
                   // #160 follow-up: lets the user pick which nutrients show
                   // on the diary's daily nutrient panel. Lives next to the
                   // meal-detail micronutrient toggle above; both shape what
@@ -562,15 +583,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     showChevron: true,
                     onTap: () => _openHealthSyncScreen(context),
                   ),
-                  _SettingsTile(
-                    identifier: 'settings-ai-assist',
-                    palette: palette,
-                    icon: Icons.auto_awesome_rounded,
-                    title: S.of(context).settingsAiAssistLabel,
-                    subtitle: _aiAssistSubtitle(context),
-                    badge: S.of(context).aiAssistExperimentalLabel,
-                    onTap: () => _openAiAssistDialog(context),
-                  ),
+                  // Hidden with the rest of the AI features (#1518); the Show AI
+                  // features switch under Display brings it back.
+                  if (!_aiHidden)
+                    _SettingsTile(
+                      identifier: 'settings-ai-assist',
+                      palette: palette,
+                      icon: Icons.auto_awesome_rounded,
+                      title: S.of(context).settingsAiAssistLabel,
+                      subtitle: _aiAssistSubtitle(context),
+                      badge: S.of(context).aiAssistExperimentalLabel,
+                      onTap: () => _openAiAssistDialog(context),
+                    ),
                   _SettingsTile(
                     identifier: 'settings-import-custom-food',
                     palette: palette,
@@ -1096,8 +1120,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _refreshAiAssistState() async {
     final summary = await _aiCredentials.readSummary();
+    final hidden = await _aiCredentials.isHidden();
     if (!mounted) return;
     setState(() {
+      _aiHidden = hidden;
       _aiConfigured = summary.configured;
       _aiEnabled = summary.enabled;
       _aiEndpoint = summary.endpoint;

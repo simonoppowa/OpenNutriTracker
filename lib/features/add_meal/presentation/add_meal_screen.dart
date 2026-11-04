@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
@@ -63,6 +64,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
   /// Whether the Describe tile's panel is open under the tiles.
   bool _describeOpen = false;
 
+  /// Whether the user hid the AI features (#1518): no Snap meal tile, and
+  /// Describe without its AI badge, since the offline parser reads it then.
+  /// Starts from the value read at app start, so the tile does not show for
+  /// a frame and vanish.
+  bool _aiHidden = false;
+
   /// What every entry method on this screen adds to, and the one button at
   /// the bottom logs. Handed to the screens this one opens.
   final _logTray = LogTray();
@@ -92,6 +99,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
     // a fresh instance per lookup, whose state would always be initial.
     _addMealBloc = locator<AddMealBloc>()..add(InitializeAddMealEvent());
     super.initState();
+    _refreshAiHidden();
+  }
+
+  /// Absent in tests that register no AI store, where nothing is hidden.
+  Future<void> _refreshAiHidden() async {
+    if (!locator.isRegistered<AiCredentialStorage>()) return;
+    final storage = locator<AiCredentialStorage>();
+    final known = storage.hiddenIfKnown;
+    if (known != null) _aiHidden = known;
+    final hidden = await storage.isHidden();
+    if (mounted && hidden != _aiHidden) setState(() => _aiHidden = hidden);
   }
 
   @override
@@ -229,6 +247,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           onDescribePressed: () =>
                               setState(() => _describeOpen = !_describeOpen),
                           describeOpen: _describeOpen,
+                          showAi: !_aiHidden,
                         ),
                         if (_describeOpen) ...[
                           const SizedBox(height: Dimens.spacing12),
@@ -1012,6 +1031,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
         logTray: _logTray,
       ),
     );
+    // The review screen can open the AI settings, where the features can be
+    // hidden or shown again.
+    await _refreshAiHidden();
     // The description has become rows on the list; the panel that held it
     // has done its job.
     if (mounted && _logTray.length > before && _describeOpen) {
