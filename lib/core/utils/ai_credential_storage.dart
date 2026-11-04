@@ -287,6 +287,14 @@ class AiCredentialStorage {
   /// What a setup-time probe found this destination could do (#735).
   static const _probeTag = 'AiProbeTag';
 
+  /// Whether the user has hidden the AI features altogether (#1518).
+  static const _hiddenTag = 'AiAssistHiddenTag';
+
+  /// The last value [isHidden] read or [setHidden] wrote, so a screen can lay
+  /// out its first frame without waiting on the keystore; see
+  /// [hiddenIfKnown].
+  bool? _hidden;
+
   static String _slotTag(AiProvider provider) =>
       '$_legacyApiKeyTag.${provider.name}';
 
@@ -411,7 +419,8 @@ class AiCredentialStorage {
       final modelId = await readModel(provider: target);
       // The invariant, stated here once: the flag alone never means "on" — a
       // provider that is not usable is off whatever the tag says, and so is
-      // one the user has not agreed to send anything to.
+      // one the user has not agreed to send anything to, and so is every
+      // provider while the user has hidden the feature (#1518).
       //
       // The agreement belongs in this expression rather than only in the
       // dialog that asks for it. A credential reaching storage without one is
@@ -426,7 +435,8 @@ class AiCredentialStorage {
             modelId: modelId,
           ) &&
           await _storage.read(key: _termsAcceptedTag) == 'true' &&
-          await _storage.read(key: _enabledTag) != 'false';
+          await _storage.read(key: _enabledTag) != 'false' &&
+          await _storage.read(key: _hiddenTag) != 'true';
       return (
         provider: target,
         apiKey: apiKey,
@@ -1062,6 +1072,10 @@ class AiCredentialStorage {
   /// #732 put a server the user runs in this store precisely so the two could
   /// not diverge here: the address of a machine on someone's own network is
   /// as much theirs as the credential that opens it.
+  ///
+  /// The one tag that stays is [setHidden]'s. It is how the app looks, not
+  /// anything the user configured or agreed to, and someone who hid the AI
+  /// features and then wiped their data has not asked to see them again.
   Future<void> clearAll() => _probeConfigurationLock.synchronized(() async {
     for (final provider in AiProvider.values) {
       await _storage.delete(key: _slotTag(provider));
@@ -1158,6 +1172,33 @@ class AiCredentialStorage {
   /// *active* provider has no key, so a caller never has to check both — the
   /// same invariant as before providers existed, restated for two slots.
   Future<bool> isEnabled() async => (await _readState()).enabled;
+
+  /// Whether the user has hidden every AI feature (#1518): the Snap meal
+  /// tile, the AI badges, the offer to set a model up and the AI meal
+  /// assistance row.
+  ///
+  /// Hidden also means off, everywhere the feature could send something:
+  /// [isEnabled], [readSelection] and [selectionFor] answer as if it were
+  /// paused, so a typed meal goes to the offline parser even with a key
+  /// saved. The keys and the pause switch are kept as they are, and showing
+  /// the features again puts back exactly what was there.
+  Future<bool> isHidden() async =>
+      _hidden = await _storage.read(key: _hiddenTag) == 'true';
+
+  /// What [isHidden] last answered, or null before it has been asked. For a
+  /// screen's first frame only: it is not re-read, so anything that sends
+  /// data asks [isEnabled] instead.
+  bool? get hiddenIfKnown => _hidden;
+
+  /// Hides or shows every AI feature; see [isHidden].
+  Future<void> setHidden(bool hidden) async {
+    if (hidden) {
+      await _storage.write(key: _hiddenTag, value: 'true');
+    } else {
+      await _storage.delete(key: _hiddenTag);
+    }
+    _hidden = hidden;
+  }
 
   /// Turns the feature off without forgetting the keys, so switching it back
   /// on does not mean finding a credential again. Enabling an **unusable**

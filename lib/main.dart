@@ -23,6 +23,7 @@ import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/sentry_config.dart';
@@ -94,6 +95,9 @@ Future<void> _bootstrapApp() async {
   unawaited(
     locator<RemoteSearchCacheDataSource>().pruneStale(const Duration(days: 90)),
   );
+  // Read once ahead of the add-food screen, so a user who hid the AI
+  // features never sees the Snap meal tile appear for a frame (#1518).
+  unawaited(locator<AiCredentialStorage>().isHidden());
 
   final isUserInitialized = await locator<UserDataSource>().hasUserData();
   final configRepo = locator<ConfigRepository>();

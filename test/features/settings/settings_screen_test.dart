@@ -120,11 +120,60 @@ class _EmptyStorage implements FlutterSecureStorage {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A keystore that keeps what it is given, for the one test that reads back
+/// what the screen wrote.
+class _MemoryStorage implements FlutterSecureStorage {
+  final store = <String, String>{};
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => store[key];
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    if (value == null) {
+      store.remove(key);
+    } else {
+      store[key] = value;
+    }
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => store.remove(key);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// The runner is real; only the thing that would talk to a server is not.
 /// Nothing here presses the check, so it is never asked anything.
 class _FakeProber extends Fake implements AiEndpointProber {}
 
-void _register() {
+void _register({FlutterSecureStorage? storage}) {
   final getIt = GetIt.instance;
   getIt.registerSingleton<SettingsBloc>(_FakeSettingsBloc());
   getIt.registerSingleton<ProfileBloc>(_FakeProfileBloc());
@@ -132,7 +181,7 @@ void _register() {
   getIt.registerSingleton<DiaryBloc>(_FakeDiaryBloc());
   getIt.registerSingleton<CalendarDayBloc>(_FakeCalendarDayBloc());
   getIt.registerSingleton<TrendsBloc>(_FakeTrendsBloc());
-  final credentials = AiCredentialStorage(_EmptyStorage());
+  final credentials = AiCredentialStorage(storage ?? _EmptyStorage());
   getIt.registerSingleton<AiCredentialStorage>(credentials);
   getIt.registerSingleton<AiEndpointProbeRunner>(
     AiEndpointProbeRunner(credentials, _FakeProber()),
@@ -312,6 +361,56 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Show AI Features off hides the AI meal assistance row and '
+      'remembers it (#1518)', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    await locator.reset();
+    final backing = _MemoryStorage();
+    _register(storage: backing);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final scrollable = find.byType(Scrollable).first;
+
+    final aiRow = find.bySemanticsIdentifier('settings-ai-assist');
+    await tester.scrollUntilVisible(aiRow, 200, scrollable: scrollable);
+    expect(aiRow, findsOneWidget);
+
+    final showAi = find.bySemanticsIdentifier('settings-show-ai');
+    await tester.scrollUntilVisible(showAi, -200, scrollable: scrollable);
+    await tester.ensureVisible(showAi);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.descendant(of: showAi, matching: find.byType(SwitchListTile)),
+          )
+          .value,
+      isTrue,
+    );
+    await tester.tap(showAi);
+    await tester.pumpAndSettle();
+
+    expect(backing.store['AiAssistHiddenTag'], 'true');
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.descendant(of: showAi, matching: find.byType(SwitchListTile)),
+          )
+          .value,
+      isFalse,
+    );
+    // The row after it is on screen, and the row was between the two.
+    final nextRow = find.bySemanticsIdentifier('settings-import-custom-food');
+    await tester.scrollUntilVisible(nextRow, 200, scrollable: scrollable);
+    await tester.ensureVisible(nextRow);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsIdentifier('settings-health-sync'), findsOneWidget);
+    expect(aiRow, findsNothing);
+  });
+
   testWidgets('arguments that ask for nothing leave the screen alone', (
     tester,
   ) async {
@@ -346,6 +445,10 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).first,
     );
+    // `scrollUntilVisible` stops once the row's edge is on screen, which can
+    // leave the point `tap` aims at, its centre, just below it.
+    await tester.ensureVisible(languageTile);
+    await tester.pumpAndSettle();
     await tester.tap(languageTile);
     await tester.pumpAndSettle();
 
