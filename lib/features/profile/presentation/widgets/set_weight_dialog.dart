@@ -174,14 +174,16 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
                   visualDensity: VisualDensity.compact,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                segments: const [
+                segments: [
                   ButtonSegment<bool>(
                     value: false,
-                    icon: Icon(Icons.linear_scale, size: 18),
+                    tooltip: S.of(context).weightInputPickerTooltip,
+                    icon: const Icon(Icons.linear_scale, size: 18),
                   ),
                   ButtonSegment<bool>(
                     value: true,
-                    icon: Icon(Icons.keyboard_alt_outlined, size: 18),
+                    tooltip: S.of(context).weightInputKeyboardTooltip,
+                    icon: const Icon(Icons.keyboard_alt_outlined, size: 18),
                   ),
                 ],
                 selected: {_useTextInput},

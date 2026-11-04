@@ -49,13 +49,12 @@ void main() {
     });
 
     test(
-      'useTextForWeightInput preference survives recreating the data source',
+      'useTextForWeightInput preference survives reopening the Hive box',
       () async {
         Hive.init('.');
-        final box = await Hive.openBox<ConfigDBO>(
-          'config_weight_input_test_${DateTime.now().microsecondsSinceEpoch}',
-        );
-        addTearDown(() => box.deleteFromDisk());
+        final boxName =
+            'config_weight_input_test_${DateTime.now().microsecondsSinceEpoch}';
+        final box = await Hive.openBox<ConfigDBO>(boxName);
         await box.put('ConfigKey', ConfigDBO.empty());
 
         final firstSource = ConfigDataSource(
@@ -64,9 +63,13 @@ void main() {
         expect(await firstSource.getUseTextForWeightInput(), isFalse);
 
         await firstSource.setUseTextForWeightInput(true);
+        await box.close();
+
+        final reopenedBox = await Hive.openBox<ConfigDBO>(boxName);
+        addTearDown(() => reopenedBox.deleteFromDisk());
 
         final secondSource = ConfigDataSource(
-          FakeHiveDBProvider(configBox: box),
+          FakeHiveDBProvider(configBox: reopenedBox),
         );
         expect(await secondSource.getUseTextForWeightInput(), isTrue);
       },
@@ -96,6 +99,11 @@ void main() {
 
         expect(find.byType(HorizontalPicker), findsOneWidget);
         expect(find.byType(BodyWeightInput), findsNothing);
+        expect(find.byTooltip(l10nEn.weightInputPickerTooltip), findsOneWidget);
+        expect(
+          find.byTooltip(l10nEn.weightInputKeyboardTooltip),
+          findsOneWidget,
+        );
 
         await tester.tap(find.byIcon(Icons.keyboard_alt_outlined));
         await tester.pumpAndSettle();
