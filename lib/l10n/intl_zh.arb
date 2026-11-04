@@ -128,7 +128,7 @@
   "bmiInfoFormulaSection": "公式",
   "bmiInfoScreenTitle": "您的 BMI 如何计算",
   "bmiLabel": "BMI",
-  "breakfastExample": "例如： cereal、牛奶、咖啡...",
+  "breakfastExample": "例如： 麦片、牛奶、咖啡...",
   "breakfastLabel": "早餐",
   "burnedLabel": "消耗",
   "buttonNextLabel": "下一步",
@@ -1325,5 +1325,39 @@
   "healthSyncDisclosureContinueAction": "继续",
   "healthSyncUnavailableLabel": "此设备上无法使用健康数据。导入锻炼需要 Android 上的 Health Connect 或 iOS 上的 Apple Health。",
   "sourcesEnergyCompensationTitle": "锻炼热量计入比例",
-  "sourcesEnergyCompensationDescription": "导入的锻炼计入的热量少于设备报告的数值。人体会在一天中的其余时间少消耗热量来补偿运动，平均约为 28%，体脂率越高补偿越多。建议值来自该研究，你可以在设置 → 健康同步中修改。热量数值由记录该锻炼的应用或设备提供，并非由应用内的 MET 公式计算。"
+  "sourcesEnergyCompensationDescription": "导入的锻炼计入的热量少于设备报告的数值。人体会在一天中的其余时间少消耗热量来补偿运动，平均约为 28%，体脂率越高补偿越多。建议值来自该研究，你可以在设置 → 健康同步中修改。热量数值由记录该锻炼的应用或设备提供，并非由应用内的 MET 公式计算。",
+  "calorieWidgetAccessibilityLabel": "已消耗 {goal} 千卡中的 {consumed} 千卡",
+  "@calorieWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS home-screen calorie widget.",
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetDescription": "今天摄入的卡路里和你的目标。",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetOpenAppHint": "打开app",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
+  "calorieWidgetGoalLabel": "{goal}的",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "favouriteAddTooltip": "加入收藏夹",
+  "favouriteRemoveTooltip": "从收藏夹中删除",
+  "favouritesEmptySubtitle": "点击任意餐食旁的星标，可将其保存下来，方便后续记录。",
+  "favouritesEmptyTitle": "暂无收藏",
+  "favouritesLabel": "收藏"
 }
