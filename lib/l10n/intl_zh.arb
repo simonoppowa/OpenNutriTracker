@@ -1361,5 +1361,6 @@
   "favouritesEmptyTitle": "暂无收藏",
   "favouritesLabel": "收藏",
   "errorLoadingFavourites": "加载活动时出错",
-  "settingsKjAdjustmentLabel": "每日千焦调整："
+  "settingsKjAdjustmentLabel": "每日千焦调整：",
+  "bulkAddUpdateMatchesLabel": "A. 更新匹配"
 }
