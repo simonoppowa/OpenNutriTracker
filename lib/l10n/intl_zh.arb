@@ -589,7 +589,7 @@
   "ozUnit": "oz",
   "paActiveVideoGames": "体感视频游戏",
   "paActiveVideoGamesDesc": "Wii Sports、跳舞机，一般",
-  "paAmericanFootballGeneral": "美式橄榄球",
+  "paAmericanFootballGeneral": "美国足球",
   "paAmericanFootballGeneralDesc": "触身赛、旗式足球，一般",
   "paArcheryGeneral": "射箭",
   "paArcheryGeneralDesc": "非狩猎",
@@ -1362,5 +1362,6 @@
   "favouritesLabel": "收藏",
   "errorLoadingFavourites": "加载活动时出错",
   "settingsKjAdjustmentLabel": "每日千焦调整：",
-  "bulkAddUpdateMatchesLabel": "A. 更新匹配"
+  "bulkAddUpdateMatchesLabel": "A. 更新匹配",
+  "bulkAddYourPhotoLabel": "照片"
 }
