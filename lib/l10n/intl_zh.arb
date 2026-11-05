@@ -1360,5 +1360,6 @@
   "favouritesEmptySubtitle": "点击任意餐食旁的星标，可将其保存下来，方便后续记录。",
   "favouritesEmptyTitle": "暂无收藏",
   "favouritesLabel": "收藏",
-  "errorLoadingFavourites": "加载活动时出错"
+  "errorLoadingFavourites": "加载活动时出错",
+  "settingsKjAdjustmentLabel": "每日千焦调整："
 }
