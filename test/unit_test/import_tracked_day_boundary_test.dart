@@ -34,7 +34,9 @@ import 'package:opennutritracker/core/data/repository/user_activity_repository.d
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -246,6 +248,27 @@ void main() {
     proteinTracked: 0,
   );
 
+  /// [rideRow]'s day once the ride moved off it: the row stays for its
+  /// goal (#1440), counts nothing, and has handed the ride's 150 kcal
+  /// credit, and the macro goals that follow it, to the ride's new day.
+  void expectRideMovedOff(String key) {
+    final row = trackedDayBox.get(key);
+    expect(row, isNotNull, reason: 'the row of $key keeps its goals');
+    expect(row!.calorieGoal, 2000, reason: 'the ride is credited once');
+    expect(row.carbsGoal, 250 - MacroCalc.getTotalCarbsGoal(150));
+    expect(row.fatGoal, 70 - MacroCalc.getTotalFatsGoal(150));
+    expect(row.proteinGoal, 100 - MacroCalc.getTotalProteinsGoal(150));
+    expect(row.caloriesTracked, 0);
+    expect(row.carbsTracked, 0);
+    expect(row.fatTracked, 0);
+    expect(row.proteinTracked, 0);
+    expect(
+      TrackedDayEntity.fromTrackedDayDBO(row).hasConsumed,
+      isFalse,
+      reason: 'no calendar marker on a day with nothing eaten',
+    );
+  }
+
   /// 100 g of a 200 kcal-per-100 g toast.
   IntakeEntity toastAt(DateTime at) => IntakeEntity(
     id: 'toast-${at.toIso8601String()}',
@@ -340,7 +363,7 @@ void main() {
 
       expect(await import(format), isTrue);
 
-      expect(trackedDayBox.containsKey('2026-10-04'), isFalse);
+      expectRideMovedOff('2026-10-04');
       expect(trackedDayBox.get('2026-10-05')?.calorieGoal, 2150);
     });
   }
@@ -364,7 +387,7 @@ void main() {
 
       expect(await import(format), isTrue);
 
-      expect(trackedDayBox.containsKey('2026-10-04'), isFalse);
+      expectRideMovedOff('2026-10-04');
       final row = trackedDayBox.get('2026-10-05');
       expect(row?.calorieGoal, 2150);
       expect(row?.caloriesTracked, 200);
@@ -387,7 +410,7 @@ void main() {
 
     expect(await import(ExportFormat.json), isTrue);
 
-    expect(trackedDayBox.containsKey('2026-10-05'), isFalse);
+    expectRideMovedOff('2026-10-05');
     expect(trackedDayBox.get('2026-10-04')?.calorieGoal, 2150);
   });
 
@@ -501,7 +524,7 @@ void main() {
 
     expect(await import(ExportFormat.json), isTrue);
 
-    expect(trackedDayBox.containsKey('2026-10-05'), isFalse);
+    expectRideMovedOff('2026-10-05');
     expect(trackedDayBox.get('2026-10-04')?.calorieGoal, 2150);
     expect(
       trackedDayBox.get('2026-10-06')?.calorieGoal,
