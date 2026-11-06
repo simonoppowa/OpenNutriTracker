@@ -100,6 +100,128 @@ Map<String, double> _burnedByDay(
   return burned;
 }
 
+/// The keys of the days the entries on each day at
+/// [previousOffsetMinutes] are listed under at [offsetMinutes], by the key
+/// of the day they were on — imported workouts at
+/// [previousImportOffsetMinutes], as in [reconcileTrackedDays].
+Map<String, Set<String>> _movedTo(
+  HiveDBProvider db,
+  int offsetMinutes,
+  int previousOffsetMinutes,
+  int previousImportOffsetMinutes,
+) {
+  final movedTo = <String, Set<String>>{};
+  void add(String from, String to) =>
+      movedTo.putIfAbsent(from, () => {}).add(to);
+  for (final dbo in db.intakeBox.values) {
+    final at = IntakeEntity.fromIntakeDBO(dbo).dateTime;
+    add(
+      DayBoundaryCalc.dayKeyOf(at, previousOffsetMinutes),
+      DayBoundaryCalc.dayKeyOf(at, offsetMinutes),
+    );
+  }
+  for (final activity in db.userActivityBox.values) {
+    add(
+      _activityKey(
+        activity,
+        previousOffsetMinutes,
+        previousImportOffsetMinutes,
+      ),
+      _activityKey(activity, offsetMinutes, null),
+    );
+  }
+  return movedTo;
+}
+
+/// The rows a boundary move takes to another day, each with the key of
+/// the day it goes to (#1440).
+///
+/// A row whose entries were all on its day, as [movedByBoundary] says it
+/// is keyed, and are all listed on one other day now goes with them, so
+/// its goals stay with the entries they were set for and a move back
+/// brings it home. A row cannot go to a day where another row stays, nor
+/// to one an earlier row goes to; it stays where it is then.
+Map<String, String> _rowsFollowingEntries(
+  Set<dynamic> keys,
+  bool Function(String key) movedByBoundary,
+  Map<String, Set<String>> movedTo,
+) {
+  final moving = <String, String>{
+    for (final key in keys)
+      if (key is String && movedByBoundary(key))
+        if (movedTo[key] case final days?
+            when days.length == 1 && days.single != key)
+          key: days.single,
+  };
+  // A row that stays blocks the rows going to its day, which then stay
+  // too, so repeat until nothing more is blocked.
+  var settled = false;
+  while (!settled) {
+    settled = true;
+    final taken = <String>{};
+    for (final from in moving.keys.toList()..sort()) {
+      final to = moving[from]!;
+      final stays = keys.contains(to) && !moving.containsKey(to);
+      if (stays || !taken.add(to)) {
+        moving.remove(from);
+        settled = false;
+      }
+    }
+  }
+  return moving;
+}
+
+/// A copy of [row] for the row of [key]. Its `day` keeps the time of
+/// day, so a move back gives the row back as it was: 2.4.0 stored the
+/// moment the row was created there.
+TrackedDayDBO _movedRow(TrackedDayDBO row, String key) {
+  final date = DateTime.parse(key);
+  final at = row.day;
+  final day = (at.isUtc ? DateTime.utc : DateTime.new)(
+    date.year,
+    date.month,
+    date.day,
+    at.hour,
+    at.minute,
+    at.second,
+    at.millisecond,
+    at.microsecond,
+  );
+  return TrackedDayDBO.fromJson(row.toJson())..day = day;
+}
+
+/// True when [a] and [b] hold the same goals once the [burnedA] and
+/// [burnedB] their activities add are taken off, per-nutrient goals
+/// included.
+bool _sameGoals(
+  TrackedDayDBO a,
+  double burnedA,
+  TrackedDayDBO b,
+  double burnedB,
+) {
+  bool same(double? x, double? y) =>
+      x == null || y == null ? x == y : (x - y).abs() <= _epsilon;
+  bool sameMacro(double? x, double? y, double Function(double) ofBurned) =>
+      same(
+        x == null ? null : x - ofBurned(burnedA),
+        y == null ? null : y - ofBurned(burnedB),
+      );
+  return same(a.calorieGoal - burnedA, b.calorieGoal - burnedB) &&
+      sameMacro(a.carbsGoal, b.carbsGoal, MacroCalc.getTotalCarbsGoal) &&
+      sameMacro(a.fatGoal, b.fatGoal, MacroCalc.getTotalFatsGoal) &&
+      sameMacro(a.proteinGoal, b.proteinGoal, MacroCalc.getTotalProteinsGoal) &&
+      same(a.fibreGoal, b.fibreGoal) &&
+      same(a.satFatGoal, b.satFatGoal) &&
+      same(a.sugarsGoal, b.sugarsGoal) &&
+      same(a.sodiumGoal, b.sodiumGoal) &&
+      same(a.calciumGoal, b.calciumGoal) &&
+      same(a.ironGoal, b.ironGoal) &&
+      same(a.potassiumGoal, b.potassiumGoal) &&
+      same(a.vitaminDGoal, b.vitaminDGoal) &&
+      same(a.vitaminB12Goal, b.vitaminB12Goal) &&
+      same(a.magnesiumGoal, b.magnesiumGoal);
+}
+
 /// True unless [stored] is [value] within [_epsilon]; NaN never is.
 bool _differs(double? stored, double value) =>
     !(((stored ?? 0) - value).abs() <= _epsilon);
@@ -126,14 +248,24 @@ bool _hasConsumed(TrackedDayDBO row) =>
 ///    summed from that day's intakes;
 ///  * a day that lists entries but has no row gets one, so the Diary
 ///    shows its summary instead of "Nothing added";
+///  * a row whose entries [previousOffsetMinutes] listed on its day are
+///    all listed on one other day now moves there with them, when that
+///    day has no row of its own and no other row moves there. Its goals
+///    are the ones those entries were logged under, and a move back
+///    brings it home as it was (#1440);
 ///  * a row whose day lists nothing is removed when it still counts
 ///    calories (they belong to entries listed on another day, which now
 ///    has them) or when [previousOffsetMinutes] listed entries on it
 ///    that moved away. Rows are only ever created by logging an entry, so
 ///    that row exists for entries it no longer has, and would otherwise
-///    keep a calendar marker and a rating on a day with nothing logged. A
-///    row with nothing listed and nothing counted is left alone: it is a
-///    day whose entries were all deleted, and it keeps its goal.
+///    keep a calendar marker and a rating on a day with nothing logged.
+///    Except: a row whose entries moved to a day with a row of its own,
+///    with other goals, stays with nothing counted, since removing it
+///    would lose its goals and a move back would build it again from
+///    another day's (#1440). A restore's row still gives way to the
+///    device's. A row with nothing listed and nothing counted is left
+///    alone: it is a day whose entries were all deleted, and it keeps its
+///    goal.
 ///
 /// Goals stay as they are, except for what activities add to them. A
 /// row's goal is its base goal plus the energy burned by the activities
@@ -156,11 +288,12 @@ bool _hasConsumed(TrackedDayDBO row) =>
 /// listed on it minus its entry there (none: nothing), whatever the
 /// boundaries.
 ///
-/// A new row takes the base goals of the nearest row by date — the goal
-/// of that period, where the current goal reflects today's weight and
-/// settings — plus its own activities, and its per-nutrient goals. Only
-/// with no row at all does it fall back to [currentGoals], and without
-/// those it is not created.
+/// A new row takes the base goals of the nearest row its entries were on
+/// before the move or, when none was, of the nearest row by date — the
+/// goal of that period, where the current goal reflects today's weight
+/// and settings — plus its own activities, and its per-nutrient goals.
+/// Only with no row at all does it fall back to [currentGoals], and
+/// without those it is not created.
 ///
 /// Everything from the first read to the last write runs in one
 /// synchronous step; the returned future only waits for the disk. Dart
@@ -168,7 +301,8 @@ bool _hasConsumed(TrackedDayDBO row) =>
 /// before it returns, so no writer can change an entry or a row between
 /// this reading and writing them. Existing rows are updated in place,
 /// never replaced, so a writer still holding one does not save a stale
-/// copy over it. Keep it free of `await`.
+/// copy over it; only a row that moves to another day is written there
+/// as a copy, and removed where it was. Keep it free of `await`.
 ///
 /// That does not cover a writer that has stored its entry but not yet
 /// added it to the row: this would count the entry and the writer would
@@ -209,14 +343,56 @@ Future<int> reconcileTrackedDays(
   final written = <dynamic, TrackedDayDBO>{};
   final removed = <dynamic>[];
   final existing = rows.toMap();
+  final movedTo = listedBefore == null
+      ? const <String, Set<String>>{}
+      : _movedTo(db, offsetMinutes, previousOffsetMinutes!, previousImports!);
+  final moving = _rowsFollowingEntries(
+    existing.keys.toSet(),
+    (key) => before(key) != null,
+    movedTo,
+  );
+  // The key of the row each day ends up with.
+  final holders = {for (final key in existing.keys) moving[key] ?? key: key};
+  // A row the move takes every entry off but cannot take along goes only
+  // when the row now holding those entries has its goals: else they would
+  // be lost, and a move back would rebuild the row from another day's
+  // (#1440). A restore's row that lands on a day of the device's own gives
+  // way to the device's row, as before. Decided before the loop below
+  // changes goals in place.
+  bool goalsHeldElsewhere(String key, TrackedDayDBO row) {
+    if (previousKeys != null) return true;
+    final days = movedTo[key];
+    final holder = days?.length == 1 ? holders[days!.single] : null;
+    return holder != null &&
+        _sameGoals(row, burnedOn(key), existing[holder]!, burnedOn(holder));
+  }
+
+  final emptiedAway = {
+    for (final MapEntry(:key, value: row) in existing.entries)
+      if (key is String &&
+          !moving.containsKey(key) &&
+          !listed.containsKey(key) &&
+          before(key)?[key] != null &&
+          goalsHeldElsewhere(key, row))
+        key,
+  };
+  // The rows the entries listed on each day now were on before.
+  final cameFrom = <String, Map<dynamic, TrackedDayDBO>>{};
+  for (final MapEntry(key: from, value: days) in movedTo.entries) {
+    final row = existing[from];
+    if (row == null || before(from) == null) continue;
+    for (final day in days) {
+      cameFrom.putIfAbsent(day, () => {})[from] = row;
+    }
+  }
   // New rows first: they read the goals of the existing rows, which the
   // loop below changes in place.
   for (final MapEntry(:key, value: day) in listed.entries) {
-    if (existing.containsKey(key)) continue;
+    if (holders.containsKey(key)) continue;
     final row = _newRow(
       DateTime.parse(key),
       day,
-      existing,
+      cameFrom[key] ?? existing,
       burnedOn,
       currentGoals,
     );
@@ -227,13 +403,21 @@ Future<int> reconcileTrackedDays(
     written[key] = row;
   }
 
-  for (final MapEntry(:key, value: row) in existing.entries) {
-    final day = listed[key];
+  for (final MapEntry(:key, value: stored) in existing.entries) {
+    final to = moving[key];
+    final row = to == null ? stored : _movedRow(stored, to);
+    var day = listed[to ?? key];
     if (day == null) {
-      if (_hasConsumed(row) || before(key)?[key] != null) removed.add(key);
-      continue;
+      final emptied = before(key)?[key] != null;
+      if (!emptied || emptiedAway.contains(key)) {
+        if (_hasConsumed(row) || emptied) removed.add(key);
+        continue;
+      }
+      // Kept for its goals, counting nothing.
+      day = _ListedDay();
     }
-    var changed = false;
+    if (to != null) removed.add(key);
+    var changed = to != null;
     if (_differs(row.caloriesTracked, day.kcal) ||
         _differs(row.carbsTracked, day.carbs) ||
         _differs(row.fatTracked, day.fat) ||
@@ -257,8 +441,10 @@ Future<int> reconcileTrackedDays(
             MacroCalc.getTotalProteinsGoal(burnedMoved);
       changed = true;
     }
-    if (changed) written[key] = row;
+    if (changed) written[to ?? key] = row;
   }
+  // A day a row left can be where another row went.
+  removed.removeWhere(written.containsKey);
 
   final writes = [
     if (written.isNotEmpty) rows.putAll(written),
@@ -527,10 +713,12 @@ Future<int> restoreTrackedDays(
 /// no code sees the new boundary with the rows still keyed by the old one,
 /// and inside [withTrackedDayLock], so no writer is between storing an
 /// entry and adding it to its row. Besides the totals, each row's goal
-/// follows the activities that move on or off its day. Other profiles
-/// keep the boundary their rows are keyed by on record, and
-/// [ensureTrackedDaysMatchEntries] moves them from it when they are next
-/// activated.
+/// follows the activities that move on or off its day, and a row whose
+/// entries all move to another day goes with them, goals and all, so
+/// moving the boundary back gives every row its goals back (#1440).
+/// Other profiles keep the boundary their rows are keyed by on record,
+/// and [ensureTrackedDaysMatchEntries] moves them from it when they are
+/// next activated.
 Future<void> moveDayBoundary(
   HiveDBProvider db,
   ConfigDataSource configDataSource,
