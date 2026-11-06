@@ -27,9 +27,11 @@ class QuickAddBottomSheet extends StatefulWidget {
   final IntakeTypeEntity intakeType;
   final DateTime day;
 
-  /// The add-food screen's "To log" list. With one, the entry goes on the
-  /// list and the sheet closes, instead of logging and leaving for home —
-  /// which would drop everything already on the list.
+  /// The add-food screen's "To log" list. Once it has items, the entry goes
+  /// on the list and the sheet closes, instead of logging and leaving for
+  /// home — which would drop everything already on the list. While it is
+  /// empty the entry is logged at once, as before the list existed, and a
+  /// second button puts it on the list instead (#1520).
   final LogTray? logTray;
 
   const QuickAddBottomSheet({
@@ -89,7 +91,13 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     return !_saving && hasTitle && energy != null && energy > 0;
   }
 
-  Future<void> _onSubmit() async {
+  /// Whether the main button adds to the list rather than logging.
+  bool get _addsToList {
+    final logTray = widget.logTray;
+    return logTray != null && !logTray.isEmpty;
+  }
+
+  Future<void> _onSubmit({bool toList = false}) async {
     if (!_canSubmit) return;
     setState(() => _saving = true);
 
@@ -110,7 +118,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
         title: title,
       );
       final logTray = widget.logTray;
-      if (logTray != null) {
+      if (toList && logTray != null) {
         logTray.add(
           LogTrayItem(
             meal: intake.meal,
@@ -301,16 +309,30 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
             Semantics(
               identifier: 'quick-add-submit',
               child: FilledButton(
-                onPressed: _canSubmit ? _onSubmit : null,
+                onPressed: _canSubmit
+                    ? () => _onSubmit(toList: _addsToList)
+                    : null,
                 child: _saving
                     ? const SizedBox(
                         height: 18,
                         width: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(s.quickAddSubmitLabel),
+                    : Text(
+                        _addsToList ? s.addToListLabel : s.quickAddSubmitLabel,
+                      ),
               ),
             ),
+            if (widget.logTray != null && !_addsToList) ...[
+              const SizedBox(height: 8),
+              Semantics(
+                identifier: 'quick-add-add-to-list',
+                child: OutlinedButton(
+                  onPressed: _canSubmit ? () => _onSubmit(toList: true) : null,
+                  child: Text(s.addToListLabel),
+                ),
+              ),
+            ],
           ],
         ),
       ),
