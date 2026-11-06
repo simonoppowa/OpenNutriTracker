@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class DiaryTableCalendar extends StatefulWidget {
@@ -79,8 +80,18 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
                   color: palette.textStrong,
                 ) ??
                 const TextStyle(),
-            leftChevronIcon: Icon(Icons.chevron_left_rounded, color: palette.textMuted, size: 26),
-            rightChevronIcon: Icon(Icons.chevron_right_rounded, color: palette.textMuted, size: 26),
+            leftChevronIcon: Icon(
+              Icons.chevron_left_rounded,
+              color: palette.textMuted,
+              size: 26,
+              semanticLabel: S.of(context).calendarPreviousMonthLabel,
+            ),
+            rightChevronIcon: Icon(
+              Icons.chevron_right_rounded,
+              color: palette.textMuted,
+              size: 26,
+              semanticLabel: S.of(context).calendarNextMonthLabel,
+            ),
             headerPadding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
           ),
           daysOfWeekStyle: DaysOfWeekStyle(
