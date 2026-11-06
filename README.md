@@ -126,7 +126,7 @@ whether that is losing weight, gaining it, managing a condition, or simply knowi
 
 No account, no sign-in, no analytics, no ads. Your profile, diary, activities, weight, water and fasting history, custom meals, and recipes live in local [Hive](https://pub.dev/packages/hive_ce) boxes encrypted with AES-256. The key is generated on first launch, kept in the Android Keystore / iOS Keychain, and never transmitted ([source](lib/core/utils/secure_app_storage_provider.dart)). **Settings → Delete all my data** wipes the active profile. Formal policy: [Data Protection](https://www.iubenda.com/privacy-policy/53501884).
 
-**What leaves your device.** These destinations, nothing else, and the last four only if you turn them on — plus one more, set out below, if you point the app at a server of your own:
+**What leaves your device.** These destinations, nothing else, and the last five only if you turn them on — plus one more, set out below, if you point the app at a server of your own:
 
 | Destination | When | What is sent |
 | :-- | :-- | :-- |
@@ -136,6 +136,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 | [OpenAI](https://openai.com/) | **Only if you save your own API key and pick OpenAI** | As the Anthropic row, plus the model you chose |
 | [OpenRouter](https://openrouter.ai/) | **Only if you save your own API key and pick OpenRouter** | As the Anthropic row, plus the model you chose |
 | └ the vendor serving it | | Named in Settings; pinned, so it is the vendor the model names |
+| [Google Gemini API](https://ai.google.dev/gemini-api/terms) | **Only if you enter Google's Gemini address (`generativelanguage.googleapis.com`) as your own server** — from the moment you type it, as the own-server row below describes | As that row: the meal line or photo, your app language, and the model name you typed. Google receives it under its Gemini API terms: on unpaid use it may use it to improve its products and machine learning, and human reviewers may read it; on paid use, and on all use in the EEA, Switzerland and the UK, it does not, but logs it for a limited time to detect misuse |
 | [Sentry](https://sentry.io) | **Only if you opt in** | Crash traces, app and OS version, device model |
 
 **And one destination this project cannot name.** Every row above is a company with a published policy you can hold it to. If you point the app at a server you run, the destination is a machine of your choosing — so this row states a **rule** rather than a party. It is set apart deliberately: an open-ended entry in the list above would weaken the closed-list promise the list exists to make. It earns a place anyway, because burying the most privacy-relevant destination in prose would read as evasive.
@@ -144,7 +145,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 | :-- | :-- | :-- |
 | **The address you entered, and nothing else** | **From the moment you type a server address in Settings, not from when you save it** — when you change the address and leave the field, when you press *Load models*, when you save (the setup check), and each time a meal line or photo is read | A models-list request when you change the address or press *Load models*; a fixed example line and a bundled photograph on save; otherwise the meal line or the photo, your app language, and the model name you typed |
 
-This is the one row you can falsify yourself: your own server's access log settles it, where no user can ever settle a claim about a vendor's retention. **No third party receives anything on this path** — which is not the same as the data staying put. It does leave the device, to the address you named, and the app will not send it in the clear to anything that is not a private address.
+This is the one row you can falsify yourself: your own server's access log settles it, where no user can ever settle a claim about a vendor's retention. **No third party receives anything on this path**, unless the address is Google's Gemini API, which is not a server you run: that is the Google row above, and the app names Google before you agree. Either way the data does not stay put. It leaves the device, to the address you named, and the app will not send it in the clear to anything that is not a private address.
 
 **AI meal assistance is marked Experimental**, and that is a claim about stability rather than accuracy: the feature may change or be removed, and the providers and models offered may change with it. It stops being experimental when two things hold — a model has been screened against a real corpus of photographs containing no food ([#719](https://github.com/simonoppowa/OpenNutriTracker/issues/719) ran on five images, only one of them a photograph), and one release cycle passes with no provider or model dropped from the curated list. Until both are true the label stays, so that removing it is something you can check rather than something that felt right.
 

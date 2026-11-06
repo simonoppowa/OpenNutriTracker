@@ -1,8 +1,48 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/data/meal_items_api_factory.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
+
+/// Records the URL a request went to and answers with one empty tool call,
+/// enough for the chat-completions client to parse.
+class _UrlCapturingClient extends http.BaseClient {
+  Uri? url;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    url = request.url;
+    return http.StreamedResponse(
+      Stream.value(
+        utf8.encode(
+          jsonEncode({
+            'choices': [
+              {
+                'finish_reason': 'tool_calls',
+                'message': {
+                  'tool_calls': [
+                    {
+                      'function': {
+                        'name': 'log_meal_items',
+                        'arguments': '{"items":[]}',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ),
+      ),
+      200,
+      request: request,
+    );
+  }
+}
 
 /// In-memory stand-in for the platform keystore.
 ///
@@ -963,6 +1003,26 @@ void main() {
           'https://ollama.example.com/proxy/chat',
           'https://ollama.example.com/proxy/chat',
         ),
+        // Google's documented OpenAI-compatible base, with and without the
+        // trailing slash its docs print (#1257).
+        (
+          'https://generativelanguage.googleapis.com/v1beta/openai/',
+          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+        ),
+        (
+          'https://generativelanguage.googleapis.com/v1beta/openai',
+          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+        ),
+        (
+          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+          'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+        ),
+        // Only on Google's host: anywhere else `/openai` is a path the user
+        // chose, and is kept as typed like any other.
+        (
+          'https://proxy.example.com/openai',
+          'https://proxy.example.com/openai',
+        ),
       ]) {
         expect(
           AiCredentialStorage.resolveEndpoint(typed).toString(),
@@ -970,6 +1030,349 @@ void main() {
           reason: typed,
         );
       }
+    });
+
+    test('the Gemini base as typed is where the meal is POSTed', () async {
+      // From the field to the wire: the address Google's docs give, saved the
+      // way the dialog saves it, read back as the selection the factory
+      // builds the client from, and the URL that request actually goes to.
+      await storage.setActiveProvider(AiProvider.ownServer);
+      // Agreed over the paragraph naming Google, as the dialog asks for.
+      await storage.setTermsAccepted(
+        true,
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      );
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        model: 'gemini-3.1-pro',
+        provider: AiProvider.ownServer,
+      );
+      final selection = await storage.readSelection();
+
+      final client = _UrlCapturingClient();
+      await mealItemsApiFor(client, selection!).requestItems(
+        content: const MealTextContent('toast'),
+        system: 'system',
+      );
+
+      expect(
+        client.url.toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(selection.endpoint!)
+            .toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/models',
+      );
+    });
+
+    test('a Gemini base stored before the fix is requested at the chat '
+        'route, without saving again', () async {
+      // Installs that saved Google's base before #1257 hold `/v1beta/openai`
+      // verbatim. Set up as a working configuration, then put the old form
+      // back in the slot the way the old resolver left it. The agreement is
+      // the one given over the Google paragraph, which such an install is
+      // asked for before anything is sent (see the consent tests).
+      await storage.setActiveProvider(AiProvider.ownServer);
+      await storage.setTermsAccepted(
+        true,
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      );
+      await storage.writeOwnServerConfiguration(
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        model: 'gemini-3.1-pro',
+        provider: AiProvider.ownServer,
+      );
+      const slot = 'AiEndpointTag.ownServer';
+      backing.store[slot] =
+          'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      final selection = await storage.readSelection();
+      final client = _UrlCapturingClient();
+      await mealItemsApiFor(client, selection!).requestItems(
+        content: const MealTextContent('toast'),
+        system: 'system',
+      );
+
+      expect(
+        client.url.toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(selection.endpoint!)
+            .toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/models',
+      );
+      expect(
+        AiCredentialStorage.resolveModelsEndpoint(backing.store[slot]!)
+            .toString(),
+        'https://generativelanguage.googleapis.com/v1beta/openai/models',
+        reason: 'the old stored form derives the same model-list route',
+      );
+
+      // Saving the same base again stores the completed form, and is not
+      // read as a new address that forgets the model.
+      await storage.writeEndpoint(
+        'https://generativelanguage.googleapis.com/v1beta/openai/',
+        provider: AiProvider.ownServer,
+      );
+      expect(
+        backing.store[slot],
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+      expect(
+        await storage.readModel(provider: AiProvider.ownServer),
+        'gemini-3.1-pro',
+      );
+    });
+
+    test('a stored address on any other host is read as it was stored', () {
+      // The read-side completion is Gemini-only, like the rule it mirrors.
+      // Stored by hand so nothing at write time can have touched it.
+      backing.store['AiEndpointTag.ownServer'] =
+          'https://proxy.example.com/openai';
+      return expectLater(
+        storage.readEndpoint(provider: AiProvider.ownServer),
+        completion('https://proxy.example.com/openai'),
+      );
+    });
+
+    group('a key belongs to the server it was saved for (#1257)', () {
+      Future<void> configure(String endpoint) async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        await storage.writeOwnServerConfiguration(
+          endpoint: endpoint,
+          model: 'some-model',
+          provider: AiProvider.ownServer,
+        );
+      }
+
+      test('moving to another host forgets it', () async {
+        // Kept, every meal would carry a Google key as a bearer to whatever
+        // answers at the new address.
+        await configure(
+          'https://generativelanguage.googleapis.com/v1beta/openai/',
+        );
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        await configure('https://other.example.org/v1');
+
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          isNull,
+        );
+      });
+
+      test('another port on the same host is another server', () async {
+        await configure('http://192.168.1.5:11434');
+        await storage.writeApiKey('key', provider: AiProvider.ownServer);
+
+        await configure('http://192.168.1.5:8080');
+
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          isNull,
+        );
+      });
+
+      test('a changed route on the same server keeps it', () async {
+        await configure('http://192.168.1.5:11434');
+        await storage.writeApiKey('key', provider: AiProvider.ownServer);
+
+        await configure('http://192.168.1.5:11434/proxy/v1');
+
+        expect(await storage.readApiKey(provider: AiProvider.ownServer), 'key');
+      });
+
+      test('a key saved with the new address is the one kept', () async {
+        // The dialog's order: the address first, then the key typed with it.
+        await configure('https://old.example.org/v1');
+        await storage.writeApiKey('old', provider: AiProvider.ownServer);
+
+        await configure('https://new.example.org/v1');
+        await storage.writeApiKey('new', provider: AiProvider.ownServer);
+
+        expect(await storage.readApiKey(provider: AiProvider.ownServer), 'new');
+      });
+
+      test('the absolute form of the same host keeps it', () async {
+        // `example.org.` is `example.org` written absolutely; DNS reaches the
+        // same machine, so the key is still that machine's.
+        const gemini =
+            'https://generativelanguage.googleapis.com/v1beta/openai/';
+        const absolute =
+            'https://generativelanguage.googleapis.com./v1beta/openai/';
+        await configure(gemini);
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        expect(
+          await storage.apiKeyForServer(
+            absolute,
+            provider: AiProvider.ownServer,
+          ),
+          'google-key',
+        );
+        await configure(absolute);
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          'google-key',
+        );
+      });
+
+      test('is handed out only for its own server', () async {
+        await configure('https://a.example.org/v1');
+        await storage.writeApiKey('a-key', provider: AiProvider.ownServer);
+
+        expect(
+          await storage.apiKeyForServer(
+            'https://a.example.org/v1',
+            provider: AiProvider.ownServer,
+          ),
+          'a-key',
+        );
+        expect(
+          await storage.apiKeyForServer(
+            'https://b.example.org/v1',
+            provider: AiProvider.ownServer,
+          ),
+          isNull,
+        );
+      });
+
+      test('a save landing mid-read cannot pair one server with the next '
+          'server\'s key', () async {
+        // Read as two calls, the address of A and then — after a save of B
+        // and B's key — B's key, which the model-list request then carried
+        // to A. One read under the configuration lock cannot be split.
+        await configure('https://a.example.org/v1');
+        await storage.writeApiKey('a-key', provider: AiProvider.ownServer);
+
+        // Held after the address has been read and before the key is: the
+        // window a save has to land in to cross the pair.
+        const keySlot = 'AiApiKeyTag.ownServer';
+        final held = Completer<void>();
+        backing.readGates[keySlot] = held;
+        backing.reads.clear();
+        final reading = storage.apiKeyForServer(
+          'https://a.example.org/v1',
+          provider: AiProvider.ownServer,
+        );
+        for (var i = 0; i < 50 && !backing.reads.contains(keySlot); i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(backing.reads, contains('AiEndpointTag.ownServer'));
+        backing.readGates.remove(keySlot);
+
+        // The dialog's save of another server, started while A is read.
+        final saved = () async {
+          await storage.writeOwnServerConfiguration(
+            endpoint: 'https://b.example.org/v1',
+            model: 'some-model',
+            provider: AiProvider.ownServer,
+          );
+          await storage.writeApiKey('b-key', provider: AiProvider.ownServer);
+        }();
+        for (var i = 0; i < 20; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        held.complete();
+
+        expect(await reading, 'a-key');
+        await saved;
+        expect(
+          await storage.apiKeyForServer(
+            'https://a.example.org/v1',
+            provider: AiProvider.ownServer,
+          ),
+          isNull,
+          reason: 'B is on file now, and A gets nothing of it',
+        );
+      });
+    });
+
+    group('a Gemini verdict recorded before #1257', () {
+      // Before #1257 the check asked Gemini with `tool_choice: "required"`
+      // and, from Google's documented base, at the base itself. A `failed`
+      // from then hides the camera on the strength of a request this build
+      // no longer sends.
+      const probeSlot = 'AiProbeTag.ownServer';
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      Future<void> configure(String endpoint) async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        await storage.writeOwnServerConfiguration(
+          endpoint: endpoint,
+          model: 'some-model',
+          provider: AiProvider.ownServer,
+        );
+      }
+
+      test('keeps its passes and forgets its failures', () async {
+        await configure(gemini);
+        // What the old build wrote: text passed, photo failed, checked.
+        backing.store[probeSlot] = 'pfc';
+
+        final probe = await storage.readProbe(provider: AiProvider.ownServer);
+
+        expect(probe.text, AiCapability.passed);
+        expect(probe.photo, AiCapability.unknown);
+        expect(probe.checked, isTrue);
+      });
+
+      test('a failure this build records still counts', () async {
+        await configure(gemini);
+        backing.store[probeSlot] = 'pfc';
+
+        await storage.writeProbe(
+          const AiEndpointProbe(
+            text: AiCapability.passed,
+            photo: AiCapability.failed,
+            checked: true,
+          ),
+          provider: AiProvider.ownServer,
+        );
+
+        expect(backing.store[probeSlot], 'pfcg');
+        final probe = await storage.readProbe(provider: AiProvider.ownServer);
+        expect(probe.photo, AiCapability.failed);
+      });
+
+      test('an old failure is not carried into a new record', () async {
+        // A new check whose photo leg learned nothing must not merge the old
+        // failure back in under the new mark.
+        await configure(gemini);
+        backing.store[probeSlot] = 'pfc';
+
+        await storage.writeProbe(
+          const AiEndpointProbe(
+            text: AiCapability.passed,
+            photo: AiCapability.unknown,
+            checked: true,
+          ),
+          provider: AiProvider.ownServer,
+        );
+
+        final probe = await storage.readProbe(provider: AiProvider.ownServer);
+        expect(probe.photo, AiCapability.unknown);
+      });
+
+      test('every other server keeps its verdict exactly', () async {
+        await configure('http://192.168.1.5:11434');
+        backing.store[probeSlot] = 'pfc';
+
+        final probe = await storage.readProbe(provider: AiProvider.ownServer);
+
+        expect(probe.photo, AiCapability.failed);
+        await storage.writeProbe(
+          const AiEndpointProbe(
+            text: AiCapability.passed,
+            photo: AiCapability.unknown,
+            checked: true,
+          ),
+          provider: AiProvider.ownServer,
+        );
+        expect(backing.store[probeSlot], 'pfc', reason: 'no mark, no change');
+      });
     });
 
     test('the destination is named without the credential in it', () async {
@@ -1728,6 +2131,81 @@ void main() {
 
       await storage.setTermsAccepted(true);
       expect(await storage.isEnabled(), isTrue);
+    });
+
+    group('Google\'s Gemini API asks again (#1257)', () {
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      /// An install from before #1257: Google's base saved verbatim, and an
+      /// agreement given while that address was described as a server the
+      /// user runs, with no third party receiving anything.
+      Future<void> preMigration() async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        backing.store['AiEndpointTag.ownServer'] = gemini;
+        backing.store['AiModelTag.ownServer'] = 'gemini-3.1-pro';
+        backing.store['AiApiKeyTag.ownServer'] = 'google-key';
+        backing.store['AiAssistEnabledTag'] = 'true';
+        backing.store['AiTermsAcceptedTag'] = 'true';
+      }
+
+      test('an agreement from before sends nothing to Google', () async {
+        await preMigration();
+
+        expect(await storage.readSelection(), isNull);
+        expect(await storage.isEnabled(), isFalse);
+        expect(
+          await storage.hasAcceptedTerms(
+            provider: AiProvider.ownServer,
+            endpoint: gemini,
+          ),
+          isFalse,
+          reason: 'the dialog must show the paragraph naming Google again',
+        );
+        expect(
+          await storage.hasAcceptedTerms(),
+          isTrue,
+          reason: 'nothing the user agreed to is deleted',
+        );
+      });
+
+      test('agreeing over the Google paragraph turns it back on', () async {
+        await preMigration();
+
+        await storage.setTermsAccepted(true, endpoint: gemini);
+
+        final selection = await storage.readSelection();
+        expect(selection?.endpoint, '$gemini/chat/completions');
+        expect(selection?.apiKey, 'google-key');
+      });
+
+      test('every other destination keeps the agreement it has', () async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await storage.setTermsAccepted(true);
+
+        expect(await storage.readSelection(), isNotNull);
+        expect(
+          await storage.hasAcceptedTerms(
+            provider: AiProvider.ownServer,
+            endpoint: 'http://192.168.1.5:11434',
+          ),
+          isTrue,
+        );
+      });
+
+      test('withdrawing the agreement withdraws Google\'s too', () async {
+        await preMigration();
+        await storage.setTermsAccepted(true, endpoint: gemini);
+
+        await storage.setTermsAccepted(false);
+        await storage.setTermsAccepted(true);
+
+        expect(await storage.readSelection(), isNull);
+      });
     });
 
     test('removing the only credential withdraws it', () async {

@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:opennutritracker/core/utils/gemini_endpoint.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -277,6 +278,16 @@ class AiCredentialStorage {
 
   static const _enabledTag = 'AiAssistEnabledTag';
   static const _termsAcceptedTag = 'AiTermsAcceptedTag';
+
+  /// The agreement was given over the paragraph that names **Google** — the
+  /// one an own-server address at Google's Gemini API shows (#1257).
+  ///
+  /// Separate from [_termsAcceptedTag] because that one can predate it. An
+  /// install that saved Google's address under an older build agreed to
+  /// "a server you run … No third party receives it", and the read-side
+  /// completion of that stored address is what first makes it reach Google.
+  /// A yes to a paragraph that named nobody is not a yes to Google.
+  static const _googleTermsAcceptedTag = 'AiGoogleTermsAcceptedTag';
   static const _providerTag = 'AiProviderTag';
   static const _modelTag = 'AiModelTag';
 
@@ -426,6 +437,7 @@ class AiCredentialStorage {
             modelId: modelId,
           ) &&
           await _storage.read(key: _termsAcceptedTag) == 'true' &&
+          await _googleTermsHold(target, endpoint) &&
           await _storage.read(key: _enabledTag) != 'false';
       return (
         provider: target,
@@ -493,6 +505,13 @@ class AiCredentialStorage {
     // SDKs call the base URL, so it is a base rather than a route.
     if (path.endsWith('/v1')) {
       return uri.replace(path: '$path/chat/completions');
+    }
+    // Google documents its OpenAI-compatible base as `…/v1beta/openai/`, so
+    // that is what a Gemini user pastes, and left as typed every meal was
+    // POSTed to the base (#1257). Read as a base on that host only: on a
+    // server the user runs, a path ending in `/openai` is still theirs.
+    if (isGeminiEndpoint(uri) && path.endsWith('/openai')) {
+      return uri.replace(path: '$path$_chatCompletionsSuffix');
     }
     return uri.replace(path: path);
   }
@@ -585,6 +604,39 @@ class AiCredentialStorage {
     return '$host:${uri.port}';
   }
 
+  /// Whether [a] and [b] reach the same server: the same host on the same
+  /// port, whatever the route.
+  ///
+  /// What a key stored for this provider is bound to. It was typed for one
+  /// server, and handing it to another — a request for the model list, a
+  /// setup check, a meal — sends someone's credential to a machine it was
+  /// never meant for (#1257). Unparseable means "not the same", so the doubt
+  /// falls on the side of withholding the key. Hosts are compared by
+  /// [canonicalHost], so the absolute form of a name is the same server.
+  static bool sameServer(String a, String b) {
+    final x = Uri.tryParse(a.trim());
+    final y = Uri.tryParse(b.trim());
+    if (x == null || y == null || x.host.isEmpty) return false;
+    return canonicalHost(x) == canonicalHost(y) && x.port == y.port;
+  }
+
+  /// [provider]'s stored key, but only while [endpoint] names the server it
+  /// was stored with; null for any other address.
+  ///
+  /// **One read under the configuration lock**, as [_readState] is. Read as
+  /// two calls, a save landing between them paired one server's address with
+  /// the next server's key, and the model-list request then carried that key
+  /// to the first server. [writeApiKey] takes the same lock, so neither half
+  /// of a save can land inside this.
+  Future<String?> apiKeyForServer(
+    String endpoint, {
+    required AiProvider provider,
+  }) => _probeConfigurationLock.synchronized(() async {
+    final stored = await readEndpoint(provider: provider);
+    if (stored == null || !sameServer(stored, endpoint)) return null;
+    return readApiKey(provider: provider);
+  });
+
   /// Whether [provider] has what it needs to be used at all.
   ///
   /// The generalisation #755 exists for. The rule was never really about
@@ -618,7 +670,27 @@ class AiCredentialStorage {
     final target = await _target(provider);
     if (target == null) return null;
     final value = await _storage.read(key: _endpointSlotTag(target));
-    return (value == null || value.isEmpty) ? null : value;
+    if (value == null || value.isEmpty) return null;
+    return _completeStoredGemini(value);
+  }
+
+  /// [value] as stored, except a Gemini base saved before #1257 taught
+  /// [resolveEndpoint] to complete it.
+  ///
+  /// Those installs hold `…/v1beta/openai`, which every meal was POSTed to.
+  /// Completed on read rather than rewritten in storage: [readEndpoint] runs
+  /// inside the configuration lock, which is not reentrant, and a rewrite
+  /// through [_writeEndpointLocked] would read as a new address and forget the
+  /// model and the setup check. Every reader goes through here — the request,
+  /// the row, the probe identity check — so they all see the one form, and
+  /// the next save stores it.
+  ///
+  /// Gemini only, like the rule it mirrors: anything else is returned exactly
+  /// as it was stored.
+  static String _completeStoredGemini(String value) {
+    final uri = Uri.tryParse(value);
+    if (uri == null || !isGeminiEndpoint(uri)) return value;
+    return resolveEndpoint(value)?.toString() ?? value;
   }
 
   /// Points [provider] at [endpoint] with [model], **as one act**, and
@@ -738,13 +810,24 @@ class AiCredentialStorage {
   /// takes it. That rules out `clear`, which is why the empty-address branch
   /// stays with the caller.
   Future<void> _writeEndpointLocked(String value, AiProvider target) async {
-    final previous = await _storage.read(key: _endpointSlotTag(target));
+    final stored = await _storage.read(key: _endpointSlotTag(target));
+    // Compared in the form it is read in, so storing the completed form of a
+    // Gemini base saved before #1257 is not mistaken for a new address.
+    final previous = stored == null ? null : _completeStoredGemini(stored);
     if (previous != value) {
       await _storage.delete(key: _modelSlotTag(target));
       // And what the probe found, for the same reason and one step further:
       // "photos work here" was a fact about a machine, and this is a
       // different machine. #779.
       await _storage.delete(key: _probeSlotTag(target));
+    }
+    // And the key, when the address names another machine. It is the
+    // credential for the server it was typed for — a Gemini key is Google's —
+    // and kept, every meal would carry it as a bearer to whatever answers at
+    // the new address (#1257). A changed route on the same host and port is
+    // the same server and keeps it.
+    if (previous != null && !sameServer(previous, value)) {
+      await _storage.delete(key: _slotTag(target));
     }
     await _storage.write(key: _endpointSlotTag(target), value: value);
 
@@ -883,8 +966,52 @@ class AiCredentialStorage {
   Future<AiEndpointProbe> readProbe({AiProvider? provider}) async {
     final target = await _target(provider);
     if (target == null) return AiEndpointProbe.unknown;
-    return AiEndpointProbe.decode(
-      await _storage.read(key: _probeSlotTag(target)),
+    return (await _storedProbe(target)).probe;
+  }
+
+  /// Appended to a verdict recorded against Google's Gemini host by a build
+  /// that asks it the way #1257 does.
+  ///
+  /// Before #1257 the check reached Gemini with `tool_choice: "required"` and,
+  /// from Google's documented base, at the base rather than the chat route.
+  /// A `failed` from then is a fact about those requests, not about the
+  /// model, and the camera stays hidden on it. A verdict without this mark on
+  /// that host is from then.
+  static const _geminiProbeMark = 'g';
+
+  /// The verdict stored for [target], and whether it is held against Gemini.
+  ///
+  /// On Gemini, an unmarked verdict keeps its passes — the new request only
+  /// insists harder on the tool call — and reads its failures as not yet
+  /// known, so the next check decides them. Every other destination is read
+  /// exactly as before: nothing here can discount a verdict they hold.
+  Future<({AiEndpointProbe probe, bool gemini})> _storedProbe(
+    AiProvider target,
+  ) async {
+    final raw = await _storage.read(key: _probeSlotTag(target));
+    final endpoint = target == AiProvider.ownServer
+        ? await readEndpoint(provider: target)
+        : null;
+    final uri = endpoint == null ? null : Uri.tryParse(endpoint);
+    if (uri == null || !isGeminiEndpoint(uri)) {
+      return (probe: AiEndpointProbe.decode(raw), gemini: false);
+    }
+    if (raw != null && raw.endsWith(_geminiProbeMark)) {
+      return (
+        probe: AiEndpointProbe.decode(raw.substring(0, raw.length - 1)),
+        gemini: true,
+      );
+    }
+    final old = AiEndpointProbe.decode(raw);
+    AiCapability kept(AiCapability c) =>
+        c == AiCapability.failed ? AiCapability.unknown : c;
+    return (
+      probe: AiEndpointProbe(
+        text: kept(old.text),
+        photo: kept(old.photo),
+        checked: old.checked,
+      ),
+      gemini: true,
     );
   }
 
@@ -942,9 +1069,9 @@ class AiCredentialStorage {
   });
 
   Future<void> _writeProbe(AiEndpointProbe probe, AiProvider target) async {
-    final stored = AiEndpointProbe.decode(
-      await _storage.read(key: _probeSlotTag(target)),
-    );
+    // Merged against the verdict as it reads, so a pre-#1257 Gemini failure
+    // that this check left unknown is not carried forward under the mark.
+    final (probe: stored, :gemini) = await _storedProbe(target);
     final merged = AiEndpointProbe(
       text: probe.text == AiCapability.unknown ? stored.text : probe.text,
       photo: probe.photo == AiCapability.unknown ? stored.photo : probe.photo,
@@ -960,7 +1087,10 @@ class AiCredentialStorage {
       await _storage.delete(key: _probeSlotTag(target));
       return;
     }
-    await _storage.write(key: _probeSlotTag(target), value: merged.encode());
+    await _storage.write(
+      key: _probeSlotTag(target),
+      value: '${merged.encode()}${gemini ? _geminiProbeMark : ''}',
+    );
   }
 
   /// The stored key for [provider], defaulting to the active one, or null
@@ -997,12 +1127,16 @@ class AiCredentialStorage {
       return;
     }
 
-    await _storage.write(key: _slotTag(target), value: trimmed);
-    await _retireLegacyTagFor(target);
+    // Under the configuration lock, so [apiKeyForServer] never reads an
+    // address and then a key written for another one.
+    await _probeConfigurationLock.synchronized(() async {
+      await _storage.write(key: _slotTag(target), value: trimmed);
+      await _retireLegacyTagFor(target);
 
-    // Saving a key is the user asking for the feature. Requiring a second
-    // switch afterwards is a step that only exists to be forgotten.
-    await _storage.write(key: _enabledTag, value: 'true');
+      // Saving a key is the user asking for the feature. Requiring a second
+      // switch afterwards is a step that only exists to be forgotten.
+      await _storage.write(key: _enabledTag, value: 'true');
+    });
   }
 
   /// Forgets [provider]'s key, defaulting to the active one, and the intent
@@ -1039,6 +1173,7 @@ class AiCredentialStorage {
       if (!await hasAnyUsableProvider()) {
         await _storage.delete(key: _enabledTag);
         await _storage.delete(key: _termsAcceptedTag);
+        await _storage.delete(key: _googleTermsAcceptedTag);
       }
     });
   }
@@ -1073,6 +1208,7 @@ class AiCredentialStorage {
     await _storage.delete(key: _providerTag);
     await _storage.delete(key: _enabledTag);
     await _storage.delete(key: _termsAcceptedTag);
+    await _storage.delete(key: _googleTermsAcceptedTag);
   });
 
   /// The legacy tag is the Anthropic slot under an older name, so it is
@@ -1141,17 +1277,50 @@ class AiCredentialStorage {
   /// It follows that agreeing while pointed at a server the user runs also
   /// covers a hosted provider chosen later — which is why the screen says so,
   /// and why the dialog keeps showing each provider's own terms.
-  Future<bool> hasAcceptedTerms() async =>
-      await _storage.read(key: _termsAcceptedTag) == 'true';
+  ///
+  /// The one exception is Google's Gemini API reached as [AiProvider.ownServer]
+  /// at [endpoint]: that needs an agreement given over the paragraph naming
+  /// Google, which an older build never showed (#1257).
+  Future<bool> hasAcceptedTerms({
+    AiProvider? provider,
+    String? endpoint,
+  }) async =>
+      await _storage.read(key: _termsAcceptedTag) == 'true' &&
+      (provider == null || await _googleTermsHold(provider, endpoint));
 
   /// Recorded only after the agreement is actually given, and cleared when
   /// the last credential goes (#836) so a stored yes never outlives the thing
   /// it authorised.
-  Future<void> setTermsAccepted(bool accepted) async {
+  ///
+  /// [endpoint] is the address the agreement was shown for. When it is
+  /// Google's Gemini API the screen named Google, and that is recorded too.
+  Future<void> setTermsAccepted(bool accepted, {String? endpoint}) async {
     await _storage.write(
       key: _termsAcceptedTag,
       value: accepted ? 'true' : 'false',
     );
+    if (!accepted) {
+      await _storage.delete(key: _googleTermsAcceptedTag);
+    } else if (_isGeminiAddress(endpoint)) {
+      await _storage.write(key: _googleTermsAcceptedTag, value: 'true');
+    }
+  }
+
+  /// False only for an own-server address at Google's Gemini API with no
+  /// agreement on file that was given over the paragraph naming Google.
+  ///
+  /// Every other destination is untouched by this, so no agreement anyone
+  /// gave for one of them can be withdrawn by it.
+  Future<bool> _googleTermsHold(AiProvider provider, String? endpoint) async {
+    if (provider != AiProvider.ownServer || !_isGeminiAddress(endpoint)) {
+      return true;
+    }
+    return await _storage.read(key: _googleTermsAcceptedTag) == 'true';
+  }
+
+  static bool _isGeminiAddress(String? endpoint) {
+    final uri = endpoint == null ? null : Uri.tryParse(endpoint.trim());
+    return uri != null && isGeminiEndpoint(uri);
   }
 
   /// Whether the user currently wants the key used. False whenever the

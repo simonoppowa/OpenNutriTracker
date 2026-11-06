@@ -69,6 +69,22 @@ class CapturingClient extends http.BaseClient {
   }
 }
 
+/// Answers every request with [status] and [body].
+class _ErrorClient extends http.BaseClient {
+  final int status;
+  final String body;
+
+  _ErrorClient(this.status, this.body);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async =>
+      http.StreamedResponse(
+        Stream.value(utf8.encode(body)),
+        status,
+        request: request,
+      );
+}
+
 Future<CapturingClient> send(AiSelection selection) async {
   final client = CapturingClient();
   await mealItemsApiFor(
@@ -368,6 +384,139 @@ void main() {
               )
               as OpenAiCompatibleMealItemsApi;
       expect(openrouter.timeoutFailure, MealInterpreterFailure.transient);
+    });
+  });
+
+  group('how hard a server the user runs is asked for the tool call', () {
+    Future<CapturingClient> sendTo(String endpoint) => send(
+      AiSelection(
+        provider: AiProvider.ownServer,
+        apiKey: 'key',
+        endpoint: endpoint,
+        modelId: 'some-model',
+      ),
+    );
+
+    test('Gemini is asked for the tool by name', () async {
+      // #1257: Google's OpenAI-compatible layer returns the meal only when
+      // the function is named.
+      final client = await sendTo(
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], {
+        'type': 'function',
+        'function': {'name': 'log_meal_items'},
+      });
+    });
+
+    test('however the host is capitalised', () async {
+      final client = await sendTo(
+        'https://GenerativeLanguage.GoogleApis.com/v1beta/openai/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], isA<Map<String, dynamic>>());
+    });
+
+    test('llama.cpp and LM Studio keep "required"', () async {
+      // #733: llama.cpp parses `tool_choice` as a string and downgrades an
+      // object to "auto", and nothing in the prompt asks for the tool, so a
+      // named function there is a prose reply and a "no tool call" failure.
+      for (final endpoint in [
+        'https://llama.example.org/v1/chat/completions',
+        'https://lmstudio.example.org:1234/v1/chat/completions',
+      ]) {
+        final client = await sendTo(endpoint);
+        expect(client.body!['tool_choice'], 'required', reason: endpoint);
+      }
+    });
+
+    test('a look-alike host is not Gemini', () async {
+      final client = await sendTo(
+        'https://generativelanguage.googleapis.com.example.org/v1/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], 'required');
+    });
+
+    test('local addresses keep "required" too', () {
+      expect(
+        ownServerToolChoice(Uri.parse('http://192.168.1.5:8080/v1')),
+        ToolChoiceMode.anyTool,
+      );
+      expect(
+        ownServerToolChoice(Uri.parse('http://localhost:11434/v1')),
+        ToolChoiceMode.anyTool,
+      );
+    });
+  });
+
+  group('a bad Gemini key is reported as a key problem', () {
+    // #1257: Google answers a mistyped key with a 400, the status read
+    // everywhere else as a rejected request — which the text path keeps quiet
+    // about and the photo path calls an unreadable picture.
+    const gemini =
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+    // The shape Google's OpenAI-compatible layer returns, list-wrapped.
+    final badKey = jsonEncode([
+      {
+        'error': {
+          'code': 400,
+          'message': 'API key not valid. Please pass a valid API key.',
+          'status': 'INVALID_ARGUMENT',
+          'details': [
+            {
+              '@type': 'type.googleapis.com/google.rpc.ErrorInfo',
+              'reason': 'API_KEY_INVALID',
+            },
+          ],
+        },
+      },
+    ]);
+
+    Future<MealInterpreterFailure> failureFrom(
+      String endpoint,
+      String body,
+    ) async {
+      final api = mealItemsApiFor(
+        _ErrorClient(400, body),
+        AiSelection(
+          provider: AiProvider.ownServer,
+          apiKey: 'wrong',
+          endpoint: endpoint,
+          modelId: 'some-model',
+        ),
+      );
+      try {
+        await api.requestItems(
+          content: const MealTextContent('toast'),
+          system: 'system',
+        );
+      } on MealInterpreterException catch (e) {
+        return e.failure;
+      }
+      fail('the request did not fail');
+    }
+
+    test('on Gemini, API_KEY_INVALID is auth', () async {
+      expect(await failureFrom(gemini, badKey), MealInterpreterFailure.auth);
+    });
+
+    test('any other Gemini 400 is still a rejected request', () async {
+      expect(
+        await failureFrom(gemini, '{"error":{"code":400}}'),
+        MealInterpreterFailure.rejected,
+      );
+    });
+
+    test('other servers read the status alone, as before', () async {
+      expect(
+        await failureFrom(
+          'https://llama.example.org/v1/chat/completions',
+          badKey,
+        ),
+        MealInterpreterFailure.rejected,
+      );
     });
   });
 

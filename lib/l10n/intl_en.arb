@@ -1346,6 +1346,8 @@
   "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
   "aiAssistDisclosureOwnServerPlaintext": "With an address saved, the text you type on the multi-item add screen, and any photo you choose to read there, is sent to {host} — a server you run. No third party receives it, and the project has no relationship with that machine and can promise nothing about what it keeps. This address is plain HTTP, so the connection is not encrypted: anything on the network between this phone and that server can read what is sent.",
   "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "aiAssistDisclosureOwnServerGemini": "With an address saved, the text you type on the multi-item add screen, and any photo you choose to read there, is sent to Google's Gemini API at {host}. This is not a server you run: Google receives it, and the project has no relationship with Google. On unpaid Gemini API use, Google may use what you send to improve its products and machine learning, and human reviewers may read it. On paid use, and on all use in the EEA, Switzerland and the UK, Google does not use it to improve its products, but logs it for a limited time to detect misuse.",
+  "@aiAssistDisclosureOwnServerGemini": {"placeholders": {"host": {"type": "String"}}},
   "aiAssistEndpointInvalidLabel": "Enter an address starting with http:// or https://",
   "aiAssistModelRequiredLabel": "Name the model this server should use.",
   "aiAssistEndpointPublicPlaintextLabel": "That address is public and unencrypted, so requests to it are refused. Use https, or a private address.",

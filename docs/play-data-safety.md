@@ -92,7 +92,7 @@ Nothing in the app can delete what has already gone off-device:
 | Recipient | What reached it | Deletable from the app? |
 |---|---|---|
 | Sentry | crash reports, kept 30 days per the policy | no |
-| AI provider (OpenAI / Anthropic / OpenRouter / own server) | meal photo, meal text | no |
+| AI provider (OpenAI / Anthropic / OpenRouter / Google Gemini entered as own server / own server) | meal photo, meal text | no |
 | Open Food Facts | search terms, scanned barcodes | no |
 | Supabase food backend | search terms | no |
 

@@ -137,6 +137,31 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// A key is really stored, so the field is replaced by a mask.
   bool _hasKey = false;
 
+  /// The address on file when the dialog loaded, which the stored key
+  /// belongs to.
+  String? _savedEndpoint;
+
+  /// Whether the stored key is the key for what the address field says now.
+  ///
+  /// A server the user runs keeps its key only on the server it was saved
+  /// for — saving an address on another one forgets it (#1257). So once the
+  /// field names another server, "Key saved" would be describing a key that
+  /// will not be used, over the very field the new server's key has to go
+  /// in. Nothing is deleted here: Cancel leaves the stored key as it was.
+  bool get _keyIsSaved =>
+      _hasKey &&
+      (_provider != AiProvider.ownServer ||
+          _savedEndpoint == null ||
+          AiCredentialStorage.sameServer(
+            _savedEndpoint!,
+            _endpointController.text,
+          ));
+
+  /// The address a key typed in this dialog was typed for, or null while it
+  /// is bound to none yet. A key typed for one server must not follow the
+  /// field to another, before Save or by it (#1257).
+  String? _typedKeyServer;
+
   /// This provider has what it needs to be used — a key for the hosted three,
   /// an **address** for a server the user runs.
   ///
@@ -353,6 +378,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     setState(() {
       _provider = provider;
       _hasKey = hasKey;
+      _savedEndpoint = summary.endpoint;
       _configured = summary.provider == null ? false : summary.configured;
       _enabled = summary.enabled;
       _model = AiModelCatalogue.resolve(provider, modelId);
@@ -458,6 +484,19 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// leaves a verdict for the address still in the field standing.
   void _endpointChanged() {
     setState(() {
+      // Back on the server the stored key belongs to, the field is hidden
+      // again; a key typed for the other server must not be saved over it
+      // from behind the mask. Nor may one typed for a server follow the field
+      // to another; text that is not yet an address names none, so keeps it.
+      final address = _endpointController.text.trim();
+      final bound = _typedKeyServer;
+      if (_keyIsSaved ||
+          (bound != null &&
+              AiCredentialStorage.resolveEndpoint(address) != null &&
+              !AiCredentialStorage.sameServer(bound, address))) {
+        _apiKeyController.clear();
+        _typedKeyServer = null;
+      }
       _endpointError = null;
       _modelsGeneration++;
       _fetchingModels = false;
@@ -465,6 +504,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _modelListFailure = null;
       _modelListHost = null;
     });
+  }
+
+  /// A key typed with an address in the field belongs to that server; one
+  /// typed before there is an address binds to the first one it is sent to.
+  void _keyTyped(String key) {
+    final address = _endpointController.text.trim();
+    _typedKeyServer =
+        key.trim().isEmpty ||
+            AiCredentialStorage.resolveEndpoint(address) == null
+        ? null
+        : address;
   }
 
   /// The user has finished with the address field.
@@ -569,13 +619,22 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // None of the four runtimes wants one by default; a reverse proxy in
     // front of one will. Typed beats stored, so a key entered in this dialog
     // is usable before OK commits it.
+    //
+    // The stored one only goes to the server it was saved for. Typing a new
+    // address and leaving the field asks *that* machine for its models, and
+    // falling back to the stored key sent a Gemini user's Google key to it
+    // as a bearer, before any save and even if the dialog was then cancelled
+    // (#1257).
     final typedKey = _apiKeyController.text.trim();
-    final result = await _modelList.list(
-      url,
-      apiKey: typedKey.isNotEmpty
-          ? typedKey
-          : await widget.storage.readApiKey(provider: provider),
-    );
+    if (typedKey.isNotEmpty) _typedKeyServer ??= typed;
+    final apiKey = typedKey.isNotEmpty
+        ? typedKey
+        : await widget.storage.apiKeyForServer(typed, provider: provider);
+    // Checked before sending as well as after: a lookup superseded while the
+    // key was being read would otherwise still carry it to an address the
+    // user has already moved on from.
+    if (!mounted || generation != _modelsGeneration) return;
+    final result = await _modelList.list(url, apiKey: apiKey);
 
     // Dropping this one loses nothing: a newer request writes every field it
     // would have, and a provider switch has already cleared them.
@@ -680,6 +739,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // would end up in the slot of a provider the user tapped on the way past.
     final provider = _provider;
     var changed = _changed;
+    var probe = false;
 
     if (provider == AiProvider.ownServer) {
       // The address is this provider's credential, and the model is part of
@@ -758,10 +818,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
         // different — a runtime restarted with another model pulled under the
         // same tag is the ordinary case — and the runner joins a check
         // already running, so pressing OK twice costs nothing.
-        final runner = widget.probeRunner;
-        if (runner != null) {
-          unawaited(runner.start(provider, localeCode: localeCode));
-        }
+        //
+        // Started below, once the key is stored, not here: the runner reads
+        // the selection when it starts, so a first save of address, model
+        // and key together probed without the key, a server that needs one
+        // refused it, and the camera stayed hidden (#1257).
+        probe = true;
       }
     }
 
@@ -773,6 +835,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       if (!await _agreedBeforeAnythingIsStored(provider)) return;
       await widget.storage.writeApiKey(typed, provider: provider);
       changed = true;
+    }
+
+    final runner = widget.probeRunner;
+    if (probe && runner != null) {
+      unawaited(runner.start(provider, localeCode: localeCode));
     }
 
     if (!mounted) return;
@@ -811,7 +878,18 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// it in the field would show a credential the app has not saved, which is
   /// the same lie the dialog already refuses to tell elsewhere.
   Future<bool> _agreedBeforeAnythingIsStored(AiProvider provider) async {
-    if (await widget.storage.hasAcceptedTerms()) return true;
+    // The address goes with the question: an agreement on file does not
+    // cover Google's Gemini API unless it was given over the paragraph that
+    // names Google (#1257), so that address asks again.
+    final endpoint = provider == AiProvider.ownServer
+        ? _endpointController.text
+        : null;
+    if (await widget.storage.hasAcceptedTerms(
+      provider: provider,
+      endpoint: endpoint,
+    )) {
+      return true;
+    }
     if (!mounted) return false;
 
     final agreed = await AiConsentScreen.show(
@@ -825,7 +903,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     }
     // Written only once the answer is yes, so a dismissed screen leaves no
     // trace of having been shown.
-    await widget.storage.setTermsAccepted(true);
+    await widget.storage.setTermsAccepted(true, endpoint: endpoint);
     return true;
   }
 
@@ -1030,8 +1108,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // server the user runs is usable on an address alone, and
                     // its key stays optional afterwards — so the field has to
                     // remain reachable there rather than being replaced by a
-                    // mask over an empty slot.
-                    if (_hasKey)
+                    // mask over an empty slot. And on whether that key is for
+                    // the server the address field names — see [_keyIsSaved].
+                    if (_keyIsSaved)
                       Row(
                         children: [
                           const Icon(Icons.key_rounded, size: 18),
@@ -1062,6 +1141,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                         identifier: 'ai-assist-key-field',
                         child: TextField(
                           controller: _apiKeyController,
+                          onChanged: _keyTyped,
                           autocorrect: false,
                           enableSuggestions: false,
                           obscureText: true,
