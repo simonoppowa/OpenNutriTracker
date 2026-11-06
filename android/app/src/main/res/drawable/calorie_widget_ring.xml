@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Progress drawable for the widget's ring
+     (calorie_widget_provider sets the level; 10000 maps to one turn). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape
+            android:shape="ring"
+            android:useLevel="false"
+            android:thickness="6dp">
+            <solid android:color="@color/calorie_widget_ring_track" />
+        </shape>
+    </item>
+    <item>
+        <!-- 270° puts an empty level at 12 o'clock; 630° keeps one full
+             turn away, so the arc never runs clockwise past the start. -->
+        <rotate
+            android:fromDegrees="270"
+            android:toDegrees="630"
+            android:pivotX="50%"
+            android:pivotY="50%"
+            android:drawable="@drawable/calorie_widget_ring_sweep" />
+    </item>
+</layer-list>

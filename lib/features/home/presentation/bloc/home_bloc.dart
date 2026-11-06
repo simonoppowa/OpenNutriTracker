@@ -259,9 +259,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       await _publishCalorieWidget(
         consumedKcal: totalKcalIntake,
         goalKcal: totalKcalGoal,
+        // The day this load read, not the one it finishes in: a load that
+        // crosses the day boundary publishes the old day's figures under
+        // the old day, which the widget expires at once instead of
+        // showing them as the new day's.
         offsetMinutes: configData.dayStartOffsetTotalMinutes,
         logicalDay: loadDay,
         generation: widgetGeneration,
+        macros: CalorieWidgetMacros(
+          proteinIntakeG: totalProteinsIntake.round(),
+          proteinGoalG: totalProteinsGoal.round(),
+          carbsIntakeG: totalCarbsIntake.round(),
+          carbsGoalG: totalCarbsGoal.round(),
+          fatsIntakeG: totalFatsIntake.round(),
+          fatsGoalG: totalFatsGoal.round(),
+        ),
       );
     });
   }
@@ -272,16 +284,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required int offsetMinutes,
     required DateTime logicalDay,
     required int generation,
+    CalorieWidgetMacros? macros,
   }) async {
     final snapshot = CalorieWidgetSnapshot.fromHome(
       consumedKcal: consumedKcal,
       goalKcal: goalKcal,
       offsetMinutes: offsetMinutes,
-      // The day this load read, not the one it finishes in: a load that
-      // crosses the day boundary publishes the old day's figures under the
-      // old day, which the extension expires at once instead of showing
-      // them as the new day's.
       logicalDay: logicalDay,
+      macros: macros,
     );
     try {
       await _calorieWidgetStore.write(
