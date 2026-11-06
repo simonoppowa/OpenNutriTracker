@@ -22,6 +22,8 @@ class ProfileLoadedState extends ProfileState {
   // chosen independently of the food unit preference.
   final BodyWeightUnit bodyWeightUnit;
   final bool usesImperialHeightUnits;
+  // #1306: water amounts follow the food unit preference (ml / fl oz).
+  final bool usesImperialFoodUnits;
   // #32: resolved daily water goal in millilitres, with the user's
   // override applied (or the gendered seed if none is stored yet). The
   // profile entry subtitle shows this so the user sees the value the
@@ -33,6 +35,7 @@ class ProfileLoadedState extends ProfileState {
     required this.userEntity,
     required this.bodyWeightUnit,
     required this.usesImperialHeightUnits,
+    this.usesImperialFoodUnits = false,
     required this.effectiveWaterGoalMl,
   });
 
@@ -42,6 +45,7 @@ class ProfileLoadedState extends ProfileState {
         userEntity,
         bodyWeightUnit,
         usesImperialHeightUnits,
+        usesImperialFoodUnits,
         effectiveWaterGoalMl,
       ];
 }
