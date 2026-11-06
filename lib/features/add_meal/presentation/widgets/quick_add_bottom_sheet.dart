@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/sheet_bottom_inset.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -245,7 +246,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
 
     return Padding(
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+        bottom: sheetBottomInset(context),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
