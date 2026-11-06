@@ -100,6 +100,26 @@ String _bottomLabel(LineChartData data, int x) {
 
 String _mmmd(DateTime day) => DateFormat.MMMd('en').format(day);
 
+/// The weight label the chart renders for y-axis value [y] (#1445).
+String _leftLabel(LineChartData data, double y) {
+  final titles = data.titlesData.leftTitles.sideTitles;
+  final widget = titles.getTitlesWidget(
+    y,
+    TitleMeta(
+      min: data.minY,
+      max: data.maxY,
+      parentAxisSize: 240,
+      axisPosition: 0,
+      appliedInterval: titles.interval ?? 1,
+      sideTitles: titles,
+      formattedValue: '$y',
+      axisSide: AxisSide.left,
+      rotationQuarterTurns: 0,
+    ),
+  );
+  return (widget as Text).data!;
+}
+
 /// Asserts the chart drew exactly the entries from [windowStart] through
 /// [today], one x unit per calendar day with no gap, and that the labels
 /// on the window's edges and on [checkDay] name the calendar days they
@@ -266,4 +286,60 @@ void main() {
     },
     skip: _skipUnless(DateTime(2026, 3, 29), 23, 'spring-forward'),
   );
+
+  // #1445: for a narrow weight range the auto-ticks landed within one unit
+  // of each other and the zero-decimal label rounded them to the same
+  // whole number ("63, 63, 62, 62" in the issue). The fix pairs a half-
+  // unit tick interval with a one-decimal label, so no two ticks print
+  // the same text.
+  group('y-axis label resolution (#1445)', () {
+    testWidgets(
+      'a narrow kg range (62.0–62.8) shows one-decimal labels on half-kg ticks',
+      (tester) async {
+        WeightTrendChart.clock = () => DateTime(2026, 10, 22, 9);
+        final start = DateTime(2026, 9, 23);
+        final entries = [
+          _entry(start, 62.0),
+          _entry(start.add(const Duration(days: 7)), 62.3),
+          _entry(start.add(const Duration(days: 14)), 62.5),
+          _entry(start.add(const Duration(days: 21)), 62.8),
+        ];
+
+        final data = await _pumpChart(
+          tester,
+          entries: entries,
+          windowDays: 30,
+        );
+
+        expect(data.titlesData.leftTitles.sideTitles.interval, 0.5);
+        expect(_leftLabel(data, 62.0), '62.0');
+        expect(_leftLabel(data, 62.5), '62.5');
+        expect(_leftLabel(data, 63.0), '63.0');
+      },
+    );
+
+    testWidgets(
+      'a wide kg range (62–66) keeps whole-number labels on 1 kg ticks',
+      (tester) async {
+        WeightTrendChart.clock = () => DateTime(2026, 10, 22, 9);
+        final start = DateTime(2026, 9, 23);
+        final entries = [
+          _entry(start, 62.0),
+          _entry(start.add(const Duration(days: 7)), 63.5),
+          _entry(start.add(const Duration(days: 14)), 65.1),
+          _entry(start.add(const Duration(days: 21)), 66.0),
+        ];
+
+        final data = await _pumpChart(
+          tester,
+          entries: entries,
+          windowDays: 30,
+        );
+
+        expect(data.titlesData.leftTitles.sideTitles.interval, 1.0);
+        expect(_leftLabel(data, 62), '62');
+        expect(_leftLabel(data, 66), '66');
+      },
+    );
+  });
 }
