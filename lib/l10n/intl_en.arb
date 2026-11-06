@@ -692,6 +692,8 @@
   "onboardingWrongWeightLabel": "Enter correct weight",
   "onboardingYourGoalLabel": "Your calorie goal:",
   "onboardingYourMacrosGoalLabel": "Your macronutrient goals:",
+  "onboardingPageProgressSemantic": "Page {current} of {total}",
+  "@onboardingPageProgressSemantic": {"placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}},
   "ozUnit": "oz",
   "paActiveVideoGames": "active video games",
   "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, general",
