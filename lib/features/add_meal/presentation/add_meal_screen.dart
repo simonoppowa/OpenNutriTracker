@@ -147,7 +147,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
         // the return to the day, or logged after being removed.
         child: AbsorbPointer(
           absorbing: _logging,
-          child: _buildScaffold(context, palette),
+          child: _withLogButtonAboveKeyboard(
+            context,
+            _buildScaffold(context, palette),
+          ),
         ),
       ),
     );
@@ -188,29 +191,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
         ],
       ),
       // Below the results rather than over them, so the last result stays
-      // reachable while the list is waiting.
-      bottomNavigationBar: _logTray.isEmpty
+      // reachable while the list is waiting. While the keyboard is up it
+      // would sit under it (the body does not resize, see above), so then
+      // the button floats just above the keyboard instead (#1520).
+      bottomNavigationBar:
+          _logTray.isEmpty || MediaQuery.viewInsetsOf(context).bottom > 0
           ? null
-          : SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Dimens.spacing16,
-                  Dimens.spacing8,
-                  Dimens.spacing16,
-                  Dimens.spacing16,
-                ),
-                child: LogTrayLogButton(
-                  tray: _logTray,
-                  // Also waits for a + still fetching its food: that item
-                  // would land on the list mid-write, miss the write, and
-                  // be cleared with the rest.
-                  onPressed: _logging || _quickAdding.isNotEmpty
-                      ? null
-                      : _logAll,
-                ),
-              ),
-            ),
+          : SafeArea(top: false, child: _buildLogButton()),
       body: SafeArea(
         top: false,
         child: Padding(
@@ -282,6 +269,50 @@ class _AddMealScreenState extends State<AddMealScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// The button that writes the list, padded the way it sits under the
+  /// results.
+  Widget _buildLogButton() => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      Dimens.spacing16,
+      Dimens.spacing8,
+      Dimens.spacing16,
+      Dimens.spacing16,
+    ),
+    child: LogTrayLogButton(
+      tray: _logTray,
+      // Also waits for a + still fetching its food: that item would land
+      // on the list mid-write, miss the write, and be cleared with the
+      // rest.
+      onPressed: _logging || _quickAdding.isNotEmpty ? null : _logAll,
+    ),
+  );
+
+  /// [screen] with the log button laid over it just above the keyboard,
+  /// while the keyboard is up and the list has items (#1520).
+  ///
+  /// Over the results rather than below them: making room for it would
+  /// shrink the body with the keyboard, which is what overflows a landscape
+  /// phone (#165). It goes back below the results when the keyboard closes.
+  ///
+  /// The Stack is there whether or not the button is: wrapping the screen
+  /// only while the keyboard is up would rebuild the search field under a
+  /// new parent, drop its focus and close the very keyboard that caused it.
+  Widget _withLogButtonAboveKeyboard(BuildContext context, Widget screen) {
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    return Stack(
+      children: [
+        Positioned.fill(child: screen),
+        if (!_logTray.isEmpty && keyboardInset > 0)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: keyboardInset,
+            child: _buildLogButton(),
+          ),
+      ],
     );
   }
 

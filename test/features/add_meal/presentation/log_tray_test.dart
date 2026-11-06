@@ -13,6 +13,8 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -20,6 +22,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
@@ -189,6 +192,36 @@ class _FakeDiaryBloc extends Fake implements DiaryBloc {
 class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
   @override
   void add(CalendarDayEvent event) {}
+}
+
+/// Quick add's direct write: records the intakes it stores.
+class _RecordingAddIntakeUsecase extends Fake implements AddIntakeUsecase {
+  final stored = <IntakeEntity>[];
+
+  @override
+  Future<void> addIntake(IntakeEntity intakeEntity) async =>
+      stored.add(intakeEntity);
+}
+
+/// A day that already has its row, so Quick add only adds to its totals.
+class _ExistingDayAddTrackedDayUsecase extends Fake
+    implements AddTrackedDayUsecase {
+  @override
+  Future<bool> hasTrackedDay(DateTime day) async => true;
+
+  @override
+  Future<void> addDayCaloriesTracked(
+    DateTime day,
+    double caloriesTracked,
+  ) async {}
+
+  @override
+  Future<void> addDayMacrosTracked(
+    DateTime day, {
+    double? carbsTracked,
+    double? fatTracked,
+    double? proteinTracked,
+  }) async {}
 }
 
 final getIt = GetIt.instance;
@@ -576,12 +609,7 @@ void main() {
       expect(review.logTray, same(detail.logTray));
     });
 
-    testWidgets('Quick add puts its entry on the list and stays here', (
-      tester,
-    ) async {
-      await _register([]);
-      await _openAddMeal(tester, []);
-
+    Future<void> fillQuickAdd(WidgetTester tester) async {
       await tester.tap(find.bySemanticsIdentifier('add-meal-quick-add'));
       await tester.pumpAndSettle();
       Finder field(String id) => find.descendant(
@@ -591,7 +619,18 @@ void main() {
       await tester.enterText(field('quick-add-title'), 'Cake');
       await tester.enterText(field('quick-add-energy'), '350');
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+    }
+
+    testWidgets('Quick add\'s Add to list puts its entry on the list', (
+      tester,
+    ) async {
+      await _register([]);
+      await _openAddMeal(tester, []);
+
+      await fillQuickAdd(tester);
+      // With nothing on the list yet, Add itself logs at once (#1520), so
+      // starting a list is the second button.
+      await tester.tap(find.bySemanticsIdentifier('quick-add-add-to-list'));
       await tester.pumpAndSettle();
 
       expect(find.byType(AddMealScreen), findsOneWidget);
@@ -602,6 +641,83 @@ void main() {
       await tester.tap(_logButton());
       await tester.pumpAndSettle();
       expect(_mealDetailBloc.writes.single.name, 'Cake');
+    });
+
+    testWidgets('with nothing on the list, Quick add\'s Add logs at once', (
+      tester,
+    ) async {
+      await _register([]);
+      final addIntake = _RecordingAddIntakeUsecase();
+      getIt
+        ..registerSingleton<AddIntakeUsecase>(addIntake)
+        ..registerSingleton<AddTrackedDayUsecase>(
+          _ExistingDayAddTrackedDayUsecase(),
+        );
+      await _openAddMeal(tester, []);
+
+      await fillQuickAdd(tester);
+      await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+      await tester.pumpAndSettle();
+
+      // Logged and back on the day, as before the list existed (#1520).
+      expect(addIntake.stored.single.meal.name, 'Cake');
+      expect(find.byKey(const Key('main')), findsOneWidget);
+      expect(_mealDetailBloc.writes, isEmpty);
+    });
+
+    testWidgets('once the list has items, Quick add\'s Add joins it', (
+      tester,
+    ) async {
+      await _register([_meal('Oats')]);
+      await _openAddMeal(tester, []);
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+
+      await fillQuickAdd(tester);
+      expect(find.bySemanticsIdentifier('quick-add-add-to-list'), findsNothing);
+      await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddMealScreen), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddSubmitLabel(2)), findsOneWidget);
+      expect(_mealDetailBloc.writes, isEmpty);
+    });
+
+    testWidgets('the log button stays above the keyboard (#1520)', (
+      tester,
+    ) async {
+      await _register([_meal('Oats')]);
+      await _openAddMeal(tester, []);
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+
+      final search = find.descendant(
+        of: find.byType(MealSearchBar),
+        matching: find.byType(TextField),
+      );
+      await tester.showKeyboard(search);
+      const keyboard = 336.0;
+      tester.view.viewInsets = const FakeViewPadding(bottom: keyboard);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pumpAndSettle();
+
+      // Above the keyboard's top edge, where it can be seen and tapped.
+      final screenHeight = tester.view.physicalSize.height;
+      expect(_logButton(), findsOneWidget);
+      expect(
+        tester.getBottomLeft(_logButton()).dy,
+        lessThanOrEqualTo(screenHeight - keyboard),
+      );
+      // Moving the button did not take the focus off the search field,
+      // which would close the keyboard again.
+      final editable = tester.widget<EditableText>(
+        find.descendant(of: search, matching: find.byType(EditableText)),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+
+      await tester.tap(_logButton());
+      await tester.pumpAndSettle();
+      expect(_mealDetailBloc.writes.single.name, 'Oats');
     });
 
     testWidgets('+ on a thin search hit uses the full record\'s serving', (
