@@ -2325,6 +2325,16 @@ void main() {
       expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsNothing);
     });
 
+    testWidgets('not offered to someone who hid the AI features (#1518)', (
+      tester,
+    ) async {
+      // They have found it, and asked not to be offered it.
+      await useStorage(const {'AiAssistHiddenTag': 'true'});
+      await openBulkAdd(tester);
+
+      expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsNothing);
+    });
+
     testWidgets('not offered for a key held by a provider that is not active', (
       tester,
     ) async {

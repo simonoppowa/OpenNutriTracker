@@ -104,15 +104,8 @@ Map<String, double> _burnedByDay(
 bool _differs(double? stored, double value) =>
     !(((stored ?? 0) - value).abs() <= _epsilon);
 
-bool _hasConsumed(TrackedDayDBO row) =>
-    _differs(row.caloriesTracked, 0) ||
-    _differs(row.carbsTracked, 0) ||
-    _differs(row.fatTracked, 0) ||
-    _differs(row.proteinTracked, 0);
-
 /// Makes every tracked-day row agree with the entries the Diary lists on
-/// its day at [offsetMinutes], and returns how many rows it wrote or
-/// removed (#1317).
+/// its day at [offsetMinutes], and returns how many rows it wrote (#1317).
 ///
 /// A row's consumed totals are derived data — the sum of the intakes
 /// listed on its day — but every writer keeps them as a running total,
@@ -126,14 +119,14 @@ bool _hasConsumed(TrackedDayDBO row) =>
 ///    summed from that day's intakes;
 ///  * a day that lists entries but has no row gets one, so the Diary
 ///    shows its summary instead of "Nothing added";
-///  * a row whose day lists nothing is removed when it still counts
-///    calories (they belong to entries listed on another day, which now
-///    has them) or when [previousOffsetMinutes] listed entries on it
-///    that moved away. Rows are only ever created by logging an entry, so
-///    that row exists for entries it no longer has, and would otherwise
-///    keep a calendar marker and a rating on a day with nothing logged. A
-///    row with nothing listed and nothing counted is left alone: it is a
-///    day whose entries were all deleted, and it keeps its goal.
+///  * a row whose day lists nothing is kept, with nothing counted: the
+///    calories it still counts belong to entries listed on another day,
+///    which now has them. It is never removed, because its goals are the
+///    only record of that day's targets. Removed, a later move that lists
+///    entries on the day again rebuilt the row from a neighbour and gave
+///    it that day's goals and per-nutrient goals (#1440). The Diary
+///    calendar marks no day with nothing eaten, so a kept row leaves no
+///    marker behind.
 ///
 /// Goals stay as they are, except for what activities add to them. A
 /// row's goal is its base goal plus the energy burned by the activities
@@ -207,7 +200,6 @@ Future<int> reconcileTrackedDays(
   final movesCredit = listedBefore != null || creditedBurned != null;
 
   final written = <dynamic, TrackedDayDBO>{};
-  final removed = <dynamic>[];
   final existing = rows.toMap();
   // New rows first: they read the goals of the existing rows, which the
   // loop below changes in place.
@@ -228,11 +220,9 @@ Future<int> reconcileTrackedDays(
   }
 
   for (final MapEntry(:key, value: row) in existing.entries) {
-    final day = listed[key];
-    if (day == null) {
-      if (_hasConsumed(row) || before(key)?[key] != null) removed.add(key);
-      continue;
-    }
+    // A day that lists nothing counts nothing, and gives back the credit
+    // of activities that moved off it, but keeps its row and goals.
+    final day = listed[key] ?? _ListedDay();
     var changed = false;
     if (_differs(row.caloriesTracked, day.kcal) ||
         _differs(row.carbsTracked, day.carbs) ||
@@ -260,11 +250,8 @@ Future<int> reconcileTrackedDays(
     if (changed) written[key] = row;
   }
 
-  final writes = [
-    if (written.isNotEmpty) rows.putAll(written),
-    if (removed.isNotEmpty) rows.deleteAll(removed),
-  ];
-  return Future.wait(writes).then((_) => written.length + removed.length);
+  if (written.isEmpty) return Future.value(0);
+  return rows.putAll(written).then((_) => written.length);
 }
 
 /// The row of [date], which lists [day] but has none: base goals from the
@@ -435,13 +422,9 @@ Future<void> recordTrackedDayBoundary(ConfigDataSource configDataSource) =>
 /// The tracked-day repairs every profile activation runs — startup and a
 /// profile switch — before anything reads the rows (#1317, #1254).
 ///
-/// The reconciliation has to go first. The NaN repair sums a broken row's
-/// totals from the entries listed on its day, so on a stale row — keyed
-/// to a day that lists none of its entries — it writes zeros, and the
-/// reconciliation would then keep that row as a day whose entries were
-/// all deleted, calendar marker and all. Run first, the reconciliation
-/// counts the NaN as calories and removes the stale row, and rewrites the
-/// totals of a broken row whose day does list entries.
+/// The reconciliation goes first: it rewrites every row's totals as the
+/// sums of the entries listed on its day, a NaN total included, so the
+/// NaN repair after it only finds a row another writer broke in between.
 Future<void> ensureTrackedDaysRepaired(
   HiveDBProvider db,
   ConfigDataSource configDataSource, {

@@ -133,10 +133,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// has not failed to discover it, and this line exists for discovery. The
   /// rule is one sentence: it shows only for someone who has configured
   /// nothing. #844.
+  ///
+  /// And not to someone who hid the AI features (#1518): they have found
+  /// it, and asked not to be offered it.
   late Future<bool> _modelUnknown = _resolveModelUnknown();
 
   Future<bool> _resolveModelUnknown() async {
-    return !await locator<AiCredentialStorage>().hasAnyUsableProvider();
+    final storage = locator<AiCredentialStorage>();
+    if (await storage.isHidden()) return false;
+    return !await storage.hasAnyUsableProvider();
   }
 
   /// Where a photo would actually go, **and the name the sheet gives it**.
@@ -329,6 +334,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// can still type the meal instead.
   Future<void> _startWithPhoto() async {
     if (!mounted) return;
+    // No tile leads here while the AI features are hidden (#1518), and the
+    // set-up dialog below is exactly what such a user asked not to be shown.
+    if (await locator<AiCredentialStorage>().isHidden()) return;
     if (!await _photoAvailable) {
       if (!mounted) return;
       await _openSettings(
