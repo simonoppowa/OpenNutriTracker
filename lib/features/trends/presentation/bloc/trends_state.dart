@@ -25,6 +25,8 @@ class TrendsLoaded extends TrendsState {
   final double? targetWeightKg; // user's #119 target, for the chart reference
   final Map<DateTime, int> waterByDay; // ml logged per calendar day
   final int waterGoalMl;
+  // #1306: water amounts follow the food unit preference (ml / fl oz).
+  final bool usesImperialFoodUnits;
 
   const TrendsLoaded({
     required this.rangeDays,
@@ -36,6 +38,7 @@ class TrendsLoaded extends TrendsState {
     required this.targetWeightKg,
     required this.waterByDay,
     required this.waterGoalMl,
+    this.usesImperialFoodUnits = false,
   });
 
   @override
@@ -49,6 +52,7 @@ class TrendsLoaded extends TrendsState {
         targetWeightKg,
         waterByDay,
         waterGoalMl,
+        usesImperialFoodUnits,
       ];
 }
 
