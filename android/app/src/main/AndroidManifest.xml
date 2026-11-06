@@ -5,10 +5,12 @@
     <!-- #312: Notification reminders -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <!-- Health Connect: read-only, and only requested once workout import is
-         enabled in Settings → Health sync. Nothing is ever written back.
+    <!-- Health Connect: read-only, and only requested once the matching import
+         is enabled in Settings → Health sync. Nothing is ever written back.
 
-         These two, and no more. Play's Health Connect permissions policy
+         READ_EXERCISE and READ_TOTAL_CALORIES_BURNED back workout import;
+         READ_WEIGHT backs weight import, a separate switch with its own
+         request, and feeds the weight log. These three, and no more. Play's Health Connect permissions policy
          rejected READ_BODY_FAT, READ_DISTANCE and READ_STEPS as excessive for
          the features this app offers (enforced 8 Sept 2026), and the policy
          asks for the minimum a feature needs rather than the minimum a
@@ -27,6 +29,7 @@
          Android now uses; iOS still reads body fat from HealthKit. -->
     <uses-permission android:name="android.permission.health.READ_EXERCISE"/>
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
+    <uses-permission android:name="android.permission.health.READ_WEIGHT"/>
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>

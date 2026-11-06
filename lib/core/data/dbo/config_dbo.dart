@@ -212,6 +212,18 @@ class ConfigDBO extends HiveObject {
   // about the device.
   @HiveField(41)
   bool? localeSyncSeeded;
+  // Opt-in body weight import from Health Connect / Apple Health — the route
+  // by which a smart scale, or an aggregator such as Health Sync, reaches the
+  // weight log. Separate from [healthImportEnabled] because it asks the
+  // platform for a different permission, and a user can want one without the
+  // other. Null means never enabled, which reads as off.
+  @HiveField(42)
+  bool? healthWeightImportEnabled;
+  // Watermark for the weight import, kept apart from [healthLastImportAt] so
+  // switching weight import on later still backfills rather than starting
+  // from wherever the workout import had got to.
+  @HiveField(43)
+  DateTime? healthWeightLastImportAt;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -253,6 +265,8 @@ class ConfigDBO extends HiveObject {
     this.defaultToRawFoodUnits,
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
+    this.healthWeightImportEnabled,
+    this.healthWeightLastImportAt,
   });
 
   factory ConfigDBO.empty() =>

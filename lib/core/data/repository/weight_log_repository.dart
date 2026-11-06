@@ -20,6 +20,15 @@ class WeightLogRepository {
     return dbos.map(WeightLogEntity.fromWeightLogDBO).toList();
   }
 
+  /// Every entry, by the day it is filed under: [WeightLogEntity.filedDay],
+  /// the day of its storage key. That is the day [getEntry] and [addEntry]
+  /// find it by, which the entry's own date need not be after a time-zone
+  /// change.
+  Future<Map<DateTime, WeightLogEntity>> getEntriesByDay() async {
+    final entries = await getAllEntries();
+    return {for (final entry in entries) entry.filedDay ?? entry.date: entry};
+  }
+
   Future<List<WeightLogDBO>> getAllEntriesDBO() async {
     return _weightLogDataSource.allEntries();
   }
