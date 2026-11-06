@@ -109,10 +109,8 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Finder weightField() => find.widgetWithText(
-        TextField,
-        l10nEn.recipeTotalWeightLabel,
-      );
+  Finder weightField() =>
+      find.widgetWithText(TextField, l10nEn.recipeTotalWeightLabel);
 
   testWidgets('a typed weight says so, and Use ingredient total undoes it', (
     tester,
@@ -120,23 +118,14 @@ void main() {
     await pumpBuilder(tester, _soup(totalWeightG: 720));
 
     expect(find.text(l10nEn.recipeTotalWeightManualHelper), findsOneWidget);
-    expect(
-      tester.widget<TextField>(weightField()).controller!.text,
-      '720',
-    );
+    expect(tester.widget<TextField>(weightField()).controller!.text, '720');
 
     await tester.ensureVisible(reset());
     await tester.tap(reset());
     await tester.pumpAndSettle();
 
-    expect(
-      find.text(l10nEn.recipeTotalWeightCalculatedHelper),
-      findsOneWidget,
-    );
-    expect(
-      tester.widget<TextField>(weightField()).controller!.text,
-      '800',
-    );
+    expect(find.text(l10nEn.recipeTotalWeightCalculatedHelper), findsOneWidget);
+    expect(tester.widget<TextField>(weightField()).controller!.text, '800');
     expect(reset(), findsNothing, reason: 'nothing left to undo');
   });
 
@@ -145,10 +134,7 @@ void main() {
   ) async {
     await pumpBuilder(tester, _soup(totalWeightG: 800));
 
-    expect(
-      find.text(l10nEn.recipeTotalWeightCalculatedHelper),
-      findsOneWidget,
-    );
+    expect(find.text(l10nEn.recipeTotalWeightCalculatedHelper), findsOneWidget);
     expect(reset(), findsNothing);
   });
 
@@ -163,5 +149,35 @@ void main() {
 
     expect(find.text(l10nEn.recipeTotalWeightManualHelper), findsOneWidget);
     expect(reset(), findsOneWidget);
+  });
+
+  testWidgets('pasted nutrition becomes the recipe nutrition ingredient', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_app(null));
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.bySemanticsIdentifier('recipe-builder-paste-nutrition'),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.bySemanticsIdentifier('nutrition-paste-text'),
+      'Oat Milk\nPer 100 g\nEnergy 60 kcal\nCarbs 6.6 g\nFat 3 g\nProtein 1 g',
+    );
+    await tester.tap(find.bySemanticsIdentifier('nutrition-parse-paste'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsIdentifier('nutrition-add-all-to-meal'));
+    await tester.pumpAndSettle();
+
+    final name = tester.widget<TextField>(
+      find.widgetWithText(TextField, l10nEn.recipeNameLabel),
+    );
+    expect(name.controller!.text, 'Oat Milk');
+    expect(find.text('Oat Milk'), findsWidgets);
+    expect(find.text(l10nEn.recipeNoIngredientsLabel), findsNothing);
   });
 }

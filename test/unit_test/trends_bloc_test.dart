@@ -55,8 +55,7 @@ class _FakeGetWeightLogUsecase implements GetWeightLogUsecase {
   Future<List<WeightLogEntity>> getEntriesInRange(
     DateTime start,
     DateTime end,
-  ) async =>
-      List.of(result);
+  ) async => List.of(result);
 }
 
 class _FakeGetUserUsecase implements GetUserUsecase {
@@ -64,40 +63,43 @@ class _FakeGetUserUsecase implements GetUserUsecase {
 
   @override
   Future<UserEntity> getUserData() async => UserEntity(
-        birthday: DateTime(1990, 1, 1),
-        heightCM: 175,
-        weightKG: 75,
-        gender: UserGenderEntity.female,
-        goal: UserWeightGoalEntity.maintainWeight,
-        pal: UserPALEntity.active,
-        targetWeightKg: targetWeightKg,
-      );
+    birthday: DateTime(1990, 1, 1),
+    heightCM: 175,
+    weightKG: 75,
+    gender: UserGenderEntity.female,
+    goal: UserWeightGoalEntity.maintainWeight,
+    pal: UserPALEntity.active,
+    targetWeightKg: targetWeightKg,
+  );
 
   @override
   Future<bool> hasUserData() async => true;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
   bool usesImperialUnits = false;
+  int selectedRangeDays = 7;
+  int? customRangeDays;
+  Map<String, bool> metricVisibility = const {};
 
   @override
   Future<ConfigEntity> getConfig() async => ConfigEntity(
-        true,
-        true,
-        false,
-        AppThemeEntity.system,
-        usesImperialUnits: usesImperialUnits,
-        bodyWeightUnit:
-            usesImperialUnits ? BodyWeightUnit.lb : BodyWeightUnit.kg,
-      );
+    true,
+    true,
+    false,
+    AppThemeEntity.system,
+    usesImperialUnits: usesImperialUnits,
+    bodyWeightUnit: usesImperialUnits ? BodyWeightUnit.lb : BodyWeightUnit.kg,
+    trendsSelectedRangeDays: selectedRangeDays,
+    trendsCustomRangeDays: customRangeDays,
+    trendsMetricVisibility: metricVisibility,
+  );
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeGetWaterIntakeUsecase implements GetWaterIntakeUsecase {
@@ -107,8 +109,7 @@ class _FakeGetWaterIntakeUsecase implements GetWaterIntakeUsecase {
   Future<List<WaterIntakeEntity>> getAllEntries() async => result;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 WeightLogEntity _wl(DateTime date, double kg) =>
@@ -122,8 +123,7 @@ void main() {
   // The bloc ends ranges at the close of the day so a time-stamped tracked
   // day (today's) isn't excluded.
   final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
-  final endOfPriorWeek =
-      DateTime(now.year, now.month, now.day - 7, 23, 59, 59);
+  final endOfPriorWeek = DateTime(now.year, now.month, now.day - 7, 23, 59, 59);
 
   group('TrendsBloc', () {
     late _FakeGetTrackedDayUsecase trackedDay;
@@ -165,6 +165,30 @@ void main() {
       expect((emitted.last as TrendsLoaded).rangeDays, 7);
     });
 
+    test('loads saved custom range and metric choices', () async {
+      config.selectedRangeDays = 45;
+      config.customRangeDays = 45;
+      config.metricVisibility = const {ConfigEntity.trendsFatKey: false};
+
+      final emitted = await load(const LoadTrendsEvent());
+      final state = emitted.last as TrendsLoaded;
+
+      expect(state.rangeDays, 45);
+      expect(state.windowDays, 45);
+      expect(state.customRangeDays, 45);
+      expect(state.metricVisibility[ConfigEntity.trendsFatKey], isFalse);
+      expect(
+        trackedDay.rangeCalls.first.start,
+        today.subtract(const Duration(days: 44)),
+      );
+    });
+
+    test('invalid saved range falls back to seven days', () async {
+      config.selectedRangeDays = 1;
+      final emitted = await load(const LoadTrendsEvent());
+      expect((emitted.last as TrendsLoaded).rangeDays, 7);
+    });
+
     test('RefreshTrendsEvent reloads with the range the user last picked '
         '(#1359)', () async {
       await load(const LoadTrendsEvent(rangeDays: 30));
@@ -187,23 +211,31 @@ void main() {
       expect(trackedDay.rangeCalls, isEmpty);
     });
 
-    test('7-day window spans today-6..today, prior week today-13..today-7',
-        () async {
-      await load(const LoadTrendsEvent());
-      // First call is the selected window, second is the prior week.
-      expect(trackedDay.rangeCalls.first.start,
-          today.subtract(const Duration(days: 6)));
-      expect(trackedDay.rangeCalls.first.end, endOfToday);
-      expect(trackedDay.rangeCalls[1].start,
-          today.subtract(const Duration(days: 13)));
-      expect(trackedDay.rangeCalls[1].end, endOfPriorWeek);
-    });
+    test(
+      '7-day window spans today-6..today, prior week today-13..today-7',
+      () async {
+        await load(const LoadTrendsEvent());
+        // First call is the selected window, second is the prior week.
+        expect(
+          trackedDay.rangeCalls.first.start,
+          today.subtract(const Duration(days: 6)),
+        );
+        expect(trackedDay.rangeCalls.first.end, endOfToday);
+        expect(
+          trackedDay.rangeCalls[1].start,
+          today.subtract(const Duration(days: 13)),
+        );
+        expect(trackedDay.rangeCalls[1].end, endOfPriorWeek);
+      },
+    );
 
     test('a 90-day window pulls 90 days of calories', () async {
       final emitted = await load(const LoadTrendsEvent(rangeDays: 90));
       expect((emitted.last as TrendsLoaded).rangeDays, 90);
-      expect(trackedDay.rangeCalls.first.start,
-          today.subtract(const Duration(days: 89)));
+      expect(
+        trackedDay.rangeCalls.first.start,
+        today.subtract(const Duration(days: 89)),
+      );
     });
 
     test('weight uses the full history, not a windowed range', () async {
@@ -219,25 +251,24 @@ void main() {
       ];
       final emitted = await load(const LoadTrendsEvent());
       final dates = (emitted.last as TrendsLoaded).weight.map((e) => e.date);
-      expect(
-        dates.toList(),
-        [
-          today.subtract(const Duration(days: 3)),
-          today.subtract(const Duration(days: 2)),
-          today.subtract(const Duration(days: 1)),
-        ],
-      );
+      expect(dates.toList(), [
+        today.subtract(const Duration(days: 3)),
+        today.subtract(const Duration(days: 2)),
+        today.subtract(const Duration(days: 1)),
+      ]);
     });
 
-    test('carries the units and target weight through to the loaded state',
-        () async {
-      config.usesImperialUnits = true;
-      user.targetWeightKg = 68;
-      final emitted = await load(const LoadTrendsEvent());
-      final loaded = emitted.last as TrendsLoaded;
-      expect(loaded.bodyWeightUnit, BodyWeightUnit.lb);
-      expect(loaded.targetWeightKg, 68);
-    });
+    test(
+      'carries the units and target weight through to the loaded state',
+      () async {
+        config.usesImperialUnits = true;
+        user.targetWeightKg = 68;
+        final emitted = await load(const LoadTrendsEvent());
+        final loaded = emitted.last as TrendsLoaded;
+        expect(loaded.bodyWeightUnit, BodyWeightUnit.lb);
+        expect(loaded.targetWeightKg, 68);
+      },
+    );
 
     test('a fixed range sets windowDays equal to the chip', () async {
       final emitted = await load(const LoadTrendsEvent(rangeDays: 30));

@@ -182,6 +182,17 @@ class ConfigRepository {
     await _configDataSource.setConfigNutrientPanelVisibility(visibility);
   }
 
+  Future<void> setTrendsMetricVisibility(Map<String, bool> visibility) async {
+    await _configDataSource.setTrendsMetricVisibility(visibility);
+  }
+
+  Future<void> setTrendsRangeDays(int rangeDays, {int? customDays}) async {
+    await _configDataSource.setTrendsRangeDays(
+      rangeDays,
+      customDays: customDays,
+    );
+  }
+
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
     await _configDataSource.setConfigDailyWaterGoalMl(goalMl);
   }

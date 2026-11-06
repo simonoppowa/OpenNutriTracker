@@ -64,6 +64,9 @@ class ConfigDataSource {
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
       merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
       merged.trackedDaysOffsetMinutes = profile.trackedDaysOffsetMinutes;
+      merged.trendsMetricVisibility = profile.trendsMetricVisibility;
+      merged.trendsSelectedRangeDays = profile.trendsSelectedRangeDays;
+      merged.trendsCustomRangeDays = profile.trendsCustomRangeDays;
     } else {
       // Explicitly clear personal fields so they don't leak from the
       // app box after a profile reset. A fresh profile therefore reads as
@@ -81,6 +84,9 @@ class ConfigDataSource {
       merged.healthDeletedExternalIds = null;
       merged.healthDeletedWorkouts = null;
       merged.trackedDaysOffsetMinutes = null;
+      merged.trendsMetricVisibility = null;
+      merged.trendsSelectedRangeDays = null;
+      merged.trendsCustomRangeDays = null;
     }
     return merged;
   }
@@ -307,6 +313,19 @@ class ConfigDataSource {
     await _update(
       (c) => c.nutrientPanelVisibility = Map<String, bool>.from(visibility),
     );
+  }
+
+  Future<void> setTrendsMetricVisibility(Map<String, bool> visibility) async {
+    await _update(
+      (c) => c.trendsMetricVisibility = Map<String, bool>.from(visibility),
+    );
+  }
+
+  Future<void> setTrendsRangeDays(int rangeDays, {int? customDays}) async {
+    await _update((c) {
+      c.trendsSelectedRangeDays = rangeDays;
+      if (customDays != null) c.trendsCustomRangeDays = customDays;
+    });
   }
 
   Future<void> setConfigDayStartOffsetHours(int hours) async {

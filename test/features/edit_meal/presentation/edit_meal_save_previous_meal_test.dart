@@ -174,6 +174,43 @@ void main() {
     expect(previous?.code, equals('4006381333931'));
   });
 
+  testWidgets('pasted nutrition reaches existing form and saves',
+      (tester) async {
+    await pumpEditor(tester, customMeal(code: 'uuid-oats', name: 'Oats'));
+
+    await tester.tap(find.widgetWithText(
+      OutlinedButton, l10nEn.nutritionPasteAction,
+    ));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, l10nEn.nutritionPasteAction),
+      'Oat Milk\nPer 100 ml\nEnergy: 60 kcal\nFat: 3 g\nCarbohydrates: 6.6 g\nProtein: 1 g\nSalt: 0.1 g\nCalcium: 200 mg',
+    );
+    await tester.tap(find.widgetWithText(
+      OutlinedButton, l10nEn.nutritionImportAction,
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Oat Milk'), findsWidgets);
+    await tester.tap(find.widgetWithText(
+      FilledButton, l10nEn.nutritionApplyAction,
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(
+      FilledButton, l10nEn.nutritionReplaceAction,
+    ));
+    await tester.pumpAndSettle();
+
+    await save(tester);
+    expect(dataSource.saves, hasLength(1));
+    final saved = dataSource.saves.single.$1;
+    expect(saved.name, 'Oat Milk');
+    expect(saved.mealUnit, 'ml');
+    expect(saved.nutriments.energyKcal100, 60);
+    expect(saved.nutriments.carbohydrates100, 6.6);
+    expect(saved.nutriments.sodium100, 40);
+    expect(saved.nutriments.calcium100, 200);
+  });
+
   testWidgets('a second tap on Save while the first is saving does nothing',
       (tester) async {
     await pumpEditor(tester, customMeal(code: '4006381333931', name: 'Oats'));

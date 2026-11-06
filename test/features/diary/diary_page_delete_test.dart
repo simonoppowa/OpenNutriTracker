@@ -42,6 +42,7 @@ import 'package:opennutritracker/features/activity_detail/presentation/bloc/acti
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/diary/diary_page.dart';
+import 'package:opennutritracker/features/diary/domain/usecase/get_diary_entry_day_keys_usecase.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/day_info_widget.dart';
@@ -220,7 +221,13 @@ void main() {
     final getConfig = GetConfigUsecase(configRepository);
     final getTrackedDay = GetTrackedDayUsecase(trackedDayRepository);
     locator
-      ..registerSingleton<DiaryBloc>(DiaryBloc(getTrackedDay, getConfig))
+      ..registerSingleton<DiaryBloc>(
+        DiaryBloc(
+          getTrackedDay,
+          getConfig,
+          GetDiaryEntryDayKeysUsecase(intakeRepository, activityRepository),
+        ),
+      )
       ..registerSingleton<CalendarDayBloc>(
         CalendarDayBloc(
           GetUserActivityUsecase(activityRepository),

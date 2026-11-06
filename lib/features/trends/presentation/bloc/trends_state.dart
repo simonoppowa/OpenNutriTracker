@@ -25,6 +25,8 @@ class TrendsLoaded extends TrendsState {
   final double? targetWeightKg; // user's #119 target, for the chart reference
   final Map<DateTime, int> waterByDay; // ml logged per calendar day
   final int waterGoalMl;
+  final Map<String, bool> metricVisibility;
+  final int? customRangeDays;
 
   const TrendsLoaded({
     required this.rangeDays,
@@ -36,20 +38,24 @@ class TrendsLoaded extends TrendsState {
     required this.targetWeightKg,
     required this.waterByDay,
     required this.waterGoalMl,
+    this.metricVisibility = const {},
+    this.customRangeDays,
   });
 
   @override
   List<Object?> get props => [
-        rangeDays,
-        windowDays,
-        days,
-        priorWeek,
-        weight,
-        bodyWeightUnit,
-        targetWeightKg,
-        waterByDay,
-        waterGoalMl,
-      ];
+    rangeDays,
+    windowDays,
+    days,
+    priorWeek,
+    weight,
+    bodyWeightUnit,
+    targetWeightKg,
+    waterByDay,
+    waterGoalMl,
+    metricVisibility,
+    customRangeDays,
+  ];
 }
 
 class TrendsFailed extends TrendsState {

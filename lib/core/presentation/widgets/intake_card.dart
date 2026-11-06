@@ -28,6 +28,7 @@ class IntakeCard extends StatelessWidget {
   final bool firstListElement;
   final bool usesImperialUnits;
   final DiarySortType? sortType;
+  final Future<void> Function(IntakeEntity intake)? onTransfer;
 
   const IntakeCard({
     required super.key,
@@ -37,6 +38,7 @@ class IntakeCard extends StatelessWidget {
     required this.firstListElement,
     required this.usesImperialUnits,
     this.sortType,
+    this.onTransfer,
   });
 
   @override
@@ -87,7 +89,9 @@ class IntakeCard extends StatelessWidget {
                     children: [
                       AutoSizeText(
                         intake.meal.name ?? "?",
-                        style: textTheme.titleSmall?.copyWith(color: palette.textStrong),
+                        style: textTheme.titleSmall?.copyWith(
+                          color: palette.textStrong,
+                        ),
                         maxLines: 1,
                         minFontSize: 11,
                         overflow: TextOverflow.ellipsis,
@@ -97,7 +101,9 @@ class IntakeCard extends StatelessWidget {
                         value: intake.amount,
                         meal: intake.meal,
                         usesImperialUnits: usesImperialUnits,
-                        textStyle: textTheme.bodySmall?.copyWith(color: palette.textMuted),
+                        textStyle: textTheme.bodySmall?.copyWith(
+                          color: palette.textMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -137,6 +143,15 @@ class IntakeCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (onTransfer != null)
+                  Semantics(
+                    identifier: 'diary-transfer-intake',
+                    child: IconButton(
+                      tooltip: S.of(context).diaryTransferTitle,
+                      icon: const Icon(Icons.more_vert_rounded),
+                      onPressed: () => onTransfer!(intake),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -189,9 +204,9 @@ class _Thumbnail extends StatelessWidget {
   }
 
   Widget _fallback() => Container(
-        color: palette.surfaceMuted,
-        child: Icon(Icons.restaurant_rounded, color: palette.textMuted, size: 24),
-      );
+    color: palette.surfaceMuted,
+    child: Icon(Icons.restaurant_rounded, color: palette.textMuted, size: 24),
+  );
 }
 
 class _LocalMealImage extends StatelessWidget {
