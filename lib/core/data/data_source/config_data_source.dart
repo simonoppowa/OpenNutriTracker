@@ -99,6 +99,34 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> setAutoBackupEnabled(bool autoBackupEnabled) async {
+    _log.fine('Updating config autoBackupEnabled to $autoBackupEnabled');
+    final config = _configBox.get(_configKey);
+    config?.autoBackupEnabled = autoBackupEnabled;
+    config?.save();
+  }
+
+  Future<void> setAutoBackupLocation(String? autoBackupLocation) async {
+    _log.fine('Updating config autoBackupLocation to $autoBackupLocation');
+    final config = _configBox.get(_configKey);
+    config?.autoBackupLocation = autoBackupLocation;
+    config?.save();
+  }
+
+  Future<void> setAutoBackupIntervalDays(int? autoBackupIntervalDays) async {
+    _log.fine('Updating config autoBackupIntervalDays to $autoBackupIntervalDays');
+    final config = _configBox.get(_configKey);
+    config?.autoBackupIntervalDays = autoBackupIntervalDays;
+    config?.save();
+  }
+
+  Future<void> setAutoBackupOverwrite(bool? autoBackupOverwrite) async {
+    _log.fine('Updating config autoBackupOverwrite to $autoBackupOverwrite');
+    final config = _configBox.get(_configKey);
+    config?.autoBackupOverwrite = autoBackupOverwrite;
+    config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

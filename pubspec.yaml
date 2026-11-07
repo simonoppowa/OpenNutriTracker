@@ -42,16 +42,18 @@ dependencies:
   json_annotation: ^4.9.0
   logging: ^1.3.0
   path_provider: ^2.1.5
-  flutter_secure_storage: ^9.2.2
+  flutter_secure_storage: ^11.2.0
   cupertino_icons: ^1.0.8
-  package_info_plus: ^8.1.2
+  package_info_plus: ^10.2.2
   url_launcher: ^6.3.1
   flutter_svg: ^2.0.16
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.1
   envied: ^1.0.0
   archive: 4.0.6
-  file_picker: 10.1.2
+  file_picker: ^13.3.0
+  android_file_picker: ^2.1.0
+  workmanager: ^0.10.0
 
   flutter_bloc: ^8.1.6
   equatable: ^2.0.7
@@ -59,7 +61,7 @@ dependencies:
   percent_indicator: ^4.2.4
   horizontal_picker: ^1.2.0
   table_calendar: ^3.1.3
-  introduction_screen: ^3.1.14
+  introduction_screen: ^5.0.1
   auto_size_text: ^3.0.0
   animated_flip_counter: ^0.3.4
 
@@ -68,9 +70,13 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 
-  sentry_flutter: ^8.14.2
+  sentry_flutter: ^10.3.0
 
   supabase_flutter: ^2.8.2
+
+  # Android-only
+  saf_util: ^3.1.1
+  saf_stream: ^4.0.3
 
 dev_dependencies:
   flutter_test:

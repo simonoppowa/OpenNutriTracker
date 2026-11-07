@@ -48,7 +48,7 @@ android {
 
     defaultConfig {
         applicationId = "com.opennutritracker.ont.opennutritracker"
-        minSdkVersion = flutter.minSdkVersion
+        minSdkVersion = 26
         targetSdkVersion = 36
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName

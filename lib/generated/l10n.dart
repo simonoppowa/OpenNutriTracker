@@ -908,29 +908,34 @@ class S {
     );
   }
 
-  /// `Backup count`
-  String get backupCountLabel {
+  /// `Backup behavior`
+  String get backupBehaviorLabel {
     return Intl.message(
-      'Backup count',
-      name: 'backupCountLabel',
+      'Backup behavior',
+      name: 'backupBehaviorLabel',
       desc: '',
       args: [],
     );
   }
 
-  /// `1`
-  String get backupCountOneLabel {
-    return Intl.message('1', name: 'backupCountOneLabel', desc: '', args: []);
+  /// `overwrite`
+  String get backupBehaviorOverwriteLabel {
+    return Intl.message(
+      'overwrite',
+      name: 'backupBehaviorOverwriteLabel',
+      desc: '',
+      args: [],
+    );
   }
 
-  /// `2`
-  String get backupCountTwoLabel {
-    return Intl.message('2', name: 'backupCountTwoLabel', desc: '', args: []);
-  }
-
-  /// `3`
-  String get backupCountThreeLabel {
-    return Intl.message('3', name: 'backupCountThreeLabel', desc: '', args: []);
+  /// `create new file`
+  String get backupBehaviorCreateNewLabel {
+    return Intl.message(
+      'create new file',
+      name: 'backupBehaviorCreateNewLabel',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Last backup:`

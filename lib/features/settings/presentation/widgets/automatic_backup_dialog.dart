@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:android_file_picker/android_file_picker.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/tasks/auto_backup_task.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
@@ -45,12 +46,12 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
   static const bool _backupsEnabledDefault = false;
   static const String? _backupLocationDefault = null;
   static const BackupIntervalDropDownType _backupIntervalDefault = BackupIntervalDropDownType.weekly;
-  static const BackupCountDropDownType _backupCountDefault = BackupCountDropDownType.two;
+  static const BackupBehaviorDropDownType _backupBehaviorDefault = BackupBehaviorDropDownType.overwrite;
 
   bool _backupsEnabled = _backupsEnabledDefault;
   String? _backupLocation = _backupLocationDefault;
   BackupIntervalDropDownType _backupInterval = _backupIntervalDefault;
-  BackupCountDropDownType _backupCount = _backupCountDefault;
+  BackupBehaviorDropDownType _backupBehavior = _backupBehaviorDefault;
 
   DateTime? _lastBackupDate;
   DateTime? _nextBackupDate;
@@ -59,20 +60,23 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
   void initState() {
     super.initState();
 
-//    final userFatPct = await widget.settingsBloc.getUserFatGoalPct();
-    final bool backupsEnabled = _backupsEnabledDefault; // TODO(ejoyce) get from settings
-    final String? backupLocation = _backupLocationDefault; // TODO(ejoyce) get from settings
-    final BackupIntervalDropDownType backupInterval = _backupIntervalDefault; // TODO(ejoyce) get from settings
-    final BackupCountDropDownType backupCount = _backupCountDefault;
+    initAutoBackupState();
+  }
 
-    final DateTime? lastBackupDate = DateTime.now();  // TODO(ejoyce) get from settings
-    final DateTime? nextBackupDate = null;  // TODO(ejoyce) get from settings
+  void initAutoBackupState() async {
+    final bool backupsEnabled = await widget.settingsBloc.getAutoBackupEnabled();
+    final String? backupLocation = await widget.settingsBloc.getAutoBackupLocation();
+    final BackupIntervalDropDownType backupInterval = getBackupIntervalEnumFromValue(await widget.settingsBloc.getAutoBackupIntervalDays() ?? 0) ?? _backupIntervalDefault;
+    final BackupBehaviorDropDownType backupBehavior = (await widget.settingsBloc.getAutoBackupOverwrite()) ? BackupBehaviorDropDownType.overwrite : BackupBehaviorDropDownType.createNew;
+
+    final DateTime? lastBackupDate = DateTime.now();  // TODO(ejoyce) get from storage
+    final DateTime? nextBackupDate = null;  // TODO(ejoyce) get from storage
 
     setState(() {
       _backupsEnabled = backupsEnabled;
       _backupLocation = backupLocation;
       _backupInterval = backupInterval;
-      _backupCount = backupCount;
+      _backupBehavior = backupBehavior;
 
       _lastBackupDate = lastBackupDate;
       _nextBackupDate = nextBackupDate;
@@ -100,7 +104,7 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
                 _backupsEnabled = _backupsEnabledDefault;
                 _backupLocation = _backupLocationDefault;
                 _backupInterval = _backupIntervalDefault;
-                _backupCount = _backupCountDefault;
+                _backupBehavior = _backupBehaviorDefault;
               });
             },
           ),
@@ -155,25 +159,22 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
                 ListTile(
                   leading: const Icon(Icons.swap_horiz),
                   title: DropdownButtonFormField(
-                    initialValue: _backupCount,
+                    initialValue: _backupBehavior,
                     decoration: InputDecoration(
                       enabled: true,
                       filled: false,
-                      labelText: S.of(context).backupCountLabel,
+                      labelText: S.of(context).backupBehaviorLabel,
                     ),
                     onChanged: (value) {
-                      _backupCount = value ?? BackupCountDropDownType.two;
+                      _backupBehavior = value ?? _backupBehaviorDefault;
                     },
                     items: [
                       DropdownMenuItem(
-                          value: BackupCountDropDownType.one,
-                          child: Text(S.of(context).backupCountOneLabel)),
+                          value: BackupBehaviorDropDownType.overwrite,
+                          child: Text(S.of(context).backupBehaviorOverwriteLabel)),
                       DropdownMenuItem(
-                          value: BackupCountDropDownType.two,
-                          child: Text(S.of(context).backupCountTwoLabel)),
-                      DropdownMenuItem(
-                          value: BackupCountDropDownType.three,
-                          child: Text(S.of(context).backupCountThreeLabel))
+                          value: BackupBehaviorDropDownType.createNew,
+                          child: Text(S.of(context).backupBehaviorCreateNewLabel)),
                     ],
                   ),
                 ),
@@ -201,7 +202,7 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
             child: Text(S.of(context).dialogCancelLabel)),
         TextButton(
             onPressed: () {
-              _saveCalculationSettings();
+              _saveSettings();
             },
             child: Text(S.of(context).dialogOKLabel))
       ],
@@ -209,9 +210,16 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
   }
 
   void _selectBackupLocation() async {
-    final location = await FilePicker.platform.getDirectoryPath(
+    final location = await FilePicker.getDirectoryPath(
       dialogTitle: S.of(context).backupLocationLabel,
       initialDirectory: _backupLocation,
+      androidOptions: const FilePickerAndroidOptions(
+        safOptions: AndroidSAFOptions(
+          grant: AndroidSAFGrant.lifetime,
+          accessMode: AndroidSAFAccessMode.readWrite,
+          persistGrant: true,
+        )
+      )
     );
     setState(() {
       _backupLocation = location;
@@ -219,22 +227,15 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
     log.fine("Updated backup location: $location");
   }
 
-  void _saveCalculationSettings() {
-//    // Save the calorie offset as full number
-//    widget.settingsBloc
-//        .setKcalAdjustment(_kcalAdjustment);
-//    widget.settingsBloc.setMacroGoals(
-//        _carbsPctSelection, _proteinPctSelection, _fatPctSelection);
-//
-//    widget.settingsBloc.add(LoadSettingsEvent());
-//    // Update other blocs that need the new calorie value
-//    widget.profileBloc.add(LoadProfileEvent());
-//
-//    // Update tracked day entity
-//    widget.settingsBloc.updateTrackedDay(DateTime.now());
-//    widget.diaryBloc.add(LoadDiaryYearEvent());
-//    widget.calendarDayBloc.add(RefreshCalendarDayEvent());
-//
-//    Navigator.of(context).pop();
+  void _saveSettings() {
+    final int? backupIntervalDays = getBackupIntervalValueFromEnum(_backupInterval);
+    final bool backupOverwrite = _backupBehavior == BackupBehaviorDropDownType.overwrite;
+    widget.settingsBloc
+        .setAutoBackupConfig(_backupsEnabled, _backupLocation, backupIntervalDays, backupOverwrite);
+    widget.settingsBloc.add(LoadSettingsEvent());
+
+    refreshAutoBackupTask();
+
+    Navigator.of(context).pop();
   }
 }

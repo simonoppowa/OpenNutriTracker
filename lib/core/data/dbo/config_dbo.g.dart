@@ -24,6 +24,10 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       usesImperialUnits: fields[4] as bool?,
       userKcalAdjustment: fields[5] as double?,
       showActivityTracker: fields[9] as bool?,
+      autoBackupEnabled: fields[10] as bool?,
+      autoBackupLocation: fields[11] as String?,
+      autoBackupIntervalDays: fields[12] as int?,
+      autoBackupOverwrite: fields[13] as bool?,
     )
       ..userCarbGoalPct = fields[6] as double?
       ..userProteinGoalPct = fields[7] as double?
@@ -33,7 +37,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -53,7 +57,15 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(8)
       ..write(obj.userFatGoalPct)
       ..writeByte(9)
-      ..write(obj.showActivityTracker);
+      ..write(obj.showActivityTracker)
+      ..writeByte(10)
+      ..write(obj.autoBackupEnabled)
+      ..writeByte(11)
+      ..write(obj.autoBackupLocation)
+      ..writeByte(12)
+      ..write(obj.autoBackupIntervalDays)
+      ..writeByte(13)
+      ..write(obj.autoBackupOverwrite);
   }
 
   @override
@@ -79,6 +91,10 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       usesImperialUnits: json['usesImperialUnits'] as bool? ?? false,
       userKcalAdjustment: (json['userKcalAdjustment'] as num?)?.toDouble(),
       showActivityTracker: json['showActivityTracker'] as bool?,
+      autoBackupEnabled: json['autoBackupEnabled'] as bool?,
+      autoBackupLocation: json['autoBackupLocation'] as String?,
+      autoBackupIntervalDays: (json['autoBackupIntervalDays'] as num?)?.toInt(),
+      autoBackupOverwrite: json['autoBackupOverwrite'] as bool?,
     )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -95,6 +111,10 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'userProteinGoalPct': instance.userProteinGoalPct,
       'userFatGoalPct': instance.userFatGoalPct,
       'showActivityTracker': instance.showActivityTracker,
+      'autoBackupEnabled': instance.autoBackupEnabled,
+      'autoBackupLocation': instance.autoBackupLocation,
+      'autoBackupIntervalDays': instance.autoBackupIntervalDays,
+      'autoBackupOverwrite': instance.autoBackupOverwrite,
     };
 
 const _$AppThemeDBOEnumMap = {

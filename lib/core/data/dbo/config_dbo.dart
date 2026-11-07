@@ -28,6 +28,15 @@ class ConfigDBO extends HiveObject {
   double? userFatGoalPct;
   @HiveField(9)
   bool? showActivityTracker;
+  // Automatic backup
+  @HiveField(10)
+  bool? autoBackupEnabled;
+  @HiveField(11)
+  String? autoBackupLocation;
+  @HiveField(12)
+  int? autoBackupIntervalDays;
+  @HiveField(13)
+  bool? autoBackupOverwrite;
 
   ConfigDBO(this.hasAcceptedDisclaimer,
       this.hasAcceptedPolicy,
@@ -35,7 +44,11 @@ class ConfigDBO extends HiveObject {
       this.selectedAppTheme,
       {this.usesImperialUnits = false,
       this.userKcalAdjustment,
-      this.showActivityTracker});
+      this.showActivityTracker,
+      this.autoBackupEnabled,
+      this.autoBackupLocation,
+      this.autoBackupIntervalDays,
+      this.autoBackupOverwrite});
 
   factory ConfigDBO.empty() =>
       ConfigDBO(false, false, false, AppThemeDBO.system);
@@ -46,7 +59,11 @@ class ConfigDBO extends HiveObject {
       entity.hasAcceptedSendAnonymousData,
       AppThemeDBO.fromAppThemeEntity(entity.appTheme),
       usesImperialUnits: entity.usesImperialUnits,
-      showActivityTracker: entity.showActivityTracker);
+      showActivityTracker: entity.showActivityTracker,
+      autoBackupEnabled: entity.autoBackupEnabled,
+      autoBackupLocation: entity.autoBackupLocation,
+      autoBackupIntervalDays: entity.autoBackupIntervalDays,
+      autoBackupOverwrite: entity.autoBackupOverwrite);
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>
       _$ConfigDBOFromJson(json);

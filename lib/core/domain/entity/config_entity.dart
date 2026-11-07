@@ -13,6 +13,11 @@ class ConfigEntity extends Equatable {
   final double? userCarbGoalPct;
   final double? userProteinGoalPct;
   final double? userFatGoalPct;
+  // Automatic backup
+  final bool? autoBackupEnabled;
+  final String? autoBackupLocation;
+  final int? autoBackupIntervalDays;
+  final bool? autoBackupOverwrite;
 
   const ConfigEntity(this.hasAcceptedDisclaimer,
       this.hasAcceptedPolicy,
@@ -23,7 +28,11 @@ class ConfigEntity extends Equatable {
       this.userKcalAdjustment,
       this.userCarbGoalPct,
       this.userProteinGoalPct,
-      this.userFatGoalPct});
+      this.userFatGoalPct,
+      this.autoBackupEnabled,
+      this.autoBackupLocation,
+      this.autoBackupIntervalDays,
+      this.autoBackupOverwrite});
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -36,6 +45,10 @@ class ConfigEntity extends Equatable {
         userCarbGoalPct: dbo.userCarbGoalPct,
         userProteinGoalPct: dbo.userProteinGoalPct,
         userFatGoalPct: dbo.userFatGoalPct,
+        autoBackupEnabled: dbo.autoBackupEnabled,
+        autoBackupLocation: dbo.autoBackupLocation,
+        autoBackupIntervalDays: dbo.autoBackupIntervalDays,
+        autoBackupOverwrite: dbo.autoBackupOverwrite,
       );
 
   @override
@@ -48,5 +61,9 @@ class ConfigEntity extends Equatable {
         userCarbGoalPct,
         userProteinGoalPct,
         userFatGoalPct,
+        autoBackupEnabled,
+        autoBackupLocation,
+        autoBackupIntervalDays,
+        autoBackupOverwrite,
       ];
 }

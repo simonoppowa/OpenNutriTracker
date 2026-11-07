@@ -72,4 +72,11 @@ class ConfigRepository {
     _configDataSource.setConfigProteinGoalPct(protein);
     _configDataSource.setConfigFatGoalPct(fat);
   }
+
+  Future<void> setAutoBackupConfig(bool autoBackupEnabled, String? autoBackupLocation, int? autoBackupIntervalDays, bool? autoBackupOverwrite) async {
+    _configDataSource.setAutoBackupEnabled(autoBackupEnabled);
+    _configDataSource.setAutoBackupLocation(autoBackupLocation);
+    _configDataSource.setAutoBackupIntervalDays(autoBackupIntervalDays);
+    _configDataSource.setAutoBackupOverwrite(autoBackupOverwrite);
+  }
 }

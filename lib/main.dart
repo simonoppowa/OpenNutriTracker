@@ -9,7 +9,9 @@ import 'package:opennutritracker/core/presentation/main_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:opennutritracker/core/styles/color_schemes.dart';
 import 'package:opennutritracker/core/styles/fonts.dart';
+import 'package:opennutritracker/core/tasks/auto_backup_task.dart';
 import 'package:opennutritracker/core/utils/env.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -25,6 +27,7 @@ import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:workmanager/workmanager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +39,13 @@ Future<void> main() async {
       await configRepo.getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
   final log = Logger('main');
+
+  // Attempt to initialize workmanager for scheduling background tasks
+  try {
+    await Workmanager().initialize(callbackDispatcher);
+  } catch (e) {
+    log.severe("Error initializing workmanager: $e");
+  }
 
   // If the user has accepted anonymous data collection, run the app with
   // sentry enabled, else run without it
@@ -63,6 +73,21 @@ void runAppWithChangeNotifiers(
     runApp(ChangeNotifierProvider(
         create: (_) => ThemeModeProvider(appTheme: savedAppTheme),
         child: OpenNutriTrackerApp(userInitialized: userInitialized)));
+
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    if (kDebugMode) {
+      debugPrint("callbackDispatcher called with task: $task");
+    }
+    switch (task) {
+      case autoBackupTaskKey:
+        return runAutoBackupTask();
+      default:
+        return Future.value(false);
+    }
+  });
+}
 
 class OpenNutriTrackerApp extends StatelessWidget {
   final bool userInitialized;

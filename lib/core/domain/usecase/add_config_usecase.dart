@@ -43,4 +43,8 @@ class AddConfigUsecase {
       double carbGoalPct, double proteinGoalPct, double fatPctGoal) async {
     _configRepository.setUserMacroPct(carbGoalPct, proteinGoalPct, fatPctGoal);
   }
+
+  Future<void> setAutoBackupConfig(bool autoBackupEnabled, String? autoBackupLocation, int? autoBackupIntervalDays, bool? autoBackupOverwrite) async {
+    _configRepository.setAutoBackupConfig(autoBackupEnabled, autoBackupLocation, autoBackupIntervalDays, autoBackupOverwrite);
+  }
 }

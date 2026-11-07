@@ -64,10 +64,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "automaticBackupLabel": MessageLookupByLibrary.simpleMessage(
       "Automatic Backup",
     ),
-    "backupCountLabel": MessageLookupByLibrary.simpleMessage("Backup count"),
-    "backupCountOneLabel": MessageLookupByLibrary.simpleMessage("1"),
-    "backupCountThreeLabel": MessageLookupByLibrary.simpleMessage("3"),
-    "backupCountTwoLabel": MessageLookupByLibrary.simpleMessage("2"),
+    "backupBehaviorCreateNewLabel": MessageLookupByLibrary.simpleMessage(
+      "create new file",
+    ),
+    "backupBehaviorLabel": MessageLookupByLibrary.simpleMessage(
+      "Backup behavior",
+    ),
+    "backupBehaviorOverwriteLabel": MessageLookupByLibrary.simpleMessage(
+      "overwrite",
+    ),
     "backupIntervalDailyLabel": MessageLookupByLibrary.simpleMessage("daily"),
     "backupIntervalLabel": MessageLookupByLibrary.simpleMessage(
       "Backup interval",

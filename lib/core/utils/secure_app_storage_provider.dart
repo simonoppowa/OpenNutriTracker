@@ -5,13 +5,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 
 class SecureAppStorageProvider {
-  static const _sharedPrefsName = "SharedPrefs";
   static const _hiveEncryptionTag = "HiveEncryptionTag";
 
   static const _androidOptions = AndroidOptions(
-      encryptedSharedPreferences: true,
-      storageCipherAlgorithm: StorageCipherAlgorithm.AES_CBC_PKCS7Padding,
-      sharedPreferencesName: _sharedPrefsName);
+      storageCipherAlgorithm: StorageCipherAlgorithm.AES_GCM_NoPadding,
+      migrateWithBackup: true);
   static const _iOSOptions = IOSOptions();
 
   static const FlutterSecureStorage secureAppStorage =

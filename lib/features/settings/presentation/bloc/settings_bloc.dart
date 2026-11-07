@@ -98,6 +98,30 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         proteinGoalPct.toInt() / 100, fatGoalPct.toInt() / 100);
   }
 
+  Future<bool> getAutoBackupEnabled() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.autoBackupEnabled ?? false;
+  }
+
+  Future<String?> getAutoBackupLocation() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.autoBackupLocation;
+  }
+
+  Future<int?> getAutoBackupIntervalDays() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.autoBackupIntervalDays;
+  }
+
+  Future<bool> getAutoBackupOverwrite() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.autoBackupOverwrite ?? true;
+  }
+
+  void setAutoBackupConfig(bool autoBackupEnabled, String? autoBackupLocation, int? autoBackupIntervalDays, bool? autoBackupOverwrite) {
+    _addConfigUsecase.setAutoBackupConfig(autoBackupEnabled, autoBackupLocation, autoBackupIntervalDays, autoBackupOverwrite);
+  }
+
   void updateTrackedDay(DateTime day) async {
     final day = DateTime.now();
     final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
@@ -123,4 +147,28 @@ enum SystemDropDownType { metric, imperial }
 
 enum BackupIntervalDropDownType { daily, weekly, monthly }
 
-enum BackupCountDropDownType { one, two, three }
+enum BackupBehaviorDropDownType { overwrite, createNew }
+
+BackupIntervalDropDownType? getBackupIntervalEnumFromValue(int intervalDays) {
+  switch(intervalDays) {
+    case 1:
+      return BackupIntervalDropDownType.daily;
+    case 7:
+      return BackupIntervalDropDownType.weekly;
+    case 30:
+      return BackupIntervalDropDownType.monthly;
+    default:
+      return null;
+  }
+}
+
+int? getBackupIntervalValueFromEnum(BackupIntervalDropDownType intervalEnum) {
+  switch(intervalEnum) {
+    case BackupIntervalDropDownType.daily:
+      return 1;
+    case BackupIntervalDropDownType.weekly:
+      return 7;
+    case BackupIntervalDropDownType.monthly:
+      return 30;
+  }
+}
