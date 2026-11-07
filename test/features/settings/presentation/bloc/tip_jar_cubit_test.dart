@@ -483,6 +483,41 @@ void main() {
       expect(store.calls.sublist(store.calls.length - 2), ['consume', 'buy']);
     });
 
+    test(
+      'buy also waits for a batch that arrives while it is waiting',
+      () async {
+        await jar.start();
+        await jar.load();
+        final first = Completer<void>();
+        final second = Completer<void>();
+        store.consumeGates.addAll([first, second]);
+        store.emit([
+          tipPurchase('tip_small', PurchaseStatus.restored, id: 'GPA.1'),
+        ]);
+        await settle(); // the first consume is in flight
+
+        final buying = jar.buy(jar.state.tips.first);
+        await settle();
+        await settle(); // buy() is now waiting on the queue as it was
+        store.emit([
+          tipPurchase('tip_small', PurchaseStatus.restored, id: 'GPA.2'),
+        ]);
+        await settle();
+        first.complete();
+        await settle();
+        expect(store.bought, isEmpty, reason: 'the second consume is running');
+
+        second.complete();
+        await buying;
+
+        expect(store.calls.sublist(store.calls.length - 3), [
+          'consume',
+          'consume',
+          'buy',
+        ]);
+      },
+    );
+
     test('a replay while the live update is consuming is skipped: one '
         'consume, one thank-you', () async {
       await jar.start();

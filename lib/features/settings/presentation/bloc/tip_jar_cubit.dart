@@ -244,10 +244,19 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// `restorePurchases` returns after handing its answer to the purchase
   /// stream, which delivers it in a microtask. The zero-length timer runs
   /// after those, so by then the answer is queued on [_handling].
+  ///
+  /// Loops until a pass finds nothing new: a batch can arrive while an
+  /// earlier one is still consuming, and awaiting the queue's tail as it was
+  /// when the wait began would let the purchase sheet open before that
+  /// later tip is consumed.
   Future<void> _settled() async {
-    await _recovering;
-    await Future<void>.delayed(Duration.zero);
-    await _handling;
+    while (true) {
+      await _recovering;
+      await Future<void>.delayed(Duration.zero);
+      final tail = _handling;
+      await tail;
+      if (identical(tail, _handling) && _recovering == null) return;
+    }
   }
 
   Future<void> _onPurchases(List<PurchaseDetails> purchases) async {

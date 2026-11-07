@@ -32,6 +32,9 @@ class FakeTipStore implements TipStore {
   /// Holds [consume] in flight until completed, when set.
   Completer<void>? consumeGate;
 
+  /// Per-call gates for [consume], taken in order before [consumeGate].
+  final consumeGates = <Completer<void>>[];
+
   /// Holds [restorePurchases] until completed, when set; then it delivers
   /// [restoreEmits] on the purchase stream, as Play does.
   Completer<void>? restoreGate;
@@ -99,7 +102,8 @@ class FakeTipStore implements TipStore {
   Future<bool> consume(PurchaseDetails purchase) async {
     calls.add('consume');
     consumed.add(purchase);
-    await consumeGate?.future;
+    await (consumeGates.isNotEmpty ? consumeGates.removeAt(0) : consumeGate)
+        ?.future;
     if (consumeThrows) throw StateError('consume failed');
     return consumeResult;
   }
