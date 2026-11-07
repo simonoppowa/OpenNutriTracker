@@ -206,6 +206,7 @@ Future<void> initLocator() async {
       locator<DailyReminderScheduler>(),
       locator<AiCredentialStorage>(),
       calorieWidgetStore: locator<CalorieWidgetStore>(),
+      forgetTipRecord: () => locator<TipJarCubit>().forgetTip(),
     ),
   );
 

@@ -231,6 +231,30 @@ void main() {
       expect(config.writes, 3);
     });
 
+    test('Reset profile data drops a save still waiting for its retry: '
+        'reopening does not bring the line back', () async {
+      await jar.start();
+      await jar.load();
+      config.writeThrows = true;
+      final purchase = tipPurchase('tip_small', PurchaseStatus.purchased);
+      store.emit([purchase]);
+      await settle();
+      expect(store.completed, [purchase]);
+      expect(jar.state.hasTipped, isTrue);
+
+      // What DeleteAllUserDataUsecase does: the hook, then the cleared flag.
+      jar.forgetTip();
+      config.hasLeftTip = false;
+      expect(jar.state.hasTipped, isFalse);
+
+      config.writeThrows = false;
+      await jar.load(); // reopening the page
+
+      expect(jar.state.hasTipped, isFalse);
+      expect(config.hasLeftTip, isFalse);
+      expect(config.writes, 1); // only the failed one
+    });
+
     test('reads whether a tip was left', () async {
       config.hasLeftTip = true;
 
