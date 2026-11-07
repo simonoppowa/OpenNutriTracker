@@ -266,7 +266,9 @@ Future<void> initLocator() async {
       calorieWidgetStore: locator<CalorieWidgetStore>(),
     ),
   );
-  locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
+  locator.registerLazySingleton(
+    () => DiaryBloc(locator(), locator(), locator()),
+  );
   locator.registerLazySingleton(
     () => CalendarDayBloc(
       locator(),

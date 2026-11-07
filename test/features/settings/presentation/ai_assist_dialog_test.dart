@@ -99,6 +99,7 @@ class _FakeProber implements AiEndpointProber {
   Future<AiEndpointProbe> probe(
     AiSelection selection, {
     String? localeCode,
+    Future<bool> Function()? stillWanted,
   }) async {
     calls++;
     if (gate != null) await gate!.future;

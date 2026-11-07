@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
@@ -39,6 +40,12 @@ class _Config extends Fake implements GetConfigUsecase {
     AppThemeEntity.system,
     dayStartOffsetHours: dayStartOffsetHours,
   );
+}
+
+class _NoIntakes extends Fake implements GetIntakeUsecase {
+  @override
+  Future<Set<String>> getDayKeysWithIntakes(int offsetTotalMinutes) async =>
+      {};
 }
 
 class _NoTrackedDays extends Fake implements GetTrackedDayUsecase {
@@ -101,7 +108,7 @@ void main() {
     // test's fake-async zone resolves its futures on the real clock, and
     // pump() never sees its load finish.
     config = _Config();
-    diaryBloc = DiaryBloc(_NoTrackedDays(), config);
+    diaryBloc = DiaryBloc(_NoTrackedDays(), config, _NoIntakes());
     calendarDayBloc = _RecordingCalendarDayBloc();
     locator
       ..registerSingleton<DiaryBloc>(diaryBloc)

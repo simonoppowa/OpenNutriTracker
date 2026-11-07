@@ -125,7 +125,7 @@ bool _differs(double? stored, double value) =>
 ///    only record of that day's targets. Removed, a later move that lists
 ///    entries on the day again rebuilt the row from a neighbour and gave
 ///    it that day's goals and per-nutrient goals (#1440). The Diary
-///    calendar marks no day with nothing eaten, so a kept row leaves no
+///    calendar marks no day with nothing logged, so a kept row leaves no
 ///    marker behind.
 ///
 /// Goals stay as they are, except for what activities add to them. A
