@@ -120,6 +120,24 @@ String _leftLabel(LineChartData data, double y) {
   return (widget as Text).data!;
 }
 
+/// The weight labels the chart actually laid out on its y-axis, top to
+/// bottom, each with where it sits (#1445). Unlike [_leftLabel], this sees
+/// the labels fl_chart adds on its own, such as the axis endpoints.
+List<(String, Rect)> _renderedLeftLabels(WidgetTester tester) {
+  final texts = find.descendant(
+    of: find.byType(LineChart),
+    matching: find.byType(Text),
+  );
+  return [
+    for (final element in texts.evaluate())
+      if (double.tryParse((element.widget as Text).data ?? '') != null)
+        (
+          (element.widget as Text).data!,
+          tester.getRect(find.byWidget(element.widget)),
+        ),
+  ]..sort((a, b) => a.$2.top.compareTo(b.$2.top));
+}
+
 /// Asserts the chart drew exactly the entries from [windowStart] through
 /// [today], one x unit per calendar day with no gap, and that the labels
 /// on the window's edges and on [checkDay] name the calendar days they
@@ -341,5 +359,81 @@ void main() {
         expect(_leftLabel(data, 66), '66');
       },
     );
+
+    testWidgets(
+      'the reported range (62–65.8) renders each whole kg once, with no '
+      'endpoint label beside a tick',
+      (tester) async {
+        WeightTrendChart.clock = () => DateTime(2026, 10, 22, 9);
+        final start = DateTime(2026, 9, 23);
+        final entries = [
+          _entry(start, 62.0),
+          _entry(start.add(const Duration(days: 7)), 63.0),
+          _entry(start.add(const Duration(days: 14)), 64.5),
+          _entry(start.add(const Duration(days: 21)), 65.8),
+        ];
+
+        await _pumpChart(tester, entries: entries, windowDays: 30);
+
+        // The axis pads to 61.43–66.37; before, both bounds got a label of
+        // their own and the top one printed a second "66".
+        expect(_renderedLeftLabels(tester).map((l) => l.$1), [
+          '66',
+          '65',
+          '64',
+          '63',
+          '62',
+        ]);
+      },
+    );
+
+    testWidgets(
+      'a wide kg range (80–100) steps the ticks to 5 kg so labels never '
+      'overlap',
+      (tester) async {
+        WeightTrendChart.clock = () => DateTime(2026, 10, 22, 9);
+        final start = DateTime(2026, 9, 23);
+        final entries = [
+          _entry(start, 80.0),
+          _entry(start.add(const Duration(days: 7)), 86.0),
+          _entry(start.add(const Duration(days: 14)), 93.0),
+          _entry(start.add(const Duration(days: 21)), 100.0),
+        ];
+
+        final data = await _pumpChart(
+          tester,
+          entries: entries,
+          windowDays: 30,
+        );
+
+        expect(data.titlesData.leftTitles.sideTitles.interval, 5.0);
+        final labels = _renderedLeftLabels(tester);
+        expect(labels.map((l) => l.$1), ['100', '95', '90', '85', '80']);
+        for (var i = 1; i < labels.length; i++) {
+          expect(
+            labels[i].$2.top,
+            greaterThanOrEqualTo(labels[i - 1].$2.bottom),
+            reason: '"${labels[i].$1}" overlaps "${labels[i - 1].$1}"',
+          );
+        }
+      },
+    );
+
+    testWidgets('identical weights render one label, on the weight itself', (
+      tester,
+    ) async {
+      WeightTrendChart.clock = () => DateTime(2026, 10, 22, 9);
+      final start = DateTime(2026, 9, 23);
+      final entries = [
+        _entry(start, 80.0),
+        _entry(start.add(const Duration(days: 7)), 80.0),
+      ];
+
+      await _pumpChart(tester, entries: entries, windowDays: 30);
+
+      // The axis pads to 79.5–80.5, both on the half-kg grid; dropping
+      // the endpoint labels leaves the tick the line runs along.
+      expect(_renderedLeftLabels(tester).map((l) => l.$1), ['80.0']);
+    });
   });
 }
