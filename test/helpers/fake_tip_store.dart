@@ -1,0 +1,135 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/features/settings/data/tip_store.dart';
+
+/// A [TipStore] whose answers each test sets, and which records every call
+/// the tip jar makes.
+class FakeTipStore implements TipStore {
+  final _purchases = StreamController<List<PurchaseDetails>>.broadcast();
+
+  bool available = true;
+  @override
+  bool needsConsume = false;
+
+  /// What [queryProductDetails] returns; null makes it throw.
+  List<ProductDetails>? products = tipProducts();
+
+  /// Completes [queryProductDetails] only when completed, when set.
+  Completer<void>? queryGate;
+  bool buyResult = true;
+  bool buyThrows = false;
+  bool consumeResult = true;
+  bool consumeThrows = false;
+  bool restoreThrows = false;
+
+  int queryCalls = 0;
+  int restoreCalls = 0;
+  final bought = <ProductDetails>[];
+  final consumed = <PurchaseDetails>[];
+  final completed = <PurchaseDetails>[];
+
+  /// Delivers [purchases] the way the store would.
+  void emit(List<PurchaseDetails> purchases) => _purchases.add(purchases);
+
+  @override
+  Stream<List<PurchaseDetails>> get purchaseStream => _purchases.stream;
+
+  @override
+  Future<bool> isAvailable() async => available;
+
+  @override
+  Future<ProductDetailsResponse> queryProductDetails(Set<String> ids) async {
+    queryCalls++;
+    await queryGate?.future;
+    final found = products;
+    if (found == null) throw StateError('store unreachable');
+    return ProductDetailsResponse(
+      productDetails: found.where((p) => ids.contains(p.id)).toList(),
+      notFoundIDs: [
+        for (final id in ids)
+          if (!found.any((p) => p.id == id)) id,
+      ],
+    );
+  }
+
+  @override
+  Future<bool> buyConsumable(ProductDetails product) async {
+    bought.add(product);
+    if (buyThrows) throw StateError('sheet failed');
+    return buyResult;
+  }
+
+  @override
+  Future<void> completePurchase(PurchaseDetails purchase) async {
+    completed.add(purchase);
+  }
+
+  @override
+  Future<void> restorePurchases() async {
+    restoreCalls++;
+    if (restoreThrows) throw StateError('billing unavailable');
+  }
+
+  @override
+  Future<bool> consume(PurchaseDetails purchase) async {
+    consumed.add(purchase);
+    if (consumeThrows) throw StateError('consume failed');
+    return consumeResult;
+  }
+
+  Future<void> dispose() => _purchases.close();
+}
+
+/// Store products for the three tips, listed most expensive first so a test
+/// sees the jar sort them.
+List<ProductDetails> tipProducts({Set<String>? only}) => [
+  _product('tip_large', '€9.99', 9.99),
+  _product('tip_small', '€1.99', 1.99),
+  _product('tip_medium', '€4.99', 4.99),
+].where((p) => only == null || only.contains(p.id)).toList();
+
+ProductDetails _product(String id, String price, double rawPrice) =>
+    ProductDetails(
+      id: id,
+      title: id,
+      description: id,
+      price: price,
+      rawPrice: rawPrice,
+      currencyCode: 'EUR',
+    );
+
+PurchaseDetails tipPurchase(
+  String productId,
+  PurchaseStatus status, {
+  bool pendingComplete = true,
+}) => PurchaseDetails(
+  purchaseID: 'order-$productId',
+  productID: productId,
+  verificationData: PurchaseVerificationData(
+    localVerificationData: '',
+    serverVerificationData: 'token-$productId',
+    source: 'test',
+  ),
+  transactionDate: null,
+  status: status,
+)..pendingCompletePurchase = pendingComplete;
+
+/// Only the two calls the tip jar makes; anything else fails the test.
+class FakeTipConfig extends Fake implements ConfigRepository {
+  bool hasLeftTip;
+  int writes = 0;
+
+  FakeTipConfig({this.hasLeftTip = false});
+
+  @override
+  Future<bool> getHasLeftTip() async => hasLeftTip;
+
+  @override
+  Future<void> setHasLeftTip() async {
+    writes++;
+    hasLeftTip = true;
+  }
+}

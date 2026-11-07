@@ -257,6 +257,18 @@ class ConfigDataSource {
     await _update((c) => c.localeSyncSeeded = null);
   }
 
+  /// Whether a tip has gone through on this device (#1536). Device-wide:
+  /// read from the shared app box, like [getLocaleSyncSeeded].
+  Future<bool> getHasLeftTip() async => _readMerged().hasLeftTip ?? false;
+
+  Future<void> setHasLeftTip() async {
+    await _update((c) => c.hasLeftTip = true);
+  }
+
+  Future<void> clearHasLeftTip() async {
+    await _update((c) => c.hasLeftTip = null);
+  }
+
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _update((c) => c.showMicronutrients = show);
   }
