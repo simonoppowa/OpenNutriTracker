@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_export_records.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 
 /// Which platform's health store rules apply.
@@ -81,6 +82,28 @@ class HealthPackageService implements HealthService {
   /// personalised suggestion, and short enough that a stale composition from
   /// several years ago doesn't drive it.
   static const _bodyFatLookback = Duration(days: 365);
+
+  /// The nutrients a meal write carries. HealthKit asks the user per type,
+  /// so iOS requests exactly these rather than the plugin's whole nutrition
+  /// umbrella; Health Connect has one nutrition permission.
+  static const _mealNutrientTypes = [
+    HealthDataType.DIETARY_ENERGY_CONSUMED,
+    HealthDataType.DIETARY_CARBS_CONSUMED,
+    HealthDataType.DIETARY_PROTEIN_CONSUMED,
+    HealthDataType.DIETARY_FATS_CONSUMED,
+    HealthDataType.DIETARY_FIBER,
+    HealthDataType.DIETARY_SUGAR,
+    HealthDataType.DIETARY_FAT_SATURATED,
+    HealthDataType.DIETARY_SODIUM,
+  ];
+
+  List<HealthDataType> get _exportTypes => [
+    if (_platform == HealthTargetPlatform.ios)
+      ..._mealNutrientTypes
+    else
+      HealthDataType.NUTRITION,
+    HealthDataType.WATER,
+  ];
 
   static final _log = Logger('HealthPackageService');
   final Health _health;
@@ -304,6 +327,83 @@ class HealthPackageService implements HealthService {
     final value = latest?.value;
     if (value is! NumericHealthValue) return null;
     return _bodyFatAsPercent(value.numericValue.toDouble());
+  }
+
+  @override
+  Future<bool> requestExportPermissions() async {
+    final write = List.filled(_exportTypes.length, HealthDataAccess.WRITE);
+    final granted = await _health.requestAuthorization(
+      _exportTypes,
+      permissions: write,
+    );
+    if (!granted) return false;
+    // iOS reports write grants, unlike read grants. Android is not asked: the
+    // plugin's check takes the process down when Health Connect refuses the
+    // call (see HealthConnectWorkoutReader.hasWorkoutReadPermissions).
+    if (_platform != HealthTargetPlatform.ios) return true;
+    return await _health.hasPermissions(_exportTypes, permissions: write) !=
+        false;
+  }
+
+  @override
+  Future<void> replaceExportedDay({
+    required DateTime from,
+    required DateTime to,
+    required List<ExportedMeal> meals,
+    required List<ExportedWater> water,
+  }) async {
+    // A HealthKit meal is a correlation over one sample per nutrient, and
+    // deleting the correlation is not documented to delete those samples.
+    for (final type in {HealthDataType.NUTRITION, ..._exportTypes}) {
+      _check(
+        await _health.delete(type: type, startTime: from, endTime: to),
+        'delete $type',
+      );
+    }
+    // Health Connect refuses an interval that ends when it starts; HealthKit
+    // takes a point sample as it is.
+    final span = _platform == HealthTargetPlatform.android
+        ? const Duration(seconds: 1)
+        : Duration.zero;
+    for (final meal in meals) {
+      _check(
+        await _health.writeMeal(
+          mealType: MealType.values.byName(meal.slot.name.toUpperCase()),
+          startTime: meal.time,
+          endTime: meal.time.add(span),
+          name: meal.name,
+          caloriesConsumed: meal.energyKcal,
+          carbohydrates: meal.carbsGram,
+          protein: meal.proteinGram,
+          fatTotal: meal.fatGram,
+          fiber: meal.fiberGram,
+          sugar: meal.sugarGram,
+          fatSaturated: meal.saturatedFatGram,
+          sodium: meal.sodiumGram,
+          recordingMethod: RecordingMethod.manual,
+        ),
+        'write a meal',
+      );
+    }
+    for (final entry in water) {
+      // Litres on both platforms: Health Connect ignores the unit and takes
+      // litres, HealthKit honours it.
+      _check(
+        await _health.writeHealthData(
+          value: entry.millilitres / 1000,
+          unit: HealthDataUnit.LITER,
+          type: HealthDataType.WATER,
+          startTime: entry.time,
+          endTime: entry.time.add(span),
+          recordingMethod: RecordingMethod.manual,
+        ),
+        'write water',
+      );
+    }
+  }
+
+  static void _check(bool success, String step) {
+    if (!success) throw StateError('The health store refused to $step');
   }
 
   /// Both platform bridges report workout energy in kilocalories, but the

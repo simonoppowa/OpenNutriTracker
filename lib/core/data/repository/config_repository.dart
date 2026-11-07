@@ -222,6 +222,21 @@ class ConfigRepository {
     await _configDataSource.setConfigHealthLastImportAt(importedAt);
   }
 
+  Future<void> setConfigHealthExportEnabled(bool enabled) async {
+    await _configDataSource.setConfigHealthExportEnabled(enabled);
+  }
+
+  Future<void> setConfigHealthLastExportAt(DateTime? exportedAt) async {
+    await _configDataSource.setConfigHealthLastExportAt(exportedAt);
+  }
+
+  Future<void> setConfigHealthExportedDay(
+    String day,
+    String? fingerprint,
+  ) async {
+    await _configDataSource.setConfigHealthExportedDay(day, fingerprint);
+  }
+
   Future<void> addConfigHealthDeletedWorkout(
     String externalId,
     DateTime startedAt,

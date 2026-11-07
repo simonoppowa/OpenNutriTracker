@@ -2,10 +2,12 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/export_diary_to_health_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
@@ -22,6 +24,7 @@ import '../../../../helpers/test_l10n.dart';
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
   final List<bool> importEnabledCalls = [];
   final List<double> multiplierCalls = [];
+  final List<bool> exportEnabledCalls = [];
 
   @override
   Future<void> setHealthImportEnabled(bool enabled) async {
@@ -31,6 +34,11 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   @override
   Future<void> setHealthWorkoutKcalMultiplier(double multiplier) async {
     multiplierCalls.add(multiplier);
+  }
+
+  @override
+  Future<void> setHealthExportEnabled(bool enabled) async {
+    exportEnabledCalls.add(enabled);
   }
 }
 
@@ -64,6 +72,29 @@ class _FakeHealthImportRepository extends Fake
 
   @override
   Future<double?> getLatestBodyFatPercent() async => bodyFatPercent;
+}
+
+class _FakeHealthExportRepository extends Fake
+    implements HealthExportRepository {
+  bool granted = true;
+  int requestPermissionsCalls = 0;
+
+  @override
+  Future<bool> requestPermissions() async {
+    requestPermissionsCalls++;
+    return granted;
+  }
+}
+
+class _FakeExportDiaryToHealthUsecase extends Fake
+    implements ExportDiaryToHealthUsecase {
+  int exportNowCalls = 0;
+
+  @override
+  Future<int> exportNow() async {
+    exportNowCalls++;
+    return 0;
+  }
 }
 
 class _FakeImportWorkoutsUsecase extends Fake implements ImportWorkoutsUsecase {
@@ -100,11 +131,18 @@ Finder _byIdentifier(String identifier) => find.byWidgetPredicate(
   (widget) => widget is Semantics && widget.properties.identifier == identifier,
 );
 
+final _importSwitch = find.descendant(
+  of: _byIdentifier('health-sync-auto-import'),
+  matching: find.byType(SwitchListTile),
+);
+
 void main() {
   late _FakeSettingsBloc settingsBloc;
   late _FakeGetConfigUsecase getConfigUsecase;
   late _FakeHealthImportRepository healthImportRepository;
   late _FakeImportWorkoutsUsecase importWorkoutsUsecase;
+  late _FakeHealthExportRepository healthExportRepository;
+  late _FakeExportDiaryToHealthUsecase exportUsecase;
 
   final user = UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight;
 
@@ -120,11 +158,15 @@ void main() {
     getConfigUsecase = _FakeGetConfigUsecase();
     healthImportRepository = _FakeHealthImportRepository();
     importWorkoutsUsecase = _FakeImportWorkoutsUsecase();
+    healthExportRepository = _FakeHealthExportRepository();
+    exportUsecase = _FakeExportDiaryToHealthUsecase();
 
     locator.registerSingleton<SettingsBloc>(settingsBloc);
     locator.registerSingleton<GetConfigUsecase>(getConfigUsecase);
     locator.registerSingleton<HealthImportRepository>(healthImportRepository);
     locator.registerSingleton<ImportWorkoutsUsecase>(importWorkoutsUsecase);
+    locator.registerSingleton<HealthExportRepository>(healthExportRepository);
+    locator.registerSingleton<ExportDiaryToHealthUsecase>(exportUsecase);
     locator.registerSingleton<GetUserUsecase>(_FakeGetUserUsecase(user));
   });
 
@@ -178,7 +220,7 @@ void main() {
     await pumpScreen(tester);
 
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(_importSwitch).value,
       isFalse,
     );
     // A null onChanged is what makes a Slider unusable, so it is the honest
@@ -204,7 +246,7 @@ void main() {
     expect(settingsBloc.importEnabledCalls, [true]);
     expect(settingsBloc.multiplierCalls, [suggestedMultiplier]);
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(_importSwitch).value,
       isTrue,
     );
     expect(
@@ -226,7 +268,7 @@ void main() {
     await optIn(tester);
 
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(_importSwitch).value,
       isFalse,
     );
     expect(settingsBloc.importEnabledCalls, isEmpty);
@@ -343,7 +385,7 @@ void main() {
     expect(settingsBloc.importEnabledCalls, isEmpty);
     expect(importWorkoutsUsecase.importNowCalls, 0);
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(_importSwitch).value,
       isFalse,
     );
   });
@@ -494,6 +536,73 @@ void main() {
         find.text(withBodyFat),
         findsNothing,
         reason: 'the body-fat paragraph must not survive the gate here',
+      );
+    });
+  });
+
+  group('nutrition export', () {
+    final exportSwitch = find.descendant(
+      of: _byIdentifier('health-sync-export'),
+      matching: find.byType(SwitchListTile),
+    );
+
+    Future<void> optIn(WidgetTester tester, {required bool confirm}) async {
+      await tester.tap(exportSwitch);
+      await tester.pumpAndSettle();
+      expect(find.byType(HealthDisclosureDialog), findsOneWidget);
+      await tester.tap(
+        find.text(
+          confirm
+              ? l10nEn.healthSyncDisclosureContinueAction
+              : l10nEn.dialogCancelLabel,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a declined disclosure asks the platform for nothing', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false);
+
+      await pumpScreen(tester);
+      await optIn(tester, confirm: false);
+
+      expect(healthExportRepository.requestPermissionsCalls, 0);
+      expect(settingsBloc.exportEnabledCalls, isEmpty);
+      expect(tester.widget<SwitchListTile>(exportSwitch).value, isFalse);
+    });
+
+    testWidgets('opting in asks for write access, saves, and exports', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false);
+
+      await pumpScreen(tester);
+      await optIn(tester, confirm: true);
+
+      expect(healthExportRepository.requestPermissionsCalls, 1);
+      expect(settingsBloc.exportEnabledCalls, [true]);
+      expect(exportUsecase.exportNowCalls, 1);
+      expect(tester.widget<SwitchListTile>(exportSwitch).value, isTrue);
+    });
+
+    testWidgets('a denied permission leaves export off and says so', (
+      tester,
+    ) async {
+      storeConfig(healthImportEnabled: false);
+      healthExportRepository.granted = false;
+
+      await pumpScreen(tester);
+      await optIn(tester, confirm: true);
+
+      expect(settingsBloc.exportEnabledCalls, isEmpty);
+      expect(exportUsecase.exportNowCalls, 0);
+      expect(
+        find.text(
+          l10nEn.healthSyncExportPermissionDeniedLabel(healthPlatformName),
+        ),
+        findsOneWidget,
       );
     });
   });

@@ -63,6 +63,9 @@ class ConfigDataSource {
       merged.healthLastImportAt = profile.healthLastImportAt;
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
       merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
+      merged.healthExportEnabled = profile.healthExportEnabled;
+      merged.healthLastExportAt = profile.healthLastExportAt;
+      merged.healthExportedDays = profile.healthExportedDays;
       merged.trackedDaysOffsetMinutes = profile.trackedDaysOffsetMinutes;
     } else {
       // Explicitly clear personal fields so they don't leak from the
@@ -80,6 +83,9 @@ class ConfigDataSource {
       merged.healthLastImportAt = null;
       merged.healthDeletedExternalIds = null;
       merged.healthDeletedWorkouts = null;
+      merged.healthExportEnabled = null;
+      merged.healthLastExportAt = null;
+      merged.healthExportedDays = null;
       merged.trackedDaysOffsetMinutes = null;
     }
     return merged;
@@ -410,6 +416,31 @@ class ConfigDataSource {
 
   Future<void> setConfigHealthLastImportAt(DateTime? importedAt) async {
     await _update((c) => c.healthLastImportAt = importedAt);
+  }
+
+  Future<void> setConfigHealthExportEnabled(bool enabled) async {
+    await _update((c) => c.healthExportEnabled = enabled);
+  }
+
+  Future<void> setConfigHealthLastExportAt(DateTime? exportedAt) async {
+    await _update((c) => c.healthLastExportAt = exportedAt);
+  }
+
+  /// Records [fingerprint] as what the store now holds for [day]; null once
+  /// the day has nothing left in it.
+  Future<void> setConfigHealthExportedDay(
+    String day,
+    String? fingerprint,
+  ) async {
+    await _update((c) {
+      final days = {...?c.healthExportedDays};
+      if (fingerprint == null) {
+        days.remove(day);
+      } else {
+        days[day] = fingerprint;
+      }
+      c.healthExportedDays = days;
+    });
   }
 
   /// Records that the imported workout behind [externalId], which started at

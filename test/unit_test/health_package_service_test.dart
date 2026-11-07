@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:health/health.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_export_records.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_package_service.dart';
 
 /// Stands in for the plugin's own entry point so the grant bookkeeping can be
@@ -18,6 +19,16 @@ class _FakeHealth extends Fake implements Health {
   /// that the workout read no longer goes through it on Android.
   final queriedTypes = <List<HealthDataType>>[];
   List<HealthDataPoint> dataPoints = const [];
+
+  /// Every write and delete, as the plugin would receive it.
+  final invocations = <Invocation>[];
+  bool writes = true;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    invocations.add(invocation);
+    return Future<bool>.value(writes);
+  }
 
   @override
   Future<bool> requestAuthorization(
@@ -322,11 +333,13 @@ void main() {
       );
     });
 
-    test('body fat is not read, and answers null rather than throwing',
-        () async {
-      expect(await service.readLatestBodyFatPercent(), isNull);
-      expect(health.queriedTypes, isEmpty);
-    });
+    test(
+      'body fat is not read, and answers null rather than throwing',
+      () async {
+        expect(await service.readLatestBodyFatPercent(), isNull);
+        expect(health.queriedTypes, isEmpty);
+      },
+    );
   });
 
   group('HealthPackageService.readWorkouts on Android', () {
@@ -370,34 +383,36 @@ void main() {
       ]);
     });
 
-    test('energy is attributed to the session from the calorie records',
-        () async {
-      reader.sessions = [
-        ExternalWorkout(
-          id: 'session-1',
-          start: sessionStart,
-          end: sessionEnd,
-          activityTypeName: 'RUNNING',
-          sourceAppName: 'com.hevy.app',
-        ),
-      ];
-      health.dataPoints = [
-        _calories(source: 'com.hevy.app', start: sessionStart, kcal: 430.3),
-        _calories(
-          source: 'com.fitbit.FitbitMobile',
-          start: sessionStart,
-          kcal: 170,
-        ),
-      ];
+    test(
+      'energy is attributed to the session from the calorie records',
+      () async {
+        reader.sessions = [
+          ExternalWorkout(
+            id: 'session-1',
+            start: sessionStart,
+            end: sessionEnd,
+            activityTypeName: 'RUNNING',
+            sourceAppName: 'com.hevy.app',
+          ),
+        ];
+        health.dataPoints = [
+          _calories(source: 'com.hevy.app', start: sessionStart, kcal: 430.3),
+          _calories(
+            source: 'com.fitbit.FitbitMobile',
+            start: sessionStart,
+            kcal: 170,
+          ),
+        ];
 
-      final workouts = await service.readWorkouts(from: from, to: to);
+        final workouts = await service.readWorkouts(from: from, to: to);
 
-      expect(workouts, hasLength(1));
-      expect(workouts.single.id, 'session-1');
-      expect(workouts.single.activityTypeName, 'RUNNING');
-      expect(workouts.single.energyBurnedKcal, closeTo(430.3, 0.001));
-      expect(workouts.single.sourceAppName, 'com.hevy.app');
-    });
+        expect(workouts, hasLength(1));
+        expect(workouts.single.id, 'session-1');
+        expect(workouts.single.activityTypeName, 'RUNNING');
+        expect(workouts.single.energyBurnedKcal, closeTo(430.3, 0.001));
+        expect(workouts.single.sourceAppName, 'com.hevy.app');
+      },
+    );
 
     test('no sessions means the calorie records are never read', () async {
       reader.sessions = const [];
@@ -409,10 +424,7 @@ void main() {
     test('a definite refusal still aborts before any read', () async {
       reader.permissionsHeld = false;
 
-      expect(
-        () => service.readWorkouts(from: from, to: to),
-        throwsStateError,
-      );
+      expect(() => service.readWorkouts(from: from, to: to), throwsStateError);
       expect(reader.calls, 0);
     });
 
@@ -440,13 +452,160 @@ void main() {
       expect(reader.calls, 0);
     });
 
-    test('requestPermissions re-checks the grants through the same path',
-        () async {
-      reader.permissionsHeld = false;
+    test(
+      'requestPermissions re-checks the grants through the same path',
+      () async {
+        reader.permissionsHeld = false;
 
-      expect(await service.requestPermissions(), isFalse);
-      expect(reader.permissionChecks, 1);
+        expect(await service.requestPermissions(), isFalse);
+        expect(reader.permissionChecks, 1);
+        expect(health.recheckedTypes, isNull);
+      },
+    );
+  });
+
+  group('HealthPackageService nutrition export', () {
+    late _FakeHealth health;
+    final from = DateTime(2026, 5, 23);
+    final to = DateTime(2026, 5, 24);
+    final meal = ExportedMeal(
+      slot: ExportedMealSlot.lunch,
+      time: DateTime(2026, 5, 23, 12, 30),
+      name: 'Oats',
+      energyKcal: 380,
+      carbsGram: 60,
+      proteinGram: 13,
+      fatGram: 7,
+      sodiumGram: 0.006,
+    );
+    final water = ExportedWater(
+      time: DateTime(2026, 5, 23, 9),
+      millilitres: 250,
+    );
+
+    HealthPackageService serviceOn(HealthTargetPlatform platform) =>
+        HealthPackageService(
+          health,
+          workoutReader: _FakeWorkoutReader(),
+          platform: platform,
+        );
+
+    List<Map<Symbol, dynamic>> callsTo(Symbol member) => [
+      for (final call in health.invocations)
+        if (call.memberName == member) call.namedArguments,
+    ];
+
+    setUp(() => health = _FakeHealth());
+
+    test('write access is asked for, and re-checked only on iOS', () async {
+      expect(
+        await serviceOn(HealthTargetPlatform.ios).requestExportPermissions(),
+        isTrue,
+      );
+      // Per nutrient on iOS, never the plugin's 39-type nutrition umbrella.
+      expect(health.requestedTypes, isNot(contains(HealthDataType.NUTRITION)));
+      expect(
+        health.requestedTypes,
+        containsAll([
+          HealthDataType.DIETARY_ENERGY_CONSUMED,
+          HealthDataType.DIETARY_SODIUM,
+          HealthDataType.WATER,
+        ]),
+      );
+      expect(health.recheckedTypes, health.requestedTypes);
+
+      health.recheckedTypes = null;
+      expect(
+        await serviceOn(
+          HealthTargetPlatform.android,
+        ).requestExportPermissions(),
+        isTrue,
+      );
+      expect(health.requestedTypes, [
+        HealthDataType.NUTRITION,
+        HealthDataType.WATER,
+      ]);
       expect(health.recheckedTypes, isNull);
+    });
+
+    test('on iOS a day is cleared per sample type, then rewritten', () async {
+      await serviceOn(
+        HealthTargetPlatform.ios,
+      ).replaceExportedDay(from: from, to: to, meals: [meal], water: [water]);
+
+      final deletes = callsTo(#delete);
+      expect(
+        deletes.map((call) => call[#type]),
+        containsAll([
+          HealthDataType.NUTRITION,
+          HealthDataType.WATER,
+          HealthDataType.DIETARY_ENERGY_CONSUMED,
+          HealthDataType.DIETARY_SODIUM,
+        ]),
+      );
+      expect(
+        deletes.every(
+          (call) => call[#startTime] == from && call[#endTime] == to,
+        ),
+        isTrue,
+      );
+      final written = callsTo(#writeMeal).single;
+      expect(written[#mealType], MealType.LUNCH);
+      expect(written[#name], 'Oats');
+      expect(written[#caloriesConsumed], 380);
+      expect(written[#sodium], 0.006);
+      final poured = callsTo(#writeHealthData).single;
+      expect(poured[#type], HealthDataType.WATER);
+      expect(poured[#unit], HealthDataUnit.LITER);
+      expect(poured[#value], 0.25);
+      // Point samples: HealthKit takes an interval that ends when it starts.
+      expect(written[#endTime], written[#startTime]);
+      expect(poured[#endTime], poured[#startTime]);
+    });
+
+    test('on Android a write spans a second', () async {
+      // Health Connect refuses an interval that ends when it starts.
+      await serviceOn(
+        HealthTargetPlatform.android,
+      ).replaceExportedDay(from: from, to: to, meals: [meal], water: [water]);
+
+      for (final call in [
+        ...callsTo(#writeMeal),
+        ...callsTo(#writeHealthData),
+      ]) {
+        expect(
+          call[#endTime],
+          call[#startTime].add(const Duration(seconds: 1)),
+        );
+      }
+    });
+
+    test('on Android only the two record types are cleared', () async {
+      await serviceOn(HealthTargetPlatform.android).replaceExportedDay(
+        from: from,
+        to: to,
+        meals: const [],
+        water: const [],
+      );
+
+      expect(callsTo(#delete).map((call) => call[#type]), [
+        HealthDataType.NUTRITION,
+        HealthDataType.WATER,
+      ]);
+    });
+
+    test('a refused write surfaces as an error', () async {
+      health.writes = false;
+
+      await expectLater(
+        serviceOn(HealthTargetPlatform.android).replaceExportedDay(
+          from: from,
+          to: to,
+          meals: [meal],
+          water: const [],
+        ),
+        throwsStateError,
+      );
     });
   });
 }

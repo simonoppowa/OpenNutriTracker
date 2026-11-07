@@ -10,7 +10,7 @@ WHAT IT DOES
 • Trends: current and best day-streak, calories against your goal line, daily macro averages, water intake, and weight against target, over 7, 30 and 90 days, or up to ten years.
 • Custom meals with photo, brand and barcode, and reusable recipes with a photo and their own ingredient picker.
 • Quick add for when you already know roughly what you ate — a title plus kcal, straight to the meal.
-• Activities from a categorised catalogue, or custom ones with direct kcal entry. Finished workouts can be imported from Apple Health — read-only, off by default, and they stay on your device.
+• Activities from a categorised catalogue, or custom ones with direct kcal entry. Finished workouts can be imported from Apple Health, and your meals and water exported to it — both off by default, and everything stays on your device.
 • A water tracker, an optional intermittent-fasting timer, and a weight history that can taper your calorie goal as you approach target.
 • kcal or kJ, switched globally, and sixteen colour themes.
 • Export your diary, activities, tracked days and recipes as a JSON zip you can re-import, or as flat CSVs for a spreadsheet.

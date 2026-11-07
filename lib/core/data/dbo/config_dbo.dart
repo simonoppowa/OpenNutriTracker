@@ -212,6 +212,16 @@ class ConfigDBO extends HiveObject {
   // about the device.
   @HiveField(41)
   bool? localeSyncSeeded;
+  // Opt-in export of logged meals and water to Health Connect / Apple Health
+  // (#103). Per-profile, like the import: each profile mirrors its own diary.
+  @HiveField(42)
+  bool? healthExportEnabled;
+  @HiveField(43)
+  DateTime? healthLastExportAt;
+  // Diary day (`yyyy-MM-dd`) → fingerprint of what this app last wrote to
+  // the store for it; a day that still hashes the same is left alone.
+  @HiveField(44)
+  Map<String, String>? healthExportedDays;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -253,6 +263,9 @@ class ConfigDBO extends HiveObject {
     this.defaultToRawFoodUnits,
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
+    this.healthExportEnabled,
+    this.healthLastExportAt,
+    this.healthExportedDays,
   });
 
   factory ConfigDBO.empty() =>
