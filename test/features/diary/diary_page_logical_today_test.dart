@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
@@ -109,7 +110,14 @@ void main() {
       ..registerSingleton<ActivityDetailBloc>(_FakeActivityDetailBloc());
     await tester.pumpWidget(
       const MaterialApp(
-        localizationsDelegates: [S.delegate],
+        // The calendar now reads the app locale (#1442), so the intl date
+        // symbols the global delegates load have to be present.
+        localizationsDelegates: [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         supportedLocales: S.supportedLocales,
         home: Scaffold(body: DiaryPage()),
       ),
