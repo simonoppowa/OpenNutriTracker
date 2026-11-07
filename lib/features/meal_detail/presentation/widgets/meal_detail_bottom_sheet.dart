@@ -35,7 +35,10 @@ class MealDetailBottomSheet extends StatefulWidget {
   final Function(String?, String?) onQuantityOrUnitChanged;
 
   /// The add-food screen's "To log" list, when the sheet was opened from it.
-  /// The button then adds to the list instead of logging.
+  ///
+  /// While the list is empty the main button still logs this food at once,
+  /// as it did before the list existed, and a second button starts a list
+  /// instead (#1520). Once the list has items, the main button adds to it.
   final LogTray? logTray;
 
   const MealDetailBottomSheet({
@@ -69,14 +72,27 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     super.initState();
     widget.quantityTextController.addListener(_onQuantityChanged);
     _quantityFocusNode.addListener(_onQuantityFocusChanged);
+    // "Add" or "Add to list" follows the list, which a food arriving from
+    // a + on the add-food screen changes while this sheet is open.
+    widget.logTray?.addListener(_onTrayChanged);
   }
 
   @override
   void dispose() {
+    widget.logTray?.removeListener(_onTrayChanged);
     _quantityFocusNode.removeListener(_onQuantityFocusChanged);
     _quantityFocusNode.dispose();
     widget.quantityTextController.removeListener(_onQuantityChanged);
     super.dispose();
+  }
+
+  void _onTrayChanged() => setState(() {});
+
+  /// Whether Add puts the food on the list rather than logging it: the list
+  /// holds something or a food is on its way onto it (LogTray.collects).
+  bool get _addsToList {
+    final logTray = widget.logTray;
+    return logTray != null && logTray.collects;
   }
 
   void _onQuantityFocusChanged() {
@@ -126,6 +142,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
+    final logTray = widget.logTray;
+    final addsToList = _addsToList;
+    final canSubmit = !productMissingRequiredInfo && !_submitting;
     final missingFieldsText = S.of(
       context,
     ).missingProductInfoFields(_missingRequiredProductInfo().join(', '));
@@ -258,11 +277,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         child: SizedBox(
                           width: double.infinity, // Make button full width
                           child: FilledButton.icon(
-                            onPressed:
-                                !productMissingRequiredInfo && !_submitting
-                                ? () {
-                                    onAddButtonPressed(context);
-                                  }
+                            onPressed: canSubmit
+                                ? () => onAddButtonPressed(
+                                    context,
+                                    toList: _addsToList,
+                                  )
                                 : null,
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
@@ -274,13 +293,41 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             ),
                             icon: const Icon(Icons.add_rounded),
                             label: Text(
-                              widget.logTray == null
-                                  ? S.of(context).addLabel
-                                  : S.of(context).addToListLabel,
+                              addsToList
+                                  ? S.of(context).addToListLabel
+                                  : S.of(context).addLabel,
                             ),
                           ),
                         ),
                       ),
+                      if (logTray != null && !addsToList)
+                        Padding(
+                          padding: const EdgeInsets.only(top: Dimens.spacing8),
+                          child: Semantics(
+                            identifier: 'meal-detail-add-to-list',
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: canSubmit
+                                    ? () => onAddButtonPressed(
+                                        context,
+                                        toList: true,
+                                      )
+                                    : null,
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: Dimens.spacing12,
+                                  ),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: Dimens.borderRadiusM,
+                                  ),
+                                ),
+                                icon: const Icon(Icons.playlist_add_rounded),
+                                label: Text(S.of(context).addToListLabel),
+                              ),
+                            ),
+                          ),
+                        ),
                       productMissingRequiredInfo
                           ? Text(
                               '${S.of(context).missingProductInfo}\n'
@@ -318,13 +365,17 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     ];
   }
 
-  Future<void> onAddButtonPressed(BuildContext context) async {
+  /// Logs the food, or with [toList] puts it on the add-food screen's list.
+  Future<void> onAddButtonPressed(
+    BuildContext context, {
+    bool toList = false,
+  }) async {
     // Checked here, not only through the disabled button: a second tap
     // can land before the rebuild that disables it.
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
-      await _submit(context);
+      await _submit(context, toList: toList);
     } finally {
       // A save that succeeds leaves the sheet; a rejected quantity, a
       // cancelled duplicate or a failed save lets the user try again.
@@ -332,7 +383,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     }
   }
 
-  Future<void> _submit(BuildContext context) async {
+  Future<void> _submit(BuildContext context, {required bool toList}) async {
     // Validate quantity (#209, #210)
     final quantityText = widget.quantityTextController.text.replaceAll(
       ',',
@@ -373,7 +424,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     }
 
     final logTray = widget.logTray;
-    if (logTray != null) {
+    // Asked again rather than taken from the press: a food can reach the
+    // list during the checks above, and logging on its own would leave it.
+    if (logTray != null && (toList || logTray.collects)) {
       // Onto the list, with exactly what `addIntake` below would have been
       // given; the add-food screen writes it when the list is logged.
       final state = widget.mealDetailBloc.state;
