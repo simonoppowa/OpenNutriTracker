@@ -692,6 +692,22 @@
   "onboardingWrongWeightLabel": "Enter correct weight",
   "onboardingYourGoalLabel": "Your calorie goal:",
   "onboardingYourMacrosGoalLabel": "Your macronutrient goals:",
+  "onboardingPageProgressSemantic": "Page {current} of {total}",
+  "@onboardingPageProgressSemantic": {"placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}},
+  "onboardingMacrosChangeLaterHint": "You can change these later in Settings → {category} → {item}.",
+  "@onboardingMacrosChangeLaterHint": {
+    "description": "Under the macro gram targets on the onboarding overview. Says the values are not edited here and where they can be changed. {category} is the Settings group name and {item} the row name, both filled in from their own strings.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Goals & nutrition"
+      },
+      "item": {
+        "type": "String",
+        "example": "Macro split"
+      }
+    }
+  },
   "ozUnit": "oz",
   "paActiveVideoGames": "active video games",
   "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, general",
@@ -1097,6 +1113,11 @@
   "settingsShowActivityTracking": "Show Activity Tracking",
   "settingsShowMealMacros": "Show Meal Macros",
   "settingsShowMicronutrientsLabel": "Show Micronutrients",
+  "settingsShowAiFeaturesLabel": "Show AI Features",
+  "@settingsShowAiFeaturesLabel": {
+    "description": "Settings switch (#1518). Off hides Snap meal, the AI badges and AI meal assistance, and stops anything being sent to an AI model."
+  },
+  "settingsShowAiFeaturesSubtitle": "Snap meal and AI meal assistance. While off, nothing is sent to an AI model.",
   "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
   "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Daily sodium cap in milligrams. Default reference is 2300mg.",

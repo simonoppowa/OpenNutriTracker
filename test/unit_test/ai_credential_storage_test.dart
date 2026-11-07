@@ -406,6 +406,63 @@ void main() {
       expect(summary.configured, isFalse);
       expect(summary.enabled, isFalse);
     });
+
+    test('keeps the AI features hidden (#1518)', () async {
+      // How the app looks, not anything configured or agreed to: someone
+      // who hid the features and then wiped their data has not asked to see
+      // them again. Everything else still goes.
+      seedEverything();
+      backing.store['AiAssistHiddenTag'] = 'true';
+
+      await storage.clearAll();
+
+      expect(backing.store, {'AiAssistHiddenTag': 'true'});
+      expect(await storage.isHidden(), isTrue);
+    });
+  });
+
+  group('hiding the AI features (#1518)', () {
+    setUp(() => storage.writeApiKey('sk-test'));
+
+    test('starts shown, and nothing is known before the first read', () async {
+      expect(storage.hiddenIfKnown, isNull);
+      expect(await storage.isHidden(), isFalse);
+      expect(storage.hiddenIfKnown, isFalse);
+    });
+
+    test('turns the feature off everywhere it could send something', () async {
+      expect(await storage.isEnabled(), isTrue);
+
+      await storage.setHidden(true);
+
+      expect(storage.hiddenIfKnown, isTrue);
+      expect(await storage.isHidden(), isTrue);
+      expect(await storage.isEnabled(), isFalse);
+      expect(await storage.readSelection(), isNull);
+      expect(await storage.selectionFor(AiProvider.anthropic), isNull);
+      expect((await storage.readSummary()).enabled, isFalse);
+    });
+
+    test('keeps the key and the switch, so showing them again restores '
+        'exactly what was there', () async {
+      await storage.setHidden(true);
+      expect(await storage.readApiKey(), 'sk-test');
+      expect((await storage.readSummary()).configured, isTrue);
+
+      await storage.setHidden(false);
+
+      expect(await storage.isHidden(), isFalse);
+      expect(await storage.isEnabled(), isTrue);
+      expect(backing.store.containsKey('AiAssistHiddenTag'), isFalse);
+    });
+
+    test('a feature paused before hiding stays paused after', () async {
+      await storage.setEnabled(false);
+      await storage.setHidden(true);
+      await storage.setHidden(false);
+
+      expect(await storage.isEnabled(), isFalse);
+    });
   });
 
   group('the provider tag', () {
@@ -605,10 +662,11 @@ void main() {
       );
       expect(
         // Six since #836: the agreement is one more key, and `enabled` cannot
-        // be answered without it. Still a fixed budget rather than one that
+        // be answered without it. Seven since #1518, for the same reason: a
+        // hidden feature is off. Still a fixed budget rather than one that
         // grows per value, which is what this guards.
         backing.reads.length,
-        lessThanOrEqualTo(6),
+        lessThanOrEqualTo(7),
         reason:
             'five distinct keys exist; asking the three getters '
             'separately took 6-8 round trips. The model joined them when it '

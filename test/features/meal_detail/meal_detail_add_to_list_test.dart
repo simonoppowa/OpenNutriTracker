@@ -128,12 +128,13 @@ void main() {
 
   tearDown(() => GetIt.instance.reset());
 
-  testWidgets('opened from the add-food list, the button adds to the list', (
-    tester,
-  ) async {
+  Future<(_CountingMealDetailBloc, LogTray)> pumpSheet(
+    WidgetTester tester, {
+    List<LogTrayItem> onList = const [],
+  }) async {
     final bloc = _CountingMealDetailBloc();
     addTearDown(bloc.close);
-    final tray = LogTray();
+    final tray = LogTray()..addAll(onList);
     addTearDown(tray.dispose);
     bloc.add(
       UpdateKcalEvent(meal: _toast, totalQuantity: '150', selectedUnit: 'g'),
@@ -147,32 +148,127 @@ void main() {
         ],
         supportedLocales: S.supportedLocales,
         home: Scaffold(
-          body: MealDetailBottomSheet(
-            product: _toast,
-            day: DateTime(2026, 10, 5),
-            intakeTypeEntity: IntakeTypeEntity.breakfast,
-            quantityTextController: TextEditingController(text: '150'),
-            mealDetailBloc: bloc,
-            selectedUnit: 'g',
-            onQuantityOrUnitChanged: (_, _) {},
-            logTray: tray,
+          body: SingleChildScrollView(
+            child: MealDetailBottomSheet(
+              product: _toast,
+              day: DateTime(2026, 10, 5),
+              intakeTypeEntity: IntakeTypeEntity.breakfast,
+              quantityTextController: TextEditingController(text: '150'),
+              mealDetailBloc: bloc,
+              selectedUnit: 'g',
+              onQuantityOrUnitChanged: (_, _) {},
+              logTray: tray,
+            ),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
+    return (bloc, tray);
+  }
 
-    expect(find.text(l10nEn.addToListLabel), findsOneWidget);
-    await tester.tap(find.bySemanticsIdentifier('meal-detail-add'));
-    await tester.pumpAndSettle();
-
-    // Nothing reached the diary; the list holds what would have.
-    expect(bloc.saves, 0);
-    final item = tray.items.single;
+  void expectToastOnList(LogTray tray) {
+    final item = tray.items.last;
     expect(item.meal.name, 'Toast');
     expect(item.unit, 'g');
     expect(item.amount, 150);
     expect(item.amountLabel, '150 ${l10nEn.gramUnit}');
     expect(item.kcal, 300);
+  }
+
+  Text buttonLabel(WidgetTester tester, String identifier) =>
+      tester.widget<Text>(
+        find.descendant(
+          of: find.bySemanticsIdentifier(identifier),
+          matching: find.byType(Text),
+        ),
+      );
+
+  group('opened from the add-food screen (#1520)', () {
+    testWidgets('with nothing on the list, Add logs at once', (tester) async {
+      final (bloc, tray) = await pumpSheet(tester);
+
+      expect(buttonLabel(tester, 'meal-detail-add').data, l10nEn.addLabel);
+      await tester.tap(find.bySemanticsIdentifier('meal-detail-add'));
+      await tester.pumpAndSettle();
+
+      // Straight to the diary, as before the list existed: no second tap
+      // on "Log 1 item".
+      expect(bloc.saves, 1);
+      expect(tray.isEmpty, isTrue);
+    });
+
+    testWidgets('with nothing on the list, Add to list starts one', (
+      tester,
+    ) async {
+      final (bloc, tray) = await pumpSheet(tester);
+
+      final addToList = find.bySemanticsIdentifier('meal-detail-add-to-list');
+      expect(
+        buttonLabel(tester, 'meal-detail-add-to-list').data,
+        l10nEn.addToListLabel,
+      );
+      await tester.tap(addToList);
+      await tester.pumpAndSettle();
+
+      // Nothing reached the diary; the list holds what would have.
+      expect(bloc.saves, 0);
+      expect(tray.length, 1);
+      expectToastOnList(tray);
+    });
+
+    testWidgets(
+      'a + that starts fetching while the sheet is open turns Add into Add '
+      'to list',
+      (tester) async {
+        final (bloc, tray) = await pumpSheet(tester);
+        expect(buttonLabel(tester, 'meal-detail-add').data, l10nEn.addLabel);
+
+        // A + on the add-food screen behind the sheet, still fetching its
+        // food. Logging at once now would leave before it arrives.
+        tray.beginPending();
+        await tester.pump();
+        expect(
+          buttonLabel(tester, 'meal-detail-add').data,
+          l10nEn.addToListLabel,
+        );
+        await tester.tap(find.bySemanticsIdentifier('meal-detail-add'));
+        await tester.pumpAndSettle();
+
+        expect(bloc.saves, 0);
+        expect(tray.length, 1);
+        expectToastOnList(tray);
+        tray.endPending();
+      },
+    );
+
+    testWidgets('once the list has items, the button adds to it', (
+      tester,
+    ) async {
+      final (bloc, tray) = await pumpSheet(
+        tester,
+        onList: [
+          LogTrayItem(meal: _toast, unit: 'g', amount: 50, amountLabel: '50 g'),
+        ],
+      );
+
+      expect(
+        buttonLabel(tester, 'meal-detail-add').data,
+        l10nEn.addToListLabel,
+      );
+      // One way on, not two buttons that do the same thing.
+      expect(
+        find.bySemanticsIdentifier('meal-detail-add-to-list'),
+        findsNothing,
+      );
+      await tester.tap(find.bySemanticsIdentifier('meal-detail-add'));
+      await tester.pumpAndSettle();
+
+      // Logging this one alone would leave the list behind on a screen
+      // the user has just left.
+      expect(bloc.saves, 0);
+      expect(tray.length, 2);
+      expectToastOnList(tray);
+    });
   });
 }
