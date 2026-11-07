@@ -349,11 +349,17 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// unacknowledged is refunded after three days — real money, against a
   /// line of text. So the tip is finished regardless, the page keeps showing
   /// the line for this run, and each load retries the save until it lands.
+  ///
+  /// An outcome that arrives after [forgetTip] or a newer tip is stale and
+  /// ignored: a save failing after Reset must not re-arm the retry and write
+  /// the cleared flag back.
   Future<void> _saveTipRecord() async {
+    final version = _tipVersion;
     try {
       await _config.setHasLeftTip();
-      _tipRecordUnsaved = false;
+      if (version == _tipVersion) _tipRecordUnsaved = false;
     } catch (_) {
+      if (version != _tipVersion) return;
       _tipRecordUnsaved = true;
       _log.warning('Could not save that a tip was left; the next load retries');
     }

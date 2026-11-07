@@ -255,6 +255,29 @@ void main() {
       expect(config.writes, 1); // only the failed one
     });
 
+    test('a save that fails after Reset does not re-arm the retry', () async {
+      await jar.start();
+      await jar.load();
+      config.writeGate = Completer<void>();
+      final purchase = tipPurchase('tip_small', PurchaseStatus.purchased);
+      store.emit([purchase]);
+      await settle(); // the save is now in flight
+
+      jar.forgetTip(); // Reset profile data
+      config.hasLeftTip = false;
+      config.writeThrows = true;
+      config.writeGate!.complete(); // the old save fails, late
+      await settle();
+
+      expect(store.completed, [purchase]);
+      config.writeThrows = false;
+      await jar.load(); // reopening the page
+
+      expect(jar.state.hasTipped, isFalse);
+      expect(config.hasLeftTip, isFalse);
+      expect(config.writes, 1);
+    });
+
     test('reads whether a tip was left', () async {
       config.hasLeftTip = true;
 
