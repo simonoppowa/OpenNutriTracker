@@ -366,6 +366,91 @@ void main() {
       expect(store.restoreCalls, 3);
     });
 
+    test(
+      'buy waits for an owned tip of that size to finish consuming',
+      () async {
+        await jar.start();
+        await jar.load();
+        store.consumeGate = Completer<void>();
+        store.emit([tipPurchase('tip_small', PurchaseStatus.restored)]);
+        await settle(); // the consume is now in flight
+
+        final buying = jar.buy(jar.state.tips.first);
+        await settle();
+        expect(store.bought, isEmpty);
+
+        store.consumeGate!.complete();
+        await buying;
+
+        expect(store.calls, ['restore', 'restore', 'consume', 'buy']);
+      },
+    );
+
+    test('buy waits for a recovery still asking Play, and for what it '
+        'returns', () async {
+      await jar.start();
+      store.restoreGate = Completer<void>();
+      store.restoreEmits = [tipPurchase('tip_small', PurchaseStatus.restored)];
+      await jar.load(); // recovery starts and is held
+
+      final buying = jar.buy(jar.state.tips.first);
+      await settle();
+      expect(store.bought, isEmpty);
+
+      store.restoreGate!.complete();
+      await buying;
+
+      expect(store.calls.sublist(store.calls.length - 2), ['consume', 'buy']);
+    });
+
+    test('a replay while the live update is consuming is skipped: one '
+        'consume, one thank-you', () async {
+      await jar.start();
+      await jar.load();
+      store.consumeGate = Completer<void>();
+
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+      store.emit([tipPurchase('tip_small', PurchaseStatus.restored)]);
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+      store.consumeGate!.complete();
+      await settle();
+
+      expect(store.consumed, hasLength(1));
+      expect(store.completed, isEmpty);
+      expect(outcomes.whereType<TipThanked>(), hasLength(1));
+    });
+
+    test('a tip that failed to consume is retried by its replay', () async {
+      await jar.start();
+      store.consumeResult = false;
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+
+      store.consumeResult = true;
+      store.emit([tipPurchase('tip_small', PurchaseStatus.restored)]);
+      await settle();
+
+      expect(store.consumed, hasLength(2));
+    });
+
+    test('two tips of the same size are two transactions', () async {
+      await jar.start();
+      await jar.load();
+
+      store.emit([
+        tipPurchase('tip_small', PurchaseStatus.purchased, id: 'GPA.1'),
+      ]);
+      store.emit([
+        tipPurchase('tip_small', PurchaseStatus.purchased, id: 'GPA.2'),
+      ]);
+      await settle();
+
+      expect(store.consumed, hasLength(2));
+      expect(outcomes.whereType<TipThanked>(), hasLength(2));
+    });
+
     test('a tip is recorded before its transaction is finished', () async {
       await jar.start();
       final order = <String>[];
