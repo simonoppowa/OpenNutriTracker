@@ -331,6 +331,16 @@ class TipJarCubit extends Cubit<TipJarState> {
     await _saveTipRecord();
   }
 
+  /// Reset profile data cleared the stored flag: drops this run's record
+  /// too, including a save still waiting for its retry, so the line does
+  /// not come back without another tip. The version bump makes a flag read
+  /// already in flight give way to this.
+  void forgetTip() {
+    _tipRecordUnsaved = false;
+    _tipVersion++;
+    _emit(state.copyWith(hasTipped: false));
+  }
+
   /// Saves the "you left a tip" flag, or marks it for the next [load] to
   /// retry.
   ///

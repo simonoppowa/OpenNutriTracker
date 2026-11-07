@@ -405,6 +405,29 @@ void main() {
     expect(appConfigBox.isNotEmpty, isTrue);
   });
 
+  test('tells the running tip jar to forget its record before clearing the '
+      'flag, so a pending retry cannot save it back', () async {
+    await appConfigBox.put('ConfigKey', ConfigDBO.empty()..hasLeftTip = true);
+    await configBox.put('ConfigKey', ConfigDBO.empty());
+    final flagWhenTold = <bool?>[];
+    final withHook = DeleteAllUserDataUsecase(
+      provider,
+      DailyReminderScheduler(
+        ConfigRepository(ConfigDataSource(provider)),
+        _SilentNotificationService(),
+      ),
+      credentials,
+      calorieWidgetStore: widgetStore,
+      forgetTipRecord: () =>
+          flagWhenTold.add(appConfigBox.get('ConfigKey')!.hasLeftTip),
+    );
+
+    await withHook.deleteAll();
+
+    expect(flagWhenTold, [isTrue]);
+    expect(appConfigBox.get('ConfigKey')!.hasLeftTip, isNull);
+  });
+
   test('clears the "you left a tip" line, and only that, from the shared '
       'app box', () async {
     // #1536: the Support page keeps one fact about tips, device-wide, beside
