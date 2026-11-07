@@ -150,7 +150,8 @@ void main() {
       expect(config.healthLastImportAt, isNull);
     });
 
-    test('the export opt-in and its written days stay with the profile', () async {
+    test('the export opt-in stays with the profile, the written days are '
+        'device-wide', () async {
       final profileA = sourceFor(profileABox);
       await profileA.initializeConfig();
       await profileA.setConfigHealthExportEnabled(true);
@@ -161,11 +162,9 @@ void main() {
       final config = await profileB.getConfig();
 
       expect(config.healthExportEnabled, isNull);
-      expect(config.healthExportedDays, isNull);
-      expect(
-        (await profileA.getConfig()).healthExportedDays,
-        {'2026-05-23': 'abc'},
-      );
+      // The health store is one person's: a day another profile wrote is
+      // one this profile has to replace, not one it may ignore.
+      expect(config.healthExportedDays, {'2026-05-23': 'abc'});
     });
 
     test('each profile keeps its own settings and watermark', () async {

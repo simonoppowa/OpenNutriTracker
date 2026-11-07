@@ -219,7 +219,10 @@ class ConfigDBO extends HiveObject {
   @HiveField(43)
   DateTime? healthLastExportAt;
   // Diary day (`yyyy-MM-dd`) → fingerprint of what this app last wrote to
-  // the store for it; a day that still hashes the same is left alone.
+  // the store for it, with the day boundary it was written under; a day
+  // that still hashes the same is left alone. Device-wide, unlike the two
+  // above: the store is one person's, so the last profile to write a day
+  // owns it (its id is part of the fingerprint).
   @HiveField(44)
   Map<String, String>? healthExportedDays;
 

@@ -333,13 +333,11 @@ void main() {
       );
     });
 
-    test(
-      'body fat is not read, and answers null rather than throwing',
-      () async {
-        expect(await service.readLatestBodyFatPercent(), isNull);
-        expect(health.queriedTypes, isEmpty);
-      },
-    );
+    test('body fat is not read, and answers null rather than throwing',
+        () async {
+      expect(await service.readLatestBodyFatPercent(), isNull);
+      expect(health.queriedTypes, isEmpty);
+    });
   });
 
   group('HealthPackageService.readWorkouts on Android', () {
@@ -383,36 +381,34 @@ void main() {
       ]);
     });
 
-    test(
-      'energy is attributed to the session from the calorie records',
-      () async {
-        reader.sessions = [
-          ExternalWorkout(
-            id: 'session-1',
-            start: sessionStart,
-            end: sessionEnd,
-            activityTypeName: 'RUNNING',
-            sourceAppName: 'com.hevy.app',
-          ),
-        ];
-        health.dataPoints = [
-          _calories(source: 'com.hevy.app', start: sessionStart, kcal: 430.3),
-          _calories(
-            source: 'com.fitbit.FitbitMobile',
-            start: sessionStart,
-            kcal: 170,
-          ),
-        ];
+    test('energy is attributed to the session from the calorie records',
+        () async {
+      reader.sessions = [
+        ExternalWorkout(
+          id: 'session-1',
+          start: sessionStart,
+          end: sessionEnd,
+          activityTypeName: 'RUNNING',
+          sourceAppName: 'com.hevy.app',
+        ),
+      ];
+      health.dataPoints = [
+        _calories(source: 'com.hevy.app', start: sessionStart, kcal: 430.3),
+        _calories(
+          source: 'com.fitbit.FitbitMobile',
+          start: sessionStart,
+          kcal: 170,
+        ),
+      ];
 
-        final workouts = await service.readWorkouts(from: from, to: to);
+      final workouts = await service.readWorkouts(from: from, to: to);
 
-        expect(workouts, hasLength(1));
-        expect(workouts.single.id, 'session-1');
-        expect(workouts.single.activityTypeName, 'RUNNING');
-        expect(workouts.single.energyBurnedKcal, closeTo(430.3, 0.001));
-        expect(workouts.single.sourceAppName, 'com.hevy.app');
-      },
-    );
+      expect(workouts, hasLength(1));
+      expect(workouts.single.id, 'session-1');
+      expect(workouts.single.activityTypeName, 'RUNNING');
+      expect(workouts.single.energyBurnedKcal, closeTo(430.3, 0.001));
+      expect(workouts.single.sourceAppName, 'com.hevy.app');
+    });
 
     test('no sessions means the calorie records are never read', () async {
       reader.sessions = const [];
@@ -424,7 +420,10 @@ void main() {
     test('a definite refusal still aborts before any read', () async {
       reader.permissionsHeld = false;
 
-      expect(() => service.readWorkouts(from: from, to: to), throwsStateError);
+      expect(
+        () => service.readWorkouts(from: from, to: to),
+        throwsStateError,
+      );
       expect(reader.calls, 0);
     });
 
@@ -452,16 +451,14 @@ void main() {
       expect(reader.calls, 0);
     });
 
-    test(
-      'requestPermissions re-checks the grants through the same path',
-      () async {
-        reader.permissionsHeld = false;
+    test('requestPermissions re-checks the grants through the same path',
+        () async {
+      reader.permissionsHeld = false;
 
-        expect(await service.requestPermissions(), isFalse);
-        expect(reader.permissionChecks, 1);
-        expect(health.recheckedTypes, isNull);
-      },
-    );
+      expect(await service.requestPermissions(), isFalse);
+      expect(reader.permissionChecks, 1);
+      expect(health.recheckedTypes, isNull);
+    });
   });
 
   group('HealthPackageService nutrition export', () {

@@ -35,6 +35,9 @@ class _FakeHealthService extends Fake implements HealthService {
   final replaced = <_Replaced>[];
   bool refuse = false;
 
+  /// Runs during a write, so a test can act mid-run.
+  Future<void> Function()? onReplace;
+
   @override
   Future<void> replaceExportedDay({
     required DateTime from,
@@ -44,6 +47,7 @@ class _FakeHealthService extends Fake implements HealthService {
   }) async {
     if (refuse) throw StateError('refused');
     replaced.add(_Replaced(from, to, meals, water));
+    await onReplace?.call();
   }
 }
 
@@ -96,6 +100,7 @@ void main() {
   late IntakeRepository intakeRepository;
   late WaterIntakeRepository waterRepository;
   late _FakeHealthService healthService;
+  late FakeHiveDBProvider provider;
   late ExportDiaryToHealthUsecase usecase;
 
   setUpAll(() {
@@ -112,7 +117,7 @@ void main() {
     await intakeBox.clear();
     await waterBox.clear();
 
-    final provider = FakeHiveDBProvider(
+    provider = FakeHiveDBProvider(
       configBox: configBox,
       intakeBox: intakeBox,
       waterIntakeBox: waterBox,
@@ -278,6 +283,48 @@ void main() {
     expect(await usecase.exportNow(), 1);
     expect(healthService.replaced.last.meals.map((m) => m.time), [now, later]);
     expect(healthService.replaced.last.water.single.millilitres, 250);
+  });
+
+  test('a day another profile wrote is rewritten for this one', () async {
+    await intakeRepository.addIntake(_intake(id: 'a', at: now));
+    await usecase.exportNow();
+    // Same diary box and opt-in, as the fake shares them; only the owner
+    // differs, and that is enough to replace the day.
+    provider.activeProfileId = 'profile-b';
+
+    expect(await usecase.exportNow(), 1);
+    expect(healthService.replaced, hasLength(2));
+  });
+
+  test('a boundary change clears the old windows before rewriting', () async {
+    await intakeRepository.addIntake(
+      _intake(id: 'a', at: DateTime.utc(2026, 5, 22)),
+    );
+    await usecase.exportNow();
+    await configDataSource.setConfigDayStartOffset(9, 0);
+
+    expect(await usecase.exportNow(), 1);
+    final cleared = healthService.replaced[1];
+    expect(cleared.from, DateTime(2026, 5, 22));
+    expect(cleared.to, DateTime(2026, 5, 23));
+    expect(cleared.meals, isEmpty);
+    final rewritten = healthService.replaced[2];
+    expect(rewritten.from, DateTime(2026, 5, 22, 9));
+    expect(rewritten.meals.single.time, DateTime(2026, 5, 22, 9));
+  });
+
+  test('switching the export off mid-run stops the remaining days', () async {
+    await intakeRepository.addIntake(_intake(id: 'a', at: now));
+    await intakeRepository.addIntake(_intake(id: 'c', at: yesterdayMorning));
+    healthService.onReplace = () =>
+        configDataSource.setConfigHealthExportEnabled(false);
+
+    expect(await usecase.exportNow(), 0);
+    expect(healthService.replaced, hasLength(1));
+    expect(
+      (await configDataSource.getConfig()).healthExportedDays,
+      anyOf(isNull, isEmpty),
+    );
   });
 
   test('a refused day is retried on the next run', () async {

@@ -118,6 +118,22 @@ class ExportDiaryToHealthUsecase {
       ...config.healthExportedDays.keys,
     }.toList()..sort();
 
+    // A boundary change moves every window, so records written under the
+    // old one are cleared first; their stored offsets then make each day
+    // rewrite below.
+    for (final entry in config.healthExportedDays.entries) {
+      final oldOffset = _offsetOf(entry.value, offset);
+      if (oldOffset == offset) continue;
+      if (!await _mayContinue(profileId)) return 0;
+      final (from, to) = _window(entry.key, oldOffset);
+      await _healthExportRepository.replaceDay(
+        from: from,
+        to: to,
+        meals: const [],
+        water: const [],
+      );
+    }
+
     var written = 0;
     for (final day in days) {
       final (from, to) = _window(day, offset);
@@ -138,31 +154,39 @@ class ExportDiaryToHealthUsecase {
       ];
       final fingerprint = meals.isEmpty && water.isEmpty
           ? null
-          : _fingerprint(meals, water);
+          : '${_fingerprint(profileId, meals, water)}@$offset';
       if (config.healthExportedDays[day] == fingerprint) continue;
-      if (!_stillOnProfile(profileId)) return written;
+      if (!await _mayContinue(profileId)) return written;
       await _healthExportRepository.replaceDay(
         from: from,
         to: to,
         meals: meals,
         water: water,
       );
-      if (!_stillOnProfile(profileId)) return written;
+      if (!await _mayContinue(profileId)) return written;
       await _configRepository.setConfigHealthExportedDay(day, fingerprint);
       written++;
     }
-    if (_stillOnProfile(profileId)) {
+    if (await _mayContinue(profileId)) {
       await _configRepository.setConfigHealthLastExportAt(clock());
     }
     if (written > 0) _log.info('Exported $written diary day(s) to health');
     return written;
   }
 
-  bool _stillOnProfile(String profileId) {
-    if (_hiveDBProvider.activeProfileId == profileId) return true;
-    _log.info('Abandoning the health export: the active profile changed');
-    return false;
+  /// Whether the run that started under [profileId] may still write: the
+  /// profile is unchanged and the user has not switched the export off.
+  Future<bool> _mayContinue(String profileId) async {
+    if (_hiveDBProvider.activeProfileId != profileId) {
+      _log.info('Abandoning the health export: the active profile changed');
+      return false;
+    }
+    return (await _configRepository.getConfig()).healthExportEnabled;
   }
+
+  /// The day boundary a stored `fingerprint@offset` value was written under.
+  static int _offsetOf(String stored, int fallback) =>
+      int.tryParse(stored.split('@').last) ?? fallback;
 
   /// The wall-clock span of diary day [day] under the configured boundary.
   static (DateTime, DateTime) _window(String day, int offsetMinutes) {
@@ -211,14 +235,20 @@ class ExportDiaryToHealthUsecase {
     return time;
   }
 
-  /// Order-independent, so a reordered box reads as unchanged.
+  /// Order-independent, so a reordered box reads as unchanged. The profile
+  /// is part of it: the store is one person's and the cache device-wide, so
+  /// a day written by another profile reads as changed and is rewritten.
   static String _fingerprint(
+    String profileId,
     List<ExportedMeal> meals,
     List<ExportedWater> water,
   ) => IdGenerator.getContentID(
-    ([
-      for (final meal in meals) jsonEncode(meal.fields),
-      for (final entry in water) jsonEncode(entry.fields),
-    ]..sort()).join('\n'),
+    [
+      profileId,
+      ...[
+        for (final meal in meals) jsonEncode(meal.fields),
+        for (final entry in water) jsonEncode(entry.fields),
+      ]..sort(),
+    ].join('\n'),
   );
 }

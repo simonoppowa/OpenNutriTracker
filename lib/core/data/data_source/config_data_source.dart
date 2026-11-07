@@ -65,7 +65,6 @@ class ConfigDataSource {
       merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
       merged.healthExportEnabled = profile.healthExportEnabled;
       merged.healthLastExportAt = profile.healthLastExportAt;
-      merged.healthExportedDays = profile.healthExportedDays;
       merged.trackedDaysOffsetMinutes = profile.trackedDaysOffsetMinutes;
     } else {
       // Explicitly clear personal fields so they don't leak from the
@@ -85,7 +84,6 @@ class ConfigDataSource {
       merged.healthDeletedWorkouts = null;
       merged.healthExportEnabled = null;
       merged.healthLastExportAt = null;
-      merged.healthExportedDays = null;
       merged.trackedDaysOffsetMinutes = null;
     }
     return merged;
