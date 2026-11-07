@@ -748,6 +748,30 @@ void main() {
       },
     );
 
+    testWidgets('leaving while a + is still fetching does not throw', (
+      tester,
+    ) async {
+      await _register([_meal('Granola', source: MealSourceEntity.off)]);
+      _products.full = _meal(
+        'Granola',
+        source: MealSourceEntity.off,
+        detailed: true,
+      );
+      await _openAddMeal(tester, []);
+      final gate = _products.gate = Completer<void>();
+      await _tapPlus(tester, 'Granola');
+      await tester.pump();
+
+      // The list is empty, so Back leaves at once and disposes it.
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(AddMealScreen), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('the log button stays above the keyboard (#1520)', (
       tester,
     ) async {

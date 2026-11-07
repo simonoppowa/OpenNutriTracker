@@ -922,8 +922,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
     try {
       meal = await _detailedForQuickAdd(meal);
     } finally {
-      _logTray.endPending();
-      if (mounted) setState(() => _quickAdding.remove(code));
+      // Not once the screen has gone: it disposes the list with it, and a
+      // disposed notifier must not be told anything.
+      if (mounted) {
+        _logTray.endPending();
+        setState(() => _quickAdding.remove(code));
+      }
     }
     if (!mounted) return;
     final state = _addMealBloc.state;
