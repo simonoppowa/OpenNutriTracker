@@ -93,6 +93,9 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// is stale and must not hide the tip just recorded.
   int _tipVersion = 0;
 
+  /// A tip recorded this run whose flag could not be saved yet.
+  bool _tipRecordUnsaved = false;
+
   /// The recovery in flight, shared by overlapping callers.
   Future<void>? _recovering;
 
@@ -165,6 +168,7 @@ class TipJarCubit extends Cubit<TipJarState> {
     final generation = ++_loadGeneration;
     bool current() => generation == _loadGeneration;
 
+    if (_tipRecordUnsaved) await _saveTipRecord();
     final hasTipped = await _hasTipped();
     if (!current()) return;
     _emit(state.copyWith(status: TipJarStatus.loading, hasTipped: hasTipped));
@@ -324,10 +328,24 @@ class TipJarCubit extends Cubit<TipJarState> {
   Future<void> _markTipped() async {
     _tipVersion++;
     _emit(state.copyWith(hasTipped: true));
+    await _saveTipRecord();
+  }
+
+  /// Saves the "you left a tip" flag, or marks it for the next [load] to
+  /// retry.
+  ///
+  /// A failed save does not hold back finishing the purchase. On Google Play
+  /// an unfinished tip blocks buying that size again, and one left
+  /// unacknowledged is refunded after three days — real money, against a
+  /// line of text. So the tip is finished regardless, the page keeps showing
+  /// the line for this run, and each load retries the save until it lands.
+  Future<void> _saveTipRecord() async {
     try {
       await _config.setHasLeftTip();
+      _tipRecordUnsaved = false;
     } catch (_) {
-      _log.warning('Could not save that a tip was left');
+      _tipRecordUnsaved = true;
+      _log.warning('Could not save that a tip was left; the next load retries');
     }
   }
 
@@ -336,6 +354,8 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// (Keeping a stored false otherwise matters: Reset profile data clears
   /// the flag while this singleton still holds true.)
   Future<bool> _hasTipped() async {
+    // Still unsaved: the tip was left this run, whatever storage says.
+    if (_tipRecordUnsaved) return true;
     final version = _tipVersion;
     bool stored;
     try {
