@@ -1739,6 +1739,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         intakeType: _args.intakeTypeEntity,
         day: _args.day,
         logTray: _args.logTray,
+        // The reviewed rows join the list only when the batch is confirmed,
+        // so logging this entry on its own would leave and lose them.
+        addsToListOnly: true,
       ),
     );
   }

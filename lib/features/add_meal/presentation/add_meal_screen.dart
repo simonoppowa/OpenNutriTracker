@@ -916,9 +916,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
     if (_quickAdding.contains(code)) return;
     // Through setState: the log button waits for these (see build).
     setState(() => _quickAdding.add(code));
+    // So a sheet open meanwhile adds to the list rather than logging on its
+    // own and leaving before this food arrives (LogTray.collects).
+    _logTray.beginPending();
     try {
       meal = await _detailedForQuickAdd(meal);
     } finally {
+      _logTray.endPending();
       if (mounted) setState(() => _quickAdding.remove(code));
     }
     if (!mounted) return;

@@ -217,6 +217,31 @@ void main() {
       expectToastOnList(tray);
     });
 
+    testWidgets(
+      'a + that starts fetching while the sheet is open turns Add into Add '
+      'to list',
+      (tester) async {
+        final (bloc, tray) = await pumpSheet(tester);
+        expect(buttonLabel(tester, 'meal-detail-add').data, l10nEn.addLabel);
+
+        // A + on the add-food screen behind the sheet, still fetching its
+        // food. Logging at once now would leave before it arrives.
+        tray.beginPending();
+        await tester.pump();
+        expect(
+          buttonLabel(tester, 'meal-detail-add').data,
+          l10nEn.addToListLabel,
+        );
+        await tester.tap(find.bySemanticsIdentifier('meal-detail-add'));
+        await tester.pumpAndSettle();
+
+        expect(bloc.saves, 0);
+        expect(tray.length, 1);
+        expectToastOnList(tray);
+        tray.endPending();
+      },
+    );
+
     testWidgets('once the list has items, the button adds to it', (
       tester,
     ) async {

@@ -31,14 +31,22 @@ class QuickAddBottomSheet extends StatefulWidget {
   /// on the list and the sheet closes, instead of logging and leaving for
   /// home — which would drop everything already on the list. While it is
   /// empty the entry is logged at once, as before the list existed, and a
-  /// second button puts it on the list instead (#1520).
+  /// second button puts it on the list instead (#1520). A food still on its
+  /// way onto the list counts as an item (see [LogTray.collects]).
   final LogTray? logTray;
+
+  /// Always put the entry on [logTray], never log it on its own. For a
+  /// caller with unsaved foods of its own that are not on the list yet —
+  /// the review screen, whose batch joins the list only when confirmed —
+  /// which logging on its own would leave and lose.
+  final bool addsToListOnly;
 
   const QuickAddBottomSheet({
     super.key,
     required this.intakeType,
     required this.day,
     this.logTray,
+    this.addsToListOnly = false,
   });
 
   @override
@@ -61,10 +69,14 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     super.initState();
     _titleController.addListener(_onRequiredFieldChanged);
     _energyController.addListener(_onRequiredFieldChanged);
+    // The button reads "Add" or "Add to list" from the list's state, which
+    // a food arriving from a + changes while the sheet is open.
+    widget.logTray?.addListener(_onTrayChanged);
   }
 
   @override
   void dispose() {
+    widget.logTray?.removeListener(_onTrayChanged);
     _titleController.removeListener(_onRequiredFieldChanged);
     _energyController.removeListener(_onRequiredFieldChanged);
     _titleController.dispose();
@@ -76,6 +88,8 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
   }
 
   void _onRequiredFieldChanged() => setState(() {});
+
+  void _onTrayChanged() => setState(() {});
 
   double? _parsed(TextEditingController c) {
     final raw = c.text.trim().replaceAll(',', '.');
@@ -94,7 +108,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
   /// Whether the main button adds to the list rather than logging.
   bool get _addsToList {
     final logTray = widget.logTray;
-    return logTray != null && !logTray.isEmpty;
+    return logTray != null && (widget.addsToListOnly || logTray.collects);
   }
 
   Future<void> _onSubmit({bool toList = false}) async {
@@ -118,7 +132,9 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
         title: title,
       );
       final logTray = widget.logTray;
-      if (toList && logTray != null) {
+      // Asked again, not taken from the press: a food that reached the list
+      // since must not be left behind by logging on its own.
+      if (logTray != null && (toList || _addsToList)) {
         logTray.add(
           LogTrayItem(
             meal: intake.meal,

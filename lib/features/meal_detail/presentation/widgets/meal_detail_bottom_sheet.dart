@@ -72,14 +72,27 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     super.initState();
     widget.quantityTextController.addListener(_onQuantityChanged);
     _quantityFocusNode.addListener(_onQuantityFocusChanged);
+    // "Add" or "Add to list" follows the list, which a food arriving from
+    // a + on the add-food screen changes while this sheet is open.
+    widget.logTray?.addListener(_onTrayChanged);
   }
 
   @override
   void dispose() {
+    widget.logTray?.removeListener(_onTrayChanged);
     _quantityFocusNode.removeListener(_onQuantityFocusChanged);
     _quantityFocusNode.dispose();
     widget.quantityTextController.removeListener(_onQuantityChanged);
     super.dispose();
+  }
+
+  void _onTrayChanged() => setState(() {});
+
+  /// Whether Add puts the food on the list rather than logging it: the list
+  /// holds something or a food is on its way onto it (LogTray.collects).
+  bool get _addsToList {
+    final logTray = widget.logTray;
+    return logTray != null && logTray.collects;
   }
 
   void _onQuantityFocusChanged() {
@@ -130,7 +143,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   Widget build(BuildContext context) {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
     final logTray = widget.logTray;
-    final addsToList = logTray != null && !logTray.isEmpty;
+    final addsToList = _addsToList;
     final canSubmit = !productMissingRequiredInfo && !_submitting;
     final missingFieldsText = S.of(
       context,
@@ -267,7 +280,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             onPressed: canSubmit
                                 ? () => onAddButtonPressed(
                                     context,
-                                    toList: addsToList,
+                                    toList: _addsToList,
                                   )
                                 : null,
                             style: FilledButton.styleFrom(
@@ -411,7 +424,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     }
 
     final logTray = widget.logTray;
-    if (toList && logTray != null) {
+    // Asked again rather than taken from the press: a food can reach the
+    // list during the checks above, and logging on its own would leave it.
+    if (logTray != null && (toList || logTray.collects)) {
       // Onto the list, with exactly what `addIntake` below would have been
       // given; the add-food screen writes it when the list is logged.
       final state = widget.mealDetailBloc.state;

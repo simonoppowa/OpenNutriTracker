@@ -372,6 +372,29 @@ void main() {
       expect(tray.isEmpty, isTrue);
       expect(notified, 6);
     });
+
+    test('a food on its way counts as collecting before it arrives', () {
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      var notified = 0;
+      tray.addListener(() => notified++);
+      expect(tray.collects, isFalse);
+
+      tray.beginPending();
+      expect(tray.isEmpty, isTrue);
+      expect(tray.collects, isTrue);
+
+      // A lookup that ends without adding anything (a food the detail
+      // screen has to open instead) leaves the list as it was.
+      tray.endPending();
+      expect(tray.collects, isFalse);
+
+      tray.add(
+        LogTrayItem(meal: _meal('A'), unit: 'g', amount: 1, amountLabel: ''),
+      );
+      expect(tray.collects, isTrue);
+      expect(notified, 3);
+    });
   });
 
   group('the log button', () {
@@ -682,6 +705,48 @@ void main() {
       expect(find.text(l10nEn.bulkAddSubmitLabel(2)), findsOneWidget);
       expect(_mealDetailBloc.writes, isEmpty);
     });
+
+    testWidgets(
+      'with a + still fetching, Quick add\'s Add joins the list instead of '
+      'leaving without that food',
+      (tester) async {
+        await _register([_meal('Granola', source: MealSourceEntity.off)]);
+        final addIntake = _RecordingAddIntakeUsecase();
+        getIt
+          ..registerSingleton<AddIntakeUsecase>(addIntake)
+          ..registerSingleton<AddTrackedDayUsecase>(
+            _ExistingDayAddTrackedDayUsecase(),
+          );
+        _products.full = _meal(
+          'Granola',
+          source: MealSourceEntity.off,
+          servingQuantity: 45,
+          servingSize: '45 g',
+          detailed: true,
+        );
+        await _openAddMeal(tester, []);
+        final gate = _products.gate = Completer<void>();
+        await _tapPlus(tester, 'Granola');
+        await tester.pump();
+
+        await fillQuickAdd(tester);
+        // The list is still empty, but Granola is on its way onto it.
+        expect(
+          find.bySemanticsIdentifier('quick-add-add-to-list'),
+          findsNothing,
+        );
+        await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+        await tester.pumpAndSettle();
+        expect(addIntake.stored, isEmpty);
+        expect(find.byType(AddMealScreen), findsOneWidget);
+
+        gate.complete();
+        await tester.pumpAndSettle();
+        await tester.tap(_logButton());
+        await tester.pumpAndSettle();
+        expect(_mealDetailBloc.writes.map((w) => w.name), ['Cake', 'Granola']);
+      },
+    );
 
     testWidgets('the log button stays above the keyboard (#1520)', (
       tester,
