@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final _log = Logger('SafeUrlLauncher');
@@ -26,4 +28,21 @@ Future<bool> tryLaunchExternalUrl(
     _log.warning('Could not open $url: ${e.code} ${e.message}');
     return false;
   }
+}
+
+/// Opens a link and reports whether that worked; [tryLaunchExternalUrl] by
+/// default, replaceable in tests.
+typedef UrlOpener = Future<bool> Function(String url);
+
+/// Opens [url] outside the app, and says so in a snackbar when nothing could
+/// open it.
+Future<void> openUrlOrShowError(
+  BuildContext context,
+  String url, {
+  UrlOpener open = tryLaunchExternalUrl,
+}) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final errorText = S.of(context).errorOpeningBrowser;
+  if (await open(url)) return;
+  messenger.showSnackBar(SnackBar(content: Text(errorText)));
 }

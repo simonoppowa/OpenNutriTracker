@@ -48,6 +48,7 @@ import 'package:opennutritracker/features/home/presentation/screens/import_meal_
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/tip_jar_cubit.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/accent_colour_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
@@ -88,6 +89,10 @@ Future<void> _bootstrapApp() async {
     runApp(StorageRecoveryApp(errorCode: error.code, onRetry: _bootstrapApp));
     return;
   }
+
+  // Finish tip purchases an earlier run left open, and on Google Play
+  // consume leftover tips, before anything else can buy one (#1536).
+  unawaited(locator<TipJarCubit>().start());
 
   // Drop cached remote-search results that haven't been touched in 90
   // days. Done once per app start; no need to schedule a recurring task.

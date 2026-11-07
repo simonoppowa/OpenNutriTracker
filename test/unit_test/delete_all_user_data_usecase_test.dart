@@ -404,4 +404,25 @@ void main() {
 
     expect(appConfigBox.isNotEmpty, isTrue);
   });
+
+  test('clears the "you left a tip" line, and only that, from the shared '
+      'app box', () async {
+    // #1536: the Support page keeps one fact about tips, device-wide, beside
+    // the shared settings this reset otherwise leaves alone.
+    await appConfigBox.put(
+      'ConfigKey',
+      ConfigDBO.empty()
+        ..hasLeftTip = true
+        ..selectedLocale = 'de',
+    );
+    await configBox.put('ConfigKey', ConfigDBO.empty());
+    final configs = ConfigDataSource(provider);
+    expect(await configs.getHasLeftTip(), isTrue);
+
+    await sut.deleteAll();
+
+    expect(await configs.getHasLeftTip(), isFalse);
+    expect(appConfigBox.get('ConfigKey')!.hasLeftTip, isNull);
+    expect(appConfigBox.get('ConfigKey')!.selectedLocale, 'de');
+  });
 }
