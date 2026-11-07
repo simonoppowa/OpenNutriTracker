@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
@@ -7,6 +9,57 @@ import 'package:opennutritracker/features/settings/domain/entity/tip_entity.dart
 import 'package:opennutritracker/features/settings/presentation/bloc/tip_jar_cubit.dart';
 
 import '../../../../helpers/fake_tip_store.dart';
+
+/// Logs when the tip jar records a tip, to check it does so first.
+class _OrderConfig extends FakeTipConfig {
+  final List<String> order;
+
+  _OrderConfig(this.order);
+
+  @override
+  Future<void> setHasLeftTip() async {
+    order.add('record');
+    await super.setHasLeftTip();
+  }
+}
+
+/// [FakeTipStore] that logs when a purchase is consumed.
+class _OrderStore implements TipStore {
+  final FakeTipStore inner;
+  final List<String> order;
+
+  _OrderStore(this.inner, this.order);
+
+  @override
+  bool get needsConsume => true;
+
+  @override
+  Future<bool> consume(PurchaseDetails purchase) async {
+    order.add('consume');
+    return true;
+  }
+
+  @override
+  Stream<List<PurchaseDetails>> get purchaseStream => inner.purchaseStream;
+
+  @override
+  Future<bool> isAvailable() async => false;
+
+  @override
+  Future<ProductDetailsResponse> queryProductDetails(Set<String> ids) =>
+      inner.queryProductDetails(ids);
+
+  @override
+  Future<bool> buyConsumable(ProductDetails product) =>
+      inner.buyConsumable(product);
+
+  @override
+  Future<void> completePurchase(PurchaseDetails purchase) =>
+      inner.completePurchase(purchase);
+
+  @override
+  Future<void> restorePurchases() => inner.restorePurchases();
+}
 
 void main() {
   late FakeTipStore store;
@@ -76,6 +129,73 @@ void main() {
       await jar.load();
 
       expect(jar.state.status, TipJarStatus.failed);
+    });
+
+    test('a slow older load cannot replace a newer result', () async {
+      final slow = Completer<void>();
+      store.queryScript
+        ..add((slow, null)) // the first visit: slow, then fails
+        ..add((null, tipProducts())); // the second: answers at once
+
+      final first = jar.load();
+      await settle(); // the first visit's query is now in flight
+      expect(store.queryCalls, 1);
+      await jar.load();
+      expect(jar.state.status, TipJarStatus.ready);
+
+      slow.complete();
+      await first;
+
+      expect(jar.state.status, TipJarStatus.ready);
+      expect(jar.state.tips, hasLength(3));
+      await jar.buy(jar.state.tips.first);
+      expect(store.bought.single.id, 'tip_small');
+    });
+
+    test('a slow older success cannot replace a newer one either', () async {
+      final slow = Completer<void>();
+      store.queryScript
+        ..add((slow, tipProducts(only: {'tip_small'})))
+        ..add((null, tipProducts()));
+
+      final first = jar.load();
+      await settle(); // the first visit's query is now in flight
+      expect(store.queryCalls, 1);
+      await jar.load();
+      slow.complete();
+      await first;
+
+      expect(jar.state.tips, hasLength(3));
+    });
+
+    test('a tip recorded while the flag is being read is not hidden', () async {
+      await jar.start();
+      await jar.load();
+      config.readGate = Completer<void>();
+
+      final reload = jar.load(); // reads false, held at the gate
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+      expect(jar.state.hasTipped, isTrue);
+
+      config.readGate!.complete();
+      await reload;
+
+      expect(jar.state.hasTipped, isTrue);
+    });
+
+    test('a cleared flag is read back even when the state still says '
+        'tipped (Reset profile data)', () async {
+      await jar.start();
+      await jar.load();
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+      expect(jar.state.hasTipped, isTrue);
+
+      config.hasLeftTip = false;
+      await jar.load();
+
+      expect(jar.state.hasTipped, isFalse);
     });
 
     test('reads whether a tip was left', () async {
@@ -216,6 +336,48 @@ void main() {
       await jar.start();
 
       expect(store.restoreCalls, 0);
+    });
+
+    test('Play unreachable at start: the next load recovers the leftover '
+        'tip', () async {
+      store.available = false;
+      await jar.start();
+      expect(store.restoreCalls, 0);
+
+      store.available = true;
+      await jar.load();
+      await settle();
+      expect(store.restoreCalls, 1);
+
+      final leftover = tipPurchase('tip_medium', PurchaseStatus.restored);
+      store.emit([leftover]);
+      await settle();
+
+      expect(store.consumed, [leftover]);
+      expect(jar.state.hasTipped, isTrue);
+    });
+
+    test('Retry repeats the recovery', () async {
+      await jar.start();
+      await jar.load();
+      await jar.load();
+      await settle();
+
+      expect(store.restoreCalls, 3);
+    });
+
+    test('a tip is recorded before its transaction is finished', () async {
+      await jar.start();
+      final order = <String>[];
+      final recording = _OrderConfig(order);
+      final ordered = TipJarCubit(_OrderStore(store, order), recording);
+      addTearDown(ordered.close);
+      await ordered.start();
+
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+
+      expect(order, ['record', 'consume']);
     });
 
     test('a restore that throws does not break start', () async {
