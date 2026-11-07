@@ -31,9 +31,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
   await initLocator();
-  unawaited(locator<TipJarCubit>().start());
 
   await seedDemoData(DemoSeedOptions.dev);
+  // After the seed: its wipe runs Reset profile data, which would race the
+  // tip jar's start-up recovery.
+  unawaited(locator<TipJarCubit>().start());
 
   final configRepo = locator<ConfigRepository>();
   final config = await configRepo.getConfig();

@@ -113,6 +113,13 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// failed to finish stays out, so its next delivery retries it.
   final _finished = <String>{};
 
+  /// Transactions this run has already recorded and thanked for. A redelivery
+  /// of one that failed to finish only retries the finish: it is not a new
+  /// tip, so it neither thanks again nor writes back a flag that Reset
+  /// profile data cleared in between ([forgetTip] leaves this alone on
+  /// purpose).
+  final _recorded = <String>{};
+
   TipJarCubit(this._store, this._config) : super(const TipJarState());
 
   Stream<TipOutcome> get outcomes => _outcomes.stream;
@@ -258,15 +265,18 @@ class TipJarCubit extends Cubit<TipJarState> {
           if (size == null) continue;
           final key = _transactionKey(purchase);
           if (key != null && _finished.contains(key)) continue;
+          final isNew = key == null || _recorded.add(key);
           // Recorded before the transaction is finished: if the app dies in
           // between, the store delivers the purchase again, while a finished
           // transaction with no record would lose the tip for good.
-          await _markTipped();
+          if (isNew) await _markTipped();
           if (await _finish(purchase) && key != null) _finished.add(key);
           final tip = state.tips.firstWhereOrNull((t) => t.size == size);
           // A restored tip is one an earlier run left unconsumed, found at
           // start-up: the user is not on the page, so no dialog.
-          if (purchase.status == PurchaseStatus.purchased && tip != null) {
+          if (isNew &&
+              purchase.status == PurchaseStatus.purchased &&
+              tip != null) {
             _tell(TipThanked(tip));
           }
         case PurchaseStatus.error:

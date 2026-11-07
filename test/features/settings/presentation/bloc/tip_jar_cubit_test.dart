@@ -515,6 +515,41 @@ void main() {
       expect(store.consumed, hasLength(2));
     });
 
+    test('a replay of a tip that failed to consume, after Reset, retries the '
+        'consume without bringing the line back', () async {
+      await jar.start();
+      store.consumeResult = false;
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+      expect(config.writes, 1);
+
+      jar.forgetTip(); // Reset profile data
+      config.hasLeftTip = false;
+      store.consumeResult = true;
+      store.emit([tipPurchase('tip_small', PurchaseStatus.restored)]);
+      await settle();
+
+      expect(store.consumed, hasLength(2));
+      expect(jar.state.hasTipped, isFalse);
+      expect(config.writes, 1);
+    });
+
+    test('a tip that failed to consume, redelivered as purchased, is thanked '
+        'once', () async {
+      await jar.start();
+      await jar.load();
+      store.consumeResult = false;
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+
+      store.consumeResult = true;
+      store.emit([tipPurchase('tip_small', PurchaseStatus.purchased)]);
+      await settle();
+
+      expect(store.consumed, hasLength(2));
+      expect(outcomes.whereType<TipThanked>(), hasLength(1));
+    });
+
     test('two tips of the same size are two transactions', () async {
       await jar.start();
       await jar.load();
