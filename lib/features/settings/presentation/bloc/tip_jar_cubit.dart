@@ -82,8 +82,19 @@ class TipJarCubit extends Cubit<TipJarState> {
 
   final _outcomes = StreamController<TipOutcome>.broadcast();
   StreamSubscription<List<PurchaseDetails>>? _purchases;
-  final Map<TipSize, ProductDetails> _products = {};
+  Map<TipSize, ProductDetails> _products = {};
   bool _buying = false;
+
+  /// Bumped by every [load]; a load whose number is no longer current drops
+  /// its result, so a slow, older query cannot replace a newer one.
+  int _loadGeneration = 0;
+
+  /// Bumped by every recorded tip; a flag read that started before the bump
+  /// is stale and must not hide the tip just recorded.
+  int _tipVersion = 0;
+
+  /// The recovery in flight, shared by overlapping callers.
+  Future<void>? _recovering;
 
   TipJarCubit(this._store, this._config) : super(const TipJarState());
 
@@ -103,12 +114,29 @@ class TipJarCubit extends Cubit<TipJarState> {
       onError: (Object _) =>
           _log.warning('The purchase stream reported an error'),
     );
-    if (!_store.needsConsume) return;
-    try {
-      if (await _store.isAvailable()) await _store.restorePurchases();
-    } catch (_) {
-      _log.info('Could not check for unconsumed tips; the next start retries');
-    }
+    await _recoverOwnedTips();
+  }
+
+  /// Google Play only: asks for every tip still owned and consumes what
+  /// comes back on the purchase stream.
+  ///
+  /// Run at start-up and again on every [load] — opening the page and Retry
+  /// — rather than once per process. Play may be unreachable at start-up,
+  /// and a consume can fail after a purchase; either way the owned tip would
+  /// block buying that size again until the next restart, and the page is
+  /// where the user would try. Querying owned purchases is answered by the
+  /// Play Store app on the device, so repeating it is cheap.
+  Future<void> _recoverOwnedTips() {
+    if (!_store.needsConsume) return Future.value();
+    return _recovering ??= () async {
+      try {
+        if (await _store.isAvailable()) await _store.restorePurchases();
+      } catch (_) {
+        _log.info('Could not check for unconsumed tips; the next load retries');
+      } finally {
+        _recovering = null;
+      }
+    }();
   }
 
   /// Loads the tips from the store. Fails on anything short of at least one
@@ -116,24 +144,28 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// (the develop flavour, a sideloaded or GitHub APK, TestFlight without
   /// sandbox setup).
   Future<void> load() async {
-    _emit(
-      state.copyWith(
-        status: TipJarStatus.loading,
-        hasTipped: await _hasTipped(),
-      ),
-    );
+    final generation = ++_loadGeneration;
+    bool current() => generation == _loadGeneration;
+
+    final hasTipped = await _hasTipped();
+    if (!current()) return;
+    _emit(state.copyWith(status: TipJarStatus.loading, hasTipped: hasTipped));
     try {
       if (!await _store.isAvailable()) {
-        _emit(state.copyWith(status: TipJarStatus.failed, tips: const []));
+        if (current()) {
+          _emit(state.copyWith(status: TipJarStatus.failed, tips: const []));
+        }
         return;
       }
+      unawaited(_recoverOwnedTips());
       final response = await _store.queryProductDetails(TipSize.productIds);
-      _products.clear();
+      if (!current()) return;
+      final products = <TipSize, ProductDetails>{};
       final tips = <TipEntity>[];
       for (final product in response.productDetails) {
         final size = TipSize.fromProductId(product.id);
         if (size == null) continue;
-        _products[size] = product;
+        products[size] = product;
         tips.add(
           TipEntity(
             size: size,
@@ -143,6 +175,7 @@ class TipJarCubit extends Cubit<TipJarState> {
         );
       }
       tips.sort((a, b) => a.rawPrice.compareTo(b.rawPrice));
+      _products = products;
       _emit(
         state.copyWith(
           status: tips.isEmpty ? TipJarStatus.failed : TipJarStatus.ready,
@@ -150,6 +183,7 @@ class TipJarCubit extends Cubit<TipJarState> {
         ),
       );
     } catch (_) {
+      if (!current()) return;
       _log.info('Could not load the tips from the store');
       _emit(state.copyWith(status: TipJarStatus.failed, tips: const []));
     }
@@ -184,8 +218,11 @@ class TipJarCubit extends Cubit<TipJarState> {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
           if (size == null) continue;
-          await _finish(purchase);
+          // Recorded before the transaction is finished: if the app dies in
+          // between, the store delivers the purchase again, while a finished
+          // transaction with no record would lose the tip for good.
           await _markTipped();
+          await _finish(purchase);
           final tip = state.tips.firstWhereOrNull((t) => t.size == size);
           // A restored tip is one an earlier run left unconsumed, found at
           // start-up: the user is not on the page, so no dialog.
@@ -207,7 +244,8 @@ class TipJarCubit extends Cubit<TipJarState> {
   ///
   /// A Play consume also acknowledges the purchase, so a consumed tip needs
   /// no [TipStore.completePurchase]. One that fails to consume is still
-  /// acknowledged, which stops Play refunding it; the next start consumes it.
+  /// acknowledged, which stops Play refunding it; the next load or start
+  /// consumes it.
   Future<void> _finish(PurchaseDetails purchase) async {
     if (_store.needsConsume) {
       try {
@@ -215,7 +253,7 @@ class TipJarCubit extends Cubit<TipJarState> {
       } catch (_) {
         // Falls through to the acknowledgement below.
       }
-      _log.warning('Could not consume a tip; the next start retries');
+      _log.warning('Could not consume a tip; the next load or start retries');
     }
     await _completeIfPending(purchase);
   }
@@ -230,6 +268,7 @@ class TipJarCubit extends Cubit<TipJarState> {
   }
 
   Future<void> _markTipped() async {
+    _tipVersion++;
     _emit(state.copyWith(hasTipped: true));
     try {
       await _config.setHasLeftTip();
@@ -238,12 +277,19 @@ class TipJarCubit extends Cubit<TipJarState> {
     }
   }
 
+  /// The stored flag — unless a tip was recorded while it was being read.
+  /// Then the read may predate the write, and the state already says true.
+  /// (Keeping a stored false otherwise matters: Reset profile data clears
+  /// the flag while this singleton still holds true.)
   Future<bool> _hasTipped() async {
+    final version = _tipVersion;
+    bool stored;
     try {
-      return await _config.getHasLeftTip();
+      stored = await _config.getHasLeftTip();
     } catch (_) {
-      return false;
+      stored = false;
     }
+    return version == _tipVersion ? stored : state.hasTipped;
   }
 
   void _tell(TipOutcome outcome) {

@@ -19,6 +19,10 @@ class FakeTipStore implements TipStore {
 
   /// Completes [queryProductDetails] only when completed, when set.
   Completer<void>? queryGate;
+
+  /// Per-call answers, taken in order before [queryGate] and [products]:
+  /// a gate to wait on (or null) and the products (null throws).
+  final queryScript = <(Completer<void>?, List<ProductDetails>?)>[];
   bool buyResult = true;
   bool buyThrows = false;
   bool consumeResult = true;
@@ -43,8 +47,10 @@ class FakeTipStore implements TipStore {
   @override
   Future<ProductDetailsResponse> queryProductDetails(Set<String> ids) async {
     queryCalls++;
-    await queryGate?.future;
-    final found = products;
+    var gate = queryGate;
+    var found = products;
+    if (queryScript.isNotEmpty) (gate, found) = queryScript.removeAt(0);
+    await gate?.future;
     if (found == null) throw StateError('store unreachable');
     return ProductDetailsResponse(
       productDetails: found.where((p) => ids.contains(p.id)).toList(),
@@ -122,10 +128,18 @@ class FakeTipConfig extends Fake implements ConfigRepository {
   bool hasLeftTip;
   int writes = 0;
 
+  /// Holds [getHasLeftTip]'s answer, read when it was called, until
+  /// completed — a read that started before a write.
+  Completer<void>? readGate;
+
   FakeTipConfig({this.hasLeftTip = false});
 
   @override
-  Future<bool> getHasLeftTip() async => hasLeftTip;
+  Future<bool> getHasLeftTip() async {
+    final value = hasLeftTip;
+    await readGate?.future;
+    return value;
+  }
 
   @override
   Future<void> setHasLeftTip() async {
