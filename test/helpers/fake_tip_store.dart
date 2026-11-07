@@ -147,6 +147,9 @@ class FakeTipConfig extends Fake implements ConfigRepository {
   bool hasLeftTip;
   int writes = 0;
 
+  /// Makes [setHasLeftTip] throw, as a failing Hive write would.
+  bool writeThrows = false;
+
   /// Holds [getHasLeftTip]'s answer, read when it was called, until
   /// completed — a read that started before a write.
   Completer<void>? readGate;
@@ -163,6 +166,7 @@ class FakeTipConfig extends Fake implements ConfigRepository {
   @override
   Future<void> setHasLeftTip() async {
     writes++;
+    if (writeThrows) throw StateError('disk full');
     hasLeftTip = true;
   }
 }

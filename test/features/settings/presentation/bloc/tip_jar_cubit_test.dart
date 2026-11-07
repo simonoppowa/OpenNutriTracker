@@ -198,6 +198,39 @@ void main() {
       expect(jar.state.hasTipped, isFalse);
     });
 
+    test('a tip whose record fails to save is still finished, still shown, '
+        'and saved by the next load', () async {
+      await jar.start();
+      await jar.load();
+      config.writeThrows = true;
+      final purchase = tipPurchase('tip_small', PurchaseStatus.purchased);
+
+      store.emit([purchase]);
+      await settle();
+
+      // Finished regardless: holding it back risks a Play refund and blocks
+      // buying that size again.
+      expect(store.completed, [purchase]);
+      expect(jar.state.hasTipped, isTrue);
+      expect(config.hasLeftTip, isFalse);
+      expect(outcomes.single, isA<TipThanked>());
+
+      // Still failing: the line stays for this run.
+      await jar.load();
+      expect(jar.state.hasTipped, isTrue);
+      expect(config.writes, 2);
+
+      config.writeThrows = false;
+      await jar.load();
+      expect(config.hasLeftTip, isTrue);
+      expect(config.writes, 3);
+
+      // Saved: later loads read it back and stop writing.
+      await jar.load();
+      expect(jar.state.hasTipped, isTrue);
+      expect(config.writes, 3);
+    });
+
     test('reads whether a tip was left', () async {
       config.hasLeftTip = true;
 
