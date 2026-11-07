@@ -96,6 +96,20 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// The recovery in flight, shared by overlapping callers.
   Future<void>? _recovering;
 
+  /// Purchase updates, handled one batch at a time in arrival order. The
+  /// stream does not wait for a handler, so without this a recovery replay
+  /// could consume a transaction its live update is still consuming.
+  ///
+  /// Null until the first update, so the chain is built in the listener's
+  /// zone rather than wherever this cubit was constructed.
+  Future<void>? _handling;
+
+  /// Transactions this run has finished — consumed on Play, completed on
+  /// the App Store. A later delivery of one (a replay, a duplicate update)
+  /// is skipped, so it is neither consumed twice nor thanked twice. One that
+  /// failed to finish stays out, so its next delivery retries it.
+  final _finished = <String>{};
+
   TipJarCubit(this._store, this._config) : super(const TipJarState());
 
   Stream<TipOutcome> get outcomes => _outcomes.stream;
@@ -110,7 +124,11 @@ class TipJarCubit extends Cubit<TipJarState> {
   Future<void> start() async {
     if (_purchases != null) return;
     _purchases = _store.purchaseStream.listen(
-      _onPurchases,
+      (purchases) => _handling = (_handling ?? Future<void>.value())
+          .then((_) => _onPurchases(purchases))
+          .catchError(
+            (Object _) => _log.warning('A purchase update was not handled'),
+          ),
       onError: (Object _) =>
           _log.warning('The purchase stream reported an error'),
     );
@@ -191,11 +209,16 @@ class TipJarCubit extends Cubit<TipJarState> {
 
   /// Opens the store's purchase sheet for [tip]. The result arrives on the
   /// purchase stream, not here.
+  ///
+  /// Waits for any recovery and purchase update in hand first: a tip of
+  /// this size may be owned and mid-consume, and Play refuses to sell an
+  /// owned one (`ITEM_ALREADY_OWNED`) rather than open the sheet.
   Future<void> buy(TipEntity tip) async {
     final product = _products[tip.size];
     if (product == null || _buying) return;
     _buying = true;
     try {
+      await _settled();
       if (!await _store.buyConsumable(product)) _tell(const TipFailed());
     } catch (_) {
       _log.info('The store did not open the purchase sheet');
@@ -203,6 +226,17 @@ class TipJarCubit extends Cubit<TipJarState> {
     } finally {
       _buying = false;
     }
+  }
+
+  /// Returns once no recovery or purchase update is being handled.
+  ///
+  /// `restorePurchases` returns after handing its answer to the purchase
+  /// stream, which delivers it in a microtask. The zero-length timer runs
+  /// after those, so by then the answer is queued on [_handling].
+  Future<void> _settled() async {
+    await _recovering;
+    await Future<void>.delayed(Duration.zero);
+    await _handling;
   }
 
   Future<void> _onPurchases(List<PurchaseDetails> purchases) async {
@@ -218,11 +252,13 @@ class TipJarCubit extends Cubit<TipJarState> {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
           if (size == null) continue;
+          final key = _transactionKey(purchase);
+          if (key != null && _finished.contains(key)) continue;
           // Recorded before the transaction is finished: if the app dies in
           // between, the store delivers the purchase again, while a finished
           // transaction with no record would lose the tip for good.
           await _markTipped();
-          await _finish(purchase);
+          if (await _finish(purchase) && key != null) _finished.add(key);
           final tip = state.tips.firstWhereOrNull((t) => t.size == size);
           // A restored tip is one an earlier run left unconsumed, found at
           // start-up: the user is not on the page, so no dialog.
@@ -246,25 +282,43 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// no [TipStore.completePurchase]. One that fails to consume is still
   /// acknowledged, which stops Play refunding it; the next load or start
   /// consumes it.
-  Future<void> _finish(PurchaseDetails purchase) async {
+  ///
+  /// Returns whether the transaction is done with: consumed on Play, or
+  /// completed (or nothing to complete) on the App Store.
+  Future<bool> _finish(PurchaseDetails purchase) async {
     if (_store.needsConsume) {
       try {
-        if (await _store.consume(purchase)) return;
+        if (await _store.consume(purchase)) return true;
       } catch (_) {
         // Falls through to the acknowledgement below.
       }
       _log.warning('Could not consume a tip; the next load or start retries');
+      await _completeIfPending(purchase);
+      return false;
     }
-    await _completeIfPending(purchase);
+    return _completeIfPending(purchase);
   }
 
-  Future<void> _completeIfPending(PurchaseDetails purchase) async {
-    if (!purchase.pendingCompletePurchase) return;
+  /// Whether the purchase needed no completing or was completed.
+  Future<bool> _completeIfPending(PurchaseDetails purchase) async {
+    if (!purchase.pendingCompletePurchase) return true;
     try {
       await _store.completePurchase(purchase);
+      return true;
     } catch (_) {
       _log.warning('Could not complete a tip purchase');
+      return false;
     }
+  }
+
+  /// One transaction's identity: the store's order or transaction ID, else
+  /// its purchase token. Null when the store gave neither, which only
+  /// happens for a failure with no purchase behind it.
+  static String? _transactionKey(PurchaseDetails purchase) {
+    final id = purchase.purchaseID;
+    if (id != null && id.isNotEmpty) return id;
+    final token = purchase.verificationData.serverVerificationData;
+    return token.isEmpty ? null : token;
   }
 
   Future<void> _markTipped() async {

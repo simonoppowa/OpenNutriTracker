@@ -29,6 +29,17 @@ class FakeTipStore implements TipStore {
   bool consumeThrows = false;
   bool restoreThrows = false;
 
+  /// Holds [consume] in flight until completed, when set.
+  Completer<void>? consumeGate;
+
+  /// Holds [restorePurchases] until completed, when set; then it delivers
+  /// [restoreEmits] on the purchase stream, as Play does.
+  Completer<void>? restoreGate;
+  List<PurchaseDetails> restoreEmits = const [];
+
+  /// Store calls in order: `consume`, `complete`, `buy`, `restore`.
+  final calls = <String>[];
+
   int queryCalls = 0;
   int restoreCalls = 0;
   final bought = <ProductDetails>[];
@@ -63,6 +74,7 @@ class FakeTipStore implements TipStore {
 
   @override
   Future<bool> buyConsumable(ProductDetails product) async {
+    calls.add('buy');
     bought.add(product);
     if (buyThrows) throw StateError('sheet failed');
     return buyResult;
@@ -70,18 +82,24 @@ class FakeTipStore implements TipStore {
 
   @override
   Future<void> completePurchase(PurchaseDetails purchase) async {
+    calls.add('complete');
     completed.add(purchase);
   }
 
   @override
   Future<void> restorePurchases() async {
     restoreCalls++;
+    calls.add('restore');
+    await restoreGate?.future;
     if (restoreThrows) throw StateError('billing unavailable');
+    if (restoreEmits.isNotEmpty) emit(restoreEmits);
   }
 
   @override
   Future<bool> consume(PurchaseDetails purchase) async {
+    calls.add('consume');
     consumed.add(purchase);
+    await consumeGate?.future;
     if (consumeThrows) throw StateError('consume failed');
     return consumeResult;
   }
@@ -111,8 +129,9 @@ PurchaseDetails tipPurchase(
   String productId,
   PurchaseStatus status, {
   bool pendingComplete = true,
+  String? id,
 }) => PurchaseDetails(
-  purchaseID: 'order-$productId',
+  purchaseID: id ?? 'order-$productId',
   productID: productId,
   verificationData: PurchaseVerificationData(
     localVerificationData: '',
