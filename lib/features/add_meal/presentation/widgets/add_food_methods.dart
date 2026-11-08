@@ -229,6 +229,16 @@ class _DescribeMealPanelState extends State<DescribeMealPanel> {
   final _voice = GlobalKey<VoiceInputButtonState>();
 
   @override
+  void initState() {
+    super.initState();
+    // Every change, not only typing: dictation writes the field too, and
+    // Find foods has to turn on as its words appear.
+    _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() => setState(() {});
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -260,7 +270,6 @@ class _DescribeMealPanelState extends State<DescribeMealPanel> {
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               style: textTheme.bodyLarge,
-              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: S.of(context).bulkAddInputHint,
                 hintStyle: textTheme.bodyLarge?.copyWith(
