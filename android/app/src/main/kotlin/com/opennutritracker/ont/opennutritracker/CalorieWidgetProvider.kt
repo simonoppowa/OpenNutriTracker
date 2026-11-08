@@ -1,5 +1,6 @@
 package com.opennutritracker.ont.opennutritracker
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -11,6 +12,7 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import org.json.JSONObject
@@ -61,6 +63,9 @@ private class WidgetView private constructor(
     private val isCurrent: Boolean
         get() {
             if (snapshot == null) return false
+            // No goal means no figures to show (the Dart side writes
+            // hasData false and zeros), so the placeholder stands in.
+            if (!snapshot.optBoolean("hasData", false) || goalKcal <= 0) return false
             val storedDay = snapshot.optString("day", "")
             if (storedDay.isEmpty()) return false
             val offset = snapshot.optInt("offsetMinutes", 0)
@@ -108,6 +113,55 @@ private class WidgetView private constructor(
         manager.updateAppWidget(appWidgetId, views)
     }
 
+    /** Asks for one more update when the snapshot's logical day ends, so
+     * yesterday's intake is replaced by the placeholder then rather than at
+     * the next 30-minute poll. A window rather than `set()`, which
+     * Android stretched to an hour; Android 12 widens the one-minute window
+     * asked for here to ten minutes. No exact alarm, which would need its
+     * own permission. Non-waking: it lands the next time the
+     * device is awake after the boundary, which is when anyone can see
+     * the widget. One alarm for all instances, replaced on every update;
+     * nothing is scheduled while the placeholder shows. */
+    fun scheduleDayEnd(context: Context, manager: AppWidgetManager) {
+        val alarms = context.getSystemService(AlarmManager::class.java) ?: return
+        val ids = manager.getAppWidgetIds(
+            ComponentName(context, CalorieWidgetProvider::class.java),
+        )
+        val intent = Intent(context, CalorieWidgetProvider::class.java)
+            .setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        val pending = PendingIntent.getBroadcast(
+            context,
+            DAY_END_REQUEST,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val dayEnd = if (isCurrent) dayEndMillis() else null
+        if (dayEnd == null) {
+            alarms.cancel(pending)
+        } else {
+            alarms.setWindow(AlarmManager.RTC, dayEnd, DAY_END_WINDOW_MS, pending)
+        }
+    }
+
+    /** The end of the snapshot's logical day: its date's local midnight,
+     * one day on, plus the offset. Same rule as `nextBoundary()` on the
+     * Dart side. */
+    private fun dayEndMillis(): Long? {
+        val day = snapshot?.optString("day", "").orEmpty()
+        val start = runCatching {
+            SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(day)
+        }.getOrNull() ?: return null
+        val offset = snapshot?.optInt("offsetMinutes", 0) ?: 0
+        return Calendar.getInstance().apply {
+            time = start
+            add(Calendar.DAY_OF_MONTH, 1)
+            add(Calendar.MINUTE, offset)
+            // A second past the boundary, so the update reads the new day.
+            add(Calendar.SECOND, 1)
+        }.timeInMillis
+    }
+
     private fun showPlaceholder(views: RemoteViews) {
         val title = label("title", FALLBACK_TITLE)
         views.setViewVisibility(R.id.calorie_widget_title, View.VISIBLE)
@@ -151,11 +205,17 @@ private class WidgetView private constructor(
         views.setTextViewText(consumedId, "$consumedKcal")
         views.setTextViewText(unitId, unit)
 
-        if (!wide) {
-            // "of 2000" travels beside the figures, so it always describes
-            // what is on screen, in the app's language.
-            figureLabel("goal")?.let { views.setTextViewText(R.id.calorie_widget_goal_caption, it) }
-        }
+        // "of 2000" travels beside the figures, so it always describes
+        // what is on screen, in the app's language.
+        val goalId = if (wide) R.id.calorie_widget_goal_wide else R.id.calorie_widget_goal_caption
+        views.setTextViewText(goalId, figureLabel("goal", "/ $goalKcal"))
+
+        // Replaces the placeholder's "Open the app": a launcher may reapply
+        // these views to the hierarchy that showed the placeholder.
+        views.setContentDescription(
+            R.id.calorie_widget_root,
+            figureLabel("accessibility", "$consumedKcal / $goalKcal $unit"),
+        )
 
         val macros = snapshot?.optJSONObject("macros")
         val gram = label("gram", FALLBACK_GRAM)
@@ -227,10 +287,15 @@ private class WidgetView private constructor(
 
     companion object {
         private const val RING_MAX = 10_000
+        private const val DAY_END_REQUEST = 1
+        private const val DAY_END_WINDOW_MS = 60_000L
 
         /** Below this width in dp, the granted cell span only fits the
-         * ring; above it, the macro rows sit beside it. */
-        private const val WIDE_MIN_DP = 168
+         * ring; above it, the macro rows sit beside it. The 24dp padding,
+         * the 104dp ring and its 8dp margin leave the rows 124dp here:
+         * enough for a name, "123 g" and the 44dp percentage, where 168
+         * left them 32dp. */
+        private const val WIDE_MIN_DP = 260
 
         private const val FALLBACK_TITLE = "Calories"
         private const val FALLBACK_UNIT = "kcal"
@@ -282,6 +347,7 @@ private class WidgetView private constructor(
                 appWidgetId,
                 minWidthDp,
             )
+            view.scheduleDayEnd(context, appWidgetManager)
         }
 
         /** Matches `HomeWidgetPlugin.PREFERENCES` in the `home_widget`

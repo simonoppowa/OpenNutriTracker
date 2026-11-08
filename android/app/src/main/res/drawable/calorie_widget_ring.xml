@@ -11,11 +11,12 @@
         </shape>
     </item>
     <item>
-        <!-- 270° puts an empty level at 12 o'clock; 630° keeps one full
-             turn away, so the arc never runs clockwise past the start. -->
+        <!-- 270° starts the arc at 12 o'clock. A rotate drawable turns
+             with the level, so both ends stay at 270° and only the sweep's
+             level sets how far the arc reaches. -->
         <rotate
             android:fromDegrees="270"
-            android:toDegrees="630"
+            android:toDegrees="270"
             android:pivotX="50%"
             android:pivotY="50%"
             android:drawable="@drawable/calorie_widget_ring_sweep" />

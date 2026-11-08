@@ -64,6 +64,18 @@
                     android:gravity="center"
                     android:textColor="@color/calorie_widget_text_secondary"
                     android:textSize="11sp" />
+
+                <!-- "of 2000": the goal, which the wide body otherwise
+                     only implied through the ring. -->
+                <TextView
+                    android:id="@+id/calorie_widget_goal_wide"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/calorie_widget_text_secondary"
+                    android:textSize="11sp" />
             </LinearLayout>
         </FrameLayout>
 
@@ -81,19 +93,18 @@
                 android:gravity="end"
                 android:orientation="horizontal">
 
+                <!-- Takes the width the figures leave, and ellipsizes a long
+                     translated name rather than pushing them out. -->
                 <TextView
                     android:id="@+id/calorie_widget_protein_name"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:textColor="@color/calorie_widget_protein"
                     android:textSize="13sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/calorie_widget_protein_spacer"
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
 
                 <TextView
                     android:id="@+id/calorie_widget_protein_value"
@@ -121,19 +132,18 @@
                 android:gravity="end"
                 android:orientation="horizontal">
 
+                <!-- Takes the width the figures leave, and ellipsizes a long
+                     translated name rather than pushing them out. -->
                 <TextView
                     android:id="@+id/calorie_widget_carbs_name"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:textColor="@color/calorie_widget_carbs"
                     android:textSize="13sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/calorie_widget_carbs_spacer"
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
 
                 <TextView
                     android:id="@+id/calorie_widget_carbs_value"
@@ -161,19 +171,18 @@
                 android:gravity="end"
                 android:orientation="horizontal">
 
+                <!-- Takes the width the figures leave, and ellipsizes a long
+                     translated name rather than pushing them out. -->
                 <TextView
                     android:id="@+id/calorie_widget_fat_name"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:textColor="@color/calorie_widget_fat"
                     android:textSize="13sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/calorie_widget_fat_spacer"
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
 
                 <TextView
                     android:id="@+id/calorie_widget_fat_value"
