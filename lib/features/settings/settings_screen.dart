@@ -818,7 +818,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _settingsBloc.setUsesImperialFoodUnits(selectedUsesImperial);
       _settingsBloc.add(LoadSettingsEvent());
       _homeBloc.add(LoadItemsEvent());
-      _diaryBloc.add(const LoadDiaryYearEvent());
+      // Profile's water goal and the Trends water card follow the food
+      // unit too, and both keep their loaded state (#1306).
+      _profileBloc.add(LoadProfileEvent());
+      reloadDiaryAndTrends();
     }
   }
 

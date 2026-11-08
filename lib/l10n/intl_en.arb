@@ -165,6 +165,13 @@
       }
     }
   },
+  "@logWaterAmountLabelFlOz": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "@settingsNotificationsTimeLabel": {
     "placeholders": {
       "time": {
@@ -173,6 +180,16 @@
     }
   },
   "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "@waterChipLabelFlOz": {
     "placeholders": {
       "current": {
         "type": "int"
@@ -1195,6 +1212,7 @@
   "yearsLabel": "{age} years",
   "@yearsLabel": {"placeholders": {"age": {"type": "int"}}},
   "logWaterAmountLabel": "Add {amount} ml",
+  "logWaterAmountLabelFlOz": "Add {amount} fl.oz",
   "logWaterDialogTitle": "Log water intake",
   "logWaterNothingToUndoLabel": "Nothing to undo",
   "logWaterUndoLabel": "Undo last",
@@ -1202,6 +1220,7 @@
   "settingsWaterGoalDescription": "Used by the water chip on the home screen.",
   "settingsWaterGoalLabel": "Daily water goal",
   "waterChipLabel": "{current} / {goal} ml",
+  "waterChipLabelFlOz": "{current} / {goal} fl.oz",
   "zincLabel": "zinc",
   "profileFastingEntry": "Fasting timer",
   "fastingTitle": "Fasting timer",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -17,14 +18,28 @@ class LogWaterDialog extends StatefulWidget {
   static const int sliderDivisions = sliderMaxMl ~/ sliderStepMl;
   static const int sliderDefaultMl = 250;
 
-  const LogWaterDialog({super.key});
+  // #1306: with imperial food units the slider runs in whole fluid ounces,
+  // up to a quart, starting on a cup. The amount is still stored in ml.
+  static const int sliderMaxFlOz = 32;
+  static const int sliderDefaultFlOz = 8;
+
+  final bool usesImperialUnits;
+
+  const LogWaterDialog({super.key, this.usesImperialUnits = false});
 
   @override
   State<LogWaterDialog> createState() => _LogWaterDialogState();
 }
 
 class _LogWaterDialogState extends State<LogWaterDialog> {
-  double _selectedMl = LogWaterDialog.sliderDefaultMl.toDouble();
+  // The slider value, in ml or in fl oz depending on the unit setting.
+  late double _selected = widget.usesImperialUnits
+      ? LogWaterDialog.sliderDefaultFlOz.toDouble()
+      : LogWaterDialog.sliderDefaultMl.toDouble();
+
+  int get _selectedMl => widget.usesImperialUnits
+      ? UnitCalc.flOzToMl(_selected).round()
+      : _selected.round();
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +60,9 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
             identifier: 'log-water-reset',
             container: true,
             child: TextButton(
-              onPressed: _selectedMl == 0
+              onPressed: _selected == 0
                   ? null
-                  : () => setState(() => _selectedMl = 0),
+                  : () => setState(() => _selected = 0),
               child: Text(s.buttonResetLabel),
             ),
           ),
@@ -58,7 +73,9 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            s.logWaterAmountLabel(_selectedMl.round()),
+            widget.usesImperialUnits
+                ? s.logWaterAmountLabelFlOz(_selected.round())
+                : s.logWaterAmountLabel(_selected.round()),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
@@ -69,13 +86,19 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
           Semantics(
             identifier: 'log-water-slider',
             child: Slider(
-              value: _selectedMl,
+              value: _selected,
               min: 0,
-              max: LogWaterDialog.sliderMaxMl.toDouble(),
-              divisions: LogWaterDialog.sliderDivisions,
-              label: '${_selectedMl.round()} ml',
+              max: widget.usesImperialUnits
+                  ? LogWaterDialog.sliderMaxFlOz.toDouble()
+                  : LogWaterDialog.sliderMaxMl.toDouble(),
+              divisions: widget.usesImperialUnits
+                  ? LogWaterDialog.sliderMaxFlOz
+                  : LogWaterDialog.sliderDivisions,
+              label: widget.usesImperialUnits
+                  ? '${_selected.round()} ${s.flOzUnit}'
+                  : '${_selected.round()} ${s.mlLabel}',
               onChanged: (value) {
-                setState(() => _selectedMl = value);
+                setState(() => _selected = value);
               },
             ),
           ),
@@ -112,7 +135,7 @@ class _LogWaterDialogState extends State<LogWaterDialog> {
   }
 
   Future<void> _onSavePressed() async {
-    final amount = _selectedMl.round();
+    final amount = _selectedMl;
     final navigator = Navigator.of(context);
     if (amount > 0) {
       await locator<HomeBloc>().addWaterIntake(amount);
