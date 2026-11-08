@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -104,6 +105,10 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
 
   final ToolChoiceMode toolChoice;
 
+  /// OpenRouter's `reasoning.enabled: false`, for a model that thinks by
+  /// default and refuses a forced call while it does.
+  final bool reasoningOff;
+
   /// What a status code means here. A parameter because the same number does
   /// not mean the same thing to every destination — #695 — and a local
   /// runtime's 404 is "that model is not pulled", not "that model was
@@ -142,6 +147,7 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
     this.failureFor = openRouterFailureFor,
     this.timeout = defaultTimeout,
     this.timeoutFailure = MealInterpreterFailure.transient,
+    this.reasoningOff = false,
   });
 
   /// The OpenRouter configuration, named so call sites read as intent rather
@@ -152,6 +158,7 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
     required String model,
     List<String>? providers,
     Duration timeout = defaultTimeout,
+    AiToolCall toolCall = AiToolCall.forced,
   }) => OpenAiCompatibleMealItemsApi(
     client,
     apiKey,
@@ -159,6 +166,10 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
     endpoint: openRouterEndpoint,
     broker: OpenRouterBroker(providers: providers),
     timeout: timeout,
+    toolChoice: toolCall == AiToolCall.auto
+        ? ToolChoiceMode.unforced
+        : ToolChoiceMode.namedFunction,
+    reasoningOff: toolCall == AiToolCall.forcedThinkingOff,
   );
 
   @override
@@ -168,7 +179,12 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
   }) async {
     final body = jsonEncode({
       'model': model,
-      'max_tokens': _maxTokens,
+      // An unforced model may think first, which the budget has to hold;
+      // one that must not think is told so.
+      'max_tokens': toolChoice == ToolChoiceMode.unforced && broker != null
+          ? 4 * _maxTokens
+          : _maxTokens,
+      if (reasoningOff) 'reasoning': {'enabled': false},
       // No top-level `system` field here: the OpenAI-compatible shape wants
       // it as the first message.
       'messages': [
@@ -232,7 +248,11 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
         // would surface as "malformed response" rather than as the
         // capability problem it is. With it, an unfit provider is refused up
         // front with a 404 the user can be told about.
-        'require_parameters': true,
+        // Not for a model asked not to think: OpenRouter's filter refuses a
+        // forced `tool_choice` to Haiku 5.5 on every endpoint (404, measured
+        // 2026-10-28), though Anthropic serves it with thinking off. The pin
+        // below still names who serves it.
+        if (!reasoningOff) 'require_parameters': true,
         // Routing default is `allow`, meaning providers that store input
         // non-transiently and may train on it are eligible. The app cannot
         // promise a destination's behaviour it never asked for.
