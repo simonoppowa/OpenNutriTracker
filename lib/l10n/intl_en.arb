@@ -98,7 +98,6 @@
   "backupBehaviorOverwriteLabel": "overwrite",
   "backupBehaviorCreateNewLabel": "create new file",
   "backupStatusLastBackupLabel": "Last backup:",
-  "backupStatusNextBackupLabel": "Next backup:",
   "backupStatusNeverLabel": "never",
   "dateTodayLabel": "Today",
   "dateYesterdayLabel": "Yesterday",

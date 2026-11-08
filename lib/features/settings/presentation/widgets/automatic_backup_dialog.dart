@@ -54,7 +54,6 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
   BackupBehaviorDropDownType _backupBehavior = _backupBehaviorDefault;
 
   DateTime? _lastBackupDate;
-  DateTime? _nextBackupDate;
 
   @override
   void initState() {
@@ -64,13 +63,17 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
   }
 
   void initAutoBackupState() async {
+    // The background task isolate writes to this same box, so reload the
+    // in-memory keystore from disk before reading to ensure we see any
+    // backup that ran while the app was alive.
+    await widget.settingsBloc.reloadBackupInfo();
+
     final bool backupsEnabled = await widget.settingsBloc.getAutoBackupEnabled();
     final String? backupLocation = await widget.settingsBloc.getAutoBackupLocation();
     final BackupIntervalDropDownType backupInterval = getBackupIntervalEnumFromValue(await widget.settingsBloc.getAutoBackupIntervalDays() ?? 0) ?? _backupIntervalDefault;
     final BackupBehaviorDropDownType backupBehavior = (await widget.settingsBloc.getAutoBackupOverwrite()) ? BackupBehaviorDropDownType.overwrite : BackupBehaviorDropDownType.createNew;
 
-    final DateTime? lastBackupDate = await getAutoBackupLastFinishedTime();
-    final DateTime? nextBackupDate = null;  // TODO(ejoyce) get from storage
+    final DateTime? lastBackupDate = await widget.settingsBloc.getLastBackupTimestamp();
 
     setState(() {
       _backupsEnabled = backupsEnabled;
@@ -79,7 +82,6 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
       _backupBehavior = backupBehavior;
 
       _lastBackupDate = lastBackupDate;
-      _nextBackupDate = nextBackupDate;
     });
   }
 
@@ -185,7 +187,6 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
                     direction: Axis.vertical,
                     children: [
                       Text("${S.of(context).backupStatusLastBackupLabel} ${_lastBackupDate != null ? dateFormat.format(_lastBackupDate!) : S.of(context).backupStatusNeverLabel}"),
-                      Text("${S.of(context).backupStatusNextBackupLabel} ${_nextBackupDate != null ? dateFormat.format(_nextBackupDate!) : S.of(context).backupStatusNeverLabel}"),
                     ]
                   ),
                 ),
@@ -234,7 +235,7 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
         .setAutoBackupConfig(_backupsEnabled, _backupLocation, backupIntervalDays, backupOverwrite);
     widget.settingsBloc.add(LoadSettingsEvent());
 
-    refreshAutoBackupTask();
+    restartAutoBackupTask(_backupsEnabled, backupIntervalDays);
 
     Navigator.of(context).pop();
   }

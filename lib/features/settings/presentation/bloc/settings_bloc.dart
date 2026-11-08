@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_backup_info_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
@@ -24,6 +25,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
+  final GetBackupInfoUsecase _getBackupInfoUsecase;
 
   SettingsBloc(
       this._getUserUsecase,
@@ -31,7 +33,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       this._addConfigUsecase,
       this._addTrackedDayUsecase,
       this._getKcalGoalUsecase,
-      this._getMacroGoalUsecase)
+      this._getMacroGoalUsecase,
+      this._getBackupInfoUsecase)
       : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
@@ -116,6 +119,15 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   Future<bool> getAutoBackupOverwrite() async {
     final config = await _getConfigUsecase.getConfig();
     return config.autoBackupOverwrite ?? true;
+  }
+
+  Future<void> reloadBackupInfo() async {
+    await _getBackupInfoUsecase.reloadBackupInfo();
+  }
+
+  Future<DateTime?> getLastBackupTimestamp() async {
+    final backupInfo = await _getBackupInfoUsecase.getBackupInfo();
+    return backupInfo.lastBackupTimestamp;
   }
 
   void setAutoBackupConfig(bool autoBackupEnabled, String? autoBackupLocation, int? autoBackupIntervalDays, bool? autoBackupOverwrite) {

@@ -90,9 +90,6 @@ class MessageLookup extends MessageLookupByLibrary {
       "Last backup:",
     ),
     "backupStatusNeverLabel": MessageLookupByLibrary.simpleMessage("never"),
-    "backupStatusNextBackupLabel": MessageLookupByLibrary.simpleMessage(
-      "Next backup:",
-    ),
     "betaVersionName": MessageLookupByLibrary.simpleMessage("[Beta]"),
     "bmiInfo": MessageLookupByLibrary.simpleMessage(
       "Body Mass Index (BMI) is a index to classify overweight and obesity in adults. It is defined as weight in kilograms divided by the square of height in meters (kg/m²).\n\nBMI does not differentiate between fat and muscle mass and can be misleading for some individuals.",

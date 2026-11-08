@@ -5,12 +5,17 @@ import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/backup_info_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/backup_info_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_backup_info_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_backup_info_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:saf_stream/saf_stream.dart';
@@ -21,21 +26,30 @@ const autoBackupTaskKey = "com.opennutritracker.backup";
 
 const autoBackupFileName = "opennutritracker-backup"; // Not including .zip file extension
 
-void refreshAutoBackupTask() {
-  Workmanager().cancelByUniqueName(autoBackupTaskKey);
-  Workmanager().registerPeriodicTask(
-    autoBackupTaskKey,
-    autoBackupTaskKey,
-    frequency: Duration(minutes: 15),
-  );
-//  Workmanager().registerOneOffTask(
-//    autoBackupTaskKey,
-//    autoBackupTaskKey,
-//    initialDelay: Duration(seconds: 2),
-//  );
+void restartAutoBackupTask(bool backupsEnabled, int? backupIntervalDays) async {
+  if (backupsEnabled && backupIntervalDays != null && backupIntervalDays > 0) {
+    Workmanager().registerPeriodicTask(
+      autoBackupTaskKey,
+      autoBackupTaskKey,
+      frequency: Duration(days: backupIntervalDays),
+      flexInterval: Duration(hours: 12), // The backup should occur sometime within 12 hrs of the period
+    );
+  } else {
+    Workmanager().cancelByUniqueName(autoBackupTaskKey);
+  }
 }
 
 Future<DateTime?> getAutoBackupLastFinishedTime() async {
+  // Prefer the persisted store; fall back to Workmanager state.
+  try {
+    final getBackupInfoUsecase = locator<GetBackupInfoUsecase>();
+    final backupInfo = await getBackupInfoUsecase.getBackupInfo();
+    if (backupInfo.lastBackupTimestamp != null) {
+      return backupInfo.lastBackupTimestamp;
+    }
+  } catch (e) {
+    // locator may not be initialized (e.g. in the task isolate); fall through.
+  }
   final workInfo = await Workmanager().getWorkInfo(autoBackupTaskKey);
   if (workInfo == null || workInfo.state != WorkState.succeeded) {
     return null;
@@ -63,13 +77,13 @@ Future<bool> autoBackupAndroid(String autoBackupLocation, bool? autoBackupOverwr
     if (kDebugMode) {
       debugPrint("Backup succeeded, path = ${safFile.uri.path}");
     }
+    return Future.value(true);
   } else {
     if (kDebugMode) {
       debugPrint("Backup FAILED, path = ${safFile.uri.path}, exists = $exportCreated");
-      return Future.value(false);
     }
+    return Future.value(false);
   }
-  return Future.value(true);
 }
 
 Future<bool> runAutoBackupTask() async {
@@ -97,6 +111,11 @@ Future<bool> runAutoBackupTask() async {
   final trackedDayRepo = TrackedDayRepository(trackedDayDataSource);
   final exportDataUsecase = ExportDataUsecase(userActivityRepo, intakeRepo, trackedDayRepo);
 
+  // Init backup info usecase and dependencies
+  final backupInfoDataSource = BackupInfoDataSource(hiveDBProvider);
+  final backupInfoRepository = BackupInfoRepository(backupInfoDataSource);
+  final setBackupInfoUsecase = SetBackupInfoUsecase(backupInfoRepository);
+
   // Get backup configuration
   final config = await getConfigUsecase.getConfig();
   final autoBackupEnabled = config.autoBackupEnabled ?? false;
@@ -118,15 +137,19 @@ Future<bool> runAutoBackupTask() async {
   }
 
   if (Platform.isAndroid) {
-    return autoBackupAndroid(autoBackupLocation, autoBackupOverwrite, exportDataUsecase);
+    final backupSucceeded = await autoBackupAndroid(
+        autoBackupLocation, autoBackupOverwrite, exportDataUsecase);
+    if (backupSucceeded) {
+      await setBackupInfoUsecase
+          .setLastBackupTimestamp(DateTime.now());
+    }
+    // On failure, leave the existing timestamp unchanged.
+    return Future.value(backupSucceeded);
   } else {
     // Other platforms are not currently supported
     if (kDebugMode) {
       debugPrint("Autobackup failed: unsupported platform");
     }
-    Future.value(false);
+    return Future.value(false);
   }
-
-  
-  return Future.value(true);
 }

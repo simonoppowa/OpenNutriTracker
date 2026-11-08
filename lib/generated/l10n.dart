@@ -948,16 +948,6 @@ class S {
     );
   }
 
-  /// `Next backup:`
-  String get backupStatusNextBackupLabel {
-    return Intl.message(
-      'Next backup:',
-      name: 'backupStatusNextBackupLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `never`
   String get backupStatusNeverLabel {
     return Intl.message(

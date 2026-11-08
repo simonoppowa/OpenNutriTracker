@@ -6,12 +6,14 @@ import 'package:opennutritracker/core/data/data_source/physical_activity_data_so
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/backup_info_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
+import 'package:opennutritracker/core/data/repository/backup_info_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
@@ -27,6 +29,8 @@ import 'package:opennutritracker/core/domain/usecase/get_physical_activity_useca
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_backup_info_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/set_backup_info_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -70,6 +74,7 @@ Future<void> initLocator() async {
   // Backend
   await Supabase.initialize(
       url: Env.supabaseProjectUrl, anonKey: Env.supabaseProjectAnonKey);
+  locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
   locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
   // Cache manager
@@ -85,7 +90,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ProfileBloc>(
       () => ProfileBloc(locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() =>
-      SettingsBloc(locator(), locator(), locator(), locator(), locator(), locator()));
+      SettingsBloc(locator(), locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -143,6 +148,10 @@ Future<void> initLocator() async {
       () => ExportDataUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton(
       () => ImportDataUsecase(locator(), locator(), locator()));
+  locator.registerLazySingleton<GetBackupInfoUsecase>(
+      () => GetBackupInfoUsecase(locator()));
+  locator.registerLazySingleton<SetBackupInfoUsecase>(
+      () => SetBackupInfoUsecase(locator()));
 
   // Repositories
   locator.registerLazySingleton(() => ConfigRepository(locator()));
@@ -158,6 +167,8 @@ Future<void> initLocator() async {
       () => PhysicalActivityRepository(locator()));
   locator.registerLazySingleton<TrackedDayRepository>(
       () => TrackedDayRepository(locator()));
+  locator.registerLazySingleton<BackupInfoRepository>(
+      () => BackupInfoRepository(locator()));
 
   // DataSources
   locator
@@ -175,12 +186,21 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
   locator.registerLazySingleton(
       () => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
+  locator.registerLazySingleton<BackupInfoDataSource>(
+      () => BackupInfoDataSource(hiveDBProvider));
 
   await _initializeConfig(locator());
+  await _initializeBackupInfo(locator());
 }
 
 Future<void> _initializeConfig(ConfigDataSource configDataSource) async {
   if (!await configDataSource.configInitialized()) {
     configDataSource.initializeConfig();
+  }
+}
+
+Future<void> _initializeBackupInfo(BackupInfoDataSource backupInfoDataSource) async {
+  if (!await backupInfoDataSource.backupInfoInitialized()) {
+    backupInfoDataSource.initializeBackupInfo();
   }
 }
