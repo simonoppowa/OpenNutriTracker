@@ -116,6 +116,21 @@ void main() {
     });
   }
 
+  testWidgets('an unchanged value typed differently is shown canonically', (
+    tester,
+  ) async {
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField), '051');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(TextField, '51'), findsOneWidget);
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+    expect(settingsBloc.saved, [1500]);
+  });
+
   testWidgets('a typed fl oz goal is stored in ml (#1306)', (tester) async {
     await openDialog(tester);
 
