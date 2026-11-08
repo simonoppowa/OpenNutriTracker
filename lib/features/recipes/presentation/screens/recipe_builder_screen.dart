@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -331,8 +332,14 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
   bool _hasUnsavedChanges(RecipeBuilderState state) {
     if (state.didSave || state.isSaving) return false;
     // An opened recipe is never empty, so the checks below would always
-    // ask. Compare it with what was loaded instead (#1443).
-    if (state.isExistingRecipe) return state != _bloc.loadedState;
+    // ask. Compare what Save would write with what was loaded instead
+    // (#1443).
+    if (state.isExistingRecipe) {
+      final loaded = _bloc.loadedState;
+      return loaded == null ||
+          !const DeepCollectionEquality()
+              .equals(state.savedContent, loaded.savedContent);
+    }
     return state.name.trim().isNotEmpty ||
         (state.description?.trim().isNotEmpty ?? false) ||
         state.ingredients.isNotEmpty ||

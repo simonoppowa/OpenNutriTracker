@@ -229,4 +229,45 @@ void main() {
     expect(find.text(l10nEn.discardChangesTitle), findsOneWidget);
     expect(find.byType(RecipeBuilderScreen), findsOneWidget);
   });
+
+  // Back compares what Save would write, not the whole state: a failed save
+  // leaves `saveError` behind, and the content is back to what was loaded.
+  testWidgets('Back leaves without asking once a failed save is undone',
+      (tester) async {
+    await pumpPushedBuilder(tester, _soup(totalWeightG: 800));
+    final name = find.widgetWithText(TextField, l10nEn.recipeNameLabel);
+
+    await tester.enterText(name, '');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.recipeSaveLabel));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nEn.recipeNameRequiredLabel), findsOneWidget);
+
+    await tester.enterText(name, 'Soup');
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nEn.discardChangesTitle), findsNothing);
+    expect(find.byType(RecipeBuilderScreen), findsNothing);
+  });
+
+  // Save writes a blank description as null, so a description typed into
+  // and cleared again is no change.
+  testWidgets('Back leaves without asking once a typed description is cleared',
+      (tester) async {
+    await pumpPushedBuilder(tester, _soup(totalWeightG: 800));
+    final description =
+        find.widgetWithText(TextField, l10nEn.recipeDescriptionLabel);
+
+    await tester.enterText(description, 'Hearty');
+    await tester.pumpAndSettle();
+    await tester.enterText(description, '');
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text(l10nEn.discardChangesTitle), findsNothing);
+    expect(find.byType(RecipeBuilderScreen), findsNothing);
+  });
 }
