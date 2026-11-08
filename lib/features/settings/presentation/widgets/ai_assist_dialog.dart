@@ -1190,6 +1190,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     );
   }
 
+  /// An OpenRouter id without its vendor: `claude-sonnet-5.5`.
+  static String _shownId(String id) => id.substring(id.indexOf('/') + 1);
+
   /// What the row below the default says.
   ///
   /// OpenRouter's second entry genuinely is cheaper and weaker — #668
@@ -1207,9 +1210,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// per-provider string reached `openai/gpt-5.6-terra` claiming it was
   /// cheaper — it matches `claude-sonnet-5` on input and is dearer on output.
   /// #726.
-  /// An OpenRouter id without its vendor: `claude-sonnet-5.5`.
-  static String _shownId(String id) => id.substring(id.indexOf('/') + 1);
-
   String _noteLabel(S s, AiModelNote note) => switch (note) {
     AiModelNote.cheaper => s.aiAssistModelCheaperLabel,
     AiModelNote.moreItems => s.aiAssistModelMoreItemsLabel,

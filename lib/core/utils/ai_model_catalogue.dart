@@ -262,8 +262,11 @@ abstract final class AiModelCatalogue {
 
   /// A stored GPT-5.6 choice moves to its successor, not to the list's
   /// head: on OpenRouter that is Sonnet, and the fallback would send the
-  /// user's photos to another company (#726).
+  /// user's photos to another company (#726). A stored Haiku 4.5 choice on
+  /// OpenRouter moves to Haiku 5.5 for the same reason in price: the head is
+  /// the dearest row.
   static const _successors = {
+    'anthropic/claude-haiku-4.5': 'anthropic/claude-haiku-5.5',
     'openai/gpt-5.6-luna': 'openai/gpt-6-luna',
     'openai/gpt-5.6-terra': 'openai/gpt-6.1-terra',
     'gpt-5.6-luna': 'gpt-6-luna',

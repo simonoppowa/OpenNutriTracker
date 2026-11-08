@@ -158,6 +158,18 @@ void main() {
     }
   });
 
+  test('a stored OpenRouter Haiku 4.5 choice stays on Haiku', () {
+    // The list's head is Sonnet 5.5, the dearest row: falling back to it
+    // would quietly raise the cost for someone who chose the cheap model.
+    expect(
+      AiModelCatalogue.resolve(
+        AiProvider.openrouter,
+        'anthropic/claude-haiku-4.5',
+      )!.id,
+      'anthropic/claude-haiku-5.5',
+    );
+  });
+
   test('a stored Haiku 4.5 choice on the direct path moves to Haiku 5.5', () {
     expect(
       AiModelCatalogue.resolve(AiProvider.anthropic, 'claude-haiku-4-5')!.id,
