@@ -69,7 +69,7 @@ class _AutomaticBackupDialogState extends State<AutomaticBackupDialog> {
     final BackupIntervalDropDownType backupInterval = getBackupIntervalEnumFromValue(await widget.settingsBloc.getAutoBackupIntervalDays() ?? 0) ?? _backupIntervalDefault;
     final BackupBehaviorDropDownType backupBehavior = (await widget.settingsBloc.getAutoBackupOverwrite()) ? BackupBehaviorDropDownType.overwrite : BackupBehaviorDropDownType.createNew;
 
-    final DateTime? lastBackupDate = DateTime.now();  // TODO(ejoyce) get from storage
+    final DateTime? lastBackupDate = await getAutoBackupLastFinishedTime();
     final DateTime? nextBackupDate = null;  // TODO(ejoyce) get from storage
 
     setState(() {

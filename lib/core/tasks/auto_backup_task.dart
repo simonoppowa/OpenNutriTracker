@@ -17,23 +17,30 @@ import 'package:saf_stream/saf_stream.dart';
 import 'package:saf_util/saf_util.dart';
 import 'package:workmanager/workmanager.dart';
 
-const autoBackupTaskKey = "com.opennutritracker.autobackuptask";
+const autoBackupTaskKey = "com.opennutritracker.backup";
 
 const autoBackupFileName = "opennutritracker-backup"; // Not including .zip file extension
 
 void refreshAutoBackupTask() {
-  //Workmanager().registerPeriodicTask(
-  //  autoBackupTaskKey,
-  //  autoBackupTaskKey,
-  //  initialDelay: Duration(seconds: 10),
-  //  frequency: Duration(minutes: 15),
-  //);
   Workmanager().cancelByUniqueName(autoBackupTaskKey);
-  Workmanager().registerOneOffTask(
+  Workmanager().registerPeriodicTask(
     autoBackupTaskKey,
     autoBackupTaskKey,
-    initialDelay: Duration(seconds: 15),
+    frequency: Duration(minutes: 15),
   );
+//  Workmanager().registerOneOffTask(
+//    autoBackupTaskKey,
+//    autoBackupTaskKey,
+//    initialDelay: Duration(seconds: 2),
+//  );
+}
+
+Future<DateTime?> getAutoBackupLastFinishedTime() async {
+  final workInfo = await Workmanager().getWorkInfo(autoBackupTaskKey);
+  if (workInfo == null || workInfo.state != WorkState.succeeded) {
+    return null;
+  }
+  return workInfo.lastFinishedAt;
 }
 
 Future<bool> autoBackupAndroid(String autoBackupLocation, bool? autoBackupOverwrite, ExportDataUsecase exportDataUsecase) async {
