@@ -720,6 +720,35 @@ void main() {
       },
     );
 
+    test('a scale reading the user overwrote by hand stays out once that '
+        'entry is deleted', () async {
+      healthService.weights = [_reading('b', DateTime(2026, 5, 22, 7), 80.9)];
+      await usecase.importNow();
+      // The user corrects the scale's reading by typing their own weight.
+      await weightLogRepository.addEntry(
+        WeightLogEntity(date: yesterday, weightKg: 79.4),
+      );
+
+      await deleteUsecase.deleteEntry(await listedEntry(yesterday));
+      ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+
+      expect(await usecase.importNow(), equals(0));
+      expect(await weightLogRepository.getEntry(yesterday), isNull);
+    });
+
+    test('deleting a manual entry holds back only its own day', () async {
+      await weightLogRepository.addEntry(
+        WeightLogEntity(date: yesterday, weightKg: 79.4),
+      );
+      await deleteUsecase.deleteEntry(await listedEntry(yesterday));
+
+      // A reading from the next morning is not part of the deleted day.
+      healthService.weights = [_reading('t', DateTime(2026, 5, 23, 7), 80.2)];
+
+      expect(await usecase.importNow(), equals(1));
+      expect((await weightLogRepository.getEntry(today))!.externalId, 't');
+    });
+
     test('a day cutoff is pruned like a tombstone', () async {
       await configDataSource.setConfigHealthLastImportAt(now);
       final longAgo = DateTime(2026, 4, 1);

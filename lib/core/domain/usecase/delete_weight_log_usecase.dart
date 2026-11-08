@@ -1,3 +1,4 @@
+import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
@@ -6,6 +7,10 @@ import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 class DeleteWeightLogUsecase {
+  /// Pinned by tests; production never assigns it.
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
+
   final WeightLogRepository _weightLogRepository;
   final ConfigRepository _configRepository;
   final UserRepository _userRepository;
@@ -46,6 +51,20 @@ class DeleteWeightLogUsecase {
   Future<bool> _deleteEntry(DateTime filedDay) async {
     final entry = await _weightLogRepository.getEntry(filedDay);
     final externalId = entry?.externalId;
+    if (entry != null && externalId == null) {
+      // A manual entry can stand where an imported reading was — the user
+      // typed over the scale's weight to correct it. Deleting it empties
+      // the day, so the scale's reading must not be filed back into it: the
+      // day's cutoff keeps out every reading taken up to now, and no later
+      // than the day's end, so the days after it are untouched.
+      final day = entry.date;
+      final endOfDay = DateTime(day.year, day.month, day.day + 1);
+      final now = clock();
+      await _configRepository.addConfigHealthDeletedWorkout(
+        ConfigEntity.deletedWeightDayKey(day),
+        now.isBefore(endOfDay) ? now : endOfDay,
+      );
+    }
     if (externalId != null) {
       // The weight import re-reads the day before its watermark, so a
       // deleted imported reading would come straight back. It shares the
