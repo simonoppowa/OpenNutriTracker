@@ -430,4 +430,24 @@ void main() {
     healthService.refuse = false;
     expect(await usecase.exportNow(), 1);
   });
+
+  test('a refused day does not hold back the days after it', () async {
+    await intakeRepository.addIntake(_intake(id: 'a', at: now));
+    await intakeRepository.addIntake(_intake(id: 'c', at: yesterdayMorning));
+    // Days are written oldest first, so yesterday is refused before today
+    // is reached.
+    healthService.refuseFrom = yesterday;
+
+    await expectLater(usecase.exportNow(), throwsStateError);
+    expect([for (final r in healthService.replaced) r.from], [today]);
+    final config = await configDataSource.getConfig();
+    expect(config.healthExportedDays?.keys, ['2026-05-23']);
+    // The pass did not finish cleanly, so it is not reported as the last
+    // export.
+    expect(config.healthLastExportAt, isNull);
+
+    healthService.refuseFrom = null;
+    expect(await usecase.exportNow(), 1);
+    expect(healthService.replaced.last.from, yesterday);
+  });
 }

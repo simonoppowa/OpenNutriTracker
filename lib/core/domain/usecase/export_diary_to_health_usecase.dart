@@ -153,6 +153,12 @@ class ExportDiaryToHealthUsecase {
     }.toList()..sort();
 
     var written = 0;
+    // A day the store refuses (a value out of its range, say) is skipped,
+    // not fatal: days run oldest first, so stopping at it would hold back
+    // every newer day, today included, until it aged out of the backfill.
+    // Its fingerprint is not saved, so it is retried next run, and the pass
+    // still throws at the end so "Export now" reports it.
+    (Object, StackTrace)? refusal;
     for (final day in days) {
       final (from, to) = _window(day, offset);
       // Health Connect refuses a record from the future, so an entry filed
@@ -178,20 +184,29 @@ class ExportDiaryToHealthUsecase {
       // Nothing to write, and nothing this day wrote left to clear.
       if (stored == null && fingerprint == null) continue;
       if (!await _mayContinue(profileId)) return written;
-      await _healthExportRepository.replaceDay(
-        from: from,
-        to: to,
-        meals: meals,
-        water: water,
-      );
+      try {
+        await _healthExportRepository.replaceDay(
+          from: from,
+          to: to,
+          meals: meals,
+          water: water,
+        );
+      } catch (error, stackTrace) {
+        _log.warning('The health store refused $day', error, stackTrace);
+        refusal ??= (error, stackTrace);
+        continue;
+      }
       if (!await _mayContinue(profileId)) return written;
       await _configRepository.setConfigHealthExportedDay(day, fingerprint);
       written++;
     }
+    if (written > 0) _log.info('Exported $written diary day(s) to health');
+    if (refusal case (final error, final stackTrace)) {
+      Error.throwWithStackTrace(error, stackTrace);
+    }
     if (await _mayContinue(profileId)) {
       await _configRepository.setConfigHealthLastExportAt(clock());
     }
-    if (written > 0) _log.info('Exported $written diary day(s) to health');
     return written;
   }
 
