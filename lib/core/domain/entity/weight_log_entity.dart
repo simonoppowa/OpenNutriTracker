@@ -39,11 +39,18 @@ class WeightLogEntity extends Equatable {
   /// been — which errs toward keeping a weight the user gave.
   DateTime get takenAt => measuredAt ?? date;
 
+  /// The day the entry is kept under: [filedDay], or [date] for an entry
+  /// not read from the log. Unlike [date] it does not move with the time
+  /// zone, so it orders entries by the day they were saved on.
+  DateTime get day => filedDay ?? date;
+
   /// The entry the user's current weight follows: the newest entry, with
   /// imported entries ordered by when they were taken rather than the day
   /// they are filed under (an entry keeps its day across a time-zone change,
   /// so a later reading can sit on an earlier date). A manual entry has only
-  /// a day, so an imported one beats it only on a later day. Null for an
+  /// a day, so an imported one beats it only on a later day. Days compare
+  /// by [day], the storage key, so a jump across the date line cannot put a
+  /// manual entry behind an imported one filed the day before. Null for an
   /// empty log.
   ///
   /// The health weight import promotes this entry, and deleting it hands
@@ -57,14 +64,13 @@ class WeightLogEntity extends Equatable {
             entry.takenAt.isAfter(newestImported.takenAt)) {
           newestImported = entry;
         }
-      } else if (newestManual == null ||
-          entry.date.isAfter(newestManual.date)) {
+      } else if (newestManual == null || entry.day.isAfter(newestManual.day)) {
         newestManual = entry;
       }
     }
     if (newestImported == null) return newestManual;
     if (newestManual == null) return newestImported;
-    return newestImported.date.isAfter(newestManual.date)
+    return newestImported.day.isAfter(newestManual.day)
         ? newestImported
         : newestManual;
   }
