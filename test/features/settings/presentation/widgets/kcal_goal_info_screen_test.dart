@@ -17,8 +17,8 @@ import '../../../../helpers/test_l10n.dart';
 /// Renders the transparency screen against breakdowns computed by the real
 /// [KcalGoalBreakdownEntity.compute] and asserts the *displayed strings*
 /// equal independently hand-computed values. This pins the whole chain —
-/// math, formatting, and rounding conventions (truncation, matching the
-/// dashboard) — so the screen cannot silently drift from the numbers the
+/// math, formatting, and rounding conventions (energy rounds to nearest,
+/// matching the dashboard, #1469) — so the screen cannot silently drift from the numbers the
 /// rest of the app shows.
 class _FakeBreakdownUsecase extends Fake
     implements GetKcalGoalBreakdownUsecase {
@@ -117,7 +117,7 @@ void main() {
       expect(find.text('1.27'), findsOneWidget); // male PA at PAL 1.75
     });
 
-    testWidgets('shows the substituted IOM formula and truncated TDEE', (
+    testWidgets('shows the substituted IOM formula and rounded TDEE', (
       tester,
     ) async {
       await _pump(tester, maleBreakdown());
@@ -128,10 +128,10 @@ void main() {
         ),
         findsOneWidget,
       );
-      // Box result truncates exactly like the summary rows do.
-      expect(find.textContaining('= 3164 kcal'), findsOneWidget);
+      // Box result rounds exactly like the summary rows do.
+      expect(find.textContaining('= 3165 kcal'), findsOneWidget);
       // TDEE appears twice: TDEE card result row + result card line.
-      expect(find.text('3164 kcal'), findsNWidgets(2));
+      expect(find.text('3165 kcal'), findsNWidgets(2));
     });
 
     testWidgets('shows every goal component with an explicit sign', (
@@ -150,13 +150,13 @@ void main() {
       );
     });
 
-    testWidgets('total equals the hand-computed goal, truncated like home', (
+    testWidgets('total equals the hand-computed goal, rounded like home', (
       tester,
     ) async {
       await _pump(tester, maleBreakdown());
 
-      // 3134.98 truncates to 3134 — identical to the dashboard's toInt().
-      expect(find.text('3134 kcal'), findsOneWidget);
+      // 3134.98 rounds to 3135 — identical to the dashboard (#1469).
+      expect(find.text('3135 kcal'), findsOneWidget);
     });
 
     testWidgets('macro card shows the hand-computed gram targets', (
@@ -164,12 +164,12 @@ void main() {
     ) async {
       await _pump(tester, maleBreakdown());
 
-      // Carbs: 3134.98 × 0.60 ÷ 4 = 470.25 → 470 g (truncated, like the
-      // dashboard tiles). Fat: ×0.25 ÷ 9 = 87.08 → 87 g.
+      // The goal shows rounded (3135); grams still truncate, like the
+      // dashboard tiles. Carbs: 3134.98 × 0.60 ÷ 4 = 470.25 → 470 g. Fat: ×0.25 ÷ 9 = 87.08 → 87 g.
       // Protein: ×0.15 ÷ 4 = 117.56 → 117 g.
-      expect(find.textContaining('3134 × 60 % ÷ 4 = 470 g'), findsOneWidget);
-      expect(find.textContaining('3134 × 25 % ÷ 9 = 87 g'), findsOneWidget);
-      expect(find.textContaining('3134 × 15 % ÷ 4 = 117 g'), findsOneWidget);
+      expect(find.textContaining('3135 × 60 % ÷ 4 = 470 g'), findsOneWidget);
+      expect(find.textContaining('3135 × 25 % ÷ 9 = 87 g'), findsOneWidget);
+      expect(find.textContaining('3135 × 15 % ÷ 4 = 117 g'), findsOneWidget);
       expect(find.text('470 g'), findsOneWidget);
       expect(find.text('87 g'), findsOneWidget);
       expect(find.text('117 g'), findsOneWidget);
@@ -180,12 +180,12 @@ void main() {
     ) async {
       await _pump(tester, maleBreakdown(), usesKilojoules: true);
 
-      // 3134.98 kcal × 4.184 = 13116.7 → 13116 kJ (truncated).
-      expect(find.text('13116 kJ'), findsOneWidget);
+      // 3134.98 kcal × 4.184 = 13116.7 → 13117 kJ (rounded).
+      expect(find.text('13117 kJ'), findsOneWidget);
       // 3164.98 kcal × 4.184 = 13242.3 → 13242 kJ.
       expect(find.text('13242 kJ'), findsNWidgets(2));
       // The IOM equation is defined in kcal, so the box must stay kcal.
-      expect(find.textContaining('= 3164 kcal'), findsOneWidget);
+      expect(find.textContaining('= 3165 kcal'), findsOneWidget);
     });
 
     testWidgets('taper case shows base and tapered adjustment plus the note', (

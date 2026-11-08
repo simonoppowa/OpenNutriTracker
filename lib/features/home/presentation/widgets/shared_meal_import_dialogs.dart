@@ -110,8 +110,8 @@ class SharedMealPreviewDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final available = items.where((item) => item.meal != null).toList();
-    final total =
-        available.fold<double>(0, (sum, item) => sum + (item.energyKcal ?? 0));
+    // Summed as the rows show them, so the total adds up on screen (#1469).
+    final kcals = available.map((item) => item.energyKcal ?? 0.0);
     // A skipped row (failed lookup) is missing from the sum too, so it makes
     // the total incomplete just like a food without energy data.
     final incomplete = items.any((item) => item.energyKcal == null);
@@ -174,7 +174,7 @@ class SharedMealPreviewDialog extends StatelessWidget {
                   Text(incomplete
                       ? S.of(context).sharedMealPartialTotalLabel
                       : S.of(context).sharedMealTotalLabel),
-                  Text(EnergyDisplay.formatWithUnit(context, total)),
+                  Text(EnergyDisplay.formatSumWithUnit(context, kcals)),
                 ],
               ),
             ],

@@ -23,12 +23,36 @@ class HealthConnectWorkoutReader {
   HealthConnectWorkoutReader({MethodChannel? channel})
     : _methodChannel = channel ?? _channel;
 
+  /// The [PlatformException.code] Health Connect's request quota answers
+  /// with ("Rate limited request quota has been exceeded"). The quota
+  /// replenishes by itself, so unlike the other codes it is worth waiting out.
+  static const rateLimitedCode = 'health_connect_rate_limited';
+
+  /// Whether [error] is Health Connect refusing a call for quota reasons.
+  static bool isRateLimited(Object error) =>
+      error is PlatformException && error.code == rateLimitedCode;
+
+  /// Whether the exercise and calorie read grants a workout import needs are
+  /// both still held.
+  ///
+  /// Asked through this channel rather than the `health` plugin's
+  /// `hasPermissions`, because the plugin's Android side makes that call in a
+  /// coroutine with no exception handler: a Health Connect that is rate
+  /// limited or unreachable ends the app's process, which no Dart `catch`
+  /// can stop. Here the same failure arrives as a [PlatformException].
+  ///
+  /// Throws like [readExerciseSessions].
+  Future<bool> hasWorkoutReadPermissions() async =>
+      await _methodChannel.invokeMethod<bool>('hasWorkoutReadPermissions') ??
+      false;
+
   /// Sessions starting within `[from, to)`.
   ///
   /// Throws [PlatformException] when the platform refuses — code
-  /// `permission_denied` for a revoked grant, `health_connect_unavailable`
-  /// for anything else. Callers treat both as a failed read rather than an
-  /// empty one, so a refusal never advances the import watermark.
+  /// `permission_denied` for a revoked grant, [rateLimitedCode] when the
+  /// request quota is spent, `health_connect_unavailable` for anything else.
+  /// Callers treat all of them as a failed read rather than an empty one, so
+  /// a refusal never advances the import watermark.
   Future<List<ExternalWorkout>> readExerciseSessions({
     required DateTime from,
     required DateTime to,

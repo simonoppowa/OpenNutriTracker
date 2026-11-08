@@ -40,7 +40,11 @@ class _FakeSearch implements SearchProductsUseCase {
   final Map<String, List<MealEntity>> results;
   final bool throws;
 
-  _FakeSearch(this.results, {this.throws = false});
+  /// The full Open Food Facts record behind a thin hit, by code. Empty
+  /// unless a test is about that lookup (#1472).
+  final Map<String, MealEntity> fullRecords;
+
+  _FakeSearch(this.results, {this.throws = false, this.fullRecords = const {}});
 
   @override
   Future<SearchProductsResult> searchOFFProductsByString(
@@ -60,6 +64,10 @@ class _FakeSearch implements SearchProductsUseCase {
     bool skipRemote = false,
     bool forResolution = false,
   }) async => const SearchProductsResult(meals: [], remoteSourceEmpty: false);
+
+  @override
+  Future<MealEntity?> fetchFullOffRecord(MealEntity meal) async =>
+      fullRecords[meal.code];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -133,6 +141,18 @@ BulkAddBloc blocWithModelReply(
   List<ParsedMealItem> items,
 ) => BulkAddBloc(
   ResolveParsedMealsUseCase(_FakeSearch(results)),
+  readerReturning(items),
+  photoReaderWithoutKey(),
+);
+
+/// [blocWithModelReply] whose search also answers the full Open Food Facts
+/// record behind a thin hit, by code (#1472).
+BulkAddBloc blocWithFullRecords(
+  Map<String, List<MealEntity>> results,
+  Map<String, MealEntity> fullRecords,
+  List<ParsedMealItem> items,
+) => BulkAddBloc(
+  ResolveParsedMealsUseCase(_FakeSearch(results, fullRecords: fullRecords)),
   readerReturning(items),
   photoReaderWithoutKey(),
 );
@@ -313,6 +333,73 @@ void main() {
   });
 
   group('a bare count (#622)', () {
+    test('flags a count past what a recipe batch makes', () async {
+      // A recipe's serving is a share of the batch: "14 pelmeni" against six
+      // servings of pelmeni would log more than twice the batch. Five tarts
+      // of a twelve-tart batch are five servings, as before.
+      MealEntity recipe(String name, int servings) => MealEntity(
+        code: name,
+        name: name,
+        url: null,
+        mealQuantity: '1200.0',
+        mealUnit: 'g',
+        servingQuantity: 1200 / servings,
+        servingUnit: 'g',
+        servingSize: '$servings servings',
+        source: MealSourceEntity.recipe,
+        nutriments: MealNutrimentsEntity.empty(),
+      );
+      final bloc = blocWith({
+        'pelmeni': [recipe('Pelmeni', 6)],
+        'tarts': [recipe('Tarts', 12)],
+      });
+
+      final state = await parse(bloc, '14 pelmeni, 5 tarts');
+
+      expect(state.rows[0].unit, 'serving');
+      expect(state.rows[0].amountNeedsCheck, isTrue);
+      expect(state.rows[0].willBeLogged, isFalse);
+      expect(state.rows[1].amountNeedsCheck, isFalse);
+      expect(state.loggableCount, 1);
+    });
+
+    test('a corrected recipe count clears the flag, a still-too-big one not',
+        () async {
+      // The flag asks the user to settle the count, and typing a count the
+      // batch makes is the answer: "14 pelmeni" corrected to 5 servings of a
+      // 6-serving batch is logged. 9 servings would still be past the batch.
+      final pelmeni = MealEntity(
+        code: 'pelmeni',
+        name: 'Pelmeni',
+        url: null,
+        mealQuantity: '1200.0',
+        mealUnit: 'g',
+        servingQuantity: 200,
+        servingUnit: 'g',
+        servingSize: '6 servings',
+        source: MealSourceEntity.recipe,
+        nutriments: MealNutrimentsEntity.empty(),
+      );
+      final bloc = blocWith({
+        'pelmeni': [pelmeni],
+      });
+      expect((await parse(bloc, '14 pelmeni')).rows.single.amountNeedsCheck,
+          isTrue);
+
+      bloc.add(const ChangeRowAmountEvent(0, '9'));
+      final tooMany =
+          (await bloc.stream.first as BulkAddLoadedState).rows.single;
+      expect(tooMany.amountNeedsCheck, isTrue);
+      expect(tooMany.willBeLogged, isFalse);
+
+      bloc.add(const ChangeRowAmountEvent(0, '5'));
+      final corrected =
+          (await bloc.stream.first as BulkAddLoadedState).rows.single;
+      expect(corrected.unit, 'serving');
+      expect(corrected.amountNeedsCheck, isFalse);
+      expect(corrected.willBeLogged, isTrue);
+    });
+
     test('counts a food that has serving data as servings', () async {
       // "2 eggs" means two of them. When the record carries serving data
       // that is exactly a serving, so the unit must be `serving` and not
@@ -569,12 +656,14 @@ void main() {
 
     test('switching to a countable candidate clears the flag', () async {
       final bloc = blocWith({
-        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+        'eggs': [meal('Eggs'), meal('Eggs boxed', servingQuantity: 60)],
       });
       final before = (await parse(bloc, '2 eggs')).rows.single;
       // Guard the premise: the ranker, not the list order, decides what is
       // selected, and the test only means anything from the flagged one.
-      expect(before.meal?.name, 'Eggs plain');
+      // It has to lead on the text by more than the count penalty: on a
+      // tie the countable candidate is the one selected (#1472).
+      expect(before.meal?.name, 'Eggs');
       expect(before.amountNeedsCheck, isTrue);
 
       bloc.add(ChangeRowCandidateEvent(0, _indexOf(before, 'Eggs boxed')));
@@ -606,7 +695,7 @@ void main() {
         // previous candidate's weight unit left "2 chicken breasts" reading
         // 2 oz with no warning — #622 again, minus the signal.
         final bloc = blocWith({
-          'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+          'eggs': [meal('Eggs'), meal('Eggs boxed', servingQuantity: 60)],
         });
         final before = (await parse(bloc, '2 eggs')).rows.single;
         expect(before.unit, isNot('serving'));
@@ -625,7 +714,7 @@ void main() {
       // The dangerous case: re-deriving the unit under an amount the user
       // typed would turn "150" grams into 150 servings.
       final bloc = blocWith({
-        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+        'eggs': [meal('Eggs'), meal('Eggs boxed', servingQuantity: 60)],
       });
       final before = (await parse(bloc, '2 eggs')).rows.single;
 
@@ -640,7 +729,7 @@ void main() {
 
     test('a chosen unit survives a candidate switch', () async {
       final bloc = blocWith({
-        'eggs': [meal('Eggs plain'), meal('Eggs boxed', servingQuantity: 60)],
+        'eggs': [meal('Eggs'), meal('Eggs boxed', servingQuantity: 60)],
       });
       final before = (await parse(bloc, '2 eggs')).rows.single;
 
@@ -1178,6 +1267,76 @@ void main() {
       final row = (await parse(bloc, '3 slices of bread')).rows.single;
 
       expect(row.unit, 'serving');
+    });
+  });
+
+  group('a counted meal from thin search hits is addable (#1472)', () {
+    // "2 Eier und eine Scheibe Vollkornbrot" ended at "Add 0 items": both
+    // rows matched a text-search hit with no serving fields. The products
+    // behind them are looked up in full, and the one that declares a
+    // serving is the one the row counts on.
+    MealEntity product(
+      String name,
+      String brand, {
+      double? serving,
+      bool detailed = false,
+    }) => MealEntity(
+      code: brand,
+      name: name,
+      brands: brand,
+      url: null,
+      mealQuantity: null,
+      mealUnit: 'g',
+      servingQuantity: serving,
+      servingUnit: 'g',
+      servingSize: serving == null ? null : '$serving g',
+      source: MealSourceEntity.off,
+      detailed: detailed,
+      nutriments: MealNutrimentsEntity.empty(),
+    );
+    MealEntity thin(String name, String brand) => product(name, brand);
+    MealEntity full(String name, String brand, double? serving) =>
+        product(name, brand, serving: serving, detailed: true);
+
+    final results = {
+      'Eier': [thin('Eier', 'lidl'), thin('Eier', 'aldi')],
+      'Vollkornbrot': [
+        thin('Vollkornbrot', 'kaufland'),
+        thin('Vollkornbrot', 'jacquet'),
+      ],
+    };
+    const items = [
+      ParsedMealItem(query: 'Eier', quantity: 2),
+      ParsedMealItem(query: 'Vollkornbrot', quantity: 1, portion: 'slice'),
+    ];
+
+    test('both rows are counted in servings and join the batch', () async {
+      final bloc = blocWithFullRecords(results, {
+        'lidl': full('Eier', 'lidl', null),
+        'aldi': full('Eier', 'aldi', 59),
+        'kaufland': full('Vollkornbrot', 'kaufland', null),
+        'jacquet': full('Vollkornbrot', 'jacquet', 62.5),
+      }, items);
+
+      final state = await parse(bloc, '2 Eier und eine Scheibe Vollkornbrot');
+
+      expect([for (final r in state.rows) r.meal!.brands], ['aldi', 'jacquet']);
+      expect([for (final r in state.rows) r.unit], ['serving', 'serving']);
+      expect([for (final r in state.rows) r.amountText], ['2', '1']);
+      expect(state.rows.any((r) => r.amountNeedsCheck), isFalse);
+      expect(state.loggableCount, 2);
+    });
+
+    test('a count nothing can honour is still held back (#973)', () async {
+      final bloc = blocWithFullRecords(results, {
+        'lidl': full('Eier', 'lidl', null),
+        'aldi': full('Eier', 'aldi', null),
+      }, items.sublist(0, 1));
+
+      final row = (await parse(bloc, '2 Eier')).rows.single;
+
+      expect(row.amountNeedsCheck, isTrue);
+      expect(row.willBeLogged, isFalse);
     });
   });
 

@@ -10,13 +10,11 @@ OFFWordResponseDTO _$OFFWordResponseDTOFromJson(Map<String, dynamic> json) =>
     OFFWordResponseDTO(
       count: json['count'],
       page: json['page'],
-      page_count: (json['page_count'] as num?)?.toInt(),
-      page_size: (json['page_size'] as num?)?.toInt(),
-      products:
-          (OFFWordResponseDTO._matchesFromEitherKey(json, 'hits')
-                  as List<dynamic>)
-              .map((e) => OFFProductDTO.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      page_count: offIntFromJson(json['page_count']),
+      page_size: offIntFromJson(json['page_size']),
+      products: offProductsFromJson(
+        OFFWordResponseDTO._matchesFromEitherKey(json, 'hits'),
+      ),
     );
 
 Map<String, dynamic> _$OFFWordResponseDTOToJson(OFFWordResponseDTO instance) =>

@@ -16,7 +16,7 @@ import 'package:opennutritracker/core/utils/calc/dri_reference.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// Daily micronutrient summary that aggregates the nutrients reporters keep
 /// asking for — fibre, sodium, saturated fat, sugar, calcium, iron, potassium,
@@ -537,16 +537,10 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                 Semantics(
                   identifier: 'dri-panel-info-link',
                   child: InkWell(
-                    onTap: () async {
-                      final uri = Uri.parse(driSourceUrl);
-                      // Best-effort link launch — silently no-ops if the
-                      // platform reports it cannot handle the URL, which is
-                      // friendlier than throwing in front of the user.
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri,
-                            mode: LaunchMode.externalApplication);
-                      }
-                    },
+                    // Best-effort link launch: silently no-ops if the platform
+                    // cannot open the URL, which is friendlier than throwing
+                    // in front of the user.
+                    onTap: () => tryLaunchExternalUrl(driSourceUrl),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Text(

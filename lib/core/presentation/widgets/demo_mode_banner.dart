@@ -56,28 +56,31 @@ class DemoModeBanner extends StatelessWidget {
                 children: [
                   Icon(Icons.visibility_outlined, size: 18, color: accent),
                   const SizedBox(width: Dimens.spacing8),
+                  // The label and its action wrap, the action onto a line
+                  // of its own when they do not fit side by side, rather
+                  // than either being cut off.
                   Expanded(
-                    child: Text(
-                      S.of(context).homeDemoBannerLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: palette.textStrong,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: Dimens.spacing8),
-                  Flexible(
-                    child: Text(
-                      S.of(context).homeDemoBannerAction,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.w700,
-                        decoration: TextDecoration.underline,
-                      ),
+                    child: Wrap(
+                      spacing: Dimens.spacing8,
+                      runSpacing: Dimens.spacing4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          S.of(context).homeDemoBannerLabel,
+                          style: textTheme.labelLarge?.copyWith(
+                            color: palette.textStrong,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          S.of(context).homeDemoBannerAction,
+                          style: textTheme.labelLarge?.copyWith(
+                            color: accent,
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

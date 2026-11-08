@@ -21,8 +21,16 @@ class AddMealLoadingState extends AddMealState {
 class AddMealLoadedState extends AddMealState {
   final bool usesImperialUnits;
 
-  const AddMealLoadedState({this.usesImperialUnits = false});
+  /// #1126: whether the user prefers grams/oz over a food's serving. The
+  /// + on a search result picks its amount by the same rule as the detail
+  /// screen, so it needs the same setting.
+  final bool defaultToRawFoodUnits;
+
+  const AddMealLoadedState({
+    this.usesImperialUnits = false,
+    this.defaultToRawFoodUnits = false,
+  });
 
   @override
-  List<Object?> get props => [usesImperialUnits];
+  List<Object?> get props => [usesImperialUnits, defaultToRawFoodUnits];
 }

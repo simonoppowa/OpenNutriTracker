@@ -410,10 +410,30 @@ below, and nothing but this page will remind you.
       The first two exist only because of AI meal assistance. Food search terms, HealthKit
       workouts and locally-attached meal photos are deliberately absent; the manifest says why,
       beside each one.
-- [ ] **Answer Apple's regulated-medical-device question**
-      ([#1081](https://github.com/simonoppowa/OpenNutriTracker/issues/1081)). It gates Health &
-      Fitness submissions. Existing apps have until early 2027, so it does not block a release
-      today — it is here because a deadline nobody has written down is a deadline nobody meets.
+- [ ] **Answer Apple's regulated-medical-device question: No**
+      ([#1081](https://github.com/simonoppowa/OpenNutriTracker/issues/1081)). Since 26 March 2026
+      every Health & Fitness app distributed in the EEA, UK or US needs a status
+      ([Apple, 26 March 2026](https://developer.apple.com/news/?id=nyqbfz1y)). Existing apps have
+      until "early 2027" and can no longer submit updates after that; Apple has published no
+      exact date, so answer it before the first 2027 submission rather than plan against one.
+
+      *Apps → OpenNutriTracker → App Information → App Store Regulations & Permits → Declare
+      Regulated Medical Device → No → Save.* It needs the **Account Holder or an Admin** role, is
+      saved on its own (no build or review), and shows on the product page within 24 hours. The
+      regulatory contact, SRN / FDA owner-operator number, intended-use statement and safety
+      information are asked only for a country answered *Yes*:
+      [*"If you select No, click Save and you are done."*](https://developer.apple.com/help/app-store-connect/manage-app-information/declare-regulated-medical-device-status)
+
+      No holds in all three regions for the same reason: the stated intended purpose is general
+      wellness. EU: MDCG 2019-11 rev.1 excludes "wellness or fitness apps" (see
+      [`ai-legal-constraints.md`](ai-legal-constraints.md#eu-medical-device-law--mdr-2017745)).
+      US: FDA's *General Wellness: Policy for Low Risk Devices* gives an app that records food
+      intake for weight management as its example of a general-wellness product. UK: MHRA's
+      software guidance treats lifestyle and wellbeing apps as not, in general, devices. It stays
+      No only while the listing makes no medical claim, which is why both descriptions carry the
+      "not a medical device" sentence and `store_declarations_test.dart` pins it. A listing,
+      release note or feature that ties the numbers to a disease or a treatment reopens this
+      answer.
 
 The table is what the AI path made necessary, not a statement that the record is complete. Three
 things behind it are open rather than answered, and none blocks a release:

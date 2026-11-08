@@ -201,8 +201,9 @@ void main() {
         );
       await openScreen(tester, settingsBloc);
 
-      // The field shows the rounded "13"; Save must not store that.
-      expect(find.widgetWithText(TextField, '13'), findsOneWidget);
+      // The field reopens as the stored "12.5" (#1444); Save must leave
+      // iron alone when only fibre was edited.
+      expect(find.widgetWithText(TextField, '12.5'), findsOneWidget);
       await tester.enterText(find.byType(TextField).at(0), '32');
       await tapSave(tester);
 

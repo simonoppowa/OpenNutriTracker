@@ -127,4 +127,64 @@ void main() {
       findsNothing,
     );
   });
+
+  group('macro targets read as values, not inputs (#1324)', () {
+    testWidgets('each macro is one row: its name and its grams', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpOverview(tester);
+
+      for (final (label, grams) in [
+        (l10nEn.carbsLabel, '300 g'),
+        (l10nEn.fatLabel, '55 g'),
+        (l10nEn.proteinLabel, '75 g'),
+      ]) {
+        expect(find.text(grams), findsOneWidget);
+        // Read out together, as one value, rather than as a bare number.
+        expect(
+          tester.getSemantics(find.text(grams)),
+          matchesSemantics(label: '$label\n$grams'),
+        );
+      }
+      semantics.dispose();
+    });
+
+    testWidgets('nothing on the macros looks or acts like a field', (
+      tester,
+    ) async {
+      await pumpOverview(tester);
+
+      expect(find.byType(TextField), findsNothing);
+      for (final grams in ['300 g', '55 g', '75 g']) {
+        expect(
+          find.ancestor(
+            of: find.text(grams),
+            matching: find.byWidgetPredicate(
+              (w) =>
+                  w is InkWell ||
+                  w is GestureDetector ||
+                  w is ButtonStyleButton,
+            ),
+          ),
+          findsNothing,
+          reason: '$grams must not offer a tap that does nothing',
+        );
+      }
+    });
+
+    testWidgets('says where the macros can be changed', (tester) async {
+      await pumpOverview(tester);
+
+      final hint = l10nEn.onboardingMacrosChangeLaterHint(
+        l10nEn.settingsCategoryGoals,
+        l10nEn.settingsMacroSplitLabel,
+      );
+      expect(find.text(hint), findsOneWidget);
+      // The path is built from the Settings strings themselves, so it
+      // follows them if they are renamed or translated.
+      expect(hint, contains(l10nEn.settingsCategoryGoals));
+      expect(hint, contains(l10nEn.settingsMacroSplitLabel));
+    });
+  });
 }

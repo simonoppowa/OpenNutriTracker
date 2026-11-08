@@ -34,4 +34,5 @@ const shippedLocales = <String, String>{
   'sk': 'Slovenčina',
   'hu': 'Magyar',
   'es': 'Español',
+  'ru': 'Русский',
 };

@@ -3,6 +3,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/add_meal/util/resolver_relevance.dart';
 
 /// Below this the top candidate is a guess rather than an answer, and the
@@ -70,6 +71,13 @@ class ResolvedMealItem {
 /// fallback path yet — tier 1 is not scoped — but the unresolved item is
 /// the seam where one would attach.
 class ResolveParsedMealsUseCase {
+  /// How many thin Open Food Facts hits one counted item may look up in
+  /// full — see [_withFullOffRecords]. Enough to get past a few products
+  /// that tie on the name and carry no serving; few enough that a
+  /// two-item meal costs about as many product reads as tapping + on a
+  /// handful of search results.
+  static const _maxOffLookups = 5;
+
   final _log = Logger('ResolveParsedMealsUseCase');
 
   final SearchProductsUseCase _searchProductsUseCase;
@@ -136,7 +144,15 @@ class ResolveParsedMealsUseCase {
     // The shared ranker scores `eggs` against `Egg` at exactly 0.0, and
     // this class auto-selects the top candidate, so its ordering alone is
     // not safe to log from. See resolver_relevance.dart.
-    final ranked = rankForResolution(merged, query);
+    final counted = _isCounted(item);
+    var ranked = rankForResolution(merged, query, counted: counted);
+    if (counted) {
+      ranked = rankForResolution(
+        await _withFullOffRecords(ranked, query),
+        query,
+        counted: true,
+      );
+    }
 
     if (ranked.isEmpty) {
       return ResolvedMealItem(
@@ -153,5 +169,87 @@ class ResolveParsedMealsUseCase {
       selectedIndex: 0,
       confidence: scoreMealForResolution(ranked.first, query),
     );
+  }
+
+  /// True when [item]'s number is a count rather than a weight: no unit at
+  /// all (`2 Eier`), or a serving (`3 serving`, a model's answer to "three
+  /// slices"). Those are the rows `BulkAddRow.amountNeedsCheck` holds back
+  /// on a food with no `servingQuantity`.
+  static bool _isCounted(ParsedMealItem item) {
+    final unit = item.unit;
+    return item.quantity != null && (unit == null || isPortionUnit(unit));
+  }
+
+  /// [ranked] with the full Open Food Facts record in place of each thin
+  /// text-search hit that could still win once its serving is known.
+  ///
+  /// A text-search hit carries no serving fields — the Search-a-licious
+  /// index does not hold them (`MealEntity.detailed`) — so under a count
+  /// every Open Food Facts candidate looked uncountable, and the row was
+  /// held back on a product that may well declare one: "2 Eier" matched
+  /// "Eier / Lidl" and ended at "Add 0 items" (#1472). Meal detail and the
+  /// + on a search result already swap the full record in before they
+  /// pick a default; this does the same before the resolver picks.
+  ///
+  /// The serving comes from the product record, never from the model,
+  /// which only ever said "2". A product whose full record has no serving
+  /// either stays uncountable, and its row is held back exactly as before.
+  ///
+  /// Only hits that could overtake the current first candidate are looked
+  /// up. A full record that declares a serving sorts at its text score
+  /// plus [detailedBonus], capped at 1.0 ([_scoreOnceDetailed]), so a hit
+  /// that does not beat the first candidate's sort score even then cannot
+  /// move it. Without the bonus the bound skipped a winner: a detailed
+  /// "Apple" with no serving sorts at 0.85 on `apple`, and thin "Apples"
+  /// at 0.833 is 0.863 once detailed. None when the first candidate is
+  /// the user's own, which no remote record outranks. A lookup that fails
+  /// leaves the thin hit where it was.
+  Future<List<MealEntity>> _withFullOffRecords(
+    List<MealEntity> ranked,
+    String query,
+  ) async {
+    if (ranked.isEmpty) return ranked;
+    final first = ranked.first;
+    if (first.source == MealSourceEntity.custom ||
+        first.source == MealSourceEntity.recipe) {
+      return ranked;
+    }
+    final bar = rankScoreForResolution(first, query, counted: true);
+    final thin = ranked
+        .where(
+          (meal) =>
+              meal.source == MealSourceEntity.off &&
+              !meal.detailed &&
+              cannotHonourCount(meal) &&
+              _scoreOnceDetailed(meal, query) > bar,
+        )
+        .take(_maxOffLookups)
+        .toList();
+    if (thin.isEmpty) return ranked;
+
+    final full = await Future.wait(thin.map(_fullOffRecord));
+    final replacements = Map<MealEntity, MealEntity?>.identity();
+    for (var i = 0; i < thin.length; i++) {
+      replacements[thin[i]] = full[i];
+    }
+    return [for (final meal in ranked) replacements[meal] ?? meal];
+  }
+
+  /// What [meal] would score as a full record, which is what the resolver
+  /// clamps it to: one already at 1.0 gains nothing from the bonus.
+  static double _scoreOnceDetailed(MealEntity meal, String query) =>
+      (scoreMealForResolution(meal, query) + detailedBonus).clamp(0.0, 1.0);
+
+  Future<MealEntity?> _fullOffRecord(MealEntity meal) async {
+    try {
+      return await _searchProductsUseCase.fetchFullOffRecord(meal);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not fetch the full Open Food Facts record for ${meal.code}',
+        e,
+        stackTrace,
+      );
+      return null;
+    }
   }
 }

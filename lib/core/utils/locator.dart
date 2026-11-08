@@ -142,6 +142,8 @@ import 'package:opennutritracker/features/settings/domain/usecase/import_recipes
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/data/tip_store.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/tip_jar_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final locator = GetIt.instance;
@@ -192,12 +194,19 @@ Future<void> initLocator() async {
       AiEndpointProber(locator<http.Client>()),
     ),
   );
+  // A singleton for the life of the app: `main` starts it so purchases left
+  // unfinished by an earlier run are finished at launch (#1536).
+  locator.registerLazySingleton<TipStore>(() => InAppPurchaseTipStore());
+  locator.registerLazySingleton<TipJarCubit>(
+    () => TipJarCubit(locator<TipStore>(), locator<ConfigRepository>()),
+  );
   locator.registerLazySingleton<DeleteAllUserDataUsecase>(
     () => DeleteAllUserDataUsecase(
       locator(),
       locator<DailyReminderScheduler>(),
       locator<AiCredentialStorage>(),
       calorieWidgetStore: locator<CalorieWidgetStore>(),
+      forgetTipRecord: () => locator<TipJarCubit>().forgetTip(),
     ),
   );
 
@@ -266,7 +275,9 @@ Future<void> initLocator() async {
       calorieWidgetStore: locator<CalorieWidgetStore>(),
     ),
   );
-  locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
+  locator.registerLazySingleton(
+    () => DiaryBloc(locator(), locator(), locator()),
+  );
   locator.registerLazySingleton(
     () => CalendarDayBloc(
       locator(),
@@ -361,6 +372,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       favourites: locator<ToggleFavouriteMealUsecase>(),
+      deleteIntake: locator<DeleteIntakeUsecase>(),
     ),
   );
   locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
