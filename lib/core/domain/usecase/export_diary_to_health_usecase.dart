@@ -136,6 +136,7 @@ class ExportDiaryToHealthUsecase {
     // than the backfill, so every day whose new window overlaps it is
     // rewritten or put on record below, whatever its fingerprint or age.
     final overlapsCleared = <String>{};
+    final records = {...config.healthExportedDays};
     for (final entry in config.healthExportedDays.entries) {
       final (start, end) = _window(entry.key, offset);
       final (from, to) = _recordedWindow(entry.key, entry.value, offset);
@@ -149,11 +150,24 @@ class ExportDiaryToHealthUsecase {
       }
       if (!await _mayContinue(profileId)) return 0;
       // Marked first, as the main loop does: a pass cut short after this
-      // clear must still rewrite the day, even back in the old window.
-      await _configRepository.setConfigHealthExportedDay(
-        entry.key,
-        '$_pending@${_tag(from, to)}',
-      );
+      // clear must still rewrite the day, even back in the old window, and
+      // every day the clear reaches into, however old. A neighbour whose own
+      // record names an old window is left as it is: that record already
+      // brings it back, and has its own old window cleared.
+      final marks = {
+        entry.key: (from, to),
+        for (final day in overlaps)
+          if (day != entry.key &&
+              (records[day] == null ||
+                  _namesCurrentWindow(day, records[day]!, offset)))
+            day: _window(day, offset),
+      };
+      for (final MapEntry(key: day, value: (markFrom, markTo))
+          in marks.entries) {
+        final record = '$_pending@${_tag(markFrom, markTo)}';
+        records[day] = record;
+        await _configRepository.setConfigHealthExportedDay(day, record);
+      }
       await _healthExportRepository.replaceDay(
         from: from,
         to: to,
@@ -261,6 +275,13 @@ class ExportDiaryToHealthUsecase {
       return false;
     }
     return (await _configRepository.getConfig()).healthExportEnabled;
+  }
+
+  /// Whether [record] for [day] was written in the window [day] has now.
+  static bool _namesCurrentWindow(String day, String record, int offset) {
+    final (from, to) = _recordedWindow(day, record, offset);
+    final (start, end) = _window(day, offset);
+    return from.isAtSameMomentAs(start) && to.isAtSameMomentAs(end);
   }
 
   /// How a record names the absolute window it was written in.

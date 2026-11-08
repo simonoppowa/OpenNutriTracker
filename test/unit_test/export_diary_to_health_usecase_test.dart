@@ -612,4 +612,35 @@ void main() {
       expect(healthService.heldTimes, [aged]);
     },
   );
+
+  test(
+    'a day a boundary clear reached is found again after a cut-short pass',
+    () async {
+      // 01:00 on 2 April files under 1 April with a 04:00 boundary.
+      final aged = DateTime(2026, 4, 2, 1);
+      await intakeRepository.addIntake(_intake(id: 'aged', at: aged));
+      await configDataSource.setConfigDayStartOffset(4, 0);
+      ExportDiaryToHealthUsecase.clock = () => DateTime(2026, 4, 3, 12);
+      await usecase.exportNow();
+
+      // Weeks later the boundary goes back to midnight, moving it to 2 April.
+      // The old window is cleared and 1 April written empty, then the export
+      // is switched off before 2 April is reached.
+      ExportDiaryToHealthUsecase.clock = () => now;
+      await configDataSource.setConfigDayStartOffset(0, 0);
+      var calls = 0;
+      healthService.onReplace = () async {
+        if (++calls == 2) {
+          await configDataSource.setConfigHealthExportEnabled(false);
+        }
+      };
+      await usecase.exportNow();
+      expect(healthService.held, isEmpty);
+
+      healthService.onReplace = null;
+      await configDataSource.setConfigHealthExportEnabled(true);
+      await usecase.exportNow();
+      expect(healthService.heldTimes, [aged]);
+    },
+  );
 }
