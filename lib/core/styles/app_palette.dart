@@ -81,10 +81,16 @@ class AppPalette {
   /// Returns a copy with the accent swapped for [newAccent] (accent picker or a
   /// harmonized Material You primary). The neutral canvas, surfaces and macro
   /// colours are untouched, so only the one vivid role follows the user.
+  ///
+  /// The text colour on the accent is whichever of white or the dark ink gives
+  /// the higher WCAG contrast ratio. `ThemeData.estimateBrightnessForColor`
+  /// picked white on mid-luminance accents such as cyan and coral, where dark
+  /// text reads far better.
   AppPalette withAccent(Color newAccent) {
-    final onNew = ThemeData.estimateBrightnessForColor(newAccent) == Brightness.dark
-        ? Colors.white
-        : const Color(0xFF20201C);
+    const darkInk = Color(0xFF20201C);
+    final whiteContrast = _contrastRatio(Colors.white, newAccent);
+    final darkContrast = _contrastRatio(darkInk, newAccent);
+    final onNew = whiteContrast >= darkContrast ? Colors.white : darkInk;
     return AppPalette(
       brightness: brightness,
       canvas: canvas,
@@ -100,6 +106,13 @@ class AppPalette {
       textStrong: textStrong,
       textMuted: textMuted,
     );
+  }
+
+  /// WCAG 2.x contrast ratio between two opaque colours.
+  static double _contrastRatio(Color a, Color b) {
+    final la = a.computeLuminance();
+    final lb = b.computeLuminance();
+    return la > lb ? (la + 0.05) / (lb + 0.05) : (lb + 0.05) / (la + 0.05);
   }
 
   ColorScheme get colorScheme => ColorScheme(
