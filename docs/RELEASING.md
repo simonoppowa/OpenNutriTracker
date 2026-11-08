@@ -104,11 +104,16 @@ When either says the upload needs doing by hand:
    for eight days.
 
 Build 65 needed none of the three steps above. Neither did build 66 (2.4.0, 2026-09-26,
-[run 36272991336](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/36272991336)) or
+[run 36272991336](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/36272991336)),
 build 67 (2.5.0, 2026-10-23,
-[run 39941371399](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/39941371399)): both
-uploaded through the API with only notices, declaring the same two health permissions as 65. Keep them until a release proves the API upload
-repeatable — see the caveat at the top of this section.
+[run 39941371399](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/39941371399)) or
+build 68 (2.6.0, 2026-10-30,
+[run 41118540771](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/41118540771)): each
+uploaded through the API with only notices, declaring the same two health permissions as 65. That
+meets the condition in the caveat at the top of this section, so expect the API upload to work.
+It still does not say which of the two changes fixed it, so a release that changes the
+`android.permission.health.*` set reopens the question. The tolerance and the three steps stay
+either way: they are the recovery path when a rejection comes back, and that failure is silent.
 
 ## Before opening the release PR
 
@@ -167,12 +172,21 @@ failed `ios-package` runs when the calorie widget extension
    unique across all of Apple, not per team, so that message means another team holds the id and
    nothing on this side gets it back. The widget was `….CalorieWidget` until that happened; it
    shipped as `com.opennutritracker.ont.opennutritracker.widget`.
-3. **Generate the profile with match in writable mode.** CI never will, so the profile has to be in
-   `simonoppowa/ont-ios-certificates` before the release run. A capability added to an *existing*
-   target needs the same, with `MATCH_FORCE=true`, or match keeps serving the old profile without
-   it. On a Mac with Ruby, `MATCH_READONLY=false bundle exec fastlane ios certs` from `ios/` does
-   it. Without one, the route that worked for 2.5.0 was a throwaway branch
-   (`ops/match-regen-widget`) carrying a push-triggered macOS workflow:
+3. **List a new bundle id in `ios/fastlane/Matchfile`, then generate the profile with match in
+   writable mode.** The Matchfile edit comes first: `sync_signing` passes match no
+   `app_identifier`, so match signs exactly the ids in the Matchfile's `app_identifier` list and
+   creates no profile for one that is missing. CI never runs match writable, so the profile has to
+   be in `simonoppowa/ont-ios-certificates` before the release run. A capability added to an
+   *existing* target needs the same, with `MATCH_FORCE=true`, or match keeps serving the old
+   profile without it; force renews the profile of every id in the list, the app's included. On a
+   Mac with Ruby, run from `ios/`:
+   - new target: `MATCH_READONLY=false bundle exec fastlane ios certs`;
+   - capability added to an existing target: `MATCH_READONLY=false MATCH_FORCE=true bundle exec
+     fastlane ios certs`.
+
+   Without a Mac, the route that worked for 2.5.0 was a throwaway branch
+   (`ops/match-regen-widget`), cut from a commit that already has the Matchfile entry, carrying a
+   push-triggered macOS workflow:
    - the workflow sets `MATCH_READONLY: 'false'` and `MATCH_FORCE: 'true'` and runs a one-off lane;
    - the lane calls `setup_ci`, then sets `ENV['MATCH_READONLY'] = 'false'`, then calls
      `sync_signing`. The reassignment is the part that matters: `setup_ci` forces
@@ -199,7 +213,7 @@ failed `ios-package` runs when the calorie widget extension
    profile, and the fastlane `build` lane passes it with `--export-options-plist` by **absolute**
    path: flutter did not resolve a relative one against the directory the lane runs from. A new
    target adds its line there, next to its `enforce_app_store_signing` block in
-   `ios/fastlane/Fastfile` and its id in `ios/fastlane/Matchfile`.
+   `ios/fastlane/Fastfile` and the Matchfile entry from step 3.
 
 ## The release PR
 
