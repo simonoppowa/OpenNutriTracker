@@ -18,6 +18,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 
+import '../helpers/test_l10n.dart';
+
 class _FakePathProvider extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
   _FakePathProvider(this.temporaryPath);
@@ -241,13 +243,7 @@ void main() {
             },
           );
 
-          expect(
-            find.text(
-              'This code is too large for a QR image. '
-              'Copy or share the code as text instead.',
-            ),
-            findsOneWidget,
-          );
+          expect(find.text(l10nEn.shareQrTooLargeLabel), findsOneWidget);
           expect(find.byType(QrImageView), findsNothing);
           await tester.tap(
             find.widgetWithIcon(OutlinedButton, Icons.copy_rounded),
@@ -363,6 +359,26 @@ void main() {
       expect(find.byType(QrImageView), findsOneWidget);
     });
 
+    // A short screen (a phone in landscape) must not shrink the code below
+    // the old fixed size, past which a dense code stops scanning; the
+    // dialog scrolls instead.
+    testWidgets('short landscape screen keeps a dense QR at least 260 pt', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _pumpDialog(tester, code: 'x' * 2000);
+      final qr = tester.widget<QrImageView>(find.byType(QrImageView));
+      expect(qr.size, greaterThanOrEqualTo(260));
+      await tester.ensureVisible(find.bySemanticsIdentifier('share-code'));
+      expect(
+        find.bySemanticsIdentifier('share-code').hitTestable(),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
     for (final code in ['x' * 2331, 'x' * 2332]) {
       testWidgets('narrow screen with large text keeps actions reachable '
           '(${code.length} bytes)', (tester) async {
@@ -438,10 +454,7 @@ void main() {
       );
       await _tapShareAndWait(tester, sharePlatform);
       await tester.pumpAndSettle();
-      expect(
-        find.text("Couldn't share the code. Try again or copy it instead."),
-        findsOneWidget,
-      );
+      expect(find.text(l10nEn.shareCodeErrorLabel), findsOneWidget);
       sharePlatform.failTextShares = false;
       await _tapShareAndWait(tester, sharePlatform, expectedCalls: 2);
       expect(sharePlatform.calls.last.text, 'sample-payload-code');

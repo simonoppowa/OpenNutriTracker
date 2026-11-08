@@ -78,10 +78,15 @@ class _ShareQrDialogState extends State<ShareQrDialog> {
   Widget build(BuildContext context) {
     final qr = _validation.qrCode;
     final screen = MediaQuery.sizeOf(context);
-    // Keep the whole QR visible, leaving room for the title and actions.
+    // Keep the whole QR visible where the screen allows, leaving room for
+    // the title and actions. Only the width is a hard limit: the content
+    // scrolls, so a short screen (a phone in landscape) keeps the code at
+    // the old fixed 260 pt instead of shrinking it past scanning, and the
+    // dialog stays wide enough for its title and actions.
+    final widthLimit = math.max(0.0, screen.width - 80);
     final availableSize = math.max(
-      0.0,
-      math.min(screen.width - 80, screen.height - 240),
+      math.min(widthLimit, screen.height - 240),
+      math.min(260.0, widthLimit),
     );
     final size = math.min(
       math.max(260.0, ((qr?.moduleCount ?? 0) + 2 * _quietZoneModules) * 4.0),
