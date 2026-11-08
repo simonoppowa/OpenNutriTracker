@@ -109,11 +109,12 @@ build 67 (2.5.0, 2026-10-23,
 [run 39941371399](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/39941371399)) or
 build 68 (2.6.0, 2026-10-30,
 [run 41118540771](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/41118540771)): each
-uploaded through the API with only notices, declaring the same two health permissions as 65. That
-meets the condition in the caveat at the top of this section, so expect the API upload to work.
-It still does not say which of the two changes fixed it, so a release that changes the
-`android.permission.health.*` set reopens the question. The tolerance and the three steps stay
-either way: they are the recovery path when a rejection comes back, and that failure is silent.
+uploaded through the API with only notices, declaring the same two health permissions as 65.
+Those runs arguably meet the condition in the caveat at the top of this section, but relaxing the
+caveat is a decision of its own and has not been made. Until it is, the caveat stands: treat a
+working API upload as welcome rather than expected, and keep the three steps. Whatever that
+decision is, these runs do not say which of the two changes fixed the upload, so a release that
+changes the `android.permission.health.*` set reopens the question.
 
 ## Before opening the release PR
 
@@ -178,8 +179,15 @@ failed `ios-package` runs when the calorie widget extension
    creates no profile for one that is missing. CI never runs match writable, so the profile has to
    be in `simonoppowa/ont-ios-certificates` before the release run. A capability added to an
    *existing* target needs the same, with `MATCH_FORCE=true`, or match keeps serving the old
-   profile without it; force renews the profile of every id in the list, the app's included. On a
-   Mac with Ruby, run from `ios/`:
+   profile without it; force renews the profile of every id in the list, the app's included.
+
+   Locally, the lane needs what CI injects from repository secrets, none of it set in a
+   maintainer's shell by default: `MATCH_GIT_URL` and `MATCH_PASSWORD` for the match repository,
+   push access to that repository (an SSH key or token that can write, not the read-only kind), and
+   `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID` and `APP_STORE_CONNECT_API_KEY_P8`
+   for the API key. The lane reads the `.p8` content as base64 unless
+   `APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64=false`. With those exported, on a Mac with
+   Ruby, run from `ios/`:
    - new target: `MATCH_READONLY=false bundle exec fastlane ios certs`;
    - capability added to an existing target: `MATCH_READONLY=false MATCH_FORCE=true bundle exec
      fastlane ios certs`.
