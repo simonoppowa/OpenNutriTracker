@@ -341,8 +341,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     palette: palette,
                     icon: Icons.calculate_rounded,
                     title: state.usesKilojoules
-                        ? S.of(context).settingsKjAdjustmentLabel
-                        : S.of(context).settingsKcalAdjustmentLabel,
+                        ? S.of(context).settingsKjGoalLabel
+                        : S.of(context).settingsKcalGoalLabel,
                     onTap: () => _showKcalAdjustmentDialog(context),
                   ),
                   SettingsTile(

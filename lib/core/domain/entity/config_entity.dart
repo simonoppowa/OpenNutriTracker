@@ -37,6 +37,9 @@ class ConfigEntity extends Equatable {
   final bool usesImperialHeightUnits;
   final BodyWeightUnit bodyWeightUnit;
   final double? userKcalAdjustment;
+  // #671: see [ConfigDBO.userFixedKcalGoal]. Stored as read; the calc layer
+  // ignores a value outside the allowed range.
+  final double? userFixedKcalGoal;
   final double? userCarbGoalPct;
   final double? userProteinGoalPct;
   final double? userFatGoalPct;
@@ -240,6 +243,7 @@ class ConfigEntity extends Equatable {
     this.usesImperialHeightUnits = false,
     this.bodyWeightUnit = BodyWeightUnit.kg,
     this.userKcalAdjustment,
+    this.userFixedKcalGoal,
     this.userCarbGoalPct,
     this.userProteinGoalPct,
     this.userFatGoalPct,
@@ -352,6 +356,7 @@ class ConfigEntity extends Equatable {
               ? BodyWeightUnit.lb
               : BodyWeightUnit.kg),
     userKcalAdjustment: dbo.userKcalAdjustment,
+    userFixedKcalGoal: dbo.userFixedKcalGoal,
     userCarbGoalPct: dbo.userCarbGoalPct,
     userProteinGoalPct: dbo.userProteinGoalPct,
     userFatGoalPct: dbo.userFatGoalPct,
@@ -467,6 +472,7 @@ class ConfigEntity extends Equatable {
     usesImperialHeightUnits,
     bodyWeightUnit,
     userKcalAdjustment,
+    userFixedKcalGoal,
     userCarbGoalPct,
     userProteinGoalPct,
     userFatGoalPct,

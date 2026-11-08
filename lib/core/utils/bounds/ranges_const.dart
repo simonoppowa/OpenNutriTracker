@@ -47,6 +47,14 @@ class Ranges {
   static const double minRecommendedDailyKcalMale = 1500;
   static const double minRecommendedDailyKcalFemale = 1200;
 
+  /// The range a fixed daily kcal goal (#671) can be set to. Wide on
+  /// purpose: the goal is the user's call, and a value below
+  /// [minRecommendedDailyKcalMale] / [minRecommendedDailyKcalFemale] still
+  /// gets the soft low-kcal warning on Home. The ends only keep out typos
+  /// such as a missing or doubled digit.
+  static const double minFixedDailyKcalGoal = 500;
+  static const double maxFixedDailyKcalGoal = 10000;
+
   static const bool cmAllowDecimalPlaces = false;
   static const bool feetAllowDecimalPlaces = true;
   static const bool kgAllowDecimalPlaces = true;

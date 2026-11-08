@@ -220,6 +220,14 @@ class ConfigDBO extends HiveObject {
   // (`DeleteAllUserDataUsecase`). Null means no tip.
   @HiveField(42)
   bool? hasLeftTip;
+  // #671: a daily kcal goal the user typed in, replacing the calculated one
+  // (TDEE + weight-goal adjustment + [userKcalAdjustment]). Kcal burned by
+  // logged activities is still added on top. Per-profile, like the other
+  // goals. Null means "use the calculated goal", which is every install
+  // that predates the field. [userKcalAdjustment] is kept while this is
+  // set, so switching back restores the offset the user had.
+  @HiveField(43)
+  double? userFixedKcalGoal;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -262,6 +270,7 @@ class ConfigDBO extends HiveObject {
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
     this.hasLeftTip,
+    this.userFixedKcalGoal,
   });
 
   factory ConfigDBO.empty() =>

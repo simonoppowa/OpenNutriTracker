@@ -1,12 +1,13 @@
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 
 /// The active profile's goal settings as they travel in a JSON backup, as
 /// `goal_settings.json` (#1363).
 ///
 /// Only the goals the config keeps per profile (see `ConfigDataSource`):
-/// the kcal adjustment, the macro split, the per-meal kcal shares and the
-/// daily water goal. Device-wide preferences (theme, language, units,
+/// the kcal adjustment, the fixed daily kcal goal (#671), the macro split,
+/// the per-meal kcal shares and the daily water goal. Device-wide preferences (theme, language, units,
 /// notifications, consents) and the health-import state are left out; see
 /// `docs/export-format.md` for why. Per-nutrient goals are not here either:
 /// they are stored on each tracked day and travel in
@@ -37,6 +38,14 @@ class GoalSettingsBackup {
   ];
 
   final double? kcalAdjustment;
+
+  /// The fixed daily kcal goal (#671), or null for the calculated goal.
+  ///
+  /// Added without a [formatVersion] bump: an older reader ignores the
+  /// unknown key and restores the calculated goal with the offset, which
+  /// is a fallback, not a misreading. A bump would make that reader skip
+  /// every goal in the file.
+  final double? fixedKcalGoal;
   final double? carbGoalPct;
   final double? proteinGoalPct;
   final double? fatGoalPct;
@@ -45,6 +54,7 @@ class GoalSettingsBackup {
 
   const GoalSettingsBackup({
     this.kcalAdjustment,
+    this.fixedKcalGoal,
     this.carbGoalPct,
     this.proteinGoalPct,
     this.fatGoalPct,
@@ -68,6 +78,9 @@ class GoalSettingsBackup {
     return GoalSettingsBackup(
       kcalAdjustment: _kcalAdjustmentError(config.userKcalAdjustment) == null
           ? config.userKcalAdjustment
+          : null,
+      fixedKcalGoal: _fixedKcalGoalError(config.userFixedKcalGoal) == null
+          ? config.userFixedKcalGoal
           : null,
       carbGoalPct: macrosValid ? macros[0] : null,
       proteinGoalPct: macrosValid ? macros[1] : null,
@@ -97,6 +110,7 @@ class GoalSettingsBackup {
     if (version > formatVersion) return null;
 
     final kcal = _optionalDouble(json, 'kcalAdjustment');
+    final fixed = _optionalDouble(json, 'fixedKcalGoal');
     final macros = [
       _optionalDouble(json, 'carbGoalPct'),
       _optionalDouble(json, 'proteinGoalPct'),
@@ -107,6 +121,7 @@ class GoalSettingsBackup {
 
     final error =
         _kcalAdjustmentError(kcal) ??
+        _fixedKcalGoalError(fixed) ??
         _macroSplitError(macros) ??
         (shares == null ? null : _mealSharesError(shares)) ??
         _waterGoalError(water);
@@ -114,6 +129,7 @@ class GoalSettingsBackup {
 
     return GoalSettingsBackup(
       kcalAdjustment: kcal,
+      fixedKcalGoal: fixed,
       carbGoalPct: macros[0],
       proteinGoalPct: macros[1],
       fatGoalPct: macros[2],
@@ -127,6 +143,7 @@ class GoalSettingsBackup {
   Map<String, dynamic> toJson() => {
     'version': formatVersion,
     'kcalAdjustment': kcalAdjustment,
+    'fixedKcalGoal': fixedKcalGoal,
     'carbGoalPct': carbGoalPct,
     'proteinGoalPct': proteinGoalPct,
     'fatGoalPct': fatGoalPct,
@@ -173,6 +190,18 @@ class GoalSettingsBackup {
         kcal > maxKcalAdjustment) {
       return 'kcalAdjustment $kcal is outside '
           '$minKcalAdjustment..$maxKcalAdjustment';
+    }
+    return null;
+  }
+
+  static String? _fixedKcalGoalError(double? kcal) {
+    if (kcal == null) return null;
+    // NaN first, as for the adjustment.
+    if (!kcal.isFinite ||
+        kcal < Ranges.minFixedDailyKcalGoal ||
+        kcal > Ranges.maxFixedDailyKcalGoal) {
+      return 'fixedKcalGoal $kcal is outside '
+          '${Ranges.minFixedDailyKcalGoal}..${Ranges.maxFixedDailyKcalGoal}';
     }
     return null;
   }

@@ -82,6 +82,12 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   Future<double> getKcalAdjustment() async => 0;
 
   @override
+  Future<double?> getFixedKcalGoal() async => null;
+
+  @override
+  Future<void> setFixedKcalGoal(double? kcal) async {}
+
+  @override
   Future<void> setKcalAdjustment(double kcalAdjustment) async {}
 
   @override

@@ -211,6 +211,17 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     await _addConfigUsecase.setConfigKcalAdjustment(kcalAdjustment);
   }
 
+  /// The fixed daily kcal goal (#671), or null when the goal is calculated.
+  Future<double?> getFixedKcalGoal() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.userFixedKcalGoal;
+  }
+
+  /// Null clears the fixed goal, so the calculated goal applies again.
+  Future<void> setFixedKcalGoal(double? kcal) async {
+    await _addConfigUsecase.setConfigFixedKcalGoal(kcal);
+  }
+
   Future<int?> getDailyWaterGoalMl() async {
     final config = await _getConfigUsecase.getConfig();
     return config.dailyWaterGoalMl;

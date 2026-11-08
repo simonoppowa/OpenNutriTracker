@@ -137,6 +137,7 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
     0,
     kcalUserAdjustment: config.userKcalAdjustment,
     caloriesTaperEnabled: user.caloriesTaperEnabled,
+    fixedKcalGoal: config.userFixedKcalGoal,
   );
   final baseCarbsGoal = MacroCalc.getTotalCarbsGoal(
     baseKcalGoal,
