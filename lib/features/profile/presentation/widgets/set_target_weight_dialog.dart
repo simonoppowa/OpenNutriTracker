@@ -127,11 +127,9 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
   void _submitValue() {
     final double kg;
     if (_isTextMode) {
+      // OK is disabled while the typed value is empty or out of range.
       final valid = _textKg;
-      if (valid == null) {
-        Navigator.of(context).pop();
-        return;
-      }
+      if (valid == null) return;
       kg = valid;
     } else {
       final isImperial = widget.unit == BodyWeightUnit.lb;
@@ -237,7 +235,9 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
           child: Text(S.of(context).dialogCancelLabel),
         ),
         TextButton(
-          onPressed: _submitValue,
+          // Disabled rather than closing with nothing saved, which would
+          // silently drop a typo such as an extra digit.
+          onPressed: _isTextMode && _textKg == null ? null : _submitValue,
           child: Text(S.of(context).dialogOKLabel),
         ),
       ],

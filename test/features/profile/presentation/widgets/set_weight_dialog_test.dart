@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_target_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
@@ -178,4 +179,158 @@ void main() {
       },
     );
   });
+
+  group('typed weight in text mode', () {
+    late _FakeConfigRepository configRepository;
+
+    setUp(() {
+      configRepository = _FakeConfigRepository()..useText = true;
+    });
+
+    TextButton okButton(WidgetTester tester) => tester.widget<TextButton>(
+      find.widgetWithText(TextButton, l10nEn.dialogOKLabel),
+    );
+
+    testWidgets('an out-of-range value disables OK instead of closing', (
+      tester,
+    ) async {
+      final popped = await _openDialog(
+        tester,
+        SetWeightDialog(
+          initialKg: 75,
+          unit: BodyWeightUnit.kg,
+          configRepository: configRepository,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), '999');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(popped, isEmpty);
+      expect(find.byType(SetWeightDialog), findsOneWidget);
+      expect(okButton(tester).onPressed, isNull);
+    });
+
+    testWidgets('an emptied field disables OK on the target dialog', (
+      tester,
+    ) async {
+      final popped = await _openDialog(
+        tester,
+        SetTargetWeightDialog(
+          initialKg: 70,
+          hasExistingTarget: false,
+          unit: BodyWeightUnit.lb,
+          configRepository: configRepository,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(popped, isEmpty);
+      expect(find.byType(SetTargetWeightDialog), findsOneWidget);
+      expect(okButton(tester).onPressed, isNull);
+    });
+
+    testWidgets('a comma decimal is read as a decimal point', (tester) async {
+      final popped = await _openDialog(
+        tester,
+        SetWeightDialog(
+          initialKg: 75,
+          unit: BodyWeightUnit.kg,
+          configRepository: configRepository,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), '82,4');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(popped.single as double, closeTo(82.4, 1e-9));
+    });
+
+    testWidgets('a typed pound value is popped as kilograms', (tester) async {
+      final popped = await _openDialog(
+        tester,
+        SetTargetWeightDialog(
+          initialKg: 70,
+          hasExistingTarget: false,
+          unit: BodyWeightUnit.lb,
+          configRepository: configRepository,
+        ),
+      );
+
+      expect(find.text(l10nEn.lbsLabel), findsOneWidget);
+      await tester.enterText(find.byType(TextField), '180');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      final result = popped.single as TargetWeightDialogResult;
+      expect(result.value, closeTo(UnitCalc.lbsToKg(180), 1e-9));
+    });
+
+    testWidgets('switching to the picker mid-edit keeps the typed value', (
+      tester,
+    ) async {
+      final popped = await _openDialog(
+        tester,
+        SetWeightDialog(
+          initialKg: 75,
+          unit: BodyWeightUnit.kg,
+          configRepository: configRepository,
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), '90');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.linear_scale));
+      await tester.pumpAndSettle();
+      expect(find.byType(HorizontalPicker), findsOneWidget);
+      expect(configRepository.useText, isFalse);
+
+      // And back again: the text field is reseeded from the same value.
+      await tester.tap(find.byIcon(Icons.keyboard_alt_outlined));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(TextField, '90'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.linear_scale));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(popped.single, 90);
+    });
+  });
+}
+
+/// Opens [dialog] from a button. The returned list gains the popped value
+/// when the dialog closes, so an empty list means it is still open.
+Future<List<Object?>> _openDialog(WidgetTester tester, Widget dialog) async {
+  final popped = <Object?>[];
+  await tester.pumpWidget(
+    _wrapWithL10n(
+      Builder(
+        builder: (context) => ElevatedButton(
+          onPressed: () async {
+            popped.add(
+              await showDialog<Object>(
+                context: context,
+                builder: (_) => dialog,
+              ),
+            );
+          },
+          child: const Text('Open'),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('Open'));
+  await tester.pumpAndSettle();
+  return popped;
 }

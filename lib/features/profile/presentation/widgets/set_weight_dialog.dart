@@ -126,11 +126,9 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
   void _submit() {
     final double kg;
     if (_isTextMode) {
+      // OK is disabled while the typed value is empty or out of range.
       final valid = _textKg;
-      if (valid == null) {
-        Navigator.of(context).pop();
-        return;
-      }
+      if (valid == null) return;
       kg = valid;
     } else {
       final display = clampWeightSelection(
@@ -247,7 +245,9 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
           child: Text(S.of(context).dialogCancelLabel),
         ),
         TextButton(
-          onPressed: _submit,
+          // Disabled rather than closing with nothing saved, which would
+          // silently drop a typo such as an extra digit.
+          onPressed: _isTextMode && _textKg == null ? null : _submit,
           child: Text(S.of(context).dialogOKLabel),
         ),
       ],
