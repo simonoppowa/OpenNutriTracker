@@ -416,6 +416,28 @@ void main() {
       expect(client.body!['thinking'], {'type': 'disabled'});
     });
 
+    test('Anthropic built directly asks its default model the way it '
+        'accepts', () async {
+      // The factory passes the catalogue's mode; a direct construction must
+      // not fall back to a forced call with thinking on, which Haiku 5.5
+      // refuses.
+      final client = CapturingClient();
+      final api = AnthropicMealItemsApi(client, () => 'sk-ant');
+      await api.requestItems(
+        content: const MealTextContent('toast'),
+        system: 'system',
+      );
+
+      expect(
+        api.toolCall,
+        AiModelCatalogue.anthropic
+            .singleWhere((m) => m.id == AnthropicMealItemsApi.defaultModel)
+            .toolCall,
+      );
+      expect(client.body!['model'], 'claude-haiku-5-5');
+      expect(client.body!['thinking'], {'type': 'disabled'});
+    });
+
     test('OpenRouter: Haiku 5.5 forced with reasoning off', () async {
       final client = await send(
         const AiSelection(

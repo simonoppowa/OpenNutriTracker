@@ -38,6 +38,8 @@ class AnthropicMealItemsApi implements MealItemsApi {
   final String Function() _apiKey;
   final String model;
 
+  /// Defaults to what [defaultModel] accepts: Haiku 5.5 refuses a forced
+  /// call while it thinks.
   final AiToolCall toolCall;
 
   /// Injectable so the stalled-connection tests do not spend the real twenty
@@ -50,7 +52,7 @@ class AnthropicMealItemsApi implements MealItemsApi {
     this._apiKey, {
     this.model = defaultModel,
     this.timeout = defaultTimeout,
-    this.toolCall = AiToolCall.forced,
+    this.toolCall = AiToolCall.forcedThinkingOff,
   });
 
   /// Sends one forced tool call and returns the validated items.
