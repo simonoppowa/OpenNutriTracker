@@ -93,6 +93,9 @@ class _FakeProber implements AiEndpointProber {
 
   int calls = 0;
 
+  /// What the last check was asked about, so a test can see what it held.
+  AiSelection? lastSelection;
+
   _FakeProber(this.result);
 
   @override
@@ -102,6 +105,7 @@ class _FakeProber implements AiEndpointProber {
     Future<bool> Function()? stillWanted,
   }) async {
     calls++;
+    lastSelection = selection;
     if (gate != null) await gate!.future;
     return result;
   }
@@ -121,6 +125,9 @@ class _FakeProber implements AiEndpointProber {
 
 class _Server {
   final requests = <Uri>[];
+
+  /// The `authorization` header of each request, null where none was sent.
+  final authorizations = <String?>[];
   final http.Response Function(Uri url) _respond;
 
   /// Answers held open, per host, until the test releases them.
@@ -170,6 +177,7 @@ class _Server {
   late final AiModelListApi api = AiModelListApi(
     client: MockClient((request) async {
       requests.add(request.url);
+      authorizations.add(request.headers['authorization']);
       final held = gates[request.url.host];
       if (held != null) await held.future;
       return _respond(request.url);
@@ -1345,6 +1353,203 @@ void main() {
         l10nEn.aiAssistModelsRejectedLabel(host),
         l10nEn.aiAssistModelsInsecureLabel,
       ];
+
+      testWidgets('a stored key goes only to the server it was saved for', (
+        tester,
+      ) async {
+        // #1257: typing a new address and leaving the field asks that machine
+        // for its models, and the stored key used to go with it — a Gemini
+        // key sent as a bearer to whatever answered, before any save.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+          model: 'gemini-3.1-pro',
+          provider: AiProvider.ownServer,
+        );
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+        await commitEndpoint(tester, 'https://other.example.org/v1');
+        await tester.pumpAndSettle();
+        await commitEndpoint(
+          tester,
+          'https://generativelanguage.googleapis.com/v1beta/openai/',
+        );
+        await tester.pumpAndSettle();
+
+        expect(server.requests.map((u) => u.host), [
+          'other.example.org',
+          'generativelanguage.googleapis.com',
+        ]);
+        expect(server.authorizations, [null, 'Bearer google-key']);
+      });
+
+      testWidgets('another server asks for its own key, and Cancel keeps '
+          'the stored one', (tester) async {
+        // #1257: saving an address on another server forgets the stored key,
+        // so "Key saved" over the new address described a key that would not
+        // be used — and hid the field the new server's key has to go in.
+        const gemini =
+            'https://generativelanguage.googleapis.com/v1beta/openai/';
+        final server = _Server.listing(const []);
+        await storage.writeOwnServerConfiguration(
+          endpoint: gemini,
+          model: 'gemini-3.1-pro',
+          provider: AiProvider.ownServer,
+        );
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+        final saved = find.textContaining(l10nEn.aiAssistKeySavedLabel);
+        final keyField = find.bySemanticsIdentifier('ai-assist-key-field');
+        final endpointField = find.bySemanticsIdentifier(
+          'ai-assist-endpoint-field',
+        );
+        expect(saved, findsOneWidget);
+        expect(keyField, findsNothing);
+
+        await tester.enterText(endpointField, 'https://other.example.org/v1');
+        await tester.pump();
+        expect(saved, findsNothing);
+        expect(keyField, findsOneWidget);
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(of: keyField, matching: find.byType(TextField)),
+              )
+              .controller!
+              .text,
+          isEmpty,
+        );
+
+        // A key typed for the other server is not kept behind the mask once
+        // the address is back on the saved one.
+        await tester.enterText(keyField, 'other-key');
+        await tester.enterText(endpointField, gemini);
+        await tester.pump();
+        expect(saved, findsOneWidget);
+        expect(keyField, findsNothing);
+
+        await tester.enterText(endpointField, 'https://other.example.org/v1');
+        await tester.pump();
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(of: keyField, matching: find.byType(TextField)),
+              )
+              .controller!
+              .text,
+          isEmpty,
+        );
+
+        await tester.tap(find.bySemanticsIdentifier('ai-assist-cancel'));
+        await tester.pumpAndSettle();
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          'google-key',
+          reason: 'Cancel deletes nothing',
+        );
+        // Moving focus to the key field commits the address and asks the
+        // other server for its models; the stored key never goes with it.
+        expect(server.authorizations, isNot(contains('Bearer google-key')));
+      });
+
+      group('a typed key stays with the server it was typed for', () {
+        Finder keyField() => find.bySemanticsIdentifier('ai-assist-key-field');
+        Finder endpointField() =>
+            find.bySemanticsIdentifier('ai-assist-endpoint-field');
+
+        String typedKey(WidgetTester tester) => tester
+            .widget<TextField>(
+              find.descendant(of: keyField(), matching: find.byType(TextField)),
+            )
+            .controller!
+            .text;
+
+        Future<void> leaveEndpoint(WidgetTester tester) async {
+          await tester.testTextInput.receiveAction(TextInputAction.done);
+          await tester.pumpAndSettle();
+        }
+
+        testWidgets('editing to another server clears it', (tester) async {
+          // #1257: A to B, B's key typed, then the address edited to C — the
+          // model-list request to C carried B's key, and Save would have too.
+          final server = _Server.listing(const []);
+          await storage.writeOwnServerConfiguration(
+            endpoint: 'https://a.example.org/v1',
+            model: 'm',
+            provider: AiProvider.ownServer,
+          );
+          await storage.writeApiKey('a-key', provider: AiProvider.ownServer);
+
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pumpAndSettle();
+
+          await tester.enterText(endpointField(), 'https://c.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), isEmpty);
+          await leaveEndpoint(tester);
+
+          expect(server.requests.last.host, 'c.example.org');
+          expect(server.authorizations.last, isNull);
+          for (var i = 0; i < server.requests.length; i++) {
+            if (server.requests[i].host == 'b.example.org') continue;
+            expect(server.authorizations[i], isNot('Bearer b-key'));
+            expect(server.authorizations[i], isNot('Bearer a-key'));
+          }
+        });
+
+        testWidgets('a new route on the same server keeps it', (tester) async {
+          final server = _Server.listing(const []);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pumpAndSettle();
+
+          await tester.enterText(
+            endpointField(),
+            'https://b.example.org/api/v1',
+          );
+          await tester.pump();
+          expect(typedKey(tester), 'b-key');
+          await leaveEndpoint(tester);
+
+          expect(server.requests.last.host, 'b.example.org');
+          expect(server.authorizations.last, 'Bearer b-key');
+        });
+
+        testWidgets('one typed before the address binds to the first server '
+            'it is sent to', (tester) async {
+          final server = _Server.listing(const []);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pump();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), 'b-key');
+          await leaveEndpoint(tester);
+          expect(server.authorizations, ['Bearer b-key']);
+
+          await tester.enterText(endpointField(), 'https://c.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), isEmpty);
+          await leaveEndpoint(tester);
+          expect(server.requests.map((u) => u.host), [
+            'b.example.org',
+            'c.example.org',
+          ]);
+          expect(server.authorizations, ['Bearer b-key', null]);
+        });
+      });
 
       testWidgets('opening the dialog asks the server nothing', (tester) async {
         // The promise the README is built on is about what leaves the device
@@ -2530,6 +2735,24 @@ void main() {
         expect(prober.calls, 1, reason: 'and it really did start one');
       });
 
+      testWidgets('a key saved with the address is the key the check uses', (
+        tester,
+      ) async {
+        // #1257: the check started before the key was written, so a first
+        // save of address, model and key together probed without the key,
+        // a server that needs one refused it, and the camera stayed hidden.
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-key-field'),
+          'secret-key',
+        );
+        await fillAndSave(tester);
+
+        expect(prober.calls, 1);
+        expect(prober.lastSelection?.apiKey, 'secret-key');
+      });
+
       testWidgets('the text result and the photo result are separate', (
         tester,
       ) async {
@@ -3622,6 +3845,123 @@ void main() {
 
       expect(find.text(l10nEn.aiConsentTitle), findsNothing);
       expect(await storage.readApiKey(provider: AiProvider.anthropic), 'sk-x');
+    });
+
+    testWidgets('an agreement from before Google was named asks again for '
+        'a Gemini address', (tester) async {
+      // #1257: an install that saved Google's address agreed to "a server
+      // you run … No third party receives it". Saving it now puts the
+      // paragraph naming Google in front of the user before anything is
+      // sent, and only a yes to that turns the feature on.
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+      await storage.setActiveProvider(AiProvider.ownServer);
+      backing.store['AiEndpointTag.ownServer'] = gemini;
+      backing.store['AiModelTag.ownServer'] = 'gemini-3.1-pro';
+      backing.store['AiAssistEnabledTag'] = 'true';
+      backing.store['AiTermsAcceptedTag'] = 'true';
+      expect(await storage.readSelection(), isNull);
+
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.aiConsentTitle), findsOneWidget);
+      expect(
+        find.text(
+          l10nEn.aiAssistDisclosureOwnServerGemini(
+            'generativelanguage.googleapis.com',
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      // The Google paragraph is long enough to push the button past the fold.
+      final agree = find.bySemanticsIdentifier('ai-consent-agree');
+      await tester.scrollUntilVisible(agree, 200);
+      await tester.tap(agree);
+      await tester.pumpAndSettle();
+
+      expect(
+        (await storage.readSelection())?.endpoint,
+        '$gemini/chat/completions',
+      );
+    });
+
+    group('turning the switch on for a Gemini address agreed to before '
+        'Google was named', () {
+      // #1257: the switch only wrote the flag and read it back, and the
+      // missing Google agreement kept it off, so it snapped back with
+      // nothing said. It asks for the agreement instead.
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      Future<void> tapSwitch(WidgetTester tester) async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        backing.store['AiEndpointTag.ownServer'] = gemini;
+        backing.store['AiModelTag.ownServer'] = 'gemini-3.1-pro';
+        backing.store['AiAssistEnabledTag'] = 'false';
+        backing.store['AiTermsAcceptedTag'] = 'true';
+
+        await tester.pumpWidget(_app(storage));
+        await tester.pumpAndSettle();
+        final toggle = find.bySemanticsIdentifier('ai-assist-enabled');
+        await tester.ensureVisible(toggle);
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isFalse,
+        );
+        await tester.tap(find.byType(SwitchListTile));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('shows the paragraph naming Google, and a yes turns it on', (
+        tester,
+      ) async {
+        await tapSwitch(tester);
+
+        expect(find.text(l10nEn.aiConsentTitle), findsOneWidget);
+        expect(
+          find.text(
+            l10nEn.aiAssistDisclosureOwnServerGemini(
+              'generativelanguage.googleapis.com',
+            ),
+          ),
+          findsOneWidget,
+        );
+        final agree = find.bySemanticsIdentifier('ai-consent-agree');
+        await tester.scrollUntilVisible(agree, 200);
+        await tester.tap(agree);
+        await tester.pumpAndSettle();
+
+        expect(await storage.isEnabled(), isTrue);
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isTrue,
+        );
+      });
+
+      testWidgets('a no leaves it off and records nothing', (tester) async {
+        await tapSwitch(tester);
+
+        final decline = find.bySemanticsIdentifier('ai-consent-decline');
+        await tester.scrollUntilVisible(decline, 200);
+        await tester.tap(decline);
+        await tester.pumpAndSettle();
+
+        expect(await storage.isEnabled(), isFalse);
+        expect(
+          await storage.hasAcceptedTerms(
+            provider: AiProvider.ownServer,
+            endpoint: gemini,
+          ),
+          isFalse,
+        );
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isFalse,
+        );
+      });
     });
 
     testWidgets('the screen names the destination that was chosen', (
