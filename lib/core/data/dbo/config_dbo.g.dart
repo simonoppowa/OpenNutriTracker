@@ -57,9 +57,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         trackedDaysOffsetMinutes: (fields[40] as num?)?.toInt(),
         localeSyncSeeded: fields[41] as bool?,
         hasLeftTip: fields[42] as bool?,
-        healthExportEnabled: fields[43] as bool?,
-        healthLastExportAt: fields[44] as DateTime?,
-        healthExportedDays: (fields[45] as Map?)?.cast<String, String>(),
+        healthExportEnabled: fields[45] as bool?,
+        healthLastExportAt: fields[46] as DateTime?,
+        healthExportedDays: (fields[47] as Map?)?.cast<String, String>(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -156,11 +156,11 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..write(obj.localeSyncSeeded)
       ..writeByte(42)
       ..write(obj.hasLeftTip)
-      ..writeByte(43)
-      ..write(obj.healthExportEnabled)
-      ..writeByte(44)
-      ..write(obj.healthLastExportAt)
       ..writeByte(45)
+      ..write(obj.healthExportEnabled)
+      ..writeByte(46)
+      ..write(obj.healthLastExportAt)
+      ..writeByte(47)
       ..write(obj.healthExportedDays);
   }
 
