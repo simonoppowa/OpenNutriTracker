@@ -17,12 +17,14 @@ class EditMealLoadingState extends EditMealState {
 class EditMealLoadedState extends EditMealState {
   final bool usesImperialUnits;
   final CustomMealFormMode formMode;
+  final bool nutrientsTotal;
 
   const EditMealLoadedState({
     this.usesImperialUnits = false,
     this.formMode = CustomMealFormMode.simple,
+    this.nutrientsTotal = false,
   });
 
   @override
-  List<Object?> get props => [usesImperialUnits, formMode];
+  List<Object?> get props => [usesImperialUnits, formMode, nutrientsTotal];
 }

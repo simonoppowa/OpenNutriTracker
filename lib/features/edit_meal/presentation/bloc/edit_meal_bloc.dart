@@ -104,6 +104,7 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       emit(EditMealLoadedState(
         usesImperialUnits: config.usesImperialFoodUnits,
         formMode: mode,
+        nutrientsTotal: await _configRepository.getCustomMealNutrientsTotal(),
       ));
     });
   }
@@ -112,6 +113,10 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   /// opens in the same mode they last used (#232).
   Future<void> setFormMode(CustomMealFormMode mode) async {
     await _configRepository.setCustomMealFormMode(mode.name);
+  }
+
+  Future<void> setNutrientsTotal(bool total) async {
+    await _configRepository.setCustomMealNutrientsTotal(total);
   }
 
   MealEntity createNewMealEntity(

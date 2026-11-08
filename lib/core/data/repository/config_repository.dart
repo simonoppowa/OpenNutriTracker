@@ -168,6 +168,14 @@ class ConfigRepository {
     await _configDataSource.setCustomMealFormMode(mode);
   }
 
+  Future<bool> getCustomMealNutrientsTotal() async {
+    return await _configDataSource.getCustomMealNutrientsTotal();
+  }
+
+  Future<void> setCustomMealNutrientsTotal(bool total) async {
+    await _configDataSource.setCustomMealNutrientsTotal(total);
+  }
+
   Future<Map<String, int>?> getDiarySortPreferences() async {
     return await _configDataSource.getDiarySortPreferences();
   }

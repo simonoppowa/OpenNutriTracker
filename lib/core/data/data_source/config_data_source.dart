@@ -281,6 +281,13 @@ class ConfigDataSource {
     await _update((c) => c.customMealFormMode = mode);
   }
 
+  Future<bool> getCustomMealNutrientsTotal() async =>
+      _readMerged().customMealNutrientsTotal ?? false;
+
+  Future<void> setCustomMealNutrientsTotal(bool total) async {
+    await _update((c) => c.customMealNutrientsTotal = total);
+  }
+
   Future<Map<String, int>?> getDiarySortPreferences() async {
     final stored = _readMerged().diarySortPreferences;
     if (stored == null) return null;

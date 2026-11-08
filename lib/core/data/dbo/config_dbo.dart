@@ -213,6 +213,10 @@ class ConfigDBO extends HiveObject {
   @HiveField(41)
   bool? localeSyncSeeded;
 
+  // Advanced editor view only; nutrients remain stored per 100 g/ml.
+  @HiveField(42)
+  bool? customMealNutrientsTotal;
+
   ConfigDBO(
     this.hasAcceptedDisclaimer,
     this.hasAcceptedPolicy,
@@ -230,6 +234,7 @@ class ConfigDBO extends HiveObject {
     this.usesKilojoules,
     this.mealKcalSharesPct,
     this.customMealFormMode,
+    this.customMealNutrientsTotal,
     this.dayStartOffsetHours,
     this.diarySortPreferences,
     this.nutrientPanelVisibility,

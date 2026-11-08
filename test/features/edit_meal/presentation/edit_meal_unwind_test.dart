@@ -235,6 +235,9 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
 
 class _FakeConfigRepository implements ConfigRepository {
   @override
+  Future<bool> getCustomMealNutrientsTotal() async => false;
+
+  @override
   Future<String?> getCustomMealFormMode() async =>
       CustomMealFormMode.simple.name;
 

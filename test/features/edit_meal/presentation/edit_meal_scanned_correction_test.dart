@@ -408,6 +408,9 @@ class _Config extends Fake implements GetConfigUsecase {
 
 class _FormMode extends Fake implements ConfigRepository {
   @override
+  Future<bool> getCustomMealNutrientsTotal() async => false;
+
+  @override
   Future<String?> getCustomMealFormMode() async => 'simple';
 }
 

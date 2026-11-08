@@ -381,6 +381,13 @@ class _EditMealScreenState extends State<EditMealScreen> {
                 _formMode = canUseSimple
                     ? state.formMode
                     : CustomMealFormMode.advanced;
+                final packageBasis = _metricQuantity(
+                  _mealQuantityTextController,
+                );
+                _isTotal = state.nutrientsTotal &&
+                    packageBasis.isFinite &&
+                    packageBasis > 0;
+                _rescaleNutrients(_activeNutritionBasis);
                 _formModeHydrated = true;
               }
               return _getLoadedContent(state.usesImperialUnits, usesKj);
@@ -644,10 +651,18 @@ class _EditMealScreenState extends State<EditMealScreen> {
               ],
               selected: {_isTotal},
               onSelectionChanged: (Set<bool> newSelection) {
+                final total = newSelection.first;
+                final packageBasis = _metricQuantity(
+                  _mealQuantityTextController,
+                );
+                if (total && (!packageBasis.isFinite || packageBasis <= 0)) {
+                  return;
+                }
                 setState(() {
-                  _isTotal = newSelection.first;
+                  _isTotal = total;
                   _rescaleNutrients(_activeNutritionBasis);
                 });
+                _editMealBloc.setNutrientsTotal(total);
               },
             ),
           ),

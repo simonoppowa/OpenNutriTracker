@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -38,13 +40,17 @@ import '../../../helpers/hive_test_setup.dart';
 import '../../../helpers/test_l10n.dart';
 
 // Synthetic basis fixture, not evidence about any real product.
-MealEntity _food({String unit = 'g', String quantity = '60'}) => MealEntity(
+MealEntity _food({
+  String unit = 'g',
+  String? quantity = '60',
+  double? servingQuantity,
+}) => MealEntity(
   code: 'basis-food',
   name: 'Sixty gram food',
   url: null,
   mealQuantity: quantity,
   mealUnit: unit,
-  servingQuantity: double.parse(quantity),
+  servingQuantity: servingQuantity ?? double.tryParse(quantity ?? ''),
   servingUnit: unit,
   servingSize: '1 portion ($quantity $unit)',
   nutriments: const MealNutrimentsEntity(
@@ -70,6 +76,8 @@ void main() {
   late Directory directory;
   late Box<MealDBO> box;
   late CustomMealDataSource library;
+  late Box<ConfigDBO> configBox;
+  late ConfigRepository preferences;
   final editors = <EditMealBloc>[];
   var imperial = false;
   var kilojoules = false;
@@ -80,13 +88,17 @@ void main() {
     directory = await Directory.systemTemp.createTemp('nutrition-basis-');
     Hive.init(directory.path);
     registerHiveAdaptersOnce();
+    configBox = await Hive.openBox<ConfigDBO>('config');
+    preferences = ConfigRepository(
+      ConfigDataSource(FakeHiveDBProvider(configBox: configBox)),
+    );
     box = await Hive.openBox<MealDBO>('custom-meals');
     library = CustomMealDataSource(FakeHiveDBProvider(customMealBox: box));
     GetIt.instance.registerFactory<EditMealBloc>(() {
       final bloc = EditMealBloc(
         _Config(imperial),
         library,
-        _FormMode(),
+        preferences,
         _Favourites(),
         _Intakes(),
       );
@@ -101,6 +113,7 @@ void main() {
     }
     editors.clear();
     await GetIt.instance.reset();
+    await configBox.deleteFromDisk();
     await box.deleteFromDisk();
     await directory.delete(recursive: true);
   });
@@ -186,7 +199,12 @@ void main() {
           )
           .first,
     );
-    await tester.tap(find.textContaining(l10nEn.mealNutrientsTotalLabel).first);
+    await tester.runAsync(() async {
+      await tester.tap(
+        find.textContaining(l10nEn.mealNutrientsTotalLabel).first,
+      );
+      await configBox.flush();
+    });
     await tester.pumpAndSettle();
   }
 
@@ -230,7 +248,10 @@ void main() {
           )
           .first,
     );
-    await tester.tap(find.text(l10nEn.customMealFormSimple).first);
+    await tester.runAsync(() async {
+      await tester.tap(find.text(l10nEn.customMealFormSimple).first);
+      await configBox.flush();
+    });
     await tester.pumpAndSettle();
   }
 
@@ -246,13 +267,19 @@ void main() {
           )
           .first,
     );
-    await tester.tap(find.text(l10nEn.customMealFormAdvanced).first);
+    await tester.runAsync(() async {
+      await tester.tap(find.text(l10nEn.customMealFormAdvanced).first);
+      await configBox.flush();
+    });
     await tester.pumpAndSettle();
   }
 
   Future<void> per100(WidgetTester tester, String unit) async {
     await field(tester, '${l10nEn.baseQuantityLabel} ($unit)');
-    await tester.tap(find.text('Per 100 $unit').first);
+    await tester.runAsync(() async {
+      await tester.tap(find.text('Per 100 $unit').first);
+      await configBox.flush();
+    });
     await tester.pumpAndSettle();
   }
 
@@ -273,6 +300,114 @@ void main() {
     expect(n.vitaminD100, isNull);
     expect(n.vitaminB12100, closeTo(0.5, 0.0001));
   }
+
+  Future<void> reopenPreferences(WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await configBox.close();
+      configBox = await Hive.openBox<ConfigDBO>('config');
+    });
+    preferences = ConfigRepository(
+      ConfigDataSource(FakeHiveDBProvider(configBox: configBox)),
+    );
+  }
+
+  testWidgets('remembers explicit package-total selection on reopen', (
+    tester,
+  ) async {
+    final meal = _food(quantity: '400', servingQuantity: 40);
+    await pumpEditor(tester, meal);
+    await toggleTotal(tester);
+    expect(double.parse((await energy(tester)).controller!.text), 1840);
+    final reopened = await saveAndReopen(tester);
+    expectDensity(reopened);
+    expect(double.parse(reopened.mealQuantity!), 400);
+    expect(reopened.servingQuantity, 40);
+    await reopenPreferences(tester);
+    expect(await preferences.getCustomMealNutrientsTotal(), isTrue);
+    await pumpEditor(tester, reopened);
+    expect(double.parse((await energy(tester)).controller!.text), 1840);
+    for (final entry in {
+      l10nEn.mealCarbsLabel: 240,
+      l10nEn.mealFatLabel: 80,
+      l10nEn.mealProteinLabel: 40,
+    }.entries) {
+      final input = tester.widget<TextFormField>(
+        await field(tester, entry.key),
+      );
+      expect(double.parse(input.controller!.text), entry.value);
+    }
+    // Unchanged total save normalizes every populated nutrient once.
+    expectDensity(await saveAndReopen(tester));
+    await pumpEditor(tester, reopened);
+    await per100(tester, 'g');
+    await reopenPreferences(tester);
+    expect(await preferences.getCustomMealNutrientsTotal(), isFalse);
+    await pumpEditor(tester, reopened);
+    expect(double.parse((await energy(tester)).controller!.text), 460);
+    expectDensity(await saveAndReopen(tester));
+  });
+
+  testWidgets('legacy absent preference keeps Per100 default', (tester) async {
+    await tester.runAsync(() async {
+      final legacy = ConfigDBO.empty().toJson()
+        ..remove('customMealNutrientsTotal');
+      await configBox.put('ConfigKey', ConfigDBO.fromJson(legacy));
+    });
+    await reopenPreferences(tester);
+    expect(await preferences.getCustomMealNutrientsTotal(), isFalse);
+    await pumpEditor(tester, _food(quantity: '400', servingQuantity: 40));
+    expect(double.parse((await energy(tester)).controller!.text), 460);
+  });
+
+  for (final quantity in [null, '', '0', '-10', 'invalid', 'NaN', 'Infinity']) {
+    testWidgets('remembered total safely falls back for package $quantity', (
+      tester,
+    ) async {
+      await tester.runAsync(
+        () => preferences.setCustomMealNutrientsTotal(true),
+      );
+      await pumpEditor(tester, _food(quantity: quantity, servingQuantity: 40));
+      expect(
+        tester
+            .widget<SegmentedButton<bool>>(find.byType(SegmentedButton<bool>))
+            .selected,
+        {false},
+      );
+      expect(double.parse((await energy(tester)).controller!.text), 460);
+      await reopenPreferences(tester);
+      expect(await preferences.getCustomMealNutrientsTotal(), isTrue);
+      await pumpEditor(tester, _food(quantity: '400', servingQuantity: 40));
+      expect(double.parse((await energy(tester)).controller!.text), 1840);
+    });
+  }
+
+  testWidgets('Simple hydration does not overwrite Advanced total preference', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await preferences.setCustomMealNutrientsTotal(true);
+      await preferences.setCustomMealFormMode('simple');
+    });
+    await pumpEditor(tester, MealEntity.empty());
+    expect(
+      tester
+          .widget<SegmentedButton<CustomMealFormMode>>(
+            find.byType(SegmentedButton<CustomMealFormMode>),
+          )
+          .selected,
+      {CustomMealFormMode.simple},
+    );
+    await reopenPreferences(tester);
+    expect(await preferences.getCustomMealNutrientsTotal(), isTrue);
+    await pumpEditor(tester, _food(quantity: '400', servingQuantity: 40));
+    expect(double.parse((await energy(tester)).controller!.text), 1840);
+    await simple(tester);
+    expect(double.parse((await energy(tester)).controller!.text), 184);
+    await advanced(tester);
+    expect(double.parse((await energy(tester)).controller!.text), 1840);
+    await reopenPreferences(tester);
+    expect(await preferences.getCustomMealNutrientsTotal(), isTrue);
+  });
 
   for (final unit in ['g', 'ml']) {
     for (final useImperial in [false, true]) {
@@ -320,7 +455,12 @@ void main() {
               await pumpEditor(tester, reopened);
               expect(
                 double.parse((await energy(tester)).controller!.text),
-                closeTo(kilojoules ? 1924.6 : 460, 0.7),
+                closeTo(
+                  mode == 'total'
+                      ? (kilojoules ? 1154.76 : 276)
+                      : (kilojoules ? 1924.6 : 460),
+                  0.7,
+                ),
               );
               final again = await saveAndReopen(tester);
               expectDensity(again);
@@ -353,7 +493,7 @@ void main() {
       await pumpEditor(tester, reopened);
       expect(
         double.parse((await energy(tester)).controller!.text),
-        closeTo(1924.6, 1e-8),
+        closeTo(mode == 'total' ? 1.9246 : 1924.6, 1e-8),
       );
       expect(
         (await saveAndReopen(tester)).nutriments.energyKcal100,
@@ -678,6 +818,8 @@ void main() {
     expect(reopened.nutriments.fiber100, 8);
     expect(kcalForQuantity(1, 'serving', reopened), 300);
     await pumpEditor(tester, reopened);
+    expect(double.parse((await energy(tester)).controller!.text), 300);
+    await per100(tester, 'g');
     expect(double.parse((await energy(tester)).controller!.text), 500);
     await toggleTotal(tester);
     expect(double.parse((await energy(tester)).controller!.text), 300);
@@ -792,7 +934,7 @@ void main() {
   });
 
   testWidgets(
-    'package total displays 276 kcal for 60g, saves and reopens at 460 per 100g',
+    'package total displays 276 kcal for 60g and reopens with canonical density',
     (tester) async {
       await pumpEditor(tester, _food());
       expect(double.parse((await energy(tester)).controller!.text), 460);
@@ -803,7 +945,7 @@ void main() {
       expect(reopened.nutriments.energyKcal100, closeTo(460, 0.001));
       expect(reopened.nutriments.fiber100, closeTo(8, 0.001));
       await pumpEditor(tester, reopened);
-      expect(double.parse((await energy(tester)).controller!.text), 460);
+      expect(double.parse((await energy(tester)).controller!.text), 276);
     },
   );
 }
@@ -819,13 +961,6 @@ class _Config extends Fake implements GetConfigUsecase {
     AppThemeEntity.system,
     usesImperialFoodUnits: imperial,
   );
-}
-
-class _FormMode extends Fake implements ConfigRepository {
-  @override
-  Future<String?> getCustomMealFormMode() async => 'simple';
-  @override
-  Future<void> setCustomMealFormMode(String mode) async {}
 }
 
 class _Favourites extends Fake implements FavouriteMealRepository {
