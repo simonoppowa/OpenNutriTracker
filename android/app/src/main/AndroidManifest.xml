@@ -98,6 +98,21 @@
         </activity-alias>
         <!-- #312: Notification scheduling receivers -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>
+        <!-- Calorie home-screen widget: reads the snapshot the app writes
+             through home_widget. `targetCellWidth/Height` (API 31+) is in
+             cells; minWidth/minHeight is the pre-31 fallback, using the
+             dp grid Google documents for a 2x2 launcher cell. -->
+        <receiver
+            android:name=".CalorieWidgetProvider"
+            android:exported="false"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/calorie_widget_info"/>
+        </receiver>
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
