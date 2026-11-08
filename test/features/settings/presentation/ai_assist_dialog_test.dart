@@ -3888,6 +3888,82 @@ void main() {
       );
     });
 
+    group('turning the switch on for a Gemini address agreed to before '
+        'Google was named', () {
+      // #1257: the switch only wrote the flag and read it back, and the
+      // missing Google agreement kept it off, so it snapped back with
+      // nothing said. It asks for the agreement instead.
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      Future<void> tapSwitch(WidgetTester tester) async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        backing.store['AiEndpointTag.ownServer'] = gemini;
+        backing.store['AiModelTag.ownServer'] = 'gemini-3.1-pro';
+        backing.store['AiAssistEnabledTag'] = 'false';
+        backing.store['AiTermsAcceptedTag'] = 'true';
+
+        await tester.pumpWidget(_app(storage));
+        await tester.pumpAndSettle();
+        final toggle = find.bySemanticsIdentifier('ai-assist-enabled');
+        await tester.ensureVisible(toggle);
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isFalse,
+        );
+        await tester.tap(find.byType(SwitchListTile));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('shows the paragraph naming Google, and a yes turns it on', (
+        tester,
+      ) async {
+        await tapSwitch(tester);
+
+        expect(find.text(l10nEn.aiConsentTitle), findsOneWidget);
+        expect(
+          find.text(
+            l10nEn.aiAssistDisclosureOwnServerGemini(
+              'generativelanguage.googleapis.com',
+            ),
+          ),
+          findsOneWidget,
+        );
+        final agree = find.bySemanticsIdentifier('ai-consent-agree');
+        await tester.scrollUntilVisible(agree, 200);
+        await tester.tap(agree);
+        await tester.pumpAndSettle();
+
+        expect(await storage.isEnabled(), isTrue);
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isTrue,
+        );
+      });
+
+      testWidgets('a no leaves it off and records nothing', (tester) async {
+        await tapSwitch(tester);
+
+        final decline = find.bySemanticsIdentifier('ai-consent-decline');
+        await tester.scrollUntilVisible(decline, 200);
+        await tester.tap(decline);
+        await tester.pumpAndSettle();
+
+        expect(await storage.isEnabled(), isFalse);
+        expect(
+          await storage.hasAcceptedTerms(
+            provider: AiProvider.ownServer,
+            endpoint: gemini,
+          ),
+          isFalse,
+        );
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isFalse,
+        );
+      });
+    });
+
     testWidgets('the screen names the destination that was chosen', (
       tester,
     ) async {

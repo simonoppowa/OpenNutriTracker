@@ -923,8 +923,31 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// selected. The read-back is not: `isEnabled` is false for a provider with
   /// nothing configured, so a switch landing between the two turns this into
   /// one provider's answer painted onto another's switch.
+  ///
+  /// Turning it on asks for a missing agreement first, like saving does. The
+  /// one case that reaches here is Google's Gemini API agreed to before the
+  /// screen named Google (#1257): without asking, the read-back stays off and
+  /// the switch snaps back with nothing said.
   Future<void> _setEnabled(bool value) async {
     final provider = _provider;
+    if (value) {
+      final endpoint = provider == AiProvider.ownServer
+          ? await widget.storage.readEndpoint(provider: provider)
+          : null;
+      if (!await widget.storage.hasAcceptedTerms(
+        provider: provider,
+        endpoint: endpoint,
+      )) {
+        if (!mounted || provider != _provider) return;
+        final agreed = await AiConsentScreen.show(
+          context,
+          provider: provider,
+          typedEndpoint: endpoint ?? '',
+        );
+        if (!agreed) return;
+        await widget.storage.setTermsAccepted(true, endpoint: endpoint);
+      }
+    }
     await widget.storage.setEnabled(value);
     final enabled = await widget.storage.isEnabled();
     if (!mounted || provider != _provider) return;
