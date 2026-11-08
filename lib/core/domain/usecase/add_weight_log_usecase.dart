@@ -1,6 +1,7 @@
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/update_today_calorie_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
@@ -16,8 +17,16 @@ import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 class AddWeightLogUsecase {
   final WeightLogRepository _weightLogRepository;
   final UserRepository _userRepository;
+  final UpdateTodayCalorieGoalUsecase? _updateTodayCalorieGoal;
 
-  AddWeightLogUsecase(this._weightLogRepository, this._userRepository);
+  /// [updateTodayCalorieGoal] recalculates today's calorie goal when a save
+  /// moves the current weight. Production passes it; a test that is not
+  /// about the goal can leave it out.
+  AddWeightLogUsecase(
+    this._weightLogRepository,
+    this._userRepository, {
+    UpdateTodayCalorieGoalUsecase? updateTodayCalorieGoal,
+  }) : _updateTodayCalorieGoal = updateTodayCalorieGoal;
 
   /// Returns whether the current weight changed, in which case the caller
   /// runs the refresh a weight change sets off.
@@ -28,10 +37,13 @@ class AddWeightLogUsecase {
   /// A save that a profile switch overtook is dropped rather than written
   /// into the profile switched to.
   Future<bool> addEntry(WeightLogEntity entry) async {
-    final changed = await withTrackedDayLockOnProfile(
-      () => _addEntry(entry),
-      startedOn: ProfileStamp.now(),
-    );
+    final changed = await withTrackedDayLockOnProfile(() async {
+      final changed = await _addEntry(entry);
+      // Under the same lock: see [UpdateTodayCalorieGoalUsecase] for why
+      // the caller's refresh is not enough.
+      if (changed) await _updateTodayCalorieGoal?.updateGoal(DateTime.now());
+      return changed;
+    }, startedOn: ProfileStamp.now());
     return changed ?? false;
   }
 

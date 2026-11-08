@@ -24,6 +24,7 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/update_today_calorie_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 import '../fixture/user_entity_fixtures.dart';
@@ -492,8 +493,11 @@ void main() {
         weightLogRepository,
         userRepository,
         provider,
-        addTrackedDayUsecase: trackedDays,
-        getKcalGoalUsecase: _FakeGetKcalGoalUsecase(),
+        updateTodayCalorieGoal: UpdateTodayCalorieGoalUsecase(
+          userRepository,
+          trackedDays,
+          _FakeGetKcalGoalUsecase(),
+        ),
       );
       healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
 
@@ -1020,6 +1024,92 @@ void main() {
       expect(await deleteUsecase.deleteEntry(await listedEntry(yesterday)), isFalse);
 
       expect((await userRepository.getUserData()).weightKG, equals(78.5));
+    });
+
+    // Left alone, the next import would promote yesterday's reading over
+    // the deleted manual weight anyway, silently and without a refresh.
+    test('deleting today\'s manual weight hands the current weight to the '
+        'newest remaining entry, and a later import keeps it', () async {
+      healthService.weights = [_reading('b', DateTime(2026, 5, 22, 7), 80.9)];
+      await usecase.importNow();
+      // What saving a weight for today does: the row, then the user.
+      await weightLogRepository.addEntry(
+        WeightLogEntity(date: today, weightKg: 79.0),
+      );
+      final user = await userRepository.getUserData();
+      user.weightKG = 79.0;
+      await userRepository.updateUserData(user);
+
+      expect(await deleteUsecase.deleteEntry(await listedEntry(today)), isTrue);
+      expect((await userRepository.getUserData()).weightKG, equals(80.9));
+
+      ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+      await usecase.importNow();
+      expect((await userRepository.getUserData()).weightKG, equals(80.9));
+    });
+
+    test('deleting a manual entry the weight did not come from leaves it',
+        () async {
+      await weightLogRepository.addEntry(
+        WeightLogEntity(date: DateTime(2026, 5, 20), weightKg: 82.0),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+      await usecase.importNow();
+
+      expect(
+        await deleteUsecase.deleteEntry(
+          await listedEntry(DateTime(2026, 5, 20)),
+        ),
+        isFalse,
+      );
+      expect((await userRepository.getUserData()).weightKG, equals(78.5));
+    });
+
+    // A switch queued behind the deletion would drop the screen's refresh,
+    // so the deletion settles the goal itself, under its own lock.
+    test('a deletion that moves the current weight recalculates today\'s '
+        'goal itself', () async {
+      final trackedDays = _FakeAddTrackedDayUsecase();
+      final deleting = DeleteWeightLogUsecase(
+        weightLogRepository,
+        configRepository,
+        userRepository,
+        updateTodayCalorieGoal: UpdateTodayCalorieGoalUsecase(
+          userRepository,
+          trackedDays,
+          _FakeGetKcalGoalUsecase(),
+        ),
+      );
+      await weightLogRepository.addEntry(
+        WeightLogEntity(date: DateTime(2026, 5, 20), weightKg: 82.0),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+      await usecase.importNow();
+
+      expect(await deleting.deleteEntry(await listedEntry(today)), isTrue);
+      expect(trackedDays.updatedGoals, [82.0]);
+    });
+
+    test('a weight saved for today recalculates today\'s goal itself',
+        () async {
+      final trackedDays = _FakeAddTrackedDayUsecase();
+      final adding = AddWeightLogUsecase(
+        weightLogRepository,
+        userRepository,
+        updateTodayCalorieGoal: UpdateTodayCalorieGoalUsecase(
+          userRepository,
+          trackedDays,
+          _FakeGetKcalGoalUsecase(),
+        ),
+      );
+
+      expect(
+        await adding.addEntry(
+          WeightLogEntity(date: DateTime.now(), weightKg: 77.0),
+        ),
+        isTrue,
+      );
+      expect(trackedDays.updatedGoals, [77.0]);
     });
 
     test('deleting a manual entry leaves no tombstone', () async {
