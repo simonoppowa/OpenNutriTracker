@@ -128,33 +128,39 @@ class ExportDiaryToHealthUsecase {
       (waterByDay[day] ??= []).add(entry);
     }
 
-    // A boundary change moves every window, so records written under the
-    // old one are cleared first. A cleared window can hold records an
-    // earlier pass already rewrote under the new boundary (one that failed
-    // partway), and entries that now file under a day older than the
-    // backfill, so every day whose new window overlaps it is rewritten
-    // below, whatever its fingerprint or age.
+    // Each record names the absolute window it was written in. A boundary
+    // change, or a move to another time zone, gives a day a different one,
+    // so records written in the old window are cleared first. A cleared
+    // window can hold records an earlier pass already rewrote in the new one
+    // (one that failed partway), and entries that now file under a day older
+    // than the backfill, so every day whose new window overlaps it is
+    // rewritten or put on record below, whatever its fingerprint or age.
     final overlapsCleared = <String>{};
     for (final entry in config.healthExportedDays.entries) {
-      final oldOffset = _offsetOf(entry.value, offset);
-      if (oldOffset == offset) continue;
-      // A day cleared under the old boundary holds nothing to clear.
-      if (entry.value.startsWith('$_empty@')) continue;
+      final (start, end) = _window(entry.key, offset);
+      final (from, to) = _recordedWindow(entry.key, entry.value, offset);
+      if (from.isAtSameMomentAs(start) && to.isAtSameMomentAs(end)) continue;
+      final overlaps = _daysOverlapping(entry.key, from, to, offset);
+      // A day cleared in its old window holds nothing to clear, but the
+      // days it overlaps now may hold another profile's entries.
+      if (entry.value.startsWith('$_empty@')) {
+        overlapsCleared.addAll(overlaps);
+        continue;
+      }
       if (!await _mayContinue(profileId)) return 0;
       // Marked first, as the main loop does: a pass cut short after this
-      // clear must still rewrite the day, even under the old boundary.
+      // clear must still rewrite the day, even back in the old window.
       await _configRepository.setConfigHealthExportedDay(
         entry.key,
-        '$_pending@$oldOffset',
+        '$_pending@${_tag(from, to)}',
       );
-      final (from, to) = _window(entry.key, oldOffset);
       await _healthExportRepository.replaceDay(
         from: from,
         to: to,
         meals: const [],
         water: const [],
       );
-      overlapsCleared.addAll(_daysOverlapping(entry.key, from, to, offset));
+      overlapsCleared.addAll(overlaps);
     }
 
     // Recent days, plus any day the store may still hold something for.
@@ -194,23 +200,30 @@ class ExportDiaryToHealthUsecase {
               millilitres: entry.amountMl,
             ),
       ];
+      final tag = _tag(from, to);
       final empty = meals.isEmpty && water.isEmpty;
       final fingerprint = empty
-          ? '$_empty@$offset'
-          : '${_fingerprint(profileId, meals, water)}@$offset';
+          ? '$_empty@$tag'
+          : '${_fingerprint(profileId, meals, water)}@$tag';
       final stored = config.healthExportedDays[day];
-      // Nothing to write, and nothing this day wrote left to clear.
-      if (empty && (stored == null || stored == fingerprint)) continue;
+      if (empty && (stored == null || stored.startsWith('$_empty@'))) {
+        // Nothing to write, and nothing this day wrote left to clear. A day
+        // a cleared window reached into is still put on record, as is one
+        // whose record names an old window: another profile may have
+        // entries there, and has to find the day however old it is.
+        if (stored != fingerprint &&
+            (stored != null || overlapsCleared.contains(day))) {
+          await _configRepository.setConfigHealthExportedDay(day, fingerprint);
+        }
+        continue;
+      }
       if (stored == fingerprint && !overlapsCleared.contains(day)) continue;
       if (!await _mayContinue(profileId)) return written;
       // Marked before the store is touched: a replacement clears the day
       // first, so one that fails or is cut short leaves the store matching
       // no fingerprint, and the day must be rewritten even if the diary
       // goes back to what was last written in full.
-      await _configRepository.setConfigHealthExportedDay(
-        day,
-        '$_pending@$offset',
-      );
+      await _configRepository.setConfigHealthExportedDay(day, '$_pending@$tag');
       try {
         await _healthExportRepository.replaceDay(
           from: from,
@@ -250,13 +263,33 @@ class ExportDiaryToHealthUsecase {
     return (await _configRepository.getConfig()).healthExportEnabled;
   }
 
-  /// The day boundary a stored `fingerprint@offset` value was written under.
-  static int _offsetOf(String stored, int fallback) =>
-      int.tryParse(stored.split('@').last) ?? fallback;
+  /// How a record names the absolute window it was written in.
+  static String _tag(DateTime from, DateTime to) =>
+      '${from.millisecondsSinceEpoch}-${to.millisecondsSinceEpoch}';
+
+  /// The absolute window a stored `kind@from-to` record for [day] was
+  /// written in. A record that names a day boundary in minutes instead, as
+  /// builds before the window was recorded wrote, is read as that
+  /// boundary's window here; one that names neither, as the current one.
+  static (DateTime, DateTime) _recordedWindow(
+    String day,
+    String stored,
+    int offsetMinutes,
+  ) {
+    final tag = stored.substring(stored.lastIndexOf('@') + 1);
+    final bounds = tag.split('-').map(int.tryParse).toList();
+    if (bounds case [final int from, final int to]) {
+      return (
+        DateTime.fromMillisecondsSinceEpoch(from),
+        DateTime.fromMillisecondsSinceEpoch(to),
+      );
+    }
+    return _window(day, int.tryParse(tag) ?? offsetMinutes);
+  }
 
   /// The days whose window under [offsetMinutes] overlaps [from]–[to], the
-  /// window [day] had under another boundary: [day] itself and the
-  /// neighbour the move shifted part of it to.
+  /// window [day] was written in: [day] itself and the neighbours a
+  /// boundary change or a time-zone move shifted part of it to.
   static Iterable<String> _daysOverlapping(
     String day,
     DateTime from,
@@ -264,7 +297,7 @@ class ExportDiaryToHealthUsecase {
     int offsetMinutes,
   ) sync* {
     final date = DateTime.parse(day);
-    for (final shift in const [-1, 0, 1]) {
+    for (final shift in const [-2, -1, 0, 1, 2]) {
       final neighbour = DateTime(
         date.year,
         date.month,

@@ -529,4 +529,64 @@ void main() {
     await usecase.exportNow();
     expect(healthService.heldTimes, [yesterdayMorning]);
   });
+
+  test(
+    'a cleared day a boundary change moves an entry from stays on record',
+    () async {
+      final aged = DateTime(2026, 4, 1, 1);
+      final entry = _intake(id: 'aged', at: aged);
+      await intakeRepository.addIntake(entry);
+      ExportDiaryToHealthUsecase.clock = () => DateTime(2026, 4, 2, 12);
+      await usecase.exportNow();
+
+      // Profile B, with nothing on that day, clears it, then moves the
+      // boundary so that 01:00 on 1 April files under 31 March.
+      ExportDiaryToHealthUsecase.clock = () => now;
+      provider.activeProfileId = 'profile-b';
+      await intakeRepository.deleteIntake(entry);
+      await usecase.exportNow();
+      await configDataSource.setConfigDayStartOffset(4, 0);
+      await usecase.exportNow();
+
+      // Back on A, whose entry is now on a day nobody has written.
+      provider.activeProfileId = 'test-profile';
+      await intakeRepository.addIntake(entry);
+      await usecase.exportNow();
+      expect(healthService.heldTimes, [aged]);
+    },
+  );
+
+  test(
+    'a day written in another time zone is cleared where it was written',
+    () async {
+      await intakeRepository.addIntake(_intake(id: 'c', at: yesterdayMorning));
+      await usecase.exportNow();
+
+      // As if written seven hours further east: the record names the absolute
+      // window it was written in, and the store's sample sits inside that
+      // window but outside the one the day has here.
+      final written = healthService.replaced.single;
+      final shift = const Duration(hours: 7);
+      final record = (await configDataSource.getConfig())
+          .healthExportedDays!['2026-05-22']!;
+      final hash = record.substring(0, record.lastIndexOf('@'));
+      await configDataSource.setConfigHealthExportedDay(
+        '2026-05-22',
+        '$hash@${written.from.subtract(shift).millisecondsSinceEpoch}'
+            '-${written.to.subtract(shift).millisecondsSinceEpoch}',
+      );
+      healthService.held
+        ..clear()
+        ..add(
+          ExportedMeal(
+            slot: ExportedMealSlot.breakfast,
+            time: written.from.subtract(const Duration(hours: 3)),
+          ),
+        );
+
+      await intakeRepository.updateIntake('c', {'amount': 80.0});
+      await usecase.exportNow();
+      expect(healthService.heldTimes, [yesterdayMorning]);
+    },
+  );
 }
