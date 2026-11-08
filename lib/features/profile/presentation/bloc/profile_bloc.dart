@@ -103,6 +103,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ProfileStamp startedOn,
   ) async {
     final updated = await withTrackedDayLockOnProfile(() async {
+      // The weight is the one field that moves behind the screens: the
+      // weight log writes it (a weight entered, an entry deleted, a health
+      // import), and every caller that changes it goes through there first.
+      // A dialog that edits another field still holds the copy of the user
+      // it opened with, so its weight is taken from the stored user rather
+      // than written back over a weight saved since.
+      if (await _getUserUsecase.hasUserData()) {
+        userEntity.weightKG = (await _getUserUsecase.getUserData()).weightKG;
+      }
       await _addUserUsecase.addUser(userEntity);
       await _updateTrackedDayCalorieGoal(userEntity, DateTime.now());
       return true;

@@ -40,9 +40,13 @@ class _FakeGetUserUsecase extends Fake implements GetUserUsecase {
 
 class _FakeAddUserUsecase extends Fake implements AddUserUsecase {
   int addUserCalls = 0;
+  final List<double> savedWeights = [];
 
   @override
-  Future<void> addUser(UserEntity userEntity) async => addUserCalls++;
+  Future<void> addUser(UserEntity userEntity) async {
+    addUserCalls++;
+    savedWeights.add(userEntity.weightKG);
+  }
 }
 
 class _FakeAddTrackedDayUsecase extends Fake implements AddTrackedDayUsecase {
@@ -272,5 +276,47 @@ void main() {
       expect(diaryBloc.addedEvents, isEmpty);
       expect(trendsBloc.addedEvents, isEmpty);
     });
+  });
+
+  test('a profile edit made on an older copy of the user keeps the weight '
+      'stored since, which only the weight log moves', () async {
+    UserEntity copyOf(UserEntity user) => UserEntity(
+      birthday: user.birthday,
+      heightCM: user.heightCM,
+      weightKG: user.weightKG,
+      gender: user.gender,
+      goal: user.goal,
+      pal: user.pal,
+    );
+    final stored = copyOf(
+      UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight,
+    );
+    // The height dialog opened on this copy; a health import then moved
+    // the stored weight before it was confirmed.
+    final dialogCopy = copyOf(stored);
+    stored.weightKG = dialogCopy.weightKG - 3;
+    dialogCopy.heightCM = dialogCopy.heightCM + 2;
+
+    trendsBloc = _FakeTrendsBloc(const TrendsInitial());
+    locator.registerSingleton<HomeBloc>(_FakeHomeBloc());
+    locator.registerSingleton<DiaryBloc>(_FakeDiaryBloc());
+    locator.registerSingleton<CalendarDayBloc>(_FakeCalendarDayBloc());
+    locator.registerSingleton<TrendsBloc>(trendsBloc);
+    final addUserUsecase = _FakeAddUserUsecase();
+    final getKcalGoalUsecase = _FakeGetKcalGoalUsecase();
+    final profileBloc = ProfileBloc(
+      _FakeGetUserUsecase(stored),
+      addUserUsecase,
+      _FakeAddTrackedDayUsecase()..trackedDayExists = true,
+      _FakeGetConfigUsecase(),
+      getKcalGoalUsecase,
+    );
+    addTearDown(profileBloc.close);
+
+    await profileBloc.updateUser(dialogCopy);
+
+    expect(addUserUsecase.savedWeights, [stored.weightKG]);
+    expect(getKcalGoalUsecase.goalFor!.weightKG, stored.weightKG);
+    expect(getKcalGoalUsecase.goalFor!.heightCM, dialogCopy.heightCM);
   });
 }
