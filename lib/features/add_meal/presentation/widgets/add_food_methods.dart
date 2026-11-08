@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:opennutritracker/features/add_meal/presentation/voice/voice_input_button.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// The three ways into the add-food screen besides typing a search: scan a
@@ -225,6 +226,17 @@ class DescribeMealPanel extends StatefulWidget {
 
 class _DescribeMealPanelState extends State<DescribeMealPanel> {
   final _controller = TextEditingController();
+  final _voice = GlobalKey<VoiceInputButtonState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Every change, not only typing: dictation writes the field too, and
+    // Find foods has to turn on as its words appear.
+    _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() => setState(() {});
 
   @override
   void dispose() {
@@ -258,11 +270,16 @@ class _DescribeMealPanelState extends State<DescribeMealPanel> {
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               style: textTheme.bodyLarge,
-              onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: S.of(context).bulkAddInputHint,
                 hintStyle: textTheme.bodyLarge?.copyWith(
                   color: palette.textMuted,
+                ),
+                // Dictate the meal and go straight to the matches.
+                suffixIcon: VoiceInputButton(
+                  key: _voice,
+                  controller: _controller,
+                  onDictated: widget.onFindFoods,
                 ),
                 filled: false,
                 border: InputBorder.none,
@@ -282,6 +299,8 @@ class _DescribeMealPanelState extends State<DescribeMealPanel> {
                   ? null
                   : () {
                       FocusScope.of(context).unfocus();
+                      // Submitted by hand: dictation must not submit again.
+                      _voice.currentState?.cancel();
                       widget.onFindFoods(_controller.text);
                     },
               icon: const Icon(Icons.search_rounded, size: 18),

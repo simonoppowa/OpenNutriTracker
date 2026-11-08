@@ -213,11 +213,20 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             child: DropdownButtonFormField(
                               isExpanded: true,
                               itemHeight: null,
+                              // A dense field keeps the chosen serving to one
+                              // line, cutting off its weight at a large font.
+                              // The 4 pt padding keeps it as tall as the
+                              // quantity field at the default size.
+                              isDense: false,
                               initialValue: widget.selectedUnit,
                               key: ValueKey(widget.selectedUnit),
                               decoration: InputDecoration(
                                 border: const OutlineInputBorder(
                                   borderRadius: Dimens.borderRadiusM,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
                                 ),
                                 labelText: S.of(context).unitLabel,
                               ),
@@ -556,7 +565,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         : servingLabel;
     return DropdownMenuItem(
       value: UnitDropdownItem.serving.toString(),
-      child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 1),
+      // The serving's weight ends the text; at a large font it wraps
+      // rather than being cut off.
+      child: Text(servingText, overflow: TextOverflow.ellipsis, maxLines: 3),
     );
   }
 
