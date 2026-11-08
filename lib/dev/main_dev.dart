@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/l10n/app_locales.dart';
@@ -7,6 +9,7 @@ import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/demo/demo_seeder.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/tip_jar_cubit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:opennutritracker/main.dart';
 
@@ -30,6 +33,10 @@ Future<void> main() async {
   await initLocator();
 
   await seedDemoData(DemoSeedOptions.dev);
+  // After the seed: its wipe runs Reset profile data, which would race the
+  // tip jar's start-up recovery.
+  unawaited(locator<TipJarCubit>().start());
+  locator<TipJarCubit>().watchAppResumes();
 
   final configRepo = locator<ConfigRepository>();
   final config = await configRepo.getConfig();
