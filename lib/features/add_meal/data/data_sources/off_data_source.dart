@@ -46,7 +46,7 @@ class OFFDataSource {
   /// English appended as a fallback so non-English locales still match the
   /// large English-only slice of the catalogue.
   String _searchLangs() {
-    final lang = SupportedLanguage.fromCode(AppLocale.localeName).name;
+    final lang = SupportedLanguage.fromCode(AppLocale.foodLocaleName).name;
     return lang == 'en' ? 'en' : '$lang,en';
   }
 
