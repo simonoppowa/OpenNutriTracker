@@ -436,7 +436,10 @@ class _FakeProductsRepository implements ProductsRepository {
   _FakeProductsRepository(this.hydrated);
 
   @override
-  Future<MealEntity> getOFFProductByBarcode(String barcode) => hydrated();
+  Future<MealEntity> getOFFProductByBarcode(
+    String barcode, {
+    String? knownName,
+  }) => hydrated();
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

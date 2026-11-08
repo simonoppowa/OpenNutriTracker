@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
 import '../helpers/fake_notification_platform.dart';
+import '../helpers/recording_add_weight_log_usecase.dart';
 
 /// The shared config, reduced to what the reminder reads and writes. Every
 /// other onboarding write is accepted and recorded by name.
@@ -105,6 +106,7 @@ void main() {
       AddUserUsecase(_Users()),
       AddConfigUsecase(config),
       GetConfigUsecase(config),
+      RecordingAddWeightLogUsecase(),
       scheduler,
     );
     addTearDown(bloc.close);

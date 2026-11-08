@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// One-time content warning shown before the fasting timer becomes usable.
 ///
@@ -84,10 +84,5 @@ class FastingWarningDialog extends StatelessWidget {
     );
   }
 
-  Future<void> _open(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
+  Future<void> _open(String url) => tryLaunchExternalUrl(url);
 }

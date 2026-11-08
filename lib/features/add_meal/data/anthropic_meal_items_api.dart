@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 
@@ -17,9 +18,9 @@ class AnthropicMealItemsApi implements MealItemsApi {
 
   /// Pinned rather than tracking "latest": a silent model change would move
   /// behaviour the user never asked to change, and these calls are cheap
-  /// enough that the smallest current model is the right default. Haiku 4.5
+  /// enough that the smallest current model is the right default. Haiku 5.5
   /// takes images as well as text, so both paths share it.
-  static const defaultModel = 'claude-haiku-4-5';
+  static const defaultModel = 'claude-haiku-5-5';
 
   /// The API version header Anthropic requires. Pinned for the same reason.
   static const _apiVersion = '2023-06-01';
@@ -37,6 +38,8 @@ class AnthropicMealItemsApi implements MealItemsApi {
   final String Function() _apiKey;
   final String model;
 
+  final AiToolCall toolCall;
+
   /// Injectable so the stalled-connection tests do not spend the real twenty
   /// seconds proving it. Raising the production value should not quietly
   /// make the suite slower.
@@ -47,6 +50,7 @@ class AnthropicMealItemsApi implements MealItemsApi {
     this._apiKey, {
     this.model = defaultModel,
     this.timeout = defaultTimeout,
+    this.toolCall = AiToolCall.forced,
   });
 
   /// Sends one forced tool call and returns the validated items.
@@ -68,7 +72,22 @@ class AnthropicMealItemsApi implements MealItemsApi {
       ],
       // Forcing the tool is what makes the reply parseable. Without it the
       // model may answer in prose and every caller needs a fallback parser.
-      'tool_choice': {'type': 'tool', 'name': mealItemsToolName},
+      // Thinking off where a forced call needs it, and `auto` where a
+      // forced call is refused; `between_tools` is the thinking setting
+      // Sonnet 5.5 accepts with `auto`.
+      ...switch (toolCall) {
+        AiToolCall.forced => {
+          'tool_choice': {'type': 'tool', 'name': mealItemsToolName},
+        },
+        AiToolCall.forcedThinkingOff => {
+          'tool_choice': {'type': 'tool', 'name': mealItemsToolName},
+          'thinking': {'type': 'disabled'},
+        },
+        AiToolCall.auto => {
+          'tool_choice': {'type': 'auto'},
+          'thinking': {'type': 'between_tools'},
+        },
+      },
       'messages': [
         {'role': 'user', 'content': _contentJson(content)},
       ],

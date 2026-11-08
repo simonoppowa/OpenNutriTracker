@@ -114,8 +114,8 @@ Array of intake records:
       "brands": "Acme Dairy",
       "thumbnailImageUrl": null,
       "mainImageUrl": null,
-      "url": null,
-      "mealQuantity": "100",
+      "url": null,                   // an http(s) URL or null (#1476)
+      "mealQuantity": "100",         // decimal point, never a comma
       "mealUnit": "g",
       "servingQuantity": 250.0,
       "servingUnit": "ml",
@@ -379,14 +379,14 @@ Header lookup is case-insensitive.
 | `meal_name`                     | string | no       |                                                |
 | `meal_brands`                   | string | no       |                                                |
 | `meal_source`                   | enum   | no       | `unknown` / `custom` / `off` / `fdc` / `recipe`. |
-| `meal_quantity`                 | string | no       | e.g. `100`.                                    |
+| `meal_quantity`                 | string | no       | e.g. `100`. Written with a decimal point, never a comma (#1476). |
 | `meal_unit`                     | string | no       | e.g. `g`.                                      |
 | `meal_serving_quantity`         | number | no       |                                                |
 | `meal_serving_unit`             | string | no       |                                                |
 | `meal_serving_size`             | string | no       | Human-readable size.                           |
 | `meal_thumbnail_url`            | string | no       |                                                |
 | `meal_main_image_url`           | string | no       |                                                |
-| `meal_url`                      | string | no       |                                                |
+| `meal_url`                      | string | no       | An http(s) URL; anything else is written empty (#1476). |
 | `kcal_per_100g`                 | number | no       | All `*_per_100g` columns are nutriment values per 100 g of the food, not per logged portion. |
 | `carbs_per_100g`                | number | no       |                                                |
 | `fat_per_100g`                  | number | no       |                                                |

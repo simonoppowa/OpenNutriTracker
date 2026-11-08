@@ -77,7 +77,9 @@ void main() {
       expect(result, equals('Deutscher Name - testValue'));
     });
 
-    test('Case 3: English Language - Null Name', () {
+    // #1475: with no English name, a name in another language the app
+    // ships comes before product_name, which can be in any language.
+    test('Case 3: English Language - Null Name falls back to German', () {
       final product = _buildProduct(
         product_name: 'Default Name - testValue',
         product_name_en: null,
@@ -87,10 +89,10 @@ void main() {
 
       final result = product.getLocaleName(SupportedLanguage.en);
 
-      expect(result, equals('Default Name - testValue'));
+      expect(result, equals('Deutscher Name - testValue'));
     });
 
-    test('Case 4: English Language - Empty Name', () {
+    test('Case 4: English Language - Empty Name falls back to German', () {
       final product = _buildProduct(
         product_name: 'Default Name - testValue',
         product_name_en: '',
@@ -100,7 +102,7 @@ void main() {
 
       final result = product.getLocaleName(SupportedLanguage.en);
 
-      expect(result, equals('Default Name - testValue'));
+      expect(result, equals('Deutscher Name - testValue'));
     });
 
     test('Case 5: Polish Language - returns product_name', () {
@@ -135,10 +137,9 @@ void main() {
       expect(result, isNull);
     });
 
-    test('Case 8: English fallback walks chain to product_name_fr', () {
-      // product_name_en is null, product_name is null — the implementation's
-      // fallback chain `product_name ?? product_name_en ?? product_name_fr ?? product_name_de`
-      // should return the French name.
+    test('Case 8: English fallback takes German before French', () {
+      // French is not an app language, so it comes after every name in
+      // one that is (#1475).
       final product = _buildProduct(
         product_name_fr: 'Nom Français - testValue',
         product_name_de: 'Deutscher Name - testValue',
@@ -146,7 +147,13 @@ void main() {
 
       final result = product.getLocaleName(SupportedLanguage.en);
 
-      expect(result, equals('Nom Français - testValue'));
+      expect(result, equals('Deutscher Name - testValue'));
+    });
+
+    test('Case 8b: French is the last resort', () {
+      final product = _buildProduct(product_name_fr: 'Nom Français');
+
+      expect(product.getLocaleName(SupportedLanguage.en), 'Nom Français');
     });
 
     test('Case 9: Czech locale returns product_name_cs when present', () {
@@ -193,8 +200,8 @@ void main() {
       );
     });
 
-    test('Case 14: Hungarian locale falls through when the name is absent',
-        () {
+    test('Case 14: Hungarian locale falls through to English when the name '
+        'is absent', () {
       final product = _buildProduct(
         product_name: 'Default Name - testValue',
         product_name_en: 'English Name - testValue',
@@ -203,7 +210,7 @@ void main() {
 
       expect(
         product.getLocaleName(SupportedLanguage.hu),
-        equals('Default Name - testValue'),
+        equals('English Name - testValue'),
       );
     });
 
@@ -220,8 +227,8 @@ void main() {
       );
     });
 
-    test('Case 16: Spanish locale falls through when the name is absent',
-        () {
+    test('Case 16: Spanish locale falls through to English when the name '
+        'is absent', () {
       final product = _buildProduct(
         product_name: 'Default Name - testValue',
         product_name_en: 'English Name - testValue',
@@ -230,7 +237,7 @@ void main() {
 
       expect(
         product.getLocaleName(SupportedLanguage.es),
-        equals('Default Name - testValue'),
+        equals('English Name - testValue'),
       );
     });
   });

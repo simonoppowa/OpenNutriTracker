@@ -1269,5 +1269,32 @@
   "quickAddActivityAddedSnack": "Activité ajoutée",
   "quickAddActivityNameLabel": "Nom (facultatif)",
   "scannerLockOrientationTooltip": "Verrouiller en mode portrait",
-  "scannerUnlockOrientationTooltip": "Autoriser la rotation"
+  "scannerUnlockOrientationTooltip": "Autoriser la rotation",
+  "calorieWidgetAccessibilityLabel": "{consumed} sur {goal} kilocalories",
+  "@calorieWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS home-screen calorie widget.",
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetDescription": "Les calories consommées aujourd'hui et votre objectif.",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetGoalLabel": "sur {goal}",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "dataCollectionLabel": "Envoyer des rapports d'erreur pour aider à corriger les bugs. Aucune donnée relative à l'alimentation ou au poids n'est incluse.",
+  "policyChangeNoticeTitle": "Nous avons mis à jour la politique de confidentialité"
 }

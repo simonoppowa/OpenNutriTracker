@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class MealInfoButton extends StatelessWidget {
   final String? url;
@@ -30,7 +30,7 @@ class MealInfoButton extends StatelessWidget {
 
     final accent = Theme.of(context).colorScheme.primary;
     return TextButton.icon(
-      onPressed: () => _launchUrl(infoUrl),
+      onPressed: () => _launchUrl(context, infoUrl),
       icon: Icon(Icons.open_in_new_rounded, size: 20, color: accent),
       label: Text(
         _getInfoLabelText(context),
@@ -93,10 +93,14 @@ class MealInfoButton extends StatelessWidget {
     return infoLabel;
   }
 
-  Future<void> _launchUrl(String siteUrl) async {
-    if (!await launchUrl(
-      Uri.parse(siteUrl),
-      mode: LaunchMode.externalApplication,
-    )) {}
+  Future<void> _launchUrl(BuildContext context, String siteUrl) async {
+    // Resolve what the failure path needs before the await; the context must
+    // not be touched afterwards.
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningBrowser;
+
+    if (await tryLaunchExternalUrl(siteUrl)) return;
+
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 }

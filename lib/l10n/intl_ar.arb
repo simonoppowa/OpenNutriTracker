@@ -14,5 +14,141 @@
       }
     }
   },
-  "foodSourcesAlwaysEnabledLabel": "تفعيل دائما"
+  "foodSourcesAlwaysEnabledLabel": "تفعيل دائما",
+  "foodSourcesHelpText": "تأتي نتائج البحث من قواعد بيانات الأطعمة التالية. تُستخدم قاعدة بيانات Open Food Facts للبحث عن المنتجات والرموز الشريطية، وهي مفعّلة دائمًا.",
+  "machineTranslatedNameHint": "تمت ترجمة الاسم تلقائيًا",
+  "measureUnitBar": "{count, plural, one{لوح} other{ألواح}}",
+  "@measureUnitBar": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitBottle": "{count, plural, one{زجاجة} other{زجاجات}}",
+  "@measureUnitBottle": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCan": "{count, plural, one{علبة} other{علب}}",
+  "@measureUnitCan": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitCup": "{count, plural, one{كوب} other{أكواب}}",
+  "@measureUnitCup": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitEgg": "{count, plural, one{بيضة} other{بيضات}}",
+  "@measureUnitEgg": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPackage": "{count, plural, one{عبوة} other{عبوات}}",
+  "@measureUnitPackage": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPiece": "{count, plural, one{قطعة} other{قطع}}",
+  "@measureUnitPiece": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitPortion": "{count, plural, one{حصة} other{حصص}}",
+  "@measureUnitPortion": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitServing": "{count, plural, one{حصة غذائية} other{حصص غذائية}}",
+  "@measureUnitServing": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitSlice": "{count, plural, one{شريحة} other{شرائح}}",
+  "@measureUnitSlice": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTablespoon": "{count, plural, one{ملعقة كبيرة} other{ملاعق كبيرة}}",
+  "@measureUnitTablespoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "measureUnitTeaspoon": "{count, plural, one{ملعقة صغيرة} other{ملاعق صغيرة}}",
+  "@measureUnitTeaspoon": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "settingsFoodSourcesLabel": "قواعد بيانات الأطعمة",
+  "settingsFoodSourcesSubtitle": "اختر مصادر نتائج البحث عن الأطعمة",
+  "onboardingOtherOptionsLabel": "خيارات أخرى",
+  "onboardingOtherOptionsSubtitle": "خصّص التطبيق — يمكنك تغيير جميع الإعدادات لاحقًا من قسم الإعدادات.",
+  "additionalInfoLabelOFF": "مزيد من المعلومات على\nOpenFoodFacts",
+  "additionalInfoLabelRecipe": "وصفة مخصّصة",
+  "additionalInfoLabelUnknown": "عنصر غذائي غير معروف",
+  "ageLabel": "العمر",
+  "allItemsLabel": "الكل",
+  "alphaVersionName": "[ألفا]",
+  "appDescription": "OpenNutriTracker هو تطبيق مجاني ومفتوح المصدر لتتبّع السعرات الحرارية والعناصر الغذائية، مع احترام خصوصيتك.",
+  "appLicenseLabel": "ترخيص GPL-3.0",
+  "appTitle": "OpenNutriTracker",
+  "appVersionName": "الإصدار {versionNumber}",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "barcodeInvalidEan13CheckDigit": "يبدو أن هذا الرمز الشريطي المكوّن من 13 رقمًا أُدخل بشكل غير صحيح، فالرقم الأخير لا يتطابق مع بقية الأرقام.",
+  "baseQuantityLabel": "القيم الغذائية لكل",
+  "bmiInfo": "مؤشر كتلة الجسم (BMI) هو مقياس يُستخدم لتصنيف زيادة الوزن والسمنة لدى البالغين. ويُحسب بقسمة الوزن بالكيلوغرام على مربع الطول بالمتر (كغ/م²).\n\nلا يميّز مؤشر كتلة الجسم بين كتلة الدهون وكتلة العضلات، لذلك قد تكون نتائجه مضلّلة لدى بعض الأشخاص.",
+  "bmiInfoClassificationSection": "تصنيف منظمة الصحة العالمية",
+  "bmiInfoFormulaSection": "المعادلة",
+  "bmiInfoScreenTitle": "كيفية حساب مؤشر كتلة الجسم",
+  "bmiLabel": "مؤشر كتلة الجسم (BMI)",
+  "breakfastExample": "مثال: حبوب، الحليب، القهوة...",
+  "breakfastLabel": "وجبة الإفطار",
+  "burnedLabel": "السعرات المحروقة",
+  "buttonNextLabel": "التالي",
+  "buttonResetLabel": "إعادة تعيين",
+  "buttonSaveLabel": "حفظ",
+  "buttonStartLabel": "ابدأ",
+  "buttonYesLabel": "نعم",
+  "calciumLabel": "الكالسيوم",
+  "calculationsMacronutrientsDistributionLabel": "توزيع المغذيات الكبرى"
 }

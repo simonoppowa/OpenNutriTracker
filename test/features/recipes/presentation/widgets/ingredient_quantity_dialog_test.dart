@@ -96,4 +96,39 @@ void main() {
 
     expect(captured, isNull);
   });
+
+  // Edge-to-edge draws the navigation bar over the sheet; its buttons must
+  // sit above the bar, not under it.
+  testWidgets('keeps the Add button above the navigation bar', (tester) async {
+    // A phone's height, so the whole sheet fits above the bar.
+    tester.view.physicalSize = const Size(1080, 2400);
+    // As a device reports a 48 dp bar, at 3x.
+    tester.view.padding = const FakeViewPadding(bottom: 144);
+    tester.view.viewPadding = const FakeViewPadding(bottom: 144);
+    addTearDown(tester.view.reset);
+    final navigationBar = 144 / tester.view.devicePixelRatio;
+
+    await tester.pumpWidget(_wrap(
+      child: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () =>
+                  showIngredientQuantityDialog(context, meal: _solidMeal()),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final screenHeight =
+        tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    expect(
+      tester.getBottomLeft(find.text('Add')).dy,
+      lessThanOrEqualTo(screenHeight - navigationBar),
+    );
+  });
 }

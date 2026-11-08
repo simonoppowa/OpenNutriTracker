@@ -299,6 +299,22 @@ void main() {
       expect(ordered.last, equals('OLD'));
     });
 
+    // #1473: cacheFromSearch stamps a whole page with one time, and the
+    // box holds more than 32 entries once a few pages are in — where
+    // List.sort turns into a quicksort and stops keeping ties in place.
+    test(
+        'getAllByMostRecentlyTouched keeps a page cached at one time in the '
+        'order it was cached', () async {
+      final page = [
+        for (var i = 0; i < 40; i++) _meal(code: 'P$i', name: 'Row $i'),
+      ];
+      await ds.cacheFromSearch(page);
+
+      final ordered =
+          ds.getAllByMostRecentlyTouched().map((m) => m.code).toList();
+      expect(ordered, [for (final m in page) m.code]);
+    });
+
     test('pruneStale removes entries older than maxAge', () async {
       await ds.cache(_meal(code: 'OLD', name: 'Old'));
       // Backdate the OLD entry's timestamp by 100 days.
