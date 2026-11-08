@@ -97,7 +97,9 @@ Future<void> _pump(WidgetTester tester, {required bool imperial}) async {
 /// spot.
 LineChart _waterChart(WidgetTester tester, double todayY) => tester
     .widgetList<LineChart>(find.byType(LineChart))
-    .firstWhere((c) => c.data.lineBarsData.first.spots.last.y == todayY);
+    .firstWhere(
+      (c) => (c.data.lineBarsData.first.spots.last.y - todayY).abs() < 0.001,
+    );
 
 void main() {
   tearDown(() async => locator.reset());
