@@ -195,6 +195,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   QuickWaterWidget(
                     waterMlToday: waterMlToday,
                     waterGoalMl: waterGoalMl,
+                    usesImperialUnits: usesImperialUnits,
                   ),
                 ],
               ),

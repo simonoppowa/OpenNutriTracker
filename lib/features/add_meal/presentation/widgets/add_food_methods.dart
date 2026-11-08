@@ -20,12 +20,18 @@ class AddFoodMethodTiles extends StatelessWidget {
   /// Whether the describe panel below is open, so its tile reads as on.
   final bool describeOpen;
 
+  /// False once the user has hidden the AI features (#1518): the Snap meal
+  /// tile goes, since only a model can read a photo, and Describe stays
+  /// without its badge, since the offline parser reads it then.
+  final bool showAi;
+
   const AddFoodMethodTiles({
     super.key,
     required this.onBarcodePressed,
     required this.onSnapMealPressed,
     required this.onDescribePressed,
     required this.describeOpen,
+    this.showAi = true,
   });
 
   @override
@@ -53,28 +59,31 @@ class AddFoodMethodTiles extends StatelessWidget {
           ),
         ),
         const SizedBox(width: Dimens.spacing8),
-        Expanded(
-          child: Semantics(
-            identifier: 'add-meal-method-photo',
-            container: true,
-            child: _MethodTile(
-              icon: Icons.photo_camera_rounded,
-              label: s.addMealSnapMealLabel,
-              background: scheme.primary,
-              foreground: scheme.onPrimary,
-              ai: true,
-              onPressed: onSnapMealPressed,
+        if (showAi) ...[
+          Expanded(
+            child: Semantics(
+              identifier: 'add-meal-method-photo',
+              container: true,
+              child: _MethodTile(
+                icon: Icons.photo_camera_rounded,
+                label: s.addMealSnapMealLabel,
+                background: scheme.primary,
+                foreground: scheme.onPrimary,
+                ai: true,
+                onPressed: onSnapMealPressed,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: Dimens.spacing8),
+          const SizedBox(width: Dimens.spacing8),
+        ],
         Expanded(
           child: Semantics(
             identifier: 'add-meal-method-describe',
             container: true,
             selected: describeOpen,
             child: _MethodTile(
-              icon: Icons.auto_awesome_rounded,
+              // The sparkle reads as AI on its own, so it goes with the badge.
+              icon: showAi ? Icons.auto_awesome_rounded : Icons.notes_rounded,
               label: s.addMealDescribeLabel,
               background: describeOpen
                   ? Color.alphaBlend(
@@ -86,7 +95,7 @@ class AddFoodMethodTiles extends StatelessWidget {
               border: describeOpen
                   ? scheme.primary
                   : scheme.primary.withValues(alpha: 0.35),
-              ai: true,
+              ai: showAi,
               onPressed: onDescribePressed,
             ),
           ),

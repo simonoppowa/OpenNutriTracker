@@ -93,6 +93,9 @@ dependencies:
   # Health Connect (Android) / Apple Health (iOS) workout import. Every call
   # sits behind HealthService so the plugin never loads under `flutter test`.
   health: ^13.3.2
+  in_app_purchase: ^3.3.1
+  in_app_purchase_storekit: ^0.4.17
+  in_app_purchase_android: ^0.5.5
 
   # Dictating a meal on the Describe fields. Uses the platform recognizer
   # (Android SpeechRecognizer / iOS SFSpeech); no audio is sent by the app.
