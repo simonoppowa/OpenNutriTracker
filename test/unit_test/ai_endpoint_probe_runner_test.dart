@@ -88,6 +88,7 @@ class _FakeProber implements AiEndpointProber {
   int calls = 0;
   AiSelection? lastSelection;
   String? lastLocale;
+  Future<bool> Function()? lastStillWanted;
 
   _FakeProber(this.result);
 
@@ -95,10 +96,12 @@ class _FakeProber implements AiEndpointProber {
   Future<AiEndpointProbe> probe(
     AiSelection selection, {
     String? localeCode,
+    Future<bool> Function()? stillWanted,
   }) async {
     calls++;
     lastSelection = selection;
     lastLocale = localeCode;
+    lastStillWanted = stillWanted;
     if (gate != null) await gate!.future;
     if (throws case final error?) throw error;
     return result;
@@ -229,6 +232,27 @@ void main() {
     await runner.start(own);
 
     expect(prober.calls, 0);
+  });
+
+  test('a probe under way is told to stop once AI is hidden (#1518)', () async {
+    // The probe asks between its text and photo requests, which a cold local
+    // model can put minutes apart. What it asks has to follow the switch,
+    // or hiding the features would still let the photo go out.
+    await configure();
+    final gate = prober.gate = Completer<void>();
+    final done = runner.start(own);
+    await pumpEventQueue();
+
+    final stillWanted = prober.lastStillWanted!;
+    expect(await stillWanted(), isTrue);
+    await storage.setHidden(true);
+    expect(await stillWanted(), isFalse);
+    await storage.setHidden(false);
+    await storage.setEnabled(false);
+    expect(await stillWanted(), isFalse);
+
+    gate.complete();
+    await done;
   });
 
   test('an unconfigured provider leaves nothing behind', () async {

@@ -232,6 +232,19 @@ void main() {
     expect(find.textContaining('OpenAI'), findsOneWidget);
   });
 
+  testWidgets('the row is absent while the AI features are hidden (#1518)', (
+    tester,
+  ) async {
+    // The flag outlives a data wipe, so a returning user can reach this page
+    // having already asked not to be shown the feature.
+    await storage.setHidden(true);
+
+    await pumpPage(tester, credentials: storage);
+
+    expect(find.byType(SectionHeader), findsNWidgets(3));
+    expect(find.bySemanticsIdentifier('onboarding-ai-assist'), findsNothing);
+  });
+
   testWidgets('a paused key reads as paused, not as off', (tester) async {
     await storage.writeApiKey('sk-test', provider: AiProvider.anthropic);
     await storage.setEnabled(false);

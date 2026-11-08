@@ -21,7 +21,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 /// One thing it clears is **not** per-profile: the AI credential store, which
 /// is keyed by provider and shared by every profile on the device. That is a
 /// deliberate exception rather than an oversight — see [deleteAll] — and the
-/// confirmation dialog says so.
+/// confirmation dialog says so. The Support page's "you left a tip" line is
+/// the other device-wide flag it clears (#1536).
 class DeleteAllUserDataUsecase {
   final _log = Logger('DeleteAllUserDataUsecase');
   final HiveDBProvider _hiveDBProvider;
@@ -29,13 +30,21 @@ class DeleteAllUserDataUsecase {
   final AiCredentialStorage _aiCredentials;
   final CalorieWidgetStore _calorieWidgetStore;
 
+  /// Tells the running tip jar its record is gone, so a save it is still
+  /// retrying does not write the flag back (#1536). A callback rather than
+  /// the tip jar itself, which lives in a feature this core class must not
+  /// depend on.
+  final void Function()? _forgetTipRecord;
+
   DeleteAllUserDataUsecase(
     this._hiveDBProvider,
     this._reminders,
     this._aiCredentials, {
     CalorieWidgetStore? calorieWidgetStore,
+    void Function()? forgetTipRecord,
   }) : _calorieWidgetStore =
-           calorieWidgetStore ?? HomeWidgetCalorieStore();
+           calorieWidgetStore ?? HomeWidgetCalorieStore(),
+       _forgetTipRecord = forgetTipRecord;
 
   Future<void> deleteAll() async {
     _log.info('Clearing the active profile\'s Hive boxes on user request');
@@ -100,6 +109,14 @@ class DeleteAllUserDataUsecase {
     // server the user runs — the address of a machine on someone's network.
     // #892.
     await _aiCredentials.clearAll();
+
+    // The second device-wide exception: the Support page's "you left a tip"
+    // line (#1536). It lives in the shared app box, which this wipe otherwise
+    // leaves alone, but the tip jar's decision is that this reset clears it.
+    // It unlocks nothing, so clearing it takes nothing from the user. The
+    // running tip jar forgets it first, so it cannot save it back.
+    _forgetTipRecord?.call();
+    await ConfigDataSource(_hiveDBProvider).clearHasLeftTip();
   }
 
   /// Stops the reminder in both of the places that keep it alive.

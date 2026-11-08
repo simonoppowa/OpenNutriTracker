@@ -116,11 +116,22 @@ class AiEndpointProber {
   /// [AiCapability.unknown] — that is the timeout path — and without this the
   /// stored record of those four minutes would be indistinguishable from
   /// never having asked.
+  ///
+  /// [stillWanted] is asked between the two requests, which can be minutes
+  /// apart on a cold local model. Once it answers false — the user hid or
+  /// paused the AI features meanwhile, and the switch promises nothing more
+  /// is sent (#1518) — the photo request is not sent, and the probe reports
+  /// [AiEndpointProbe.unknown], which stores nothing over what is known.
   Future<AiEndpointProbe> probe(
     AiSelection selection, {
     String? localeCode,
+    Future<bool> Function()? stillWanted,
   }) async {
     final text = await probeText(selection, localeCode: localeCode);
+    if (stillWanted != null && !await stillWanted()) {
+      _log.info('AI features turned off mid-probe; the photo is not sent');
+      return AiEndpointProbe.unknown;
+    }
     final photo = await probePhoto(selection, localeCode: localeCode);
     return AiEndpointProbe(text: text, photo: photo, checked: true);
   }

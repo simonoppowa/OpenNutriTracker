@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/sheet_bottom_inset.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -27,16 +28,26 @@ class QuickAddBottomSheet extends StatefulWidget {
   final IntakeTypeEntity intakeType;
   final DateTime day;
 
-  /// The add-food screen's "To log" list. With one, the entry goes on the
-  /// list and the sheet closes, instead of logging and leaving for home —
-  /// which would drop everything already on the list.
+  /// The add-food screen's "To log" list. Once it has items, the entry goes
+  /// on the list and the sheet closes, instead of logging and leaving for
+  /// home — which would drop everything already on the list. While it is
+  /// empty the entry is logged at once, as before the list existed, and a
+  /// second button puts it on the list instead (#1520). A food still on its
+  /// way onto the list counts as an item (see [LogTray.collects]).
   final LogTray? logTray;
+
+  /// Always put the entry on [logTray], never log it on its own. For a
+  /// caller with unsaved foods of its own that are not on the list yet —
+  /// the review screen, whose batch joins the list only when confirmed —
+  /// which logging on its own would leave and lose.
+  final bool addsToListOnly;
 
   const QuickAddBottomSheet({
     super.key,
     required this.intakeType,
     required this.day,
     this.logTray,
+    this.addsToListOnly = false,
   });
 
   @override
@@ -59,10 +70,14 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     super.initState();
     _titleController.addListener(_onRequiredFieldChanged);
     _energyController.addListener(_onRequiredFieldChanged);
+    // The button reads "Add" or "Add to list" from the list's state, which
+    // a food arriving from a + changes while the sheet is open.
+    widget.logTray?.addListener(_onTrayChanged);
   }
 
   @override
   void dispose() {
+    widget.logTray?.removeListener(_onTrayChanged);
     _titleController.removeListener(_onRequiredFieldChanged);
     _energyController.removeListener(_onRequiredFieldChanged);
     _titleController.dispose();
@@ -74,6 +89,8 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
   }
 
   void _onRequiredFieldChanged() => setState(() {});
+
+  void _onTrayChanged() => setState(() {});
 
   double? _parsed(TextEditingController c) {
     final raw = c.text.trim().replaceAll(',', '.');
@@ -89,7 +106,13 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     return !_saving && hasTitle && energy != null && energy > 0;
   }
 
-  Future<void> _onSubmit() async {
+  /// Whether the main button adds to the list rather than logging.
+  bool get _addsToList {
+    final logTray = widget.logTray;
+    return logTray != null && (widget.addsToListOnly || logTray.collects);
+  }
+
+  Future<void> _onSubmit({bool toList = false}) async {
     if (!_canSubmit) return;
     setState(() => _saving = true);
 
@@ -110,7 +133,9 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
         title: title,
       );
       final logTray = widget.logTray;
-      if (logTray != null) {
+      // Asked again, not taken from the press: a food that reached the list
+      // since must not be left behind by logging on its own.
+      if (logTray != null && (toList || _addsToList)) {
         logTray.add(
           LogTrayItem(
             meal: intake.meal,
@@ -245,7 +270,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
 
     return Padding(
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+        bottom: sheetBottomInset(context),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
@@ -301,16 +326,30 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
             Semantics(
               identifier: 'quick-add-submit',
               child: FilledButton(
-                onPressed: _canSubmit ? _onSubmit : null,
+                onPressed: _canSubmit
+                    ? () => _onSubmit(toList: _addsToList)
+                    : null,
                 child: _saving
                     ? const SizedBox(
                         height: 18,
                         width: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(s.quickAddSubmitLabel),
+                    : Text(
+                        _addsToList ? s.addToListLabel : s.quickAddSubmitLabel,
+                      ),
               ),
             ),
+            if (widget.logTray != null && !_addsToList) ...[
+              const SizedBox(height: 8),
+              Semantics(
+                identifier: 'quick-add-add-to-list',
+                child: OutlinedButton(
+                  onPressed: _canSubmit ? () => _onSubmit(toList: true) : null,
+                  child: Text(s.addToListLabel),
+                ),
+              ),
+            ],
           ],
         ),
       ),

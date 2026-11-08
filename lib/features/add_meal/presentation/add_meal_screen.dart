@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
@@ -63,6 +64,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
   /// Whether the Describe tile's panel is open under the tiles.
   bool _describeOpen = false;
 
+  /// Whether the user hid the AI features (#1518): no Snap meal tile, and
+  /// Describe without its AI badge, since the offline parser reads it then.
+  /// Starts from the value read at app start, so the tile does not show for
+  /// a frame and vanish.
+  bool _aiHidden = false;
+
   /// What every entry method on this screen adds to, and the one button at
   /// the bottom logs. Handed to the screens this one opens.
   final _logTray = LogTray();
@@ -92,6 +99,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
     // a fresh instance per lookup, whose state would always be initial.
     _addMealBloc = locator<AddMealBloc>()..add(InitializeAddMealEvent());
     super.initState();
+    _refreshAiHidden();
+  }
+
+  /// Absent in tests that register no AI store, where nothing is hidden.
+  Future<void> _refreshAiHidden() async {
+    if (!locator.isRegistered<AiCredentialStorage>()) return;
+    final storage = locator<AiCredentialStorage>();
+    final known = storage.hiddenIfKnown;
+    if (known != null) _aiHidden = known;
+    final hidden = await storage.isHidden();
+    if (mounted && hidden != _aiHidden) setState(() => _aiHidden = hidden);
   }
 
   @override
@@ -129,7 +147,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
         // the return to the day, or logged after being removed.
         child: AbsorbPointer(
           absorbing: _logging,
-          child: _buildScaffold(context, palette),
+          child: _withLogButtonAboveKeyboard(
+            context,
+            _buildScaffold(context, palette),
+          ),
         ),
       ),
     );
@@ -170,24 +191,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
         ],
       ),
       // Below the results rather than over them, so the last result stays
-      // reachable while the list is waiting.
-      bottomNavigationBar: _logTray.isEmpty
+      // reachable while the list is waiting. While the keyboard is up it
+      // would sit under it (the body does not resize, see above), so then
+      // the button floats just above the keyboard instead (#1520).
+      bottomNavigationBar:
+          _logTray.isEmpty || MediaQuery.viewInsetsOf(context).bottom > 0
           ? null
-          : SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Dimens.spacing16,
-                  Dimens.spacing8,
-                  Dimens.spacing16,
-                  Dimens.spacing16,
-                ),
-                child: LogTrayLogButton(
-                  tray: _logTray,
-                  onPressed: _logging ? null : _logAll,
-                ),
-              ),
-            ),
+          : SafeArea(top: false, child: _buildLogButton()),
       body: SafeArea(
         top: false,
         child: Padding(
@@ -224,6 +234,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           onDescribePressed: () =>
                               setState(() => _describeOpen = !_describeOpen),
                           describeOpen: _describeOpen,
+                          showAi: !_aiHidden,
                         ),
                         if (_describeOpen) ...[
                           const SizedBox(height: Dimens.spacing12),
@@ -258,6 +269,50 @@ class _AddMealScreenState extends State<AddMealScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// The button that writes the list, padded the way it sits under the
+  /// results.
+  Widget _buildLogButton() => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      Dimens.spacing16,
+      Dimens.spacing8,
+      Dimens.spacing16,
+      Dimens.spacing16,
+    ),
+    child: LogTrayLogButton(
+      tray: _logTray,
+      // Also waits for a + still fetching its food: that item would land
+      // on the list mid-write, miss the write, and be cleared with the
+      // rest.
+      onPressed: _logging || _quickAdding.isNotEmpty ? null : _logAll,
+    ),
+  );
+
+  /// [screen] with the log button laid over it just above the keyboard,
+  /// while the keyboard is up and the list has items (#1520).
+  ///
+  /// Over the results rather than below them: making room for it would
+  /// shrink the body with the keyboard, which is what overflows a landscape
+  /// phone (#165). It goes back below the results when the keyboard closes.
+  ///
+  /// The Stack is there whether or not the button is: wrapping the screen
+  /// only while the keyboard is up would rebuild the search field under a
+  /// new parent, drop its focus and close the very keyboard that caused it.
+  Widget _withLogButtonAboveKeyboard(BuildContext context, Widget screen) {
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    return Stack(
+      children: [
+        Positioned.fill(child: screen),
+        if (!_logTray.isEmpty && keyboardInset > 0)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: keyboardInset,
+            child: _buildLogButton(),
+          ),
+      ],
     );
   }
 
@@ -859,11 +914,20 @@ class _AddMealScreenState extends State<AddMealScreen> {
     final code = meal.code ?? '';
     // A second tap while the first is still fetching would add it twice.
     if (_quickAdding.contains(code)) return;
-    _quickAdding.add(code);
+    // Through setState: the log button waits for these (see build).
+    setState(() => _quickAdding.add(code));
+    // So a sheet open meanwhile adds to the list rather than logging on its
+    // own and leaving before this food arrives (LogTray.collects).
+    _logTray.beginPending();
     try {
       meal = await _detailedForQuickAdd(meal);
     } finally {
-      _quickAdding.remove(code);
+      // Not once the screen has gone: it disposes the list with it, and a
+      // disposed notifier must not be told anything.
+      if (mounted) {
+        _logTray.endPending();
+        setState(() => _quickAdding.remove(code));
+      }
     }
     if (!mounted) return;
     final state = _addMealBloc.state;
@@ -912,7 +976,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   /// Writes the whole list, then returns to the day it was logged to.
   Future<void> _logAll() async {
-    if (_logging || _logTray.isEmpty) return;
+    if (_logging || _quickAdding.isNotEmpty || _logTray.isEmpty) return;
     // The screen ignores input until this returns (see build), so the list
     // cannot change under the writes below.
     setState(() => _logging = true);
@@ -1006,6 +1070,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
         logTray: _logTray,
       ),
     );
+    // The review screen can open the AI settings, where the features can be
+    // hidden or shown again.
+    await _refreshAiHidden();
     // The description has become rows on the list; the panel that held it
     // has done its job.
     if (mounted && _logTray.length > before && _describeOpen) {
