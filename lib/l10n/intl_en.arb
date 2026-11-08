@@ -217,6 +217,15 @@
   "activityLabel": "Activity",
   "addItemLabel": "Add new Item:",
   "addLabel": "Add",
+  "addToSectionLabel": "Add to {section}",
+  "@addToSectionLabel": {
+    "description": "Screen reader label of the plus at the foot of a meal or activity list, e.g. 'Add to Breakfast'.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
   "additionalInfoLabelCompendium2011": "Information provided\n by the \n'2024 Compendium\n of Physical Activities'",
   "additionalInfoLabelCustom": "Custom Meal Item",
   "additionalInfoLabelFDC": "More Information at\nFoodData Central",
@@ -564,6 +573,10 @@
   "kcalTooMuchLabel": "kcal too much",
   "kgLabel": "kg",
   "kjLabel": "kJ",
+  "hourShortLabel": "h",
+  "@hourShortLabel": {
+    "description": "Short unit after a number of hours, e.g. '4 h', read by a screen reader on the day boundary slider."
+  },
   "minuteShortLabel": "min",
   "@minuteShortLabel": {
     "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
@@ -1539,5 +1552,17 @@
   "supportTipPending": "Your tip is waiting for the payment to go through.",
   "supportTipFailed": "The tip didn't go through.",
   "supportShareLinks": "App Store: {appStoreUrl}\nGoogle Play: {playStoreUrl}",
-  "@supportShareLinks": {"placeholders": {"appStoreUrl": {"type": "String"}, "playStoreUrl": {"type": "String"}}}
+  "@supportShareLinks": {"placeholders": {"appStoreUrl": {"type": "String"}, "playStoreUrl": {"type": "String"}}},
+  "calendarPreviousMonthLabel": "Previous month",
+  "@calendarPreviousMonthLabel": {
+    "description": "Screen reader label of the Diary calendar's left arrow."
+  },
+  "calendarNextMonthLabel": "Next month",
+  "@calendarNextMonthLabel": {
+    "description": "Screen reader label of the Diary calendar's right arrow."
+  },
+  "removeIngredientLabel": "Remove ingredient",
+  "@removeIngredientLabel": {
+    "description": "Tooltip and screen reader label of the delete button on a recipe ingredient row."
+  }
 }
