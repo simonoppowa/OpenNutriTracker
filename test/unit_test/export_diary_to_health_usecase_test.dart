@@ -223,7 +223,7 @@ void main() {
     expect(rewrite.meals.single.energyKcal, closeTo(304, 0.001));
   });
 
-  test("deleting a day's last entry clears it and forgets the day", () async {
+  test("deleting a day's last entry clears it once", () async {
     final intake = _intake(id: 'c', at: yesterdayMorning);
     await intakeRepository.addIntake(intake);
     await usecase.exportNow();
@@ -233,7 +233,9 @@ void main() {
     final cleared = healthService.replaced.last;
     expect(cleared.from, yesterday);
     expect(cleared.meals, isEmpty);
-    expect((await configDataSource.getConfig()).healthExportedDays, isEmpty);
+    // Remembered as cleared, so the next run leaves it alone.
+    expect(await usecase.exportNow(), 0);
+    expect(healthService.replaced, hasLength(2));
   });
 
   test(
@@ -363,9 +365,8 @@ void main() {
       await usecase.exportNow();
 
       expect(healthService.heldTimes, [aged]);
-      expect((await configDataSource.getConfig()).healthExportedDays!.keys, [
-        '2026-03-31',
-      ]);
+      // Both days are on record, so the next run writes nothing.
+      expect(await usecase.exportNow(), 0);
     },
   );
 
@@ -485,5 +486,47 @@ void main() {
     // The store holds B's write, so A has to take the day back.
     expect(await usecase.exportNow(), 1);
     expect(healthService.replaced, hasLength(3));
+  });
+
+  test('a day another profile cleared past the backfill is restored', () async {
+    final aged = DateTime(2026, 4, 1, 9);
+    final entry = _intake(id: 'aged', at: aged);
+    await intakeRepository.addIntake(entry);
+    ExportDiaryToHealthUsecase.clock = () => DateTime(2026, 4, 2, 12);
+    await usecase.exportNow();
+
+    // Weeks later profile B, which has nothing on that day, clears it.
+    ExportDiaryToHealthUsecase.clock = () => now;
+    provider.activeProfileId = 'profile-b';
+    await intakeRepository.deleteIntake(entry);
+    await usecase.exportNow();
+    expect(healthService.held, isEmpty);
+
+    // Back on A, whose diary still has the entry.
+    provider.activeProfileId = 'test-profile';
+    await intakeRepository.addIntake(entry);
+    expect(await usecase.exportNow(), 1);
+    expect(healthService.heldTimes, [aged]);
+  });
+
+  test('a boundary clear cut short is redone under the old boundary', () async {
+    await intakeRepository.addIntake(_intake(id: 'c', at: yesterdayMorning));
+    await usecase.exportNow();
+
+    // The old window is cleared, then the export is switched off before
+    // the day is written under the new boundary.
+    await configDataSource.setConfigDayStartOffset(4, 0);
+    healthService.onReplace = () async {
+      healthService.onReplace = null;
+      await configDataSource.setConfigHealthExportEnabled(false);
+    };
+    await usecase.exportNow();
+    expect(healthService.held, isEmpty);
+
+    // Back on, under the boundary the day was last written with.
+    await configDataSource.setConfigHealthExportEnabled(true);
+    await configDataSource.setConfigDayStartOffset(0, 0);
+    await usecase.exportNow();
+    expect(healthService.heldTimes, [yesterdayMorning]);
   });
 }

@@ -448,8 +448,8 @@ class ConfigDataSource {
     await _update((c) => c.healthLastExportAt = exportedAt);
   }
 
-  /// Records [fingerprint] as what the store now holds for [day]; null once
-  /// the day has nothing left in it.
+  /// Records [fingerprint] as what the store now holds for [day]; null
+  /// forgets the day.
   Future<void> setConfigHealthExportedDay(
     String day,
     String? fingerprint,

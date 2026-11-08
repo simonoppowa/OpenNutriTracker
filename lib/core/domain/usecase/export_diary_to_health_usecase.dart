@@ -36,6 +36,12 @@ class ExportDiaryToHealthUsecase {
   /// fingerprint, so the day is rewritten until one completes.
   static const _pending = 'pending';
 
+  /// Stored for a day this app cleared and has nothing to write for. Kept
+  /// rather than forgotten: the record is device-wide, so a day one profile
+  /// clears may still have entries in another's diary, and that profile has
+  /// to find the day again however old it is.
+  static const _empty = 'empty';
+
   @visibleForTesting
   static DateTime Function() clock = DateTime.now;
 
@@ -132,7 +138,15 @@ class ExportDiaryToHealthUsecase {
     for (final entry in config.healthExportedDays.entries) {
       final oldOffset = _offsetOf(entry.value, offset);
       if (oldOffset == offset) continue;
+      // A day cleared under the old boundary holds nothing to clear.
+      if (entry.value.startsWith('$_empty@')) continue;
       if (!await _mayContinue(profileId)) return 0;
+      // Marked first, as the main loop does: a pass cut short after this
+      // clear must still rewrite the day, even under the old boundary.
+      await _configRepository.setConfigHealthExportedDay(
+        entry.key,
+        '$_pending@$oldOffset',
+      );
       final (from, to) = _window(entry.key, oldOffset);
       await _healthExportRepository.replaceDay(
         from: from,
@@ -180,13 +194,14 @@ class ExportDiaryToHealthUsecase {
               millilitres: entry.amountMl,
             ),
       ];
-      final fingerprint = meals.isEmpty && water.isEmpty
-          ? null
+      final empty = meals.isEmpty && water.isEmpty;
+      final fingerprint = empty
+          ? '$_empty@$offset'
           : '${_fingerprint(profileId, meals, water)}@$offset';
       final stored = config.healthExportedDays[day];
-      if (stored == fingerprint && !overlapsCleared.contains(day)) continue;
       // Nothing to write, and nothing this day wrote left to clear.
-      if (stored == null && fingerprint == null) continue;
+      if (empty && (stored == null || stored == fingerprint)) continue;
+      if (stored == fingerprint && !overlapsCleared.contains(day)) continue;
       if (!await _mayContinue(profileId)) return written;
       // Marked before the store is touched: a replacement clears the day
       // first, so one that fails or is cut short leaves the store matching
