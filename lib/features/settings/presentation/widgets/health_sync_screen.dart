@@ -382,13 +382,6 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     return suggested;
   }
 
-  /// The more recent of the two imports' watermarks.
-  DateTime? get _latestImportAt {
-    final times = [?_lastImportAt, ?_weightLastImportAt];
-    if (times.isEmpty) return null;
-    return times.reduce((a, b) => a.isAfter(b) ? a : b);
-  }
-
   String _formatLastImport(BuildContext context, DateTime lastImportAt) {
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     return DateFormat.yMMMd(localeTag).add_Hm().format(lastImportAt);
@@ -401,7 +394,11 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     final canEdit = _isAvailable && _importEnabled && !_busy;
     final canImport =
         _isAvailable && (_importEnabled || _weightImportEnabled) && !_busy;
-    final latestImportAt = _latestImportAt;
+    // Each import shows its own last run under its switch. One shared date
+    // would let a weight import that keeps running hide a workout import
+    // that stopped, for instance after its permission was revoked.
+    final lastImportAt = _lastImportAt;
+    final weightLastImportAt = _weightLastImportAt;
     return Scaffold(
       appBar: AppBar(title: Text(healthPlatformName)),
       body: _loading
@@ -426,6 +423,13 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                     title: Text(
                       s.healthSyncAutoImportLabel(healthPlatformName),
                     ),
+                    subtitle: lastImportAt == null
+                        ? null
+                        : Text(
+                            s.healthSyncLastImportLabel(
+                              _formatLastImport(context, lastImportAt),
+                            ),
+                          ),
                     value: _importEnabled,
                     // Switching off needs nothing from the platform, so an
                     // import left on stays switchable off while the health
@@ -444,7 +448,15 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                     title: Text(
                       s.healthSyncWeightImportLabel(healthPlatformName),
                     ),
-                    subtitle: Text(s.healthSyncWeightImportSubtitle),
+                    subtitle: Text(
+                      [
+                        s.healthSyncWeightImportSubtitle,
+                        if (weightLastImportAt != null)
+                          s.healthSyncLastImportLabel(
+                            _formatLastImport(context, weightLastImportAt),
+                          ),
+                      ].join('\n'),
+                    ),
                     value: _weightImportEnabled,
                     onChanged: (_isAvailable || _weightImportEnabled) && !_busy
                         ? _onWeightImportChanged
@@ -457,15 +469,13 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                   child: ListTile(
                     leading: const Icon(Icons.download_rounded),
                     title: Text(s.healthSyncImportNowLabel),
-                    subtitle: Text(
-                      latestImportAt != null
-                          ? s.healthSyncLastImportLabel(
-                              _formatLastImport(context, latestImportAt),
-                            )
-                          : _weightImportEnabled
-                          ? s.healthSyncNothingImportedLabel
-                          : s.healthSyncNeverImportedLabel,
-                    ),
+                    subtitle: lastImportAt != null || weightLastImportAt != null
+                        ? null
+                        : Text(
+                            _weightImportEnabled
+                                ? s.healthSyncNothingImportedLabel
+                                : s.healthSyncNeverImportedLabel,
+                          ),
                     enabled: canImport,
                     onTap: _onImportNowPressed,
                   ),

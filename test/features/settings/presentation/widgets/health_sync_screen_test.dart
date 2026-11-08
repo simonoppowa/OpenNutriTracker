@@ -2,6 +2,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
@@ -178,6 +180,8 @@ void main() {
     required bool healthImportEnabled,
     double? healthWorkoutKcalMultiplier,
     bool healthWeightImportEnabled = false,
+    DateTime? healthLastImportAt,
+    DateTime? healthWeightLastImportAt,
   }) {
     getConfigUsecase.config = ConfigEntity(
       true,
@@ -187,6 +191,8 @@ void main() {
       healthImportEnabled: healthImportEnabled,
       healthWorkoutKcalMultiplier: healthWorkoutKcalMultiplier,
       healthWeightImportEnabled: healthWeightImportEnabled,
+      healthLastImportAt: healthLastImportAt,
+      healthWeightLastImportAt: healthWeightLastImportAt,
     );
   }
 
@@ -644,6 +650,42 @@ void main() {
           ].join('\n'),
         ),
         findsOneWidget,
+      );
+    });
+
+    testWidgets('each import shows its own last import, so a stalled '
+        'workout import is not hidden by the weight one', (tester) async {
+      storeConfig(
+        healthImportEnabled: true,
+        healthWeightImportEnabled: true,
+        healthLastImportAt: DateTime(2026, 3, 1, 8),
+        healthWeightLastImportAt: DateTime(2026, 3, 9, 8),
+      );
+      await tester.runAsync(() => initializeDateFormatting('en'));
+
+      await pumpScreen(tester);
+
+      String lastImport(DateTime at) => l10nEn.healthSyncLastImportLabel(
+        DateFormat.yMMMd('en').add_Hm().format(at),
+      );
+      expect(
+        find.descendant(
+          of: _workoutSwitch,
+          matching: find.text(lastImport(DateTime(2026, 3, 1, 8))),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _weightSwitch,
+          matching: find.textContaining(lastImport(DateTime(2026, 3, 9, 8))),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(lastImport(DateTime(2026, 3, 9, 8))),
+        findsOneWidget,
+        reason: 'the weight date must not stand in for the workout one',
       );
     });
 
