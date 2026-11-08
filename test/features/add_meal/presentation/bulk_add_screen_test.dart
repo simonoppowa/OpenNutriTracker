@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/features/add_meal/presentation/voice/voice_input_button.dart';
 import 'dart:async';
 import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
@@ -40,6 +41,7 @@ import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+import '../../../helpers/fake_dictation_service.dart';
 import '../../../helpers/test_l10n.dart';
 
 /// One recorded `addIntake` call: what the screen actually asked to be
@@ -427,6 +429,7 @@ class _GatedProber implements AiEndpointProber {
   Future<AiEndpointProbe> probe(
     AiSelection selection, {
     String? localeCode,
+    Future<bool> Function()? stillWanted,
   }) async {
     await gate.future;
     return result;
@@ -596,6 +599,30 @@ Finder _submitButton() => find.widgetWithIcon(FilledButton, Icons.add_rounded);
 
 void main() {
   tearDown(() async => getIt.reset());
+
+  testWidgets('Search mid-dictation ends dictation, so its pause timeout '
+      'does not match the text a second time', (tester) async {
+    final service = FakeDictationService();
+    VoiceInputButton.debugServiceOverride = service;
+    addTearDown(() => VoiceInputButton.debugServiceOverride = null);
+    await _register(const {});
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '2 eggs');
+    await tester.tap(find.byIcon(Icons.mic_rounded));
+    await tester.pump();
+    service.hear('and toast');
+    await tester.pump();
+
+    await tester.tap(find.widgetWithIcon(FilledButton, Icons.search));
+    await tester.pump();
+    expect(service.cancels, 1);
+    await tester.pumpAndSettle(const Duration(seconds: 1));
+    expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
+  });
 
   testWidgets('a rejected key is stated, and fits a phone in German', (
     tester,
@@ -2325,6 +2352,16 @@ void main() {
       expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsNothing);
     });
 
+    testWidgets('not offered to someone who hid the AI features (#1518)', (
+      tester,
+    ) async {
+      // They have found it, and asked not to be offered it.
+      await useStorage(const {'AiAssistHiddenTag': 'true'});
+      await openBulkAdd(tester);
+
+      expect(find.bySemanticsIdentifier('bulk-add-model-hint'), findsNothing);
+    });
+
     testWidgets('not offered for a key held by a provider that is not active', (
       tester,
     ) async {
@@ -2777,6 +2814,49 @@ void main() {
       // Back where the list lives.
       expect(find.byType(BulkAddScreen), findsNothing);
     });
+
+    testWidgets(
+      'Quick add on an unmatched row joins the empty list and keeps the '
+      'review open',
+      (tester) async {
+        await _register({
+          'toast': [_meal('Toast')],
+        });
+        final tray = LogTray();
+        addTearDown(tray.dispose);
+        await tester.pumpWidget(
+          _app(initialText: '200g toast, 1 mystery stew', logTray: tray),
+        );
+        await tester.pumpAndSettle();
+        tester.state<NavigatorState>(find.byType(Navigator)).pushNamed('/bulk');
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.widgetWithText(TextButton, l10nEn.quickAddCardLabel),
+        );
+        await tester.pumpAndSettle();
+        Finder field(String id) => find.descendant(
+          of: find.bySemanticsIdentifier(id),
+          matching: find.byType(TextField),
+        );
+        await tester.enterText(field('quick-add-title'), 'Stew');
+        await tester.enterText(field('quick-add-energy'), '420');
+        await tester.pumpAndSettle();
+        // The list is empty, yet Add must not log on its own: that leaves
+        // for home, and the reviewed Toast is not on the list yet.
+        expect(
+          find.bySemanticsIdentifier('quick-add-add-to-list'),
+          findsNothing,
+        );
+        await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+        await tester.pumpAndSettle();
+
+        expect(tray.items.map((i) => i.meal.name), ['Stew']);
+        expect(find.byType(BulkAddScreen), findsOneWidget);
+        expect(find.text('Toast'), findsOneWidget);
+        expect(_mealDetailBloc.writes, isEmpty);
+      },
+    );
 
     testWidgets('Snap meal with no model set up opens the AI setup', (
       tester,

@@ -2,6 +2,8 @@
     package="com.opennutritracker.ont.opennutritracker">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Voice input: dictate a meal on the Describe fields. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- #312: Notification reminders -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -30,6 +32,10 @@
 
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>
+        <!-- Lets speech_to_text find the system recognizer on API 30+. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />

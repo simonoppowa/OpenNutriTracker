@@ -23,6 +23,7 @@ import 'package:opennutritracker/features/add_meal/util/meal_photo_encoder.dart'
 import 'package:opennutritracker/features/add_meal/util/portion_label.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
+import 'package:opennutritracker/features/add_meal/presentation/voice/voice_input_button.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/own_server_wait_indicator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -80,6 +81,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   final _log = Logger('BulkAddScreen');
   final _bloc = locator<BulkAddBloc>();
   final _textController = TextEditingController();
+  final _voice = GlobalKey<VoiceInputButtonState>();
 
   /// One controller per row, keyed by row index and rebuilt whenever a new
   /// parse produces a different set of rows.
@@ -133,10 +135,15 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// has not failed to discover it, and this line exists for discovery. The
   /// rule is one sentence: it shows only for someone who has configured
   /// nothing. #844.
+  ///
+  /// And not to someone who hid the AI features (#1518): they have found
+  /// it, and asked not to be offered it.
   late Future<bool> _modelUnknown = _resolveModelUnknown();
 
   Future<bool> _resolveModelUnknown() async {
-    return !await locator<AiCredentialStorage>().hasAnyUsableProvider();
+    final storage = locator<AiCredentialStorage>();
+    if (await storage.isHidden()) return false;
+    return !await storage.hasAnyUsableProvider();
   }
 
   /// Where a photo would actually go, **and the name the sheet gives it**.
@@ -329,6 +336,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   /// can still type the meal instead.
   Future<void> _startWithPhoto() async {
     if (!mounted) return;
+    // No tile leads here while the AI features are hidden (#1518), and the
+    // set-up dialog below is exactly what such a user asked not to be shown.
+    if (await locator<AiCredentialStorage>().isHidden()) return;
     if (!await _photoAvailable) {
       if (!mounted) return;
       await _openSettings(
@@ -586,6 +596,12 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               keyboardType: TextInputType.multiline,
               decoration: InputDecoration(
                 hintText: S.of(context).bulkAddInputHint,
+                // Dictate the meal, then match it straight away.
+                suffixIcon: VoiceInputButton(
+                  key: _voice,
+                  controller: _textController,
+                  onDictated: (_) => _onParsePressed(),
+                ),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.secondaryContainer,
                 border: const OutlineInputBorder(
@@ -604,13 +620,13 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           identifier: 'bulk-add-parse',
           child: state is BulkAddLoadedState && state.rows.isNotEmpty
               ? OutlinedButton.icon(
-                  onPressed: _onParsePressed,
+                  onPressed: _onParseButtonPressed,
                   icon: const Icon(Icons.refresh_rounded),
                   label: Text(S.of(context).bulkAddUpdateMatchesLabel),
                   style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
                 )
               : FilledButton.icon(
-                  onPressed: _onParsePressed,
+                  onPressed: _onParseButtonPressed,
                   icon: const Icon(Icons.search),
                   label: Text(S.of(context).bulkAddParseLabel),
                   style: FilledButton.styleFrom(shape: const StadiumBorder()),
@@ -1555,6 +1571,14 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
     );
   }
 
+  /// Find foods or Update matches pressed by hand. Dictation in progress
+  /// ends first, or its pause timeout would match the text again and reset
+  /// the rows the user may already be correcting.
+  void _onParseButtonPressed() {
+    _voice.currentState?.cancel();
+    _onParsePressed();
+  }
+
   void _onParsePressed() {
     FocusScope.of(context).unfocus();
     _resetAmountControllers();
@@ -1731,6 +1755,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         intakeType: _args.intakeTypeEntity,
         day: _args.day,
         logTray: _args.logTray,
+        // The reviewed rows join the list only when the batch is confirmed,
+        // so logging this entry on its own would leave and lose them.
+        addsToListOnly: true,
       ),
     );
   }

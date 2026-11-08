@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/log_water_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -11,16 +12,25 @@ import 'package:opennutritracker/generated/l10n.dart';
 class QuickWaterWidget extends StatelessWidget {
   final int waterMlToday;
   final int waterGoalMl;
+  // #1306: water is a food volume, so it follows the food unit preference.
+  final bool usesImperialUnits;
 
   const QuickWaterWidget({
     super.key,
     required this.waterMlToday,
     required this.waterGoalMl,
+    this.usesImperialUnits = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final label = S.of(context).waterChipLabel(waterMlToday, waterGoalMl);
+    final s = S.of(context);
+    final label = usesImperialUnits
+        ? s.waterChipLabelFlOz(
+            UnitCalc.mlToFlOz(waterMlToday.toDouble()).round(),
+            UnitCalc.mlToFlOz(waterGoalMl.toDouble()).round(),
+          )
+        : s.waterChipLabel(waterMlToday, waterGoalMl);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final accent = Theme.of(context).colorScheme.primary;
@@ -73,7 +83,7 @@ class QuickWaterWidget extends StatelessWidget {
   Future<void> _showDialog(BuildContext context) async {
     await showDialog<void>(
       context: context,
-      builder: (_) => const LogWaterDialog(),
+      builder: (_) => LogWaterDialog(usesImperialUnits: usesImperialUnits),
     );
   }
 }
