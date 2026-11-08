@@ -46,6 +46,14 @@ class HealthConnectWorkoutReader {
       await _methodChannel.invokeMethod<bool>('hasWorkoutReadPermissions') ??
       false;
 
+  /// Whether the weight import's one read grant, `READ_WEIGHT`, is held.
+  ///
+  /// Asked here rather than of the plugin for the reason given on
+  /// [hasWorkoutReadPermissions]. Throws like [readExerciseSessions].
+  Future<bool> hasWeightReadPermission() async =>
+      await _methodChannel.invokeMethod<bool>('hasWeightReadPermission') ??
+      false;
+
   /// Sessions starting within `[from, to)`.
   ///
   /// Throws [PlatformException] when the platform refuses — code

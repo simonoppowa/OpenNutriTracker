@@ -326,11 +326,24 @@ class HealthPackageService implements HealthService {
     if (!granted) return false;
     // Same rule as [requestPermissions]: only a definite refusal counts, and
     // iOS answers null because it never reports read grants.
-    final hasWeightPermission = await _health.hasPermissions(
+    return await _hasWeightReadPermission() != false;
+  }
+
+  /// Whether the weight read grant is held; null where the platform will not
+  /// say (iOS never reports read grants).
+  ///
+  /// On Android this goes through [HealthConnectWorkoutReader], for the
+  /// reason given on [_hasWorkoutReadPermissions]: the plugin's own check
+  /// ends the process when Health Connect refuses the call, and the weight
+  /// import runs it on every launch and resume.
+  Future<bool?> _hasWeightReadPermission() async {
+    if (_platform == HealthTargetPlatform.android) {
+      return await _workoutReader.hasWeightReadPermission();
+    }
+    return await _health.hasPermissions(
       const [_weightType],
       permissions: const [HealthDataAccess.READ],
     );
-    return hasWeightPermission != false;
   }
 
   @override
@@ -340,10 +353,7 @@ class HealthPackageService implements HealthService {
   }) async {
     // As in [readWorkouts]: a revoked grant would otherwise come back as an
     // empty list and move the watermark past readings never seen.
-    final hasPermission = await _health.hasPermissions(
-      const [_weightType],
-      permissions: const [HealthDataAccess.READ],
-    );
+    final hasPermission = await _hasWeightReadPermission();
     if (hasPermission == false) {
       throw StateError('Missing health read permission for a weight import');
     }

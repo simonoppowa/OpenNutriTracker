@@ -66,6 +66,18 @@ class _FakeWorkoutReader extends Fake implements HealthConnectWorkoutReader {
     return permissionsHeld;
   }
 
+  bool weightPermissionHeld = true;
+  Object? weightPermissionError;
+  int weightPermissionChecks = 0;
+
+  @override
+  Future<bool> hasWeightReadPermission() async {
+    weightPermissionChecks++;
+    final error = weightPermissionError;
+    if (error != null) throw error;
+    return weightPermissionHeld;
+  }
+
   @override
   Future<List<ExternalWorkout>> readExerciseSessions({
     required DateTime from,
@@ -468,6 +480,7 @@ void main() {
       final health = _FakeHealth()..workoutPermissions = true;
       final service = HealthPackageService(
         health,
+        workoutReader: _FakeWorkoutReader(),
         platform: HealthTargetPlatform.android,
       );
 
@@ -487,9 +500,9 @@ void main() {
     });
 
     test('a refused weight grant is a refusal', () async {
-      final health = _FakeHealth()..workoutPermissions = false;
       final service = HealthPackageService(
-        health,
+        _FakeHealth(),
+        workoutReader: _FakeWorkoutReader()..weightPermissionHeld = false,
         platform: HealthTargetPlatform.android,
       );
 
@@ -497,9 +510,9 @@ void main() {
     });
 
     test('a revoked grant fails the read instead of answering empty', () {
-      final health = _FakeHealth()..workoutPermissions = false;
       final service = HealthPackageService(
-        health,
+        _FakeHealth(),
+        workoutReader: _FakeWorkoutReader()..weightPermissionHeld = false,
         platform: HealthTargetPlatform.android,
       );
 
@@ -510,6 +523,65 @@ void main() {
         ),
         throwsStateError,
       );
+    });
+
+    // The plugin's hasPermissions runs getGrantedPermissions() in a coroutine
+    // with no handler, so a rate-limited Health Connect there ends the
+    // process. On Android the weight grant check must not touch it either.
+    test('on Android the weight grant check never goes through the plugin',
+        () async {
+      final health = _FakeHealth()..workoutPermissions = true;
+      final reader = _FakeWorkoutReader();
+      final service = HealthPackageService(
+        health,
+        workoutReader: reader,
+        platform: HealthTargetPlatform.android,
+      );
+
+      await service.requestWeightPermissions();
+      await service.readWeights(
+        from: DateTime(2026, 8, 1),
+        to: DateTime(2026, 8, 2),
+      );
+
+      expect(reader.weightPermissionChecks, 2);
+      expect(health.recheckedTypes, isNull);
+    });
+
+    test('a failing weight grant check surfaces as an error, not a read',
+        () async {
+      final health = _FakeHealth();
+      final service = HealthPackageService(
+        health,
+        workoutReader: _FakeWorkoutReader()
+          ..weightPermissionError = PlatformException(
+            code: HealthConnectWorkoutReader.rateLimitedCode,
+          ),
+        platform: HealthTargetPlatform.android,
+      );
+
+      await expectLater(
+        service.readWeights(
+          from: DateTime(2026, 8, 1),
+          to: DateTime(2026, 8, 2),
+        ),
+        throwsA(isA<PlatformException>()),
+      );
+      expect(health.queriedTypes, isEmpty);
+    });
+
+    test('on iOS the weight grant is still asked of the plugin', () async {
+      final health = _FakeHealth()..workoutPermissions = false;
+      final reader = _FakeWorkoutReader();
+      final service = HealthPackageService(
+        health,
+        workoutReader: reader,
+        platform: HealthTargetPlatform.ios,
+      );
+
+      expect(await service.requestWeightPermissions(), isFalse);
+      expect(health.recheckedTypes, [HealthDataType.WEIGHT]);
+      expect(reader.weightPermissionChecks, 0);
     });
 
     test('maps a kilogram reading', () {
