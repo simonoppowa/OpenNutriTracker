@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 /// The palette behind the calm friendly-flat redesign.
@@ -81,10 +83,22 @@ class AppPalette {
   /// Returns a copy with the accent swapped for [newAccent] (accent picker or a
   /// harmonized Material You primary). The neutral canvas, surfaces and macro
   /// colours are untouched, so only the one vivid role follows the user.
+  ///
+  /// The text colour on the accent is whichever of white or the warm dark ink
+  /// gives the higher WCAG contrast ratio. When neither reaches AA (4.5:1),
+  /// as on red, teal, blue and pink, pure black replaces the ink: white or
+  /// black always reaches at least 4.58:1.
   AppPalette withAccent(Color newAccent) {
-    final onNew = ThemeData.estimateBrightnessForColor(newAccent) == Brightness.dark
-        ? Colors.white
-        : const Color(0xFF20201C);
+    const darkInk = Color(0xFF20201C);
+    const black = Color(0xFF000000);
+    final white = _contrastRatio(Colors.white, newAccent);
+    final ink = _contrastRatio(darkInk, newAccent);
+    final Color onNew;
+    if (math.max(white, ink) >= 4.5) {
+      onNew = white >= ink ? Colors.white : darkInk;
+    } else {
+      onNew = white >= _contrastRatio(black, newAccent) ? Colors.white : black;
+    }
     return AppPalette(
       brightness: brightness,
       canvas: canvas,
@@ -100,6 +114,13 @@ class AppPalette {
       textStrong: textStrong,
       textMuted: textMuted,
     );
+  }
+
+  /// WCAG 2.x contrast ratio between two opaque colours.
+  static double _contrastRatio(Color a, Color b) {
+    final la = a.computeLuminance();
+    final lb = b.computeLuminance();
+    return la > lb ? (la + 0.05) / (lb + 0.05) : (lb + 0.05) / (la + 0.05);
   }
 
   ColorScheme get colorScheme => ColorScheme(
