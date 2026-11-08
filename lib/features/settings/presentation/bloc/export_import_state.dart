@@ -15,8 +15,16 @@ class ExportImportLoadingState extends ExportImportState {
 }
 
 class ExportImportSuccess extends ExportImportState {
+  /// The name an export was saved under, when the platform reported one.
+  /// It can differ from the name offered in the save dialog, because
+  /// Android renames a file that would replace an existing one (#763).
+  /// Null for imports and sample downloads.
+  final String? savedFileName;
+
+  const ExportImportSuccess({this.savedFileName});
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [savedFileName];
 }
 
 /// An export, import or sample download failed, for [reason].

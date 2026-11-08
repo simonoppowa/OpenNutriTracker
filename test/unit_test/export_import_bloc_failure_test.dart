@@ -100,7 +100,7 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
   final Object error;
 
   @override
-  Future<bool> exportData(
+  Future<SavedExport?> exportData(
     String exportZipFileName,
     String userActivityJsonFileName,
     String userIntakeJsonFileName,
@@ -117,6 +117,31 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
   }) async {
     throw error;
   }
+}
+
+/// Export whose save ended in [result]: a saved file, or null for a
+/// dismissed save dialog.
+class _FixedResultExportDataUsecase extends _ThrowingExportDataUsecase {
+  _FixedResultExportDataUsecase(this.result) : super(StateError('unused'));
+
+  final SavedExport? result;
+
+  @override
+  Future<SavedExport?> exportData(
+    String exportZipFileName,
+    String userActivityJsonFileName,
+    String userIntakeJsonFileName,
+    String trackedDayJsonFileName,
+    String recipeJsonFileName,
+    String weightLogJsonFileName,
+    String customActivityTemplateJsonFileName, {
+    ExportFormat format = ExportFormat.json,
+    String favouriteJsonFileName = 'user_favourites.json',
+    String userActivityCsvFileName = 'user_activity.csv',
+    String userIntakeCsvFileName = 'user_intake.csv',
+    String trackedDayCsvFileName = 'user_tracked_day.csv',
+    String goalSettingsJsonFileName = 'goal_settings.json',
+  }) async => result;
 }
 
 /// Only reached after a successful import, which no test here has.
@@ -138,6 +163,7 @@ final _provider = FakeHiveDBProvider();
 /// end from the event to the state. Everything else is inert.
 ExportImportBloc _bloc({
   Future<PlatformFile?> Function()? pickFile,
+  ExportDataUsecase? exportDataUsecase,
   Object? exportError,
   Object? sampleCsvError,
 }) {
@@ -157,7 +183,8 @@ ExportImportBloc _bloc({
   );
 
   return ExportImportBloc(
-    _ThrowingExportDataUsecase(exportError ?? StateError('unused')),
+    exportDataUsecase ??
+        _ThrowingExportDataUsecase(exportError ?? StateError('unused')),
     ImportDataUsecase(
       userActivityRepository,
       intakeRepository,
@@ -291,6 +318,47 @@ void main() {
         expect(severe.single.message, contains('unreadableOrWrongFormat'));
       },
     );
+
+    test(
+      'an export saved under a new name succeeds and carries that name (#763)',
+      () async {
+        final bloc = _bloc(
+          exportDataUsecase: _FixedResultExportDataUsecase(
+            const SavedExport(fileName: 'opennutritracker-export (2).zip'),
+          ),
+        );
+        addTearDown(bloc.close);
+
+        final states = await _drive(bloc, const ExportDataEvent());
+
+        expect(states, [
+          ExportImportLoadingState(),
+          ExportImportSuccess(savedFileName: 'opennutritracker-export (2).zip'),
+        ]);
+      },
+    );
+
+    test('an export saved without a known name still succeeds', () async {
+      final bloc = _bloc(
+        exportDataUsecase: _FixedResultExportDataUsecase(const SavedExport()),
+      );
+      addTearDown(bloc.close);
+
+      final states = await _drive(bloc, const ExportDataEvent());
+
+      expect(states, [ExportImportLoadingState(), ExportImportSuccess()]);
+    });
+
+    test('a dismissed export save dialog returns to initial', () async {
+      final bloc = _bloc(
+        exportDataUsecase: _FixedResultExportDataUsecase(null),
+      );
+      addTearDown(bloc.close);
+
+      final states = await _drive(bloc, const ExportDataEvent());
+
+      expect(states, [ExportImportLoadingState(), ExportImportInitial()]);
+    });
 
     test('an export whose save failed surfaces writeFailed', () async {
       final bloc = _bloc(
