@@ -3,7 +3,6 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Writes an activity and raises the day's budget by what it burned — the
@@ -59,12 +58,16 @@ class LogUserActivityUsecase {
         await _getMacroGoalUsecase.getProteinsGoal(kcalGoal),
       );
     }
+    // Nothing while gram macro goals are set (#642).
+    final increase = await _getMacroGoalUsecase.getActivityMacroShare(
+      caloriesBurned,
+    );
     await _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
     await _addTrackedDayUsecase.increaseDayMacroGoals(
       day,
-      carbsAmount: MacroCalc.getTotalCarbsGoal(caloriesBurned),
-      fatAmount: MacroCalc.getTotalFatsGoal(caloriesBurned),
-      proteinAmount: MacroCalc.getTotalProteinsGoal(caloriesBurned),
+      carbsAmount: increase.carbs,
+      fatAmount: increase.fat,
+      proteinAmount: increase.protein,
     );
   }
 }

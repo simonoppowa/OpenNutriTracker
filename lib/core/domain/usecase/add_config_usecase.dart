@@ -68,6 +68,23 @@ class AddConfigUsecase {
     );
   }
 
+  /// #642: absolute macro goals in grams; switches to them.
+  Future<void> setConfigMacroGoalGrams(
+    double carbGrams,
+    double proteinGrams,
+    double fatGrams,
+  ) async {
+    await _configRepository.setUserMacroGrams(
+      carbGrams,
+      proteinGrams,
+      fatGrams,
+    );
+  }
+
+  Future<void> setConfigMacroGoalsInGrams(bool inGrams) async {
+    await _configRepository.setUserMacroGoalsInGrams(inGrams);
+  }
+
   Future<void> setConfigShowActivityTracking(bool show) async {
     await _configRepository.setConfigShowActivityTracking(show);
   }

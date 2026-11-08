@@ -286,5 +286,25 @@ void main() {
       expect(find.textContaining('× 30 % ÷ 9'), findsOneWidget);
       expect(find.textContaining('× 30 % ÷ 4'), findsOneWidget);
     });
+
+    testWidgets('gram macro goals show as set, without the split formula '
+        '(#642)', (tester) async {
+      final breakdown = KcalGoalBreakdownEntity.compute(
+        user: _buildUser(),
+        totalKcalActivities: 320,
+        macroGramGoals: (carbs: 20, protein: 120, fat: 140),
+      );
+      await _pump(tester, breakdown);
+
+      expect(
+        find.text(l10nEn.kcalGoalInfoMacroGramsExplanation),
+        findsOneWidget,
+      );
+      expect(find.text(l10nEn.kcalGoalInfoMacroExplanation), findsNothing);
+      expect(find.textContaining('% ÷'), findsNothing);
+      expect(find.text('20 g'), findsOneWidget);
+      expect(find.text('120 g'), findsOneWidget);
+      expect(find.text('140 g'), findsOneWidget);
+    });
   });
 }
