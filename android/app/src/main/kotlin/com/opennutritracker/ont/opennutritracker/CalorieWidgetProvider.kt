@@ -144,9 +144,9 @@ private class WidgetView private constructor(
         }
     }
 
-    /** The end of the snapshot's logical day: its date's local midnight,
-     * one day on, plus the offset. Same rule as `nextBoundary()` on the
-     * Dart side. */
+    /** The end of the snapshot's logical day: the next date's own local
+     * midnight, plus the offset. Same rule as `nextBoundary()` on the Dart
+     * side. */
     private fun dayEndMillis(): Long? {
         val day = snapshot?.optString("day", "").orEmpty()
         val start = runCatching {
@@ -156,6 +156,15 @@ private class WidgetView private constructor(
         return Calendar.getInstance().apply {
             time = start
             add(Calendar.DAY_OF_MONTH, 1)
+            // The next date's midnight, set rather than carried: where a
+            // DST change skips midnight on the snapshot's date, `start` is
+            // 01:00, and a day on from it would keep that hour. A skipped
+            // midnight on the next date resolves to its first hour, the
+            // moment the formatted date (and so `isCurrent`) changes.
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
             add(Calendar.MINUTE, offset)
             // A second past the boundary, so the update reads the new day.
             add(Calendar.SECOND, 1)
