@@ -589,4 +589,27 @@ void main() {
       expect(healthService.heldTimes, [yesterdayMorning]);
     },
   );
+
+  test(
+    'a window moved by days still finds the day its entry moved to',
+    () async {
+      // Weeks old, so only the record of where it was written brings it back.
+      final aged = DateTime(2026, 4, 4, 0, 15);
+      await intakeRepository.addIntake(_intake(id: 'aged', at: aged));
+      // Written under 1 April, in a window a large time-zone move and a
+      // boundary change put days away from that date's window here.
+      final oldFrom = DateTime(2026, 4, 3, 12);
+      final oldTo = DateTime(2026, 4, 4, 12);
+      await configDataSource.setConfigHealthExportedDay(
+        '2026-04-01',
+        'hash@${oldFrom.millisecondsSinceEpoch}-${oldTo.millisecondsSinceEpoch}',
+      );
+      healthService.held.add(
+        ExportedMeal(slot: ExportedMealSlot.breakfast, time: aged),
+      );
+
+      await usecase.exportNow();
+      expect(healthService.heldTimes, [aged]);
+    },
+  );
 }

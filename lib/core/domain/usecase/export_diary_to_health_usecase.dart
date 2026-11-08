@@ -140,7 +140,7 @@ class ExportDiaryToHealthUsecase {
       final (start, end) = _window(entry.key, offset);
       final (from, to) = _recordedWindow(entry.key, entry.value, offset);
       if (from.isAtSameMomentAs(start) && to.isAtSameMomentAs(end)) continue;
-      final overlaps = _daysOverlapping(entry.key, from, to, offset);
+      final overlaps = _daysOverlapping(from, to, offset);
       // A day cleared in its old window holds nothing to clear, but the
       // days it overlaps now may hold another profile's entries.
       if (entry.value.startsWith('$_empty@')) {
@@ -288,23 +288,24 @@ class ExportDiaryToHealthUsecase {
   }
 
   /// The days whose window under [offsetMinutes] overlaps [from]–[to], the
-  /// window [day] was written in: [day] itself and the neighbours a
-  /// boundary change or a time-zone move shifted part of it to.
+  /// window a day was written in. Searched from the window's own bounds, not
+  /// from the day it was filed under: a time-zone move and a boundary change
+  /// together can shift it by days.
   static Iterable<String> _daysOverlapping(
-    String day,
     DateTime from,
     DateTime to,
     int offsetMinutes,
   ) sync* {
-    final date = DateTime.parse(day);
-    for (final shift in const [-2, -1, 0, 1, 2]) {
-      final neighbour = DateTime(
-        date.year,
-        date.month,
-        date.day + shift,
-      ).toIso8601String().substring(0, 10);
-      final (start, end) = _window(neighbour, offsetMinutes);
-      if (start.isBefore(to) && from.isBefore(end)) yield neighbour;
+    // A day's window starts within a day of its date, whatever the boundary.
+    final last = DateTime(to.year, to.month, to.day + 1);
+    for (
+      var date = DateTime(from.year, from.month, from.day - 1);
+      !date.isAfter(last);
+      date = DateTime(date.year, date.month, date.day + 1)
+    ) {
+      final day = date.toIso8601String().substring(0, 10);
+      final (start, end) = _window(day, offsetMinutes);
+      if (start.isBefore(to) && from.isBefore(end)) yield day;
     }
   }
 
