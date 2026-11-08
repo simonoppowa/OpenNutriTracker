@@ -35,7 +35,14 @@ class _FakeHealthService extends Fake implements HealthService {
   final replaced = <_Replaced>[];
   bool refuse = false;
 
-  /// Runs during a write, so a test can act mid-run.
+  /// Refuses only the day whose window starts here.
+  DateTime? refuseFrom;
+
+  /// The meals the store holds, kept as the real service does: the window
+  /// is cleared first and the meals are written after it.
+  final held = <ExportedMeal>[];
+
+  /// Runs between the clear and the writes, so a test can act mid-run.
   Future<void> Function()? onReplace;
 
   @override
@@ -45,10 +52,16 @@ class _FakeHealthService extends Fake implements HealthService {
     required List<ExportedMeal> meals,
     required List<ExportedWater> water,
   }) async {
-    if (refuse) throw StateError('refused');
+    if (refuse || from == refuseFrom) throw StateError('refused');
     replaced.add(_Replaced(from, to, meals, water));
+    held.removeWhere(
+      (meal) => !meal.time.isBefore(from) && meal.time.isBefore(to),
+    );
     await onReplace?.call();
+    held.addAll(meals);
   }
+
+  List<DateTime> get heldTimes => [for (final meal in held) meal.time]..sort();
 }
 
 final _oats = MealEntity(
@@ -311,6 +324,83 @@ void main() {
     final rewritten = healthService.replaced[2];
     expect(rewritten.from, DateTime(2026, 5, 22, 9));
     expect(rewritten.meals.single.time, DateTime(2026, 5, 22, 9));
+  });
+
+  test(
+    'a boundary change rewrites a day a failed pass had already moved',
+    () async {
+      final early = DateTime(2026, 5, 23, 1);
+      await intakeRepository.addIntake(_intake(id: 'c', at: yesterdayMorning));
+      await intakeRepository.addIntake(_intake(id: 'early', at: early));
+      await intakeRepository.addIntake(_intake(id: 'a', at: now));
+      await usecase.exportNow();
+
+      // 01:00 moves to yesterday; yesterday is rewritten, today is refused.
+      await configDataSource.setConfigDayStartOffset(4, 0);
+      healthService.refuseFrom = DateTime(2026, 5, 23, 4);
+      await expectLater(usecase.exportNow(), throwsStateError);
+
+      // The retry clears today's old window again, taking 01:00 from the
+      // yesterday already written, so yesterday has to be written again.
+      healthService.refuseFrom = null;
+      await usecase.exportNow();
+      expect(healthService.heldTimes, [yesterdayMorning, early, now]);
+    },
+  );
+
+  test(
+    'a boundary change writes an entry it moves to a day past the backfill',
+    () async {
+      final aged = DateTime(2026, 4, 1, 1);
+      await intakeRepository.addIntake(_intake(id: 'aged', at: aged));
+      ExportDiaryToHealthUsecase.clock = () => DateTime(2026, 4, 2, 12);
+      await usecase.exportNow();
+
+      // Weeks later 01:00 on 1 April files under 31 March, a day the
+      // backfill no longer reaches.
+      ExportDiaryToHealthUsecase.clock = () => now;
+      await configDataSource.setConfigDayStartOffset(4, 0);
+      await usecase.exportNow();
+
+      expect(healthService.heldTimes, [aged]);
+      expect((await configDataSource.getConfig()).healthExportedDays!.keys, [
+        '2026-03-31',
+      ]);
+    },
+  );
+
+  test('a profile switch mid-write waits for the day to settle', () async {
+    await intakeRepository.addIntake(_intake(id: 'a', at: now));
+    late Future<int> incoming;
+    healthService.onReplace = () async {
+      healthService.onReplace = null;
+      provider.activeProfileId = 'profile-b';
+      incoming = usecase.exportNow();
+      // Room for an overlapping pass to clear and write the same day.
+      await pumpEventQueue();
+    };
+
+    await usecase.exportNow();
+    expect(await incoming, 1);
+    expect(healthService.held, hasLength(1));
+  });
+
+  test('an edit during a pass gets a fresh pass of its own', () async {
+    await intakeRepository.addIntake(_intake(id: 'c', at: yesterdayMorning));
+    await intakeRepository.addIntake(_intake(id: 'a', at: now));
+    late Future<int> second;
+    healthService.onReplace = () async {
+      healthService.onReplace = null;
+      // While yesterday is written, today changes and the app is paused.
+      await intakeRepository.updateIntake('a', {'amount': 80.0});
+      second = usecase.exportNow();
+    };
+
+    expect(await usecase.exportNow(), 2);
+    expect(await second, 1);
+    final rewrite = healthService.replaced.last;
+    expect(rewrite.from, today);
+    expect(rewrite.meals.single.energyKcal, closeTo(304, 0.001));
   });
 
   test('switching the export off mid-run stops the remaining days', () async {

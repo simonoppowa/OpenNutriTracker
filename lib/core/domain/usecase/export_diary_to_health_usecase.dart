@@ -37,10 +37,14 @@ class ExportDiaryToHealthUsecase {
 
   final _log = Logger('ExportDiaryToHealthUsecase');
 
-  /// The run in flight and its profile; a caller on the same profile joins
-  /// it instead of rewriting the same days (as [ImportWorkoutsUsecase]).
-  Future<int>? _inFlight;
-  String? _inFlightProfileId;
+  /// The pass in flight and the one queued behind it. Passes never overlap,
+  /// whichever profile each is for: two at once would interleave one's
+  /// deletion of a day with the other's writes. A request made while a pass
+  /// runs queues one follow-up, which reads the diary afresh when it starts,
+  /// so an edit made meanwhile is not lost to the running pass's snapshot;
+  /// every request until then shares it.
+  Future<int>? _running;
+  Future<int>? _queued;
 
   final HealthExportRepository _healthExportRepository;
   final ConfigRepository _configRepository;
@@ -71,17 +75,25 @@ class ExportDiaryToHealthUsecase {
   /// without touching the platform when the user has not opted in; throws
   /// what the health store throws.
   Future<int> exportNow() {
-    final profileId = _hiveDBProvider.activeProfileId;
-    final inFlight = _inFlight;
-    if (inFlight != null && _inFlightProfileId == profileId) return inFlight;
-    final run = _export(profileId);
-    _inFlight = run;
-    _inFlightProfileId = profileId;
+    if (_queued case final queued?) return queued;
+    final running = _running;
+    if (running == null) return _start();
+    return _queued = _startAfter(running);
+  }
+
+  Future<int> _startAfter(Future<int> running) async {
+    // How the running pass went is for its own callers to hear.
+    await running.catchError((Object _) => 0);
+    _queued = null;
+    return _start();
+  }
+
+  /// Starts a pass for the profile active now, not when it was requested.
+  Future<int> _start() {
+    final run = _export(_hiveDBProvider.activeProfileId);
+    _running = run;
     return run.whenComplete(() {
-      if (identical(_inFlight, run)) {
-        _inFlight = null;
-        _inFlightProfileId = null;
-      }
+      if (identical(_running, run)) _running = null;
     });
   }
 
@@ -106,21 +118,13 @@ class ExportDiaryToHealthUsecase {
       (waterByDay[day] ??= []).add(entry);
     }
 
-    // Recent days, plus any day the store still holds something for.
-    final now = clock();
-    final cutoff = DayBoundaryCalc.logicalDayOfMinutes(
-      now,
-      offset,
-    ).subtract(const Duration(days: ConfigEntity.healthExportBackfillDays));
-    final days = {
-      for (final day in {...intakesByDay.keys, ...waterByDay.keys})
-        if (!DateTime.parse(day).isBefore(cutoff)) day,
-      ...config.healthExportedDays.keys,
-    }.toList()..sort();
-
     // A boundary change moves every window, so records written under the
-    // old one are cleared first; their stored offsets then make each day
-    // rewrite below.
+    // old one are cleared first. A cleared window can hold records an
+    // earlier pass already rewrote under the new boundary (one that failed
+    // partway), and entries that now file under a day older than the
+    // backfill, so every day whose new window overlaps it is rewritten
+    // below, whatever its fingerprint or age.
+    final overlapsCleared = <String>{};
     for (final entry in config.healthExportedDays.entries) {
       final oldOffset = _offsetOf(entry.value, offset);
       if (oldOffset == offset) continue;
@@ -132,7 +136,21 @@ class ExportDiaryToHealthUsecase {
         meals: const [],
         water: const [],
       );
+      overlapsCleared.addAll(_daysOverlapping(entry.key, from, to, offset));
     }
+
+    // Recent days, plus any day the store may still hold something for.
+    final now = clock();
+    final cutoff = DayBoundaryCalc.logicalDayOfMinutes(
+      now,
+      offset,
+    ).subtract(const Duration(days: ConfigEntity.healthExportBackfillDays));
+    final days = {
+      for (final day in {...intakesByDay.keys, ...waterByDay.keys})
+        if (!DateTime.parse(day).isBefore(cutoff)) day,
+      ...config.healthExportedDays.keys,
+      ...overlapsCleared,
+    }.toList()..sort();
 
     var written = 0;
     for (final day in days) {
@@ -155,7 +173,10 @@ class ExportDiaryToHealthUsecase {
       final fingerprint = meals.isEmpty && water.isEmpty
           ? null
           : '${_fingerprint(profileId, meals, water)}@$offset';
-      if (config.healthExportedDays[day] == fingerprint) continue;
+      final stored = config.healthExportedDays[day];
+      if (stored == fingerprint && !overlapsCleared.contains(day)) continue;
+      // Nothing to write, and nothing this day wrote left to clear.
+      if (stored == null && fingerprint == null) continue;
       if (!await _mayContinue(profileId)) return written;
       await _healthExportRepository.replaceDay(
         from: from,
@@ -187,6 +208,27 @@ class ExportDiaryToHealthUsecase {
   /// The day boundary a stored `fingerprint@offset` value was written under.
   static int _offsetOf(String stored, int fallback) =>
       int.tryParse(stored.split('@').last) ?? fallback;
+
+  /// The days whose window under [offsetMinutes] overlaps [from]–[to], the
+  /// window [day] had under another boundary: [day] itself and the
+  /// neighbour the move shifted part of it to.
+  static Iterable<String> _daysOverlapping(
+    String day,
+    DateTime from,
+    DateTime to,
+    int offsetMinutes,
+  ) sync* {
+    final date = DateTime.parse(day);
+    for (final shift in const [-1, 0, 1]) {
+      final neighbour = DateTime(
+        date.year,
+        date.month,
+        date.day + shift,
+      ).toIso8601String().substring(0, 10);
+      final (start, end) = _window(neighbour, offsetMinutes);
+      if (start.isBefore(to) && from.isBefore(end)) yield neighbour;
+    }
+  }
 
   /// The wall-clock span of diary day [day] under the configured boundary.
   static (DateTime, DateTime) _window(String day, int offsetMinutes) {
