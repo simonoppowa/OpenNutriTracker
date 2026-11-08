@@ -196,11 +196,7 @@ void main() {
     ) async {
       final popped = await _openDialog(
         tester,
-        SetWeightDialog(
-          initialKg: 75,
-          unit: BodyWeightUnit.kg,
-          configRepository: configRepository,
-        ),
+        _kgWeightDialog(configRepository),
       );
 
       await tester.enterText(find.byType(TextField), '999');
@@ -239,11 +235,7 @@ void main() {
     testWidgets('a comma decimal is read as a decimal point', (tester) async {
       final popped = await _openDialog(
         tester,
-        SetWeightDialog(
-          initialKg: 75,
-          unit: BodyWeightUnit.kg,
-          configRepository: configRepository,
-        ),
+        _kgWeightDialog(configRepository),
       );
 
       await tester.enterText(find.byType(TextField), '82,4');
@@ -280,11 +272,7 @@ void main() {
     ) async {
       final popped = await _openDialog(
         tester,
-        SetWeightDialog(
-          initialKg: 75,
-          unit: BodyWeightUnit.kg,
-          configRepository: configRepository,
-        ),
+        _kgWeightDialog(configRepository),
       );
 
       await tester.enterText(find.byType(TextField), '90');
@@ -305,6 +293,51 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(popped.single, 90);
+    });
+  });
+
+  group('dialog title beside the mode toggle', () {
+    // The toggle now shares the title row, so at a large font the title must
+    // ellipsize on one line rather than overflow. AutoSizeText cannot be used
+    // here: AlertDialog asks its title for an intrinsic width, which
+    // AutoSizeText's LayoutBuilder cannot report.
+    Future<void> pumpLarge(WidgetTester tester, Widget dialog) async {
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: _wrapWithL10n(dialog),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    void expectOneLineTitle(WidgetTester tester, String title) {
+      expect(tester.takeException(), isNull);
+      final text = tester.widget<Text>(find.text(title));
+      expect(text.maxLines, 1);
+      expect(text.overflow, TextOverflow.ellipsis);
+    }
+
+    testWidgets('the weight dialog title fits at a large font', (tester) async {
+      await pumpLarge(tester, _kgWeightDialog(_FakeConfigRepository()));
+
+      expectOneLineTitle(tester, l10nEn.selectWeightDialogLabel);
+    });
+
+    testWidgets('the target weight dialog title fits at a large font', (
+      tester,
+    ) async {
+      await pumpLarge(
+        tester,
+        SetTargetWeightDialog(
+          initialKg: 70,
+          hasExistingTarget: false,
+          unit: BodyWeightUnit.kg,
+          configRepository: _FakeConfigRepository(),
+        ),
+      );
+
+      expectOneLineTitle(tester, l10nEn.profileTargetWeightLabel);
     });
   });
 }
@@ -334,3 +367,10 @@ Future<List<Object?>> _openDialog(WidgetTester tester, Widget dialog) async {
   await tester.pumpAndSettle();
   return popped;
 }
+
+SetWeightDialog _kgWeightDialog(ConfigRepository configRepository) =>
+    SetWeightDialog(
+      initialKg: 75,
+      unit: BodyWeightUnit.kg,
+      configRepository: configRepository,
+    );
