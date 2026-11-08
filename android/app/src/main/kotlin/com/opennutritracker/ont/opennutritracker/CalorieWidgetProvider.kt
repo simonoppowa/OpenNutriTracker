@@ -12,7 +12,8 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Date
 import java.util.Locale
 import org.json.JSONObject
@@ -144,31 +145,23 @@ private class WidgetView private constructor(
         }
     }
 
-    /** The end of the snapshot's logical day: the next date's own local
-     * midnight, plus the offset. Same rule as `nextBoundary()` on the Dart
-     * side. */
+    /** The end of the snapshot's logical day: the next date's start in the
+     * device's zone, plus the offset. Same rule as `nextBoundary()` on the
+     * Dart side. `atStartOfDay` is what makes DST edges right: a midnight a
+     * change skips resolves to the first moment that exists, and one it
+     * repeats to the earlier of the two, which is when `isCurrent` already
+     * rejects the snapshot. Calendar arithmetic got both wrong by an hour. */
     private fun dayEndMillis(): Long? {
         val day = snapshot?.optString("day", "").orEmpty()
-        val start = runCatching {
-            SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(day)
-        }.getOrNull() ?: return null
+        val date = runCatching { LocalDate.parse(day) }.getOrNull() ?: return null
         val offset = snapshot?.optInt("offsetMinutes", 0) ?: 0
-        return Calendar.getInstance().apply {
-            time = start
-            add(Calendar.DAY_OF_MONTH, 1)
-            // The next date's midnight, set rather than carried: where a
-            // DST change skips midnight on the snapshot's date, `start` is
-            // 01:00, and a day on from it would keep that hour. A skipped
-            // midnight on the next date resolves to its first hour, the
-            // moment the formatted date (and so `isCurrent`) changes.
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-            add(Calendar.MINUTE, offset)
-            // A second past the boundary, so the update reads the new day.
-            add(Calendar.SECOND, 1)
-        }.timeInMillis
+        return date.plusDays(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            // The offset in absolute minutes, as `isCurrent` subtracts it,
+            // and a second past the boundary so the update reads the new day.
+            .plusSeconds(offset * 60L + 1)
+            .toEpochMilli()
     }
 
     private fun showPlaceholder(views: RemoteViews) {
