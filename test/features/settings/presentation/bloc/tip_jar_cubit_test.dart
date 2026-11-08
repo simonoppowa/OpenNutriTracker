@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
@@ -408,6 +409,58 @@ void main() {
       expect(jar.state.hasTipped, isTrue);
       // Found at start-up, away from the page: no dialog.
       expect(outcomes, isEmpty);
+    });
+
+    /// Into the background and back, one state at a time, as the engine
+    /// reports it: the listener only says "resumed" after "inactive".
+    void backgroundAndResume(WidgetTester tester) {
+      for (final state in const [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+    }
+
+    // In `runAsync`: the jar and the store were built outside the widget
+    // test's fake clock, so their futures complete on the real one.
+    testWidgets('a payment that clears in the background is consumed on '
+        'resume, without reopening Support', (tester) async {
+      await tester.runAsync(() async {
+        await jar.start();
+        jar.watchAppResumes();
+        expect(store.restoreCalls, 1);
+
+        // Pending when the app went to the background, and cleared there
+        // with no purchase update delivered (#1533): only asking Play
+        // finds it.
+        final cleared = tipPurchase('tip_medium', PurchaseStatus.purchased);
+        store.restoreEmits = [cleared];
+        backgroundAndResume(tester);
+        await settle();
+        await settle();
+
+        expect(store.restoreCalls, 2);
+        expect(store.consumed, [cleared]);
+        expect(jar.state.hasTipped, isTrue);
+      });
+    });
+
+    testWidgets('a closed tip jar no longer asks on resume', (tester) async {
+      await tester.runAsync(() async {
+        await jar.start();
+        jar.watchAppResumes();
+        await jar.close();
+
+        backgroundAndResume(tester);
+        await settle();
+
+        expect(store.restoreCalls, 1);
+      });
     });
 
     test('start skips the restore when Play is unreachable', () async {

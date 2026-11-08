@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:logging/logging.dart';
@@ -99,6 +100,10 @@ class TipJarCubit extends Cubit<TipJarState> {
   /// The recovery in flight, shared by overlapping callers.
   Future<void>? _recovering;
 
+  /// Runs the recovery on every return to the foreground; see
+  /// [watchAppResumes].
+  AppLifecycleListener? _resumes;
+
   /// Purchase updates, handled one batch at a time in arrival order. The
   /// stream does not wait for a handler, so without this a recovery replay
   /// could consume a transaction its live update is still consuming.
@@ -145,11 +150,30 @@ class TipJarCubit extends Cubit<TipJarState> {
     await _recoverOwnedTips();
   }
 
+  /// Repeats the recovery whenever the app returns to the foreground, for
+  /// the rest of its life.
+  ///
+  /// A pending Play payment can clear while the app is in the background,
+  /// and the plugin does not ask Play for purchases on resume (#1533), so
+  /// that tip would stay unconsumed and unacknowledged until a restart or
+  /// a visit to the Support page — and Play refunds it after three days.
+  /// What the recovery finds arrives on the purchase stream [start] already
+  /// listens to; this adds no second subscription.
+  ///
+  /// Separate from [start] because it needs the widgets binding, which
+  /// `main` has and a plain unit test does not.
+  void watchAppResumes() {
+    _resumes ??= AppLifecycleListener(
+      onResume: () => unawaited(_recoverOwnedTips()),
+    );
+  }
+
   /// Google Play only: asks for every tip still owned and consumes what
   /// comes back on the purchase stream.
   ///
-  /// Run at start-up and again on every [load] — opening the page and Retry
-  /// — rather than once per process. Play may be unreachable at start-up,
+  /// Run at start-up, on every return to the foreground ([watchAppResumes])
+  /// and on every [load] — opening the page and Retry — rather than once
+  /// per process. Play may be unreachable at start-up,
   /// and a consume can fail after a purchase; either way the owned tip would
   /// block buying that size again until the next restart, and the page is
   /// where the user would try. Querying owned purchases is answered by the
@@ -411,6 +435,8 @@ class TipJarCubit extends Cubit<TipJarState> {
 
   @override
   Future<void> close() async {
+    _resumes?.dispose();
+    _resumes = null;
     await _purchases?.cancel();
     await _outcomes.close();
     return super.close();

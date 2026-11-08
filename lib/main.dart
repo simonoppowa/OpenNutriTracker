@@ -93,7 +93,10 @@ Future<void> _bootstrapApp() async {
 
   // Finish tip purchases an earlier run left open, and on Google Play
   // consume leftover tips, before anything else can buy one (#1536).
+  // Again on every return to the foreground, for a payment that cleared
+  // while the app was in the background.
   unawaited(locator<TipJarCubit>().start());
+  locator<TipJarCubit>().watchAppResumes();
 
   // Drop cached remote-search results that haven't been touched in 90
   // days. Done once per app start; no need to schedule a recurring task.

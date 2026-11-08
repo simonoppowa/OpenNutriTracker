@@ -36,6 +36,7 @@ Future<void> main() async {
   // After the seed: its wipe runs Reset profile data, which would race the
   // tip jar's start-up recovery.
   unawaited(locator<TipJarCubit>().start());
+  locator<TipJarCubit>().watchAppResumes();
 
   final configRepo = locator<ConfigRepository>();
   final config = await configRepo.getConfig();
