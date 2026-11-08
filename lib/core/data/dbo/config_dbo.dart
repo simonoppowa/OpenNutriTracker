@@ -212,18 +212,26 @@ class ConfigDBO extends HiveObject {
   // about the device.
   @HiveField(41)
   bool? localeSyncSeeded;
+  // #1536: whether a tip from the Support page's tip jar has gone through on
+  // this device. It only shows a "you left a tip" line on that page: text
+  // only, unlocking nothing, never sent anywhere. Device-wide like the store
+  // account that paid it, so it is absent from the personal-field overlay in
+  // `ConfigDataSource._readMerged`; Reset profile data still clears it
+  // (`DeleteAllUserDataUsecase`). Null means no tip.
+  @HiveField(42)
+  bool? hasLeftTip;
   // Opt-in export of logged meals and water to Health Connect / Apple Health
   // (#103). Per-profile, like the import: each profile mirrors its own diary.
-  @HiveField(42)
-  bool? healthExportEnabled;
   @HiveField(43)
+  bool? healthExportEnabled;
+  @HiveField(44)
   DateTime? healthLastExportAt;
   // Diary day (`yyyy-MM-dd`) → fingerprint of what this app last wrote to
   // the store for it, with the day boundary it was written under; a day
   // that still hashes the same is left alone. Device-wide, unlike the two
   // above: the store is one person's, so the last profile to write a day
   // owns it (its id is part of the fingerprint).
-  @HiveField(44)
+  @HiveField(45)
   Map<String, String>? healthExportedDays;
 
   ConfigDBO(
@@ -266,6 +274,7 @@ class ConfigDBO extends HiveObject {
     this.defaultToRawFoodUnits,
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
+    this.hasLeftTip,
     this.healthExportEnabled,
     this.healthLastExportAt,
     this.healthExportedDays,

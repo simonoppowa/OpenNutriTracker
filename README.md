@@ -132,6 +132,7 @@ No account, no sign-in, no analytics, no ads. Your profile, diary, activities, w
 | :-- | :-- | :-- |
 | [Open Food Facts](https://world.openfoodfacts.org/) | Food search, barcode scan, or whenever a food's photograph is shown — in search results, on a meal screen, and on the diary card of a meal you have already logged | The search term or barcode. A word search also sends your device's **language** code to rank results; the fallback search and the barcode lookup send no locale at all. Your **country is never sent** — the country boost is applied on your device, to the results that come back. A photograph's address contains that product's barcode. Searches and product lookups identify the app by name, platform and version; photograph downloads do not |
 | Supabase reference backend | Food search | The text you typed; your **device's** language code, when it is one the backend has food names in; and which food databases you have left switched on — that list travels on every search, because onboarding starts one of the five off |
+| App Store (iOS) / Google Play (Android) | Opening Settings → About → Support OpenNutriTracker, and leaving a tip there. On Android also at every start, to finish a tip an earlier run left open | A request for the three tips' store prices. A tip's payment goes to Apple or Google and never passes through the app, which sees only the tip's product ID, the purchase status and a purchase token it does not store |
 | [Anthropic](https://www.anthropic.com/) | **Only if you save your own API key and pick Anthropic** | The meal line you type on the multi-item add screen, or a meal photo you choose to read there, and your app language |
 | [OpenAI](https://openai.com/) | **Only if you save your own API key and pick OpenAI** | As the Anthropic row, plus the model you chose |
 | [OpenRouter](https://openrouter.ai/) | **Only if you save your own API key and pick OpenRouter** | As the Anthropic row, plus the model you chose |
@@ -174,7 +175,7 @@ Searches and product lookups to Open Food Facts carry a User-Agent naming the ap
 
 **Crash reporting** is off until you enable it, and initializes only in release builds (`_runAppWithSentryReporting` in [`lib/main.dart`](lib/main.dart), reached only when `kReleaseMode && hasAcceptedAnonymousData`; the options are set in `configureSentryOptions`, [`lib/core/utils/sentry_config.dart`](lib/core/utils/sentry_config.dart)). `sendDefaultPii` stays `false`, so no username, email, or IP-derived identity is attached. Disabling it, or deleting your data, closes the SDK immediately.
 
-**Permissions:** camera (barcode scanning, meal photos), photo library (meal photos, exports), notifications (daily reminder, fasting timer), internet (food lookups), and receive-boot-completed (re-registering the reminder after a reboot). Health data — workouts, and on iOS the body fat percentage — is read only if you turn on workout import under Settings → Health sync, and your meals and water are written to Health Connect or Apple Health only if you turn on the export there; both are off by default, the export only ever changes entries this app wrote, and everything stays on your device. No location, contacts, or microphone access.
+**Permissions:** camera (barcode scanning, meal photos), photo library (meal photos, exports), notifications (daily reminder, fasting timer), internet (food lookups), receive-boot-completed (re-registering the reminder after a reboot), and on Android billing and network state (Google Play Billing, for the optional tips on the Support page). Health data — workouts, and on iOS the body fat percentage — is read only if you turn on workout import under Settings → Health sync, and your meals and water are written to Health Connect or Apple Health only if you turn on the export there; both are off by default, the export only ever changes entries this app wrote, and everything stays on your device. No location, contacts, or microphone access.
 
 **Not collected:** no account, email, or phone number. The backend is read with an anonymous key and there is no sign-in path. No advertising ID and no cross-app tracking: `NSPrivacyTracking` is `false` with an empty tracking-domains list, and crash and performance data are declared *not linked to the user* ([`PrivacyInfo.xcprivacy`](ios/Runner/PrivacyInfo.xcprivacy)).
 
@@ -250,6 +251,8 @@ If you have written or talked about OpenNutriTracker somewhere, open an issue or
 ## Contributing
 
 Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project's conventions, including the requirement to target the `develop` branch and the steps for adding localized strings.
+
+Other ways to help — rating, sharing, translating, or leaving a tip — are listed in the app under **Settings → About → Support OpenNutriTracker**.
 
 Built with Flutter and Dart, following a clean-architecture split (data / domain / presentation) with `flutter_bloc` for state, `get_it` for dependency injection, and encrypted `hive_ce` boxes for local storage. [AGENTS.md](AGENTS.md) is the full architecture and conventions reference.
 

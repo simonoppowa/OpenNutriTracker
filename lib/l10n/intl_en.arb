@@ -165,6 +165,13 @@
       }
     }
   },
+  "@logWaterAmountLabelFlOz": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "@settingsNotificationsTimeLabel": {
     "placeholders": {
       "time": {
@@ -173,6 +180,16 @@
     }
   },
   "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "@waterChipLabelFlOz": {
     "placeholders": {
       "current": {
         "type": "int"
@@ -1145,8 +1162,12 @@
   "settingsVitaminDGoalLabel": "Vitamin D goal",
   "settingsVolumeLabel": "Volume",
   "shareActivityLabel": "Share workout",
+  "shareCodeErrorLabel": "Couldn't share the code. Try again or copy it instead.",
   "shareCodeLabel": "Share code",
+  "shareFoodLabel": "Share food",
   "shareMealLabel": "Share meal",
+  "shareQrTooLargeLabel": "This code is too large for a QR image. Copy or share the code as text instead.",
+  "shareQrUnavailableLabel": "Couldn't create a QR image. Copy or share the code as text instead.",
   "shareRecipeLabel": "Share recipe",
   "snackExample": "e.g. apple, ice cream, chocolate ...",
   "snackLabel": "Snack",
@@ -1191,6 +1212,7 @@
   "yearsLabel": "{age} years",
   "@yearsLabel": {"placeholders": {"age": {"type": "int"}}},
   "logWaterAmountLabel": "Add {amount} ml",
+  "logWaterAmountLabelFlOz": "Add {amount} fl.oz",
   "logWaterDialogTitle": "Log water intake",
   "logWaterNothingToUndoLabel": "Nothing to undo",
   "logWaterUndoLabel": "Undo last",
@@ -1198,6 +1220,7 @@
   "settingsWaterGoalDescription": "Used by the water chip on the home screen.",
   "settingsWaterGoalLabel": "Daily water goal",
   "waterChipLabel": "{current} / {goal} ml",
+  "waterChipLabelFlOz": "{current} / {goal} fl.oz",
   "zincLabel": "zinc",
   "profileFastingEntry": "Fasting timer",
   "fastingTitle": "Fasting timer",
@@ -1398,6 +1421,10 @@
   "aiAssistModelCheaperLabel": "Cheaper, and weaker on poor-quality photos",
   "aiAssistModelMoreItemsLabel": "Lists more items from a photo",
   "aiAssistModelCheapestLabel": "Cheapest on this list",
+  "aiAssistModelCheaperThanRecommendedLabel": "Cheaper than the recommended model",
+  "@aiAssistModelCheaperThanRecommendedLabel": {
+    "description": "Note under a model in the AI settings: it costs less than the first (recommended) model. A price fact only, no claim about quality."
+  },
   "aiAssistNoKeyForProviderLabel": "No key saved for this provider.",
   "aiAssistKeyFieldLabel": "{provider} API key",
   "@aiAssistKeyFieldLabel": {"placeholders": {"provider": {"type": "String"}}},
@@ -1494,5 +1521,37 @@
   "healthSyncExportDisclosureFooter": "Nothing is read from {platform} for this, and nothing is sent anywhere — it stays on this device.\n\nYou can turn this off at any time, and doing so stops any further writing. Entries already written stay in {platform} until you delete them there.",
   "@healthSyncExportDisclosureFooter": {"placeholders": {"platform": {"type": "String"}}},
   "sourcesEnergyCompensationTitle": "Workout calorie credit",
-  "sourcesEnergyCompensationDescription": "Imported workouts are credited with less than the energy your device reports. People compensate for exercise by burning fewer calories through the rest of the day — about 28% on average, and more at a higher body fat percentage. The suggested credit comes from that research and you can override it under Settings → Health sync. The energy itself is reported by the app or device that recorded the workout, not calculated with the app’s MET formula."
+  "sourcesEnergyCompensationDescription": "Imported workouts are credited with less than the energy your device reports. People compensate for exercise by burning fewer calories through the rest of the day — about 28% on average, and more at a higher body fat percentage. The suggested credit comes from that research and you can override it under Settings → Health sync. The energy itself is reported by the app or device that recorded the workout, not calculated with the app’s MET formula.",
+  "settingsSupportLabel": "Support OpenNutriTracker",
+  "settingsSupportSubtitle": "Tip, translate, code, rate",
+  "supportHeader": "OpenNutriTracker is free, ad-free and open source, built by volunteers. If it helps you, here are a few ways to help it back.",
+  "supportGroupSpreadWord": "Spread the word",
+  "supportGroupSkills": "Give your skills",
+  "supportGroupMoney": "Give money",
+  "supportRateTitle": "Rate the app",
+  "supportRateSubtitle": "A rating helps others find OpenNutriTracker.",
+  "supportShareTitle": "Share with a friend",
+  "supportShareSubtitle": "Send a link through any app.",
+  "supportStarTitle": "Star on GitHub",
+  "supportStarSubtitle": "Show the project some love where developers look.",
+  "supportTranslateTitle": "Help translate",
+  "supportTranslateSubtitle": "Translate in your browser on Weblate. No coding needed.",
+  "supportReportTitle": "Report a bug or idea",
+  "supportReportSubtitle": "Open an issue on GitHub. Others can see and vote on it.",
+  "supportCodeTitle": "Contribute code",
+  "supportCodeSubtitle": "Flutter and Dart. Start with the contributing guide.",
+  "supportTipTitle": "Leave a tip",
+  "supportTipSubtitle": "A one-time tip through the store. Unlocks nothing — it just helps.",
+  "supportTipSmall": "Small tip",
+  "supportTipMedium": "Medium tip",
+  "supportTipLarge": "Large tip",
+  "supportTipThanksTitle": "Thank you!",
+  "supportTipThanksBody": "Your {tipName} ({price}) helps keep OpenNutriTracker free.",
+  "@supportTipThanksBody": {"placeholders": {"tipName": {"type": "String"}, "price": {"type": "String"}}},
+  "supportTipLeft": "You left a tip — thank you!",
+  "supportTipLoadFailed": "Couldn't load tips. Tips work in the App Store and Google Play versions of the app.",
+  "supportTipPending": "Your tip is waiting for the payment to go through.",
+  "supportTipFailed": "The tip didn't go through.",
+  "supportShareLinks": "App Store: {appStoreUrl}\nGoogle Play: {playStoreUrl}",
+  "@supportShareLinks": {"placeholders": {"appStoreUrl": {"type": "String"}, "playStoreUrl": {"type": "String"}}}
 }

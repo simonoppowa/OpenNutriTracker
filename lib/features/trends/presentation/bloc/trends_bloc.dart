@@ -120,6 +120,7 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
             user.gender,
             caloriesProfile: user.caloriesProfile,
           ),
+          usesImperialFoodUnits: config.usesImperialFoodUnits,
         ));
       } catch (e) {
         emit(TrendsFailed(e.toString()));
