@@ -363,6 +363,43 @@ void main() {
       expect(state.loggableCount, 1);
     });
 
+    test('a corrected recipe count clears the flag, a still-too-big one not',
+        () async {
+      // The flag asks the user to settle the count, and typing a count the
+      // batch makes is the answer: "14 pelmeni" corrected to 5 servings of a
+      // 6-serving batch is logged. 9 servings would still be past the batch.
+      final pelmeni = MealEntity(
+        code: 'pelmeni',
+        name: 'Pelmeni',
+        url: null,
+        mealQuantity: '1200.0',
+        mealUnit: 'g',
+        servingQuantity: 200,
+        servingUnit: 'g',
+        servingSize: '6 servings',
+        source: MealSourceEntity.recipe,
+        nutriments: MealNutrimentsEntity.empty(),
+      );
+      final bloc = blocWith({
+        'pelmeni': [pelmeni],
+      });
+      expect((await parse(bloc, '14 pelmeni')).rows.single.amountNeedsCheck,
+          isTrue);
+
+      bloc.add(const ChangeRowAmountEvent(0, '9'));
+      final tooMany =
+          (await bloc.stream.first as BulkAddLoadedState).rows.single;
+      expect(tooMany.amountNeedsCheck, isTrue);
+      expect(tooMany.willBeLogged, isFalse);
+
+      bloc.add(const ChangeRowAmountEvent(0, '5'));
+      final corrected =
+          (await bloc.stream.first as BulkAddLoadedState).rows.single;
+      expect(corrected.unit, 'serving');
+      expect(corrected.amountNeedsCheck, isFalse);
+      expect(corrected.willBeLogged, isTrue);
+    });
+
     test('counts a food that has serving data as servings', () async {
       // "2 eggs" means two of them. When the record carries serving data
       // that is exactly a serving, so the unit must be `serving` and not
