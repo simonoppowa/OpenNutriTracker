@@ -226,6 +226,7 @@ class DescribeMealPanel extends StatefulWidget {
 
 class _DescribeMealPanelState extends State<DescribeMealPanel> {
   final _controller = TextEditingController();
+  final _voice = GlobalKey<VoiceInputButtonState>();
 
   @override
   void dispose() {
@@ -267,6 +268,7 @@ class _DescribeMealPanelState extends State<DescribeMealPanel> {
                 ),
                 // Dictate the meal and go straight to the matches.
                 suffixIcon: VoiceInputButton(
+                  key: _voice,
                   controller: _controller,
                   onDictated: widget.onFindFoods,
                 ),
@@ -288,6 +290,8 @@ class _DescribeMealPanelState extends State<DescribeMealPanel> {
                   ? null
                   : () {
                       FocusScope.of(context).unfocus();
+                      // Submitted by hand: dictation must not submit again.
+                      _voice.currentState?.cancel();
                       widget.onFindFoods(_controller.text);
                     },
               icon: const Icon(Icons.search_rounded, size: 18),

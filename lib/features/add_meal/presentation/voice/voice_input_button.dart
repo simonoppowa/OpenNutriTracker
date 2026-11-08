@@ -27,6 +27,11 @@ class VoiceInputButton extends StatefulWidget {
   /// Replaced in tests. Defaults to the platform recognizer.
   final DictationService? service;
 
+  /// Stands in for the platform recognizer in every button built while it
+  /// is set, for tests of the screens that build one.
+  @visibleForTesting
+  static DictationService? debugServiceOverride;
+
   const VoiceInputButton({
     super.key,
     required this.controller,
@@ -35,10 +40,12 @@ class VoiceInputButton extends StatefulWidget {
   });
 
   @override
-  State<VoiceInputButton> createState() => _VoiceInputButtonState();
+  State<VoiceInputButton> createState() => VoiceInputButtonState();
 }
 
-class _VoiceInputButtonState extends State<VoiceInputButton> {
+/// Public so a screen can end dictation from its own submit button, through
+/// a `GlobalKey<VoiceInputButtonState>`.
+class VoiceInputButtonState extends State<VoiceInputButton> {
   static final _log = Logger('VoiceInputButton');
   static const _languageKey = 'VoiceInputLanguage';
 
@@ -47,15 +54,43 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
   static final _defaultService = SpeechToTextDictationService();
 
   late final DictationSession _session = DictationSession(
-    widget.service ?? _defaultService,
+    widget.service ?? VoiceInputButton.debugServiceOverride ?? _defaultService,
   )..addListener(_onSessionChanged);
 
   DictationLanguage? _language;
 
+  /// The text this button last wrote into the field. Anything else seen
+  /// there while listening is the user's own edit.
+  String? _written;
+
   @override
   void initState() {
     super.initState();
+    widget.controller.addListener(_onControllerChanged);
     _loadLanguage();
+  }
+
+  @override
+  void didUpdateWidget(VoiceInputButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onControllerChanged);
+      widget.controller.addListener(_onControllerChanged);
+    }
+  }
+
+  /// Ends dictation without reporting it, keeping the field as it is. For a
+  /// submit button beside the field: submitting mid-dictation would
+  /// otherwise be followed by the session's own submission.
+  Future<void> cancel() => _session.cancel();
+
+  /// An edit by the user while listening ends dictation and keeps the edit:
+  /// the next result would rewrite the field from the text captured at the
+  /// start, and the completion would overwrite it again.
+  void _onControllerChanged() {
+    if (_session.isListening && widget.controller.text != _written) {
+      unawaited(_session.cancel());
+    }
   }
 
   /// A screen opened over the field — "Find foods" pressed mid-dictation
@@ -70,6 +105,7 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
 
   @override
   void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
     _session
       ..removeListener(_onSessionChanged)
       ..dispose();
@@ -129,7 +165,7 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
   void _onSessionChanged() {
     if (!mounted) return;
     if (_session.isListening) {
-      final text = _session.text;
+      final text = _written = _session.text;
       widget.controller.value = TextEditingValue(
         text: text,
         selection: TextSelection.collapsed(offset: text.length),

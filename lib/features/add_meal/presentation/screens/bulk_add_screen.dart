@@ -81,6 +81,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
   final _log = Logger('BulkAddScreen');
   final _bloc = locator<BulkAddBloc>();
   final _textController = TextEditingController();
+  final _voice = GlobalKey<VoiceInputButtonState>();
 
   /// One controller per row, keyed by row index and rebuilt whenever a new
   /// parse produces a different set of rows.
@@ -597,6 +598,7 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
                 hintText: S.of(context).bulkAddInputHint,
                 // Dictate the meal, then match it straight away.
                 suffixIcon: VoiceInputButton(
+                  key: _voice,
                   controller: _textController,
                   onDictated: (_) => _onParsePressed(),
                 ),
@@ -618,13 +620,13 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
           identifier: 'bulk-add-parse',
           child: state is BulkAddLoadedState && state.rows.isNotEmpty
               ? OutlinedButton.icon(
-                  onPressed: _onParsePressed,
+                  onPressed: _onParseButtonPressed,
                   icon: const Icon(Icons.refresh_rounded),
                   label: Text(S.of(context).bulkAddUpdateMatchesLabel),
                   style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
                 )
               : FilledButton.icon(
-                  onPressed: _onParsePressed,
+                  onPressed: _onParseButtonPressed,
                   icon: const Icon(Icons.search),
                   label: Text(S.of(context).bulkAddParseLabel),
                   style: FilledButton.styleFrom(shape: const StadiumBorder()),
@@ -1567,6 +1569,14 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         ),
       ),
     );
+  }
+
+  /// Find foods or Update matches pressed by hand. Dictation in progress
+  /// ends first, or its pause timeout would match the text again and reset
+  /// the rows the user may already be correcting.
+  void _onParseButtonPressed() {
+    _voice.currentState?.cancel();
+    _onParsePressed();
   }
 
   void _onParsePressed() {

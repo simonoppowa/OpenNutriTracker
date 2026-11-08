@@ -5,50 +5,7 @@ import 'package:opennutritracker/features/add_meal/domain/voice/dictation_servic
 import 'package:opennutritracker/features/add_meal/presentation/voice/voice_input_button.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-/// Stands in for the platform recognizer. The test drives each segment.
-class FakeDictationService implements DictationService {
-  DictationUnavailable? unavailable;
-  final languages = <DictationLanguage>[];
-  int segments = 0;
-  int cancels = 0;
-  void Function(DictationResult)? _onResult;
-  void Function()? _onEnd;
-
-  @override
-  Future<void> ensureReady() async {
-    if (unavailable != null) throw DictationUnavailableException(unavailable!);
-  }
-
-  @override
-  Future<void> startSegment({
-    required DictationLanguage language,
-    required void Function(DictationResult result) onResult,
-    required void Function() onSegmentEnd,
-  }) async {
-    segments++;
-    languages.add(language);
-    _onResult = onResult;
-    _onEnd = onSegmentEnd;
-  }
-
-  void hear(String words, {bool isFinal = false}) =>
-      _onResult!(DictationResult(words, isFinal: isFinal));
-
-  void endSegment() {
-    final end = _onEnd;
-    _onEnd = null;
-    end?.call();
-  }
-
-  @override
-  Future<void> stop() async => endSegment();
-
-  @override
-  Future<void> cancel() async {
-    cancels++;
-    _onEnd = null;
-  }
-}
+import '../../../helpers/fake_dictation_service.dart';
 
 void main() {
   late FakeDictationService service;
@@ -158,6 +115,28 @@ void main() {
 
     expect(dictated, isEmpty);
     expect(service.cancels, 1);
+  });
+
+  testWidgets('typing during dictation ends it and keeps what was typed', (
+    tester,
+  ) async {
+    await pump(tester, locale: const Locale('en'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.mic_rounded));
+    await tester.pump();
+    service.hear('two eggs');
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField), 'two eggs and toast');
+    await tester.pump();
+    expect(service.cancels, 1);
+
+    // A late result from the cancelled segment changes nothing.
+    service.hear('two eggs please');
+    await tester.pump(const Duration(seconds: 10));
+    expect(controller.text, 'two eggs and toast');
+    expect(dictated, isEmpty);
+    expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
   });
 
   testWidgets('nothing said submits nothing', (tester) async {
