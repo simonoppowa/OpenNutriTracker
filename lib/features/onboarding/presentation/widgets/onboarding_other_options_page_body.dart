@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/core/styles/accent_colors.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
@@ -248,7 +249,7 @@ class _OnboardingOtherOptionsPageBodyState
                 ),
         ),
         child: selected && child == null
-            ? const Icon(Icons.check_rounded, color: Colors.white)
+            ? Icon(Icons.check_rounded, color: AppPalette.readableOn(color))
             : child,
       ),
     );
