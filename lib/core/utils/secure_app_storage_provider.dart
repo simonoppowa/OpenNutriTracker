@@ -109,9 +109,11 @@ class SecureAppStorageProvider {
   ///    read it back; each must come back byte-identical.
   /// 4. Write the Hive key last and read it back the same way. Only now is
   ///    the marker there, so it cannot appear before the rest has landed.
-  /// 5. Clear the legacy entries on a later launch, not this one: a
-  ///    read-back proves the copy in memory, surviving a restart proves it
-  ///    on disk.
+  /// 5. Clear the legacy entries on a later launch, not this one, and only
+  ///    after the database has opened with the copied key
+  ///    ([clearLegacyCopyOnceVerified]): a read-back proves the copy in
+  ///    memory, surviving a restart proves it on disk, and opening the
+  ///    boxes proves it is the right key.
   ///
   /// A kill before 4 leaves no marker, and the next launch copies again
   /// from the untouched legacy store (same values, so a repeat is
@@ -130,10 +132,7 @@ class SecureAppStorageProvider {
     // that is a no-op that writes the namespace's own markers (verified on
     // device); over a store that already held the copied entries it would
     // be the same path that deleted them without re-encrypting.
-    if (await _secureStorage.containsKey(key: _hiveEncryptionTag)) {
-      await _clearLegacyOnceDurable();
-      return;
-    }
+    if (await _secureStorage.containsKey(key: _hiveEncryptionTag)) return;
 
     final legacy = await _legacySecureStorage.readAll();
     if (legacy.isEmpty) return;
@@ -155,14 +154,27 @@ class SecureAppStorageProvider {
     _copiedThisProcess = true;
   }
 
-  /// Clears the legacy entries once the namespaced copy is known to be on
-  /// disk: on a launch after the one that copied them. Once only; a failure
-  /// leaves both copies and is retried on the next launch.
-  Future<void> _clearLegacyOnceDurable() async {
+  /// Clears the legacy entries once the namespaced copy has proven itself.
+  /// Bootstrap calls this after the database has opened with the key from
+  /// [getHiveEncryptionKey], so the copied key is known to be readable and
+  /// right, not merely present.
+  ///
+  /// It also waits for a launch after the one that copied (a read-back only
+  /// proves the copy in memory; surviving a restart proves it on disk), and
+  /// keeps the legacy store whenever its Hive key differs from the one in
+  /// use. Once only; anything unexpected leaves both copies for the next
+  /// launch to try again.
+  Future<void> clearLegacyCopyOnceVerified() async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
     if (_copiedThisProcess) return;
-    if (await _secureStorage.containsKey(key: _legacyClearedTag)) return;
     try {
-      await _legacySecureStorage.deleteAll();
+      if (await _secureStorage.containsKey(key: _legacyClearedTag)) return;
+      final inUse = await _secureStorage.read(key: _hiveEncryptionTag);
+      if (inUse == null || inUse.isEmpty) return;
+      final legacy = await _legacySecureStorage.readAll();
+      final legacyKey = legacy[_hiveEncryptionTag];
+      if (legacyKey != null && legacyKey != inUse) return;
+      if (legacy.isNotEmpty) await _legacySecureStorage.deleteAll();
       await _secureStorage.write(key: _legacyClearedTag, value: 'true');
     } catch (_) {
       // Both copies stay; the next launch tries again.
