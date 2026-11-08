@@ -88,14 +88,19 @@ class SecureAppStorageProvider {
   /// 1. If the namespaced store already holds the Hive key, nothing to do.
   ///    This is the marker; no separate flag that could disagree with it.
   /// 2. Read every legacy entry. An empty result is a fresh install.
-  /// 3. Write each entry to the namespaced store and read the whole store
-  ///    back; every legacy entry must come back byte-identical.
-  /// 4. Only then clear the legacy entries.
+  /// 3. Write every entry except the Hive key to the namespaced store and
+  ///    read it back; each must come back byte-identical.
+  /// 4. Write the Hive key last and read it back the same way. Only now is
+  ///    the marker there, so it cannot appear before the rest has landed.
+  /// 5. Only then clear the legacy entries.
   ///
-  /// A kill between 3 and 4 leaves both copies and the next launch skips at
-  /// step 1. A verification failure at 3 removes the partial copy and
-  /// throws a typed integrity error, so the legacy entries stay untouched
-  /// and the user sees the recovery screen instead of a wiped diary.
+  /// A kill before 4 leaves no marker, and the next launch copies again
+  /// from the untouched legacy store (same values, so a repeat is
+  /// harmless). A kill between 4 and 5 leaves both copies and the next
+  /// launch skips at step 1. A verification failure removes the partial
+  /// copy and throws a typed integrity error, so the legacy entries stay
+  /// untouched and the user sees the recovery screen instead of a wiped
+  /// diary.
   Future<void> _migrateLegacyAndroidEntries() async {
     if (defaultTargetPlatform != TargetPlatform.android) return;
     // This read is also what initialises the namespaced store, and it has to
@@ -111,21 +116,40 @@ class SecureAppStorageProvider {
     final legacy = await _legacySecureStorage.readAll();
     if (legacy.isEmpty) return;
 
-    for (final entry in legacy.entries) {
+    // The marker goes last: written with the others, a kill right after it
+    // would end the migration with the profile pointer or AI keys still
+    // only in the legacy store, which v11 can no longer read.
+    final others = Map.of(legacy)..remove(_hiveEncryptionTag);
+    for (final entry in others.entries) {
       await _secureStorage.write(key: entry.key, value: entry.value);
     }
-    final copied = await _secureStorage.readAll();
-    final mismatched = legacy.keys
-        .where((key) => copied[key] != legacy[key])
-        .toList(growable: false);
-    if (mismatched.isNotEmpty) {
-      for (final key in legacy.keys) {
-        await _secureStorage.delete(key: key);
-      }
-      throw HiveStorageIntegrityException.legacyCopyMismatch(mismatched);
+    await _verifyCopy(legacy, others.keys);
+
+    final hiveKey = legacy[_hiveEncryptionTag];
+    if (hiveKey != null) {
+      await _secureStorage.write(key: _hiveEncryptionTag, value: hiveKey);
+      await _verifyCopy(legacy, const [_hiveEncryptionTag]);
     }
 
     await _legacySecureStorage.deleteAll();
+  }
+
+  /// Reads the namespaced store back and checks [keys] against [legacy].
+  /// On a mismatch, removes everything copied so far and throws, leaving
+  /// the legacy entries as they were.
+  Future<void> _verifyCopy(
+    Map<String, String> legacy,
+    Iterable<String> keys,
+  ) async {
+    final copied = await _secureStorage.readAll();
+    final mismatched = keys
+        .where((key) => copied[key] != legacy[key])
+        .toList(growable: false);
+    if (mismatched.isEmpty) return;
+    for (final key in legacy.keys) {
+      await _secureStorage.delete(key: key);
+    }
+    throw HiveStorageIntegrityException.legacyCopyMismatch(mismatched);
   }
 
   Future<Uint8List> getHiveEncryptionKey() async {

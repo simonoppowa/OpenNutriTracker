@@ -26,6 +26,11 @@ class _StoresByNamePlatform extends FlutterSecureStoragePlatform {
   /// a copy that did not land.
   String? corruptReadsIn;
 
+  /// Set to make the n-th write into the namespace throw (1-based), to
+  /// simulate the process dying part-way through the copy.
+  int? failNamespaceWriteAt;
+  int _namespaceWrites = 0;
+
   Map<String, String> _store(Map<String, String> options) {
     final namespace = options['storageNamespace'] ?? '';
     final name = namespace.isNotEmpty
@@ -74,6 +79,10 @@ class _StoresByNamePlatform extends FlutterSecureStoragePlatform {
     required Map<String, String> options,
   }) async {
     _record('write', options);
+    if ((options['storageNamespace'] ?? '').isNotEmpty &&
+        ++_namespaceWrites == failNamespaceWriteAt) {
+      throw StateError('killed during write #$_namespaceWrites');
+    }
     _store(options)[key] = value;
   }
 
@@ -188,6 +197,37 @@ void main() {
   });
 
   group('legacy copy', () {
+    // The Hive key is the marker that the copy finished, so a launch that
+    // dies part-way must leave it out of the namespace until every other
+    // entry has landed, whatever order the legacy store lists them in.
+    for (final failAt in [1, 2, 3]) {
+      test('a launch killed at namespace write $failAt is finished by the '
+          'next one', () async {
+        platform.stores[_legacyName] = {
+          _hiveTag: validKey,
+          _profileTag: 'profile-1',
+          'ai_api_key_openai': 'sk-secret',
+        };
+        platform.failNamespaceWriteAt = failAt;
+        await expectLater(
+          SecureAppStorageProvider().getHiveEncryptionKey(),
+          throwsStateError,
+        );
+        expect(legacyStore(), hasLength(3), reason: 'nothing is cleared yet');
+
+        platform.failNamespaceWriteAt = null;
+        final key = await SecureAppStorageProvider().getHiveEncryptionKey();
+
+        expect(key, base64Url.decode(validKey));
+        expect(namespacedStore(), {
+          _hiveTag: validKey,
+          _profileTag: 'profile-1',
+          'ai_api_key_openai': 'sk-secret',
+        });
+        expect(legacyStore(), isEmpty);
+      });
+    }
+
     test(
       'moves every legacy entry into the namespace and returns the key',
       () async {
