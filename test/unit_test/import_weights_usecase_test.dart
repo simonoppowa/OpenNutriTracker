@@ -14,12 +14,13 @@ import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
+import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
@@ -181,17 +182,21 @@ class _PausingWeightLogRepository extends WeightLogRepository {
   }
 }
 
-/// Today's tracked day, without the tracked-day box behind it.
-class _FakeAddTrackedDayUsecase extends Fake implements AddTrackedDayUsecase {
-  bool trackedDayExists = true;
+/// Today's tracked day, without the tracked-day box behind it. Its goal
+/// starts at [goal] and follows every update.
+class _FakeTrackedDayRepository extends Fake implements TrackedDayRepository {
+  double goal = 2000;
   final updatedGoals = <double>[];
 
   @override
-  Future<bool> hasTrackedDay(DateTime day) async => trackedDayExists;
+  Future<TrackedDayEntity?> getTrackedDay(DateTime day) async =>
+      TrackedDayEntity(day: day, calorieGoal: goal, caloriesTracked: 0);
 
   @override
-  Future<void> updateDayCalorieGoal(DateTime day, double calorieGoal) async =>
-      updatedGoals.add(calorieGoal);
+  Future<void> updateDayCalorieGoal(DateTime day, double calorieGoal) async {
+    goal = calorieGoal;
+    updatedGoals.add(calorieGoal);
+  }
 }
 
 /// A goal that is just the weight it was worked out from, so a test can see
@@ -486,7 +491,7 @@ void main() {
     // lock it saved the weight under.
     test('a run that moves the current weight recalculates today\'s goal '
         'itself', () async {
-      final trackedDays = _FakeAddTrackedDayUsecase();
+      final trackedDays = _FakeTrackedDayRepository();
       usecase = ImportWeightsUsecase(
         HealthImportRepository(healthService),
         configRepository,
@@ -521,7 +526,7 @@ void main() {
       final user = await userRepository.getUserData();
       user.weightKG = 78.5;
       await userRepository.updateUserData(user);
-      final trackedDays = _FakeAddTrackedDayUsecase();
+      final trackedDays = _FakeTrackedDayRepository();
       usecase = ImportWeightsUsecase(
         HealthImportRepository(healthService),
         configRepository,
@@ -535,9 +540,22 @@ void main() {
         ),
       );
       healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+      var signals = 0;
+      final subscription = usecase.weightsImported.listen((_) => signals++);
+      addTearDown(subscription.cancel);
 
       expect(await usecase.importNow(), equals(0));
+      await Future<void>.delayed(Duration.zero);
       expect(trackedDays.updatedGoals, [78.5]);
+      // The screens still show the old goal, so they are told.
+      expect(signals, 1);
+
+      // Once in line, a run neither writes the goal nor signals.
+      ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+      await usecase.importNow();
+      await Future<void>.delayed(Duration.zero);
+      expect(trackedDays.updatedGoals, [78.5]);
+      expect(signals, 1);
     });
 
     test('a retry finishes a run killed before the current weight', () async {
@@ -1099,7 +1117,7 @@ void main() {
     // so the deletion settles the goal itself, under its own lock.
     test('a deletion that moves the current weight recalculates today\'s '
         'goal itself', () async {
-      final trackedDays = _FakeAddTrackedDayUsecase();
+      final trackedDays = _FakeTrackedDayRepository();
       final deleting = DeleteWeightLogUsecase(
         weightLogRepository,
         configRepository,
@@ -1122,7 +1140,7 @@ void main() {
 
     test('a weight saved for today recalculates today\'s goal itself',
         () async {
-      final trackedDays = _FakeAddTrackedDayUsecase();
+      final trackedDays = _FakeTrackedDayRepository();
       final adding = AddWeightLogUsecase(
         weightLogRepository,
         userRepository,

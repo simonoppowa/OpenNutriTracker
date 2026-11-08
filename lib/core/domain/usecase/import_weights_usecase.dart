@@ -244,8 +244,12 @@ class ImportWeightsUsecase {
     // current, so the retry would otherwise never write the goal. The goal
     // is worked out from the stored user, so for a goal already in line
     // this writes the value it holds.
-    await _settleTodayGoal(profileId);
-    if (written.isNotEmpty || weightChanged) _weightsImported.add(null);
+    final goalChanged = await _settleTodayGoal(profileId);
+    // A retry that only repaired the goal still changed what the screens
+    // show, so it fires the signal too.
+    if (written.isNotEmpty || weightChanged || goalChanged) {
+      _weightsImported.add(null);
+    }
     if (stopped) return written.length;
 
     // Every write from here on resolves its box from whichever profile is
@@ -398,9 +402,10 @@ class ImportWeightsUsecase {
   /// Recalculates today's calorie goal from the stored weight, under the
   /// lock the weight was saved under — see [UpdateTodayCalorieGoalUsecase]
   /// for why the refresh [weightsImported] sets off is not enough.
-  Future<void> _settleTodayGoal(String profileId) async {
-    if (!_stillOnProfile(profileId)) return;
-    await _updateTodayCalorieGoal?.updateGoal(clock());
+  /// Returns whether the stored goal changed.
+  Future<bool> _settleTodayGoal(String profileId) async {
+    if (!_stillOnProfile(profileId)) return false;
+    return await _updateTodayCalorieGoal?.updateGoal(clock()) ?? false;
   }
 
   /// The imported entry that should be the current weight, or null when the
