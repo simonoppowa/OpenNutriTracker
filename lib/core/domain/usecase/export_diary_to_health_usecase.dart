@@ -32,6 +32,10 @@ class ExportDiaryToHealthUsecase {
     IntakeTypeEntity.snack: Duration(hours: 16),
   };
 
+  /// Stored for a day while its replacement is under way; matches no
+  /// fingerprint, so the day is rewritten until one completes.
+  static const _pending = 'pending';
+
   @visibleForTesting
   static DateTime Function() clock = DateTime.now;
 
@@ -184,6 +188,14 @@ class ExportDiaryToHealthUsecase {
       // Nothing to write, and nothing this day wrote left to clear.
       if (stored == null && fingerprint == null) continue;
       if (!await _mayContinue(profileId)) return written;
+      // Marked before the store is touched: a replacement clears the day
+      // first, so one that fails or is cut short leaves the store matching
+      // no fingerprint, and the day must be rewritten even if the diary
+      // goes back to what was last written in full.
+      await _configRepository.setConfigHealthExportedDay(
+        day,
+        '$_pending@$offset',
+      );
       try {
         await _healthExportRepository.replaceDay(
           from: from,
@@ -196,9 +208,12 @@ class ExportDiaryToHealthUsecase {
         refusal ??= (error, stackTrace);
         continue;
       }
-      if (!await _mayContinue(profileId)) return written;
+      // Recorded even if the pass is abandoned next: the store now holds
+      // this write, and the record is device-wide, so the profile switched
+      // to must see it to know the day is no longer its own.
       await _configRepository.setConfigHealthExportedDay(day, fingerprint);
       written++;
+      if (!await _mayContinue(profileId)) return written;
     }
     if (written > 0) _log.info('Exported $written diary day(s) to health');
     if (refusal case (final error, final stackTrace)) {

@@ -409,12 +409,16 @@ void main() {
     healthService.onReplace = () =>
         configDataSource.setConfigHealthExportEnabled(false);
 
-    expect(await usecase.exportNow(), 0);
+    expect(await usecase.exportNow(), 1);
     expect(healthService.replaced, hasLength(1));
-    expect(
-      (await configDataSource.getConfig()).healthExportedDays,
-      anyOf(isNull, isEmpty),
-    );
+    expect(healthService.replaced.single.from, yesterday);
+
+    // The day already written is on record, so switching back on writes
+    // only the one the pass never reached.
+    healthService.onReplace = null;
+    await configDataSource.setConfigHealthExportEnabled(true);
+    expect(await usecase.exportNow(), 1);
+    expect(healthService.replaced.last.from, today);
   });
 
   test('a refused day is retried on the next run', () async {
@@ -422,10 +426,6 @@ void main() {
     healthService.refuse = true;
 
     await expectLater(usecase.exportNow(), throwsStateError);
-    expect(
-      (await configDataSource.getConfig()).healthExportedDays,
-      anyOf(isNull, isEmpty),
-    );
 
     healthService.refuse = false;
     expect(await usecase.exportNow(), 1);
@@ -440,14 +440,50 @@ void main() {
 
     await expectLater(usecase.exportNow(), throwsStateError);
     expect([for (final r in healthService.replaced) r.from], [today]);
-    final config = await configDataSource.getConfig();
-    expect(config.healthExportedDays?.keys, ['2026-05-23']);
     // The pass did not finish cleanly, so it is not reported as the last
     // export.
-    expect(config.healthLastExportAt, isNull);
+    expect((await configDataSource.getConfig()).healthLastExportAt, isNull);
 
     healthService.refuseFrom = null;
     expect(await usecase.exportNow(), 1);
     expect(healthService.replaced.last.from, yesterday);
+  });
+
+  test(
+    'a rewrite that fails partway is redone after the edit is undone',
+    () async {
+      await intakeRepository.addIntake(_intake(id: 'a', at: now));
+      await usecase.exportNow();
+      await intakeRepository.updateIntake('a', {'amount': 80.0});
+      // The store clears the day, then refuses the write.
+      healthService.onReplace = () async {
+        healthService.onReplace = null;
+        throw StateError('refused');
+      };
+      await expectLater(usecase.exportNow(), throwsStateError);
+      expect(healthService.held, isEmpty);
+
+      // Back to what was last written in full: the day still has to be
+      // written again, as the store no longer holds it.
+      await intakeRepository.updateIntake('a', {'amount': 50.0});
+      expect(await usecase.exportNow(), 1);
+      expect(healthService.held, hasLength(1));
+    },
+  );
+
+  test('a write that lands as the profile switches back is recorded', () async {
+    await intakeRepository.addIntake(_intake(id: 'a', at: now));
+    await usecase.exportNow();
+    // Profile B takes the day; the user is back on A before B's pass ends.
+    provider.activeProfileId = 'profile-b';
+    healthService.onReplace = () async {
+      healthService.onReplace = null;
+      provider.activeProfileId = 'test-profile';
+    };
+    await usecase.exportNow();
+
+    // The store holds B's write, so A has to take the day back.
+    expect(await usecase.exportNow(), 1);
+    expect(healthService.replaced, hasLength(3));
   });
 }
