@@ -39,6 +39,7 @@ class DictationSession extends ChangeNotifier {
 
   DictationTranscript? _transcript;
   bool _listening = false;
+  bool _starting = false;
   bool _stopping = false;
   bool _segmentHeard = false;
   Timer? _silenceTimer;
@@ -62,9 +63,17 @@ class DictationSession extends ChangeNotifier {
     required String existingText,
     required void Function(String text) onComplete,
   }) async {
-    if (_listening) return;
-    await _service.ensureReady();
+    if (_listening || _starting) return;
+    // Taken before the wait, so that a dispose or cancel while the
+    // recognizer gets ready abandons this start rather than resuming it.
     final generation = ++_generation;
+    _starting = true;
+    try {
+      await _service.ensureReady();
+    } finally {
+      _starting = false;
+    }
+    if (generation != _generation) return;
     _transcript = DictationTranscript(prefix: existingText);
     _onComplete = onComplete;
     _listening = true;
@@ -87,6 +96,22 @@ class DictationSession extends ChangeNotifier {
     await _service.stop();
   }
 
+  /// Ends the session at once without reporting it: the mic goes off and
+  /// [start]'s `onComplete` is not called. Also abandons a start still
+  /// waiting for the recognizer.
+  Future<void> cancel() async {
+    _generation++;
+    if (!_listening) return;
+    _listening = false;
+    _stopping = false;
+    _silenceTimer?.cancel();
+    _maxTimer?.cancel();
+    _graceTimer?.cancel();
+    _onComplete = null;
+    notifyListeners();
+    await _service.cancel();
+  }
+
   Future<void> _startSegment(DictationLanguage language, int generation) async {
     _segmentHeard = false;
     _armSilence(_transcript!.hasSpeech ? silence : initialSilence);
@@ -107,6 +132,9 @@ class DictationSession extends ChangeNotifier {
           if (_stopping || !_segmentHeard) {
             _finish();
           } else {
+            // A segment can end without a final result; its words would
+            // otherwise be replaced by the next segment's first partial.
+            _transcript!.commitPartial();
             Timer(restartDelay, () {
               if (generation == _generation && !_stopping) {
                 _startSegment(language, generation);

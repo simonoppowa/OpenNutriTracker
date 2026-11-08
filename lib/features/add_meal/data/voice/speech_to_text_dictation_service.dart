@@ -24,6 +24,10 @@ class SpeechToTextDictationService implements DictationService {
   /// reports both an error and `done` ends exactly once.
   void Function()? _endSegment;
 
+  /// Bumped by [stop] and [cancel], so a segment still resolving its locale
+  /// when the user stops does not switch the mic on afterwards.
+  int _segmentToken = 0;
+
   SpeechToTextDictationService([SpeechToText? speech])
     : _speech = speech ?? SpeechToText();
 
@@ -54,16 +58,19 @@ class SpeechToTextDictationService implements DictationService {
     required void Function(DictationResult result) onResult,
     required void Function() onSegmentEnd,
   }) async {
+    final token = ++_segmentToken;
     _endSegment = onSegmentEnd;
     _speech
       ..errorListener = _onError
       ..statusListener = _onStatus;
+    final localeId = await _localeIdFor(language);
+    if (token != _segmentToken) return;
     await _speech.listen(
       onResult: (result) => onResult(
         DictationResult(result.recognizedWords, isFinal: result.finalResult),
       ),
       listenOptions: SpeechListenOptions(
-        localeId: await _localeIdFor(language),
+        localeId: localeId,
         partialResults: true,
         listenMode: ListenMode.dictation,
         autoPunctuation: true,
@@ -77,10 +84,14 @@ class SpeechToTextDictationService implements DictationService {
   }
 
   @override
-  Future<void> stop() => _speech.stop();
+  Future<void> stop() {
+    _segmentToken++;
+    return _speech.stop();
+  }
 
   @override
   Future<void> cancel() async {
+    _segmentToken++;
     _endSegment = null;
     await _speech.cancel();
   }

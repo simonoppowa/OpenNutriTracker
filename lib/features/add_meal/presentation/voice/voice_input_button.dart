@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
@@ -54,6 +56,16 @@ class _VoiceInputButtonState extends State<VoiceInputButton> {
   void initState() {
     super.initState();
     _loadLanguage();
+  }
+
+  /// A screen opened over the field — "Find foods" pressed mid-dictation
+  /// opens the review itself — ends dictation without reporting it.
+  /// Otherwise the mic would stay on behind that screen, and the session's
+  /// own completion would open a second review over it.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (ModalRoute.isCurrentOf(context) == false) unawaited(_session.cancel());
   }
 
   @override

@@ -10,6 +10,7 @@ class FakeDictationService implements DictationService {
   DictationUnavailable? unavailable;
   final languages = <DictationLanguage>[];
   int segments = 0;
+  int cancels = 0;
   void Function(DictationResult)? _onResult;
   void Function()? _onEnd;
 
@@ -43,7 +44,10 @@ class FakeDictationService implements DictationService {
   Future<void> stop() async => endSegment();
 
   @override
-  Future<void> cancel() async => _onEnd = null;
+  Future<void> cancel() async {
+    cancels++;
+    _onEnd = null;
+  }
 }
 
 void main() {
@@ -131,6 +135,29 @@ void main() {
     await tester.tap(find.byIcon(Icons.stop_rounded));
     await tester.pump();
     expect(dictated, ['black coffee two eggs']);
+  });
+
+  testWidgets('a screen opened over the field ends dictation unreported', (
+    tester,
+  ) async {
+    // "Find foods" pressed mid-dictation opens the review itself; the
+    // session's own completion must not open a second one, and the mic
+    // must not stay on behind it.
+    await pump(tester, locale: const Locale('en'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.mic_rounded));
+    await tester.pump();
+    service.hear('two eggs');
+    await tester.pump();
+
+    tester
+        .state<NavigatorState>(find.byType(Navigator))
+        .push(MaterialPageRoute<void>(builder: (_) => const Text('review')));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 10));
+
+    expect(dictated, isEmpty);
+    expect(service.cancels, 1);
   });
 
   testWidgets('nothing said submits nothing', (tester) async {
