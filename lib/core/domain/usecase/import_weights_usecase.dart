@@ -239,7 +239,12 @@ class ImportWeightsUsecase {
     // too — import switched off while its last write was under way leaves
     // that row in the log, and nothing would reconcile it later.
     final weightChanged = await _updateCurrentWeight(profileId);
-    if (weightChanged) await _settleTodayGoal(profileId);
+    // Every run as well, not only one that moved the weight: a run stopped
+    // between saving the weight and the goal leaves a weight that is already
+    // current, so the retry would otherwise never write the goal. The goal
+    // is worked out from the stored user, so for a goal already in line
+    // this writes the value it holds.
+    await _settleTodayGoal(profileId);
     if (written.isNotEmpty || weightChanged) _weightsImported.add(null);
     if (stopped) return written.length;
 
@@ -390,9 +395,9 @@ class ImportWeightsUsecase {
     return true;
   }
 
-  /// Recalculates today's calorie goal from the weight just saved, under
-  /// the lock it was saved under — see [UpdateTodayCalorieGoalUsecase] for
-  /// why the refresh [weightsImported] sets off is not enough.
+  /// Recalculates today's calorie goal from the stored weight, under the
+  /// lock the weight was saved under — see [UpdateTodayCalorieGoalUsecase]
+  /// for why the refresh [weightsImported] sets off is not enough.
   Future<void> _settleTodayGoal(String profileId) async {
     if (!_stillOnProfile(profileId)) return;
     await _updateTodayCalorieGoal?.updateGoal(clock());

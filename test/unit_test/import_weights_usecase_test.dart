@@ -504,9 +504,39 @@ void main() {
       await usecase.importNow();
       expect(trackedDays.updatedGoals, [78.5]);
 
-      // The same reading again moves nothing, and leaves the goal alone.
-      ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
-      await usecase.importNow();
+    });
+
+    test('a retry repairs the goal of a run stopped after saving the weight',
+        () async {
+      // The earlier run filed today's reading and saved the weight, then
+      // stopped before the goal was written.
+      await weightLogRepository.addEntry(
+        WeightLogEntity(
+          date: today,
+          weightKg: 78.5,
+          externalId: 'c',
+          measuredAt: DateTime(2026, 5, 23, 7),
+        ),
+      );
+      final user = await userRepository.getUserData();
+      user.weightKG = 78.5;
+      await userRepository.updateUserData(user);
+      final trackedDays = _FakeAddTrackedDayUsecase();
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        configRepository,
+        weightLogRepository,
+        userRepository,
+        provider,
+        updateTodayCalorieGoal: UpdateTodayCalorieGoalUsecase(
+          userRepository,
+          trackedDays,
+          _FakeGetKcalGoalUsecase(),
+        ),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+
+      expect(await usecase.importNow(), equals(0));
       expect(trackedDays.updatedGoals, [78.5]);
     });
 
