@@ -14,10 +14,13 @@ import '../../../../helpers/fake_reload_blocs.dart';
 import '../../../../helpers/test_l10n.dart';
 
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
+  _FakeSettingsBloc({this.storedMl = 1500});
+
+  final int storedMl;
   final List<int> saved = [];
 
   @override
-  Future<int?> getDailyWaterGoalMl() async => 1500;
+  Future<int?> getDailyWaterGoalMl() async => storedMl;
 
   @override
   Future<void> setDailyWaterGoalMl(int goalMl) async => saved.add(goalMl);
@@ -95,6 +98,23 @@ void main() {
 
     expect(settingsBloc.saved, [1500]);
   });
+
+  // The ml range (100–10000) reaches past the fl oz one (4–336) at both
+  // ends: 10000 ml shows as 338 fl oz and 100 ml as 3. Clamping the shown
+  // value before seeing it was untouched saved 9937 ml and 118 ml.
+  for (final storedMl in [10000, 100]) {
+    testWidgets('saving untouched keeps $storedMl ml at the range edge', (
+      tester,
+    ) async {
+      settingsBloc = _FakeSettingsBloc(storedMl: storedMl);
+      await openDialog(tester);
+
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(settingsBloc.saved, [storedMl]);
+    });
+  }
 
   testWidgets('a typed fl oz goal is stored in ml (#1306)', (tester) async {
     await openDialog(tester);

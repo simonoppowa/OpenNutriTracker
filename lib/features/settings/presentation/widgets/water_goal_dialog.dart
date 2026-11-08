@@ -96,8 +96,11 @@ class _WaterGoalDialogState extends State<WaterGoalDialog> {
       _controller.text = _toDisplay(_goalMl).toString();
       return;
     }
-    final clamped = parsed.clamp(_minDisplay, _maxDisplay);
     // An untouched imperial field must not round-trip the stored ml value.
+    // Checked before clamping: the ml range reaches past the fl oz one, so
+    // 10000 ml shows as 338 fl oz and clamping it first saved 9937 ml.
+    if (parsed == _toDisplay(_goalMl)) return;
+    final clamped = parsed.clamp(_minDisplay, _maxDisplay);
     if (clamped != _toDisplay(_goalMl)) {
       setState(() => _goalMl = _toMl(clamped));
     }
