@@ -11,16 +11,28 @@ import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/favourite_toggle_button.dart';
 import 'package:opennutritracker/features/add_meal/util/food_emoji_resolver.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 
 class MealItemCard extends StatelessWidget {
   final DateTime day;
   final AddMealType addMealType;
   final MealEntity mealEntity;
   final bool usesImperialUnits;
+  final String? favouriteSemanticsIdentifier;
+
+  /// The add-food screen's "To log" list. With one, opening the food adds
+  /// to it instead of logging, and [onQuickAdd] answers the +.
+  final LogTray? logTray;
+
+  /// What the + does when there is a list: add the food at its default
+  /// amount without opening it. Null keeps the + opening the detail screen.
+  final VoidCallback? onQuickAdd;
 
   const MealItemCard({
     super.key,
@@ -28,6 +40,9 @@ class MealItemCard extends StatelessWidget {
     required this.mealEntity,
     required this.addMealType,
     required this.usesImperialUnits,
+    this.favouriteSemanticsIdentifier,
+    this.logTray,
+    this.onQuickAdd,
   });
 
   @override
@@ -61,9 +76,9 @@ class MealItemCard extends StatelessWidget {
                     TextSpan(
                       text: mealEntity.name ?? "?",
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: palette.textStrong,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        color: palette.textStrong,
+                      ),
                       children: [
                         TextSpan(
                           text: ' ${mealEntity.brands ?? ""}',
@@ -82,6 +97,13 @@ class MealItemCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: Dimens.spacing8),
+            // A builder row leaves the identifier out and its list carries
+            // one (AGENTS.md, "Dynamic lists"); the add-item sheet's fixed
+            // recent rows pass their own.
+            FavouriteToggleButton(
+              meal: mealEntity,
+              semanticsIdentifier: favouriteSemanticsIdentifier,
+            ),
             Semantics(
               identifier: 'meal-item-add',
               child: IconButton(
@@ -91,7 +113,7 @@ class MealItemCard extends StatelessWidget {
                   shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
                 ),
                 icon: const Icon(Icons.add_rounded, size: 24),
-                onPressed: () => _onItemPressed(context),
+                onPressed: onQuickAdd ?? () => _onItemPressed(context),
               ),
             ),
           ],
@@ -165,7 +187,7 @@ class MealItemCard extends StatelessWidget {
         : null;
     final quantity = mealEntity.mealQuantity != null
         ? MealValueUnitText(
-            value: double.parse(mealEntity.mealQuantity ?? "0"),
+            value: mealEntity.mealQuantity?.toLenientDoubleOrNull() ?? 0,
             meal: mealEntity,
             usesImperialUnits: usesImperialUnits,
           )
@@ -175,7 +197,9 @@ class MealItemCard extends StatelessWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          chip,
+          // Flexible too: on a narrow phone the chip alone can be wider
+          // than the column the favourite star leaves it.
+          Flexible(child: chip),
           const SizedBox(width: Dimens.spacing8),
           Flexible(child: quantity),
         ],
@@ -210,10 +234,12 @@ class MealItemCard extends StatelessWidget {
       ),
       child: Text(
         label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w700,
-            ),
+          color: foreground,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -226,6 +252,7 @@ class MealItemCard extends StatelessWidget {
         addMealType.getIntakeType(),
         day,
         usesImperialUnits,
+        logTray: logTray,
       ),
     );
   }

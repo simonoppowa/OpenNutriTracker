@@ -1,6 +1,7 @@
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
@@ -12,6 +13,7 @@ import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.d
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Pulls finished workouts out of Health Connect / Apple Health and files
 /// them as activities, crediting a user-tunable share of the energy the
@@ -35,6 +37,11 @@ class ImportWorkoutsUsecase {
   /// every few seconds.
   static const minimumInterval = Duration(minutes: 15);
 
+  /// How long [importIfDue] stays away from the platform after Health Connect
+  /// answered with its request-quota error. The quota is hourly, so retrying
+  /// at every resume only keeps spending it; waiting an hour lets it refill.
+  static const rateLimitBackoff = Duration(hours: 1);
+
   /// The clock the import window is measured against. Pinned by tests so a
   /// watermark, a backfill window and a debounce can be exercised without
   /// waiting; production never assigns it. Mirrors [DayBoundaryCalc.clock].
@@ -42,6 +49,11 @@ class ImportWorkoutsUsecase {
   static DateTime Function() clock = DateTime.now;
 
   final _log = Logger('ImportWorkoutsUsecase');
+
+  /// Until when [importIfDue] leaves the platform alone because Health
+  /// Connect rate limited the last read. In memory on purpose: a restart is a
+  /// fresh start, and the quota will usually have refilled by then.
+  DateTime? _rateLimitedUntil;
 
   /// The run currently in flight, if any.
   ///
@@ -89,9 +101,14 @@ class ImportWorkoutsUsecase {
   ///
   /// This is the background entry point — app start and app resume — where
   /// there is no user waiting on an answer and nowhere to show an error, so a
-  /// platform that refuses the read is logged and shrugged off. The
+  /// platform that refuses the read is logged and shrugged off. A refusal for
+  /// quota reasons also parks background imports for [rateLimitBackoff]. The
   /// user-initiated path calls [importNow] instead and gets the exception.
   Future<int> importIfDue() async {
+    final rateLimitedUntil = _rateLimitedUntil;
+    if (rateLimitedUntil != null && clock().isBefore(rateLimitedUntil)) {
+      return 0;
+    }
     try {
       // A run already under way covers this call too, and joining it beats
       // reading the platform again the moment it finishes.
@@ -109,6 +126,17 @@ class ImportWorkoutsUsecase {
       }
       return await importNow();
     } catch (error, stackTrace) {
+      if (HealthConnectWorkoutReader.isRateLimited(error)) {
+        // Not a fault in the import: Health Connect is metering this app.
+        // The watermark has not moved, so the next run after the back-off
+        // covers the same window.
+        _rateLimitedUntil = clock().add(rateLimitBackoff);
+        _log.warning(
+          'Health Connect rate limited the workout import; '
+          'skipping until $_rateLimitedUntil',
+        );
+        return 0;
+      }
       _log.severe('Background workout import failed', error, stackTrace);
       return 0;
     }
@@ -184,16 +212,30 @@ class ImportWorkoutsUsecase {
       // profile; abandoning here leaves the watermark unmoved, so the next
       // run re-reads the same window and the external-id dedupe absorbs it.
       if (!_stillOnProfile(profileId)) return imported;
-      await _logUserActivityUsecase.logActivity(
-        _toUserActivity(workout, config, activityByCode),
-        // A workout that started at 00:30 under an 03:00 day boundary belongs
-        // to the previous diary column, and its calories have to raise that
-        // day's goal, not today's.
-        day: DayBoundaryCalc.logicalDayOfMinutes(
-          workout.start,
-          config.dayStartOffsetTotalMinutes,
-        ),
-      );
+      final logged = await withTrackedDayLock(() async {
+        // Checked again once the lock is held: a profile switch holds it
+        // from the box swap on, so a workout waiting behind one would
+        // otherwise be filed into the profile it switched to (#1317).
+        if (!_stillOnProfile(profileId)) return false;
+        // The boundary is read again under the lock, not taken from the
+        // config this run started with: a boundary move in between would
+        // otherwise credit the day the workout was listed under before
+        // it (#1317).
+        final offsetMinutes =
+            (await _configRepository.getConfig()).dayStartOffsetTotalMinutes;
+        await _logUserActivityUsecase.logActivity(
+          _toUserActivity(workout, config, activityByCode),
+          // A workout that started at 00:30 under an 03:00 day boundary
+          // belongs to the previous diary column, and its calories have to
+          // raise that day's goal, not today's.
+          day: DayBoundaryCalc.logicalDayOfMinutes(
+            workout.start,
+            offsetMinutes,
+          ),
+        );
+        return true;
+      });
+      if (!logged) return imported;
       imported++;
     }
 

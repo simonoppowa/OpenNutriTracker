@@ -3,7 +3,12 @@ git_branch('main')
 
 storage_mode('git')
 type('appstore')
-app_identifier('com.opennutritracker.ont.opennutritracker')
+# The CalorieWidget extension is signed separately and needs its own
+# App Store profile; see docs/ios-calorie-widget.md.
+app_identifier([
+  'com.opennutritracker.ont.opennutritracker',
+  'com.opennutritracker.ont.opennutritracker.widget'
+])
 team_id('79AJPC6DP3')
 readonly(true)
 

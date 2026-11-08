@@ -7,10 +7,16 @@ class ErrorDialog extends StatelessWidget {
   final String errorText;
   final VoidCallback onRefreshPressed;
 
+  /// Locale-independent `Semantics` identifier for the Retry button, so UI
+  /// drivers can find it (AGENTS.md, "Accessibility identifiers"). Callers
+  /// name it after their surface, e.g. `search-all-retry`.
+  final String? retryIdentifier;
+
   const ErrorDialog({
     super.key,
     required this.errorText,
     required this.onRefreshPressed,
+    this.retryIdentifier,
   });
 
   @override
@@ -25,10 +31,13 @@ class ErrorDialog extends StatelessWidget {
           const SizedBox(height: Dimens.spacing16),
           Text(errorText, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: Dimens.spacing16),
-          FilledButton.icon(
-            onPressed: () => onRefreshPressed(),
-            icon: const Icon(Icons.refresh_rounded),
-            label: Text(S.of(context).retryLabel),
+          Semantics(
+            identifier: retryIdentifier,
+            child: FilledButton.icon(
+              onPressed: () => onRefreshPressed(),
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(S.of(context).retryLabel),
+            ),
           ),
         ],
       ),

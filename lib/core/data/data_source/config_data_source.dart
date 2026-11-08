@@ -19,6 +19,8 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 ///   activity box they write into is itself per-profile
 ///   ([HiveDBProvider.perProfileBoxNames]): each profile opts in for itself,
 ///   imports its own copy of a workout, and tracks its own watermark.
+///   The boundary the profile's tracked-day rows are keyed by is here for
+///   the same reason: the rows are per-profile too.
 ///
 /// Reads merge the two — shared fields from the app box, personal fields
 /// from the active profile's box. Writes store a detached copy of the merged
@@ -61,6 +63,7 @@ class ConfigDataSource {
       merged.healthLastImportAt = profile.healthLastImportAt;
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
       merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
+      merged.trackedDaysOffsetMinutes = profile.trackedDaysOffsetMinutes;
     } else {
       // Explicitly clear personal fields so they don't leak from the
       // app box after a profile reset. A fresh profile therefore reads as
@@ -77,6 +80,7 @@ class ConfigDataSource {
       merged.healthLastImportAt = null;
       merged.healthDeletedExternalIds = null;
       merged.healthDeletedWorkouts = null;
+      merged.trackedDaysOffsetMinutes = null;
     }
     return merged;
   }
@@ -241,6 +245,42 @@ class ConfigDataSource {
     await _update((c) => c.selectedLocale = locale);
   }
 
+  Future<bool> getLocaleSyncSeeded() async {
+    return _readMerged().localeSyncSeeded ?? false;
+  }
+
+  Future<void> setLocaleSyncSeeded() async {
+    await _update((c) => c.localeSyncSeeded = true);
+  }
+
+  Future<void> clearLocaleSyncSeeded() async {
+    await _update((c) => c.localeSyncSeeded = null);
+  }
+
+  /// Whether a tip has gone through on this device (#1536).
+  ///
+  /// Read and written on the shared app box alone, never through
+  /// [_readMerged] / [_writeBoth]: a payment can complete while a profile
+  /// switch has the per-profile box closed, and recording it must not fail
+  /// then. The stale copy [_writeBoth] leaves in a profile box is ignored —
+  /// this field is not in the personal-field overlay — and the next
+  /// [_update] copies the app box's value over it.
+  Future<bool> getHasLeftTip() async =>
+      _appBox.get(_configKey)?.hasLeftTip ?? false;
+
+  Future<void> setHasLeftTip() => _updateAppOnly((c) => c.hasLeftTip = true);
+
+  Future<void> clearHasLeftTip() => _updateAppOnly((c) => c.hasLeftTip = null);
+
+  Future<void> _updateAppOnly(void Function(ConfigDBO config) mutate) async {
+    final stored = _appBox.get(_configKey);
+    final config = stored != null
+        ? ConfigDBO.fromJson(stored.toJson())
+        : ConfigDBO.empty();
+    mutate(config);
+    await _appBox.put(_configKey, config);
+  }
+
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _update((c) => c.showMicronutrients = show);
   }
@@ -301,8 +341,53 @@ class ConfigDataSource {
     await _update((c) => c.dayStartOffsetMinutes = minutes);
   }
 
+  /// Sets both halves of the day boundary in one write.
+  ///
+  /// Like every setter here, the new value is in the box before the
+  /// returned future is first awaited (see [_writeBoth]);
+  /// `moveDayBoundary` relies on that to regroup the tracked-day rows in
+  /// the same synchronous step (#1317).
+  Future<void> setConfigDayStartOffset(int hours, int minutes) async {
+    await _update((c) {
+      c.dayStartOffsetHours = hours;
+      c.dayStartOffsetMinutes = minutes;
+    });
+  }
+
+  /// Records the day boundary the active profile's tracked-day rows are
+  /// now keyed by (#1317). See [ConfigDBO.trackedDaysOffsetMinutes].
+  ///
+  /// In the box before the returned future is first awaited, like the
+  /// boundary itself, so the rows and this record change in one step.
+  Future<void> setConfigTrackedDaysOffsetMinutes(int minutes) async {
+    await _update((c) => c.trackedDaysOffsetMinutes = minutes);
+  }
+
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
     await _update((c) => c.dailyWaterGoalMl = goalMl);
+  }
+
+  /// Replaces every per-profile goal at once, as a restore from a backup
+  /// does (#1363). One write, so the goals cannot end up half restored. A
+  /// null clears that override and the app falls back to its default.
+  Future<void> setConfigGoalSettings({
+    required double? kcalAdjustment,
+    required double? carbGoalPct,
+    required double? proteinGoalPct,
+    required double? fatGoalPct,
+    required Map<String, int>? mealKcalSharesPct,
+    required int? dailyWaterGoalMl,
+  }) async {
+    await _update((c) {
+      c.userKcalAdjustment = kcalAdjustment;
+      c.userCarbGoalPct = carbGoalPct;
+      c.userProteinGoalPct = proteinGoalPct;
+      c.userFatGoalPct = fatGoalPct;
+      c.mealKcalSharesPct = mealKcalSharesPct == null
+          ? null
+          : Map<String, int>.from(mealKcalSharesPct);
+      c.dailyWaterGoalMl = dailyWaterGoalMl;
+    });
   }
 
   Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
@@ -411,6 +496,11 @@ class ConfigDataSource {
   }
 
   Future<ConfigDBO> getConfig() async => _readMerged();
+
+  /// [getConfig] without the yield, for a caller that has to read the
+  /// config and write what depends on it before any other code runs
+  /// (#1317).
+  ConfigDBO getConfigNow() => _readMerged();
 
   Future<bool> getHasAcceptedAnonymousData() async =>
       _readMerged().hasAcceptedSendAnonymousData;

@@ -245,7 +245,7 @@ class _ImportActivityScannerScreenState
       }
       final burnedKcal =
           METCalc.getTotalBurnedKcal(user, activity, item.duration);
-      _activityDetailBloc.persistActivity(
+      await _activityDetailBloc.persistActivity(
         item.duration.toString(),
         burnedKcal,
         activity,

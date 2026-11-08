@@ -16,7 +16,7 @@ import 'package:opennutritracker/core/utils/calc/dri_reference.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// Daily micronutrient summary that aggregates the nutrients reporters keep
 /// asking for — fibre, sodium, saturated fat, sugar, calcium, iron, potassium,
@@ -80,6 +80,22 @@ class DailyNutrientPanel extends StatefulWidget {
   /// Public because the unit test suite asserts each one in isolation.
   static double resolveFibreReference(TrackedDayEntity? trackedDay) =>
       trackedDay?.fibreGoal ?? defaultFibreRefG;
+
+  /// The reference used when the user has set no goal of their own: the
+  /// IOM row for [user]'s age and gender (#245) when the table has one,
+  /// else [fallback]. The panel and Settings -> Nutrient goals both read
+  /// their defaults through here, so the two cannot disagree (#1365).
+  static double defaultReferenceFor(
+    String nutrientKey,
+    UserEntity? user,
+    double fallback,
+  ) {
+    if (user != null) {
+      final dri = getReferenceFor(nutrient: nutrientKey, user: user);
+      if (dri != null) return dri.amount;
+    }
+    return fallback;
+  }
 
   static double resolveSatFatReference(TrackedDayEntity? trackedDay) =>
       trackedDay?.satFatGoal ?? defaultSaturatedFatRefG;
@@ -245,13 +261,8 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
       String nutrientKey,
       double fallback,
     ) {
-      final tracked = trackedOverride();
-      if (tracked != null) return tracked;
-      if (user != null) {
-        final dri = getReferenceFor(nutrient: nutrientKey, user: user);
-        if (dri != null) return dri.amount;
-      }
-      return fallback;
+      return trackedOverride() ??
+          DailyNutrientPanel.defaultReferenceFor(nutrientKey, user, fallback);
     }
 
     final fiberRefG = resolveWithDri(
@@ -526,16 +537,10 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
                 Semantics(
                   identifier: 'dri-panel-info-link',
                   child: InkWell(
-                    onTap: () async {
-                      final uri = Uri.parse(driSourceUrl);
-                      // Best-effort link launch — silently no-ops if the
-                      // platform reports it cannot handle the URL, which is
-                      // friendlier than throwing in front of the user.
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri,
-                            mode: LaunchMode.externalApplication);
-                      }
-                    },
+                    // Best-effort link launch: silently no-ops if the platform
+                    // cannot open the URL, which is friendlier than throwing
+                    // in front of the user.
+                    onTap: () => tryLaunchExternalUrl(driSourceUrl),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: Text(

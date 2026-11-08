@@ -146,7 +146,7 @@ void main() {
       await bloc.close();
     });
 
-    Future<List<TrendsState>> load(LoadTrendsEvent event) async {
+    Future<List<TrendsState>> load(TrendsEvent event) async {
       final emitted = <TrendsState>[];
       final sub = bloc.stream.listen(emitted.add);
       bloc.add(event);
@@ -163,6 +163,28 @@ void main() {
       final emitted = await load(const LoadTrendsEvent());
       expect(emitted.map((s) => s.runtimeType), [TrendsLoading, TrendsLoaded]);
       expect((emitted.last as TrendsLoaded).rangeDays, 7);
+    });
+
+    test('RefreshTrendsEvent reloads with the range the user last picked '
+        '(#1359)', () async {
+      await load(const LoadTrendsEvent(rangeDays: 30));
+      trackedDay.rangeCalls.clear();
+
+      final emitted = await load(const RefreshTrendsEvent());
+
+      expect(emitted.map((s) => s.runtimeType), [TrendsLoading, TrendsLoaded]);
+      expect((emitted.last as TrendsLoaded).rangeDays, 30);
+      expect(
+        trackedDay.rangeCalls.first.start,
+        today.subtract(const Duration(days: 29)),
+      );
+    });
+
+    test('RefreshTrendsEvent before the first load does nothing', () async {
+      final emitted = await load(const RefreshTrendsEvent());
+
+      expect(emitted, isEmpty);
+      expect(trackedDay.rangeCalls, isEmpty);
     });
 
     test('7-day window spans today-6..today, prior week today-13..today-7',

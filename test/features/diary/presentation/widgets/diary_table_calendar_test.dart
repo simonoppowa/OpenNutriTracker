@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
-Widget _app({required double textScale}) => MediaQuery(
+Widget _app({
+  double textScale = 1.0,
+  Locale locale = const Locale('en'),
+  Map<String, TrackedDayEntity> trackedDaysMap = const {},
+  Set<String> daysWithEntries = const {},
+}) =>
+    MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
       child: MaterialApp(
+        locale: locale,
         localizationsDelegates: const [
           S.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -22,7 +30,8 @@ Widget _app({required double textScale}) => MediaQuery(
             focusedDate: DateTime(2026, 8, 24),
             currentDate: DateTime(2026, 8, 24),
             selectedDate: DateTime(2026, 8, 24),
-            trackedDaysMap: const {},
+            trackedDaysMap: trackedDaysMap,
+            daysWithEntries: daysWithEntries,
           ),
         ),
       ),
@@ -64,5 +73,91 @@ void main() {
             '${given}px, so the top and bottom of the label are cut off',
       );
     }
+  });
+
+  // #1442. `table_calendar` with no `locale:` falls back to `en_US`, so the
+  // month header and the day-of-week headings stayed English even when the
+  // rest of the Diary followed the app locale. The header and the headings
+  // both come from the same formatter, so the header is the one we check.
+  testWidgets(
+    'the month header follows the app locale (German August → "August")',
+    (tester) async {
+      await tester.pumpWidget(_app(locale: const Locale('de')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('August 2026'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the month header follows the app locale (Spanish August → "agosto")',
+    (tester) async {
+      await tester.pumpWidget(_app(locale: const Locale('es')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('agosto de 2026'), findsOneWidget);
+    },
+  );
+
+  testWidgets('the month header stays English when the app is English',
+      (tester) async {
+    await tester.pumpWidget(_app(locale: const Locale('en')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('August 2026'), findsOneWidget);
+  });
+
+  // A day-boundary move keeps the row of a day it left with no entries,
+  // for its goals (#1440). The marker follows what is logged on a day, not
+  // the row's totals, which say neither thing reliably.
+  TrackedDayEntity row(int date, double tracked) => TrackedDayEntity(
+        day: DateTime(2026, 8, date),
+        calorieGoal: 2000,
+        caloriesTracked: tracked,
+        carbsTracked: tracked / 10,
+        fatTracked: 0,
+        proteinTracked: 0,
+      );
+  final markers = find.byWidgetPredicate(
+    (w) =>
+        w is Container &&
+        w.constraints == const BoxConstraints.tightFor(width: 5, height: 5),
+  );
+
+  testWidgets('a row kept with no entries gets no marker (#1440)',
+      (tester) async {
+    await tester.pumpWidget(_app(
+      trackedDaysMap: {'2026-08-20': row(20, 1800), '2026-08-21': row(21, 0)},
+      daysWithEntries: {'2026-08-20'},
+    ));
+    await tester.pumpAndSettle();
+
+    expect(markers, findsOneWidget);
+  });
+
+  testWidgets('a day of only zero-calorie entries is still marked',
+      (tester) async {
+    // Black coffee, water, a food with no nutrients filled in: nothing
+    // counted, but something was logged.
+    await tester.pumpWidget(_app(
+      trackedDaysMap: {'2026-08-20': row(20, 0)},
+      daysWithEntries: {'2026-08-20'},
+    ));
+    await tester.pumpAndSettle();
+
+    expect(markers, findsOneWidget);
+  });
+
+  testWidgets('a rounding residue on an emptied day leaves no marker',
+      (tester) async {
+    // Deleting an entry subtracts it from the row's running totals, which
+    // can stop just short of zero.
+    final residue = row(20, 0.1 + 0.2 - 0.3);
+    expect(residue.hasConsumed, isTrue);
+
+    await tester.pumpWidget(_app(trackedDaysMap: {'2026-08-20': residue}));
+    await tester.pumpAndSettle();
+
+    expect(markers, findsNothing);
   });
 }

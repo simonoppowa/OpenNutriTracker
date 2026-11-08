@@ -16,6 +16,12 @@ class RecipeBuilderBloc
   final ComputeRecipeNutritionUseCase _computeUseCase;
   final SaveRecipeUseCase _saveUseCase;
 
+  /// The state an existing recipe opened with, after the first recompute.
+  /// An opened recipe is never empty, so Back compares against this to
+  /// tell whether anything was edited (#1443).
+  RecipeBuilderState? get loadedState => _loadedState;
+  RecipeBuilderState? _loadedState;
+
   RecipeBuilderBloc(this._computeUseCase, this._saveUseCase)
       : super(RecipeBuilderState.initial()) {
     on<InitializeBuilderEvent>(_onInitialize);
@@ -35,6 +41,7 @@ class RecipeBuilderBloc
     on<UpdateIngredientEvent>(_onUpdateIngredient);
     on<RemoveIngredientEvent>(_onRemoveIngredient);
     on<UpdateTotalWeightEvent>(_onUpdateTotalWeight);
+    on<ResetTotalWeightEvent>(_onResetTotalWeight);
     on<SaveRecipeEvent>(_onSave);
   }
 
@@ -56,6 +63,13 @@ class RecipeBuilderBloc
       // the field values but treat the builder as a fresh create so save()
       // assigns a new uuid.
       final isDuplicate = r.id.isEmpty;
+      // The override flag is not persisted, but an unedited total is always
+      // the exact sum of the stored ingredient grams, so any difference means
+      // the user typed the weight in. Resetting it here was #1277.
+      final ingredientSumG = r.ingredients.fold<double>(
+        0,
+        (sum, i) => sum + i.convertedAmountG,
+      );
       emit(
         state.copyWith(
           id: isDuplicate ? null : r.id,
@@ -64,7 +78,8 @@ class RecipeBuilderBloc
           servingsCount: r.servingsCount,
           ingredients: r.ingredients,
           totalWeightG: r.totalWeightG,
-          totalWeightOverridden: false,
+          totalWeightOverridden: r.totalWeightG > 0 &&
+              (r.totalWeightG - ingredientSumG).abs() > 0.001,
           aggregatedNutrimentsPer100: r.aggregatedNutrimentsPer100,
           isExistingRecipe: !isDuplicate,
           tags: r.tags,
@@ -76,6 +91,7 @@ class RecipeBuilderBloc
         ),
       );
       _recompute(emit);
+      _loadedState = state;
     }
   }
 
@@ -171,6 +187,14 @@ class RecipeBuilderBloc
         totalWeightOverridden: true,
       ),
     );
+    _recompute(emit);
+  }
+
+  void _onResetTotalWeight(
+    ResetTotalWeightEvent event,
+    Emitter<RecipeBuilderState> emit,
+  ) {
+    emit(state.copyWith(totalWeightOverridden: false));
     _recompute(emit);
   }
 

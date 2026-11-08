@@ -117,6 +117,13 @@ class OFFDataSource {
             final productResponse = OFFProductResponseDTO.fromJson(
               jsonDecode(response.body),
             );
+            // OFF answers 200 with status 0 and no `product` for an unknown
+            // or removed barcode.
+            if (productResponse.product == null ||
+                productResponse.status == 0) {
+              log.warning('OFF response has no product for $barcode');
+              throw ProductNotFoundException();
+            }
             log.fine('Successful response from OFF');
             return productResponse;
           } else if (response.statusCode == OFFConst.offProductNotFoundCode) {

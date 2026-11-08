@@ -93,14 +93,19 @@ class _FakeProber implements AiEndpointProber {
 
   int calls = 0;
 
+  /// What the last check was asked about, so a test can see what it held.
+  AiSelection? lastSelection;
+
   _FakeProber(this.result);
 
   @override
   Future<AiEndpointProbe> probe(
     AiSelection selection, {
     String? localeCode,
+    Future<bool> Function()? stillWanted,
   }) async {
     calls++;
+    lastSelection = selection;
     if (gate != null) await gate!.future;
     return result;
   }
@@ -120,6 +125,9 @@ class _FakeProber implements AiEndpointProber {
 
 class _Server {
   final requests = <Uri>[];
+
+  /// The `authorization` header of each request, null where none was sent.
+  final authorizations = <String?>[];
   final http.Response Function(Uri url) _respond;
 
   /// Answers held open, per host, until the test releases them.
@@ -169,6 +177,7 @@ class _Server {
   late final AiModelListApi api = AiModelListApi(
     client: MockClient((request) async {
       requests.add(request.url);
+      authorizations.add(request.headers['authorization']);
       final held = gates[request.url.host];
       if (held != null) await held.future;
       return _respond(request.url);
@@ -195,6 +204,31 @@ Widget _app(
       storage: storage,
       modelList: modelList,
       probeRunner: probeRunner,
+    ),
+  ),
+);
+
+/// The dialog on a real dialog route, behind an `open` button, where a
+/// keyboard inset is what shrinks its scroll viewport — [_app] puts it in a
+/// Scaffold body, which no inset reaches.
+Widget _routeApp(
+  AiCredentialStorage storage, {
+  AiModelListApi? modelList,
+}) => MaterialApp(
+  localizationsDelegates: const [
+    S.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: S.supportedLocales,
+  home: Builder(
+    builder: (context) => Scaffold(
+      body: TextButton(
+        onPressed: () =>
+            AiAssistDialog.show(context, storage, modelList: modelList),
+        child: const Text('open'),
+      ),
     ),
   ),
 );
@@ -484,7 +518,7 @@ void main() {
         // ignore: deprecated_member_use
         .where((tile) => tile.value == tile.groupValue)
         .single;
-    expect(selected.value, 'anthropic/claude-sonnet-5');
+    expect(selected.value, 'anthropic/claude-sonnet-5.5');
   });
 
   testWidgets('choosing a model stores it against that provider', (
@@ -496,14 +530,17 @@ void main() {
 
     // The model section sits below the credential block now, so it can be
     // off-screen on a phone-sized viewport.
-    await tester.ensureVisible(find.text('anthropic/claude-haiku-4.5'));
+    final haiku = find.bySemanticsIdentifier(
+      AiAssistDialog.modelIdentifier('anthropic/claude-haiku-5.5'),
+    );
+    await tester.ensureVisible(haiku);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('anthropic/claude-haiku-4.5'));
+    await tester.tap(haiku);
     await tester.pumpAndSettle();
 
     expect(
       await storage.readModel(provider: AiProvider.openrouter),
-      'anthropic/claude-haiku-4.5',
+      'anthropic/claude-haiku-5.5',
     );
     expect(
       await storage.readModel(provider: AiProvider.anthropic),
@@ -578,7 +615,7 @@ void main() {
     // The label was keyed on the *provider*, so every non-default row on a
     // list got the same string. That held while each list was two entries
     // differing the same way. On four it reached `openai/gpt-5.6-terra`,
-    // which matches claude-sonnet-5 on input price and is dearer on output —
+    // which matched claude-sonnet-5 on input price and was dearer on output —
     // the row asserted something the price table contradicts. #726.
     await storage.setActiveProvider(AiProvider.openrouter);
     await tester.pumpWidget(_app(storage));
@@ -586,18 +623,23 @@ void main() {
 
     expect(
       find.textContaining(l10nEn.aiAssistModelCheaperLabel),
+      findsNothing,
+      reason: 'its quality claim was measured on Haiku 4.5, now off the list',
+    );
+    expect(
+      find.textContaining(l10nEn.aiAssistModelCheaperThanRecommendedLabel),
       findsOne,
-      reason: 'only claude-haiku-4.5, where #668 measured it',
+      reason: 'only gpt-6-luna, a price fact with no quality claim',
     );
     expect(
       find.textContaining(l10nEn.aiAssistModelCheapestLabel),
       findsOne,
-      reason: 'only gpt-5.6-luna, which is 5x below the next on both axes',
+      reason: 'only claude-haiku-5.5, which nothing undercuts',
     );
     expect(
       find.textContaining(l10nEn.aiAssistModelMoreItemsLabel),
       findsOne,
-      reason: 'only gpt-5.6-terra, where #686 measured 7 rows against 3',
+      reason: 'only gpt-6.1-terra, which returns more items a photo',
     );
     expect(find.textContaining(l10nEn.aiAssistModelRecommendedLabel), findsOne);
   });
@@ -833,6 +875,177 @@ void main() {
         isFalse,
         reason: 'nothing was stored, so nothing may have turned it on',
       );
+    });
+
+    testWidgets('a refusal on OK is brought into view, with the cursor in '
+        'the field (#1364)', (tester) async {
+      // The dialog is taller than a phone, and the model field sits below
+      // the address. With the address still being edited, OK refused below
+      // the fold and looked like it did nothing.
+      tester.view.physicalSize = const Size(720, 1280);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _app(storage, modelList: _Server.unreachable().api),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        'http://192.168.1.5:11434',
+      );
+      await tester.pumpAndSettle();
+
+      final scroll = find.descendant(
+        of: find.byType(AiAssistDialog),
+        matching: find.byType(Scrollable),
+      );
+      tester.state<ScrollableState>(scroll.first).position.jumpTo(0);
+      await tester.pumpAndSettle();
+      final viewport = tester.getRect(find.byType(SingleChildScrollView));
+      final modelField = find.descendant(
+        of: find.bySemanticsIdentifier('ai-assist-model-field'),
+        matching: find.byType(TextField),
+      );
+      expect(
+        tester.getRect(modelField).bottom,
+        greaterThan(viewport.bottom),
+        reason: 'precondition: the model field starts below the fold',
+      );
+
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      final error = tester.getRect(
+        find.text(l10nEn.aiAssistModelRequiredLabel),
+      );
+      expect(error.top, greaterThanOrEqualTo(viewport.top));
+      expect(error.bottom, lessThanOrEqualTo(viewport.bottom));
+      expect(tester.widget<TextField>(modelField).focusNode?.hasFocus, isTrue);
+    });
+
+    testWidgets('a refusal on OK is in view with the keyboard up (#1364)', (
+      tester,
+    ) async {
+      // The case #1364 was filed from. `enterText` raises no keyboard, so
+      // the inset is set by hand, on the real dialog route, where it is what
+      // shrinks the scroll viewport the refusal has to land inside.
+      tester.view.physicalSize = const Size(720, 1280);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _routeApp(storage, modelList: _Server.unreachable().api),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final endpointField = find.bySemanticsIdentifier(
+        'ai-assist-endpoint-field',
+      );
+      await tester.ensureVisible(endpointField);
+      await tester.pumpAndSettle();
+      await tester.showKeyboard(endpointField);
+      // A phone keyboard: 280 of the 640 logical pixels.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 560);
+      await tester.enterText(endpointField, 'http://192.168.1.5:11434');
+      await tester.pumpAndSettle();
+
+      final scroll = find.descendant(
+        of: find.byType(AiAssistDialog),
+        matching: find.byType(SingleChildScrollView),
+      );
+      final keyboardUp = tester.getRect(scroll);
+      final modelField = find.descendant(
+        of: find.bySemanticsIdentifier('ai-assist-model-field'),
+        matching: find.byType(TextField),
+      );
+      expect(
+        tester.getRect(modelField).top,
+        greaterThan(keyboardUp.bottom),
+        reason: 'precondition: the model field starts below the fold',
+      );
+
+      final ok = find.text(l10nEn.dialogOKLabel);
+      expect(tester.getRect(ok).bottom, lessThanOrEqualTo(640 - 280));
+      await tester.tap(ok);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(modelField).focusNode?.hasFocus, isTrue);
+      // Measured again rather than reused: the viewport is whatever it is
+      // once focus and layout have settled, keyboard still up.
+      final viewport = tester.getRect(scroll);
+      final error = tester.getRect(
+        find.text(l10nEn.aiAssistModelRequiredLabel),
+      );
+      expect(error.top, greaterThanOrEqualTo(viewport.top));
+      expect(error.bottom, lessThanOrEqualTo(viewport.bottom));
+      expect(viewport.bottom, lessThanOrEqualTo(640 - 280));
+    });
+
+    testWidgets('a refusal on OK stays in view when the keyboard rises '
+        'after it (#1364)', (tester) async {
+      // OK pressed with the keyboard down: the refusal is scrolled into the
+      // tall viewport, and only then does the focus it moved bring the
+      // keyboard up and shrink that viewport. The field's own caret reveal
+      // keeps the cursor in view and can leave the error line under the keys.
+      tester.view.physicalSize = const Size(720, 1280);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        _routeApp(storage, modelList: _Server.unreachable().api),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final endpointField = find.bySemanticsIdentifier(
+        'ai-assist-endpoint-field',
+      );
+      await tester.ensureVisible(endpointField);
+      await tester.pumpAndSettle();
+      await tester.enterText(endpointField, 'http://192.168.1.5:11434');
+      await tester.pumpAndSettle();
+      // The keyboard dismissed, and the dialog back at its top.
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      final scroll = find.descendant(
+        of: find.byType(AiAssistDialog),
+        matching: find.byType(SingleChildScrollView),
+      );
+      tester
+          .state<ScrollableState>(
+            find
+                .descendant(of: scroll, matching: find.byType(Scrollable))
+                .first,
+          )
+          .position
+          .jumpTo(0);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+      // A phone keyboard: 280 of the 640 logical pixels, arriving once the
+      // focus OK moved has reached the platform.
+      tester.view.viewInsets = const FakeViewPadding(bottom: 560);
+      await tester.pumpAndSettle();
+
+      final modelField = find.descendant(
+        of: find.bySemanticsIdentifier('ai-assist-model-field'),
+        matching: find.byType(TextField),
+      );
+      expect(tester.widget<TextField>(modelField).focusNode?.hasFocus, isTrue);
+      final viewport = tester.getRect(scroll);
+      expect(
+        viewport.bottom,
+        lessThanOrEqualTo(640 - 280),
+        reason: 'precondition: the keyboard shrank the dialog',
+      );
+      final error = tester.getRect(
+        find.text(l10nEn.aiAssistModelRequiredLabel),
+      );
+      expect(error.top, greaterThanOrEqualTo(viewport.top));
+      expect(error.bottom, lessThanOrEqualTo(viewport.bottom));
     });
 
     testWidgets('a refusal clears as soon as the field is edited', (
@@ -1141,6 +1354,203 @@ void main() {
         l10nEn.aiAssistModelsInsecureLabel,
       ];
 
+      testWidgets('a stored key goes only to the server it was saved for', (
+        tester,
+      ) async {
+        // #1257: typing a new address and leaving the field asks that machine
+        // for its models, and the stored key used to go with it — a Gemini
+        // key sent as a bearer to whatever answered, before any save.
+        final server = _Server.listing(['gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+          model: 'gemini-3.1-pro',
+          provider: AiProvider.ownServer,
+        );
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+        await commitEndpoint(tester, 'https://other.example.org/v1');
+        await tester.pumpAndSettle();
+        await commitEndpoint(
+          tester,
+          'https://generativelanguage.googleapis.com/v1beta/openai/',
+        );
+        await tester.pumpAndSettle();
+
+        expect(server.requests.map((u) => u.host), [
+          'other.example.org',
+          'generativelanguage.googleapis.com',
+        ]);
+        expect(server.authorizations, [null, 'Bearer google-key']);
+      });
+
+      testWidgets('another server asks for its own key, and Cancel keeps '
+          'the stored one', (tester) async {
+        // #1257: saving an address on another server forgets the stored key,
+        // so "Key saved" over the new address described a key that would not
+        // be used — and hid the field the new server's key has to go in.
+        const gemini =
+            'https://generativelanguage.googleapis.com/v1beta/openai/';
+        final server = _Server.listing(const []);
+        await storage.writeOwnServerConfiguration(
+          endpoint: gemini,
+          model: 'gemini-3.1-pro',
+          provider: AiProvider.ownServer,
+        );
+        await storage.writeApiKey('google-key', provider: AiProvider.ownServer);
+
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+        final saved = find.textContaining(l10nEn.aiAssistKeySavedLabel);
+        final keyField = find.bySemanticsIdentifier('ai-assist-key-field');
+        final endpointField = find.bySemanticsIdentifier(
+          'ai-assist-endpoint-field',
+        );
+        expect(saved, findsOneWidget);
+        expect(keyField, findsNothing);
+
+        await tester.enterText(endpointField, 'https://other.example.org/v1');
+        await tester.pump();
+        expect(saved, findsNothing);
+        expect(keyField, findsOneWidget);
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(of: keyField, matching: find.byType(TextField)),
+              )
+              .controller!
+              .text,
+          isEmpty,
+        );
+
+        // A key typed for the other server is not kept behind the mask once
+        // the address is back on the saved one.
+        await tester.enterText(keyField, 'other-key');
+        await tester.enterText(endpointField, gemini);
+        await tester.pump();
+        expect(saved, findsOneWidget);
+        expect(keyField, findsNothing);
+
+        await tester.enterText(endpointField, 'https://other.example.org/v1');
+        await tester.pump();
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(of: keyField, matching: find.byType(TextField)),
+              )
+              .controller!
+              .text,
+          isEmpty,
+        );
+
+        await tester.tap(find.bySemanticsIdentifier('ai-assist-cancel'));
+        await tester.pumpAndSettle();
+        expect(
+          await storage.readApiKey(provider: AiProvider.ownServer),
+          'google-key',
+          reason: 'Cancel deletes nothing',
+        );
+        // Moving focus to the key field commits the address and asks the
+        // other server for its models; the stored key never goes with it.
+        expect(server.authorizations, isNot(contains('Bearer google-key')));
+      });
+
+      group('a typed key stays with the server it was typed for', () {
+        Finder keyField() => find.bySemanticsIdentifier('ai-assist-key-field');
+        Finder endpointField() =>
+            find.bySemanticsIdentifier('ai-assist-endpoint-field');
+
+        String typedKey(WidgetTester tester) => tester
+            .widget<TextField>(
+              find.descendant(of: keyField(), matching: find.byType(TextField)),
+            )
+            .controller!
+            .text;
+
+        Future<void> leaveEndpoint(WidgetTester tester) async {
+          await tester.testTextInput.receiveAction(TextInputAction.done);
+          await tester.pumpAndSettle();
+        }
+
+        testWidgets('editing to another server clears it', (tester) async {
+          // #1257: A to B, B's key typed, then the address edited to C — the
+          // model-list request to C carried B's key, and Save would have too.
+          final server = _Server.listing(const []);
+          await storage.writeOwnServerConfiguration(
+            endpoint: 'https://a.example.org/v1',
+            model: 'm',
+            provider: AiProvider.ownServer,
+          );
+          await storage.writeApiKey('a-key', provider: AiProvider.ownServer);
+
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pumpAndSettle();
+
+          await tester.enterText(endpointField(), 'https://c.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), isEmpty);
+          await leaveEndpoint(tester);
+
+          expect(server.requests.last.host, 'c.example.org');
+          expect(server.authorizations.last, isNull);
+          for (var i = 0; i < server.requests.length; i++) {
+            if (server.requests[i].host == 'b.example.org') continue;
+            expect(server.authorizations[i], isNot('Bearer b-key'));
+            expect(server.authorizations[i], isNot('Bearer a-key'));
+          }
+        });
+
+        testWidgets('a new route on the same server keeps it', (tester) async {
+          final server = _Server.listing(const []);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pumpAndSettle();
+
+          await tester.enterText(
+            endpointField(),
+            'https://b.example.org/api/v1',
+          );
+          await tester.pump();
+          expect(typedKey(tester), 'b-key');
+          await leaveEndpoint(tester);
+
+          expect(server.requests.last.host, 'b.example.org');
+          expect(server.authorizations.last, 'Bearer b-key');
+        });
+
+        testWidgets('one typed before the address binds to the first server '
+            'it is sent to', (tester) async {
+          final server = _Server.listing(const []);
+          await tester.pumpWidget(_app(storage, modelList: server.api));
+          await tester.pumpAndSettle();
+          await tester.enterText(keyField(), 'b-key');
+          await tester.pump();
+          await tester.enterText(endpointField(), 'https://b.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), 'b-key');
+          await leaveEndpoint(tester);
+          expect(server.authorizations, ['Bearer b-key']);
+
+          await tester.enterText(endpointField(), 'https://c.example.org/v1');
+          await tester.pump();
+          expect(typedKey(tester), isEmpty);
+          await leaveEndpoint(tester);
+          expect(server.requests.map((u) => u.host), [
+            'b.example.org',
+            'c.example.org',
+          ]);
+          expect(server.authorizations, ['Bearer b-key', null]);
+        });
+      });
+
       testWidgets('opening the dialog asks the server nothing', (tester) async {
         // The promise the README is built on is about what leaves the device
         // **and when**. For the three hosted providers, opening AI settings
@@ -1398,6 +1808,243 @@ void main() {
           isEmpty,
           reason: 'the model belonged to the address that just changed',
         );
+      });
+
+      String? modelText(WidgetTester tester) => tester
+          .widget<TextField>(
+            find.descendant(
+              of: find.bySemanticsIdentifier('ai-assist-model-field'),
+              matching: find.byType(TextField),
+            ),
+          )
+          .controller
+          ?.text;
+
+      testWidgets('a failed fetch after an address change leaves the model '
+          'alone (#1364)', (tester) async {
+        // Clearing up front, before anything had answered, left an empty
+        // field and nothing to pick from whenever the new server was
+        // unreachable — and OK then refused for want of a model.
+        final server = _Server.unreachable();
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        expect(server.requests, hasLength(1));
+        expect(modelText(tester), 'gemma3:4b');
+
+        await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+        await tester.pumpAndSettle();
+        expect(find.text(l10nEn.aiAssistModelRequiredLabel), findsNothing);
+        expect(
+          await storage.readEndpoint(provider: AiProvider.ownServer),
+          'http://192.168.1.9:11434/v1/chat/completions',
+        );
+        expect(
+          await storage.readModel(provider: AiProvider.ownServer),
+          'gemma3:4b',
+        );
+      });
+
+      /// Unreachable for the first request, then listing [ids] — a server
+      /// that was asleep when the address was committed and woke up before
+      /// the user pressed Load models.
+      _Server wakesUpListing(List<String> ids) {
+        final listing = _Server.listing(ids);
+        var calls = 0;
+        return _Server((url) {
+          if (calls++ == 0) throw const SocketException('connection refused');
+          return listing._respond(url);
+        });
+      }
+
+      testWidgets('a retry that succeeds after a failed fetch still drops a '
+          'model the new server lacks', (tester) async {
+        final server = wakesUpListing(['qwen3:8b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(modelText(tester), 'gemma3:4b');
+
+        await pressLoad(tester);
+
+        expect(server.requests, hasLength(2));
+        expect(modelText(tester), isEmpty);
+      });
+
+      testWidgets('a model retyped after a failed fetch survives the retry', (
+        tester,
+      ) async {
+        // Typing it again is the user vouching for it on this server, even
+        // though the text ends up the same as what the address change left.
+        final server = wakesUpListing(['qwen3:8b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        final modelField = find.bySemanticsIdentifier('ai-assist-model-field');
+        await tester.enterText(modelField, 'gemma3');
+        await tester.enterText(modelField, 'gemma3:4b');
+        await tester.pump();
+
+        await pressLoad(tester);
+
+        expect(server.requests, hasLength(2));
+        expect(modelText(tester), 'gemma3:4b');
+      });
+
+      testWidgets('a new server that has the model keeps it', (tester) async {
+        final server = _Server.listing(['qwen3:8b', 'gemma3:4b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+
+        expect(modelText(tester), 'gemma3:4b');
+      });
+
+      /// Load models pressed while the address field still has focus, so
+      /// nothing has committed the address first — a semantics action, or a
+      /// tap that leaves focus where it was.
+      Future<void> pressLoadStillEditing(WidgetTester tester) async {
+        final endpointFocus = tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+                matching: find.byType(TextField),
+              ),
+            )
+            .focusNode!;
+        expect(
+          endpointFocus.hasFocus,
+          isTrue,
+          reason: 'precondition: the address has not been committed',
+        );
+        await pressLoad(tester);
+        expect(
+          endpointFocus.hasFocus,
+          isTrue,
+          reason: 'precondition: Load models, not leaving the field, asked',
+        );
+      }
+
+      testWidgets('Load models on an edited address drops a model that '
+          'server lacks, without the field being left', (tester) async {
+        final server = _Server.listing(['qwen3:8b']);
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.7:11434');
+        await pressLoadStillEditing(tester);
+
+        expect(server.requests, [
+          Uri.parse('http://192.168.1.7:11434/v1/models'),
+        ]);
+        expect(modelText(tester), isEmpty);
+      });
+
+      testWidgets('a model kept through a failed fetch is settled by the '
+          'next address it is loaded for', (tester) async {
+        // The address goes to .9, which does not answer, so the model stays
+        // — tagged as .9's to settle. The address then goes to .7 and Load
+        // models asks .7 before the field is ever left. Tagged for .9 only,
+        // .7's list could not settle it, leaving the field had nothing new
+        // to ask, and OK stored the first server's model against .7.
+        final server = _Server((url) {
+          if (url.host == '192.168.1.9') {
+            throw const SocketException('connection refused');
+          }
+          return _Server.listing(['qwen3:8b'])._respond(url);
+        });
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await typeEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+        expect(modelText(tester), 'gemma3:4b');
+
+        await typeEndpoint(tester, 'http://192.168.1.7:11434');
+        await pressLoadStillEditing(tester);
+
+        expect(server.requests, [
+          Uri.parse('http://192.168.1.9:11434/v1/models'),
+          Uri.parse('http://192.168.1.7:11434/v1/models'),
+        ]);
+        expect(modelText(tester), isEmpty);
+      });
+
+      testWidgets('a model typed while the fetch is out is not dropped when '
+          'it lands', (tester) async {
+        // Moving from the address to the model field is itself what starts
+        // the fetch, so typing into it while the request is out is the
+        // ordinary order of events, not a race.
+        final server = _Server.perHost({
+          '192.168.1.9': ['qwen3:8b'],
+        });
+        server.gates['192.168.1.9'] = Completer<void>();
+        // A stored model the new server does not list, so the fetch has
+        // something it would clear — an empty field would pass this
+        // however the user's edit were treated.
+        await storage.writeOwnServerConfiguration(
+          endpoint: 'http://192.168.1.5:11434',
+          model: 'gemma3:4b',
+          provider: AiProvider.ownServer,
+        );
+        await tester.pumpWidget(_app(storage, modelList: server.api));
+        await tester.pumpAndSettle();
+
+        await commitEndpoint(tester, 'http://192.168.1.9:11434');
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-model-field'),
+          'llama3.2:3b',
+        );
+        await tester.pump();
+        server.gates['192.168.1.9']!.complete();
+        await tester.pumpAndSettle();
+
+        expect(server.requests, hasLength(1));
+        expect(modelText(tester), 'llama3.2:3b');
       });
 
       testWidgets('a second address committed while the first is still out '
@@ -2086,6 +2733,24 @@ void main() {
           'http://192.168.1.5:11434/v1/chat/completions',
         );
         expect(prober.calls, 1, reason: 'and it really did start one');
+      });
+
+      testWidgets('a key saved with the address is the key the check uses', (
+        tester,
+      ) async {
+        // #1257: the check started before the key was written, so a first
+        // save of address, model and key together probed without the key,
+        // a server that needs one refused it, and the camera stayed hidden.
+        await tester.pumpWidget(_app(storage, probeRunner: runner));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-key-field'),
+          'secret-key',
+        );
+        await fillAndSave(tester);
+
+        expect(prober.calls, 1);
+        expect(prober.lastSelection?.apiKey, 'secret-key');
       });
 
       testWidgets('the text result and the photo result are separate', (
@@ -2955,9 +3620,19 @@ void main() {
   List<(String, RenderParagraph)> modelTitles(WidgetTester tester) => tester
       .widgetList<RadioListTile<String>>(find.byType(RadioListTile<String>))
       .map((tile) => (tile.title as Text).data!)
-      .map((data) => (data, tester.renderObject<RenderParagraph>(
-            find.text(data),
-          )))
+      // The title carries a semantics label, so its paragraph sits a
+      // level below the Text.
+      .map(
+        (data) => (
+          data,
+          tester.renderObject<RenderParagraph>(
+            find.descendant(
+              of: find.text(data),
+              matching: find.byType(RichText),
+            ),
+          ),
+        ),
+      )
       .toList();
 
   test('provider identifiers are kebab-case, and one per provider', () {
@@ -3012,7 +3687,7 @@ void main() {
     }
   });
 
-  testWidgets('a model row stays inside its two-line bound', (tester) async {
+  testWidgets('a model row stays inside its three-line bound', (tester) async {
     // 320dp at a 2.0 text scale leaves the title 156dp, which no model id
     // fits under any setting. What has to hold there is that it stops at the
     // bound rather than running down the dialog.
@@ -3043,7 +3718,11 @@ void main() {
           )
           .map((box) => box.top)
           .toSet();
-      expect(lines.length, lessThanOrEqualTo(2), reason: '$data ran past two');
+      expect(
+        lines.length,
+        lessThanOrEqualTo(3),
+        reason: '$data ran past three',
+      );
     }
     expect(tester.takeException(), isNull);
   });
@@ -3057,10 +3736,9 @@ void main() {
     // the same visible text in both rows — worse than wrapping, and just as
     // silent.
     //
-    // This is what pins the vendor prefix in place. Dropping it looks like
-    // it buys width and instead removes the `/`, which is the only point in
-    // a model id where a line can break at all — so the shortened form
-    // cannot use the second line, and truncates here where the full id fits.
+    // The vendor prefix used to be pinned here: the `/` was the only point
+    // where an id could break. The title now may break after each `-` as
+    // well, so it drops the vendor, which *Served by* names below it.
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
@@ -3167,6 +3845,123 @@ void main() {
 
       expect(find.text(l10nEn.aiConsentTitle), findsNothing);
       expect(await storage.readApiKey(provider: AiProvider.anthropic), 'sk-x');
+    });
+
+    testWidgets('an agreement from before Google was named asks again for '
+        'a Gemini address', (tester) async {
+      // #1257: an install that saved Google's address agreed to "a server
+      // you run … No third party receives it". Saving it now puts the
+      // paragraph naming Google in front of the user before anything is
+      // sent, and only a yes to that turns the feature on.
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+      await storage.setActiveProvider(AiProvider.ownServer);
+      backing.store['AiEndpointTag.ownServer'] = gemini;
+      backing.store['AiModelTag.ownServer'] = 'gemini-3.1-pro';
+      backing.store['AiAssistEnabledTag'] = 'true';
+      backing.store['AiTermsAcceptedTag'] = 'true';
+      expect(await storage.readSelection(), isNull);
+
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('ai-assist-save-key'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.aiConsentTitle), findsOneWidget);
+      expect(
+        find.text(
+          l10nEn.aiAssistDisclosureOwnServerGemini(
+            'generativelanguage.googleapis.com',
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      // The Google paragraph is long enough to push the button past the fold.
+      final agree = find.bySemanticsIdentifier('ai-consent-agree');
+      await tester.scrollUntilVisible(agree, 200);
+      await tester.tap(agree);
+      await tester.pumpAndSettle();
+
+      expect(
+        (await storage.readSelection())?.endpoint,
+        '$gemini/chat/completions',
+      );
+    });
+
+    group('turning the switch on for a Gemini address agreed to before '
+        'Google was named', () {
+      // #1257: the switch only wrote the flag and read it back, and the
+      // missing Google agreement kept it off, so it snapped back with
+      // nothing said. It asks for the agreement instead.
+      const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai';
+
+      Future<void> tapSwitch(WidgetTester tester) async {
+        await storage.setActiveProvider(AiProvider.ownServer);
+        backing.store['AiEndpointTag.ownServer'] = gemini;
+        backing.store['AiModelTag.ownServer'] = 'gemini-3.1-pro';
+        backing.store['AiAssistEnabledTag'] = 'false';
+        backing.store['AiTermsAcceptedTag'] = 'true';
+
+        await tester.pumpWidget(_app(storage));
+        await tester.pumpAndSettle();
+        final toggle = find.bySemanticsIdentifier('ai-assist-enabled');
+        await tester.ensureVisible(toggle);
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isFalse,
+        );
+        await tester.tap(find.byType(SwitchListTile));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('shows the paragraph naming Google, and a yes turns it on', (
+        tester,
+      ) async {
+        await tapSwitch(tester);
+
+        expect(find.text(l10nEn.aiConsentTitle), findsOneWidget);
+        expect(
+          find.text(
+            l10nEn.aiAssistDisclosureOwnServerGemini(
+              'generativelanguage.googleapis.com',
+            ),
+          ),
+          findsOneWidget,
+        );
+        final agree = find.bySemanticsIdentifier('ai-consent-agree');
+        await tester.scrollUntilVisible(agree, 200);
+        await tester.tap(agree);
+        await tester.pumpAndSettle();
+
+        expect(await storage.isEnabled(), isTrue);
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isTrue,
+        );
+      });
+
+      testWidgets('a no leaves it off and records nothing', (tester) async {
+        await tapSwitch(tester);
+
+        final decline = find.bySemanticsIdentifier('ai-consent-decline');
+        await tester.scrollUntilVisible(decline, 200);
+        await tester.tap(decline);
+        await tester.pumpAndSettle();
+
+        expect(await storage.isEnabled(), isFalse);
+        expect(
+          await storage.hasAcceptedTerms(
+            provider: AiProvider.ownServer,
+            endpoint: gemini,
+          ),
+          isFalse,
+        );
+        expect(
+          tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+          isFalse,
+        );
+      });
     });
 
     testWidgets('the screen names the destination that was chosen', (

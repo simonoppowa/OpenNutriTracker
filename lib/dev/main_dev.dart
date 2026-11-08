@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/l10n/app_locales.dart';
@@ -7,6 +9,7 @@ import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/demo/demo_seeder.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/tip_jar_cubit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:opennutritracker/main.dart';
 
@@ -30,17 +33,27 @@ Future<void> main() async {
   await initLocator();
 
   await seedDemoData(DemoSeedOptions.dev);
+  // After the seed: its wipe runs Reset profile data, which would race the
+  // tip jar's start-up recovery.
+  unawaited(locator<TipJarCubit>().start());
+  locator<TipJarCubit>().watchAppResumes();
 
   final configRepo = locator<ConfigRepository>();
   final config = await configRepo.getConfig();
   // Mirrors the reconciliation in main.dart so a dev build behaves the same
   // way when the OS holds a per-app language.
+  final systemLocale = await AppLocaleService.getApplicationLocale();
   final localeCode = await reconcileAppLocale(
     savedLocaleCode: await configRepo.getSelectedLocale(),
-    systemLocaleTag: await AppLocaleService.getApplicationLocale(),
+    systemLocaleTag: systemLocale.tag,
+    systemTagReadFailed: systemLocale.readFailed,
+    localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
     supportedLocales: appLocales(S.supportedLocales),
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
+    readSystemTag: AppLocaleService.getApplicationLocale,
+    markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+    clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
   );
   final savedLocale = localeCode != null ? Locale(localeCode) : null;
   final savedAppTheme = await configRepo.getConfigAppTheme();

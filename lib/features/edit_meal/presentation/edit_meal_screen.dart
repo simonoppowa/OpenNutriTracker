@@ -25,6 +25,7 @@ import 'package:opennutritracker/core/utils/food_name_validator.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
@@ -46,6 +47,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   late DateTime _day;
   late IntakeTypeEntity _intakeTypeEntity;
   late bool _usesImperialUnits;
+  LogTray? _logTray;
 
   late bool _editOnly;
 
@@ -131,6 +133,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _intakeTypeEntity = args.intakeTypeEntity;
     _usesImperialUnits = args.usesImperialUnits;
     _editOnly = args.editOnly;
+    _logTray = args.logTray;
 
     _nameTextController.text = _mealEntity.name ?? "";
     _brandsTextController.text = _mealEntity.brands ?? "";
@@ -144,7 +147,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
         (existingCode != null && isBarcodeFormatValid(existingCode))
             ? existingCode
             : "";
-    _mealQuantityTextController.text = _mealEntity.mealQuantity ?? "";
+    _mealQuantityTextController.text =
+        _mealEntity.mealQuantity?.withDotDecimal() ?? "";
     _servingQuantityTextController.text =
         _mealEntity.servingQuantity.toStringOrEmpty();
     // Seed the energy field in the user's currently-selected unit (#177
@@ -663,7 +667,23 @@ class _EditMealScreenState extends State<EditMealScreen> {
     }
   }
 
+  /// Set while a save runs, so a second tap on Save before the first one has
+  /// navigated away does nothing. A second run would build the meal again
+  /// from the same pre-edit [_mealEntity]: after a barcode clear that is a
+  /// fresh internal id matching no entry, and the library got a copy.
+  bool _saving = false;
+
   Future<void> _onSavePressed(bool usesImperialUnits) async {
+    if (_saving) return;
+    _saving = true;
+    try {
+      await _save(usesImperialUnits);
+    } finally {
+      _saving = false;
+    }
+  }
+
+  Future<void> _save(bool usesImperialUnits) async {
     try {
       // Validate meal name: non-empty and contains at least one letter (#211, #214)
       if (!FoodNameValidator.isValid(_nameTextController.text)) {
@@ -726,7 +746,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           _simpleFieldOrZero(_carbsTextController.text),
           _simpleFieldOrZero(_fatTextController.text),
           _simpleFieldOrZero(_proteinTextController.text),
-          barcodeOverride: rawBarcode.isEmpty ? null : rawBarcode,
+          barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
         );
@@ -889,7 +909,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
           magnesiumText: magnesiumText,
           vitaminDText: vitaminDText,
           vitaminB12Text: vitaminB12Text,
-          barcodeOverride: rawBarcode.isEmpty ? null : rawBarcode,
+          barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
         );
@@ -901,7 +921,10 @@ class _EditMealScreenState extends State<EditMealScreen> {
       final shouldPersistTemplate = _editOnly || _saveForLater;
       if (newMealEntity.source == MealSourceEntity.custom &&
           shouldPersistTemplate) {
-        await _editMealBloc.saveCustomMeal(newMealEntity);
+        await _editMealBloc.saveCustomMeal(
+          newMealEntity,
+          previous: _mealEntity,
+        );
       }
 
       if (!mounted) return;
@@ -916,6 +939,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             _intakeTypeEntity,
             _day,
             usesImperialUnits,
+            logTray: _logTray,
           ),
         );
       }
@@ -1072,12 +1096,17 @@ class EditMealScreenArguments {
   final bool usesImperialUnits;
   final bool editOnly;
 
+  /// The add-food screen's "To log" list, handed on to the detail screen a
+  /// new food opens in so that it adds there instead of logging.
+  final LogTray? logTray;
+
   EditMealScreenArguments(
     this.day,
     this.mealEntity,
     this.intakeTypeEntity,
     this.usesImperialUnits, {
     this.editOnly = false,
+    this.logTray,
   });
 }
 

@@ -7,20 +7,22 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/core/l10n/shipped_locales.dart';
 import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
-import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
-import 'package:opennutritracker/core/presentation/widgets/badged_title.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/app_locale_service.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/utils/app_locale_sync.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
+import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -41,6 +43,7 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/diary_day_boundary_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_adjustment_dialog.dart';
@@ -48,6 +51,8 @@ import 'package:opennutritracker/features/settings/presentation/widgets/kcal_goa
 import 'package:opennutritracker/features/settings/presentation/widgets/macro_split_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_goals_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/per_meal_kcal_share_dialog.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/settings_rows.dart';
+import 'package:opennutritracker/features/settings/presentation/support/support_screen.dart';
 
 /// What the settings route was opened *for*.
 ///
@@ -61,7 +66,8 @@ import 'package:opennutritracker/features/settings/presentation/widgets/per_meal
 /// Arguments are optional — every other way in pushes the route without
 /// them, and a null or foreign `arguments` is simply the plain screen.
 class SettingsScreenArguments {
-  /// Open the AI assistance dialog as soon as the screen is up.
+  /// Open the AI assistance dialog as soon as the screen is up, and close
+  /// the screen with it: the route is only there to host the dialog (#1471).
   final bool openAiAssist;
 
   const SettingsScreenArguments({this.openAiAssist = false});
@@ -97,6 +103,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Null when the stored name is unrecognised — see #753.
   AiProvider? _aiProvider;
 
+  /// Whether the user hid the AI features (#1518). Starts from the value read
+  /// at app start, so the AI meal assistance row does not flash.
+  late bool _aiHidden = _aiCredentials.hiddenIfKnown ?? false;
+
   /// Whether the route's arguments have been acted on.
   ///
   /// `didChangeDependencies` runs again for anything this screen depends on —
@@ -127,6 +137,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _settingsBloc.add(LoadSettingsEvent());
   }
 
+  /// Whether a route was covering this screen's own the last time we looked.
+  bool _wasCovered = false;
+
+  /// Reloads when the user comes back to this screen from a route pushed
+  /// over it.
+  ///
+  /// `initState` covers the pushed form, which is built fresh on every visit,
+  /// but the embedded form lives on in the You tab: the search and scan
+  /// screens that fill the cache are pushed over it and popped, and nothing
+  /// rebuilt it, so the "Clear cached items" count stayed at what it was
+  /// when Settings was first expanded (#1368). `isCurrentOf` makes this run
+  /// again whenever the route stops or starts being the top one.
+  void _reloadOnReturn() {
+    final isCurrent = ModalRoute.isCurrentOf(context) ?? true;
+    if (isCurrent && _wasCovered) _settingsBloc.add(LoadSettingsEvent());
+    _wasCovered = !isCurrent;
+  }
+
   /// Acts on what the caller asked the settings route for — see
   /// [SettingsScreenArguments].
   ///
@@ -135,6 +163,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _reloadOnReturn();
     if (_routeRequestHandled || widget.embedded) return;
     _routeRequestHandled = true;
     final arguments = ModalRoute.of(context)?.settings.arguments;
@@ -145,14 +174,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // `showDialog` pushes a route.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      unawaited(_openAiAssistDialog(context));
+      unawaited(_hostAiAssistDialog());
     });
+  }
+
+  /// The dialog a caller asked for, and the route closed behind it.
+  ///
+  /// A caller that asks for the AI dialog wanted the dialog, not Settings:
+  /// every one of them is the bulk-add screen, sending the user here to set
+  /// up a provider and expecting them back. Closing the dialog used to leave
+  /// the full Settings list in between, one Back away from where they came
+  /// from (#1471). The caller re-reads the keystore on the pop, so leaving
+  /// with Cancel or OK both answer it.
+  ///
+  /// Only while this route is still the top one: anything pushed over it in
+  /// the meantime is not this method's to close.
+  Future<void> _hostAiAssistDialog() async {
+    await _openAiAssistDialog(context);
+    if (!mounted || !(ModalRoute.isCurrentOf(context) ?? false)) return;
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     final Widget body = BlocBuilder<SettingsBloc, SettingsState>(
       bloc: _settingsBloc,
+      // Every save and toggle reloads, and the reload starts with a loading
+      // state. Swapping the list for a spinner then threw its scroll position
+      // away and put the user back at the top, out of sight of the row they
+      // just changed (#1368). Only the first load shows the spinner; a reload
+      // keeps the list until the fresh values arrive.
+      buildWhen: (previous, current) =>
+          !(previous is SettingsLoadedState && current is SettingsLoadingState),
       builder: (context, state) {
         if (state is SettingsInitial) {
           _settingsBloc.add(LoadSettingsEvent());
@@ -181,15 +234,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // shrink-wrapped, unscrollable list of fixed children *is* a
           // Column, with a viewport in the way.
           final children = <Widget>[
-              _categoryHeader(
-                context,
-                palette,
-                S.of(context).settingsCategoryUnits,
+              SettingsCategoryHeader(
+                palette: palette,
+                label: S.of(context).settingsCategoryUnits,
               ),
-              _SettingsGroup(
+              SettingsGroup(
                 palette: palette,
                 tiles: [
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-food-units',
                     palette: palette,
                     icon: Icons.kitchen_rounded,
@@ -202,7 +254,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       state.usesImperialFoodUnits,
                     ),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-height-units',
                     palette: palette,
                     icon: Icons.height_rounded,
@@ -215,7 +267,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       state.usesImperialHeightUnits,
                     ),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-body-weight-unit',
                     palette: palette,
                     icon: Icons.monitor_weight_rounded,
@@ -226,7 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       state.bodyWeightUnit,
                     ),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-energy-unit',
                     palette: palette,
                     icon: Icons.local_fire_department_rounded,
@@ -260,12 +312,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: Dimens.spacing20),
-              _categoryHeader(
-                context,
-                palette,
-                S.of(context).settingsCategoryGoals,
+              SettingsCategoryHeader(
+                palette: palette,
+                label: S.of(context).settingsCategoryGoals,
               ),
-              _SettingsGroup(
+              SettingsGroup(
                 palette: palette,
                 tiles: [
                   // The old Calculations dialog had grown into a wall of
@@ -273,7 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // ten nutrient goals, and the diary day boundary. Each
                   // is now its own focused entry so people can find the
                   // setting they want and only see the controls for it.
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-kcal-goal-info',
                     palette: palette,
                     icon: Icons.functions_rounded,
@@ -285,28 +336,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-kcal-adjustment',
                     palette: palette,
                     icon: Icons.calculate_rounded,
-                    title: S.of(context).settingsKcalAdjustmentLabel,
+                    title: state.usesKilojoules
+                        ? S.of(context).settingsKjAdjustmentLabel
+                        : S.of(context).settingsKcalAdjustmentLabel,
                     onTap: () => _showKcalAdjustmentDialog(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-macro-split',
                     palette: palette,
                     icon: Icons.pie_chart_rounded,
                     title: S.of(context).settingsMacroSplitLabel,
                     onTap: () => _showMacroSplitDialog(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-per-meal-share',
                     palette: palette,
                     icon: Icons.restaurant_menu_rounded,
                     title: S.of(context).settingsPerMealKcalShareLabel,
                     onTap: () => _showPerMealKcalShareDialog(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-nutrient-goals',
                     palette: palette,
                     icon: Icons.spa_rounded,
@@ -314,7 +367,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     showChevron: true,
                     onTap: () => _openNutrientGoalsScreen(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-day-boundary',
                     palette: palette,
                     icon: Icons.schedule_rounded,
@@ -324,12 +377,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: Dimens.spacing20),
-              _categoryHeader(
-                context,
-                palette,
-                S.of(context).settingsCategoryDisplay,
+              SettingsCategoryHeader(
+                palette: palette,
+                label: S.of(context).settingsCategoryDisplay,
               ),
-              _SettingsGroup(
+              SettingsGroup(
                 palette: palette,
                 tiles: [
                   _SettingsSwitchTile(
@@ -353,10 +405,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.bar_chart_rounded,
                     title: S.of(context).settingsShowMealMacros,
                     value: state.showMealMacros,
-                    onChanged: (bool value) {
-                      _settingsBloc.setShowMealMacros(value);
+                    onChanged: (bool value) async {
+                      // Every reload below reads the flag back, so it must
+                      // be stored first.
+                      await _settingsBloc.setShowMealMacros(value);
                       _settingsBloc.add(LoadSettingsEvent());
                       _homeBloc.add(LoadItemsEvent());
+                      // The Diary's meal headers read the flag from
+                      // DiaryBloc, which keeps it until reloaded.
+                      reloadDiaryAndTrends();
                     },
                   ),
                   _SettingsSwitchTile(
@@ -369,11 +426,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _settingsBloc.add(LoadSettingsEvent());
                     },
                   ),
+                  // #1518: one switch for every AI surface — the Snap meal tile,
+                  // the AI badges, the set-up offer and the AI meal
+                  // assistance row — and, while off, nothing is sent to a
+                  // model. Device-wide, like the keys it sits beside.
+                  _SettingsSwitchTile(
+                    identifier: 'settings-show-ai',
+                    palette: palette,
+                    icon: Icons.auto_awesome_rounded,
+                    title: S.of(context).settingsShowAiFeaturesLabel,
+                    subtitle: S.of(context).settingsShowAiFeaturesSubtitle,
+                    value: !_aiHidden,
+                    onChanged: (bool value) async {
+                      setState(() => _aiHidden = !value);
+                      await _aiCredentials.setHidden(!value);
+                      await _refreshAiAssistState();
+                    },
+                  ),
                   // #160 follow-up: lets the user pick which nutrients show
                   // on the diary's daily nutrient panel. Lives next to the
                   // meal-detail micronutrient toggle above; both shape what
                   // the user sees from the same underlying nutrient data.
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-nutrient-visibility',
                     palette: palette,
                     icon: Icons.tune_rounded,
@@ -384,21 +458,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: Dimens.spacing20),
-              _categoryHeader(
-                context,
-                palette,
-                S.of(context).settingsCategoryAppearance,
+              SettingsCategoryHeader(
+                palette: palette,
+                label: S.of(context).settingsCategoryAppearance,
               ),
-              _SettingsGroup(
+              SettingsGroup(
                 palette: palette,
                 tiles: [
-                  _SettingsTile(
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.brightness_medium_rounded,
                     title: S.of(context).settingsThemeLabel,
                     onTap: () => _showThemeDialog(context, state.appTheme),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-accent-colour',
                     palette: palette,
                     icon: Icons.palette_rounded,
@@ -416,7 +489,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       context,
                     ).pushNamed(NavigationOptions.accentColourRoute),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.language_rounded,
                     title: S.of(context).settingsLanguageLabel,
@@ -429,12 +502,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: Dimens.spacing20),
-              _categoryHeader(
-                context,
-                palette,
-                S.of(context).settingsNotificationsLabel,
+              SettingsCategoryHeader(
+                palette: palette,
+                label: S.of(context).settingsNotificationsLabel,
               ),
-              _SettingsGroup(
+              SettingsGroup(
                 palette: palette,
                 tiles: [
                   _SettingsSwitchTile(
@@ -456,7 +528,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _onNotificationToggled(context, value, state),
                   ),
                   if (state.notificationsEnabled)
-                    _SettingsTile(
+                    SettingsTile(
                       palette: palette,
                       icon: Icons.access_time_rounded,
                       title: S
@@ -478,15 +550,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: Dimens.spacing20),
-              _categoryHeader(
-                context,
-                palette,
-                S.of(context).settingsCategoryData,
+              SettingsCategoryHeader(
+                palette: palette,
+                label: S.of(context).settingsCategoryData,
               ),
-              _SettingsGroup(
+              SettingsGroup(
                 palette: palette,
                 tiles: [
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-food-sources',
                     palette: palette,
                     icon: Icons.travel_explore_rounded,
@@ -494,7 +565,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: S.of(context).settingsFoodSourcesSubtitle,
                     onTap: () => _openFoodSourcesScreen(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-health-sync',
                     palette: palette,
                     icon: Icons.favorite_rounded,
@@ -506,29 +577,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     showChevron: true,
                     onTap: () => _openHealthSyncScreen(context),
                   ),
-                  _SettingsTile(
-                    identifier: 'settings-ai-assist',
-                    palette: palette,
-                    icon: Icons.auto_awesome_rounded,
-                    title: S.of(context).settingsAiAssistLabel,
-                    subtitle: _aiAssistSubtitle(context),
-                    badge: S.of(context).aiAssistExperimentalLabel,
-                    onTap: () => _openAiAssistDialog(context),
-                  ),
-                  _SettingsTile(
+                  // Hidden with the rest of the AI features (#1518); the Show AI
+                  // features switch under Display brings it back.
+                  if (!_aiHidden)
+                    SettingsTile(
+                      identifier: 'settings-ai-assist',
+                      palette: palette,
+                      icon: Icons.auto_awesome_rounded,
+                      title: S.of(context).settingsAiAssistLabel,
+                      subtitle: _aiAssistSubtitle(context),
+                      badge: S.of(context).aiAssistExperimentalLabel,
+                      onTap: () => _openAiAssistDialog(context),
+                    ),
+                  SettingsTile(
                     identifier: 'settings-import-custom-food',
                     palette: palette,
                     icon: Icons.restaurant_menu_rounded,
                     title: S.of(context).importCustomFoodDataLabel,
                     onTap: () => _showImportCustomFoodDataDialog(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.import_export_rounded,
                     title: S.of(context).exportImportAppDataLabel,
                     onTap: () => _showExportImportDialog(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.cached_rounded,
                     title: S.of(context).clearOffCacheLabel,
@@ -541,7 +615,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     enabled: state.offCacheCount > 0,
                     onTap: () => _confirmClearOffCache(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     identifier: 'settings-delete-all-data',
                     palette: palette,
                     icon: Icons.delete_forever_rounded,
@@ -554,15 +628,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: Dimens.spacing20),
-              _categoryHeader(
-                context,
-                palette,
-                S.of(context).settingsCategoryAbout,
+              SettingsCategoryHeader(
+                palette: palette,
+                label: S.of(context).settingsCategoryAbout,
               ),
-              _SettingsGroup(
+              SettingsGroup(
                 palette: palette,
                 tiles: [
-                  _SettingsTile(
+                  SettingsTile(
+                    identifier: 'settings-support',
+                    palette: palette,
+                    icon: Icons.favorite_rounded,
+                    title: S.of(context).settingsSupportLabel,
+                    subtitle: S.of(context).settingsSupportSubtitle,
+                    showChevron: true,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SupportScreen()),
+                    ),
+                  ),
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.policy_rounded,
                     title: S.of(context).settingsPrivacySettings,
@@ -572,13 +656,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       isDemoData: state.isDemoData,
                     ),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.description_rounded,
                     title: S.of(context).settingsDisclaimerLabel,
                     onTap: () => _showDisclaimerDialog(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.menu_book_rounded,
                     title: S.of(context).settingsSourcesLabel,
@@ -586,13 +670,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       MaterialPageRoute(builder: (_) => const SourcesScreen()),
                     ),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.bug_report_rounded,
                     title: S.of(context).settingsReportErrorLabel,
                     onTap: () => _showReportErrorDialog(context),
                   ),
-                  _SettingsTile(
+                  SettingsTile(
                     palette: palette,
                     icon: Icons.error_outline_rounded,
                     title: S.of(context).settingAboutLabel,
@@ -627,28 +711,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _categoryHeader(
-    BuildContext context,
-    AppPalette palette,
-    String label,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        Dimens.spacing12,
-        Dimens.spacing4,
-        Dimens.spacing12,
-        Dimens.spacing8,
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: palette.textMuted,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
   String _formatNotificationTime(int hour, int minute) {
     final h = hour.toString().padLeft(2, '0');
     final m = minute.toString().padLeft(2, '0');
@@ -661,6 +723,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     SettingsLoadedState state,
   ) async {
     final l10n = S.of(context);
+    final locale = Localizations.localeOf(context);
     final notificationService = locator<NotificationService>();
     await notificationService.initialize();
     if (enabled) {
@@ -673,18 +736,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
         return;
       }
-      await notificationService.scheduleDailyReminder(
-        hour: state.notificationHour,
-        minute: state.notificationMinute,
-        title: l10n.notificationsDailyReminderTitle,
-        body: l10n.notificationsDailyReminderBody,
-        channelName: l10n.notificationsDailyReminderChannelName,
-        channelDescription: l10n.notificationsDailyReminderChannelDescription,
-      );
-    } else {
-      await notificationService.cancelDailyReminder();
     }
-    _settingsBloc.setNotificationsEnabled(enabled);
+    // Saves the choice and schedules or cancels in one step, in turn with
+    // any language-change refresh still running.
+    await locator<DailyReminderScheduler>().setEnabled(
+      enabled,
+      locale: locale,
+    );
     _settingsBloc.add(LoadSettingsEvent());
   }
 
@@ -692,18 +750,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     BuildContext context,
     TimeOfDay current,
   ) async {
-    final l10n = S.of(context);
+    final locale = Localizations.localeOf(context);
     final picked = await showTimePicker(context: context, initialTime: current);
     if (picked == null) return;
-    _settingsBloc.setNotificationTime(picked.hour, picked.minute);
-    final notificationService = locator<NotificationService>();
-    await notificationService.scheduleDailyReminder(
-      hour: picked.hour,
-      minute: picked.minute,
-      title: l10n.notificationsDailyReminderTitle,
-      body: l10n.notificationsDailyReminderBody,
-      channelName: l10n.notificationsDailyReminderChannelName,
-      channelDescription: l10n.notificationsDailyReminderChannelDescription,
+    await locator<DailyReminderScheduler>().setTime(
+      picked.hour,
+      picked.minute,
+      locale: locale,
     );
     _settingsBloc.add(LoadSettingsEvent());
   }
@@ -765,7 +818,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _settingsBloc.setUsesImperialFoodUnits(selectedUsesImperial);
       _settingsBloc.add(LoadSettingsEvent());
       _homeBloc.add(LoadItemsEvent());
-      _diaryBloc.add(const LoadDiaryYearEvent());
+      // Profile's water goal and the Trends water card follow the food
+      // unit too, and both keep their loaded state (#1306).
+      _profileBloc.add(LoadProfileEvent());
+      reloadDiaryAndTrends();
     }
   }
 
@@ -1024,6 +1080,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => DiaryDayBoundaryDialog(
         settingsBloc: _settingsBloc,
         homeBloc: _homeBloc,
+        diaryBloc: _diaryBloc,
         calendarDayBloc: _calendarDayBloc,
       ),
     );
@@ -1048,8 +1105,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _refreshAiAssistState() async {
     final summary = await _aiCredentials.readSummary();
+    final hidden = await _aiCredentials.isHidden();
     if (!mounted) return;
     setState(() {
+      _aiHidden = hidden;
       _aiConfigured = summary.configured;
       _aiEnabled = summary.enabled;
       _aiEndpoint = summary.endpoint;
@@ -1253,22 +1312,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     groupValue: selectedCode,
                     onChanged: (v) =>
                         setState(() => selectedCode = v as String),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        RadioListTile<String>(
-                          title: Text(
-                            S.of(context).settingsThemeSystemDefaultLabel,
+                    // The list outgrows a short phone, so it scrolls
+                    // between the title and the buttons (#1331).
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          RadioListTile<String>(
+                            title: Text(
+                              S.of(context).settingsThemeSystemDefaultLabel,
+                            ),
+                            value: _systemLocale,
                           ),
-                          value: _systemLocale,
-                        ),
-                        ...shippedLocales.entries.map(
-                          (e) => RadioListTile<String>(
-                            title: Text(e.value),
-                            value: e.key,
+                          ...shippedLocales.entries.map(
+                            (e) => RadioListTile<String>(
+                              title: Text(e.value),
+                              value: e.key,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -1281,17 +1344,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () {
                 final locale = selectedCode.isEmpty ? null : selectedCode;
-                _settingsBloc.setSelectedLocale(locale);
+                final localeProvider = Provider.of<LocaleProvider>(
+                  context,
+                  listen: false,
+                );
+                final configRepo = locator<ConfigRepository>();
                 // Keep Android's per-app language picker in step, so someone
                 // who later looks there finds the language they chose here
                 // rather than a stale one. A no-op off Android and below
-                // API 33.
-                unawaited(AppLocaleService.setApplicationLocale(locale));
-                _settingsBloc.add(LoadSettingsEvent());
-                Provider.of<LocaleProvider>(
-                  context,
-                  listen: false,
-                ).updateLocale(locale != null ? Locale(locale) : null);
+                // API 33. The pushed value is read back and recorded, so a
+                // later clear in Android's picker is honoured even if this
+                // pick never fires a locale-change callback. The whole write
+                // shares the lock runtime reconciliation runs under, so an
+                // OS clear being reconciled cannot undo it halfway.
+                unawaited(
+                  applyInAppLocaleChoice(
+                    lock: localeSyncLock,
+                    localeCode: locale,
+                    persistSelectedLocale: _settingsBloc.setSelectedLocale,
+                    applyToApp: () {
+                      _settingsBloc.add(LoadSettingsEvent());
+                      localeProvider.updateLocale(
+                        locale != null ? Locale(locale) : null,
+                      );
+                    },
+                    pushToSystem: AppLocaleService.setApplicationLocale,
+                    readSystemTag: AppLocaleService.getApplicationLocale,
+                    markLocaleSyncSeeded: configRepo.setLocaleSyncSeeded,
+                    clearLocaleSyncSeeded: configRepo.clearLocaleSyncSeeded,
+                  ),
+                );
                 Navigator.of(context).pop();
               },
               child: Text(S.of(context).dialogOKLabel),
@@ -1339,20 +1421,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _reportError(BuildContext context) async {
-    final reportUri = Uri.parse(
-      "mailto:${AppConst.reportErrorEmail}?subject=Report_Error",
-    );
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningEmail;
 
-    if (await canLaunchUrl(reportUri)) {
-      launchUrl(reportUri);
-    } else {
-      // Cannot open email app, show error snackbar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningEmail)),
-        );
-      }
+    // Cannot open email app: show error snackbar.
+    if (await tryLaunchExternalUrl(
+      "mailto:${AppConst.reportErrorEmail}?subject=Report_Error",
+      mode: LaunchMode.platformDefault,
+    )) {
+      return;
     }
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 
   void _showPrivacyDialog(
@@ -1473,28 +1552,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _launchSourceCodeUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);
-    _launchUrl(context, sourceCodeUri);
+    openUrlOrShowError(context, AppConst.sourceCodeUrl);
   }
 
   void _launchPrivacyPolicyUrl(BuildContext context) async {
-    final privacyPolicyUri = Uri.parse(
+    openUrlOrShowError(
+      context,
       URLConst.privacyPolicyFor(Localizations.localeOf(context).languageCode),
     );
-    _launchUrl(context, privacyPolicyUri);
-  }
-
-  void _launchUrl(BuildContext context, Uri url) async {
-    if (await canLaunchUrl(url)) {
-      launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      // Cannot open browser app, show error snackbar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningBrowser)),
-        );
-      }
-    }
   }
 }
 
@@ -1555,115 +1620,7 @@ class _AccentTrailingSwatch extends StatelessWidget {
   }
 }
 
-/// Wraps a run of related settings rows inside one [AppCard], with a hairline
-/// divider between rows. Gives the screen the same calm grouped rhythm as the
-/// Profile tab rather than one long ungrouped list.
-class _SettingsGroup extends StatelessWidget {
-  final AppPalette palette;
-  final List<Widget> tiles;
-
-  const _SettingsGroup({required this.palette, required this.tiles});
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = <Widget>[];
-    for (var i = 0; i < tiles.length; i++) {
-      if (i > 0) {
-        rows.add(Divider(height: Dimens.hairline, color: palette.border));
-      }
-      rows.add(tiles[i]);
-    }
-    return AppCard(
-      padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
-      child: Column(mainAxisSize: MainAxisSize.min, children: rows),
-    );
-  }
-}
-
-/// A single tappable settings row. Keeps the underlying [ListTile] (so its
-/// role semantics carry through) and an optional [Semantics] identifier where
-/// the original markup carried one, but dresses the leading icon as a soft
-/// rounded chip in the friendly-flat style.
-class _SettingsTile extends StatelessWidget {
-  final String? identifier;
-  final AppPalette palette;
-  final IconData icon;
-  final Color? iconColor;
-  final Color? titleColor;
-  final String title;
-  final String? subtitle;
-
-  /// A short status word shown beside the title, e.g. "Experimental".
-  final String? badge;
-  final Widget? trailing;
-  final bool showChevron;
-  final bool enabled;
-  final VoidCallback onTap;
-
-  const _SettingsTile({
-    required this.palette,
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.identifier,
-    this.iconColor,
-    this.titleColor,
-    this.subtitle,
-    this.badge,
-    this.trailing,
-    this.showChevron = false,
-    this.enabled = true,
-  });
-
-  /// The title, with [badge] beside it when one is set.
-  ///
-  /// The overflow discipline moved into [BadgedTitle] for #728, when
-  /// onboarding needed the same marker — it is a rule rather than a layout,
-  /// and re-deriving it at a second site was the obvious way to get it subtly
-  /// wrong. The typography stays here, so a settings row still looks like a
-  /// settings row.
-  Widget _titleWithBadge(
-    BuildContext context,
-    TextTheme text,
-    AppPalette palette,
-  ) => BadgedTitle(
-    title: title,
-    badge: badge,
-    palette: palette,
-    style: text.titleMedium?.copyWith(
-      fontWeight: FontWeight.w700,
-      color: titleColor,
-    ),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.primary;
-    final text = Theme.of(context).textTheme;
-    final tint = iconColor ?? accent;
-    final tile = ListTile(
-      enabled: enabled,
-      leading: _SettingsIconChip(palette: palette, icon: icon, color: tint),
-      title: _titleWithBadge(context, text, palette),
-      subtitle: subtitle != null
-          ? Text(
-              subtitle!,
-              style: text.bodyMedium?.copyWith(color: palette.textMuted),
-            )
-          : null,
-      trailing:
-          trailing ??
-          (showChevron
-              ? Icon(Icons.chevron_right_rounded, color: accent)
-              : null),
-      onTap: onTap,
-    );
-    if (identifier == null) return tile;
-    return Semantics(identifier: identifier!, child: tile);
-  }
-}
-
-/// Switch variant of [_SettingsTile] for the boolean toggles.
+/// Switch variant of [SettingsTile] for the boolean toggles.
 class _SettingsSwitchTile extends StatelessWidget {
   final String? identifier;
   final AppPalette palette;
@@ -1688,7 +1645,7 @@ class _SettingsSwitchTile extends StatelessWidget {
     final accent = Theme.of(context).colorScheme.primary;
     final text = Theme.of(context).textTheme;
     final tile = SwitchListTile(
-      secondary: _SettingsIconChip(palette: palette, icon: icon, color: accent),
+      secondary: SettingsIconChip(palette: palette, icon: icon, color: accent),
       title: Text(
         title,
         style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -1704,31 +1661,5 @@ class _SettingsSwitchTile extends StatelessWidget {
     );
     if (identifier == null) return tile;
     return Semantics(identifier: identifier!, child: tile);
-  }
-}
-
-/// The soft rounded leading chip shared by every settings row.
-class _SettingsIconChip extends StatelessWidget {
-  final AppPalette palette;
-  final IconData icon;
-  final Color color;
-
-  const _SettingsIconChip({
-    required this.palette,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: Dimens.borderRadiusS,
-      ),
-      child: Icon(icon, color: color, size: 22),
-    );
   }
 }

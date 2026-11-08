@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 /// A logged activity, rendered as a full-width row to match the meal rows: an
 /// accent icon chip, the activity name and duration, and the burned energy.
@@ -80,7 +81,7 @@ class ActivityCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${activityEntity.duration.toInt()} min',
+                        '${activityEntity.duration.toInt()} ${S.of(context).minuteShortLabel}',
                         style: textTheme.bodySmall?.copyWith(color: palette.textMuted),
                       ),
                     ],

@@ -268,6 +268,21 @@ void main() {
     );
   });
 
+  testWidgets('Import now says how it went, even when nothing was new '
+      '(#1368)', (tester) async {
+    storeConfig(healthImportEnabled: true);
+    importWorkoutsUsecase.importedCount = 0;
+
+    await pumpScreen(tester);
+    await tester.tap(_byIdentifier('health-sync-import-now'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(importWorkoutsUsecase.importNowCalls, 1);
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text(l10nEn.healthSyncImportedCountLabel(0)), findsOneWidget);
+  });
+
   testWidgets('every interactive widget carries an accessibility identifier', (
     tester,
   ) async {

@@ -29,8 +29,8 @@ class CalendarDayLoaded extends CalendarDayState {
   final double dinnerKcalTarget;
   final double snackKcalTarget;
   // #150 follow-up: per-meal share percentages. A 0% share hides the section
-  // entirely so OMAD / two-meal users don't see meal slots they've explicitly
-  // opted out of.
+  // while it is empty so OMAD / two-meal users don't see meal slots they've
+  // explicitly opted out of (one with intakes still shows, #1305).
   final int breakfastSharePct;
   final int lunchSharePct;
   final int dinnerSharePct;

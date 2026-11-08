@@ -74,6 +74,7 @@ Future<void> _pumpSheet(
   required TextEditingController quantityController,
   required void Function(String?, String?) onChanged,
   String initialUnit = 'serving',
+  bool usesImperialUnits = false,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -87,6 +88,7 @@ Future<void> _pumpSheet(
           quantityTextController: quantityController,
           mealDetailBloc: _buildBloc(),
           selectedUnit: initialUnit,
+          usesImperialUnits: usesImperialUnits,
           onQuantityOrUnitChanged: onChanged,
         ),
       ),
@@ -214,4 +216,17 @@ void main() {
       expect(cbUnit, 'serving');
     },
   );
+  testWidgets('with imperial food units the serving entry reads in oz '
+      '(#1368)', (tester) async {
+    await _pumpSheet(
+      tester,
+      product: _solidWithServing(),
+      quantityController: TextEditingController(text: '1'),
+      onChanged: (_, _) {},
+      usesImperialUnits: true,
+    );
+
+    expect(find.text('1.06 oz'), findsOneWidget);
+    expect(find.text('30 g'), findsNothing);
+  });
 }

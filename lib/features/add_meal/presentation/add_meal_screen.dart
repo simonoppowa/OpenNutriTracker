@@ -1,26 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/navigation_predicates.dart';
+import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/log_tray_widgets.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/add_food_methods.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/partial_results_notice.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -33,6 +49,7 @@ class AddMealScreen extends StatefulWidget {
 }
 
 class _AddMealScreenState extends State<AddMealScreen> {
+  final _log = Logger('AddMealScreen');
   final ValueNotifier<String> _searchStringListener = ValueNotifier('');
 
   late AddMealType _mealType;
@@ -41,18 +58,58 @@ class _AddMealScreenState extends State<AddMealScreen> {
   late ProductsBloc _productsBloc;
   late FoodBloc _foodBloc;
   late RecentMealBloc _recentMealBloc;
+  late FavouriteMealBloc _favouriteMealBloc;
+  late AddMealBloc _addMealBloc;
+
+  /// Whether the Describe tile's panel is open under the tiles.
+  bool _describeOpen = false;
+
+  /// Whether the user hid the AI features (#1518): no Snap meal tile, and
+  /// Describe without its AI badge, since the offline parser reads it then.
+  /// Starts from the value read at app start, so the tile does not show for
+  /// a frame and vanish.
+  bool _aiHidden = false;
+
+  /// What every entry method on this screen adds to, and the one button at
+  /// the bottom logs. Handed to the screens this one opens.
+  final _logTray = LogTray();
+  bool _logging = false;
+
+  /// Codes whose + is still fetching the full record.
+  final _quickAdding = <String>{};
 
   // Single smart search: one field, one results list, and source-filter chips.
   // Opens on Recent (fast re-logging); typing searches Products by default,
   // with Food / Recent a chip away.
   _SearchSource _source = _SearchSource.recent;
 
+  // #576: once the user explicitly taps the Recent chip, typing should keep
+  // filtering Recent instead of silently jumping to All (the default-Recent
+  // case still upgrades to All on first keystroke, matching existing
+  // behavior for someone who never touched the chips).
+  bool _stickOnRecent = false;
+
   @override
   void initState() {
     _productsBloc = locator<ProductsBloc>();
     _foodBloc = locator<FoodBloc>();
     _recentMealBloc = locator<RecentMealBloc>();
+    _favouriteMealBloc = locator<FavouriteMealBloc>();
+    // Held, not looked up where it is read: a factory registration hands out
+    // a fresh instance per lookup, whose state would always be initial.
+    _addMealBloc = locator<AddMealBloc>()..add(InitializeAddMealEvent());
     super.initState();
+    _refreshAiHidden();
+  }
+
+  /// Absent in tests that register no AI store, where nothing is hidden.
+  Future<void> _refreshAiHidden() async {
+    if (!locator.isRegistered<AiCredentialStorage>()) return;
+    final storage = locator<AiCredentialStorage>();
+    final known = storage.hiddenIfKnown;
+    if (known != null) _aiHidden = known;
+    final hidden = await storage.isHidden();
+    if (mounted && hidden != _aiHidden) setState(() => _aiHidden = hidden);
   }
 
   @override
@@ -67,6 +124,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
   @override
   void dispose() {
     _searchStringListener.dispose();
+    _favouriteMealBloc.close();
+    _addMealBloc.close();
+    _logTray.dispose();
     super.dispose();
   }
 
@@ -74,6 +134,29 @@ class _AddMealScreenState extends State<AddMealScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
+    return ListenableBuilder(
+      listenable: _logTray,
+      builder: (context, _) => PopScope(
+        // Leaving with items on the list would drop them without a word.
+        canPop: _logTray.isEmpty,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && !_logging) _confirmDiscardTray();
+        },
+        // Nothing on the screen takes input while the list is being
+        // written: an item added or removed mid-write would be dropped by
+        // the return to the day, or logged after being removed.
+        child: AbsorbPointer(
+          absorbing: _logging,
+          child: _withLogButtonAboveKeyboard(
+            context,
+            _buildScaffold(context, palette),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, AppPalette palette) {
     return Scaffold(
       // Let the keyboard overlay the results rather than compress the body.
       // In landscape the space above the keyboard is shorter than the pinned
@@ -90,30 +173,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
             ),
           ),
           BlocBuilder<AddMealBloc, AddMealState>(
-            bloc: locator<AddMealBloc>()..add(InitializeAddMealEvent()),
+            bloc: _addMealBloc,
             builder: (BuildContext context, AddMealState state) {
               if (state is AddMealLoadedState) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Semantics(
-                      identifier: 'add-meal-bulk-add',
-                      child: IconButton(
-                        onPressed: () =>
-                            _onBulkAddPressed(state.usesImperialUnits),
-                        icon: const Icon(Icons.playlist_add),
-                        tooltip: S.of(context).bulkAddTitle,
-                      ),
-                    ),
-                    Semantics(
-                      identifier: 'add-meal-custom-add',
-                      child: IconButton(
-                        onPressed: () =>
-                            _onCustomAddButtonPressed(state.usesImperialUnits),
-                        icon: const Icon(Icons.add_circle_outline),
-                      ),
-                    ),
-                  ],
+                return Semantics(
+                  identifier: 'add-meal-custom-add',
+                  child: IconButton(
+                    onPressed: () =>
+                        _onCustomAddButtonPressed(state.usesImperialUnits),
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
                 );
               }
               return const SizedBox();
@@ -121,36 +190,129 @@ class _AddMealScreenState extends State<AddMealScreen> {
           ),
         ],
       ),
+      // Below the results rather than over them, so the last result stays
+      // reachable while the list is waiting. While the keyboard is up it
+      // would sit under it (the body does not resize, see above), so then
+      // the button floats just above the keyboard instead (#1520).
+      bottomNavigationBar:
+          _logTray.isEmpty || MediaQuery.viewInsetsOf(context).bottom > 0
+          ? null
+          : SafeArea(top: false, child: _buildLogButton()),
       body: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
-          child: Column(
-            children: [
-              const SizedBox(height: Dimens.spacing8),
-              MealSearchBar(
-                searchStringListener: _searchStringListener,
-                onSearchSubmit: _onSearchSubmit,
-                onSearchChanged: _onSearchChanged,
-                onBarcodePressed: _onBarcodeIconPressed,
-              ),
-              const SizedBox(height: Dimens.spacing12),
-              _buildSourceChips(context, palette),
-              const SizedBox(height: Dimens.spacing12),
-              // Rebuild on every keystroke so the empty-state logic can tell
-              // "no results for this query" apart from "a newer query is
-              // still debouncing/searching" — the latter shows a spinner.
-              Expanded(
-                child: ValueListenableBuilder<String>(
-                  valueListenable: _searchStringListener,
-                  builder: (context, query, _) =>
-                      _buildResults(context, palette, query),
+          child: LayoutBuilder(
+            builder: (context, constraints) => Column(
+              children: [
+                const SizedBox(height: Dimens.spacing8),
+                // The entry block is bounded and scrolls past its ceiling: the
+                // tiles and the open describe panel are taller than what a
+                // landscape phone leaves above the keyboard, and the results
+                // below must keep a share of the screen (#165).
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: constraints.maxHeight * 0.5,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // The barcode lives on its own tile now, so the field
+                        // carries no suffix icon of its own.
+                        MealSearchBar(
+                          searchStringListener: _searchStringListener,
+                          onSearchSubmit: _onSearchSubmit,
+                          onSearchChanged: _onSearchChanged,
+                          onBarcodePressed: null,
+                        ),
+                        const SizedBox(height: Dimens.spacing12),
+                        AddFoodMethodTiles(
+                          onBarcodePressed: _onBarcodeIconPressed,
+                          onSnapMealPressed: () =>
+                              _openBulkAdd(startWithPhoto: true),
+                          onDescribePressed: () =>
+                              setState(() => _describeOpen = !_describeOpen),
+                          describeOpen: _describeOpen,
+                          showAi: !_aiHidden,
+                        ),
+                        if (_describeOpen) ...[
+                          const SizedBox(height: Dimens.spacing12),
+                          DescribeMealPanel(
+                            onFindFoods: (text) =>
+                                _openBulkAdd(initialText: text),
+                          ),
+                        ],
+                        if (!_logTray.isEmpty) ...[
+                          const SizedBox(height: Dimens.spacing16),
+                          LogTrayList(tray: _logTray),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: Dimens.spacing12),
+                _buildSourceChips(context, palette),
+                const SizedBox(height: Dimens.spacing12),
+                // Rebuild on every keystroke so the empty-state logic can tell
+                // "no results for this query" apart from "a newer query is
+                // still debouncing/searching" — the latter shows a spinner.
+                Expanded(
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: _searchStringListener,
+                    builder: (context, query, _) =>
+                        _buildResults(context, palette, query),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  /// The button that writes the list, padded the way it sits under the
+  /// results.
+  Widget _buildLogButton() => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      Dimens.spacing16,
+      Dimens.spacing8,
+      Dimens.spacing16,
+      Dimens.spacing16,
+    ),
+    child: LogTrayLogButton(
+      tray: _logTray,
+      // Also waits for a + still fetching its food: that item would land
+      // on the list mid-write, miss the write, and be cleared with the
+      // rest.
+      onPressed: _logging || _quickAdding.isNotEmpty ? null : _logAll,
+    ),
+  );
+
+  /// [screen] with the log button laid over it just above the keyboard,
+  /// while the keyboard is up and the list has items (#1520).
+  ///
+  /// Over the results rather than below them: making room for it would
+  /// shrink the body with the keyboard, which is what overflows a landscape
+  /// phone (#165). It goes back below the results when the keyboard closes.
+  ///
+  /// The Stack is there whether or not the button is: wrapping the screen
+  /// only while the keyboard is up would rebuild the search field under a
+  /// new parent, drop its focus and close the very keyboard that caused it.
+  Widget _withLogButtonAboveKeyboard(BuildContext context, Widget screen) {
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    return Stack(
+      children: [
+        Positioned.fill(child: screen),
+        if (!_logTray.isEmpty && keyboardInset > 0)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: keyboardInset,
+            child: _buildLogButton(),
+          ),
+      ],
     );
   }
 
@@ -162,18 +324,37 @@ class _AddMealScreenState extends State<AddMealScreen> {
     _foodBloc.add(const RefreshFoodEvent());
   }
 
+  void _onAllSourcesRefreshButtonPressed() {
+    _onProductsRefreshButtonPressed();
+    _onFoodRefreshButtonPressed();
+  }
+
   void _onRecentMealsRefreshButtonPressed() {
     _recentMealBloc.add(const LoadRecentMealEvent(searchString: ""));
+  }
+
+  void _onFavouritesRefreshButtonPressed() {
+    _favouriteMealBloc.add(
+      LoadFavouriteMealEvent(searchString: _searchStringListener.value),
+    );
   }
 
   /// Resolves the source to search for a query: an empty query always returns
   /// to Recent; a non-empty query searches Products by default, unless the user
   /// has explicitly chosen Food. Keeps the chip selection and the results in sync.
+  /// Favourites is the exception — a chosen list the query filters, so typing
+  /// or clearing the field keeps the user on it.
   _SearchSource _resolveSource(String trimmed) {
+    if (_source == _SearchSource.favourites) return _SearchSource.favourites;
     if (trimmed.isEmpty) return _SearchSource.recent;
-    // Typing searches every source at once (All); an explicit Products / Food
-    // choice narrows that merged list.
-    return _source == _SearchSource.recent ? _SearchSource.all : _source;
+    if (_source == _SearchSource.recent) {
+      // Typing searches every source at once (All) by default — unless the
+      // user explicitly chose the Recent chip, in which case it stays put
+      // and filters recent history instead (#576).
+      return _stickOnRecent ? _SearchSource.recent : _SearchSource.all;
+    }
+    // An explicit Products / Food choice narrows that merged list.
+    return _source;
   }
 
   bool _searchesProducts(_SearchSource s) =>
@@ -193,6 +374,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
           _day,
           _mealType.getIntakeType(),
           initialBarcode: trimmed,
+          logTray: _logTray,
         ),
       );
       return;
@@ -205,6 +387,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     }
     if (source == _SearchSource.recent) {
       _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
+    }
+    if (source == _SearchSource.favourites) {
+      _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: inputText));
     }
   }
 
@@ -222,12 +407,22 @@ class _AddMealScreenState extends State<AddMealScreen> {
       _foodBloc.add(SearchFoodInputChangedEvent(searchString: inputText));
     }
     if (source == _SearchSource.recent) {
-      _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
+      // Filters the history already in memory rather than re-reading the
+      // whole intake box on every keystroke.
+      _recentMealBloc.add(
+        RecentMealSearchChangedEvent(searchString: inputText),
+      );
+    }
+    if (source == _SearchSource.favourites) {
+      _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: inputText));
     }
   }
 
   void _selectSource(_SearchSource source) {
-    setState(() => _source = source);
+    setState(() {
+      _source = source;
+      _stickOnRecent = source == _SearchSource.recent;
+    });
     final query = _searchStringListener.value;
     if (_searchesProducts(source)) {
       _productsBloc.add(LoadProductsEvent(searchString: query));
@@ -238,7 +433,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
     if (source == _SearchSource.recent) {
       _recentMealBloc.add(LoadRecentMealEvent(searchString: query));
     }
+    if (source == _SearchSource.favourites) {
+      _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: query));
+    }
   }
+
+  // #576: "Search all" CTA on an empty filtered-Recent result — switches to
+  // the All chip without the user having to find and tap it themselves.
+  void _onSearchAllPressed() => _selectSource(_SearchSource.all);
 
   Widget _buildSourceChips(BuildContext context, AppPalette palette) {
     Widget chip(_SearchSource source, String label) => Padding(
@@ -257,6 +459,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
         child: Row(
           children: [
             chip(_SearchSource.recent, S.of(context).recentlyAddedLabel),
+            Semantics(
+              identifier: 'add-meal-source-favourites',
+              child: chip(
+                _SearchSource.favourites,
+                S.of(context).favouritesLabel,
+              ),
+            ),
             chip(_SearchSource.all, S.of(context).allItemsLabel),
             chip(_SearchSource.products, S.of(context).searchProductsPage),
             chip(_SearchSource.food, S.of(context).searchFoodPage),
@@ -333,12 +542,26 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       // before rendering the merged list — showing whichever
                       // lands first would make results pop in and shift when
                       // the second source arrives. A failed source counts as
-                      // answered, so one outage doesn't block the other's
-                      // results.
+                      // answered so one outage doesn't block the other's
+                      // results, but it is tracked separately from a genuine
+                      // zero-result answer so the two never look the same.
                       if (_productsPending(ps, query) ||
                           _foodPending(fs, query)) {
                         return _pendingSpinner;
                       }
+                      // A provider timeout or rate limit doesn't fail the
+                      // bloc: the use case falls back to local matches and
+                      // flags the gap on the loaded state instead.
+                      final productsFailed = ps is ProductsFailedState ||
+                          (ps is ProductsLoadedState && ps.remoteSourceFailed);
+                      final foodFailed = fs is FoodFailedState ||
+                          (fs is FoodLoadedState && fs.remoteSourceFailed);
+                      final VoidCallback retryFailed =
+                          productsFailed && foodFailed
+                          ? _onAllSourcesRefreshButtonPressed
+                          : (productsFailed
+                                ? _onProductsRefreshButtonPressed
+                                : _onFoodRefreshButtonPressed);
                       final products = ps is ProductsLoadedState
                           ? ps.products
                           : const <MealEntity>[];
@@ -355,20 +578,76 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         if (ps is ProductsInitial && fs is FoodInitial) {
                           return const DefaultsResultsWidget();
                         }
+                        if (productsFailed && foodFailed) {
+                          // Scrollable for the same reason as the partial
+                          // branch below: on a landscape phone the space
+                          // left in this Expanded is shorter than the error,
+                          // which would overflow and push Retry off screen.
+                          return SingleChildScrollView(
+                            child: ErrorDialog(
+                              errorText:
+                                  S.of(context).errorFetchingProductData,
+                              onRefreshPressed:
+                                  _onAllSourcesRefreshButtonPressed,
+                              retryIdentifier: 'search-all-retry',
+                            ),
+                          );
+                        }
+                        // Exactly one source failed: the other genuinely has
+                        // zero matches, so this is not a hard error, but it
+                        // is not a confirmed "no results" from both sources
+                        // either — say so instead of only offering the
+                        // scan/create actions a real zero-result state gets.
+                        if (productsFailed || foodFailed) {
+                          // SingleChildScrollView, not a plain Column: this
+                          // sits directly inside the Expanded above, and
+                          // NoResultsWidget alone already relies on its own
+                          // internal scroll view to stay overflow-safe on a
+                          // short viewport (see the landscape overflow this
+                          // screen hit in #165). Stacking a second widget on
+                          // top of it without that same protection would
+                          // reintroduce that overflow.
+                          return SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                PartialResultsNotice(onRetry: retryFailed),
+                                NoResultsWidget(
+                                  onScanBarcode: _onBarcodeIconPressed,
+                                  onCreateCustomFood: () =>
+                                      _onCustomAddButtonPressed(imperial),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
                         return NoResultsWidget(
                           onScanBarcode: _onBarcodeIconPressed,
                           onCreateCustomFood: () =>
                               _onCustomAddButtonPressed(imperial),
                         );
                       }
-                      return ListView.builder(
-                        itemCount: merged.length,
-                        itemBuilder: (context, index) => MealItemCard(
-                          day: _day,
-                          mealEntity: merged[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: imperial,
-                        ),
+                      return Column(
+                        children: [
+                          // Both down with local matches left: say nothing
+                          // online answered, not that one source is missing.
+                          if (productsFailed || foodFailed)
+                            PartialResultsNotice(
+                              onRetry: retryFailed,
+                              allSourcesDown: productsFailed && foodFailed,
+                            ),
+                          Expanded(
+                            child: Semantics(
+                              identifier: 'add-meal-all-list',
+                              container: true,
+                              child: ListView.builder(
+                                itemCount: merged.length,
+                                itemBuilder: (context, index) =>
+                                    _mealCard(merged[index], imperial),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   );
@@ -405,21 +684,23 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     );
                   }
                   return Flexible(
-                    child: ListView.builder(
-                      itemCount:
-                          state.products.length +
-                          (state.remoteSourceEmpty ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == state.products.length) {
-                          return const NoResultsWidget();
-                        }
-                        return MealItemCard(
-                          day: _day,
-                          mealEntity: state.products[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: state.usesImperialUnits,
-                        );
-                      },
+                    child: Semantics(
+                      identifier: 'add-meal-products-list',
+                      container: true,
+                      child: ListView.builder(
+                        itemCount:
+                            state.products.length +
+                            (state.remoteSourceEmpty ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == state.products.length) {
+                            return const NoResultsWidget();
+                          }
+                          return _mealCard(
+                            state.products[index],
+                            state.usesImperialUnits,
+                          );
+                        },
+                      ),
                     ),
                   );
                 } else if (state is ProductsFailedState) {
@@ -461,20 +742,22 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     );
                   }
                   return Flexible(
-                    child: ListView.builder(
-                      itemCount:
+                    child: Semantics(
+                      identifier: 'add-meal-food-list',
+                      container: true,
+                      child: ListView.builder(
+                        itemCount:
                           state.food.length + (state.remoteSourceEmpty ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == state.food.length) {
-                          return const NoResultsWidget();
-                        }
-                        return MealItemCard(
-                          day: _day,
-                          mealEntity: state.food[index],
-                          addMealType: _mealType,
-                          usesImperialUnits: state.usesImperialUnits,
-                        );
-                      },
+                        itemBuilder: (context, index) {
+                          if (index == state.food.length) {
+                            return const NoResultsWidget();
+                          }
+                          return _mealCard(
+                            state.food[index],
+                            state.usesImperialUnits,
+                          );
+                        },
+                      ),
                     ),
                   );
                 } else if (state is FoodFailedState) {
@@ -488,6 +771,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
             ),
           ],
         );
+      case _SearchSource.favourites:
+        return _buildFavouriteResults(context, query);
       case _SearchSource.recent:
         return BlocBuilder<RecentMealBloc, RecentMealState>(
           bloc: _recentMealBloc,
@@ -502,28 +787,40 @@ class _AddMealScreenState extends State<AddMealScreen> {
               );
             } else if (state is RecentMealLoadedState) {
               if (state.recentMeals.isNotEmpty) {
-                return ListView.builder(
-                  itemCount: state.recentMeals.length,
-                  itemBuilder: (context, index) {
-                    return MealItemCard(
-                      day: _day,
-                      mealEntity: state.recentMeals[index],
-                      addMealType: _mealType,
-                      usesImperialUnits: state.usesImperialUnits,
-                    );
-                  },
+                return Semantics(
+                  identifier: 'add-meal-recent-list',
+                  container: true,
+                  child: ListView.builder(
+                    itemCount: state.recentMeals.length,
+                    itemBuilder: (context, index) {
+                      return _mealCard(
+                        state.recentMeals[index],
+                        state.usesImperialUnits,
+                      );
+                    },
+                  ),
                 );
               }
               if (query.trim().isEmpty) {
-                return EmptyHint(
-                  icon: Icons.history_rounded,
-                  title: S.of(context).noMealsRecentlyAddedLabel,
+                // Scrollable: the entry tiles above leave a landscape phone
+                // less height here than the hint needs (#165).
+                return SingleChildScrollView(
+                  child: EmptyHint(
+                    icon: Icons.history_rounded,
+                    title: S.of(context).noMealsRecentlyAddedLabel,
+                  ),
                 );
               }
               return NoResultsWidget(
                 onScanBarcode: _onBarcodeIconPressed,
                 onCreateCustomFood: () =>
                     _onCustomAddButtonPressed(state.usesImperialUnits),
+                // All skips queries below minQueryLength, so only offer it
+                // once the query is long enough to actually search.
+                onSearchAll:
+                    _stickOnRecent && query.trim().length >= minQueryLength
+                    ? _onSearchAllPressed
+                    : null,
               );
             } else if (state is RecentMealFailedState) {
               return ErrorDialog(
@@ -537,22 +834,250 @@ class _AddMealScreenState extends State<AddMealScreen> {
     }
   }
 
-  void _onBarcodeIconPressed() {
-    Navigator.of(context).pushNamed(
-      NavigationOptions.scannerRoute,
-      arguments: ScannerScreenArguments(_day, _mealType.getIntakeType()),
+  Widget _buildFavouriteResults(BuildContext context, String query) {
+    return BlocBuilder<FavouriteMealBloc, FavouriteMealState>(
+      bloc: _favouriteMealBloc,
+      builder: (context, state) {
+        if (state is FavouriteMealInitial) {
+          _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: query));
+          return const SizedBox();
+        } else if (state is FavouriteMealLoadingState) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 32),
+            child: CircularProgressIndicator(),
+          );
+        } else if (state is FavouriteMealLoadedState) {
+          if (state.favourites.isNotEmpty) {
+            return Semantics(
+              identifier: 'add-meal-favourites-list',
+              container: true,
+              child: ListView.builder(
+                itemCount: state.favourites.length,
+                itemBuilder: (context, index) =>
+                    _mealCard(state.favourites[index], state.usesImperialUnits),
+              ),
+            );
+          }
+          if (query.trim().isEmpty) {
+            // Scrollable for the same reason as the empty Recent hint.
+            return SingleChildScrollView(
+              child: EmptyHint(
+                icon: Icons.star_outline_rounded,
+                title: S.of(context).favouritesEmptyTitle,
+                subtitle: S.of(context).favouritesEmptySubtitle,
+              ),
+            );
+          }
+          return NoResultsWidget(
+            onScanBarcode: _onBarcodeIconPressed,
+            onCreateCustomFood: () =>
+                _onCustomAddButtonPressed(state.usesImperialUnits),
+          );
+        } else if (state is FavouriteMealFailedState) {
+          return ErrorDialog(
+            errorText: S.of(context).errorLoadingFavourites,
+            onRefreshPressed: _onFavouritesRefreshButtonPressed,
+            retryIdentifier: 'add-meal-favourites-retry',
+          );
+        }
+        return const SizedBox();
+      },
     );
   }
 
-  void _onBulkAddPressed(bool usesImperialUnits) {
+  void _onBarcodeIconPressed() {
     Navigator.of(context).pushNamed(
+      NavigationOptions.scannerRoute,
+      arguments: ScannerScreenArguments(
+        _day,
+        _mealType.getIntakeType(),
+        logTray: _logTray,
+      ),
+    );
+  }
+
+  /// A search result, wired to this screen's list: opening it adds there,
+  /// and its + adds the default amount without opening it.
+  Widget _mealCard(MealEntity meal, bool usesImperialUnits) => MealItemCard(
+    day: _day,
+    mealEntity: meal,
+    addMealType: _mealType,
+    usesImperialUnits: usesImperialUnits,
+    logTray: _logTray,
+    onQuickAdd: () => _onQuickAddToTray(meal, usesImperialUnits),
+  );
+
+  Future<void> _onQuickAddToTray(
+    MealEntity meal,
+    bool usesImperialUnits,
+  ) async {
+    final code = meal.code ?? '';
+    // A second tap while the first is still fetching would add it twice.
+    if (_quickAdding.contains(code)) return;
+    // Through setState: the log button waits for these (see build).
+    setState(() => _quickAdding.add(code));
+    // So a sheet open meanwhile adds to the list rather than logging on its
+    // own and leaving before this food arrives (LogTray.collects).
+    _logTray.beginPending();
+    try {
+      meal = await _detailedForQuickAdd(meal);
+    } finally {
+      // Not once the screen has gone: it disposes the list with it, and a
+      // disposed notifier must not be told anything.
+      if (mounted) {
+        _logTray.endPending();
+        setState(() => _quickAdding.remove(code));
+      }
+    }
+    if (!mounted) return;
+    final state = _addMealBloc.state;
+    final item = defaultLogTrayItem(
+      context,
+      meal,
+      usesImperialUnits: usesImperialUnits,
+      defaultToRawFoodUnits:
+          state is AddMealLoadedState && state.defaultToRawFoodUnits,
+    );
+    if (item == null) {
+      // Missing the values an amount needs; the detail screen says so.
+      Navigator.of(context).pushNamed(
+        NavigationOptions.mealDetailRoute,
+        arguments: MealDetailScreenArguments(
+          meal,
+          _mealType.getIntakeType(),
+          _day,
+          usesImperialUnits,
+          logTray: _logTray,
+        ),
+      );
+      return;
+    }
+    // No snackbar: the count on the log button is the confirmation, and a
+    // snackbar would sit over the next result someone is about to tap.
+    _logTray.add(item);
+  }
+
+  /// The full record behind a thin Open Food Facts search hit, so the +
+  /// picks the serving the detail screen would pick. Falls back to the thin
+  /// record when the fetch fails, as the detail screen does.
+  Future<MealEntity> _detailedForQuickAdd(MealEntity meal) async {
+    try {
+      return await fetchDetailedOffMeal(
+            meal,
+            locator<RemoteSearchCacheDataSource>(),
+            locator<ProductsRepository>(),
+          ) ??
+          meal;
+    } catch (e, stackTrace) {
+      _log.warning('Quick-add hydration failed', e, stackTrace);
+      return meal;
+    }
+  }
+
+  /// Writes the whole list, then returns to the day it was logged to.
+  Future<void> _logAll() async {
+    if (_logging || _quickAdding.isNotEmpty || _logTray.isEmpty) return;
+    // The screen ignores input until this returns (see build), so the list
+    // cannot change under the writes below.
+    setState(() => _logging = true);
+    final mealDetailBloc = locator<MealDetailBloc>();
+    final type = _mealType.getIntakeType();
+    final written = <LogTrayItem>[];
+    try {
+      // Sequential, not concurrent: the tracked-day totals are a
+      // read-modify-write, and overlapping writes would lose updates.
+      for (final item in _logTray.items) {
+        await mealDetailBloc.addIntake(
+          context,
+          item.unit,
+          item.amount.toString(),
+          type,
+          item.meal,
+          _day,
+        );
+        written.add(item);
+      }
+    } catch (e, stackTrace) {
+      _log.severe('Logging the to-log list failed', e, stackTrace);
+      if (!mounted) return;
+      // What was written stays written; only the rest waits for a retry,
+      // so trying again cannot log anything twice.
+      _logTray.removeAll(written);
+      setState(() => _logging = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).logTrayLogFailedLabel)),
+      );
+      return;
+    } finally {
+      _refreshLoggedDays(written.length);
+    }
+    if (!mounted) return;
+    _logTray.clear();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
+    Navigator.of(
+      context,
+    ).popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
+  }
+
+  void _refreshLoggedDays(int written) {
+    if (written == 0) return;
+    locator<HomeBloc>().add(const LoadItemsEvent());
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(const RefreshCalendarDayEvent());
+  }
+
+  Future<void> _confirmDiscardTray() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(S.of(dialogContext).discardChangesTitle),
+        content: Text(S.of(dialogContext).discardChangesContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(S.of(dialogContext).dialogCancelLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(S.of(dialogContext).discardChangesConfirmLabel),
+          ),
+        ],
+      ),
+    );
+    if (discard != true || !mounted) return;
+    _logTray.clear();
+    Navigator.of(context).pop();
+  }
+
+  /// Snap meal and Describe both end on the review screen: a photo or a
+  /// description becomes rows the user checks before anything is logged.
+  Future<void> _openBulkAdd({
+    String? initialText,
+    bool startWithPhoto = false,
+  }) async {
+    final state = _addMealBloc.state;
+    final before = _logTray.length;
+    await Navigator.of(context).pushNamed(
       NavigationOptions.bulkAddRoute,
       arguments: BulkAddScreenArguments(
         _mealType.getIntakeType(),
         _day,
-        usesImperialUnits,
+        state is AddMealLoadedState && state.usesImperialUnits,
+        initialText: initialText,
+        startWithPhoto: startWithPhoto,
+        logTray: _logTray,
       ),
     );
+    // The review screen can open the AI settings, where the features can be
+    // hidden or shown again.
+    await _refreshAiHidden();
+    // The description has become rows on the list; the panel that held it
+    // has done its job.
+    if (mounted && _logTray.length > before && _describeOpen) {
+      setState(() => _describeOpen = false);
+    }
   }
 
   void _onQuickAddPressed() {
@@ -560,8 +1085,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (sheetContext) =>
-          QuickAddBottomSheet(intakeType: _mealType.getIntakeType(), day: _day),
+      builder: (sheetContext) => QuickAddBottomSheet(
+        intakeType: _mealType.getIntakeType(),
+        day: _day,
+        logTray: _logTray,
+      ),
     );
   }
 
@@ -598,6 +1126,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
         MealEntity.empty(),
         _mealType.getIntakeType(),
         usesImperialUnits,
+        logTray: _logTray,
       ),
     );
   }
@@ -610,4 +1139,4 @@ class AddMealScreenArguments {
   AddMealScreenArguments(this.mealType, this.day);
 }
 
-enum _SearchSource { recent, all, products, food }
+enum _SearchSource { recent, favourites, all, products, food }

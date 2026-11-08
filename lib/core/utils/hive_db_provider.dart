@@ -5,6 +5,7 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/fasting_session_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
@@ -25,7 +26,8 @@ import 'package:opennutritracker/hive_registrar.g.dart';
 /// reusable content libraries (custom meals, recipes, activity templates).
 /// The **per-profile** ones are each profile's own private data — the meal,
 /// activity, weight, water and fasting logs, tracked-day totals, the user's
-/// body stats, and the personal nutrition goals in ConfigBox.
+/// body stats, their favourites, and the personal nutrition goals in
+/// ConfigBox.
 ///
 /// Per-profile boxes are named by appending the active profile's
 /// `boxSuffix`. The first profile carries an empty suffix, so it resolves
@@ -60,6 +62,10 @@ class HiveDBProvider extends ChangeNotifier {
   // intentionally keeps cancelled and completed sessions side by side with no
   // success/failure label on the record — see `FastingSessionDBO`.
   static const fastingBoxName = 'FastingBox';
+  // #1307: the foods and meals the user starred. Per-profile — it is the
+  // list of what *this* person usually eats, unlike the shared custom-meal
+  // and recipe libraries it may point into.
+  static const favouriteMealBoxName = 'FavouriteMealBox';
   // #471: registry of profiles. Global — shared across every profile so
   // the app can enumerate and switch profiles before any one of them is
   // active.
@@ -83,6 +89,7 @@ class HiveDBProvider extends ChangeNotifier {
     weightLogBoxName,
     waterIntakeBoxName,
     fastingBoxName,
+    favouriteMealBoxName,
   ];
 
   // Global boxes — opened once, never closed on a profile switch.
@@ -110,6 +117,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WeightLogDBO>? _weightLogBox;
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
+  Box<FavouriteMealDBO>? _favouriteMealBox;
 
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
@@ -131,6 +139,8 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_waterIntakeBox, waterIntakeBoxName);
   Box<FastingSessionDBO> get fastingBox =>
       _requireBox(_fastingBox, fastingBoxName);
+  Box<FavouriteMealDBO> get favouriteMealBox =>
+      _requireBox(_favouriteMealBox, favouriteMealBoxName);
 
   Box<T> _requireBox<T>(Box<T>? box, String name) {
     if (_switching) {
@@ -228,6 +238,9 @@ class HiveDBProvider extends ChangeNotifier {
       boxNameFor(waterIntakeBoxName, suffix),
     );
     _fastingBox = await _openEncryptedBox(boxNameFor(fastingBoxName, suffix));
+    _favouriteMealBox = await _openEncryptedBox(
+      boxNameFor(favouriteMealBoxName, suffix),
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -240,6 +253,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_weightLogBox != null) _weightLogBox!.close(),
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
+      if (_favouriteMealBox != null) _favouriteMealBox!.close(),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -249,6 +263,7 @@ class HiveDBProvider extends ChangeNotifier {
     _weightLogBox = null;
     _waterIntakeBox = null;
     _fastingBox = null;
+    _favouriteMealBox = null;
   }
 
   /// Opens (or returns the already-open) box for an arbitrary profile

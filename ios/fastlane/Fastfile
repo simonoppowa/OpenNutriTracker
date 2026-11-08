@@ -20,7 +20,21 @@ platform :ios do
     # No --build-number: flutter takes CFBundleVersion from the pubspec build
     # number (the +N in `version:`), so iOS and Android share one build number
     # sourced from pubspec instead of iOS using the CI run number.
-    sh('cd .. && fvm flutter build ipa --release --flavor full --export-method app-store')
+    #
+    # ExportOptions.plist rather than --export-method: with the CalorieWidget
+    # extension embedded, the export has to be told which match profile signs
+    # which bundle id (#1449 follow-up). The path is absolute: flutter did not
+    # resolve `ios/ExportOptions.plist` against the directory `cd ..` lands in.
+    export_options = File.expand_path('../ExportOptions.plist', __dir__)
+    #
+    # flutter exits 0 when the archive succeeds and only the export fails, so
+    # clear out earlier IPAs first and let latest_ipa_path fail the lane when
+    # this build produced none — otherwise a local beta/release retry would
+    # pick up and upload a stale binary.
+    FileUtils.rm_f(Dir[File.expand_path('../../build/ios/ipa/*.ipa', __dir__)])
+    UI.user_error!("Missing #{export_options}") unless File.exist?(export_options)
+    sh("cd .. && fvm flutter build ipa --release --flavor full --export-options-plist=\"#{export_options}\"")
+    latest_ipa_path
   end
 
   desc 'Upload the latest IPA to TestFlight'
@@ -73,6 +87,18 @@ platform :ios do
       build_configurations: ['Release-full', 'Profile-full'],
       code_sign_identity: 'Apple Distribution',
       profile_name: 'match AppStore com.opennutritracker.ont.opennutritracker'
+    )
+    # The widget extension is embedded in Runner but signed on its own, so
+    # it needs its own App Store profile from match.
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: 'Runner.xcodeproj',
+      team_id: '79AJPC6DP3',
+      bundle_identifier: 'com.opennutritracker.ont.opennutritracker.widget',
+      targets: ['CalorieWidget'],
+      build_configurations: ['Release-full', 'Profile-full'],
+      code_sign_identity: 'Apple Distribution',
+      profile_name: 'match AppStore com.opennutritracker.ont.opennutritracker.widget'
     )
   end
 

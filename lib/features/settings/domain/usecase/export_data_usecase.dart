@@ -6,10 +6,13 @@ import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:meta/meta.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -17,8 +20,11 @@ import 'package:opennutritracker/core/data/repository/user_activity_repository.d
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 import 'package:opennutritracker/core/utils/export_write_verifier.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
+import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
+import 'package:opennutritracker/features/settings/domain/tracked_day_boundary_record.dart';
 
 /// The two export shapes available from Settings → Export / Import App Data.
 /// JSON is the canonical backup-and-restore format the app re-imports from;
@@ -33,6 +39,8 @@ class ExportDataUsecase {
   final CustomMealDataSource _customMealDataSource;
   final WeightLogRepository _weightLogRepository;
   final CustomActivityTemplateRepository _customActivityTemplateRepository;
+  final ConfigRepository _configRepository;
+  final FavouriteMealRepository _favouriteMealRepository;
 
   ExportDataUsecase(
     this._userActivityRepository,
@@ -42,18 +50,21 @@ class ExportDataUsecase {
     this._customMealDataSource,
     this._weightLogRepository,
     this._customActivityTemplateRepository,
+    this._configRepository,
+    this._favouriteMealRepository,
   );
 
-  /// Exports user activity, intake, tracked day, recipe, weight-log and
-  /// Custom activity template data to a zip at a user-specified location,
-  /// in the [format] the user picked.
+  /// Exports user activity, intake, tracked day, recipe, weight-log, Custom
+  /// activity template and favourites data, plus the profile's goal
+  /// settings, to a zip at a user-specified location, in the [format] the
+  /// user picked.
   ///
   /// JSON export contains JSON files only and is what the app re-imports
   /// from. CSV export contains CSV files only and is intended for
-  /// opening in a spreadsheet — recipes, photos, the weight log and
-  /// Custom activity templates are omitted from CSV because their shape
-  /// doesn't flatten cleanly. A user who wants both can run the export
-  /// twice. See `docs/export-format.md` for the schema.
+  /// opening in a spreadsheet — recipes, photos, the weight log, Custom
+  /// activity templates, goal settings and favourites are omitted from CSV
+  /// because their shape doesn't flatten cleanly. A user who wants both can
+  /// run the export twice. See `docs/export-format.md` for the schema.
   Future<bool> exportData(
     String exportZipFileName,
     String userActivityJsonFileName,
@@ -63,9 +74,11 @@ class ExportDataUsecase {
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
     ExportFormat format = ExportFormat.json,
+    String favouriteJsonFileName = 'user_favourites.json',
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
+    String goalSettingsJsonFileName = 'goal_settings.json',
   }) async {
     final archive = await assembleArchive(
       format: format,
@@ -75,6 +88,8 @@ class ExportDataUsecase {
       recipeJsonFileName: recipeJsonFileName,
       weightLogJsonFileName: weightLogJsonFileName,
       customActivityTemplateJsonFileName: customActivityTemplateJsonFileName,
+      goalSettingsJsonFileName: goalSettingsJsonFileName,
+      favouriteJsonFileName: favouriteJsonFileName,
       userActivityCsvFileName: userActivityCsvFileName,
       userIntakeCsvFileName: userIntakeCsvFileName,
       trackedDayCsvFileName: trackedDayCsvFileName,
@@ -136,113 +151,182 @@ class ExportDataUsecase {
     required String recipeJsonFileName,
     required String weightLogJsonFileName,
     required String customActivityTemplateJsonFileName,
+    String goalSettingsJsonFileName = 'goal_settings.json',
+    String favouriteJsonFileName = 'user_favourites.json',
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
   }) async {
     final archive = Archive();
+    final imagePaths = <String>[];
 
-    // Activity dataset
-    final fullUserActivity = await _userActivityRepository
-        .getAllUserActivityDBO();
-    if (format == ExportFormat.json) {
-      final bytes = utf8.encode(
-        jsonEncode(fullUserActivity.map((a) => a.toJson()).toList()),
-      );
-      archive.addFile(
-        ArchiveFile(userActivityJsonFileName, bytes.length, bytes),
-      );
-    } else {
-      final bytes = utf8.encode(
-        CsvDataExporter.userActivitiesToCsv(fullUserActivity),
-      );
-      archive.addFile(
-        ArchiveFile(userActivityCsvFileName, bytes.length, bytes),
-      );
-    }
-
-    // Intake dataset
-    final fullIntake = await _intakeRepository.getAllIntakesDBO();
-    if (format == ExportFormat.json) {
-      final bytes = utf8.encode(
-        jsonEncode(fullIntake.map((i) => i.toJson()).toList()),
-      );
-      archive.addFile(ArchiveFile(userIntakeJsonFileName, bytes.length, bytes));
-    } else {
-      final bytes = utf8.encode(CsvDataExporter.intakesToCsv(fullIntake));
-      archive.addFile(ArchiveFile(userIntakeCsvFileName, bytes.length, bytes));
-    }
-
-    // Tracked day dataset
-    final fullTrackedDay = await _trackedDayRepository.getAllTrackedDaysDBO();
-    if (format == ExportFormat.json) {
-      final bytes = utf8.encode(
-        jsonEncode(fullTrackedDay.map((d) => d.toJson()).toList()),
-      );
-      archive.addFile(ArchiveFile(trackedDayJsonFileName, bytes.length, bytes));
-    } else {
-      final bytes = utf8.encode(
-        CsvDataExporter.trackedDaysToCsv(fullTrackedDay),
-      );
-      archive.addFile(ArchiveFile(trackedDayCsvFileName, bytes.length, bytes));
-    }
-
-    // Recipes, photos, weight log and Custom activity templates — JSON
-    // only. The recipe shape doesn't flatten to CSV without lossy
-    // denormalisation; meal / recipe photos are binary blobs; the
-    // weight log is a JSON-only dataset for now; templates are a small
-    // JSON-only convenience. A user who needs spreadsheet-shaped
-    // recipes can fall back to the dedicated Sample / Import recipes
-    // CSV path under Import Custom Food Data.
-    if (format == ExportFormat.json) {
-      final fullRecipes = _recipeRepository.getAllRecipesDBO();
-      final recipeBytes = utf8.encode(
-        jsonEncode(fullRecipes.map((r) => r.toJson()).toList()),
-      );
-      archive.addFile(
-        ArchiveFile(recipeJsonFileName, recipeBytes.length, recipeBytes),
-      );
-
-      // Every user-attached photo, under its relative slug (e.g.
-      // `recipe_images/<id>.webp`). The slug matches what we persist on
-      // the DBO, so import can drop the bytes back into place without
-      // translating filenames.
-      for (final path in userImagePaths(
-        recipes: fullRecipes,
-        customMeals: _customMealDataSource.getAllCustomMeals(),
-        intakes: fullIntake,
-      )) {
-        await _addUserImage(archive, path);
+    // Serialize the data and its boundary together before a boundary move
+    // or profile switch can change either half of the backup.
+    await withTrackedDayLock(() async {
+      // Activity dataset
+      final fullUserActivity = await _userActivityRepository
+          .getAllUserActivityDBO();
+      if (format == ExportFormat.json) {
+        final bytes = utf8.encode(
+          jsonEncode(fullUserActivity.map((a) => a.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile(userActivityJsonFileName, bytes.length, bytes),
+        );
+      } else {
+        final bytes = utf8.encode(
+          CsvDataExporter.userActivitiesToCsv(fullUserActivity),
+        );
+        archive.addFile(
+          ArchiveFile(userActivityCsvFileName, bytes.length, bytes),
+        );
       }
 
-      // Weight-log dataset
-      final fullWeightLog = await _weightLogRepository.getAllEntriesDBO();
-      final weightLogBytes = utf8.encode(
-        jsonEncode(fullWeightLog.map((entry) => entry.toJson()).toList()),
-      );
-      archive.addFile(
-        ArchiveFile(
-          weightLogJsonFileName,
-          weightLogBytes.length,
-          weightLogBytes,
-        ),
-      );
+      // Intake dataset
+      final fullIntake = await _intakeRepository.getAllIntakesDBO();
+      if (format == ExportFormat.json) {
+        final bytes = utf8.encode(
+          jsonEncode(fullIntake.map((i) => i.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile(userIntakeJsonFileName, bytes.length, bytes),
+        );
+      } else {
+        final bytes = utf8.encode(CsvDataExporter.intakesToCsv(fullIntake));
+        archive.addFile(
+          ArchiveFile(userIntakeCsvFileName, bytes.length, bytes),
+        );
+      }
 
-      // Custom activity templates (#70 follow-up)
-      final fullTemplates = await _customActivityTemplateRepository
-          .allTemplateDBOs();
-      final templatesBytes = utf8.encode(
-        jsonEncode(fullTemplates.map((template) => template.toJson()).toList()),
-      );
-      archive.addFile(
-        ArchiveFile(
-          customActivityTemplateJsonFileName,
-          templatesBytes.length,
-          templatesBytes,
-        ),
-      );
+      // Tracked day dataset
+      final fullTrackedDay = await _trackedDayRepository.getAllTrackedDaysDBO();
+      if (format == ExportFormat.json) {
+        final bytes = utf8.encode(
+          jsonEncode(fullTrackedDay.map((d) => d.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile(trackedDayJsonFileName, bytes.length, bytes),
+        );
+      } else {
+        final bytes = utf8.encode(
+          CsvDataExporter.trackedDaysToCsv(fullTrackedDay),
+        );
+        archive.addFile(
+          ArchiveFile(trackedDayCsvFileName, bytes.length, bytes),
+        );
+      }
+
+      // The boundary those rows are keyed by (#1317), so a restore under
+      // another one can move them. Left out while this profile's rows have
+      // none on record, which reads the same as a bundle from before it.
+      final keyedBy =
+          (await _configRepository.getConfigDBO()).trackedDaysOffsetMinutes;
+      if (keyedBy != null) {
+        final bytes = utf8.encode(
+          format == ExportFormat.json
+              ? TrackedDayBoundaryRecord.toJson(keyedBy)
+              : TrackedDayBoundaryRecord.toCsv(keyedBy),
+        );
+        final name = format == ExportFormat.json
+            ? TrackedDayBoundaryRecord.jsonFileName
+            : TrackedDayBoundaryRecord.csvFileName;
+        archive.addFile(ArchiveFile(name, bytes.length, bytes));
+      }
+
+      // Recipes, photos, weight log and Custom activity templates — JSON
+      // only. The recipe shape doesn't flatten to CSV without lossy
+      // denormalisation; meal / recipe photos are binary blobs; the
+      // weight log is a JSON-only dataset for now; templates are a small
+      // JSON-only convenience. A user who needs spreadsheet-shaped
+      // recipes can fall back to the dedicated Sample / Import recipes
+      // CSV path under Import Custom Food Data.
+      if (format == ExportFormat.json) {
+        final fullRecipes = _recipeRepository.getAllRecipesDBO();
+        final recipeBytes = utf8.encode(
+          jsonEncode(fullRecipes.map((r) => r.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile(recipeJsonFileName, recipeBytes.length, recipeBytes),
+        );
+
+        // Export the current library version while preserving when it was
+        // starred. The custom-meal and recipe libraries are not exported.
+        final fullFavourites = await _favouriteMealRepository
+            .getAllFavouritesDBO();
+        final favouriteBytes = utf8.encode(
+          jsonEncode(fullFavourites.map((f) => f.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile(
+            favouriteJsonFileName,
+            favouriteBytes.length,
+            favouriteBytes,
+          ),
+        );
+
+        // Every user-attached photo, under its relative slug (e.g.
+        // `recipe_images/<id>.webp`). The slug matches what we persist on
+        // the DBO, so import can drop the bytes back into place without
+        // translating filenames.
+        imagePaths.addAll(
+          userImagePaths(
+            recipes: fullRecipes,
+            customMeals: _customMealDataSource.getAllCustomMeals(),
+            intakes: fullIntake,
+            favourites: fullFavourites,
+          ),
+        );
+
+        // Weight-log dataset
+        final fullWeightLog = await _weightLogRepository.getAllEntriesDBO();
+        final weightLogBytes = utf8.encode(
+          jsonEncode(fullWeightLog.map((entry) => entry.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile(
+            weightLogJsonFileName,
+            weightLogBytes.length,
+            weightLogBytes,
+          ),
+        );
+
+        // Custom activity templates (#70 follow-up)
+        final fullTemplates = await _customActivityTemplateRepository
+            .allTemplateDBOs();
+        final templatesBytes = utf8.encode(
+          jsonEncode(
+            fullTemplates.map((template) => template.toJson()).toList(),
+          ),
+        );
+        archive.addFile(
+          ArchiveFile(
+            customActivityTemplateJsonFileName,
+            templatesBytes.length,
+            templatesBytes,
+          ),
+        );
+
+        // The profile's goal settings (#1363), so a restore after a reset or
+        // a reinstall brings back the goals and not just the diary.
+        final goalSettings = GoalSettingsBackup.fromConfigDBO(
+          await _configRepository.getConfigDBO(),
+        );
+        final goalSettingsBytes = utf8.encode(
+          jsonEncode(goalSettings.toJson()),
+        );
+        archive.addFile(
+          ArchiveFile(
+            goalSettingsJsonFileName,
+            goalSettingsBytes.length,
+            goalSettingsBytes,
+          ),
+        );
+      }
+    });
+
+    for (final path in imagePaths) {
+      await _addUserImage(archive, path);
     }
-
     return archive;
   }
 
@@ -269,6 +353,7 @@ class ExportDataUsecase {
     required Iterable<RecipeDBO> recipes,
     required Iterable<MealDBO> customMeals,
     required Iterable<IntakeDBO> intakes,
+    Iterable<FavouriteMealDBO> favourites = const [],
   }) {
     final seen = <String>{};
     final paths = <String>[];
@@ -288,6 +373,9 @@ class ExportDataUsecase {
     }
     for (final intake in intakes) {
       add(intake.meal.localImagePath);
+    }
+    for (final favourite in favourites) {
+      add(favourite.meal.localImagePath);
     }
     return paths;
   }

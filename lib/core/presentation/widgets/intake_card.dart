@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
@@ -12,6 +13,8 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 /// A logged intake, rendered as a full-width row: a rounded thumbnail, the meal
 /// name and amount, and the energy on the trailing edge. Replaces the old
@@ -22,16 +25,20 @@ class IntakeCard extends StatelessWidget {
   final IntakeEntity intake;
   final Function(BuildContext, IntakeEntity)? onItemLongPressed;
   final Function(BuildContext, IntakeEntity, bool)? onItemTapped;
+  final VoidCallback? onShare;
   final bool firstListElement;
   final bool usesImperialUnits;
+  final DiarySortType? sortType;
 
   const IntakeCard({
     required super.key,
     required this.intake,
     this.onItemLongPressed,
     this.onItemTapped,
+    this.onShare,
     required this.firstListElement,
     required this.usesImperialUnits,
+    this.sortType,
   });
 
   @override
@@ -40,6 +47,19 @@ class IntakeCard extends StatelessWidget {
     final palette = isDark ? AppPalette.dark : AppPalette.light;
     final textTheme = Theme.of(context).textTheme;
     final radius = BorderRadius.circular(Dimens.radiusM);
+    final s = S.of(context);
+    final macro = switch (sortType) {
+      DiarySortType.protein => (intake.totalProteinsGram, s.proteinLabel),
+      DiarySortType.carbs => (intake.totalCarbsGram, s.carbsLabel),
+      DiarySortType.fat => (intake.totalFatsGram, s.fatLabel),
+      _ => null,
+    };
+    final macroValue = macro == null
+        ? null
+        : NumberFormat.decimalPatternDigits(
+            locale: Localizations.localeOf(context).toString(),
+            decimalDigits: 1,
+          ).format(macro.$1);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: Dimens.spacing16,
@@ -85,13 +105,61 @@ class IntakeCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: Dimens.spacing8),
-                Text(
-                  EnergyDisplay.formatWithUnit(context, intake.totalKcal),
-                  style: textTheme.labelMedium?.copyWith(
-                    color: palette.textStrong,
-                    fontWeight: FontWeight.w700,
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.4,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (macro != null)
+                        Text(
+                          '$macroValue ${s.gramUnit} ${macro.$2}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelMedium?.copyWith(
+                            color: palette.textStrong,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      Text(
+                        EnergyDisplay.formatWithUnit(context, intake.totalKcal),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: macro == null
+                            ? textTheme.labelMedium?.copyWith(
+                                color: palette.textStrong,
+                                fontWeight: FontWeight.w700,
+                              )
+                            : textTheme.bodySmall?.copyWith(
+                                color: palette.textMuted,
+                              ),
+                      ),
+                    ],
                   ),
                 ),
+                if (onShare != null)
+                  Semantics(
+                    identifier: 'intake-item-menu',
+                    container: true,
+                    child: PopupMenuButton<void>(
+                      icon: Icon(
+                        Icons.more_vert_rounded,
+                        color: palette.textMuted,
+                      ),
+                      shape: Dimens.shapeM,
+                      itemBuilder: (_) => [
+                        PopupMenuItem<void>(
+                          onTap: onShare,
+                          child: Semantics(
+                            identifier: 'intake-share-food',
+                            child: Text(s.shareFoodLabel),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

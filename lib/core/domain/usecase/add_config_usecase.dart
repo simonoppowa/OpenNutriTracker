@@ -76,14 +76,6 @@ class AddConfigUsecase {
     await _configRepository.setConfigShowMealMacros(show);
   }
 
-  Future<void> setNotificationsEnabled(bool enabled) async {
-    await _configRepository.setNotificationsEnabled(enabled);
-  }
-
-  Future<void> setNotificationTime(int hour, int minute) async {
-    await _configRepository.setNotificationTime(hour, minute);
-  }
-
   Future<void> setSelectedLocale(String? locale) async {
     await _configRepository.setSelectedLocale(locale);
   }
@@ -112,14 +104,6 @@ class AddConfigUsecase {
     Map<String, bool> visibility,
   ) async {
     await _configRepository.setConfigNutrientPanelVisibility(visibility);
-  }
-
-  Future<void> setConfigDayStartOffsetHours(int hours) async {
-    await _configRepository.setConfigDayStartOffsetHours(hours);
-  }
-
-  Future<void> setConfigDayStartOffsetMinutes(int minutes) async {
-    await _configRepository.setConfigDayStartOffsetMinutes(minutes);
   }
 
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {

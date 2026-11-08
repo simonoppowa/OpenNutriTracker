@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/meal_pattern_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 
 void main() {
   group('MealPatternEntity', () {
@@ -77,13 +81,13 @@ void main() {
   });
 
   group('Meal section visibility based on share%', () {
-    // The diary day view and home page both hide a meal section when its
-    // share is 0% — the user has explicitly opted out of seeing it (OMAD
-    // is the canonical case). These tests mirror the `if (sharePct > 0)`
-    // guards in day_info_widget.dart and home_page.dart so a regression
-    // is caught even without running the widget tree.
+    // The diary day view and home page both hide an empty meal section when
+    // its share is 0% — the user has explicitly opted out of seeing it (OMAD
+    // is the canonical case). Both screens guard on
+    // IntakeVerticalList.isShown, so these tests exercise the real rule.
 
-    bool isSectionVisible(int sharePct) => sharePct > 0;
+    bool isSectionVisible(int sharePct) =>
+        IntakeVerticalList.isShown(sharePct: sharePct, intakes: const []);
 
     test('section is visible when the user has a non-zero share', () {
       expect(isSectionVisible(10), isTrue);
@@ -93,6 +97,21 @@ void main() {
 
     test('section is hidden when the user has set 0% for that meal', () {
       expect(isSectionVisible(0), isFalse);
+    });
+
+    test('section with intakes is visible even at 0% (#1305)', () {
+      final intake = IntakeEntity(
+        id: 'logged-at-zero',
+        unit: 'g',
+        amount: 100,
+        type: IntakeTypeEntity.breakfast,
+        dateTime: DateTime(2026, 6, 15, 8),
+        meal: MealEntity.empty(),
+      );
+      expect(
+        IntakeVerticalList.isShown(sharePct: 0, intakes: [intake]),
+        isTrue,
+      );
     });
 
     test('applying OMAD hides every section except dinner', () {

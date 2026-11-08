@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 /// Writes an activity and raises the day's budget by what it burned — the
 /// two halves that always have to happen together.
@@ -37,10 +38,12 @@ class LogUserActivityUsecase {
   Future<void> logActivity(
     UserActivityEntity activity, {
     required DateTime day,
-  }) async {
+  }) => withTrackedDayLock(() async {
+    // Held across both writes, so no reconciliation or boundary move
+    // counts the activity before its day's goal has it (#1317).
     await _addUserActivityUsecase.addUserActivity(activity);
     await _increaseDayGoals(day, activity.burnedKcal);
-  }
+  });
 
   Future<void> _increaseDayGoals(DateTime day, double caloriesBurned) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
@@ -48,7 +51,7 @@ class LogUserActivityUsecase {
       final kcalGoal = await _getKcalGoalUsecase.getKcalGoal(
         totalKcalActivitiesParam: 0,
       );
-      await _addTrackedDayUsecase.addNewTrackedDay(
+      await _addTrackedDayUsecase.addNewTrackedDayIfAbsent(
         day,
         kcalGoal,
         await _getMacroGoalUsecase.getCarbsGoal(kcalGoal),

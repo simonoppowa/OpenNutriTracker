@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -14,11 +16,15 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/tip_jar_cubit.dart';
+import 'package:opennutritracker/features/settings/presentation/support/support_screen.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/settings_rows.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+import '../../helpers/fake_tip_store.dart';
 import '../../helpers/test_l10n.dart';
 
 /// A loaded settings screen without the config box behind it.
@@ -37,19 +43,42 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
 
   @override
   void add(SettingsEvent event) {}
+
+  /// Held open by the tests, so a reload sent before the flag is stored
+  /// shows up. Made on the call, inside the test's fake-async zone; one
+  /// made in setUp would complete outside it.
+  Completer<void>? mealMacrosSaved;
+
+  @override
+  Future<void> setShowMealMacros(bool showMealMacros) =>
+      (mealMacrosSaved = Completer<void>()).future;
 }
 
 /// The screen resolves these in `initState` and only calls them from
 /// controls no test here touches.
 class _FakeProfileBloc extends Fake implements ProfileBloc {}
 
-class _FakeHomeBloc extends Fake implements HomeBloc {}
+class _FakeHomeBloc extends Fake implements HomeBloc {
+  @override
+  void add(HomeEvent event) {}
+}
 
-class _FakeDiaryBloc extends Fake implements DiaryBloc {}
+class _FakeDiaryBloc extends Fake implements DiaryBloc {
+  final List<DiaryEvent> added = [];
 
-class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {}
+  @override
+  void add(DiaryEvent event) => added.add(event);
+}
 
-class _FakeTrendsBloc extends Fake implements TrendsBloc {}
+class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
+  @override
+  void add(CalendarDayEvent event) {}
+}
+
+class _FakeTrendsBloc extends Fake implements TrendsBloc {
+  @override
+  void add(TrendsEvent event) {}
+}
 
 /// Nothing is configured, which is the state a user arrives in from a
 /// rejected key or a refused destination.
@@ -65,6 +94,81 @@ class _EmptyStorage implements FlutterSecureStorage {
     WindowsOptions? wOptions,
   }) async => null;
 
+  /// Dropped, so the store stays empty. The dialog's Cancel puts the
+  /// provider tag back on its way out, and a write that threw would leave
+  /// the dialog open.
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {}
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A keystore that keeps what it is given, for the one test that reads back
+/// what the screen wrote.
+class _MemoryStorage implements FlutterSecureStorage {
+  final store = <String, String>{};
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => store[key];
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    if (value == null) {
+      store.remove(key);
+    } else {
+      store[key] = value;
+    }
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => store.remove(key);
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -73,7 +177,7 @@ class _EmptyStorage implements FlutterSecureStorage {
 /// Nothing here presses the check, so it is never asked anything.
 class _FakeProber extends Fake implements AiEndpointProber {}
 
-void _register() {
+void _register({FlutterSecureStorage? storage}) {
   final getIt = GetIt.instance;
   getIt.registerSingleton<SettingsBloc>(_FakeSettingsBloc());
   getIt.registerSingleton<ProfileBloc>(_FakeProfileBloc());
@@ -81,7 +185,7 @@ void _register() {
   getIt.registerSingleton<DiaryBloc>(_FakeDiaryBloc());
   getIt.registerSingleton<CalendarDayBloc>(_FakeCalendarDayBloc());
   getIt.registerSingleton<TrendsBloc>(_FakeTrendsBloc());
-  final credentials = AiCredentialStorage(_EmptyStorage());
+  final credentials = AiCredentialStorage(storage ?? _EmptyStorage());
   getIt.registerSingleton<AiCredentialStorage>(credentials);
   getIt.registerSingleton<AiEndpointProbeRunner>(
     AiEndpointProbeRunner(credentials, _FakeProber()),
@@ -229,6 +333,88 @@ void main() {
     expect(find.byType(AiAssistDialog), findsOneWidget);
   });
 
+  testWidgets('opened from its own tile, the dialog closes back onto '
+      'Settings (#1471)', (tester) async {
+    // The other half of #1471: only a route pushed to host the dialog
+    // closes with it. Someone who came to Settings and opened the row
+    // themselves is still in Settings when they cancel.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final tile = find.bySemanticsIdentifier('settings-ai-assist');
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(tile);
+    await tester.pumpAndSettle();
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(find.byType(AiAssistDialog), findsOneWidget);
+
+    await tester.tap(find.bySemanticsIdentifier('ai-assist-cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AiAssistDialog), findsNothing);
+    expect(find.byType(SettingsScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Show AI Features off hides the AI meal assistance row and '
+      'remembers it (#1518)', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    await locator.reset();
+    final backing = _MemoryStorage();
+    _register(storage: backing);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    final scrollable = find.byType(Scrollable).first;
+
+    final aiRow = find.bySemanticsIdentifier('settings-ai-assist');
+    await tester.scrollUntilVisible(aiRow, 200, scrollable: scrollable);
+    expect(aiRow, findsOneWidget);
+
+    final showAi = find.bySemanticsIdentifier('settings-show-ai');
+    await tester.scrollUntilVisible(showAi, -200, scrollable: scrollable);
+    await tester.ensureVisible(showAi);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.descendant(of: showAi, matching: find.byType(SwitchListTile)),
+          )
+          .value,
+      isTrue,
+    );
+    await tester.tap(showAi);
+    await tester.pumpAndSettle();
+
+    expect(backing.store['AiAssistHiddenTag'], 'true');
+    expect(
+      tester
+          .widget<SwitchListTile>(
+            find.descendant(of: showAi, matching: find.byType(SwitchListTile)),
+          )
+          .value,
+      isFalse,
+    );
+    // The row after it is on screen, and the row was between the two.
+    final nextRow = find.bySemanticsIdentifier('settings-import-custom-food');
+    await tester.scrollUntilVisible(nextRow, 200, scrollable: scrollable);
+    await tester.ensureVisible(nextRow);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsIdentifier('settings-health-sync'), findsOneWidget);
+    expect(aiRow, findsNothing);
+  });
+
   testWidgets('arguments that ask for nothing leave the screen alone', (
     tester,
   ) async {
@@ -243,5 +429,134 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(AiAssistDialog), findsNothing);
+  });
+
+  testWidgets('the language list scrolls when it is taller than the dialog '
+      '(#1331)', (tester) async {
+    // Twelve rows do not fit on a short phone. The list used to be a bare
+    // Column: it overflowed past the action buttons, the last language was
+    // painted outside the dialog, and nothing scrolled to reach it.
+    tester.view.physicalSize = const Size(750, 1334);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final languageTile = find.text(l10nEn.settingsLanguageLabel);
+    await tester.scrollUntilVisible(
+      languageTile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    // `scrollUntilVisible` stops once the row's edge is on screen, which can
+    // leave the point `tap` aims at, its centre, just below it.
+    await tester.ensureVisible(languageTile);
+    await tester.pumpAndSettle();
+    await tester.tap(languageTile);
+    await tester.pumpAndSettle();
+
+    final dialogList = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(Scrollable),
+    );
+    expect(dialogList, findsOneWidget);
+
+    final lastLanguage = find.text('Español');
+    await tester.scrollUntilVisible(lastLanguage, 100, scrollable: dialogList);
+    await tester.tap(lastLanguage);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<RadioGroup<String>>(find.byType(RadioGroup<String>))
+          .groupValue,
+      'es',
+    );
+    final actions = tester.getRect(
+      find
+          .descendant(
+            of: find.byType(AlertDialog),
+            matching: find.byType(TextButton),
+          )
+          .last,
+    );
+    expect(
+      tester.getRect(lastLanguage).bottom,
+      lessThanOrEqualTo(actions.top),
+      reason: 'the row must sit above the buttons, not under them',
+    );
+  });
+
+  testWidgets('toggling Show Meal Macros reloads the Diary, whose meal '
+      'headers read the flag from DiaryBloc (#1359)', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final tile = find.text(l10nEn.settingsShowMealMacros);
+    await tester.scrollUntilVisible(
+      tile,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+
+    // Not before the flag is stored, or the Diary reads the old one back.
+    final diaryBloc = locator<DiaryBloc>() as _FakeDiaryBloc;
+    expect(diaryBloc.added, isEmpty);
+
+    final settingsBloc = locator<SettingsBloc>() as _FakeSettingsBloc;
+    settingsBloc.mealMacrosSaved!.complete();
+    await tester.pumpAndSettle();
+
+    expect(diaryBloc.added, contains(isA<LoadDiaryYearEvent>()));
+  });
+
+  testWidgets('Support OpenNutriTracker is the first About row, with a '
+      'chevron, and opens the Support page (#1536)', (tester) async {
+    final store = FakeTipStore();
+    addTearDown(store.dispose);
+    locator.registerSingleton<TipJarCubit>(TipJarCubit(store, FakeTipConfig()));
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final support = find.text(l10nEn.settingsSupportLabel);
+    await tester.scrollUntilVisible(support, 300);
+    await tester.pumpAndSettle();
+
+    // In the About card, above what used to be its first row.
+    final group = find.ancestor(
+      of: support,
+      matching: find.byType(SettingsGroup),
+    );
+    for (final row in [
+      l10nEn.settingsPrivacySettings,
+      l10nEn.settingsReportErrorLabel,
+      l10nEn.settingAboutLabel,
+    ]) {
+      expect(
+        find.descendant(of: group, matching: find.text(row)),
+        findsOneWidget,
+      );
+    }
+    expect(
+      tester.getTopLeft(support).dy,
+      lessThan(tester.getTopLeft(find.text(l10nEn.settingsPrivacySettings)).dy),
+    );
+    expect(find.text(l10nEn.settingsSupportSubtitle), findsOneWidget);
+
+    Finder chevronIn(Finder title) => find.descendant(
+      of: find.ancestor(of: title, matching: find.byType(ListTile)),
+      matching: find.byIcon(Icons.chevron_right_rounded),
+    );
+    expect(chevronIn(support), findsOneWidget);
+    // The rest of About is unchanged: no chevrons there.
+    expect(chevronIn(find.text(l10nEn.settingsReportErrorLabel)), findsNothing);
+
+    await tester.tap(support);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SupportScreen), findsOneWidget);
   });
 }

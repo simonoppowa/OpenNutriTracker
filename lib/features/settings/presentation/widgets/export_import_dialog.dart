@@ -4,9 +4,12 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
+import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Export / Import App Data dialog. A SegmentedButton at the top picks
@@ -161,5 +164,15 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
     _homeBloc.add(const LoadItemsEvent());
     _diaryBloc.add(const LoadDiaryYearEvent());
     _calendarDayBloc.add(RefreshCalendarDayEvent());
+    // A restore can replace the goal settings (#1363): the Settings
+    // dialogs, the Profile water goal and Trends' goal lines read them
+    // from blocs that keep their loaded state until told to reload.
+    locator<SettingsBloc>().add(LoadSettingsEvent());
+    locator<ProfileBloc>().add(LoadProfileEvent());
+    final trendsBloc = locator<TrendsBloc>();
+    final trendsState = trendsBloc.state;
+    if (trendsState is TrendsLoaded) {
+      trendsBloc.add(LoadTrendsEvent(rangeDays: trendsState.rangeDays));
+    }
   }
 }

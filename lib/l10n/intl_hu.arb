@@ -246,7 +246,7 @@
       }
     }
   },
-  "customMealsDeleteConfirmContent": "Az összes, ezt az étkezést tartalmazó naplóbejegyzés is törlésre kerül.",
+  "customMealsDeleteConfirmContent": "A profilban található összes olyan naplóbejegyzés is törlésre kerül, amely ezt az étkezést tartalmazza.",
   "customMealsDeleteConfirmTitle": "Törli az egyéni étkezést?",
   "customMealsEmptyLabel": "Még nincs elmentett egyéni étkezés.",
   "dailyKcalAdjustmentLabel": "Napi kalória beállítás:",
@@ -274,8 +274,8 @@
       }
     }
   },
-  "deleteTimeDialogContent": "Valóban törölni szeretné a kijelölt elemet?",
-  "deleteTimeDialogPluralContent": "Törölni szeretné ennek az étkezésnek az összes elemét?",
+  "deleteTimeDialogContent": "Törölni szeretné a kijelölt elemet?",
+  "deleteTimeDialogPluralContent": "Törölni szeretné az étkezés összes elemét?",
   "deleteTimeDialogPluralTitle": "Törli az elemeket?",
   "deleteTimeDialogTitle": "Törli az elemet?",
   "dialogCancelLabel": "MÉGSE",
@@ -343,7 +343,7 @@
   "errorProductNotFound": "A termék nem található",
   "exportAction": "Exportálás",
   "exportImportAppDataLabel": "Alkalmazásadatok exportálása/importálása",
-  "exportImportCsvRecipesNote": "A CSV-fájl tárolja a tevékenységeit, az étkezési naplóit és a nyomon követett napokat. A receptek és a csatolt fotók kizárólag JSON formátumban vannak elmentve — váltson át JSON-ra, ha ezeket is szeretné a biztonsági másolatba felvenni.",
+  "exportImportCsvRecipesNote": "A CSV formátum megőrzi az aktivitásait, az étkezési naplóit és a rögzített napokat. A receptek, a kedvencek és a csatolt fényképek kizárólag JSON formátumban érhetők el – váltson JSON-ra, ha ezeket is szeretné viszontlátni a biztonsági mentéseiben.",
   "exportImportDescription": "Az alkalmazás adatait ZIP-fájlba exportálhatja, majd később importálhatja. Ez akkor hasznos, ha biztonsági másolatot szeretne készíteni az adatairól, vagy azokat egy másik eszközre szeretné átvinni.\n\nAz alkalmazás nem használ felhőszolgáltatást az adatok tárolásához.",
   "exportImportErrorLabel": "Exportálási/importálási hiba",
   "exportImportSuccessLabel": "Az exportálás/importálás sikeres volt",
@@ -633,7 +633,7 @@
   "paBilliardsGeneralDesc": "általános",
   "paBowlingGeneral": "tekézés",
   "paBowlingGeneralDesc": "általános",
-  "paBoxingBag": "ökölvívás",
+  "paBoxingBag": "boksz (bokszzsák)",
   "paBoxingBagDesc": "bokszzsák",
   "paBoxingGeneral": "ökölvívás",
   "paBoxingGeneralDesc": "ringben, általános",
@@ -694,7 +694,7 @@
   "paHeadingWinterActivities": "téli programok",
   "paHighIntensityIntervalExercise": "nagy intenzitású intervallumos edzés",
   "paHighIntensityIntervalExerciseDesc": "közepes erőfeszítés",
-  "paHighIntensityIntervalExerciseVigorous": "nagy intenzitású intervallumos edzés",
+  "paHighIntensityIntervalExerciseVigorous": "erőteljes, nagy intenzitású intervallum edzés",
   "paHighIntensityIntervalExerciseVigorousDesc": "hegymászó gyakorlatok, guggolásugrások, tabata, erőteljes erőfeszítés",
   "paHikingCrossCountry": "túrázás",
   "paHikingCrossCountryDesc": "terepfutás",
@@ -722,7 +722,7 @@
   "paLawnBowlingDesc": "boccia, szabadtéri",
   "paMartialArtsModerate": "harcművészetek",
   "paMartialArtsModerateDesc": "különböző típusok, mérsékelt tempó (pl. dzsúdó, dzsúdzsucu, karate, kick-box, taekwondo, tai-bo, muay thai box)",
-  "paMartialArtsSlower": "harcművészetek",
+  "paMartialArtsSlower": "harcművészetek (lassabb tempóban)",
   "paMartialArtsSlowerDesc": "különböző típusok, lassabb tempó, kezdő előadók, gyakorlás",
   "paMotoCross": "motokrossz",
   "paMotoCrossDesc": "terepjáró motorsport, terepjáró, általános",
@@ -757,7 +757,7 @@
   "paRopeSkippingGeneralDesc": "általános",
   "paRugbyCompetitive": "rögbi",
   "paRugbyCompetitiveDesc": "szövetség, csapat, versenyszerű",
-  "paRugbyNonCompetitive": "rögbi",
+  "paRugbyNonCompetitive": "érintéses rögbi",
   "paRugbyNonCompetitiveDesc": "alkalmi, nem versenyszerű",
   "paRunningGeneral": "futás",
   "paRunningGeneralDesc": "általános",
@@ -798,7 +798,6 @@
   "paTaiChiQiGongGeneralDesc": "általános",
   "paTennisGeneral": "tenisz",
   "paTennisGeneralDesc": "általános",
-  "paTrackField": "atlétika",
   "paTrackField1Desc": "(pl. súlylökés, diszkoszvetés, kalapácsvetés)",
   "paTrackField2Desc": "(pl. magasugrás, távolugrás, hármasugrás, gerelyhajítás, rúdugrás)",
   "paTrackField3Desc": "(pl. akadályfutás, gátfutás)",
@@ -915,7 +914,6 @@
   "recipeServingsCountLabel": "Adagok (opcionális)",
   "recipeTagsHelper": "Vesszővel elválasztva, pl. „reggeli, vegán”",
   "recipeTagsLabel": "Címkék",
-  "recipeTotalWeightHelper": "Alapértelmezés szerint az összetevők összege. Folyadékok esetén hozzávetőlegesen 1 ml ≈ 1 g.",
   "recipeTotalWeightLabel": "Teljes tömeg (g)",
   "recipesEmptyHint": "Állítson össze egy ételt több alapanyagból, és később használja fel újra, mint bármely más ételt.",
   "recipesEmptyLabel": "Még nincsenek receptek",
@@ -985,7 +983,7 @@
   "settingsDisclaimerLabel": "Jogi nyilatkozat",
   "settingsDistanceLabel": "Távolság",
   "settingsEnergyUnitLabel": "Energiaegység",
-  "settingsFibreGoalDescription": "A napi rostbeviteli célérték grammban kifejezve. Az alapértelmezett referenciaérték 30 g.",
+  "settingsFibreGoalDescription": "Napi rostcél (grammban). Az alapértelmezett érték életkortól és nemtől függően változik (21–38 g).",
   "settingsFibreGoalLabel": "Rostbeviteli célérték",
   "settingsImperialLabel": "Angol mértékegységek (font, láb, uncia)",
   "settingsKcalAdjustmentLabel": "Napi kalória beállítás",
@@ -1344,7 +1342,7 @@
   "bulkAddTitle": "Több elem hozzáadása",
   "bulkAddInputHint": "2 tojás, 100 g pirítós, feketekávé",
   "bulkAddParseLabel": "Élelmiszerek keresése",
-  "bulkAddSubmitLabel": "{count} elem naplózása",
+  "bulkAddSubmitLabel": "{count, plural, =1 {1 elem naplózása} other {{count} elem naplózása}}",
   "@bulkAddSubmitLabel": {
     "placeholders": {
       "count": {
@@ -1657,5 +1655,105 @@
         "type": "String"
       }
     }
-  }
+  },
+  "noResultsSearchAll": "Összes keresése",
+  "paCalisthenicsVigorous": "testgyakorlatok (intenzív)",
+  "paCalisthenicsVigorousDesc": "intenzív testmozgás (pl. fekvőtámasz, hasizomgyakorlat, húzódzkodás, ugráló felülés, négyütemű fekvőtámasz)",
+  "paCircuitTraining": "köredzés",
+  "paCircuitTrainingDesc": "beleértve a kettlebelleket, néhány aerob gyakorlatot minimális pihenőidővel, magas intenzitással",
+  "paEllipticalTrainer": "elliptikus edzőgép",
+  "paRowingMachine": "evezőgép",
+  "paStairTreadmillErgometer": "lépcsőzőgép",
+  "paTrackField1": "atlétika (dobószámok)",
+  "paTrackField2": "atlétika (ugrószámok és gerelyhajítás)",
+  "paTrackField3": "atlétika (gátfutás)",
+  "paYoga": "jóga",
+  "paYogaDesc": "általános vagy hatha jóga",
+  "recipeTotalWeightCalculatedHelper": "Az összetevők alapján számított érték. A folyadékok esetében a következő közelítést alkalmaztuk: 1 ml ≈ 1 g.",
+  "recipeTotalWeightManualHelper": "Kézzel lett megadva, így az összetevők módosítása nem változtat rajta.",
+  "recipeTotalWeightUseIngredientTotalButton": "Az összes hozzávaló felhasználása",
+  "settingsKjAdjustmentLabel": "Napi kJ-kiigazítás",
+  "calorieWidgetAccessibilityLabel": "{consumed} / {goal} kilokalória",
+  "@calorieWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS home-screen calorie widget.",
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetDescription": "A mai bevitt kalóriák és a célja.",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetGoalLabel": "ennyiből: {goal}",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetOpenAppHint": "Alkalmazás megnyitása",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
+  "errorLoadingFavourites": "Hiba a kedvencek betöltése közben",
+  "favouriteAddTooltip": "Hozzáadás a kedvencekhez",
+  "favouriteRemoveTooltip": "Eltávolítás a kedvencek közül",
+  "favouritesEmptySubtitle": "Érintse meg a csillagot bármely étel vagy étkezés mellett, hogy itt maradjon, és készen álljon a rögzítésre.",
+  "favouritesEmptyTitle": "Még nincsenek kedvencek",
+  "favouritesLabel": "Kedvencek",
+  "sharedMealParseLabel": "Elemzés",
+  "sharedMealInvalidCodeLabel": "Írjon be egy érvényes közös étkezési kódot.",
+  "sharedMealUnnamedLabel": "Megnevezetlen étel",
+  "sharedMealUnavailableLabel": "Nem érhető el — ez az elem kihagyásra kerül.",
+  "sharedMealTotalLabel": "Összes",
+  "sharedMealPartialTotalLabel": "Összesen (hiányos)",
+  "minuteShortLabel": "perc",
+  "@minuteShortLabel": {
+    "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
+  },
+  "missingProductInfoFields": "Hiányzik: {fields}",
+  "@missingProductInfoFields": {
+    "description": "Under the missing-information warning on the food detail screen; names the required values the food lacks. {fields} is a comma-separated list of the nutrient labels, e.g. 'Missing: fat, protein'.",
+    "placeholders": {
+      "fields": {
+        "type": "String",
+        "example": "fat, protein"
+      }
+    }
+  },
+  "partialResultsNotice": "Egy élelmiszer-forrás nem adott választ. Lehet, hogy néhány eredmény hiányzik.",
+  "partialResultsAllSourcesDownNotice": "Egyetlen online élelmiszer-forrás sem válaszolt. Csak a mentett élelmiszerek jelennek meg.",
+  "addMealSnapMealLabel": "Gyorsétkezés",
+  "addMealDescribeLabel": "Leírás",
+  "bulkAddReviewTitle": "Elemek áttekintése",
+  "bulkAddUpdateMatchesLabel": "Találatok frissítése",
+  "bulkAddYourPhotoLabel": "A fényképe",
+  "bulkAddRetakeLabel": "Újrafelvétel",
+  "addToListLabel": "Hozzáadás a listához",
+  "bulkAddToListLabel": "{count, plural, =1 {1 tétel hozzáadása} other {{count} tétel hozzáadása}}",
+  "@bulkAddToListLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "logTrayTitle": "Naplózandó · {count}",
+  "@logTrayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "logTrayRemoveLabel": "Törlés a listából",
+  "logTrayAddedLabel": "Hozzáadva a listához",
+  "logTrayLogFailedLabel": "Nem sikerült rögzíteni ezeket az elemeket. Próbálja meg újra."
 }

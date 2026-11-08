@@ -46,8 +46,8 @@ class HomeLoadedState extends HomeState {
   final double snackKcalTarget;
   // #150 follow-up: per-meal share percentages. A 0% share signals that the
   // user has explicitly opted out of seeing that meal section (e.g. OMAD has
-  // 0% snack), so the section is hidden entirely rather than showing an empty
-  // header with a 0-kcal target.
+  // 0% snack), so the section is hidden while empty rather than showing an
+  // empty header with a 0-kcal target (one with intakes still shows, #1305).
   final int breakfastSharePct;
   final int lunchSharePct;
   final int dinnerSharePct;

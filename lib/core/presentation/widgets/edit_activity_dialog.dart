@@ -53,7 +53,7 @@ class _EditActivityDialogState extends State<EditActivityDialog> {
 
     final suffix = _isCustom
         ? (usesKj ? S.of(context).kjLabel : S.of(context).kcalLabel)
-        : 'min';
+        : S.of(context).minuteShortLabel;
 
     return AlertDialog(
       title: Text(S.of(context).editItemDialogTitle),

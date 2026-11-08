@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/met_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 part 'activity_detail_event.dart';
 
@@ -97,10 +98,15 @@ class ActivityDetailBloc
   Future<void> saveCustomActivityTemplate(
     CustomActivityTemplateEntity entity,
   ) async {
-    await _addCustomActivityTemplateUsecase.addTemplate(entity);
+    await withTrackedDayLockOnProfile(
+      () => _addCustomActivityTemplateUsecase.addTemplate(entity),
+    );
   }
 
-  void persistActivity(
+  /// Completes once the activity and its goal credit are stored, so a
+  /// caller refreshes after it: the write can wait for the tracked-day
+  /// lock behind a reconciliation, a profile switch or an import (#1317).
+  Future<void> persistActivity(
     String quantityText,
     double totalKcalBurned,
     PhysicalActivityEntity activityEntity,
@@ -123,11 +129,15 @@ class ActivityDetailBloc
       userKcal: isCustom ? parsedQuantity : null,
     );
 
-    await _addUserActivityUsecase.addUserActivity(userActivityEntity);
-    _updateTrackedDay(day, burnedKcal);
+    // The entry and its goal credit together, so no reconciliation or
+    // boundary move lands between them (#1317).
+    await withTrackedDayLockOnProfile(() async {
+      await _addUserActivityUsecase.addUserActivity(userActivityEntity);
+      await _updateTrackedDay(day, burnedKcal);
+    });
   }
 
-  void _updateTrackedDay(DateTime day, double caloriesBurned) async {
+  Future<void> _updateTrackedDay(DateTime day, double caloriesBurned) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
       // If the tracked day does not exist, create a new one
@@ -144,7 +154,7 @@ class ActivityDetailBloc
         totalKcalGoal,
       );
 
-      await _addTrackedDayUsecase.addNewTrackedDay(
+      await _addTrackedDayUsecase.addNewTrackedDayIfAbsent(
         day,
         totalKcalGoal,
         totalCarbsGoal,
@@ -157,8 +167,8 @@ class ActivityDetailBloc
     final fatIncrease = MacroCalc.getTotalFatsGoal(caloriesBurned);
     final proteinIncrease = MacroCalc.getTotalProteinsGoal(caloriesBurned);
 
-    _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
-    _addTrackedDayUsecase.increaseDayMacroGoals(
+    await _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
+    await _addTrackedDayUsecase.increaseDayMacroGoals(
       day,
       carbsAmount: carbsIncrease,
       fatAmount: fatIncrease,

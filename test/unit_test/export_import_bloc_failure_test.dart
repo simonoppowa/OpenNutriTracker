@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
@@ -17,6 +18,7 @@ import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
+import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
@@ -39,6 +41,7 @@ import 'package:opennutritracker/features/settings/domain/usecase/import_meals_j
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
 
 import '../helpers/fake_hive_db_provider.dart';
@@ -86,6 +89,12 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
         CustomActivityTemplateRepository(
           CustomActivityTemplateDataSource(_provider),
         ),
+        ConfigRepository(ConfigDataSource(_provider)),
+        FavouriteMealRepository(
+          FavouriteMealDataSource(_provider),
+          CustomMealDataSource(_provider),
+          RecipeDataSource(_provider),
+        ),
       );
 
   final Object error;
@@ -100,13 +109,18 @@ class _ThrowingExportDataUsecase extends ExportDataUsecase {
     String weightLogJsonFileName,
     String customActivityTemplateJsonFileName, {
     ExportFormat format = ExportFormat.json,
+    String favouriteJsonFileName = 'user_favourites.json',
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
+    String goalSettingsJsonFileName = 'goal_settings.json',
   }) async {
     throw error;
   }
 }
+
+/// Only reached after a successful import, which no test here has.
+class _UnusedSettingsBloc extends Fake implements SettingsBloc {}
 
 class _ThrowingDownloadSampleCsvUsecase extends DownloadSampleCsvUsecase {
   _ThrowingDownloadSampleCsvUsecase(this.error);
@@ -153,6 +167,12 @@ ExportImportBloc _bloc({
       CustomActivityTemplateRepository(
         CustomActivityTemplateDataSource(_provider),
       ),
+      configRepository,
+      FavouriteMealRepository(
+        FavouriteMealDataSource(_provider),
+        CustomMealDataSource(_provider),
+        RecipeDataSource(_provider),
+      ),
       pickFile: pickFile ?? () async => throw StateError('unused'),
     ),
     ImportMealsCsvUsecase(customMealDataSource),
@@ -171,6 +191,7 @@ ExportImportBloc _bloc({
       customMealDataSource,
     ),
     ImportRecipesJsonUsecase(saveRecipeUseCase),
+    _UnusedSettingsBloc(),
   );
 }
 

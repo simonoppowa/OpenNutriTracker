@@ -165,6 +165,13 @@
       }
     }
   },
+  "@logWaterAmountLabelFlOz": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
   "@settingsNotificationsTimeLabel": {
     "placeholders": {
       "time": {
@@ -173,6 +180,16 @@
     }
   },
   "@waterChipLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "@waterChipLabelFlOz": {
     "placeholders": {
       "current": {
         "type": "int"
@@ -200,6 +217,15 @@
   "activityLabel": "Activity",
   "addItemLabel": "Add new Item:",
   "addLabel": "Add",
+  "addToSectionLabel": "Add to {section}",
+  "@addToSectionLabel": {
+    "description": "Screen reader label of the plus at the foot of a meal or activity list, e.g. 'Add to Breakfast'.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
   "additionalInfoLabelCompendium2011": "Information provided\n by the \n'2024 Compendium\n of Physical Activities'",
   "additionalInfoLabelCustom": "Custom Meal Item",
   "additionalInfoLabelFDC": "More Information at\nFoodData Central",
@@ -269,6 +295,35 @@
   "calculationsRecommendedLabel": "(recommended)",
   "calculationsTDEEIOM2006Label": "Institute of Medicine Equation (2005)",
   "calculationsTDEELabel": "TDEE equation",
+  "calorieWidgetAccessibilityLabel": "{consumed} of {goal} kilocalories",
+  "@calorieWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS home-screen calorie widget.",
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetDescription": "Today's calories eaten and your goal.",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetGoalLabel": "of {goal}",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetOpenAppHint": "Open the app",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
   "caloriesProfileAveragedLabel": "Averaged reference (default)",
   "caloriesProfileEstrogenTypicalLabel": "Estrogen-typical reference",
   "caloriesProfileInfoBody": "There isn't a published non-binary calorie baseline — the reference equations are built around male and female samples. We use an average of the two by default, a neutral starting point that doesn't ask you to disclose more about your body. The kcal slider in Settings is always available to fine-tune; this is a starting point, not a precise estimate.",
@@ -326,7 +381,7 @@
       }
     }
   },
-  "customMealsDeleteConfirmContent": "All diary entries using this meal will also be removed.",
+  "customMealsDeleteConfirmContent": "All diary entries in this profile that use this meal will also be removed.",
   "customMealsDeleteConfirmTitle": "Delete custom meal?",
   "customMealsEmptyLabel": "No custom meals saved yet.",
   "dailyKcalAdjustmentLabel": "Daily Kcal adjustment:",
@@ -353,8 +408,8 @@
   },
   "lowKcalWarningViewDisclaimer": "View disclaimer",
   "deleteSelectedRecipesConfirmTitle": "Delete {count} recipe(s)?",
-  "deleteTimeDialogContent": "Do want to delete the selected item?",
-  "deleteTimeDialogPluralContent": "Do want to delete all items of this meal?",
+  "deleteTimeDialogContent": "Do you want to delete the selected item?",
+  "deleteTimeDialogPluralContent": "Do you want to delete all items of this meal?",
   "deleteTimeDialogPluralTitle": "Delete Items?",
   "deleteTimeDialogTitle": "Delete Item?",
   "dialogCancelLabel": "CANCEL",
@@ -400,13 +455,14 @@
   "energyUnitKjLabel": "Kilojoules (kJ)",
   "errorFetchingProductData": "Error while fetching product data",
   "errorLoadingActivities": "Error while loading activities",
+  "errorLoadingFavourites": "Error while loading favourites",
   "errorMealSave": "Error while saving meal. Did you input the correct meal information?",
   "errorOpeningBrowser": "Error while opening browser app",
   "errorOpeningEmail": "Error while opening email app",
   "errorProductNotFound": "Product not found",
   "exportAction": "Export",
   "exportImportAppDataLabel": "Export / Import App Data",
-  "exportImportCsvRecipesNote": "CSV keeps your activity, meal log and tracked days. Recipes and any photos you've attached are JSON-only — switch to JSON if you want them in your backup.",
+  "exportImportCsvRecipesNote": "CSV keeps your activity, meal log and tracked days. Recipes, favourites and any photos you've attached are JSON-only — switch to JSON if you want them in your backup.",
   "exportImportDescription": "You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data.",
   "exportImportErrorLabel": "Export / Import error",
   "exportImportErrorUnreadableLabel": "The selected file could not be read. Choose the .zip backup that OpenNutriTracker exported.",
@@ -414,6 +470,11 @@
   "exportImportSuccessLabel": "Export / Import successful",
   "fatLabel": "fat",
   "fatLabelShort": "f",
+  "favouriteAddTooltip": "Add to favourites",
+  "favouriteRemoveTooltip": "Remove from favourites",
+  "favouritesEmptySubtitle": "Tap the star on any food or meal to keep it here, ready to log.",
+  "favouritesEmptyTitle": "No favourites yet",
+  "favouritesLabel": "Favourites",
   "fiberLabel": "fiber",
   "flOzUnit": "fl.oz",
   "ftLabel": "ft",
@@ -457,6 +518,12 @@
   "importMealConfirmTitle": "Import {count} items?",
   "importMealErrorLabel": "Invalid QR code",
   "importMealLabel": "Import shared meal",
+  "sharedMealParseLabel": "Parse",
+  "sharedMealInvalidCodeLabel": "Enter a valid shared meal code.",
+  "sharedMealUnnamedLabel": "Unnamed food",
+  "sharedMealUnavailableLabel": "Unavailable — this item will be skipped.",
+  "sharedMealTotalLabel": "Total",
+  "sharedMealPartialTotalLabel": "Total (incomplete)",
   "importMealSuccessLabel": "Meal imported",
   "importMealsCsvAction": "Import meals (csv)",
   "importMealsJsonAction": "Import meals (json)",
@@ -506,6 +573,14 @@
   "kcalTooMuchLabel": "kcal too much",
   "kgLabel": "kg",
   "kjLabel": "kJ",
+  "hourShortLabel": "h",
+  "@hourShortLabel": {
+    "description": "Short unit after a number of hours, e.g. '4 h', read by a screen reader on the day boundary slider."
+  },
+  "minuteShortLabel": "min",
+  "@minuteShortLabel": {
+    "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
+  },
   "lbsLabel": "lbs",
   "stLabel": "st",
   "lunchExample": "e.g. pizza, salad, rice ...",
@@ -541,6 +616,16 @@
   "micronutrientsLabel": "Micronutrients",
   "milliliterUnit": "ml",
   "missingProductInfo": "Product missing required kcal or macronutrients information",
+  "missingProductInfoFields": "Missing: {fields}",
+  "@missingProductInfoFields": {
+    "description": "Under the missing-information warning on the food detail screen; names the required values the food lacks. {fields} is a comma-separated list of the nutrient labels, e.g. 'Missing: fat, protein'.",
+    "placeholders": {
+      "fields": {
+        "type": "String",
+        "example": "fat, protein"
+      }
+    }
+  },
   "monounsaturatedFatLabel": "monounsaturated fat",
   "newCustomMealLabel": "New Custom Food",
   "niacinLabel": "niacin (B3)",
@@ -550,6 +635,9 @@
   "noResultsSubtitle": "No foods matched that search. Try a different name, scan the barcode, or create your own.",
   "noResultsScanBarcode": "Scan barcode",
   "noResultsCreateCustomFood": "Create custom food",
+  "noResultsSearchAll": "Search all",
+  "partialResultsNotice": "One food source didn't respond. Some results might be missing.",
+  "partialResultsAllSourcesDownNotice": "No online food source responded. Showing your saved foods only.",
   "notAvailableLabel": "N/A",
   "nothingAddedLabel": "Nothing added",
   "notificationsDailyReminderBody": "Don't forget to log your meals today!",
@@ -634,6 +722,22 @@
   "onboardingWrongWeightLabel": "Enter correct weight",
   "onboardingYourGoalLabel": "Your calorie goal:",
   "onboardingYourMacrosGoalLabel": "Your macronutrient goals:",
+  "onboardingPageProgressSemantic": "Page {current} of {total}",
+  "@onboardingPageProgressSemantic": {"placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}},
+  "onboardingMacrosChangeLaterHint": "You can change these later in Settings → {category} → {item}.",
+  "@onboardingMacrosChangeLaterHint": {
+    "description": "Under the macro gram targets on the onboarding overview. Says the values are not edited here and where they can be changed. {category} is the Settings group name and {item} the row name, both filled in from their own strings.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Goals & nutrition"
+      },
+      "item": {
+        "type": "String",
+        "example": "Macro split"
+      }
+    }
+  },
   "ozUnit": "oz",
   "paActiveVideoGames": "active video games",
   "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, general",
@@ -659,7 +763,7 @@
   "paBilliardsGeneralDesc": "general",
   "paBowlingGeneral": "bowling",
   "paBowlingGeneralDesc": "general",
-  "paBoxingBag": "boxing",
+  "paBoxingBag": "boxing (punching bag)",
   "paBoxingBagDesc": "punching bag",
   "paBoxingGeneral": "boxing",
   "paBoxingGeneralDesc": "in ring, general",
@@ -667,6 +771,8 @@
   "paBroomballDesc": "general",
   "paCalisthenicsGeneral": "calisthenics",
   "paCalisthenicsGeneralDesc": "light or moderate effort, general (e.g., back exercises)",
+  "paCalisthenicsVigorous": "calisthenics (vigorous)",
+  "paCalisthenicsVigorousDesc": "vigorous effort (e.g., pushups, sit-ups, pull-ups, jumping jacks, burpees)",
   "paCanoeingGeneral": "canoeing",
   "paCanoeingGeneralDesc": "rowing, for pleasure, general",
   "paCatch": "football or baseball",
@@ -675,6 +781,8 @@
   "paCheerleadingDesc": "gymnastic moves, competitive",
   "paChildrenGame": "children's games",
   "paChildrenGameDesc": "(e.g., hopscotch, 4-square, dodgeball, playground apparatus, t-ball, tetherball, marbles, arcade games), moderate effort",
+  "paCircuitTraining": "circuit training",
+  "paCircuitTrainingDesc": "including kettlebells, some aerobic movement with minimal rest, vigorous intensity",
   "paClimbingHillsNoLoadGeneral": "climbing hills, no load",
   "paClimbingHillsNoLoadGeneralDesc": "no load",
   "paCricket": "cricket",
@@ -695,6 +803,7 @@
   "paDivingGeneralDesc": "skindiving, scuba diving, general",
   "paDivingSpringboardPlatform": "springboard or platform diving",
   "paDivingSpringboardPlatformDesc": "springboard or platform",
+  "paEllipticalTrainer": "elliptical trainer",
   "paFencing": "fencing",
   "paFencingDesc": "general",
   "paFrisbee": "frisbee playing",
@@ -720,7 +829,7 @@
   "paHeadingWinterActivities": "winter activities",
   "paHighIntensityIntervalExercise": "high intensity interval exercise",
   "paHighIntensityIntervalExerciseDesc": "moderate effort",
-  "paHighIntensityIntervalExerciseVigorous": "high intensity interval exercise",
+  "paHighIntensityIntervalExerciseVigorous": "vigorous high intensity interval exercise",
   "paHighIntensityIntervalExerciseVigorousDesc": "burpees, mountain climbers, squat jumps, Tabata, vigorous effort",
   "paHikingCrossCountry": "hiking",
   "paHikingCrossCountryDesc": "cross country",
@@ -748,7 +857,7 @@
   "paLawnBowlingDesc": "bocce ball, outdoor",
   "paMartialArtsModerate": "martial arts",
   "paMartialArtsModerateDesc": "different types, moderate pace (e.g., judo, jujitsu, karate, kick boxing, tae kwan do, tai-bo, Muay Thai boxing)",
-  "paMartialArtsSlower": "martial arts",
+  "paMartialArtsSlower": "martial arts (slower pace)",
   "paMartialArtsSlowerDesc": "different types, slower pace, novice performers, practice",
   "paMotoCross": "moto-cross",
   "paMotoCrossDesc": "off-road motor sports, all-terrain vehicle, general",
@@ -781,9 +890,10 @@
   "paRopeJumpingGeneralDesc": "moderate pace, 100-120 skips/min, general, 2 foot skip, plain bounce",
   "paRopeSkippingGeneral": "rope skipping",
   "paRopeSkippingGeneralDesc": "general",
+  "paRowingMachine": "rowing machine",
   "paRugbyCompetitive": "rugby",
   "paRugbyCompetitiveDesc": "union, team, competitive",
-  "paRugbyNonCompetitive": "rugby",
+  "paRugbyNonCompetitive": "touch rugby",
   "paRugbyNonCompetitiveDesc": "touch, non-competitive",
   "paRunningGeneral": "running",
   "paRunningGeneralDesc": "general",
@@ -812,6 +922,7 @@
   "paSoftballBaseballGeneralDesc": "fast or slow pitch, general",
   "paSquashGeneral": "squash",
   "paSquashGeneralDesc": "general",
+  "paStairTreadmillErgometer": "stair-treadmill ergometer",
   "paStretching": "stretching",
   "paStretchingDesc": "mild, general",
   "paSurfing": "surfing",
@@ -824,9 +935,11 @@
   "paTaiChiQiGongGeneralDesc": "general",
   "paTennisGeneral": "tennis",
   "paTennisGeneralDesc": "general",
-  "paTrackField": "track and field",
+  "paTrackField1": "track and field (throws)",
   "paTrackField1Desc": "(e.g. shot, discus, hammer throw)",
+  "paTrackField2": "track and field (jumps and javelin)",
   "paTrackField2Desc": "(e.g. high jump, long jump, triple jump, javelin, pole vault)",
+  "paTrackField3": "track and field (hurdles)",
   "paTrackField3Desc": "(e.g. steeplechase, hurdles)",
   "paTrampolineLight": "trampoline",
   "paTrampolineLightDesc": "recreational",
@@ -852,6 +965,8 @@
   "paWateraerobicsCalisthenicsDesc": "water aerobics, water calisthenics",
   "paWrestling": "wrestling",
   "paWrestlingDesc": "general",
+  "paYoga": "yoga",
+  "paYogaDesc": "general, hatha",
   "palActiveDescriptionLabel": "Mostly standing or walking in job and active free time activities",
   "palActiveLabel": "Active",
   "palLowActiveDescriptionLabel": "e.g. sitting or standing in job and light free time activities",
@@ -920,8 +1035,10 @@
   "recipeServingsCountLabel": "Servings (optional)",
   "recipeTagsHelper": "Comma-separated, e.g. \"breakfast, vegan\"",
   "recipeTagsLabel": "Tags",
-  "recipeTotalWeightHelper": "Defaults to sum of ingredients. Liquids approximated as 1 ml ≈ 1 g.",
+  "recipeTotalWeightCalculatedHelper": "Calculated from ingredients. Liquids approximated as 1 ml ≈ 1 g.",
+  "recipeTotalWeightManualHelper": "Entered manually, so changing ingredients won't change it.",
   "recipeTotalWeightLabel": "Total weight (g)",
+  "recipeTotalWeightUseIngredientTotalButton": "Use ingredient total",
   "recipesEmptyHint": "Build a meal from multiple ingredients and reuse it like any other food.",
   "recipesEmptyLabel": "No recipes yet",
   "recipesFilterAllLabel": "All",
@@ -967,10 +1084,11 @@
   "settingsDisclaimerLabel": "Disclaimer",
   "settingsDistanceLabel": "Distance",
   "settingsEnergyUnitLabel": "Energy unit",
-  "settingsFibreGoalDescription": "Daily fibre target in grams. Default reference is 30g.",
+  "settingsFibreGoalDescription": "Daily fibre target in grams. Default varies by age and gender (21g to 38g).",
   "settingsFibreGoalLabel": "Fibre goal",
   "settingsImperialLabel": "Imperial (lbs, ft, oz)",
   "settingsKcalAdjustmentLabel": "Daily kcal adjustment",
+  "settingsKjAdjustmentLabel": "Daily kJ adjustment",
   "settingsKcalGoalInfoLabel": "How your goal is calculated",
   "settingsIronGoalDescription": "Daily iron target in milligrams. Default varies by gender (8mg male, 18mg female, 14mg otherwise).",
   "settingsIronGoalLabel": "Iron goal",
@@ -1025,6 +1143,11 @@
   "settingsShowActivityTracking": "Show Activity Tracking",
   "settingsShowMealMacros": "Show Meal Macros",
   "settingsShowMicronutrientsLabel": "Show Micronutrients",
+  "settingsShowAiFeaturesLabel": "Show AI Features",
+  "@settingsShowAiFeaturesLabel": {
+    "description": "Settings switch (#1518). Off hides Snap meal, the AI badges and AI meal assistance, and stops anything being sent to an AI model."
+  },
+  "settingsShowAiFeaturesSubtitle": "Snap meal and AI meal assistance. While off, nothing is sent to an AI model.",
   "settingsDefaultToRawFoodUnitsLabel": "Default to weight or volume, not servings",
   "settingsDefaultToRawFoodUnitsSubtitle": "When a food has a serving, log by weight or volume instead. You can still pick servings from the unit dropdown.",
   "settingsSodiumGoalDescription": "Daily sodium cap in milligrams. Default reference is 2300mg.",
@@ -1052,8 +1175,12 @@
   "settingsVitaminDGoalLabel": "Vitamin D goal",
   "settingsVolumeLabel": "Volume",
   "shareActivityLabel": "Share workout",
+  "shareCodeErrorLabel": "Couldn't share the code. Try again or copy it instead.",
   "shareCodeLabel": "Share code",
+  "shareFoodLabel": "Share food",
   "shareMealLabel": "Share meal",
+  "shareQrTooLargeLabel": "This code is too large for a QR image. Copy or share the code as text instead.",
+  "shareQrUnavailableLabel": "Couldn't create a QR image. Copy or share the code as text instead.",
   "shareRecipeLabel": "Share recipe",
   "snackExample": "e.g. apple, ice cream, chocolate ...",
   "snackLabel": "Snack",
@@ -1098,6 +1225,7 @@
   "yearsLabel": "{age} years",
   "@yearsLabel": {"placeholders": {"age": {"type": "int"}}},
   "logWaterAmountLabel": "Add {amount} ml",
+  "logWaterAmountLabelFlOz": "Add {amount} fl.oz",
   "logWaterDialogTitle": "Log water intake",
   "logWaterNothingToUndoLabel": "Nothing to undo",
   "logWaterUndoLabel": "Undo last",
@@ -1105,6 +1233,7 @@
   "settingsWaterGoalDescription": "Used by the water chip on the home screen.",
   "settingsWaterGoalLabel": "Daily water goal",
   "waterChipLabel": "{current} / {goal} ml",
+  "waterChipLabelFlOz": "{current} / {goal} fl.oz",
   "zincLabel": "zinc",
   "profileFastingEntry": "Fasting timer",
   "fastingTitle": "Fasting timer",
@@ -1202,7 +1331,13 @@
   "bulkAddTitle": "Add several items",
   "bulkAddInputHint": "2 eggs, 100g toast, black coffee",
   "bulkAddParseLabel": "Find foods",
-  "bulkAddSubmitLabel": "Log {count} items",
+  "voiceInputStartTooltip": "Speak your meal",
+  "voiceInputStopTooltip": "Stop listening",
+  "voiceInputLanguageTooltip": "Dictation language: {language}. Tap to switch.",
+  "@voiceInputLanguageTooltip": {"placeholders": {"language": {"type": "String"}}},
+  "voiceInputPermissionDenied": "Allow microphone and speech recognition access to dictate a meal.",
+  "voiceInputUnavailable": "Speech recognition is not available on this device.",
+  "bulkAddSubmitLabel": "{count, plural, =1{Log 1 item} other{Log {count} items}}",
   "bulkAddNoMatchLabel": "Couldn't match this item",
   "bulkAddUncertainLabel": "Check this match",
   "bulkAddSkipLabel": "Skip",
@@ -1274,6 +1409,8 @@
   "@aiAssistDisclosureOwnServerSecure": {"placeholders": {"host": {"type": "String"}}},
   "aiAssistDisclosureOwnServerPlaintext": "With an address saved, the text you type on the multi-item add screen, and any photo you choose to read there, is sent to {host} — a server you run. No third party receives it, and the project has no relationship with that machine and can promise nothing about what it keeps. This address is plain HTTP, so the connection is not encrypted: anything on the network between this phone and that server can read what is sent.",
   "@aiAssistDisclosureOwnServerPlaintext": {"placeholders": {"host": {"type": "String"}}},
+  "aiAssistDisclosureOwnServerGemini": "With an address saved, the text you type on the multi-item add screen, and any photo you choose to read there, is sent to Google's Gemini API at {host}. This is not a server you run: Google receives it, and the project has no relationship with Google. On unpaid Gemini API use, Google may use what you send to improve its products and machine learning, and human reviewers may read it. On paid use, and on all use in the EEA, Switzerland and the UK, Google does not use it to improve its products, but logs it for a limited time to detect misuse.",
+  "@aiAssistDisclosureOwnServerGemini": {"placeholders": {"host": {"type": "String"}}},
   "aiAssistEndpointInvalidLabel": "Enter an address starting with http:// or https://",
   "aiAssistModelRequiredLabel": "Name the model this server should use.",
   "aiAssistEndpointPublicPlaintextLabel": "That address is public and unencrypted, so requests to it are refused. Use https, or a private address.",
@@ -1305,6 +1442,10 @@
   "aiAssistModelCheaperLabel": "Cheaper, and weaker on poor-quality photos",
   "aiAssistModelMoreItemsLabel": "Lists more items from a photo",
   "aiAssistModelCheapestLabel": "Cheapest on this list",
+  "aiAssistModelCheaperThanRecommendedLabel": "Cheaper than the recommended model",
+  "@aiAssistModelCheaperThanRecommendedLabel": {
+    "description": "Note under a model in the AI settings: it costs less than the first (recommended) model. A price fact only, no claim about quality."
+  },
   "aiAssistNoKeyForProviderLabel": "No key saved for this provider.",
   "aiAssistKeyFieldLabel": "{provider} API key",
   "@aiAssistKeyFieldLabel": {"placeholders": {"provider": {"type": "String"}}},
@@ -1343,6 +1484,20 @@
   "bulkAddPhotoUnsupportedLabel": "That model can't read photos. Choose a different one in Settings, or type the items instead.",
   "bulkAddPhotoNoCreditLabel": "That request couldn't be paid for: your provider account is out of credit. Top up with your provider, or type the items instead.",
   "bulkAddPhotoNoFoodLabel": "No food found in that photo. Try another photo, or type the items instead.",
+  "addMealSnapMealLabel": "Snap meal",
+  "addMealDescribeLabel": "Describe",
+  "bulkAddReviewTitle": "Review items",
+  "bulkAddUpdateMatchesLabel": "Update matches",
+  "bulkAddYourPhotoLabel": "Your photo",
+  "bulkAddRetakeLabel": "Retake",
+  "addToListLabel": "Add to list",
+  "bulkAddToListLabel": "{count, plural, =1{Add 1 item} other{Add {count} items}}",
+  "@bulkAddToListLabel": {"placeholders": {"count": {"type": "int"}}},
+  "logTrayTitle": "To log · {count}",
+  "@logTrayTitle": {"placeholders": {"count": {"type": "int"}}},
+  "logTrayRemoveLabel": "Remove from list",
+  "logTrayAddedLabel": "Added to list",
+  "logTrayLogFailedLabel": "Couldn't log these items. Try again.",
   "settingsHealthSyncSubtitle": "Import workouts",
   "healthSyncAutoImportLabel": "Automatically import workouts from {platform}",
   "@healthSyncAutoImportLabel": {"placeholders": {"platform": {"type": "String"}}},
@@ -1371,5 +1526,49 @@
   "healthSyncDisclosureContinueAction": "Continue",
   "healthSyncUnavailableLabel": "Health data is not available on this device. Workout import needs Health Connect on Android or Apple Health on iOS.",
   "sourcesEnergyCompensationTitle": "Workout calorie credit",
-  "sourcesEnergyCompensationDescription": "Imported workouts are credited with less than the energy your device reports. People compensate for exercise by burning fewer calories through the rest of the day — about 28% on average, and more at a higher body fat percentage. The suggested credit comes from that research and you can override it under Settings → Health sync. The energy itself is reported by the app or device that recorded the workout, not calculated with the app’s MET formula."
+  "sourcesEnergyCompensationDescription": "Imported workouts are credited with less than the energy your device reports. People compensate for exercise by burning fewer calories through the rest of the day — about 28% on average, and more at a higher body fat percentage. The suggested credit comes from that research and you can override it under Settings → Health sync. The energy itself is reported by the app or device that recorded the workout, not calculated with the app’s MET formula.",
+  "settingsSupportLabel": "Support OpenNutriTracker",
+  "settingsSupportSubtitle": "Tip, translate, code, rate",
+  "supportHeader": "OpenNutriTracker is free, ad-free and open source, built by volunteers. If it helps you, here are a few ways to help it back.",
+  "supportGroupSpreadWord": "Spread the word",
+  "supportGroupSkills": "Give your skills",
+  "supportGroupMoney": "Give money",
+  "supportRateTitle": "Rate the app",
+  "supportRateSubtitle": "A rating helps others find OpenNutriTracker.",
+  "supportShareTitle": "Share with a friend",
+  "supportShareSubtitle": "Send a link through any app.",
+  "supportStarTitle": "Star on GitHub",
+  "supportStarSubtitle": "Show the project some love where developers look.",
+  "supportTranslateTitle": "Help translate",
+  "supportTranslateSubtitle": "Translate in your browser on Weblate. No coding needed.",
+  "supportReportTitle": "Report a bug or idea",
+  "supportReportSubtitle": "Open an issue on GitHub. Others can see and vote on it.",
+  "supportCodeTitle": "Contribute code",
+  "supportCodeSubtitle": "Flutter and Dart. Start with the contributing guide.",
+  "supportTipTitle": "Leave a tip",
+  "supportTipSubtitle": "A one-time tip through the store. Unlocks nothing — it just helps.",
+  "supportTipSmall": "Small tip",
+  "supportTipMedium": "Medium tip",
+  "supportTipLarge": "Large tip",
+  "supportTipThanksTitle": "Thank you!",
+  "supportTipThanksBody": "Your {tipName} ({price}) helps keep OpenNutriTracker free.",
+  "@supportTipThanksBody": {"placeholders": {"tipName": {"type": "String"}, "price": {"type": "String"}}},
+  "supportTipLeft": "You left a tip — thank you!",
+  "supportTipLoadFailed": "Couldn't load tips. Tips work in the App Store and Google Play versions of the app.",
+  "supportTipPending": "Your tip is waiting for the payment to go through.",
+  "supportTipFailed": "The tip didn't go through.",
+  "supportShareLinks": "App Store: {appStoreUrl}\nGoogle Play: {playStoreUrl}",
+  "@supportShareLinks": {"placeholders": {"appStoreUrl": {"type": "String"}, "playStoreUrl": {"type": "String"}}},
+  "calendarPreviousMonthLabel": "Previous month",
+  "@calendarPreviousMonthLabel": {
+    "description": "Screen reader label of the Diary calendar's left arrow."
+  },
+  "calendarNextMonthLabel": "Next month",
+  "@calendarNextMonthLabel": {
+    "description": "Screen reader label of the Diary calendar's right arrow."
+  },
+  "removeIngredientLabel": "Remove ingredient",
+  "@removeIngredientLabel": {
+    "description": "Tooltip and screen reader label of the delete button on a recipe ingredient row."
+  }
 }

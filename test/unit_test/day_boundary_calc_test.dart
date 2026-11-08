@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 
 void main() {
   group('DayBoundaryCalc.logicalDayOf', () {
@@ -364,6 +365,34 @@ void main() {
         ),
         isFalse,
       );
+    });
+  });
+
+  group('DayBoundaryCalc.dayKeyOf (#1317)', () {
+    test('names the date of dayLabelOf, for moments and labels alike', () {
+      // The tracked-day reconciliation keys rows with dayKeyOf and the
+      // listing files entries with dayLabelOf; one disagreement would put
+      // an entry's calories on another day's row.
+      final moments = [
+        for (var hour = 0; hour < 48; hour++)
+          for (final minute in const [0, 1, 29, 59])
+            DateTime(2026, 3, 28).add(Duration(hours: hour, minutes: minute)),
+        DateTime(2026, 10, 25, 2, 30),
+        DateTime(2026, 12, 31, 23, 59),
+        DateTime(2027, 1, 1, 0, 0, 0, 0, 1),
+        DateTime(2026, 10, 4),
+        DateTime.utc(2026, 10, 4),
+        DateTime.utc(2026, 10, 4, 1),
+      ];
+      for (final offset in const [null, -5, 0, 1, 240, 270, 1439, 1440]) {
+        for (final moment in moments) {
+          expect(
+            DayBoundaryCalc.dayKeyOf(moment, offset),
+            DayBoundaryCalc.dayLabelOf(moment, offset).toParsedDay(),
+            reason: '$moment at $offset minutes',
+          );
+        }
+      }
     });
   });
 

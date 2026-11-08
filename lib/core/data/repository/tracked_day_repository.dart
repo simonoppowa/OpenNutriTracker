@@ -55,6 +55,9 @@ class TrackedDayRepository {
     await _trackedDayDataSource.reduceDayCalorieGoal(day, amount);
   }
 
+  /// Writes a fresh row for [day] with every tracked total at zero,
+  /// replacing any row already there. To create a day only when it is
+  /// missing, use [addNewTrackedDayIfAbsent].
   Future<void> addNewTrackedDay(
     DateTime day,
     double totalKcalGoal,
@@ -63,19 +66,54 @@ class TrackedDayRepository {
     double totalProteinGoal,
   ) async {
     await _trackedDayDataSource.saveTrackedDay(
-      TrackedDayDBO(
-        day: day,
-        calorieGoal: totalKcalGoal,
-        caloriesTracked: 0,
-        carbsGoal: totalCarbsGoal,
-        carbsTracked: 0,
-        fatGoal: totalFatGoal,
-        fatTracked: 0,
-        proteinGoal: totalProteinGoal,
-        proteinTracked: 0,
+      _emptyTrackedDay(
+        day,
+        totalKcalGoal,
+        totalCarbsGoal,
+        totalFatGoal,
+        totalProteinGoal,
       ),
     );
   }
+
+  /// Creates [day] with these goals and nothing tracked, unless a row for it
+  /// already exists, which is left exactly as it is. Returns whether the day
+  /// was created (#1373).
+  Future<bool> addNewTrackedDayIfAbsent(
+    DateTime day,
+    double totalKcalGoal,
+    double totalCarbsGoal,
+    double totalFatGoal,
+    double totalProteinGoal,
+  ) async {
+    return await _trackedDayDataSource.saveTrackedDayIfAbsent(
+      _emptyTrackedDay(
+        day,
+        totalKcalGoal,
+        totalCarbsGoal,
+        totalFatGoal,
+        totalProteinGoal,
+      ),
+    );
+  }
+
+  TrackedDayDBO _emptyTrackedDay(
+    DateTime day,
+    double totalKcalGoal,
+    double totalCarbsGoal,
+    double totalFatGoal,
+    double totalProteinGoal,
+  ) => TrackedDayDBO(
+    day: day,
+    calorieGoal: totalKcalGoal,
+    caloriesTracked: 0,
+    carbsGoal: totalCarbsGoal,
+    carbsTracked: 0,
+    fatGoal: totalFatGoal,
+    fatTracked: 0,
+    proteinGoal: totalProteinGoal,
+    proteinTracked: 0,
+  );
 
   Future<void> addAllTrackedDays(List<TrackedDayDBO> trackedDaysDBO) async {
     await _trackedDayDataSource.saveAllTrackedDays(trackedDaysDBO);
@@ -182,6 +220,7 @@ class TrackedDayRepository {
     double? vitaminDGoal,
     double? vitaminB12Goal,
     double? magnesiumGoal,
+    bool clearAll = false,
   }) async {
     await _trackedDayDataSource.updateDayNutrientGoals(
       day,
@@ -195,6 +234,7 @@ class TrackedDayRepository {
       vitaminDGoal: vitaminDGoal,
       vitaminB12Goal: vitaminB12Goal,
       magnesiumGoal: magnesiumGoal,
+      clearAll: clearAll,
     );
   }
 

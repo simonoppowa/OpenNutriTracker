@@ -1,12 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
@@ -143,7 +145,10 @@ void main() {
       repo = IntakeRepository(
         IntakeDataSource(FakeHiveDBProvider(intakeBox: intakeBox)),
       );
-      intakeUsecase = GetIntakeUsecase(repo);
+      intakeUsecase = GetIntakeUsecase(
+        repo,
+        RecipeRepository(RecipeDataSource(FakeHiveDBProvider())),
+      );
 
       final activityBox =
           await Hive.openBox<UserActivityDBO>('activity_today_test');

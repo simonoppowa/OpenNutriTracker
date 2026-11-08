@@ -8,14 +8,19 @@ import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
 import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -33,6 +38,14 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final ProductsRepository _productsRepository;
   final RemoteSearchCacheDataSource _remoteSearchCacheDataSource;
 
+  /// Takes the background refresh's fresh record onto a favourite of the
+  /// food (#1307). Left out where a test does not log a starred food.
+  final ToggleFavouriteMealUsecase? _favourites;
+
+  /// Takes a stored intake back out when the tracked-day update after it
+  /// fails (#1461). Left out where a test never fails that update.
+  final DeleteIntakeUsecase? _deleteIntakeUsecase;
+
   MealDetailBloc(
     this._addIntakeUseCase,
     this._addTrackedDayUsecase,
@@ -40,8 +53,12 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._getMacroGoalUsecase,
     this._getTrackedDayUsecase,
     this._productsRepository,
-    this._remoteSearchCacheDataSource,
-  ) : super(
+    this._remoteSearchCacheDataSource, {
+    ToggleFavouriteMealUsecase? favourites,
+    DeleteIntakeUsecase? deleteIntake,
+  }) : _favourites = favourites,
+       _deleteIntakeUsecase = deleteIntake,
+       super(
           MealDetailInitial(
             totalQuantityConverted: '100',
             selectedUnit: UnitDropdownItem.gml.toString(),
@@ -128,15 +145,13 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       try {
         // A full cache entry (from an earlier scan/hydration) lets us skip the
         // network entirely and works offline; otherwise fetch and cache it.
-        final cached = _remoteSearchCacheDataSource.getDetailedByBarcode(code);
-        final full = cached != null
-            ? MealEntity.fromMealDBO(cached)
-            : await _productsRepository.getOFFProductByBarcode(code);
-        if (cached == null) {
-          await _remoteSearchCacheDataSource.cache(
-            MealDBO.fromMealEntity(full),
-          );
-        }
+        // Shared with the + on a search result, which has to pick its default
+        // amount from the same record.
+        final full = await fetchDetailedOffMeal(
+          meal,
+          _remoteSearchCacheDataSource,
+          _productsRepository,
+        );
         emit(state.copyWith(hydratedMeal: full, isHydrating: false));
       } catch (e, st) {
         // Soft failure: keep the thin result so the user can still log
@@ -176,8 +191,27 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // (up to 60 s timeout) before seeing their item logged. Stale meal
     // data in the intake is fine; nutrition values rarely change, and
     // the cache update means the next search shows the freshest data.
-    await _addIntakeUseCase.addIntake(intakeEntity);
-    await _updateTrackedDay(intakeEntity, day);
+    // The entry and its row together, so no reconciliation counts the
+    // entry before the row has it (#1317).
+    //
+    // All or nothing (#1461): a failure after the intake is stored takes it
+    // back out and puts the day's totals back to what they were, so the
+    // caller's retry starts from where the first attempt did instead of
+    // logging the food a second time.
+    await withTrackedDayLockOnProfile(() async {
+      await _addIntakeUseCase.addIntake(intakeEntity);
+      TrackedDayEntity? before;
+      try {
+        await _updateTrackedDay(
+          intakeEntity,
+          day,
+          onBefore: (totals) => before = totals,
+        );
+      } catch (e, st) {
+        await _rollBackIntake(intakeEntity, day, before, e, st);
+        rethrow;
+      }
+    });
     unawaited(_refreshCacheForSelectedMeal(meal));
   }
 
@@ -194,8 +228,14 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       await _remoteSearchCacheDataSource.touch(code);
       return;
     }
+    final MealEntity fresh;
     try {
-      final fresh = await _productsRepository.getOFFProductByBarcode(code);
+      // The logged name stands in where OFF has none in the app's
+      // language, so the cache and a favourite keep it (#1475).
+      fresh = await _productsRepository.getOFFProductByBarcode(
+        code,
+        knownName: meal.name,
+      );
       await _remoteSearchCacheDataSource.cache(MealDBO.fromMealEntity(fresh));
     } catch (e, st) {
       log.warning(
@@ -204,13 +244,68 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         st,
       );
       await _remoteSearchCacheDataSource.touch(code);
+      return;
+    }
+    // A favourite on the food would otherwise keep logging and exporting
+    // the figures it was starred with, when the app has just fetched newer
+    // ones — as the scanner's live lookup does.
+    try {
+      await _favourites?.refreshDetailedSnapshot(fresh);
+    } catch (e, st) {
+      log.warning('Could not refresh a favourite on $code', e, st);
     }
   }
 
-  Future<void> _updateTrackedDay(
+  /// Undoes a half-written [addIntake]: the day's totals back to [before],
+  /// then the intake itself. Inside the same lock as the write, so nothing
+  /// else saw the half-written state.
+  ///
+  /// The totals are written back whole rather than subtracted step by step.
+  /// The data source changes the cached day record before it saves, so a
+  /// save that throws can leave the increment in memory, where the next
+  /// save (a subtraction included) would persist it. Writing back the values
+  /// read before the update does not depend on how far the update got.
+  ///
+  /// Best effort. A rollback that fails too is logged and left; the caller
+  /// still gets the original error, which is the one that explains what
+  /// happened.
+  Future<void> _rollBackIntake(
     IntakeEntity intakeEntity,
     DateTime day,
+    TrackedDayEntity? before,
+    Object error,
+    StackTrace stackTrace,
   ) async {
+    log.warning(
+      'Tracked-day update failed; rolling back the intake',
+      error,
+      stackTrace,
+    );
+    try {
+      if (before != null) {
+        await _addTrackedDayUsecase.reconcileDayTracked(
+          day,
+          before.caloriesTracked,
+          before.carbsTracked ?? 0,
+          before.fatTracked ?? 0,
+          before.proteinTracked ?? 0,
+        );
+      }
+      await _deleteIntakeUsecase?.deleteIntake(intakeEntity);
+    } catch (e, st) {
+      log.severe('Rolling back a failed intake save failed', e, st);
+    }
+  }
+
+  /// Adds [intakeEntity] to the day's totals, handing [onBefore] the totals
+  /// as they stood before anything was added. Creating the day's row comes
+  /// first and is not undone: an empty row is what the day would have had
+  /// anyway.
+  Future<void> _updateTrackedDay(
+    IntakeEntity intakeEntity,
+    DateTime day, {
+    required void Function(TrackedDayEntity totals) onBefore,
+  }) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
       final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
@@ -224,7 +319,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         totalKcalGoal,
       );
 
-      await _addTrackedDayUsecase.addNewTrackedDay(
+      await _addTrackedDayUsecase.addNewTrackedDayIfAbsent(
         day,
         totalKcalGoal,
         totalCarbsGoal,
@@ -232,6 +327,9 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         totalProteinGoal,
       );
     }
+
+    final totals = await _getTrackedDayUsecase.getTrackedDay(day);
+    if (totals != null) onBefore(totals);
 
     await _addTrackedDayUsecase.addDayCaloriesTracked(
       day,

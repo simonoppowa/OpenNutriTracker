@@ -13,6 +13,20 @@ class SharedMealParseException implements Exception {
   SharedMealParseException(this.message);
 }
 
+/// The base unit ('g' or 'ml') a shared amount is stored in, derived from
+/// the unit it was entered in: an intake entered in oz is stored in grams.
+/// Null when the entry unit does not say, such as a serving.
+String? sharedBaseUnitOf(String unit) {
+  switch (unit) {
+    case 'g' || 'oz':
+      return 'g';
+    case 'ml' || 'fl oz' || 'fl.oz':
+      return 'ml';
+    default:
+      return null;
+  }
+}
+
 // Emit int for whole numbers, round to 1dp otherwise — shrinks JSON before compression
 num? _compact(double? v) {
   if (v == null) return null;
@@ -170,7 +184,10 @@ class SharedMealItem {
       mainImageUrl: mainImageUrl,
       url: null,
       mealQuantity: null,
-      mealUnit: null,
+      // The payload carries no meal unit, but the entry unit implies it, so
+      // the amount reads as grams or millilitres (or oz / fl.oz for imperial
+      // users) instead of the generic g/ml.
+      mealUnit: sharedBaseUnitOf(unit),
       servingQuantity: null,
       servingUnit: null,
       servingSize: null,

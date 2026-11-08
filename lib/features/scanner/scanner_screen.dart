@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/shared_payload_router.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/home/presentation/screens/import_activity_scanner_screen.dart';
 import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
@@ -35,6 +36,7 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   String? _scannedBarcode;
   IntakeTypeEntity? _intakeTypeEntity;
+  LogTray? _logTray;
   DateTime? _day;
   bool _pickMode = false;
   // BlocBuilder can rebuild for [ScannerLoadedState] more than once before
@@ -86,6 +88,7 @@ class _ScannerScreenState extends State<ScannerScreen>
         ModalRoute.of(context)?.settings.arguments as ScannerScreenArguments;
     _intakeTypeEntity = args.intakeTypeEntity;
     _day = args.day;
+    _logTray = args.logTray;
     _pickMode = args.pickMode;
     if (args.initialBarcode != null && _scannedBarcode == null) {
       _scannedBarcode = args.initialBarcode;
@@ -136,6 +139,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                   _intakeTypeEntity!,
                   _day!,
                   state.usesImperialUnits,
+                  logTray: _logTray,
                 ),
               );
             });
@@ -372,10 +376,15 @@ class ScannerScreenArguments {
   final String? initialBarcode;
   final bool pickMode;
 
+  /// The add-food screen's "To log" list, passed on to the detail screen a
+  /// scan opens so that it adds there instead of logging.
+  final LogTray? logTray;
+
   ScannerScreenArguments(
     DateTime forDay,
     IntakeTypeEntity forIntakeType, {
     this.initialBarcode,
+    this.logTray,
   })  : day = forDay,
         intakeTypeEntity = forIntakeType,
         pickMode = false;
@@ -385,6 +394,7 @@ class ScannerScreenArguments {
   /// the meal-detail logging screen. Used by the recipe ingredient picker.
   ScannerScreenArguments.pick({this.initialBarcode})
       : day = null,
+        logTray = null,
         intakeTypeEntity = null,
         pickMode = true;
 }

@@ -128,7 +128,7 @@
   "bmiInfoFormulaSection": "公式",
   "bmiInfoScreenTitle": "您的 BMI 如何计算",
   "bmiLabel": "BMI",
-  "breakfastExample": "例如： cereal、牛奶、咖啡...",
+  "breakfastExample": "例如： 麦片、牛奶、咖啡...",
   "breakfastLabel": "早餐",
   "burnedLabel": "消耗",
   "buttonNextLabel": "下一步",
@@ -226,7 +226,7 @@
       }
     }
   },
-  "customMealsDeleteConfirmContent": "所有使用此餐食的日记条目也将被删除。",
+  "customMealsDeleteConfirmContent": "此档案中使用该食物的所有日记记录也会被一并删除。",
   "customMealsDeleteConfirmTitle": "删除自定义餐食？",
   "customMealsEmptyLabel": "尚未保存自定义餐食。",
   "dailyKcalAdjustmentLabel": "每日卡路里调整：",
@@ -611,7 +611,7 @@
   "paBilliardsGeneralDesc": "一般",
   "paBowlingGeneral": "保龄球",
   "paBowlingGeneralDesc": "一般",
-  "paBoxingBag": "拳击",
+  "paBoxingBag": "拳击（打沙袋）",
   "paBoxingBagDesc": "沙袋",
   "paBoxingGeneral": "拳击",
   "paBoxingGeneralDesc": "场内，一般",
@@ -645,7 +645,7 @@
   "paDartsWallDesc": "墙式或草坪",
   "paDivingGeneral": "潜水",
   "paDivingGeneralDesc": "自由潜水、水肺潜水，一般",
-  "paDivingSpringboardPlatform": "跳水",
+  "paDivingSpringboardPlatform": "跳水（跳板或跳台）",
   "paDivingSpringboardPlatformDesc": "跳板或跳台",
   "paFencing": "击剑",
   "paFencingDesc": "一般",
@@ -700,7 +700,7 @@
   "paLawnBowlingDesc": "室外地掷球",
   "paMartialArtsModerate": "武术",
   "paMartialArtsModerateDesc": "不同类型，中等速度（例如：柔道、柔术、空手道、踢拳、跆拳道、跆搏、泰拳）",
-  "paMartialArtsSlower": "武术",
+  "paMartialArtsSlower": "武术（慢速）",
   "paMartialArtsSlowerDesc": "不同类型，较慢速度，初学者，练习",
   "paMotoCross": "越野摩托车",
   "paMotoCrossDesc": "越野摩托运动，全地形车，一般",
@@ -713,7 +713,7 @@
   "paPaddleBoardingDesc": "站立式",
   "paPaddleBoat": "脚踏船",
   "paPaddleBoatDesc": "一般",
-  "paPaddleball": " paddleball",
+  "paPaddleball": "paddleball",
   "paPaddleballDesc": "休闲，一般",
   "paPickleball": "匹克球",
   "paPilates": "普拉提",
@@ -735,7 +735,7 @@
   "paRopeSkippingGeneralDesc": "一般",
   "paRugbyCompetitive": "橄榄球",
   "paRugbyCompetitiveDesc": "联盟，团队，竞技",
-  "paRugbyNonCompetitive": "橄榄球",
+  "paRugbyNonCompetitive": "触式橄榄球",
   "paRugbyNonCompetitiveDesc": "触式，非竞技",
   "paRunningGeneral": "跑步",
   "paRunningGeneralDesc": "一般",
@@ -776,7 +776,6 @@
   "paTaiChiQiGongGeneralDesc": "一般",
   "paTennisGeneral": "网球",
   "paTennisGeneralDesc": "一般",
-  "paTrackField": "田径",
   "paTrackField1Desc": "（例如：铅球、铁饼、链球）",
   "paTrackField2Desc": "（例如：跳高、跳远、三级跳、标枪、撑杆跳）",
   "paTrackField3Desc": "（例如：障碍跑、跨栏）",
@@ -886,7 +885,6 @@
   "recipeServingsCountLabel": "份数（可选）",
   "recipeTagsHelper": "用逗号分隔，例如\"早餐，素食\"",
   "recipeTagsLabel": "标签",
-  "recipeTotalWeightHelper": "默认值为食材之和。液体按 1 毫升 ≈ 1 克近似计算。",
   "recipeTotalWeightLabel": "总重量（克）",
   "recipesEmptyHint": "用多种食材组合一道餐品，像普通食物一样重复使用。",
   "recipesEmptyLabel": "暂无食谱",
@@ -957,7 +955,7 @@
   "settingsDisclaimerLabel": "免责声明",
   "settingsDistanceLabel": "距离",
   "settingsEnergyUnitLabel": "能量单位",
-  "settingsFibreGoalDescription": "每日纤维目标（克）。默认参考值为 30 克。",
+  "settingsFibreGoalDescription": "每日膳食纤维目标（克），默认值因年龄和性别而异（21 克至 38 克）。",
   "settingsFibreGoalLabel": "纤维目标",
   "settingsImperialLabel": "英制（磅、英尺、盎司）",
   "settingsKcalAdjustmentLabel": "每日千卡调整",
@@ -1203,7 +1201,7 @@
   "bulkAddTitle": "批量添加",
   "bulkAddInputHint": "100g 吐司，250ml 牛奶，黑咖啡",
   "bulkAddParseLabel": "查找食物",
-  "bulkAddSubmitLabel": "记录 {count} 项",
+  "bulkAddSubmitLabel": "\"{count, plural, =1{记录 1 项} other{记录 {count} 项}}\"",
   "bulkAddNoMatchLabel": "未找到匹配的食物",
   "bulkAddUncertainLabel": "请核对此匹配",
   "bulkAddSkipLabel": "跳过",
@@ -1255,7 +1253,7 @@
       }
     }
   },
-  "aiAssistEndpointInvalidLabel": "请输入以 http:// 或 https:// 开头的地址。",
+  "aiAssistEndpointInvalidLabel": "请输入以 http:// 或 https:// 开头的地址",
   "aiAssistModelRequiredLabel": "请填写该服务器要使用的模型名称。",
   "aiAssistEndpointPublicPlaintextLabel": "该地址是公网地址且未加密，因此发往它的请求会被拒绝。请使用 https 或私有地址。",
   "aiAssistProbeSectionLabel": "配置检查",
@@ -1327,5 +1325,107 @@
   "healthSyncDisclosureContinueAction": "继续",
   "healthSyncUnavailableLabel": "此设备上无法使用健康数据。导入锻炼需要 Android 上的 Health Connect 或 iOS 上的 Apple Health。",
   "sourcesEnergyCompensationTitle": "锻炼热量计入比例",
-  "sourcesEnergyCompensationDescription": "导入的锻炼计入的热量少于设备报告的数值。人体会在一天中的其余时间少消耗热量来补偿运动，平均约为 28%，体脂率越高补偿越多。建议值来自该研究，你可以在设置 → 健康同步中修改。热量数值由记录该锻炼的应用或设备提供，并非由应用内的 MET 公式计算。"
+  "sourcesEnergyCompensationDescription": "导入的锻炼计入的热量少于设备报告的数值。人体会在一天中的其余时间少消耗热量来补偿运动，平均约为 28%，体脂率越高补偿越多。建议值来自该研究，你可以在设置 → 健康同步中修改。热量数值由记录该锻炼的应用或设备提供，并非由应用内的 MET 公式计算。",
+  "calorieWidgetAccessibilityLabel": "已消耗 {goal} 千卡中的 {consumed} 千卡",
+  "@calorieWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS home-screen calorie widget.",
+    "placeholders": {
+      "consumed": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "calorieWidgetDescription": "今天摄入的卡路里和你的目标。",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "calorieWidgetOpenAppHint": "打开app",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
+  "calorieWidgetGoalLabel": "{goal}的",
+  "@calorieWidgetGoalLabel": {
+    "description": "Shown under the kcal eaten inside the calorie widget's progress ring, e.g. 'of 2000'.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "favouriteAddTooltip": "加入收藏夹",
+  "favouriteRemoveTooltip": "从收藏夹中删除",
+  "favouritesEmptySubtitle": "点击任意餐食旁的星标，可将其保存下来，方便后续记录。",
+  "favouritesEmptyTitle": "暂无收藏",
+  "favouritesLabel": "收藏",
+  "errorLoadingFavourites": "加载活动时出错",
+  "settingsKjAdjustmentLabel": "每日千焦调整",
+  "bulkAddUpdateMatchesLabel": "更新匹配",
+  "bulkAddYourPhotoLabel": "照片",
+  "sharedMealParseLabel": "确定",
+  "sharedMealInvalidCodeLabel": "输入有效的餐食代码。",
+  "sharedMealUnnamedLabel": "未命名食物",
+  "sharedMealUnavailableLabel": "无法获取 — 将跳过此项。",
+  "sharedMealTotalLabel": "合计",
+  "sharedMealPartialTotalLabel": "合计（不完整）",
+  "minuteShortLabel": "分钟",
+  "@minuteShortLabel": {
+    "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
+  },
+  "missingProductInfoFields": "缺失：{fields}",
+  "@missingProductInfoFields": {
+    "description": "Under the missing-information warning on the food detail screen; names the required values the food lacks. {fields} is a comma-separated list of the nutrient labels, e.g. 'Missing: fat, protein'.",
+    "placeholders": {
+      "fields": {
+        "type": "String",
+        "example": "fat, protein"
+      }
+    }
+  },
+  "noResultsSearchAll": "搜索全部",
+  "partialResultsNotice": "有一个食物来源未响应，部分结果可能缺失。",
+  "partialResultsAllSourcesDownNotice": "没有在线食物来源响应，仅显示已保存的食物。",
+  "paCalisthenicsVigorous": "自重训练（高强度）",
+  "paCalisthenicsVigorousDesc": "高强度运动（例如：俯卧撑、仰卧起坐、引体向上、开合跳、波比跳）",
+  "paCircuitTraining": "循环训练",
+  "paCircuitTrainingDesc": "包含壶铃训练，少量休息的有氧动作，高强度",
+  "paEllipticalTrainer": "椭圆机",
+  "paRowingMachine": "划船机",
+  "paStairTreadmillErgometer": "爬楼机",
+  "paTrackField1": "田径（投掷项目）",
+  "paTrackField2": "田径（跳跃与标枪）",
+  "paTrackField3": "田径（跨栏与障碍赛）",
+  "paYoga": "瑜伽",
+  "paYogaDesc": "一般瑜伽、哈他瑜伽",
+  "recipeTotalWeightCalculatedHelper": "由配料计算得出，液体按 1 毫升 ≈ 1 克估算。",
+  "recipeTotalWeightManualHelper": "已手动输入，修改配料不会改变此值。",
+  "recipeTotalWeightUseIngredientTotalButton": "使用配料合计",
+  "settingsDefaultToRawFoodUnitsLabel": "默认使用重量或体积，而不是份",
+  "settingsDefaultToRawFoodUnitsSubtitle": "食物有份量设定时，改用重量或体积记录，你仍可在单位下拉中选择份。",
+  "addMealSnapMealLabel": "拍照识别",
+  "addMealDescribeLabel": "描述",
+  "bulkAddReviewTitle": "核对条目",
+  "bulkAddRetakeLabel": "重拍",
+  "addToListLabel": "加入列表",
+  "bulkAddToListLabel": "\"{count, plural, =1{加入 1 项} other{加入 {count} 项}}\"",
+  "@bulkAddToListLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "logTrayTitle": "待记录 · {count}",
+  "@logTrayTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "logTrayRemoveLabel": "从列表中移除",
+  "logTrayAddedLabel": "已加入列表",
+  "logTrayLogFailedLabel": "无法记录这些条目，请重试。"
 }

@@ -1,5 +1,10 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:opennutritracker/core/utils/sentry_config.dart';
+import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// Print breadcrumbs are the one Sentry setting this app cannot let drift back
@@ -60,5 +65,83 @@ void main() {
     // because the README states that `sendDefaultPii` stays false and an SDK
     // upgrade is the only thing that could quietly change it.
     expect(configured().sendDefaultPii, isFalse);
+  });
+
+  group('expected errors are not reported', () {
+    Future<SentryEvent?> run(Object throwable) async {
+      final event = SentryEvent(
+        throwable: throwable,
+        user: SentryUser(id: 'x'),
+      );
+      return configured().beforeSend!(event, Hint());
+    }
+
+    final dropped = <String, Object>{
+      'ProductNotFoundException': ProductNotFoundException(),
+      'SocketException no host': const SocketException(
+        'Failed host lookup',
+        osError: OSError('No address associated with hostname', 7),
+      ),
+      'SocketException reset': const SocketException(
+        'Connection reset by peer',
+        osError: OSError('Connection reset by peer', 104),
+      ),
+      'SocketException refused': const SocketException('Connection refused'),
+      'SocketException unreachable': const SocketException(
+        'Network is unreachable',
+        osError: OSError('Network is unreachable', 101),
+      ),
+      'HandshakeException': const HandshakeException('Handshake error'),
+      'TlsException': const TlsException('TLS error'),
+      'http ClientException': http.ClientException('Connection closed'),
+      'TimeoutException': TimeoutException(
+        'Future not completed',
+        const Duration(minutes: 1),
+      ),
+      'OFF HTTP 503': Exception('OFF HTTP 503'),
+      'OFF HTTP 504': Exception('OFF HTTP 504'),
+      'OFF HTTP 429': Exception('OFF HTTP 429'),
+    };
+
+    for (final entry in dropped.entries) {
+      test('drops ${entry.key}', () async {
+        expect(await run(entry.value), isNull);
+      });
+    }
+
+    test('drops an event that only has the serialised exception', () async {
+      final event = SentryEvent(
+        exceptions: [SentryException(type: 'SocketException', value: 'x')],
+      );
+      expect(await configured().beforeSend!(event, Hint()), isNull);
+    });
+
+    test('drops an event that only has a serialised OSError', () async {
+      final event = SentryEvent(
+        exceptions: [
+          SentryException(
+            type: 'OSError',
+            value: 'OS Error: No address associated with hostname, errno = 7',
+          ),
+        ],
+      );
+      expect(await configured().beforeSend!(event, Hint()), isNull);
+    });
+
+    final kept = <String, Object>{
+      'TypeError': TypeError(),
+      'FormatException': const FormatException('bad json'),
+      'StateError': StateError('bug'),
+      'OFF HTTP 400': Exception('OFF HTTP 400'),
+      'OFF HTTP 404': Exception('OFF HTTP 404'),
+    };
+
+    for (final entry in kept.entries) {
+      test('still reports ${entry.key} with the user stripped', () async {
+        final sent = await run(entry.value);
+        expect(sent, isNotNull);
+        expect(sent!.user, isNull);
+      });
+    }
   });
 }

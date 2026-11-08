@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import '../../../helpers/fake_favourites.dart';
 import '../../../helpers/test_l10n.dart';
 
 // #277: the Show Activity Tracking toggle in Settings has been wired to
@@ -20,6 +27,40 @@ Widget _wrapWithMaterial(Widget child) {
     home: Scaffold(body: child),
   );
 }
+
+class _FakeGetIntakeUsecase implements GetIntakeUsecase {
+  @override
+  Future<List<IntakeEntity>> getRecentIntake() async => [
+    for (var i = 0; i < 2; i++)
+      IntakeEntity(
+        id: 'recent-$i',
+        unit: 'g',
+        amount: 100,
+        type: IntakeTypeEntity.lunch,
+        meal: MealEntity(
+          code: 'recent-$i',
+          name: 'Recent $i',
+          url: null,
+          mealQuantity: '100',
+          mealUnit: 'g',
+          servingQuantity: null,
+          servingUnit: null,
+          servingSize: null,
+          nutriments: MealNutrimentsEntity.empty(),
+          source: MealSourceEntity.custom,
+        ),
+        dateTime: DateTime(2026, 1, 1),
+      ),
+  ];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}
+
+Finder _withIdentifier(String identifier) => find.byWidgetPredicate(
+  (widget) => widget is Semantics && widget.properties.identifier == identifier,
+);
 
 void main() {
   testWidgets(
@@ -57,6 +98,28 @@ void main() {
       expect(find.text(l10nEn.snackLabel), findsOneWidget);
     },
   );
+
+  testWidgets('recent card stars have unique identifiers', (tester) async {
+    final getIt = GetIt.instance;
+    await getIt.reset();
+    final favourites = FakeFavourites();
+    getIt.registerSingleton<GetIntakeUsecase>(_FakeGetIntakeUsecase());
+    getIt.registerFactory<FavouriteToggleBloc>(
+      () => FavouriteToggleBloc(favourites.get, favourites.toggle),
+    );
+    final handle = tester.ensureSemantics();
+
+    await tester.pumpWidget(_wrapWithMaterial(
+      AddItemBottomSheet(day: DateTime(2026, 1, 1)),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(_withIdentifier('add-item-recent-favourite-1'), findsOneWidget);
+    expect(_withIdentifier('add-item-recent-favourite-2'), findsOneWidget);
+    handle.dispose();
+    await getIt.reset();
+    await favourites.dispose();
+  });
 
   testWidgets(
     'defaults to showing the Activity tile when the flag is omitted',

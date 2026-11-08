@@ -10,8 +10,12 @@ import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
+import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_units.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+
+import '../helpers/recording_add_weight_log_usecase.dart';
 
 /// Serves one canned config, standing in for the shared app config box.
 class _FakeConfigRepository implements ConfigRepository {
@@ -54,6 +58,8 @@ void main() {
       AddUserUsecase(_FakeUserRepository()),
       AddConfigUsecase(configRepo),
       GetConfigUsecase(configRepo),
+      RecordingAddWeightLogUsecase(),
+      DailyReminderScheduler(configRepo, NotificationService()),
     );
     bloc.add(LoadOnboardingEvent());
     await bloc.stream.firstWhere((state) => state is OnboardingLoadedState);
@@ -224,6 +230,8 @@ void main() {
         AddUserUsecase(_FakeUserRepository()),
         AddConfigUsecase(configRepo),
         GetConfigUsecase(configRepo),
+        RecordingAddWeightLogUsecase(),
+        DailyReminderScheduler(configRepo, NotificationService()),
       );
       addTearDown(bloc.close);
 
@@ -257,6 +265,8 @@ void main() {
         AddUserUsecase(_FakeUserRepository()),
         AddConfigUsecase(configRepo),
         GetConfigUsecase(configRepo),
+        RecordingAddWeightLogUsecase(),
+        DailyReminderScheduler(configRepo, NotificationService()),
       );
       addTearDown(bloc.close);
 

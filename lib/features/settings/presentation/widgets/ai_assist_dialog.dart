@@ -123,6 +123,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// on. See [_endpointCommitted] for why that moment and no other.
   final _endpointFocus = FocusNode();
 
+  /// Where a refused OK sends the user. #1364: the refusal sat below the
+  /// fold with the keyboard up, so OK looked like it did nothing.
+  final _modelFocus = FocusNode();
+  final _endpointFieldKey = GlobalKey();
+  final _modelFieldKey = GlobalKey();
+
   bool _loading = true;
   bool _changed = false;
 
@@ -130,6 +136,31 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
 
   /// A key is really stored, so the field is replaced by a mask.
   bool _hasKey = false;
+
+  /// The address on file when the dialog loaded, which the stored key
+  /// belongs to.
+  String? _savedEndpoint;
+
+  /// Whether the stored key is the key for what the address field says now.
+  ///
+  /// A server the user runs keeps its key only on the server it was saved
+  /// for — saving an address on another one forgets it (#1257). So once the
+  /// field names another server, "Key saved" would be describing a key that
+  /// will not be used, over the very field the new server's key has to go
+  /// in. Nothing is deleted here: Cancel leaves the stored key as it was.
+  bool get _keyIsSaved =>
+      _hasKey &&
+      (_provider != AiProvider.ownServer ||
+          _savedEndpoint == null ||
+          AiCredentialStorage.sameServer(
+            _savedEndpoint!,
+            _endpointController.text,
+          ));
+
+  /// The address a key typed in this dialog was typed for, or null while it
+  /// is bound to none yet. A key typed for one server must not follow the
+  /// field to another, before Save or by it (#1257).
+  String? _typedKeyServer;
 
   /// This provider has what it needs to be used — a key for the hosted three,
   /// an **address** for a server the user runs.
@@ -187,6 +218,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// on someone's home network, which is the behaviour #738 ruled out.
   Uri? _lastEndpoint;
 
+  /// The model that was in the field when a changed address was first asked
+  /// for its models, and that address: a claim about the old machine that
+  /// only the new one can settle (#755, #1364).
+  ///
+  /// Kept until that address answers with a list, rather than for one
+  /// request, so a fetch that failed and a Load models retry that then
+  /// succeeds still settles it. Dropped as soon as the user edits or picks
+  /// a model — after that the name is theirs — and on a reload.
+  ({Uri endpoint, String model})? _unconfirmedModel;
+
   /// Built lazily and only if [AiAssistDialog.modelList] was not supplied, so
   /// a dialog nobody asks for models in never constructs an HTTP client.
   AiModelListApi? _ownedModelList;
@@ -235,6 +276,38 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     _endpointFocus.addListener(_onEndpointFocusChanged);
   }
 
+  /// The second half of [_revealRefusal]. OK pressed with the keyboard down
+  /// scrolls the refusal into the tall viewport, and only then does the
+  /// focus it moved raise the keyboard and shrink that viewport — over
+  /// several frames, the keyboard's own animation and then the dialog's
+  /// inset padding easing after it. The field's answer to that keeps its
+  /// *cursor* in view, which can leave the error line under it beneath the
+  /// keys: OK looking dead again (#1364).
+  ///
+  /// So for as long as a refused field holds both its refusal and the focus,
+  /// every resize of the scroll viewport brings the field back into view.
+  /// The viewport rather than the window's insets, because the dialog is
+  /// still shrinking for a while after the insets stop changing. A jump
+  /// rather than an animation, because the resizes arrive once a frame, and
+  /// a jump that leaves the cursor showing leaves the field's own caret
+  /// reveal nothing to do.
+  bool _onScrollMetricsChanged(ScrollMetricsNotification notification) {
+    // The text fields scroll too; only the dialog's own viewport counts.
+    if (notification.depth != 0) return false;
+    final BuildContext? fieldContext;
+    if (_modelError != null && _modelFocus.hasFocus) {
+      fieldContext = _modelFieldKey.currentContext;
+    } else if (_endpointError != null && _endpointFocus.hasFocus) {
+      fieldContext = _endpointFieldKey.currentContext;
+    } else {
+      return false;
+    }
+    if (fieldContext != null) {
+      unawaited(Scrollable.ensureVisible(fieldContext, alignment: 0.5));
+    }
+    return false;
+  }
+
   void _onEndpointFocusChanged() {
     if (!_endpointFocus.hasFocus) _endpointCommitted();
   }
@@ -249,6 +322,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // field and the listener answers by calling setState on a dead State.
     _endpointFocus.removeListener(_onEndpointFocusChanged);
     _endpointFocus.dispose();
+    _modelFocus.dispose();
     _ownedModelList?.close();
     super.dispose();
   }
@@ -304,11 +378,13 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     setState(() {
       _provider = provider;
       _hasKey = hasKey;
+      _savedEndpoint = summary.endpoint;
       _configured = summary.provider == null ? false : summary.configured;
       _enabled = summary.enabled;
       _model = AiModelCatalogue.resolve(provider, modelId);
       _endpointController.text = summary.endpoint ?? '';
       _modelController.text = modelId ?? '';
+      _unconfirmedModel = null;
       // The stored address counts as already asked-about, so returning to a
       // configured server and leaving the field alone is not a URL change.
       _lastEndpoint = summary.endpoint == null
@@ -408,6 +484,19 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// leaves a verdict for the address still in the field standing.
   void _endpointChanged() {
     setState(() {
+      // Back on the server the stored key belongs to, the field is hidden
+      // again; a key typed for the other server must not be saved over it
+      // from behind the mask. Nor may one typed for a server follow the field
+      // to another; text that is not yet an address names none, so keeps it.
+      final address = _endpointController.text.trim();
+      final bound = _typedKeyServer;
+      if (_keyIsSaved ||
+          (bound != null &&
+              AiCredentialStorage.resolveEndpoint(address) != null &&
+              !AiCredentialStorage.sameServer(bound, address))) {
+        _apiKeyController.clear();
+        _typedKeyServer = null;
+      }
       _endpointError = null;
       _modelsGeneration++;
       _fetchingModels = false;
@@ -415,6 +504,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _modelListFailure = null;
       _modelListHost = null;
     });
+  }
+
+  /// A key typed with an address in the field belongs to that server; one
+  /// typed before there is an address binds to the first one it is sent to.
+  void _keyTyped(String key) {
+    final address = _endpointController.text.trim();
+    _typedKeyServer =
+        key.trim().isEmpty ||
+            AiCredentialStorage.resolveEndpoint(address) == null
+        ? null
+        : address;
   }
 
   /// The user has finished with the address field.
@@ -446,14 +546,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _endpointController.text.trim(),
     );
     if (resolved == null || resolved == _lastEndpoint) return;
-    // The model belonged to the address that just changed. #755 drops the
-    // stored one on write for the same reason — `llama3.2:8b` is a claim
-    // about one machine and says nothing about the next — and this is that
-    // rule where the user can see it happen rather than discover it later.
-    setState(() {
-      _modelController.text = '';
-      _modelError = null;
-    });
     _loadModels();
   }
 
@@ -464,6 +556,11 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// appearing in this list says a model exists on that machine and never
   /// that it works for this app. Whether it works is #735's probe, which
   /// finds out by sending a real request.
+  ///
+  /// [_unconfirmedModel] is cleared from the field only when its address
+  /// answered with a list that lacks it **and** the field still holds it: a
+  /// failed fetch proves nothing, and a name typed while the request was out
+  /// is the user's.
   Future<void> _loadModels() async {
     final s = S.of(context);
     final typed = _endpointController.text.trim();
@@ -485,6 +582,25 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // the first server's models under the second server's address.
     if (_fetchingModels && asking == _lastEndpoint) return;
 
+    // The model may belong to the address that just changed — #755's rule,
+    // `llama3.2:8b` is a claim about one machine — but only the new server
+    // can say so. Cleared up front, a fetch that then failed left the field
+    // empty with nothing to pick from, and OK refused (#1364). So the field
+    // is left alone until the new server answers without it.
+    //
+    // Here rather than in [_endpointCommitted], because Load models can be
+    // the first request for an edited address — the field need not lose
+    // focus first, through a semantics action for one. Tagged there only, a
+    // name kept for an earlier address stayed bound to it, the answer from
+    // this one could not settle it, and OK stored the old server's model
+    // against the new one.
+    if (asking != _lastEndpoint) {
+      final model = _modelController.text.trim();
+      _unconfirmedModel = model.isEmpty
+          ? null
+          : (endpoint: asking!, model: model);
+    }
+
     final generation = ++_modelsGeneration;
     // Captured for the read below rather than for the guard: a key belongs to
     // the provider that was selected when the request was built, and
@@ -503,21 +619,40 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // None of the four runtimes wants one by default; a reverse proxy in
     // front of one will. Typed beats stored, so a key entered in this dialog
     // is usable before OK commits it.
+    //
+    // The stored one only goes to the server it was saved for. Typing a new
+    // address and leaving the field asks *that* machine for its models, and
+    // falling back to the stored key sent a Gemini user's Google key to it
+    // as a bearer, before any save and even if the dialog was then cancelled
+    // (#1257).
     final typedKey = _apiKeyController.text.trim();
-    final result = await _modelList.list(
-      url,
-      apiKey: typedKey.isNotEmpty
-          ? typedKey
-          : await widget.storage.readApiKey(provider: provider),
-    );
+    if (typedKey.isNotEmpty) _typedKeyServer ??= typed;
+    final apiKey = typedKey.isNotEmpty
+        ? typedKey
+        : await widget.storage.apiKeyForServer(typed, provider: provider);
+    // Checked before sending as well as after: a lookup superseded while the
+    // key was being read would otherwise still carry it to an address the
+    // user has already moved on from.
+    if (!mounted || generation != _modelsGeneration) return;
+    final result = await _modelList.list(url, apiKey: apiKey);
 
     // Dropping this one loses nothing: a newer request writes every field it
     // would have, and a provider switch has already cleared them.
     if (!mounted || generation != _modelsGeneration) return;
+    final ids = result.failure == null ? result.ids : null;
     setState(() {
       _fetchingModels = false;
-      _modelIds = result.failure == null ? result.ids : null;
+      _modelIds = ids;
       _modelListFailure = result.failure;
+      final unconfirmed = _unconfirmedModel;
+      if (ids != null && unconfirmed?.endpoint == asking) {
+        _unconfirmedModel = null;
+        if (!ids.contains(unconfirmed!.model) &&
+            _modelController.text.trim() == unconfirmed.model) {
+          _modelController.text = '';
+          _modelError = null;
+        }
+      }
     });
   }
 
@@ -559,6 +694,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   void _pickModel(String id) => setState(() {
     _modelController.text = id;
     _modelError = null;
+    _unconfirmedModel = null;
   });
 
   /// Leaves, and takes the provider choice back out with it.
@@ -603,6 +739,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // would end up in the slot of a provider the user tapped on the way past.
     final provider = _provider;
     var changed = _changed;
+    var probe = false;
 
     if (provider == AiProvider.ownServer) {
       // The address is this provider's credential, and the model is part of
@@ -646,6 +783,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
             _endpointError = endpointError;
             _modelError = modelError;
           });
+          _revealRefusal(endpointError != null);
           return;
         }
 
@@ -680,10 +818,12 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
         // different — a runtime restarted with another model pulled under the
         // same tag is the ordinary case — and the runner joins a check
         // already running, so pressing OK twice costs nothing.
-        final runner = widget.probeRunner;
-        if (runner != null) {
-          unawaited(runner.start(provider, localeCode: localeCode));
-        }
+        //
+        // Started below, once the key is stored, not here: the runner reads
+        // the selection when it starts, so a first save of address, model
+        // and key together probed without the key, a server that needs one
+        // refused it, and the camera stayed hidden (#1257).
+        probe = true;
       }
     }
 
@@ -697,8 +837,33 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       changed = true;
     }
 
+    final runner = widget.probeRunner;
+    if (probe && runner != null) {
+      unawaited(runner.start(provider, localeCode: localeCode));
+    }
+
     if (!mounted) return;
     Navigator.of(context).pop(changed);
+  }
+
+  /// Brings a refused field into view and puts the cursor in it, once the
+  /// error text has been laid out. #1364: the dialog is taller than a phone,
+  /// so a refusal rendered below the fold made OK look dead.
+  void _revealRefusal(bool onEndpoint) {
+    final key = onEndpoint ? _endpointFieldKey : _modelFieldKey;
+    final focus = onEndpoint ? _endpointFocus : _modelFocus;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final fieldContext = key.currentContext;
+      if (!mounted || fieldContext == null) return;
+      focus.requestFocus();
+      unawaited(
+        Scrollable.ensureVisible(
+          fieldContext,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 200),
+        ),
+      );
+    });
   }
 
   /// True when the user has agreed to what leaving the device means, asking
@@ -713,7 +878,18 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// it in the field would show a credential the app has not saved, which is
   /// the same lie the dialog already refuses to tell elsewhere.
   Future<bool> _agreedBeforeAnythingIsStored(AiProvider provider) async {
-    if (await widget.storage.hasAcceptedTerms()) return true;
+    // The address goes with the question: an agreement on file does not
+    // cover Google's Gemini API unless it was given over the paragraph that
+    // names Google (#1257), so that address asks again.
+    final endpoint = provider == AiProvider.ownServer
+        ? _endpointController.text
+        : null;
+    if (await widget.storage.hasAcceptedTerms(
+      provider: provider,
+      endpoint: endpoint,
+    )) {
+      return true;
+    }
     if (!mounted) return false;
 
     final agreed = await AiConsentScreen.show(
@@ -727,7 +903,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     }
     // Written only once the answer is yes, so a dismissed screen leaves no
     // trace of having been shown.
-    await widget.storage.setTermsAccepted(true);
+    await widget.storage.setTermsAccepted(true, endpoint: endpoint);
     return true;
   }
 
@@ -747,8 +923,31 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// selected. The read-back is not: `isEnabled` is false for a provider with
   /// nothing configured, so a switch landing between the two turns this into
   /// one provider's answer painted onto another's switch.
+  ///
+  /// Turning it on asks for a missing agreement first, like saving does. The
+  /// one case that reaches here is Google's Gemini API agreed to before the
+  /// screen named Google (#1257): without asking, the read-back stays off and
+  /// the switch snaps back with nothing said.
   Future<void> _setEnabled(bool value) async {
     final provider = _provider;
+    if (value) {
+      final endpoint = provider == AiProvider.ownServer
+          ? await widget.storage.readEndpoint(provider: provider)
+          : null;
+      if (!await widget.storage.hasAcceptedTerms(
+        provider: provider,
+        endpoint: endpoint,
+      )) {
+        if (!mounted || provider != _provider) return;
+        final agreed = await AiConsentScreen.show(
+          context,
+          provider: provider,
+          typedEndpoint: endpoint ?? '',
+        );
+        if (!agreed) return;
+        await widget.storage.setTermsAccepted(true, endpoint: endpoint);
+      }
+    }
     await widget.storage.setEnabled(value);
     final enabled = await widget.storage.isEnabled();
     if (!mounted || provider != _provider) return;
@@ -810,7 +1009,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) unawaited(_cancel());
       },
-      child: _buildDialog(context, s, theme),
+      child: NotificationListener<ScrollMetricsNotification>(
+        onNotification: _onScrollMetricsChanged,
+        child: _buildDialog(context, s, theme),
+      ),
     );
   }
 
@@ -877,6 +1079,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                       Semantics(
                         identifier: 'ai-assist-endpoint-field',
                         child: TextField(
+                          key: _endpointFieldKey,
                           controller: _endpointController,
                           focusNode: _endpointFocus,
                           keyboardType: TextInputType.url,
@@ -928,8 +1131,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                     // server the user runs is usable on an address alone, and
                     // its key stays optional afterwards — so the field has to
                     // remain reachable there rather than being replaced by a
-                    // mask over an empty slot.
-                    if (_hasKey)
+                    // mask over an empty slot. And on whether that key is for
+                    // the server the address field names — see [_keyIsSaved].
+                    if (_keyIsSaved)
                       Row(
                         children: [
                           const Icon(Icons.key_rounded, size: 18),
@@ -960,6 +1164,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                         identifier: 'ai-assist-key-field',
                         child: TextField(
                           controller: _apiKeyController,
+                          onChanged: _keyTyped,
                           autocorrect: false,
                           enableSuggestions: false,
                           obscureText: true,
@@ -1088,6 +1293,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     );
   }
 
+  /// An OpenRouter id without its vendor: `claude-sonnet-5.5`.
+  static String _shownId(String id) => id.substring(id.indexOf('/') + 1);
+
   /// What the row below the default says.
   ///
   /// OpenRouter's second entry genuinely is cheaper and weaker — #668
@@ -1109,6 +1317,8 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     AiModelNote.cheaper => s.aiAssistModelCheaperLabel,
     AiModelNote.moreItems => s.aiAssistModelMoreItemsLabel,
     AiModelNote.cheapest => s.aiAssistModelCheapestLabel,
+    AiModelNote.cheaperThanRecommended =>
+      s.aiAssistModelCheaperThanRecommendedLabel,
   };
 
   /// What to say about the last ask, or null when there is nothing to say —
@@ -1364,7 +1574,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           Semantics(
             identifier: 'ai-assist-model-field',
             child: TextField(
+              key: _modelFieldKey,
               controller: _modelController,
+              focusNode: _modelFocus,
               autocorrect: false,
               decoration: InputDecoration(
                 labelText: s.aiAssistModelFieldLabel,
@@ -1372,7 +1584,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                 errorText: _modelError,
                 border: const OutlineInputBorder(),
               ),
-              onChanged: (_) => setState(() => _modelError = null),
+              onChanged: (_) => setState(() {
+                _modelError = null;
+                _unconfirmedModel = null;
+              }),
             ),
           ),
           // The **only** control that starts a fetch, alongside finishing with
@@ -1500,10 +1715,16 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                 // like this, is not available: it builds a `LayoutBuilder`,
                 // the dialog asks this row for an intrinsic height, and
                 // `LayoutBuilder` throws rather than answering one.
+                // `anthropic/claude-sonnet-5.5` outgrew two lines on a Pixel
+                // 6, so a break is also allowed after each `-`, and a third
+                // line. With those breaks the vendor prefix is no longer
+                // needed for wrapping, and the subtitle's *Served by* already
+                // names the vendor, so the title drops it.
                 title: Text(
-                  model.id,
+                  _shownId(model.id).replaceAll('-', '-\u200B'),
+                  semanticsLabel: _shownId(model.id),
                   style: theme.textTheme.bodyMedium,
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(

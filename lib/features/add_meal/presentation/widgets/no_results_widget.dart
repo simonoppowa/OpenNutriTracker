@@ -6,16 +6,19 @@ import 'package:opennutritracker/generated/l10n.dart';
 class NoResultsWidget extends StatelessWidget {
   final VoidCallback? onScanBarcode;
   final VoidCallback? onCreateCustomFood;
+  final VoidCallback? onSearchAll;
 
   const NoResultsWidget({
     super.key,
     this.onScanBarcode,
     this.onCreateCustomFood,
+    this.onSearchAll,
   });
 
   @override
   Widget build(BuildContext context) {
-    final showActions = onScanBarcode != null || onCreateCustomFood != null;
+    final showActions =
+        onScanBarcode != null || onCreateCustomFood != null || onSearchAll != null;
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -49,6 +52,15 @@ class NoResultsWidget extends StatelessWidget {
                         onPressed: onCreateCustomFood,
                         icon: const Icon(Icons.add_circle_outline),
                         label: Text(S.of(context).noResultsCreateCustomFood),
+                      ),
+                    ),
+                  if (onSearchAll != null)
+                    Semantics(
+                      identifier: 'search-no-results-search-all',
+                      child: OutlinedButton.icon(
+                        onPressed: onSearchAll,
+                        icon: const Icon(Icons.manage_search_rounded),
+                        label: Text(S.of(context).noResultsSearchAll),
                       ),
                     ),
                 ],

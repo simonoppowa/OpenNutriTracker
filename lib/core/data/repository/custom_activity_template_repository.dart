@@ -17,10 +17,10 @@ class CustomActivityTemplateRepository {
     await _dataSource.addTemplate(entity.toDBO());
   }
 
-  Future<void> addAllTemplateDBOs(
+  Future<void> upsertAllTemplateDBOs(
     List<CustomActivityTemplateDBO> templates,
   ) async {
-    await _dataSource.addAllTemplates(templates);
+    await _dataSource.upsertAllTemplates(templates);
   }
 
   Future<List<CustomActivityTemplateEntity>> allTemplates() async {
