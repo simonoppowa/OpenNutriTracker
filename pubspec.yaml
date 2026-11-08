@@ -97,6 +97,10 @@ dependencies:
   in_app_purchase_storekit: ^0.4.17
   in_app_purchase_android: ^0.5.5
 
+  # Dictating a meal on the Describe fields. Uses the platform recognizer
+  # (Android SpeechRecognizer / iOS SFSpeech); no audio is sent by the app.
+  speech_to_text: ^7.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
