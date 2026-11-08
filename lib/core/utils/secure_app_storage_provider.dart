@@ -22,6 +22,23 @@ class SecureAppStorageProvider {
   static const _storageNamespace = "OpenNutriTracker";
   static const _hiveEncryptionTag = "HiveEncryptionTag";
 
+  // Written once the legacy store has been cleared, so later launches never
+  // initialise the legacy instance again.
+  static const _legacyClearedTag = "LegacyStoreCleared";
+
+  // Set once this process has copied the legacy entries. Their read-back
+  // only proves them in memory: the plugin writes with
+  // SharedPreferences.apply(), which reaches the disk later. So the legacy
+  // copy is cleared on a later launch, where the namespaced entries have
+  // survived a restart and are on disk. Static rather than per instance:
+  // the recovery screen's Retry builds a new provider in the same process.
+  static bool _copiedThisProcess = false;
+
+  /// Forgets that this process copied the legacy entries, as a restart
+  /// would. Tests only.
+  @visibleForTesting
+  static void debugSimulateRestart() => _copiedThisProcess = false;
+
   // Pointer to the profile whose box-set is currently active. Lives in
   // secure storage (not a Hive box) because it has to be read at the very
   // start of boot, before any per-profile box is open, to decide which
@@ -92,15 +109,17 @@ class SecureAppStorageProvider {
   ///    read it back; each must come back byte-identical.
   /// 4. Write the Hive key last and read it back the same way. Only now is
   ///    the marker there, so it cannot appear before the rest has landed.
-  /// 5. Only then clear the legacy entries.
+  /// 5. Clear the legacy entries on a later launch, not this one: a
+  ///    read-back proves the copy in memory, surviving a restart proves it
+  ///    on disk.
   ///
   /// A kill before 4 leaves no marker, and the next launch copies again
   /// from the untouched legacy store (same values, so a repeat is
-  /// harmless). A kill between 4 and 5 leaves both copies and the next
-  /// launch skips at step 1. A verification failure removes the partial
-  /// copy and throws a typed integrity error, so the legacy entries stay
-  /// untouched and the user sees the recovery screen instead of a wiped
-  /// diary.
+  /// harmless). After 4, both copies exist until a later launch clears the
+  /// legacy one. A verification failure, including a read-back that
+  /// throws, removes the partial copy (marker first) and throws a typed
+  /// integrity error, so the legacy entries stay untouched and the user
+  /// sees the recovery screen instead of a wiped diary.
   Future<void> _migrateLegacyAndroidEntries() async {
     if (defaultTargetPlatform != TargetPlatform.android) return;
     // This read is also what initialises the namespaced store, and it has to
@@ -111,7 +130,10 @@ class SecureAppStorageProvider {
     // that is a no-op that writes the namespace's own markers (verified on
     // device); over a store that already held the copied entries it would
     // be the same path that deleted them without re-encrypting.
-    if (await _secureStorage.containsKey(key: _hiveEncryptionTag)) return;
+    if (await _secureStorage.containsKey(key: _hiveEncryptionTag)) {
+      await _clearLegacyOnceDurable();
+      return;
+    }
 
     final legacy = await _legacySecureStorage.readAll();
     if (legacy.isEmpty) return;
@@ -130,26 +152,62 @@ class SecureAppStorageProvider {
       await _secureStorage.write(key: _hiveEncryptionTag, value: hiveKey);
       await _verifyCopy(legacy, const [_hiveEncryptionTag]);
     }
+    _copiedThisProcess = true;
+  }
 
-    await _legacySecureStorage.deleteAll();
+  /// Clears the legacy entries once the namespaced copy is known to be on
+  /// disk: on a launch after the one that copied them. Once only; a failure
+  /// leaves both copies and is retried on the next launch.
+  Future<void> _clearLegacyOnceDurable() async {
+    if (_copiedThisProcess) return;
+    if (await _secureStorage.containsKey(key: _legacyClearedTag)) return;
+    try {
+      await _legacySecureStorage.deleteAll();
+      await _secureStorage.write(key: _legacyClearedTag, value: 'true');
+    } catch (_) {
+      // Both copies stay; the next launch tries again.
+    }
   }
 
   /// Reads the namespaced store back and checks [keys] against [legacy].
-  /// On a mismatch, removes everything copied so far and throws, leaving
-  /// the legacy entries as they were.
+  /// On a mismatch, or a read-back that throws (a keystore or decrypt
+  /// failure), removes everything copied so far and throws, leaving the
+  /// legacy entries as they were.
   Future<void> _verifyCopy(
     Map<String, String> legacy,
     Iterable<String> keys,
   ) async {
-    final copied = await _secureStorage.readAll();
+    final Map<String, String> copied;
+    try {
+      copied = await _secureStorage.readAll();
+    } catch (error, stackTrace) {
+      await _rollBackCopy(legacy);
+      Error.throwWithStackTrace(
+        HiveStorageIntegrityException.legacyCopyMismatch(
+          keys.toList(growable: false),
+          cause: error,
+        ),
+        stackTrace,
+      );
+    }
     final mismatched = keys
         .where((key) => copied[key] != legacy[key])
         .toList(growable: false);
     if (mismatched.isEmpty) return;
+    await _rollBackCopy(legacy);
+    throw HiveStorageIntegrityException.legacyCopyMismatch(mismatched);
+  }
+
+  /// Removes the partial copy, the Hive key first: it is the marker, and a
+  /// rollback interrupted after it is gone simply copies again next launch,
+  /// whereas one interrupted before it would skip the copy with entries
+  /// missing.
+  Future<void> _rollBackCopy(Map<String, String> legacy) async {
+    await _secureStorage.delete(key: _hiveEncryptionTag);
     for (final key in legacy.keys) {
+      if (key == _hiveEncryptionTag) continue;
       await _secureStorage.delete(key: key);
     }
-    throw HiveStorageIntegrityException.legacyCopyMismatch(mismatched);
   }
 
   Future<Uint8List> getHiveEncryptionKey() async {

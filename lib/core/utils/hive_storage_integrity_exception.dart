@@ -39,14 +39,16 @@ class HiveStorageIntegrityException implements Exception {
       );
 
   factory HiveStorageIntegrityException.legacyCopyMismatch(
-    List<String> keys,
-  ) =>
+    List<String> keys, {
+    Object? cause,
+  }) =>
       HiveStorageIntegrityException(
         'secure_storage_legacy_copy_mismatch',
         'Copying the pre-2.4 secure-storage entries into the namespaced '
             'store did not read back identically for ${keys.join(', ')}. '
             'The partial copy was removed and the legacy entries left in '
             'place; refusing to open the local database from either.',
+        cause: cause,
       );
 
   factory HiveStorageIntegrityException.wrongKeyOrCorrupted(Object cause) =>

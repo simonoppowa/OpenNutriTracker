@@ -31,6 +31,21 @@ class _StoresByNamePlatform extends FlutterSecureStoragePlatform {
   int? failNamespaceWriteAt;
   int _namespaceWrites = 0;
 
+  /// Set to make the n-th delete in the namespace throw (1-based), to
+  /// simulate the process dying part-way through a rollback.
+  int? failNamespaceDeleteAt;
+  int _namespaceDeletes = 0;
+
+  /// Set to alter only this key on a namespace read-back.
+  String? corruptKeyInNamespace;
+
+  /// Set to make a namespace `readAll` throw, as a keystore or decrypt
+  /// failure does on device.
+  bool throwOnNamespaceReadAll = false;
+
+  /// Keys deleted from the namespace, in order.
+  final namespaceDeletes = <String>[];
+
   Map<String, String> _store(Map<String, String> options) {
     final namespace = options['storageNamespace'] ?? '';
     final name = namespace.isNotEmpty
@@ -65,7 +80,15 @@ class _StoresByNamePlatform extends FlutterSecureStoragePlatform {
     required Map<String, String> options,
   }) async {
     _record('readAll', options);
+    final inNamespace = (options['storageNamespace'] ?? '').isNotEmpty;
+    if (inNamespace && throwOnNamespaceReadAll) {
+      throw Exception('BadPaddingException: decrypt failed');
+    }
     final store = Map<String, String>.of(_store(options));
+    final corruptKey = corruptKeyInNamespace;
+    if (inNamespace && corruptKey != null && store.containsKey(corruptKey)) {
+      store[corruptKey] = '${store[corruptKey]}-corrupt';
+    }
     if (corruptReadsIn == options['storageNamespace']) {
       return store.map((k, v) => MapEntry(k, '$v-corrupt'));
     }
@@ -92,6 +115,12 @@ class _StoresByNamePlatform extends FlutterSecureStoragePlatform {
     required Map<String, String> options,
   }) async {
     _record('delete', options);
+    if ((options['storageNamespace'] ?? '').isNotEmpty) {
+      if (++_namespaceDeletes == failNamespaceDeleteAt) {
+        throw StateError('killed during delete #$_namespaceDeletes');
+      }
+      namespaceDeletes.add(key);
+    }
     _store(options).remove(key);
   }
 
@@ -127,6 +156,7 @@ void main() {
   setUp(() {
     platform = _StoresByNamePlatform();
     FlutterSecureStoragePlatform.instance = platform;
+    SecureAppStorageProvider.debugSimulateRestart();
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
   });
 
@@ -224,6 +254,10 @@ void main() {
           _profileTag: 'profile-1',
           'ai_api_key_openai': 'sk-secret',
         });
+        expect(legacyStore(), hasLength(3), reason: 'cleared after a restart');
+
+        SecureAppStorageProvider.debugSimulateRestart();
+        await SecureAppStorageProvider().getHiveEncryptionKey();
         expect(legacyStore(), isEmpty);
       });
     }
@@ -245,16 +279,33 @@ void main() {
           _profileTag: 'profile-1',
           'ai_api_key_openai': 'sk-secret',
         });
+        // The read-back only proves the copy in memory (the plugin writes
+        // with SharedPreferences.apply()); the legacy copy stays until a
+        // later launch, where the namespaced entries survived a restart.
+        await SecureAppStorageProvider().getActiveProfileId();
+        expect(legacyStore(), hasLength(3), reason: 'not in the same process');
+
+        SecureAppStorageProvider.debugSimulateRestart();
+        await SecureAppStorageProvider().getHiveEncryptionKey();
+        expect(legacyStore(), isEmpty);
+        expect(namespacedStore()['LegacyStoreCleared'], 'true');
+
+        platform.calls.clear();
+        SecureAppStorageProvider.debugSimulateRestart();
+        await SecureAppStorageProvider().getHiveEncryptionKey();
         expect(
-          legacyStore(),
-          isEmpty,
-          reason: 'the legacy entries are cleared once the copy verified',
+          storesTouched(),
+          [_namespace],
+          reason: 'once cleared, the legacy instance is never touched again',
         );
       },
     );
 
-    test('is a no-op once the namespace holds the key', () async {
-      platform.stores[_namespace] = {_hiveTag: validKey};
+    test('is a no-op once copied and the legacy store cleared', () async {
+      platform.stores[_namespace] = {
+        _hiveTag: validKey,
+        'LegacyStoreCleared': 'true',
+      };
       platform.stores[_legacyName] = {_hiveTag: 'stale', _profileTag: 'p'};
 
       await SecureAppStorageProvider().getHiveEncryptionKey();
@@ -277,9 +328,68 @@ void main() {
         final key = await SecureAppStorageProvider().getHiveEncryptionKey();
 
         expect(key, base64Url.decode(validKey));
-        expect(namespacedStore(), {_hiveTag: validKey, _profileTag: 'p'});
+        expect(namespacedStore(), {
+          _hiveTag: validKey,
+          _profileTag: 'p',
+          'LegacyStoreCleared': 'true',
+        });
+        expect(legacyStore(), isEmpty, reason: 'a later launch clears it');
       },
     );
+
+    test('a failed final key check rolls back the marker first, so an '
+        'interrupted rollback is finished by the next launch', () async {
+      // Listed with the key last, so a rollback in this order would delete
+      // the profile pointer before the marker.
+      platform.stores[_legacyName] = {
+        _profileTag: 'p',
+        'ai_api_key_openai': 'sk-secret',
+        _hiveTag: validKey,
+      };
+      platform
+        ..corruptKeyInNamespace = _hiveTag
+        ..failNamespaceDeleteAt = 2;
+
+      await expectLater(
+        SecureAppStorageProvider().getHiveEncryptionKey(),
+        throwsStateError,
+      );
+      expect(platform.namespaceDeletes, [_hiveTag]);
+
+      platform
+        ..corruptKeyInNamespace = null
+        ..failNamespaceDeleteAt = null;
+      final key = await SecureAppStorageProvider().getHiveEncryptionKey();
+
+      expect(key, base64Url.decode(validKey));
+      expect(namespacedStore(), {
+        _profileTag: 'p',
+        'ai_api_key_openai': 'sk-secret',
+        _hiveTag: validKey,
+      });
+    });
+
+    test('a read-back that throws is rolled back and reported as the '
+        'typed integrity error, leaving the legacy entries intact', () async {
+      platform.stores[_legacyName] = {_hiveTag: validKey, _profileTag: 'p'};
+      platform.throwOnNamespaceReadAll = true;
+
+      await expectLater(
+        SecureAppStorageProvider().getHiveEncryptionKey(),
+        throwsA(
+          isA<HiveStorageIntegrityException>()
+              .having(
+                (e) => e.code,
+                'code',
+                'secure_storage_legacy_copy_mismatch',
+              )
+              .having((e) => e.cause, 'cause', isNotNull),
+        ),
+      );
+
+      expect(legacyStore(), {_hiveTag: validKey, _profileTag: 'p'});
+      expect(namespacedStore(), isEmpty);
+    });
 
     test('a copy that does not read back identically is rolled back and '
         'reported, leaving the legacy entries intact', () async {
