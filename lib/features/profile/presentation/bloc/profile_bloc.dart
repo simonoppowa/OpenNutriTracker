@@ -51,6 +51,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           userEntity: user,
           bodyWeightUnit: userConfig.bodyWeightUnit,
           usesImperialHeightUnits: userConfig.usesImperialHeightUnits,
+          usesImperialFoodUnits: userConfig.usesImperialFoodUnits,
           effectiveWaterGoalMl: userConfig.effectiveDailyWaterGoalMl(
             user.gender,
             caloriesProfile: user.caloriesProfile,

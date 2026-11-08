@@ -144,6 +144,10 @@ class ConfigRepository {
     await _configDataSource.clearLocaleSyncSeeded();
   }
 
+  Future<bool> getHasLeftTip() => _configDataSource.getHasLeftTip();
+
+  Future<void> setHasLeftTip() => _configDataSource.setHasLeftTip();
+
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _configDataSource.setConfigShowMicronutrients(show);
   }

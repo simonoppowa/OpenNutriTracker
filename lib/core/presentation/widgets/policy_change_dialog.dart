@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 
 /// One-time notice that the privacy policy has materially changed (#887).
 ///
@@ -55,14 +55,11 @@ class PolicyChangeDialog extends StatelessWidget {
   Future<void> _launchPolicy(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final failureMessage = S.of(context).errorOpeningBrowser;
-    final url = Uri.parse(
-      URLConst.privacyPolicyFor(Localizations.localeOf(context).languageCode),
+    final url = URLConst.privacyPolicyFor(
+      Localizations.localeOf(context).languageCode,
     );
 
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
-    }
+    if (await tryLaunchExternalUrl(url)) return;
+    messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
   }
 }

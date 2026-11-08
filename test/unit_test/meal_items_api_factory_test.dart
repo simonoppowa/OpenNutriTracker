@@ -69,6 +69,22 @@ class CapturingClient extends http.BaseClient {
   }
 }
 
+/// Answers every request with [status] and [body].
+class _ErrorClient extends http.BaseClient {
+  final int status;
+  final String body;
+
+  _ErrorClient(this.status, this.body);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async =>
+      http.StreamedResponse(
+        Stream.value(utf8.encode(body)),
+        status,
+        request: request,
+      );
+}
+
 Future<CapturingClient> send(AiSelection selection) async {
   final client = CapturingClient();
   await mealItemsApiFor(
@@ -146,7 +162,7 @@ void main() {
       );
 
       expect(client.body!['model'], AiModelCatalogue.openrouter.first.id);
-      expect(client.body!['model'], 'anthropic/claude-sonnet-5');
+      expect(client.body!['model'], 'anthropic/claude-sonnet-5.5');
     });
 
     test('OpenAI defaults to the screened conservative reader', () async {
@@ -158,7 +174,7 @@ void main() {
       );
 
       expect(client.body!['model'], AiModelCatalogue.openai.first.id);
-      expect(client.body!['model'], 'gpt-5.6-luna');
+      expect(client.body!['model'], 'gpt-6-luna');
     });
 
     test('honours a stored choice', () async {
@@ -166,11 +182,11 @@ void main() {
         const AiSelection(
           provider: AiProvider.openrouter,
           apiKey: 'sk-or',
-          modelId: 'anthropic/claude-haiku-4.5',
+          modelId: 'anthropic/claude-haiku-5.5',
         ),
       );
 
-      expect(client.body!['model'], 'anthropic/claude-haiku-4.5');
+      expect(client.body!['model'], 'anthropic/claude-haiku-5.5');
     });
 
     test('falls back when the stored model has been retired', () async {
@@ -196,7 +212,7 @@ void main() {
         const AiSelection(
           provider: AiProvider.anthropic,
           apiKey: 'sk-ant',
-          modelId: 'anthropic/claude-sonnet-5',
+          modelId: 'anthropic/claude-sonnet-5.5',
         ),
       );
 
@@ -206,10 +222,13 @@ void main() {
   });
 
   group('pinning', () {
-    test('every curated OpenRouter model is pinned, fallbacks off', () async {
+    test('every curated OpenRouter model is pinned, fallbacks off; only a '
+        'model asked not to think skips the parameter filter', () async {
       // #656: the policy fit that justified Anthropic survives only under
       // provider.only. An unpinned entry on this list would silently be a
-      // different company's terms.
+      // different company's terms. OpenRouter's filter refuses a forced
+      // tool_choice to Haiku 5.5 on every endpoint (404); the pin still
+      // names who serves it.
       for (final model in AiModelCatalogue.openrouter) {
         final client = await send(
           AiSelection(
@@ -222,7 +241,11 @@ void main() {
         final provider = client.body!['provider'] as Map;
         expect(provider['only'], isNotEmpty, reason: model.id);
         expect(provider['allow_fallbacks'], false, reason: model.id);
-        expect(provider['require_parameters'], true, reason: model.id);
+        expect(
+          provider['require_parameters'],
+          model.toolCall == AiToolCall.forcedThinkingOff ? isNull : true,
+          reason: model.id,
+        );
       }
     });
 
@@ -371,6 +394,139 @@ void main() {
     });
   });
 
+  group('how hard a server the user runs is asked for the tool call', () {
+    Future<CapturingClient> sendTo(String endpoint) => send(
+      AiSelection(
+        provider: AiProvider.ownServer,
+        apiKey: 'key',
+        endpoint: endpoint,
+        modelId: 'some-model',
+      ),
+    );
+
+    test('Gemini is asked for the tool by name', () async {
+      // #1257: Google's OpenAI-compatible layer returns the meal only when
+      // the function is named.
+      final client = await sendTo(
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], {
+        'type': 'function',
+        'function': {'name': 'log_meal_items'},
+      });
+    });
+
+    test('however the host is capitalised', () async {
+      final client = await sendTo(
+        'https://GenerativeLanguage.GoogleApis.com/v1beta/openai/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], isA<Map<String, dynamic>>());
+    });
+
+    test('llama.cpp and LM Studio keep "required"', () async {
+      // #733: llama.cpp parses `tool_choice` as a string and downgrades an
+      // object to "auto", and nothing in the prompt asks for the tool, so a
+      // named function there is a prose reply and a "no tool call" failure.
+      for (final endpoint in [
+        'https://llama.example.org/v1/chat/completions',
+        'https://lmstudio.example.org:1234/v1/chat/completions',
+      ]) {
+        final client = await sendTo(endpoint);
+        expect(client.body!['tool_choice'], 'required', reason: endpoint);
+      }
+    });
+
+    test('a look-alike host is not Gemini', () async {
+      final client = await sendTo(
+        'https://generativelanguage.googleapis.com.example.org/v1/chat/completions',
+      );
+
+      expect(client.body!['tool_choice'], 'required');
+    });
+
+    test('local addresses keep "required" too', () {
+      expect(
+        ownServerToolChoice(Uri.parse('http://192.168.1.5:8080/v1')),
+        ToolChoiceMode.anyTool,
+      );
+      expect(
+        ownServerToolChoice(Uri.parse('http://localhost:11434/v1')),
+        ToolChoiceMode.anyTool,
+      );
+    });
+  });
+
+  group('a bad Gemini key is reported as a key problem', () {
+    // #1257: Google answers a mistyped key with a 400, the status read
+    // everywhere else as a rejected request — which the text path keeps quiet
+    // about and the photo path calls an unreadable picture.
+    const gemini =
+        'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+    // The shape Google's OpenAI-compatible layer returns, list-wrapped.
+    final badKey = jsonEncode([
+      {
+        'error': {
+          'code': 400,
+          'message': 'API key not valid. Please pass a valid API key.',
+          'status': 'INVALID_ARGUMENT',
+          'details': [
+            {
+              '@type': 'type.googleapis.com/google.rpc.ErrorInfo',
+              'reason': 'API_KEY_INVALID',
+            },
+          ],
+        },
+      },
+    ]);
+
+    Future<MealInterpreterFailure> failureFrom(
+      String endpoint,
+      String body,
+    ) async {
+      final api = mealItemsApiFor(
+        _ErrorClient(400, body),
+        AiSelection(
+          provider: AiProvider.ownServer,
+          apiKey: 'wrong',
+          endpoint: endpoint,
+          modelId: 'some-model',
+        ),
+      );
+      try {
+        await api.requestItems(
+          content: const MealTextContent('toast'),
+          system: 'system',
+        );
+      } on MealInterpreterException catch (e) {
+        return e.failure;
+      }
+      fail('the request did not fail');
+    }
+
+    test('on Gemini, API_KEY_INVALID is auth', () async {
+      expect(await failureFrom(gemini, badKey), MealInterpreterFailure.auth);
+    });
+
+    test('any other Gemini 400 is still a rejected request', () async {
+      expect(
+        await failureFrom(gemini, '{"error":{"code":400}}'),
+        MealInterpreterFailure.rejected,
+      );
+    });
+
+    test('other servers read the status alone, as before', () async {
+      expect(
+        await failureFrom(
+          'https://llama.example.org/v1/chat/completions',
+          badKey,
+        ),
+        MealInterpreterFailure.rejected,
+      );
+    });
+  });
+
   test('both clients are held to the one shared schema', () async {
     // The no-macros guarantee is only a guarantee if it survives the switch
     // that chooses between them.
@@ -391,5 +547,73 @@ void main() {
           as Map)['parameters'],
       expected,
     );
+  });
+
+  group('each model is asked for its tool call the way it accepts', () {
+    // Haiku 5.5 thinks by default and refuses a forced call while it does;
+    // Sonnet 5.5 refuses a forced call outright (400).
+    test('Anthropic: Haiku 5.5 forced with thinking off', () async {
+      final client = await send(
+        const AiSelection(provider: AiProvider.anthropic, apiKey: 'sk-ant'),
+      );
+
+      expect(client.body!['model'], 'claude-haiku-5-5');
+      expect(client.body!['tool_choice'], {
+        'type': 'tool',
+        'name': 'log_meal_items',
+      });
+      expect(client.body!['thinking'], {'type': 'disabled'});
+    });
+
+    test('Anthropic built directly asks its default model the way it '
+        'accepts', () async {
+      // The factory passes the catalogue's mode; a direct construction must
+      // not fall back to a forced call with thinking on, which Haiku 5.5
+      // refuses.
+      final client = CapturingClient();
+      final api = AnthropicMealItemsApi(client, () => 'sk-ant');
+      await api.requestItems(
+        content: const MealTextContent('toast'),
+        system: 'system',
+      );
+
+      expect(
+        api.toolCall,
+        AiModelCatalogue.anthropic
+            .singleWhere((m) => m.id == AnthropicMealItemsApi.defaultModel)
+            .toolCall,
+      );
+      expect(client.body!['model'], 'claude-haiku-5-5');
+      expect(client.body!['thinking'], {'type': 'disabled'});
+    });
+
+    test('OpenRouter: Haiku 5.5 forced with reasoning off', () async {
+      final client = await send(
+        const AiSelection(
+          provider: AiProvider.openrouter,
+          apiKey: 'sk-or',
+          modelId: 'anthropic/claude-haiku-5.5',
+        ),
+      );
+
+      expect(client.body!['tool_choice'], isA<Map>());
+      expect(client.body!['reasoning'], {'enabled': false});
+    });
+
+    test('OpenRouter: Sonnet 5.5 not forced, with room to think', () async {
+      final client = await send(
+        const AiSelection(provider: AiProvider.openrouter, apiKey: 'sk-or'),
+      );
+
+      expect(client.body!['model'], 'anthropic/claude-sonnet-5.5');
+      expect(client.body!['tool_choice'], isNot(isA<Map>()));
+      expect(client.body!.containsKey('reasoning'), isFalse);
+    });
+
+    test('OpenAI models are forced, as before', () async {
+      for (final model in AiModelCatalogue.openai) {
+        expect(model.toolCall, AiToolCall.forced, reason: model.id);
+      }
+    });
   });
 }

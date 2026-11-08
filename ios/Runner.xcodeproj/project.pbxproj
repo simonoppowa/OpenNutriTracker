@@ -969,7 +969,7 @@
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				ONT_APP_GROUP_ID = group.com.opennutritracker.ont.opennutritracker;
-				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.CalorieWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -999,9 +999,9 @@
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				ONT_APP_GROUP_ID = group.com.opennutritracker.ont.opennutritracker;
-				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.CalorieWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.opennutritracker.ont.opennutritracker.CalorieWidget";
+				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.opennutritracker.ont.opennutritracker.widget";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1030,9 +1030,9 @@
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				ONT_APP_GROUP_ID = group.com.opennutritracker.ont.opennutritracker;
-				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.CalorieWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.opennutritracker.ont.opennutritracker.CalorieWidget";
+				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.opennutritracker.ont.opennutritracker.widget";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1061,7 +1061,7 @@
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				ONT_APP_GROUP_ID = group.com.opennutritracker.ont.opennutritracker.develop;
-				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.develop.CalorieWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.develop.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -1091,7 +1091,7 @@
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				ONT_APP_GROUP_ID = group.com.opennutritracker.ont.opennutritracker.develop;
-				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.develop.CalorieWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.develop.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -1121,7 +1121,7 @@
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
 				ONT_APP_GROUP_ID = group.com.opennutritracker.ont.opennutritracker.develop;
-				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.develop.CalorieWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.opennutritracker.ont.opennutritracker.develop.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;

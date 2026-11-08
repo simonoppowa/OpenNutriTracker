@@ -56,8 +56,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         defaultToRawFoodUnits: fields[39] as bool?,
         trackedDaysOffsetMinutes: (fields[40] as num?)?.toInt(),
         localeSyncSeeded: fields[41] as bool?,
-        healthWeightImportEnabled: fields[42] as bool?,
-        healthWeightLastImportAt: fields[43] as DateTime?,
+        hasLeftTip: fields[42] as bool?,
+        healthWeightImportEnabled: fields[43] as bool?,
+        healthWeightLastImportAt: fields[44] as DateTime?,
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -67,7 +68,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(44)
+      ..writeByte(45)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -153,8 +154,10 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(41)
       ..write(obj.localeSyncSeeded)
       ..writeByte(42)
-      ..write(obj.healthWeightImportEnabled)
+      ..write(obj.hasLeftTip)
       ..writeByte(43)
+      ..write(obj.healthWeightImportEnabled)
+      ..writeByte(44)
       ..write(obj.healthWeightLastImportAt);
   }
 
@@ -233,6 +236,7 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         trackedDaysOffsetMinutes: (json['trackedDaysOffsetMinutes'] as num?)
             ?.toInt(),
         localeSyncSeeded: json['localeSyncSeeded'] as bool?,
+        hasLeftTip: json['hasLeftTip'] as bool?,
         healthWeightImportEnabled: json['healthWeightImportEnabled'] as bool?,
         healthWeightLastImportAt: json['healthWeightLastImportAt'] == null
             ? null
@@ -287,6 +291,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'defaultToRawFoodUnits': instance.defaultToRawFoodUnits,
   'trackedDaysOffsetMinutes': instance.trackedDaysOffsetMinutes,
   'localeSyncSeeded': instance.localeSyncSeeded,
+  'hasLeftTip': instance.hasLeftTip,
   'healthWeightImportEnabled': instance.healthWeightImportEnabled,
   'healthWeightLastImportAt': instance.healthWeightLastImportAt
       ?.toIso8601String(),

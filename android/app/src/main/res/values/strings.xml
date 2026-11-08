@@ -6,4 +6,8 @@
          visually distinguishable on the home screen from a Play Store
          install. -->
     <string name="app_name">OpenNutriTracker</string>
+
+    <!-- English fallbacks only: the widget text is written in the app's
+         language through the snapshot labels, like the iOS extension's. -->
+    <string name="calorie_widget_description">Today\'s calories eaten and your goal.</string>
 </resources>

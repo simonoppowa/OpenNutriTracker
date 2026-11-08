@@ -20,14 +20,24 @@ class DiaryLoadedState extends DiaryState {
   final bool showMealMacros;
   final bool showActivityTracking;
 
+  /// The keys of the days with at least one entry logged, which are the
+  /// days the calendar marks.
+  final Set<String> daysWithEntries;
+
   const DiaryLoadedState(
     this.trackedDayMap,
     this.usesImperialUnits, {
     this.showMealMacros = true,
     this.showActivityTracking = true,
+    this.daysWithEntries = const {},
   });
 
   @override
-  List<Object?> get props =>
-      [trackedDayMap, usesImperialUnits, showMealMacros, showActivityTracking];
+  List<Object?> get props => [
+        trackedDayMap,
+        usesImperialUnits,
+        showMealMacros,
+        showActivityTracking,
+        daysWithEntries,
+      ];
 }
