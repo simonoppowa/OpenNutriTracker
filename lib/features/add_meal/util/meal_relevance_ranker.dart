@@ -86,16 +86,55 @@ List<MealEntity> rankMealsByRelevance(List<MealEntity> meals, String query) {
 /// away, even if a remote result happens to share a name, and backend
 /// (FDC/BLS/...) records are never merged with anything — see the note on
 /// [_nearDuplicateKey] for why (#1164).
-List<MealEntity> mergeAndRankMeals(List<MealEntity> a, List<MealEntity> b, String query) {
+///
+/// [recentlyLogged] holds the [mealSearchKey]s of results the user has
+/// logged before (`SearchProductsResult.recentlyLoggedKeys`). Those form a
+/// tier of their own, between the user's own content and everything else,
+/// relevance-sorted within it (#576): each source's list already puts them
+/// above its remote page, and merging used to sort them back into it, so a
+/// closer remote match pushed out the food the user logs every day. An OFF
+/// product that collapses with a logged one is dropped in favour of the
+/// logged copy, whichever scores higher — it is the record the user chose.
+/// A key that matches nothing in [a] or [b] adds nothing. The resolver
+/// passes none: it picks its match automatically and stays relevance-only.
+List<MealEntity> mergeAndRankMeals(
+  List<MealEntity> a,
+  List<MealEntity> b,
+  String query, {
+  Set<String> recentlyLogged = const {},
+}) {
   final own = <MealEntity>[];
+  final logged = <MealEntity>[];
   final rest = <MealEntity>[];
   for (final meal in _deduplicateAcrossSources([...a, ...b])) {
-    final isOwn = meal.source == MealSourceEntity.custom || meal.source == MealSourceEntity.recipe;
-    (isOwn ? own : rest).add(meal);
+    final isOwn =
+        meal.source == MealSourceEntity.custom ||
+        meal.source == MealSourceEntity.recipe;
+    if (isOwn) {
+      own.add(meal);
+    } else if (recentlyLogged.contains(mealSearchKey(meal))) {
+      logged.add(meal);
+    } else {
+      rest.add(meal);
+    }
   }
-  final collapsedRest = _collapseNearDuplicates(rest, query);
-  return [...rankMealsByRelevance(own, query), ...rankMealsByRelevance(collapsedRest, query)];
+  final loggedNearKeys = {for (final meal in logged) _nearDuplicateKey(meal)};
+  final collapsedRest = _collapseNearDuplicates([
+    for (final meal in rest)
+      if (!loggedNearKeys.contains(_nearDuplicateKey(meal))) meal,
+  ], query);
+  return [
+    ...rankMealsByRelevance(own, query),
+    ...rankMealsByRelevance(logged, query),
+    ...rankMealsByRelevance(collapsedRest, query),
+  ];
 }
+
+/// The key a search result is known by across the search stack: its source
+/// plus its code, falling back to its name. `SearchProductsUseCase` dedups
+/// on it and reports logged results by it ([mergeAndRankMeals]).
+String mealSearchKey(MealEntity meal) =>
+    '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
 
 /// Same dedup key as `SearchProductsUseCase._deduplicateMeals` (source +
 /// code, falling back to name) so a custom meal or recipe that independently
