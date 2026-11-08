@@ -140,4 +140,16 @@ class GetIntakeUsecase {
   Future<List<IntakeEntity>> getCustomMealIntakes() async {
     return _intakeRepository.getCustomMealIntakes();
   }
+
+  /// The key of every day the Diary lists at least one entry on at
+  /// [offsetTotalMinutes], by the [DayBoundaryCalc.dayKeyOf] rule the
+  /// tracked-day rows are keyed by.
+  ///
+  /// Whether something was logged, not whether it counted anything: a
+  /// zero-calorie drink is still an entry, and a row's totals can keep a
+  /// rounding residue after its last entry is deleted (#1440).
+  Future<Set<String>> getDayKeysWithIntakes(int offsetTotalMinutes) async => {
+    for (final dbo in await _intakeRepository.getAllIntakesDBO())
+      DayBoundaryCalc.dayKeyOf(dbo.dateTime, offsetTotalMinutes),
+  };
 }

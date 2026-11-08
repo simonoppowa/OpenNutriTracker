@@ -50,6 +50,29 @@ class LogTray extends ChangeNotifier {
 
   int get length => _items.length;
 
+  int _pending = 0;
+
+  /// Whether a new food should join the list rather than be logged on its
+  /// own: the list holds something, or a food is still on its way onto it.
+  ///
+  /// Logging on its own leaves the add-food screen, so a sheet that went by
+  /// [isEmpty] alone would leave while a + was still fetching its food, and
+  /// that food would arrive on a list nobody logs.
+  bool get collects => _items.isNotEmpty || _pending > 0;
+
+  /// Marks a food as on its way onto the list, until [endPending].
+  void beginPending() {
+    _pending++;
+    notifyListeners();
+  }
+
+  /// The food [beginPending] announced has arrived or will not come.
+  void endPending() {
+    assert(_pending > 0, 'endPending without beginPending');
+    _pending--;
+    notifyListeners();
+  }
+
   double get totalKcal => _items.fold(0, (sum, item) => sum + item.kcal);
 
   void add(LogTrayItem item) {

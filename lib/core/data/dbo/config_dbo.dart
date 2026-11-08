@@ -212,7 +212,17 @@ class ConfigDBO extends HiveObject {
   // about the device.
   @HiveField(41)
   bool? localeSyncSeeded;
+  // #1536: whether a tip from the Support page's tip jar has gone through on
+  // this device. It only shows a "you left a tip" line on that page: text
+  // only, unlocking nothing, never sent anywhere. Device-wide like the store
+  // account that paid it, so it is absent from the personal-field overlay in
+  // `ConfigDataSource._readMerged`; Reset profile data still clears it
+  // (`DeleteAllUserDataUsecase`). Null means no tip.
   @HiveField(42)
+  bool? hasLeftTip;
+  // #1509: whether the weight dialogs open on the text field instead of the
+  // horizontal picker. Null means the picker (the old behaviour).
+  @HiveField(48)
   bool? useTextForWeightInput;
 
   ConfigDBO(
@@ -255,6 +265,7 @@ class ConfigDBO extends HiveObject {
     this.defaultToRawFoodUnits,
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
+    this.hasLeftTip,
     this.useTextForWeightInput,
   });
 

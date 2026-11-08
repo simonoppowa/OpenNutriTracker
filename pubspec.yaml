@@ -73,8 +73,9 @@ dependencies:
   image_picker: ^1.2.4
   flutter_image_compress: ^2.5.1
 
-  # iOS home-screen calorie widget. Android stores the same snapshot
-  # and has no widget UI yet.
+  # Home-screen calorie widget on both platforms: the app writes a
+  # snapshot through this plugin; iOS renders it in the CalorieWidget
+  # extension, Android in the native CalorieWidgetProvider.
   home_widget: ^0.10.0
 
   hive_ce: ^2.20.2
@@ -93,6 +94,13 @@ dependencies:
   # Health Connect (Android) / Apple Health (iOS) workout import. Every call
   # sits behind HealthService so the plugin never loads under `flutter test`.
   health: ^13.3.2
+  in_app_purchase: ^3.3.1
+  in_app_purchase_storekit: ^0.4.17
+  in_app_purchase_android: ^0.5.5
+
+  # Dictating a meal on the Describe fields. Uses the platform recognizer
+  # (Android SpeechRecognizer / iOS SFSpeech); no audio is sent by the app.
+  speech_to_text: ^7.5.0
 
 dev_dependencies:
   flutter_test:
