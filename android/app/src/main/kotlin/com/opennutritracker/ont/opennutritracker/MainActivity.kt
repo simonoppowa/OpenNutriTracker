@@ -105,6 +105,12 @@ class MainActivity : FlutterFragmentActivity() {
                             applicationContext,
                         )
                     }
+                    // Both nutrition-export write grants, for the same reason.
+                    "hasExportWritePermissions" -> answerFromHealthConnect(result) {
+                        HealthConnectWorkoutReader.hasExportWritePermissions(
+                            applicationContext,
+                        )
+                    }
                     else -> result.notImplemented()
                 }
             }

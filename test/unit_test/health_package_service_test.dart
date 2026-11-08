@@ -69,6 +69,15 @@ class _FakeWorkoutReader extends Fake implements HealthConnectWorkoutReader {
   Object? permissionsError;
   int permissionChecks = 0;
 
+  bool exportWritesHeld = true;
+  int exportChecks = 0;
+
+  @override
+  Future<bool> hasExportWritePermissions() async {
+    exportChecks++;
+    return exportWritesHeld;
+  }
+
   @override
   Future<bool> hasWorkoutReadPermissions() async {
     permissionChecks++;
@@ -523,6 +532,24 @@ void main() {
         HealthDataType.WATER,
       ]);
       expect(health.recheckedTypes, isNull);
+    });
+
+    test('on Android a grant missing nutrition or hydration is a refusal, '
+        'checked without the plugin', () async {
+      final reader = _FakeWorkoutReader()..exportWritesHeld = false;
+      final service = HealthPackageService(
+        health,
+        workoutReader: reader,
+        platform: HealthTargetPlatform.android,
+      );
+      // Health Connect answers "was anything granted", so one of the two
+      // ticked still reads as granted here.
+      expect(await service.requestExportPermissions(), isFalse);
+      expect(reader.exportChecks, 1);
+      expect(health.recheckedTypes, isNull);
+
+      reader.exportWritesHeld = true;
+      expect(await service.requestExportPermissions(), isTrue);
     });
 
     test('on iOS a day is cleared per sample type, then rewritten', () async {

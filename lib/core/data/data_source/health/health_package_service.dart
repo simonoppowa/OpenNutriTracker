@@ -337,10 +337,15 @@ class HealthPackageService implements HealthService {
       permissions: write,
     );
     if (!granted) return false;
-    // iOS reports write grants, unlike read grants. Android is not asked: the
+    // Health Connect answers "was anything granted", so nutrition alone or
+    // hydration alone reads as success, and every day would then fail on the
+    // type left out. Both are re-checked through the app's own channel: the
     // plugin's check takes the process down when Health Connect refuses the
     // call (see HealthConnectWorkoutReader.hasWorkoutReadPermissions).
-    if (_platform != HealthTargetPlatform.ios) return true;
+    if (_platform == HealthTargetPlatform.android) {
+      return await _workoutReader.hasExportWritePermissions();
+    }
+    // iOS reports write grants, unlike read grants.
     return await _health.hasPermissions(_exportTypes, permissions: write) !=
         false;
   }
