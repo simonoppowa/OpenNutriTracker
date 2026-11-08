@@ -19,7 +19,9 @@ import 'package:opennutritracker/core/data/repository/weight_log_repository.dart
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
@@ -176,6 +178,30 @@ class _PausingWeightLogRepository extends WeightLogRepository {
     }
     return super.getEntry(date);
   }
+}
+
+/// Today's tracked day, without the tracked-day box behind it.
+class _FakeAddTrackedDayUsecase extends Fake implements AddTrackedDayUsecase {
+  bool trackedDayExists = true;
+  final updatedGoals = <double>[];
+
+  @override
+  Future<bool> hasTrackedDay(DateTime day) async => trackedDayExists;
+
+  @override
+  Future<void> updateDayCalorieGoal(DateTime day, double calorieGoal) async =>
+      updatedGoals.add(calorieGoal);
+}
+
+/// A goal that is just the weight it was worked out from, so a test can see
+/// which weight that was.
+class _FakeGetKcalGoalUsecase extends Fake implements GetKcalGoalUsecase {
+  @override
+  Future<double> getKcalGoal({
+    UserEntity? userEntity,
+    double? totalKcalActivitiesParam,
+    double? kcalUserAdjustment,
+  }) async => userEntity!.weightKG;
 }
 
 /// Waits until [other] has finished, or long enough that it evidently
@@ -452,6 +478,32 @@ void main() {
       await usecase.importNow();
 
       expect((await userRepository.getUserData()).weightKG, equals(78.5));
+    });
+
+    // A refresh queued behind the run can be dropped by a profile switch
+    // queued behind it too, so the run settles the goal itself, under the
+    // lock it saved the weight under.
+    test('a run that moves the current weight recalculates today\'s goal '
+        'itself', () async {
+      final trackedDays = _FakeAddTrackedDayUsecase();
+      usecase = ImportWeightsUsecase(
+        HealthImportRepository(healthService),
+        configRepository,
+        weightLogRepository,
+        userRepository,
+        provider,
+        addTrackedDayUsecase: trackedDays,
+        getKcalGoalUsecase: _FakeGetKcalGoalUsecase(),
+      );
+      healthService.weights = [_reading('c', DateTime(2026, 5, 23, 7), 78.5)];
+
+      await usecase.importNow();
+      expect(trackedDays.updatedGoals, [78.5]);
+
+      // The same reading again moves nothing, and leaves the goal alone.
+      ImportWeightsUsecase.clock = () => now.add(const Duration(hours: 1));
+      await usecase.importNow();
+      expect(trackedDays.updatedGoals, [78.5]);
     });
 
     test('a retry finishes a run killed before the current weight', () async {

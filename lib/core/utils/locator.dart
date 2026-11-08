@@ -517,6 +517,8 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      addTrackedDayUsecase: locator(),
+      getKcalGoalUsecase: locator(),
     ),
   );
   locator.registerLazySingleton<DeleteUserActivityUsecase>(

@@ -9,6 +9,8 @@ import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
@@ -70,14 +72,22 @@ class ImportWeightsUsecase {
   final WeightLogRepository _weightLogRepository;
   final UserRepository _userRepository;
   final HiveDBProvider _hiveDBProvider;
+  final AddTrackedDayUsecase? _addTrackedDayUsecase;
+  final GetKcalGoalUsecase? _getKcalGoalUsecase;
 
+  /// [addTrackedDayUsecase] and [getKcalGoalUsecase] recalculate today's
+  /// calorie goal when a run moves the current weight. Production passes
+  /// both; a test that is not about the goal can leave them out.
   ImportWeightsUsecase(
     this._healthImportRepository,
     this._configRepository,
     this._weightLogRepository,
     this._userRepository,
-    this._hiveDBProvider,
-  );
+    this._hiveDBProvider, {
+    AddTrackedDayUsecase? addTrackedDayUsecase,
+    GetKcalGoalUsecase? getKcalGoalUsecase,
+  }) : _addTrackedDayUsecase = addTrackedDayUsecase,
+       _getKcalGoalUsecase = getKcalGoalUsecase;
 
   /// Runs an import if weight import is on and the last one is not too
   /// recent. Logs and swallows failures — nobody is waiting on the answer.
@@ -233,6 +243,7 @@ class ImportWeightsUsecase {
     // too — import switched off while its last write was under way leaves
     // that row in the log, and nothing would reconcile it later.
     final weightChanged = await _updateCurrentWeight(profileId);
+    if (weightChanged) await _updateTodayCalorieGoal(profileId);
     if (written.isNotEmpty || weightChanged) _weightsImported.add(null);
     if (stopped) return written.length;
 
@@ -381,6 +392,29 @@ class ImportWeightsUsecase {
     if (!_stillOnProfile(profileId)) return false;
     await _userRepository.updateUserData(user);
     return true;
+  }
+
+  /// Recalculates today's calorie goal from the weight just saved, as
+  /// `ProfileBloc.updateUser` does for a weight entered by hand.
+  ///
+  /// Done here, under the lock the weight was saved under, rather than left
+  /// to the refresh [weightsImported] sets off: that refresh is bound to the
+  /// profile active when it is called, so a profile switch queued behind
+  /// this run drops it, and nothing later brings this profile's goal in line
+  /// — switching back keeps an existing day's goal, and a run that finds the
+  /// weight already current fires no signal.
+  Future<void> _updateTodayCalorieGoal(String profileId) async {
+    final addTrackedDayUsecase = _addTrackedDayUsecase;
+    final getKcalGoalUsecase = _getKcalGoalUsecase;
+    if (addTrackedDayUsecase == null || getKcalGoalUsecase == null) return;
+    if (!_stillOnProfile(profileId)) return;
+    if (!await _userRepository.hasUserData()) return;
+    final user = await _userRepository.getUserData();
+    final today = clock();
+    if (!await addTrackedDayUsecase.hasTrackedDay(today)) return;
+    final goal = await getKcalGoalUsecase.getKcalGoal(userEntity: user);
+    if (!_stillOnProfile(profileId)) return;
+    await addTrackedDayUsecase.updateDayCalorieGoal(today, goal);
   }
 
   /// The imported entry that should be the current weight, or null when the
