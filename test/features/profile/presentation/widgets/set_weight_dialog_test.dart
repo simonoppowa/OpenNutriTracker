@@ -324,6 +324,58 @@ void main() {
     );
   });
 
+  group('picker opened at a low weight', () {
+    // Below 51 kg (101 lb) the picker's lower bound clamps at 1, so its
+    // midpoint is no longer the user's weight. It must still open on it.
+    int selectedItem(WidgetTester tester) {
+      final wheel = tester.widget<ListWheelScrollView>(
+        find.byType(ListWheelScrollView),
+      );
+      return (wheel.controller! as FixedExtentScrollController).selectedItem;
+    }
+
+    testWidgets('the weight dialog opens on 45 kg and saves it', (
+      tester,
+    ) async {
+      final popped = await _openDialog(
+        tester,
+        SetWeightDialog(
+          initialKg: 45,
+          unit: BodyWeightUnit.kg,
+          configRepository: _FakeConfigRepository(),
+        ),
+      );
+
+      // Bounds 1..95 kg in 0.1 kg steps: 45 kg is item 440.
+      expect(selectedItem(tester), 440);
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(popped.single as double, closeTo(45, 1e-9));
+    });
+
+    testWidgets('the target dialog opens on 80 lb and saves it', (
+      tester,
+    ) async {
+      final popped = await _openDialog(
+        tester,
+        SetTargetWeightDialog(
+          initialKg: UnitCalc.lbsToKg(80),
+          hasExistingTarget: false,
+          unit: BodyWeightUnit.lb,
+          configRepository: _FakeConfigRepository(),
+        ),
+      );
+
+      // Bounds 1..180 lb in 0.1 lb steps: 80 lb is item 790.
+      expect(selectedItem(tester), 790);
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      final result = popped.single as TargetWeightDialogResult;
+      expect(result.value, closeTo(UnitCalc.lbsToKg(80), 1e-6));
+    });
+  });
   group('dialog title beside the mode toggle', () {
     // The toggle now shares the title row, so at a large font the title must
     // ellipsize on one line rather than overflow. AutoSizeText cannot be used
