@@ -95,6 +95,8 @@ List<MealEntity> rankMealsByRelevance(List<MealEntity> meals, String query) {
 /// closer remote match pushed out the food the user logs every day. An OFF
 /// product that collapses with a logged one is dropped in favour of the
 /// logged copy, whichever scores higher — it is the record the user chose.
+/// Two logged copies of one OFF product (two barcodes) collapse to one by
+/// the same rule as the rest of the list.
 /// A key that matches nothing in [a] or [b] adds nothing. The resolver
 /// passes none: it picks its match automatically and stays relevance-only.
 List<MealEntity> mergeAndRankMeals(
@@ -118,14 +120,17 @@ List<MealEntity> mergeAndRankMeals(
       rest.add(meal);
     }
   }
-  final loggedNearKeys = {for (final meal in logged) _nearDuplicateKey(meal)};
+  final collapsedLogged = _collapseNearDuplicates(logged, query);
+  final loggedNearKeys = {
+    for (final meal in collapsedLogged) _nearDuplicateKey(meal),
+  };
   final collapsedRest = _collapseNearDuplicates([
     for (final meal in rest)
       if (!loggedNearKeys.contains(_nearDuplicateKey(meal))) meal,
   ], query);
   return [
     ...rankMealsByRelevance(own, query),
-    ...rankMealsByRelevance(logged, query),
+    ...rankMealsByRelevance(collapsedLogged, query),
     ...rankMealsByRelevance(collapsedRest, query),
   ];
 }

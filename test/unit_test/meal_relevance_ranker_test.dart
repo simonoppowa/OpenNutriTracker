@@ -543,6 +543,20 @@ void main() {
       expect(merged, [logged]);
     });
 
+    test('collapses two logged barcodes of one OFF product into one', () {
+      final first = _meal(name: 'Whole Milk', code: 'first', brands: 'Acme');
+      final second = _meal(name: 'Whole Milk', code: 'second', brands: 'Acme');
+
+      final merged = mergeAndRankMeals(
+        [first, second],
+        [],
+        'milk',
+        recentlyLogged: {mealSearchKey(first), mealSearchKey(second)},
+      );
+
+      expect(merged, [first]);
+    });
+
     test('never drops a backend record that shares a logged name', () {
       final logged = _meal(
         name: 'Egg',
