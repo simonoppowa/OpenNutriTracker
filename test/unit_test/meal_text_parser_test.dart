@@ -559,6 +559,40 @@ void main() {
     });
   });
 
+  group('an amount inside a phrase states a unit', () {
+    for (final text in [
+      'a 330 ml can of coke and a cheeseburger',
+      '1 apple and 30 g almonds',
+      'grey peas with bacon, 300 g',
+      'a 1.5l bottle of water',
+      'a 0.5 L beer',
+      '一碗200克米饭',
+    ]) {
+      test(text, () => expect(textStatesAUnit(text), isTrue));
+    }
+
+    for (final text in [
+      '2 large eggs',
+      '3 lemons and a glass of milk',
+      'vitamin B12 tablet',
+      'a bowl of borscht with sour cream',
+    ]) {
+      test('but not $text', () => expect(textStatesAUnit(text), isFalse));
+    }
+
+    test('so the model\'s unit is kept', () {
+      // The model answered 330 ml; with the unit dropped, the bare 330 was
+      // logged as 330 servings of coke.
+      final result = validateParsedMealItems(
+        const [ParsedMealItem(query: 'coke', quantity: 330, unit: 'ml')],
+        statedIn: 'a 330 ml can of coke and a cheeseburger',
+      );
+
+      expect(result.items.single.unit, 'ml');
+      expect(result.items.single.quantity, 330);
+    });
+  });
+
   group('validateParsedMealItems', () {
     // The gate every non-deterministic source passes through, so a model
     // can never reach the diary under looser rules than the regex does.
