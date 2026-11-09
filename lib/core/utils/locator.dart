@@ -101,6 +101,7 @@ import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_food_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/pick_resolved_matches_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed_meals_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
@@ -381,7 +382,15 @@ Future<void> initLocator() async {
   );
   locator.registerFactory<AddMealBloc>(() => AddMealBloc(locator()));
   locator.registerFactory<BulkAddBloc>(
-    () => BulkAddBloc(locator(), locator(), locator()),
+    () => BulkAddBloc(
+      locator(),
+      locator(),
+      locator(),
+      matchPicker: PickResolvedMatchesUseCase(
+        locator<AiCredentialStorage>(),
+        (selection) => mealItemsApiFor(locator(), selection),
+      ),
+    ),
   );
   locator.registerFactory<ProductsBloc>(
     () => ProductsBloc(locator(), locator()),

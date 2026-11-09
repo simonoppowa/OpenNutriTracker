@@ -36,7 +36,9 @@ of protein, every microgram of vitamin B12 is then looked up in the same food da
 has always used: Open Food Facts, USDA FoodData Central, the German BLS.
 
 So the app's older claim — *every number is cited* — survives the feature intact. The model
-changes how a food is **found**, never what it **contains**.
+changes how a food is **found**, never what it **contains**. After a typed line it is also asked
+which of the search's rows is the food ([the model picks among the
+matches](#the-model-picks-among-the-matches)), and that answer is a row number, never a value.
 
 The rule is enforced structurally rather than by convention. The schema every provider is held to
 is a single top-level constant with no nutrition fields in it, so adding a provider cannot
@@ -194,6 +196,27 @@ on the destination — Anthropic's API version or OpenRouter's metadata opt-in. 
 attribution headers are deliberately not among them: they would put the app on a public
 leaderboard as a side effect of somebody saving a key. A photo request differs only where it has
 to, in its own prompt and a picture in place of the line.
+
+### The model picks among the matches
+
+The search ranks each item's candidates by how well their names match the query and selects the
+top one. Name matching cannot tell that *"tostada"* in a Spanish meal is toast rather than a
+tostada shell, or that *eggs* means a whole egg rather than the yolk. So after a typed line the
+model read has been resolved, `PickResolvedMatchesUseCase` sends one more request: the line again,
+and for each item up to six candidates — name, source, kcal and macros per 100 g, and the names
+of its portions. The model answers with a candidate number per item, or *none*.
+
+**It picks a row and nothing else.** The answer reuses the same tool and schema as the first
+request, with `query` carrying `"<item>:c<N>"`, and any amount in it is ignored: the row keeps
+the quantity, unit and portion word the first reading found, so an amount still appears only
+where you stated one, and a portion still takes its weight from the picked row. Portion weights
+are left out of the request so there is nothing to work grams out from. A pick starts the row
+settled; *none* keeps the search's choice and flags the row for you to check; any failure keeps
+the search's rows exactly as they were.
+
+It runs only for a line a model read — the parser's rows were never shown to one — and only when
+some item has more than one candidate. What it adds to the request is public database data, not
+anything about you; the README row for each provider says so.
 
 ## A photo, end to end
 
@@ -546,6 +569,7 @@ address**. An IPv4-only check would never have seen where the connection actuall
 | [`model_meal_text_interpreter.dart`](../lib/features/add_meal/data/model_meal_text_interpreter.dart) | Prompt and locale handling for text |
 | [`model_meal_photo_interpreter.dart`](../lib/features/add_meal/data/model_meal_photo_interpreter.dart) | The same for photos |
 | [`read_meal_text_usecase.dart`](../lib/features/add_meal/domain/usecase/read_meal_text_usecase.dart) | Model-or-parser policy, and which failures are worth reporting |
+| [`pick_resolved_matches_usecase.dart`](../lib/features/add_meal/domain/usecase/pick_resolved_matches_usecase.dart) | The model choosing among each item's search matches |
 | [`read_meal_photo_usecase.dart`](../lib/features/add_meal/domain/usecase/read_meal_photo_usecase.dart) | The same for photos, plus retracting a stale photo pass |
 | [`probe_ai_endpoint_usecase.dart`](../lib/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart) | Running the two setup probes and ruling on each |
 | [`run_ai_endpoint_probe_usecase.dart`](../lib/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart) | Probing and storing the verdict together |
