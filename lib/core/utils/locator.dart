@@ -53,6 +53,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templates_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_favourite_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_recent_ingredients_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_breakdown_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
@@ -128,6 +129,7 @@ import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc
 import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detail_bloc.dart';
+import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_ingredient_recent_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
@@ -388,6 +390,10 @@ Future<void> initLocator() async {
   );
   locator.registerFactory<FoodBloc>(() => FoodBloc(locator(), locator()));
   locator.registerFactory(() => RecentMealBloc(locator(), locator()));
+  // #516: the recipe ingredient picker's Recent tab.
+  locator.registerFactory(
+    () => RecipeIngredientRecentBloc(locator(), locator()),
+  );
   // #1307: the add-food Favourites source. Factory, and closed by the screen,
   // because it holds a subscription to the favourites box.
   locator.registerFactory(() => FavouriteMealBloc(locator(), locator()));
@@ -633,6 +639,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => GetRecipeByIdUseCase(locator()));
   locator.registerLazySingleton(
     () => DeleteRecipeUseCase(locator(), locator()),
+  );
+  locator.registerLazySingleton(
+    () => GetRecentIngredientsUsecase(locator(), locator()),
   );
   locator.registerLazySingleton(
     () => MergeCustomMealsUseCase(locator(), locator(), locator(), locator()),
