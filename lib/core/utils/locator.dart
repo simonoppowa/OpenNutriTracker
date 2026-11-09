@@ -594,6 +594,7 @@ Future<void> initLocator() async {
             required importedDayKeys,
             required importedActivities,
             required keyedByOffsetMinutes,
+            required importedGramMacroGoals,
           }) => restoreTrackedDays(
             hiveDBProvider,
             locator(),
@@ -601,6 +602,7 @@ Future<void> initLocator() async {
             importedDayKeys: importedDayKeys,
             importedActivities: importedActivities,
             keyedByOffsetMinutes: keyedByOffsetMinutes,
+            importedGramMacroGoals: importedGramMacroGoals,
           ),
     ),
   );

@@ -296,6 +296,23 @@ void main() {
     expect(text(tester, 'macro-split-fat-grams'), '140');
   });
 
+  testWidgets('each gram field is named for screen readers', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await open(tester, _FakeSettingsBloc());
+    await switchToGrams(tester);
+
+    for (final (id, label) in [
+      ('macro-split-carbs-grams', l10nEn.carbsLabel),
+      ('macro-split-protein-grams', l10nEn.proteinLabel),
+      ('macro-split-fat-grams', l10nEn.fatLabel),
+    ]) {
+      final data = tester.getSemantics(gramField(id)).getSemanticsData();
+      expect(data.label, contains(label), reason: id);
+      expect(data.flagsCollection.isTextField, isTrue, reason: id);
+    }
+    semantics.dispose();
+  });
+
   testWidgets('cancel saves nothing', (tester) async {
     final bloc = _FakeSettingsBloc();
     await open(tester, bloc);

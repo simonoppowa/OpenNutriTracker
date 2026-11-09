@@ -201,6 +201,7 @@ void main() {
             required importedDayKeys,
             required importedActivities,
             required keyedByOffsetMinutes,
+            required importedGramMacroGoals,
           }) => restoreTrackedDays(
             provider,
             config,
@@ -208,6 +209,7 @@ void main() {
             importedDayKeys: importedDayKeys,
             importedActivities: importedActivities,
             keyedByOffsetMinutes: keyedByOffsetMinutes,
+            importedGramMacroGoals: importedGramMacroGoals,
           ),
     );
   });
@@ -412,6 +414,58 @@ void main() {
 
     expectRideMovedOff('2026-10-05');
     expect(trackedDayBox.get('2026-10-04')?.calorieGoal, 2150);
+  });
+
+  test('a gram-goal backup made under 00:00 restored onto a percentage '
+      'profile under 04:00 moves the ride\'s kcal but leaves its gram goals '
+      'alone (#642)', () async {
+    await boundary(0);
+    await config.setConfigMacroGoalGrams(20, 120, 140);
+    await activities.addUserActivity(rideAt(DateTime(2026, 10, 5, 2)));
+    // Gram goals don't follow the ride: only the kcal goal holds its 150.
+    await trackedDayBox.put(
+      '2026-10-05',
+      rideRow(DateTime(2026, 10, 5))
+        ..carbsGoal = 20
+        ..proteinGoal = 120
+        ..fatGoal = 140,
+    );
+    writeArchive(await export(ExportFormat.json));
+
+    await trackedDayBox.clear();
+    await activityBox.clear();
+    await config.setConfigMacroGoalsInGrams(false);
+    await boundary(4);
+
+    expect(await import(ExportFormat.json), isTrue);
+
+    // At 04:00 the ride is listed on the 4th.
+    final left = trackedDayBox.get('2026-10-05')!;
+    final moved = trackedDayBox.get('2026-10-04')!;
+    expect(left.calorieGoal, 2000);
+    expect(moved.calorieGoal, 2150);
+    for (final row in [left, moved]) {
+      expect(row.carbsGoal, 20);
+      expect(row.proteinGoal, 120);
+      expect(row.fatGoal, 140);
+    }
+  });
+
+  test('a percentage backup restored onto a gram-goal profile still moves '
+      'the split\'s share of the ride with it (#642)', () async {
+    await boundary(0);
+    await activities.addUserActivity(rideAt(DateTime(2026, 10, 5, 2)));
+    await trackedDayBox.put('2026-10-05', rideRow(DateTime(2026, 10, 5)));
+    writeArchive(await export(ExportFormat.json));
+
+    await trackedDayBox.clear();
+    await activityBox.clear();
+    await config.setConfigMacroGoalGrams(20, 120, 140);
+    await boundary(4);
+
+    expect(await import(ExportFormat.json), isTrue);
+
+    expectRideMovedOff('2026-10-05');
   });
 
   test('a device ride whose row the archive replaces keeps its credit, '

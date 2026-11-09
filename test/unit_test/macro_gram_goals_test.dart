@@ -378,6 +378,23 @@ void main() {
       expect(GoalSettingsBackup.fromJson(exported), isNotNull);
     });
 
+    test('gram mode with all goals at 0 g, which the app reads as the '
+        'split, is exported without gram mode, so the backup stays '
+        'restorable', () {
+      final config = ConfigDBO.empty()
+        ..userMacroGoalsInGrams = true
+        ..userCarbGoalGrams = 0
+        ..userProteinGoalGrams = 0
+        ..userFatGoalGrams = 0;
+
+      final exported = GoalSettingsBackup.fromConfigDBO(config).toJson();
+      final restored = GoalSettingsBackup.fromJson(exported)!;
+
+      expect(exported['macroGoalsInGrams'], isNull);
+      expect(restored.macroGoalsInGrams, isNull);
+      expect(restored.carbGoalGrams, 0);
+    });
+
     test('a backup from before #642 restores the split', () {
       final restored = GoalSettingsBackup.fromJson({'version': 1})!;
 

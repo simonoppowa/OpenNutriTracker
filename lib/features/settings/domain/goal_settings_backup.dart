@@ -85,7 +85,16 @@ class GoalSettingsBackup {
     ];
     final gramsValid =
         grams.every((g) => g != null) && _macroGramsError(grams, false) == null;
-    final inGrams = config.userMacroGoalsInGrams == true;
+    // Gram mode only with grams the app would use: all at 0 g, it uses the
+    // split, and `fromJson` would reject the pair.
+    final inGrams =
+        MacroGramGoals.effective(
+          inGrams: config.userMacroGoalsInGrams,
+          carbs: grams[0],
+          protein: grams[1],
+          fat: grams[2],
+        ) !=
+        null;
     return GoalSettingsBackup(
       kcalAdjustment: _kcalAdjustmentError(config.userKcalAdjustment) == null
           ? config.userKcalAdjustment
@@ -100,7 +109,7 @@ class GoalSettingsBackup {
       // Kept while the split is in use, so switching back after a restore
       // finds them, like on the device. Gram mode only travels with valid
       // grams; without them the app uses the split already.
-      macroGoalsInGrams: inGrams && gramsValid ? true : null,
+      macroGoalsInGrams: inGrams ? true : null,
       carbGoalGrams: gramsValid ? grams[0] : null,
       proteinGoalGrams: gramsValid ? grams[1] : null,
       fatGoalGrams: gramsValid ? grams[2] : null,

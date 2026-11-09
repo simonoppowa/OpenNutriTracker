@@ -468,8 +468,11 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
               ),
               SizedBox(
                 width: MediaQuery.textScalerOf(context).scale(96),
+                // The macro's name sits in a sibling Text, so the field
+                // carries it for TalkBack and VoiceOver.
                 child: Semantics(
                   identifier: id,
+                  label: label,
                   child: TextField(
                     controller: _gramControllers[field],
                     focusNode: _gramFocusNodes[field],
