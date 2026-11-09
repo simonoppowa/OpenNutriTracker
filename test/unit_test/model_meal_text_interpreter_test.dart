@@ -107,6 +107,33 @@ void main() {
       },
     );
 
+    test(
+      'asks for English queries where the search reads English names',
+      () async {
+        final client = FakeClient(body: toolReply(const []));
+        await interpreterWith(
+          client,
+        ).interpret('dos huevos y una tostada', localeCode: 'es');
+
+        expect(client.sentBody!['system'], contains('"es"'));
+        expect(
+          client.sentBody!['system'],
+          contains('Write "query" in English'),
+        );
+      },
+    );
+
+    test('keeps the query in the user\'s language where translated names '
+        'are searched', () async {
+      final client = FakeClient(body: toolReply(const []));
+      await interpreterWith(client).interpret('Toast', localeCode: 'de');
+
+      expect(
+        client.sentBody!['system'],
+        isNot(contains('Write "query" in English')),
+      );
+    });
+
     test('does not call out at all for empty input', () async {
       final client = FakeClient(body: toolReply(const []));
       final result = await interpreterWith(client).interpret('   ');

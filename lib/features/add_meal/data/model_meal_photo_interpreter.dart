@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:opennutritracker/features/add_meal/data/app_language_note.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -50,7 +51,8 @@ Rules:
   log as one thing ("lasagne", "chicken curry") is one entry, not a list of
   its ingredients.
 - "query" is the food name alone, with no amount in it, in the user's app
-  language. Keep a brand only if it is legible in the photo.
+  language unless a line below names another. Keep a brand only if it is
+  legible in the photo.
 - Include "quantity" whenever you can count discrete items, and count
   them: 2 eggs, 3 sausages, 1 banana, 14 dumplings, 1 whole pizza. A dish
   served as pieces (dumplings, pancakes, tarts, rolls) is counted, roughly
@@ -79,7 +81,7 @@ Rules:
       ),
       system: localeCode == null
           ? _systemPrompt
-          : '$_systemPrompt\nThe user\'s app language is "$localeCode".',
+          : '$_systemPrompt\n${appLanguageNote(localeCode)}',
     );
 
     return _sizesOnly(_countsOnly(result));
