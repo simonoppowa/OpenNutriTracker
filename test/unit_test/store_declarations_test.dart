@@ -20,6 +20,9 @@ void main() {
   final listing = File(
     'fastlane/metadata/android/en-US/full_description.txt',
   ).readAsStringSync();
+  final androidManifest = File(
+    'android/app/src/main/AndroidManifest.xml',
+  ).readAsStringSync();
 
   String? valueFor(String key) => RegExp(
     '<key>$key</key>\\s*<string>(.*?)</string>',
@@ -248,7 +251,8 @@ void main() {
         expect(
           indexed,
           isNot(contains(word)),
-          reason: '"$word" is already in the name or subtitle; Apple combines '
+          reason:
+              '"$word" is already in the name or subtitle; Apple combines '
               'those fields when indexing, so repeating it wastes a slot',
         );
       }
@@ -313,6 +317,25 @@ void main() {
     test('does not claim that all data is encrypted', () {
       expect(listing, isNot(contains('All data is AES-encrypted')));
       expect(listing, contains('AES-256 encrypted databases'));
+    });
+  });
+
+  group('Android manifest', () {
+    // RECORD_AUDIO on its own makes Play infer `android.hardware.microphone`
+    // as a required feature, and 2.7.0 lost 13 supported devices (mostly
+    // tablets) that way. Voice input is optional, so the feature must be
+    // declared as not required for as long as the permission is.
+    test('does not require a microphone', () {
+      expect(
+        androidManifest,
+        contains('android.permission.RECORD_AUDIO'),
+        reason: 'drop this test along with the permission',
+      );
+      final microphone = RegExp(
+        r'<uses-feature\s+android:name="android\.hardware\.microphone"'
+        r'\s+android:required="(\w+)"\s*/>',
+      ).allMatches(androidManifest).map((m) => m.group(1)).toList();
+      expect(microphone, ['false']);
     });
   });
 }

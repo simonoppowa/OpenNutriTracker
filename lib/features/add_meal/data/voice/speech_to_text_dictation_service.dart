@@ -1,5 +1,7 @@
+import 'dart:io' show Platform;
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/domain/voice/dictation_service.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -14,8 +16,15 @@ import 'package:speech_to_text/speech_to_text.dart';
 /// many Android devices without an offline model for the language.
 class SpeechToTextDictationService implements DictationService {
   static final _log = Logger('SpeechToTextDictationService');
+  static const _deviceChannel = MethodChannel('com.opennutritracker/device');
 
   final SpeechToText _speech;
+
+  /// Whether the device has a microphone at all. The manifest declares one
+  /// optional so Play keeps offering the app to tablets without one, and
+  /// there Android still reports a recognizer as available: without this
+  /// check the mic would light up and go off again with no explanation.
+  final Future<bool> Function() _hasMicrophone;
 
   /// Recognizer locale per language, resolved once per app run.
   final _localeIds = <DictationLanguage, String>{};
@@ -28,11 +37,33 @@ class SpeechToTextDictationService implements DictationService {
   /// when the user stops does not switch the mic on afterwards.
   int _segmentToken = 0;
 
-  SpeechToTextDictationService([SpeechToText? speech])
-    : _speech = speech ?? SpeechToText();
+  SpeechToTextDictationService([
+    SpeechToText? speech,
+    Future<bool> Function()? hasMicrophone,
+  ]) : _speech = speech ?? SpeechToText(),
+       _hasMicrophone = hasMicrophone ?? _platformHasMicrophone;
+
+  /// Asks Android's package manager. Every iPhone and iPad has a
+  /// microphone, and a failed lookup leaves dictation to try as before.
+  static Future<bool> _platformHasMicrophone() async {
+    if (!Platform.isAndroid) return true;
+    try {
+      return await _deviceChannel.invokeMethod<bool>('hasMicrophone') ?? true;
+    } catch (e) {
+      _log.fine('Could not ask whether there is a microphone: $e');
+      return true;
+    }
+  }
 
   @override
   Future<void> ensureReady() async {
+    // Checked first, so a device with no microphone is never asked for
+    // microphone permission.
+    if (!await _hasMicrophone()) {
+      throw const DictationUnavailableException(
+        DictationUnavailable.noRecognizer,
+      );
+    }
     // `initialize` caches its first answer, and its listeners are public
     // fields, so they are (re)assigned per segment instead of here.
     final bool ready;
