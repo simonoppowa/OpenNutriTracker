@@ -1,10 +1,12 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
+import 'package:opennutritracker/core/presentation/widgets/copy_to_meal_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_to_profile_sheet.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_all_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
@@ -98,6 +100,7 @@ class IntakeVerticalList extends StatefulWidget {
 }
 
 class _IntakeVerticalListState extends State<IntakeVerticalList> {
+  static final _log = Logger('IntakeVerticalList');
   late MealDetailBloc _mealDetailBloc;
   late HomeBloc _homeBloc;
 
@@ -240,6 +243,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             }
                           }
                           break;
+                        case VerticalListPopupMenuSelections.onCopyToMeal:
+                          await _copyToOtherMeal(intakes);
                         case VerticalListPopupMenuSelections.onDelete:
                           final shouldDeleteIntakes = await showDialog<bool>(
                               context: context,
@@ -300,6 +305,19 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             PopupMenuItem<VerticalListPopupMenuSelections>(
                                 value: VerticalListPopupMenuSelections.onCopy,
                                 child: Text(S.of(context).dialogCopyLabel)),
+                          // #842: into another meal of the day shown, on
+                          // any day, next to "Copy to today" on a past one.
+                          if (widget.intakeList.isNotEmpty)
+                            PopupMenuItem<VerticalListPopupMenuSelections>(
+                              value:
+                                  VerticalListPopupMenuSelections.onCopyToMeal,
+                              child: Semantics(
+                                identifier: 'intake-copy-to-other-meal',
+                                child: Text(
+                                  S.of(context).copyToOtherMealLabel,
+                                ),
+                              ),
+                            ),
                           if (totalKcal > 0)
                             PopupMenuItem<VerticalListPopupMenuSelections>(
                                 value: VerticalListPopupMenuSelections.onDelete,
@@ -420,6 +438,49 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
             : null,
       ),
     );
+  }
+
+  /// "Copy to other meal" (#842): copies [intakes] into a meal the user
+  /// picks, on the day they are logged on, and says how many it copied.
+  Future<void> _copyToOtherMeal(List<IntakeEntity> intakes) async {
+    // The profile these entries belong to, before the picker gives a
+    // profile switch the chance to land.
+    final startedOn = ProfileStamp.now();
+    final target = await showDialog<AddMealType>(
+      context: context,
+      builder: (_) => CopyToMealDialog(source: widget.addMealType),
+    );
+    if (target == null || !mounted) return;
+    // Read before the copy: the refresh after it can rebuild Home without
+    // this section, taking its context along.
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = S.of(context);
+    final targetName = target.getTypeName(context);
+    String? message;
+    try {
+      final copied = await _mealDetailBloc.copyIntakesToMeal(
+        context,
+        intakes,
+        target.getIntakeType(),
+        startedOn: startedOn,
+      );
+      // 0: a profile switch got there first and nothing was copied.
+      if (copied > 0) message = l10n.copiedToMealSnackbar(copied, targetName);
+    } on CopyIntakesToMealException catch (e) {
+      _log.warning(
+        'Copy to other meal stopped after ${e.copied}',
+        e.cause,
+        e.stackTrace,
+      );
+      message = l10n.copyToMealFailedSnackbar(targetName);
+    }
+    // Refreshed after a partial copy too, so what did land shows.
+    locator<HomeBloc>().add(const LoadItemsEvent());
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+    if (message != null) {
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   Widget _buildSortMenu(BuildContext context) {
