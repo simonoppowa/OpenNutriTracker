@@ -294,6 +294,34 @@ void main() {
 
       expect(popped.single, 90);
     });
+
+    testWidgets(
+      'switching to the picker with a low weight (< 51 kg) positions on the typed value instead of the bounds midpoint',
+      (tester) async {
+        final popped = await _openDialog(
+          tester,
+          _kgWeightDialog(configRepository),
+        );
+
+        await tester.enterText(find.byType(TextField), '40');
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.linear_scale));
+        await tester.pumpAndSettle();
+
+        final wheel = tester.widget<ListWheelScrollView>(
+          find.byType(ListWheelScrollView),
+        );
+        final controller = wheel.controller as FixedExtentScrollController;
+        // Bounds are 1..90 kg with 890 divisions (0.1 kg per step), so 40.0 kg
+        // sits at index 390 rather than the 1..90 midpoint (45.5 kg).
+        expect(controller.selectedItem, 390);
+
+        await tester.tap(find.text(l10nEn.dialogOKLabel));
+        await tester.pumpAndSettle();
+
+        expect(popped.single as double, closeTo(40.0, 1e-9));
+      },
+    );
   });
 
   group('dialog title beside the mode toggle', () {

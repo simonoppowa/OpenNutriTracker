@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:horizontal_picker/horizontal_picker.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/utils/bounds/validator.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_picker_bounds.dart';
@@ -44,6 +45,8 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
   // Picker-based selection in display units (kg or lb). Null when using the
   // BodyWeightInput path for stones, which owns the kg directly.
   late double _pickerDisplayWeight;
+  late double _pickerAnchorWeight;
+  final GlobalKey _pickerKey = GlobalKey();
 
   // Text input path: kg reported by BodyWeightInput, null if invalid/empty.
   double? _textKg;
@@ -59,10 +62,15 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
   void initState() {
     super.initState();
     _pickerDisplayWeight = _toDisplay(widget.initialKg);
-    _textKg = widget.initialKg;
+    _pickerAnchorWeight = _pickerDisplayWeight;
+    _textKg = ValueValidator.parseWeightInKg(
+      _pickerDisplayWeight,
+      isImperial: widget.unit == BodyWeightUnit.lb,
+    );
     final now = DateTime.now();
     _selectedDate = DateTime(now.year, now.month, now.day);
     _loadInputPreference();
+    _syncLowWeightPickerIfNeeded();
   }
 
   Future<void> _loadInputPreference() async {
@@ -79,12 +87,58 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
     setState(() {
       _useTextInput = useText;
       if (useText) {
-        _textKg = _pickerWeightToKg(_pickerDisplayWeight);
+        _textKg = ValueValidator.parseWeightInKg(
+          _pickerDisplayWeight,
+          isImperial: widget.unit == BodyWeightUnit.lb,
+        );
       } else if (_textKg != null) {
-        _pickerDisplayWeight = _toDisplay(_textKg!);
+        _pickerDisplayWeight = (_toDisplay(_textKg!) * 10).round() / 10;
+        _pickerAnchorWeight = _pickerDisplayWeight;
+      } else {
+        _pickerAnchorWeight = _pickerDisplayWeight;
       }
     });
+    if (!useText) {
+      _syncLowWeightPickerIfNeeded();
+    }
     await _configRepository?.setUseTextForWeightInput(useText);
+  }
+
+  void _syncLowWeightPickerIfNeeded() {
+    if (_isTextMode) return;
+    final isImperial = widget.unit == BodyWeightUnit.lb;
+    final minWeight = minSelectableWeight(_pickerAnchorWeight, isImperial);
+    final maxWeight = maxSelectableWeight(_pickerAnchorWeight, isImperial);
+    if ((_pickerAnchorWeight - (minWeight + maxWeight) / 2).abs() < 0.05) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _pickerKey.currentContext;
+      if (ctx == null || !mounted) return;
+      final divisions = ((maxWeight - minWeight) * 10).round();
+      if (divisions <= 0) return;
+      final targetIndex =
+          (((_pickerAnchorWeight - minWeight) / (maxWeight - minWeight)) *
+                  divisions)
+              .round()
+              .clamp(0, divisions);
+      FixedExtentScrollController? controller;
+      void visit(Element el) {
+        if (el.widget is ListWheelScrollView) {
+          final wheel = el.widget as ListWheelScrollView;
+          if (wheel.controller is FixedExtentScrollController) {
+            controller = wheel.controller as FixedExtentScrollController;
+            return;
+          }
+        }
+        el.visitChildren(visit);
+      }
+
+      ctx.visitChildElements(visit);
+      if (controller != null && controller!.hasClients) {
+        controller!.jumpToItem(targetIndex);
+      }
+    });
   }
 
   double _toDisplay(double kg) {
@@ -148,8 +202,13 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
   @override
   Widget build(BuildContext context) {
     final isImperial = widget.unit == BodyWeightUnit.lb;
-    final minWeight = minSelectableWeight(_pickerDisplayWeight, isImperial);
-    final maxWeight = maxSelectableWeight(_pickerDisplayWeight, isImperial);
+    final minWeight = minSelectableWeight(_pickerAnchorWeight, isImperial);
+    final maxWeight = maxSelectableWeight(_pickerAnchorWeight, isImperial);
+    final isLowWeight =
+        (_pickerAnchorWeight - (minWeight + maxWeight) / 2).abs() >= 0.05;
+    final divisions = isLowWeight
+        ? ((maxWeight - minWeight) * 10).round()
+        : 1000;
 
     return AlertDialog(
       title: Row(
@@ -199,28 +258,31 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
           children: [
             if (_isTextMode)
               BodyWeightInput(
-                initialKg: _textKg ?? widget.initialKg,
+                initialKg: _textKg ?? _pickerWeightToKg(_pickerDisplayWeight),
                 unit: widget.unit,
                 identifierPrefix: 'set-weight-dialog',
                 autofocus: true,
                 onChangedKg: (kg) => setState(() => _textKg = kg),
               )
             else
-              HorizontalPicker(
-                height: 100,
-                backgroundColor: Colors.transparent,
-                minValue: minWeight,
-                maxValue: maxWeight,
-                initialPosition: InitialPosition.center,
-                divisions: 1000, // Supports decimal values (#244)
-                suffix: isImperial
-                    ? S.of(context).lbsLabel
-                    : S.of(context).kgLabel,
-                onChanged: (value) {
-                  setState(() {
-                    _pickerDisplayWeight = value;
-                  });
-                },
+              KeyedSubtree(
+                key: _pickerKey,
+                child: HorizontalPicker(
+                  height: 100,
+                  backgroundColor: Colors.transparent,
+                  minValue: minWeight,
+                  maxValue: maxWeight,
+                  initialPosition: InitialPosition.center,
+                  divisions: divisions, // Supports decimal values (#244)
+                  suffix: isImperial
+                      ? S.of(context).lbsLabel
+                      : S.of(context).kgLabel,
+                  onChanged: (value) {
+                    setState(() {
+                      _pickerDisplayWeight = value;
+                    });
+                  },
+                ),
               ),
             if (widget.allowDateSelection) ...[
               const SizedBox(height: 8),
