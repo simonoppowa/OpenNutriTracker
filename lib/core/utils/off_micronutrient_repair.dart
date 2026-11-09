@@ -125,6 +125,7 @@ class OffMicronutrientRepair {
       type: intake.type,
       meal: meal,
       dateTime: intake.dateTime,
+      loggedUtcOffsetMinutes: intake.loggedUtcOffsetMinutes,
     );
   }
 

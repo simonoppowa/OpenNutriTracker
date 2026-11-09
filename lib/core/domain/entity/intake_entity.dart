@@ -28,7 +28,7 @@ class IntakeEntity extends Equatable {
       amount: intakeDBO.amount,
       type: IntakeTypeEntity.fromIntakeTypeDBO(intakeDBO.type),
       meal: MealEntity.fromMealDBO(intakeDBO.meal),
-      dateTime: intakeDBO.dateTime,
+      dateTime: intakeDBO.loggedDateTime,
     );
   }
 

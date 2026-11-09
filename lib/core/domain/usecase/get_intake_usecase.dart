@@ -150,6 +150,6 @@ class GetIntakeUsecase {
   /// rounding residue after its last entry is deleted (#1440).
   Future<Set<String>> getDayKeysWithIntakes(int offsetTotalMinutes) async => {
     for (final dbo in await _intakeRepository.getAllIntakesDBO())
-      DayBoundaryCalc.dayKeyOf(dbo.dateTime, offsetTotalMinutes),
+      DayBoundaryCalc.dayKeyOf(dbo.loggedWallClock, offsetTotalMinutes),
   };
 }

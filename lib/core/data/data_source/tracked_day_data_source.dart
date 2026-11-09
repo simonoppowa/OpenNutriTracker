@@ -86,7 +86,8 @@ class TrackedDayDataSource {
     List<TrackedDayDBO> trackedDays = _trackedDayBox.values
         .where(
           (trackedDay) =>
-              !trackedDay.day.isBefore(start) && !trackedDay.day.isAfter(end),
+              !trackedDay.calendarDay.isBefore(start) &&
+              !trackedDay.calendarDay.isAfter(end),
         )
         .toList();
     return trackedDays;

@@ -70,7 +70,7 @@ class TrackedDayEntity extends Equatable {
     double? finite(double? value) =>
         value != null && value.isFinite ? value : null;
     return TrackedDayEntity(
-      day: trackedDayDBO.day,
+      day: trackedDayDBO.calendarDay,
       calorieGoal: trackedDayDBO.calorieGoal,
       caloriesTracked: finite(trackedDayDBO.caloriesTracked) ?? 0,
       carbsGoal: trackedDayDBO.carbsGoal,

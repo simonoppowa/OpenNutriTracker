@@ -43,7 +43,7 @@ class UserActivityEntity extends Equatable {
       activityDBO.id,
       activityDBO.duration,
       activityDBO.burnedKcal,
-      activityDBO.date,
+      activityDBO.loggedDate,
       PhysicalActivityEntity.fromPhysicalActivityDBO(
         activityDBO.physicalActivityDBO,
       ),
