@@ -17,6 +17,13 @@ final _invisible = RegExp(
 /// because removing it would join two things the user may not have meant to
 /// join.
 ///
+/// The settings dialog never hands this a `\n`, though. Its key field is
+/// single-line (it has to be, to be masked), and Flutter's single-line
+/// formatter drops a pasted line break before any other formatter or
+/// `onChanged` sees it. So a key wrapped over two lines arrives joined, which
+/// is the right key; a wrong join is refused by the provider and reported as
+/// a rejected key.
+///
 /// No prefix is checked. Google AI Studio creates every new key as an "auth
 /// key" since 28 May 2026 (aistudio.google.com/docs/api-key), and those start
 /// with `AQ.` rather than `AIza` (#1253); OpenRouter's start with `sk-or-`;

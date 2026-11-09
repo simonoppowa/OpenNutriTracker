@@ -504,7 +504,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           (bound != null &&
               AiCredentialStorage.resolveEndpoint(address) != null &&
               !AiCredentialStorage.sameServer(bound, address))) {
-        _apiKeyController.clear();
+        _discardTypedKey();
         _typedKeyServer = null;
       }
       _endpointError = null;
@@ -514,6 +514,14 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       _modelListFailure = null;
       _modelListHost = null;
     });
+  }
+
+  /// Empties the key field, and its refusal with it: a refusal over an empty
+  /// field describes a key that is no longer there (#1253). Callers rebuild,
+  /// either inside `setState` or through the [_load] that follows.
+  void _discardTypedKey() {
+    _apiKeyController.clear();
+    _keyError = null;
   }
 
   /// A key typed with an address in the field belongs to that server; one
@@ -676,7 +684,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // Selecting one with no key is allowed: the feature goes quietly
     // unavailable, which is a setting rather than a fault.
     await widget.storage.setActiveProvider(provider);
-    _apiKeyController.clear();
+    _discardTypedKey();
     _changed = true;
     await _load();
   }
@@ -923,7 +931,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       typedEndpoint: _endpointController.text,
     );
     if (!agreed) {
-      if (mounted) _apiKeyController.clear();
+      if (mounted) setState(_discardTypedKey);
       return false;
     }
     // Written only once the answer is yes, so a dismissed screen leaves no
@@ -939,7 +947,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   Future<void> _remove() async {
     await widget.storage.clear(provider: _provider);
     if (!mounted) return;
-    _apiKeyController.clear();
+    _discardTypedKey();
     _changed = true;
     await _load();
   }

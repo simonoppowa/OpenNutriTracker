@@ -4115,6 +4115,57 @@ void main() {
       );
     });
 
+    testWidgets('a refusal goes with the key when switching provider', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.enterText(keyField(), 'sk-FAKE first');
+      await tapOk(tester);
+      expect(
+        keyTextField(tester).decoration!.errorText,
+        l10nEn.aiAssistKeyMalformedLabel,
+      );
+
+      await tester.ensureVisible(find.text('OpenRouter'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OpenRouter'));
+      await tester.pumpAndSettle();
+
+      expect(keyTextField(tester).controller!.text, isEmpty);
+      expect(keyTextField(tester).decoration!.errorText, isNull);
+    });
+
+    testWidgets('a refusal goes with the key when the address moves to '
+        'another server', (tester) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel));
+      await tester.pumpAndSettle();
+      final endpointField = find.bySemanticsIdentifier(
+        'ai-assist-endpoint-field',
+      );
+      await tester.enterText(endpointField, 'http://192.168.1.5:11434');
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-model-field'),
+        'fake-model',
+      );
+      await tester.enterText(keyField(), 'sk-FAKE first');
+      await tester.pump();
+      await tapOk(tester);
+      expect(
+        keyTextField(tester).decoration!.errorText,
+        l10nEn.aiAssistKeyMalformedLabel,
+      );
+
+      // The typed key belonged to the first server, so the field empties.
+      await tester.enterText(endpointField, 'http://192.168.1.9:11434');
+      await tester.pumpAndSettle();
+
+      expect(keyTextField(tester).controller!.text, isEmpty);
+      expect(keyTextField(tester).decoration!.errorText, isNull);
+    });
+
     testWidgets('an empty key field saves nothing and refuses nothing', (
       tester,
     ) async {
