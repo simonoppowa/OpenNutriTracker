@@ -2811,6 +2811,9 @@ void main() {
       expect(tray.items.map((i) => i.meal.name), ['Toast', 'Banana']);
       expect(tray.items.map((i) => i.amount), [200, 50]);
       expect(tray.items.first.amountLabel, '200 ${l10nEn.gramUnit}');
+      // What tapping the row reopens the detail screen with.
+      expect(tray.items.map((i) => i.quantity), [200, 50]);
+      expect(tray.items.map((i) => i.selectedUnit), ['g', 'g']);
       // Back where the list lives.
       expect(find.byType(BulkAddScreen), findsNothing);
     });
