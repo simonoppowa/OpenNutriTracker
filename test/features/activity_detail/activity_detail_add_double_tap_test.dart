@@ -32,7 +32,7 @@ void main() {
               activityEntity: PhysicalActivityFixtures.moderateBicycling,
               quantityTextController: TextEditingController(text: '30'),
               activityDetailBloc: _FakeActivityDetailBloc(),
-              onAddButtonPressed: (_, {templateName, saveAsTemplate = false}) {
+              onAddButtonPressed: (_, {customName, saveAsTemplate = false}) {
                 saves++;
                 return save.future;
               },
