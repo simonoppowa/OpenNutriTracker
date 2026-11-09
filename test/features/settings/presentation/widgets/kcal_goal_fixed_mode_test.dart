@@ -76,6 +76,7 @@ void main() {
   Future<void> openDialog(
     WidgetTester tester, {
     bool usesKilojoules = false,
+    double textScale = 1,
   }) async {
     await tester.pumpWidget(
       ChangeNotifierProvider<EnergyUnitProvider>(
@@ -83,6 +84,12 @@ void main() {
         child: MaterialApp(
           localizationsDelegates: const [S.delegate],
           supportedLocales: S.supportedLocales,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
@@ -231,6 +238,40 @@ void main() {
     await tapOk(tester);
 
     expect(settingsBloc.savedFixedGoals, [Ranges.maxFixedDailyKcalGoal]);
+  });
+
+  // PR #1553 review: digitsOnly stripped the dot, so a pasted 1660.0
+  // became 16600 and was saved as the 10000 kcal maximum.
+  testWidgets('a pasted decimal is rejected rather than changing the '
+      'magnitude', (tester) async {
+    settingsBloc.storedFixedGoal = 1800;
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField), '1660.0');
+    expect(fieldText(tester), '1800');
+    await tapOk(tester);
+
+    expect(settingsBloc.savedFixedGoals, [1800]);
+  });
+
+  testWidgets('a screen reader hears what the field is for', (tester) async {
+    settingsBloc.storedFixedGoal = 1800;
+    await openDialog(tester);
+
+    final node = tester.getSemantics(find.byType(EditableText));
+    expect(node.label, contains(l10nEn.fixedKcalGoalLabel));
+  });
+
+  testWidgets('fits a narrow screen at 300% text size', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    settingsBloc.storedFixedGoal = 1800;
+
+    await openDialog(tester, textScale: 3);
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(TextField), findsOneWidget);
   });
 
   group('in kJ', () {

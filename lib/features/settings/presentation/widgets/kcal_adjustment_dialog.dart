@@ -50,6 +50,15 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
 
   static const double _fallbackFixedKcalGoal = 2000;
 
+  /// Keeps the fixed-goal field to whole numbers by rejecting any edit
+  /// that is not one, instead of stripping the offending characters: with
+  /// stripping, a pasted "1660.0" became 16600 and was saved as the
+  /// maximum. A rejected edit leaves the previous text in place.
+  static final _wholeNumberOnly = TextInputFormatter.withFunction(
+    (oldValue, newValue) =>
+        RegExp(r'^\d*$').hasMatch(newValue.text) ? newValue : oldValue,
+  );
+
   double _kcalAdjustment = 0;
   UserEntity? _user;
   bool _loaded = false;
@@ -487,41 +496,25 @@ class _KcalAdjustmentDialogState extends State<KcalAdjustmentDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                s.fixedKcalGoalLabel,
-                style: Theme.of(context).textTheme.titleMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+        // The label sits in the field rather than beside it: a fixed-width
+        // field beside a label overflowed narrow screens at large text
+        // sizes, and as the field's own label it is what a screen reader
+        // announces when the field gets focus.
+        Semantics(
+          identifier: 'kcal-goal-fixed-input',
+          child: TextField(
+            controller: _fixedController,
+            focusNode: _fixedFocusNode,
+            keyboardType: TextInputType.number,
+            inputFormatters: [_wholeNumberOnly],
+            decoration: InputDecoration(
+              labelText: s.fixedKcalGoalLabel,
+              suffixText: usesKj ? s.kjLabel : s.kcalLabel,
             ),
-            SizedBox(
-              width: MediaQuery.textScalerOf(context).scale(128),
-              child: Semantics(
-                identifier: 'kcal-goal-fixed-input',
-                child: TextField(
-                  controller: _fixedController,
-                  focusNode: _fixedFocusNode,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textAlign: TextAlign.right,
-                  decoration: InputDecoration(
-                    suffixText: usesKj ? s.kjLabel : s.kcalLabel,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 12,
-                    ),
-                  ),
-                  onChanged: (_) => _fixedTextEdited = true,
-                  onSubmitted: (_) => _applyFixedInput(),
-                  onEditingComplete: _applyFixedInput,
-                ),
-              ),
-            ),
-          ],
+            onChanged: (_) => _fixedTextEdited = true,
+            onSubmitted: (_) => _applyFixedInput(),
+            onEditingComplete: _applyFixedInput,
+          ),
         ),
         const SizedBox(height: 12),
         Text(
