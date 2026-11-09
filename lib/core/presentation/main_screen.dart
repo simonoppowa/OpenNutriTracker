@@ -25,13 +25,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int _selectedPageIndex = 0;
   bool _isDemoData = false;
-  final Set<int> _visitedPages = {0};
 
   /// Guards against two lifecycle events asking the platform at once. The
   /// platform side clears the flag on read, so a race would not open the
   /// screen twice — but it would spend two channel round trips finding out.
   bool _checkingHealthRationale = false;
 
+  late List<Widget> _bodyPages;
   late List<PreferredSizeWidget> _appbarPages;
 
   @override
@@ -101,6 +101,12 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeDependencies() {
+    _bodyPages = [
+      const HomePage(),
+      const DiaryPage(),
+      const TrendsPage(),
+      const ProfilePage(),
+    ];
     _appbarPages = [
       const HomeAppbar(),
       MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
@@ -122,21 +128,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
           Expanded(
             child: IndexedStack(
               index: _selectedPageIndex,
-              children: [
-                const HomePage(),
-                if (_visitedPages.contains(1))
-                  const DiaryPage()
-                else
-                  const SizedBox.shrink(),
-                if (_visitedPages.contains(2))
-                  const TrendsPage()
-                else
-                  const SizedBox.shrink(),
-                if (_visitedPages.contains(3))
-                  const ProfilePage()
-                else
-                  const SizedBox.shrink(),
-              ],
+              children: _bodyPages,
             ),
           ),
         ],
@@ -210,7 +202,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void _setPage(int selectedIndex) {
     setState(() {
       _selectedPageIndex = selectedIndex;
-      _visitedPages.add(selectedIndex);
     });
   }
 

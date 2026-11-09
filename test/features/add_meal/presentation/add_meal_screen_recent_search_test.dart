@@ -73,7 +73,6 @@ class _FakeSearch implements SearchProductsUseCase {
   Future<SearchProductsResult> searchOFFProductsByString(
     String searchString, {
     bool skipRemote = false,
-    Duration? remoteTimeout,
   }) async {
     offQueries.add(searchString);
     return SearchProductsResult(meals: products, remoteSourceEmpty: true);
@@ -84,7 +83,6 @@ class _FakeSearch implements SearchProductsUseCase {
     String searchString, {
     bool skipRemote = false,
     bool forResolution = false,
-    Duration? remoteTimeout,
   }) async {
     fdcQueries.add(searchString);
     return SearchProductsResult(meals: food, remoteSourceEmpty: true);
@@ -489,7 +487,10 @@ void main() {
       await tester.tap(_withIdentifier('add-meal-review-selected'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining(l10nEn.missingProductInfo), findsOneWidget);
+      expect(
+        find.textContaining(l10nEn.missingProductInfo),
+        findsOneWidget,
+      );
       expect(
         find.descendant(
           of: find.byType(AlertDialog),

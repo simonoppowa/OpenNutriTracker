@@ -112,7 +112,6 @@ class _FakeSearch implements SearchProductsUseCase {
   Future<SearchProductsResult> searchOFFProductsByString(
     String searchString, {
     bool skipRemote = false,
-    Duration? remoteTimeout,
   }) async => const SearchProductsResult(meals: [], remoteSourceEmpty: true);
 
   @override
@@ -120,7 +119,6 @@ class _FakeSearch implements SearchProductsUseCase {
     String searchString, {
     bool skipRemote = false,
     bool forResolution = false,
-    Duration? remoteTimeout,
   }) async => const SearchProductsResult(meals: [], remoteSourceEmpty: true);
 
   @override

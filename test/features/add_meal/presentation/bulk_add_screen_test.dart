@@ -131,7 +131,6 @@ class _FakeSearch implements SearchProductsUseCase {
   Future<SearchProductsResult> searchOFFProductsByString(
     String searchString, {
     bool skipRemote = false,
-    Duration? remoteTimeout,
   }) async => SearchProductsResult(
     meals: results[searchString] ?? const [],
     remoteSourceEmpty: false,
@@ -142,7 +141,6 @@ class _FakeSearch implements SearchProductsUseCase {
     String searchString, {
     bool skipRemote = false,
     bool forResolution = false,
-    Duration? remoteTimeout,
   }) async => const SearchProductsResult(meals: [], remoteSourceEmpty: false);
 
   // No full record behind any hit: these tests are about the screen.

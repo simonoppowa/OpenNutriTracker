@@ -95,7 +95,6 @@ class _FakeSearch implements SearchProductsUseCase {
   Future<SearchProductsResult> searchOFFProductsByString(
     String searchString, {
     bool skipRemote = false,
-    Duration? remoteTimeout,
   }) async {
     if (throwOff.contains(searchString)) {
       started.add('off:$searchString');
@@ -109,7 +108,6 @@ class _FakeSearch implements SearchProductsUseCase {
     String searchString, {
     bool skipRemote = false,
     bool forResolution = false,
-    Duration? remoteTimeout,
   }) async {
     if (throwSupabase.contains(searchString)) {
       started.add('sp:$searchString');

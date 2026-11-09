@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
@@ -27,8 +25,6 @@ class _FakeProductsRepository implements ProductsRepository {
   /// network failure / 5xx).
   final Set<String> offThrowOn = {};
   final Set<String> fdcThrowOn = {};
-  Completer<List<MealEntity>>? offResponse;
-  Completer<List<MealEntity>>? fdcResponse;
 
   /// What the last FDC search asked for: the resolver's page or the Food
   /// tab's (#1164, #1190).
@@ -39,7 +35,6 @@ class _FakeProductsRepository implements ProductsRepository {
     if (offThrowOn.contains(searchString)) {
       throw Exception('OFF HTTP 429');
     }
-    if (offResponse != null) return offResponse!.future;
     return offResults[searchString] ?? const [];
   }
 
@@ -52,7 +47,6 @@ class _FakeProductsRepository implements ProductsRepository {
     if (fdcThrowOn.contains(searchString)) {
       throw Exception('FDC HTTP 429');
     }
-    if (fdcResponse != null) return fdcResponse!.future;
     return fdcResults[searchString] ?? const [];
   }
 
@@ -739,28 +733,6 @@ void main() {
 
       expect(cachedOffMealDataSource.cached, isEmpty);
     });
-
-    test(
-      'a remote deadline flags only the provider failure and keeps local '
-      'matches',
-      () async {
-        final localMatch = _meal(
-          code: 'custom-tofu',
-          name: 'Tofu Bowl',
-          source: MealSourceEntity.custom,
-        );
-        customMealDataSource.meals.add(MealDBO.fromMealEntity(localMatch));
-        productsRepository.fdcResponse = Completer<List<MealEntity>>();
-
-        final result = await useCase.searchFDCFoodByString(
-          'tofu',
-          remoteTimeout: const Duration(milliseconds: 10),
-        );
-
-        expect(result.remoteSourceFailed, isTrue);
-        expect(result.meals, [localMatch]);
-      },
-    );
 
     test(
       'a re-search does NOT reset timestamps of items already in the cache '

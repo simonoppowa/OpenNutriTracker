@@ -8,7 +8,7 @@ import 'package:stream_transform/stream_transform.dart';
 const searchDebounceDuration = Duration(milliseconds: 500);
 
 /// Let saved and cached matches appear while online catalogues are still busy.
-const searchFirstResultsDelay = Duration(milliseconds: 350);
+const searchFirstResultsDelay = Duration(seconds: 2);
 
 /// Interactive searches must finish even when a provider stalls. Other
 /// workflows, including barcode lookup and bulk resolution, keep their own
