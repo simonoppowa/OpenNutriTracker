@@ -164,14 +164,15 @@ void main() {
     });
 
     test('"System default" follows the device, as the UI does', () async {
-      // An unshipped first preference falls through to the next one, the
-      // same resolution MaterialApp makes for the UI.
+      // An unshipped first preference (Dutch, still filling on Weblate)
+      // falls through to the next one, the same resolution MaterialApp
+      // makes for the UI.
       await DailyReminderScheduler(
         _Config(_config(enabled: true)),
         notifications,
       ).reschedule(
         locale: null,
-        deviceLocales: const [Locale('fr'), Locale('de')],
+        deviceLocales: const [Locale('nl'), Locale('de')],
       );
 
       expect(
