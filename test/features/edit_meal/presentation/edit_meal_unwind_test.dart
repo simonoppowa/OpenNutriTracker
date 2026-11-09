@@ -25,6 +25,7 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
@@ -130,7 +131,11 @@ void main() {
 
   /// Pumps `[main, mealDetail]` — the stack a recipe Log leaves behind —
   /// with the real meal-detail screen on top, and returns its navigator.
-  Future<NavigatorState> pumpRecipeLogStack(WidgetTester tester) async {
+  Future<NavigatorState> pumpRecipeLogStack(
+    WidgetTester tester, {
+    LogTray? logTray,
+    LogTrayItem? editingTrayItem,
+  }) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -165,6 +170,8 @@ void main() {
                   IntakeTypeEntity.dinner,
                   day,
                   false,
+                  logTray: logTray,
+                  editingTrayItem: editingTrayItem,
                 ),
               ),
             ),
@@ -221,6 +228,45 @@ void main() {
       );
     },
   );
+
+  // A To-log row reopened on meal detail, then corrected through the edit
+  // pencil: the detail screen the save lands on still edits that row.
+  testWidgets('correcting a To-log row\'s food still saves over that row', (
+    tester,
+  ) async {
+    final tray = LogTray();
+    addTearDown(tray.dispose);
+    final row = LogTrayItem(
+      meal: recipe.toMealEntity(),
+      unit: 'g/ml',
+      amount: 250,
+      amountLabel: '250 g/ml',
+      quantity: 250,
+      selectedUnit: 'g/ml',
+    );
+    tray.add(row);
+    await pumpRecipeLogStack(tester, logTray: tray, editingTrayItem: row);
+
+    await tester.tap(find.byIcon(Icons.edit_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, l10nEn.buttonSaveLabel));
+    await tester.pumpAndSettle();
+    expect(find.text(l10nEn.editMealLabel), findsNothing);
+
+    // Back on meal detail: still the row's amount, and still Save.
+    expect(
+      find.widgetWithText(FilledButton, l10nEn.addToListLabel),
+      findsNothing,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, l10nEn.buttonSaveLabel));
+    await tester.pumpAndSettle();
+
+    expect(loggedIntakes, isEmpty);
+    expect(tray.length, 1);
+    expect(identical(tray.items.single, row), isFalse);
+    expect(tray.items.single.amount, 250);
+    expect(tray.items.single.quantity, 250);
+  });
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
