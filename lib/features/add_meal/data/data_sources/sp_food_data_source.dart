@@ -1,3 +1,4 @@
+
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -619,16 +620,13 @@ List<T> _rankAndTruncate<T>(
         portioned: hasPortion(item) == true ? 1 : 0,
       ),
   ];
-  mergeSort(
-    decorated,
-    compare: (a, b) {
-      final byScore = b.score.compareTo(a.score);
-      if (byScore != 0) return byScore;
-      final byLength = a.length.compareTo(b.length);
-      if (byLength != 0) return byLength;
-      return b.portioned.compareTo(a.portioned);
-    },
-  );
+  mergeSort(decorated, compare: (a, b) {
+    final byScore = b.score.compareTo(a.score);
+    if (byScore != 0) return byScore;
+    final byLength = a.length.compareTo(b.length);
+    if (byLength != 0) return byLength;
+    return b.portioned.compareTo(a.portioned);
+  });
   return [
     for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.item,
   ];
