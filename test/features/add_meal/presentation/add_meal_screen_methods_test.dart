@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.d
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/add_food_methods.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -128,7 +130,18 @@ Future<void> _register({bool imperial = false, bool aiHidden = false}) async {
 
 /// The add-food screen at the root, and a stub for every route it pushes
 /// that records what it was asked for.
-Widget _app(List<RouteSettings> pushed) => MaterialApp(
+Widget _app(
+  List<RouteSettings> pushed, {
+  Locale? locale,
+  double textScale = 1,
+}) => MaterialApp(
+  locale: locale,
+  builder: (context, child) => MediaQuery(
+    data: MediaQuery.of(
+      context,
+    ).copyWith(textScaler: TextScaler.linear(textScale)),
+    child: child!,
+  ),
   localizationsDelegates: const [
     S.delegate,
     GlobalMaterialLocalizations.delegate,
@@ -294,4 +307,110 @@ void main() {
       );
     });
   }
+
+  // #641: scanning is how many people log, so the way in is a labelled tile
+  // the width of a third of the screen, not an icon inside the search field.
+  // Each case also opens the scanner, so a tile that fits but no longer
+  // reaches its route still fails.
+  for (final (locale, textScale, size) in const [
+    (Locale('en'), 1.0, Size(360, 780)),
+    (Locale('de'), 1.0, Size(360, 780)),
+    (Locale('en'), 1.3, Size(360, 780)),
+    (Locale('en'), 1.0, Size(320, 640)),
+    (Locale('en'), 1.3, Size(320, 640)),
+  ]) {
+    testWidgets('the Barcode tile is a labelled 48 dp tap target that opens '
+        'the scanner ($locale, text x$textScale, $size)', (tester) async {
+      await _register();
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(
+        _app(pushed, locale: locale, textScale: textScale),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final tile = _expectLabelledBarcodeTile(tester, locale);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(pushed.single.name, NavigationOptions.scannerRoute);
+    });
+  }
+
+  // German at 1.3x or on a 320 dp phone overflows the app bar's Quick add
+  // label ("Schnelles Tracking"), a separate bug, so the tile row is checked
+  // on its own there: 288 dp is a 320 dp screen less the 16 dp margins.
+  for (final locale in const [Locale('de'), Locale('es')]) {
+    testWidgets('the Barcode tile fits at 288 dp and text x1.3 ($locale)', (
+      tester,
+    ) async {
+      var scans = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: locale,
+          localizationsDelegates: const [
+            S.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: S.supportedLocales,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: const TextScaler.linear(1.3)),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 288,
+                child: AddFoodMethodTiles(
+                  onBarcodePressed: () => scans++,
+                  onSnapMealPressed: () {},
+                  onDescribePressed: () {},
+                  describeOpen: false,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final tile = _expectLabelledBarcodeTile(tester, locale);
+      await tester.tap(tile);
+      expect(scans, 1);
+    });
+  }
+}
+
+/// Checks the Barcode tile is at least 48x48 dp with its icon and its whole
+/// label inside it, and returns it.
+Finder _expectLabelledBarcodeTile(WidgetTester tester, Locale locale) {
+  final tile = find.bySemanticsIdentifier('add-meal-method-barcode');
+  final tileRect = tester.getRect(tile);
+  expect(tileRect.width, greaterThanOrEqualTo(48));
+  expect(tileRect.height, greaterThanOrEqualTo(48));
+
+  final label = find.descendant(
+    of: tile,
+    matching: find.text(lookupS(locale).customMealBarcodeLabel),
+  );
+  expect(label, findsOneWidget);
+  final labelRect = tester.getRect(label);
+  expect(tileRect.contains(labelRect.topLeft), isTrue);
+  expect(tileRect.contains(labelRect.bottomRight), isTrue);
+  expect(
+    tester.renderObject<RenderParagraph>(label).didExceedMaxLines,
+    isFalse,
+  );
+  expect(
+    find.descendant(of: tile, matching: find.byType(Icon)),
+    findsOneWidget,
+  );
+  return tile;
 }
