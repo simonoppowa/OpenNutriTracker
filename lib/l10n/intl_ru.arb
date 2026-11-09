@@ -1695,5 +1695,14 @@
   "addToListLabel": "Добавить в список",
   "logTrayRemoveLabel": "Удалить из списка",
   "logTrayAddedLabel": "Добавлено в список",
-  "bulkAddWaitCancelLabel": "Отмена"
+  "bulkAddWaitCancelLabel": "Отмена",
+  "addToSectionLabel": "Добавить в {section}",
+  "@addToSectionLabel": {
+    "description": "Screen reader label of the plus at the foot of a meal or activity list, e.g. 'Add to Breakfast'.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  }
 }
