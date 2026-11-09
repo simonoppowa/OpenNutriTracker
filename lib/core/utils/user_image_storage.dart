@@ -64,6 +64,41 @@ class UserImageStorage {
   static bool isUserImagePath(String relative) =>
       sanitizeRelative(relative) != null;
 
+  /// The relative slug a stored image value stands for, or null when it
+  /// names no user image.
+  ///
+  /// The app has only ever persisted relative slugs, so this mostly hands
+  /// one back unchanged. It also accepts an absolute path that ends in a
+  /// slug, keeping only that slug, so a value that carries an old iOS app
+  /// container's prefix (the prefix changes on update) still resolves
+  /// against today's documents directory instead of a folder that is gone.
+  static String? normalizeStored(String stored) {
+    final parts = stored.split('/');
+    if (parts.length < 2) return null;
+    // Anything between the slug and the root must be a plain folder name:
+    // a `..` anywhere could point the slug at another directory.
+    if (parts.contains('..')) return null;
+    return sanitizeRelative(
+      '${parts[parts.length - 2]}/${parts[parts.length - 1]}',
+    );
+  }
+
+  /// The file a stored image value points at today, or null when there is
+  /// nothing to show: no value, a value that is not a user-image slug, a
+  /// photo that was deleted, or no documents directory to look in. Never
+  /// throws, so a render can always fall back to its placeholder.
+  static Future<File?> existingFile(String? stored) async {
+    if (stored == null) return null;
+    final relative = normalizeStored(stored);
+    if (relative == null) return null;
+    try {
+      final file = File(await absolutePath(relative));
+      return file.existsSync() ? file : null;
+    } on Exception {
+      return null;
+    }
+  }
+
   /// Absolute path that corresponds to `relativePath` inside the
   /// app's private documents directory. Use this for `File(...)`
   /// operations.

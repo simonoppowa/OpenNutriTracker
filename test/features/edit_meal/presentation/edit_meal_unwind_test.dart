@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,6 +36,8 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:provider/provider.dart';
 
 import '../../../helpers/fake_favourites.dart';
@@ -135,6 +139,7 @@ void main() {
     WidgetTester tester, {
     LogTray? logTray,
     LogTrayItem? editingTrayItem,
+    RecipeEntity? shown,
   }) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
@@ -166,7 +171,7 @@ void main() {
               RouteSettings(
                 name: NavigationOptions.mealDetailRoute,
                 arguments: MealDetailScreenArguments(
-                  recipe.toMealEntity(),
+                  (shown ?? recipe).toMealEntity(),
                   IntakeTypeEntity.dinner,
                   day,
                   false,
@@ -226,6 +231,50 @@ void main() {
         findsWidgets,
         reason: 'an empty navigator renders as a black screen',
       );
+    },
+  );
+
+  // #675: a recipe's photo showed in the Recipes list only. Through the
+  // whole log path — meal detail, its edit pencil, the save and Add — the
+  // photo is on screen and lands on the entry the diary card renders.
+  testWidgets(
+    'a recipe photo shows in Edit Meal and stays on the logged entry',
+    (tester) async {
+      final documents = Directory.systemTemp.createTempSync('ont_675_edit_');
+      addTearDown(() => documents.deleteSync(recursive: true));
+      final previous = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = _FakePathProvider(documents.path);
+      addTearDown(() => PathProviderPlatform.instance = previous);
+      const slug = 'recipe_images/a3f1c0de-0000-4000-8000-000000000001.webp';
+      final photo = File('${documents.path}/$slug')
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([0]);
+      final photoFinder = find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is FileImage &&
+            (w.image as FileImage).file.path == photo.path,
+      );
+
+      await pumpRecipeLogStack(tester, shown: recipe.copyWith(imagePath: slug));
+      expect(photoFinder, findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.edit_rounded));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.editMealLabel), findsOneWidget);
+      expect(photoFinder, findsOneWidget);
+
+      await tester.tap(
+        find.widgetWithText(FilledButton, l10nEn.buttonSaveLabel),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, l10nEn.addLabel));
+      await tester.pumpAndSettle();
+
+      expect(loggedIntakes.single.meal.localImagePath, slug);
+      // The recipe's photo is shown, never handed to the custom-meal picker,
+      // so nothing on this path can delete it.
+      expect(photo.existsSync(), isTrue);
     },
   );
 
@@ -444,4 +493,14 @@ class _FakeCacheManager implements CacheManager {
 class _FakeFavouriteMealRepository implements FavouriteMealRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakePathProvider extends PathProviderPlatform
+    with MockPlatformInterfaceMixin {
+  _FakePathProvider(this.documentsPath);
+
+  final String documentsPath;
+
+  @override
+  Future<String?> getApplicationDocumentsPath() async => documentsPath;
 }
