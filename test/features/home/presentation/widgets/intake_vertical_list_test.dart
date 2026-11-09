@@ -462,6 +462,97 @@ void main() {
     },
   );
 
+  // #842: copying a meal goes through the section menu, and each entry is
+  // stored and counted before the next one starts.
+  testWidgets('copying a section copies its entries one after another into '
+      'the picked meal', (WidgetTester tester) async {
+    final second = _buildIntake(
+      id: 'second',
+      name: 'Second food',
+      amount: 50,
+      kcal100: 100,
+      carbs100: 10,
+      fat100: 5,
+      protein100: 2,
+    );
+    final copies = <(String, AddMealType?)>[];
+    final pending = <Completer<void>>[];
+    await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
+      day: DateTime(2026, 1, 1),
+      title: 'Lunch',
+      listIcon: Icons.lunch_dining_outlined,
+      addMealType: AddMealType.lunchType,
+      intakeList: [intakes.single, second],
+      usesImperialUnits: false,
+      onCopyIntakeCallback: (intake, _, type) {
+        copies.add((intake.id, type));
+        final done = Completer<void>();
+        pending.add(done);
+        return done.future;
+      },
+      onDeleteIntakeCallback: (_, _) {},
+    )));
+    await tester.pump();
+
+    await tester.tap(find.bySemanticsIdentifier('intake-section-menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.dialogCopyLabel));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButton<AddMealType>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.dinnerLabel).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    // The second copy waits for the first.
+    expect(copies, [('test-intake', AddMealType.dinnerType)]);
+    pending.single.complete();
+    await tester.pump();
+    expect(copies, [
+      ('test-intake', AddMealType.dinnerType),
+      ('second', AddMealType.dinnerType),
+    ]);
+    pending.last.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('on today, Copy does not offer the section\'s own meal, so OK '
+      'never logs it a second time', (WidgetTester tester) async {
+    final copies = <AddMealType?>[];
+    await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
+      day: DateTime.now(),
+      title: 'Lunch',
+      listIcon: Icons.lunch_dining_outlined,
+      addMealType: AddMealType.lunchType,
+      intakeList: intakes,
+      usesImperialUnits: false,
+      onCopyIntakeCallback: (_, _, type) async => copies.add(type),
+      onDeleteIntakeCallback: (_, _) {},
+    )));
+    await tester.pump();
+
+    await tester.tap(find.bySemanticsIdentifier('intake-section-menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.dialogCopyLabel));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButton<AddMealType>));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(DropdownMenuItem<AddMealType>),
+        matching: find.text(l10nEn.lunchLabel),
+      ),
+      findsNothing,
+    );
+    await tester.tap(find.text(l10nEn.breakfastLabel).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+
+    expect(copies, [AddMealType.breakfastType]);
+  });
+
   testWidgets(
     'popup menu shows only Import when section is empty',
     (WidgetTester tester) async {
