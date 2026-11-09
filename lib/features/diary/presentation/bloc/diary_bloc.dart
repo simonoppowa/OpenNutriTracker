@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
@@ -15,10 +16,15 @@ part 'diary_state.dart';
 class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final GetTrackedDayUsecase _getDayTrackedUsecase;
   final GetConfigUsecase _getConfigUsecase;
+  final GetIntakeUsecase _getIntakeUsecase;
 
   DateTime currentDay = DateTime.now();
 
-  DiaryBloc(this._getDayTrackedUsecase, this._getConfigUsecase)
+  DiaryBloc(
+    this._getDayTrackedUsecase,
+    this._getConfigUsecase,
+    this._getIntakeUsecase,
+  )
       : super(DiaryInitial()) {
     on<LoadDiaryYearEvent>((event, emit) async {
       emit(DiaryLoadingState());
@@ -47,9 +53,16 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
           trackedDay.day.toParsedDay(): trackedDay,
       };
 
+      // The calendar marks a day by what is logged on it, not by its row:
+      // a row stays for its goals when a boundary move empties its day.
+      final daysWithEntries = await _getIntakeUsecase.getDayKeysWithIntakes(
+        config.dayStartOffsetTotalMinutes,
+      );
+
       emit(DiaryLoadedState(
         trackedDaysMap,
         usesImperialUnits,
+        daysWithEntries: daysWithEntries,
         showMealMacros: showMealMacros,
         showActivityTracking: showActivityTracking,
       ));

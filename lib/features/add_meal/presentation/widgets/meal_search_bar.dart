@@ -72,6 +72,7 @@ class _MealSearchBarState extends State<MealSearchBar> {
                         identifier: 'meal-search-barcode',
                         child: IconButton(
                           icon: Icon(CustomIcons.barcode_scan, size: 22, color: palette.textMuted),
+                          tooltip: S.of(context).scanProductLabel,
                           onPressed: widget.onBarcodePressed,
                         ),
                       )
@@ -99,6 +100,7 @@ class _MealSearchBarState extends State<MealSearchBar> {
               widget.onSearchSubmit(_searchTextController.text);
             },
             icon: const Icon(Icons.search_rounded, size: 24),
+            tooltip: S.of(context).searchLabel,
             style: IconButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.onPrimary,
               backgroundColor: accent,

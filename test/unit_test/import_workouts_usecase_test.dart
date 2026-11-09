@@ -22,6 +22,7 @@ import 'package:opennutritracker/core/data/repository/tracked_day_repository.dar
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
@@ -266,11 +267,17 @@ void main() {
           provider,
           configDataSource,
         ).setDayBoundary(0, 0);
-        expect(trackedDayBox.keys, ['2026-05-23']);
+        expect(trackedDayBox.keys, ['2026-05-22', '2026-05-23']);
         expect(
           trackedDayBox.get('2026-05-23')!.calorieGoal,
           closeTo(base + 500, 0.001),
         );
+        // The 22nd keeps its row for its goals (#1440), but counts nothing
+        // and no longer carries the workout's credit.
+        final left = trackedDayBox.get('2026-05-22')!;
+        expect(left.calorieGoal, closeTo(base, 0.001));
+        expect(left.caloriesTracked, 0);
+        expect(TrackedDayEntity.fromTrackedDayDBO(left).hasConsumed, isFalse);
       },
     );
 

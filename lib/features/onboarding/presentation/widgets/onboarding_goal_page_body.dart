@@ -96,7 +96,12 @@ class _OnboardingGoalPageBodyState extends State<OnboardingGoalPageBody> {
     GoalSuggestionEntity? suggestion,
   ) {
     final isSuggested = suggestion?.goal == goal;
-    return Row(
+    // A Wrap: at a large font the badge moves under the chip rather than
+    // overflowing the row.
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: Dimens.spacing8,
+      runSpacing: Dimens.spacing4,
       children: [
         Semantics(
           identifier: 'onboarding-goal-${_identifierSuffix[goal]}',
@@ -109,10 +114,7 @@ class _OnboardingGoalPageBodyState extends State<OnboardingGoalPageBody> {
             onSelected: (_) => _onSelected(goal),
           ),
         ),
-        if (isSuggested) ...[
-          const SizedBox(width: Dimens.spacing8),
-          _buildSuggestedBadge(),
-        ],
+        if (isSuggested) _buildSuggestedBadge(),
       ],
     );
   }
