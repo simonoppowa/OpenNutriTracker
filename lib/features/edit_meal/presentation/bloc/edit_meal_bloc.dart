@@ -146,8 +146,11 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       return nutrimentValue != null ? nutrimentValue * factorTo100g : null;
     }
 
+    // A micronutrient the form did not pass (Simple mode shows none) keeps
+    // its stored value. One it passed is read like a macronutrient, so a
+    // blank field is unset for every nutrient alike (#1466).
     double? fromTextOrOld(String? text, double? oldValue) =>
-        multiplyIfNotNull(text?.toDoubleOrNull() ?? oldValue);
+        multiplyIfNotNull(text == null ? oldValue : text.toDoubleOrNull());
 
     final newMealNutriments = MealNutrimentsEntity(
       energyKcal100: multiplyIfNotNull(kcalText.toDoubleOrNull()),
