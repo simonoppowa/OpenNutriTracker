@@ -91,35 +91,43 @@ Future<void> _bootstrapApp() async {
     return;
   }
 
-  // Finish tip purchases an earlier run left open, and on Google Play
-  // consume leftover tips, before anything else can buy one (#1536).
-  // Again on every return to the foreground, for a payment that cleared
-  // while the app was in the background.
-  unawaited(locator<TipJarCubit>().start());
+  // Observe foreground/background changes now. Purchase recovery runs after
+  // the first frame, before a user can reasonably reach the purchase screen.
   locator<TipJarCubit>().watchAppResumes();
 
-  // Drop cached remote-search results that haven't been touched in 90
-  // days. Done once per app start; no need to schedule a recurring task.
-  unawaited(
-    locator<RemoteSearchCacheDataSource>().pruneStale(const Duration(days: 90)),
-  );
   // Read once ahead of the add-food screen, so a user who hid the AI
   // features never sees the Snap meal tile appear for a frame (#1518).
   unawaited(locator<AiCredentialStorage>().isHidden());
 
-  final isUserInitialized = await locator<UserDataSource>().hasUserData();
   final configRepo = locator<ConfigRepository>();
+  // These reads touch independent Hive boxes / platform channels. Resolve
+  // them together instead of adding their async setup serially at cold start.
+  final (
+    isUserInitialized,
+    config,
+    systemLocale,
+    savedLocaleCode,
+    localeSyncSeeded,
+    hasAcceptedAnonymousData,
+    savedAppTheme,
+  ) = await (
+    locator<UserDataSource>().hasUserData(),
+    configRepo.getConfig(),
+    AppLocaleService.getApplicationLocale(),
+    configRepo.getSelectedLocale(),
+    configRepo.getLocaleSyncSeeded(),
+    configRepo.getConfigHasAcceptedAnonymousData(),
+    configRepo.getConfigAppTheme(),
+  ).wait;
 
-  final config = await configRepo.getConfig();
   // Android's own per-app language picker and ours are two doors into the
   // same setting, so ask the system what it holds before trusting what we
   // saved. See [reconcileAppLocale] for which side wins and why.
-  final systemLocale = await AppLocaleService.getApplicationLocale();
   final localeCode = await reconcileAppLocale(
-    savedLocaleCode: await configRepo.getSelectedLocale(),
+    savedLocaleCode: savedLocaleCode,
     systemLocaleTag: systemLocale.tag,
     systemTagReadFailed: systemLocale.readFailed,
-    localeSyncSeeded: await configRepo.getLocaleSyncSeeded(),
+    localeSyncSeeded: localeSyncSeeded,
     supportedLocales: _appLocales,
     persistSelectedLocale: configRepo.setSelectedLocale,
     pushToSystem: AppLocaleService.setApplicationLocale,
@@ -139,9 +147,6 @@ Future<void> _bootstrapApp() async {
   // Not awaited: it queues on the scheduler at once, so Settings still runs
   // after it, but start-up never waits on (or fails with) the plugin.
   unawaited(_refreshDailyReminder(savedLocale));
-  final hasAcceptedAnonymousData = await configRepo
-      .getConfigHasAcceptedAnonymousData();
-  final savedAppTheme = await configRepo.getConfigAppTheme();
   final savedUsesKilojoules = config.usesKilojoules;
   final savedUseMaterialYou = config.useMaterialYou;
   final savedAccentColor = config.accentColor;
@@ -225,6 +230,26 @@ void runAppWithChangeNotifiers(
   ),
 );
 
+Future<void> _runPostFrameStartupWork() async {
+  final log = Logger('main');
+  try {
+    // Finish purchases left open by an earlier run and consume leftover tips
+    // on Google Play (#1536).
+    await locator<TipJarCubit>().start();
+  } catch (error, stackTrace) {
+    log.warning('Could not recover pending tip purchases', error, stackTrace);
+  }
+  try {
+    // Remove remote-search cache rows untouched for 90 days. This maintenance
+    // is not needed to render the initial screen.
+    await locator<RemoteSearchCacheDataSource>().pruneStale(
+      const Duration(days: 90),
+    );
+  } catch (error, stackTrace) {
+    log.warning('Could not prune stale remote-search results', error, stackTrace);
+  }
+}
+
 class OpenNutriTrackerApp extends StatefulWidget {
   final bool userInitialized;
 
@@ -240,6 +265,9 @@ class _OpenNutriTrackerAppState extends State<OpenNutriTrackerApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_runPostFrameStartupWork());
+    });
   }
 
   @override

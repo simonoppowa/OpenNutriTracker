@@ -174,6 +174,117 @@ void main() {
     expect(previous?.code, equals('4006381333931'));
   });
 
+  testWidgets('pasted nutrition reaches existing form and saves',
+      (tester) async {
+    await pumpEditor(tester, customMeal(code: 'uuid-oats', name: 'Oats'));
+
+    await tester.tap(find.widgetWithText(
+      OutlinedButton, l10nEn.nutritionPasteAction,
+    ));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, l10nEn.nutritionPasteAction),
+      'Oat Milk\nPer 100 ml\nEnergy: 60 kcal\nFat: 3 g\nCarbohydrates: 6.6 g\nProtein: 1 g\nSalt: 0.1 g\nCalcium: 200 mg',
+    );
+    await tester.tap(find.widgetWithText(
+      OutlinedButton, l10nEn.nutritionImportAction,
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Oat Milk'), findsWidgets);
+    await tester.tap(find.widgetWithText(
+      FilledButton, l10nEn.nutritionApplyAction,
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsIdentifier('nutrition-replace-confirm'));
+    await tester.pumpAndSettle();
+
+    await save(tester);
+    expect(dataSource.saves, hasLength(1));
+    final saved = dataSource.saves.single.$1;
+    expect(saved.name, 'Oat Milk');
+    expect(saved.mealUnit, 'ml');
+    expect(saved.nutriments.energyKcal100, 60);
+    expect(saved.nutriments.carbohydrates100, 6.6);
+    expect(saved.nutriments.sodium100, 40);
+    expect(saved.nutriments.calcium100, 200);
+  });
+
+  // PR #1491 review: an import resets the form to per 100 g, and values it
+  // did not bring stayed as typed, so per-50 g values became per 100 g.
+  Finder fieldLabelled(String prefix) => find.byWidgetPredicate(
+    (widget) =>
+        widget is TextField &&
+        (widget.decoration?.labelText?.startsWith(prefix) ?? false),
+  );
+
+  Future<void> importSodiumOnly(WidgetTester tester) async {
+    await tester.tap(find.widgetWithText(
+      OutlinedButton, l10nEn.nutritionPasteAction,
+    ));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, l10nEn.nutritionPasteAction),
+      'Oats\nPer 100 g\nSodium: 100 mg',
+    );
+    await tester.tap(find.widgetWithText(
+      OutlinedButton, l10nEn.nutritionImportAction,
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(
+      FilledButton, l10nEn.nutritionApplyAction,
+    ));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('values a partial import leaves keep their amount', (
+    tester,
+  ) async {
+    await pumpEditor(tester, customMeal(code: 'uuid-oats', name: 'Oats'));
+    await tester.tap(find.text(l10nEn.customMealFormAdvanced));
+    await tester.pumpAndSettle();
+    await tester.enterText(fieldLabelled(l10nEn.baseQuantityLabel), '50');
+    await tester.enterText(fieldLabelled(l10nEn.mealEnergyLabel), '200');
+    await tester.enterText(fieldLabelled(l10nEn.mealCarbsLabel), '25');
+    await tester.enterText(fieldLabelled(l10nEn.mealFatLabel), '8');
+    await tester.enterText(fieldLabelled(l10nEn.mealProteinLabel), '7');
+    await tester.pumpAndSettle();
+
+    await importSodiumOnly(tester);
+    await save(tester);
+
+    final saved = dataSource.saves.single.$1.nutriments;
+    expect(saved.energyKcal100, 400);
+    expect(saved.carbohydrates100, 50);
+    expect(saved.fat100, 16);
+    expect(saved.proteins100, 14);
+    expect(saved.sodium100, 100);
+  });
+
+  testWidgets('totals a partial import leaves become per 100 g', (
+    tester,
+  ) async {
+    await pumpEditor(tester, customMeal(code: 'uuid-oats', name: 'Oats'));
+    await tester.tap(find.text(l10nEn.customMealFormAdvanced));
+    await tester.pumpAndSettle();
+    await tester.enterText(fieldLabelled(l10nEn.mealSizeLabel), '250');
+    await tester.tap(find.text(l10nEn.mealNutrientsTotalLabel));
+    await tester.pumpAndSettle();
+    await tester.enterText(fieldLabelled(l10nEn.mealEnergyLabel), '500');
+    await tester.enterText(fieldLabelled(l10nEn.mealCarbsLabel), '50');
+    await tester.enterText(fieldLabelled(l10nEn.mealFatLabel), '20');
+    await tester.enterText(fieldLabelled(l10nEn.mealProteinLabel), '30');
+    await tester.pumpAndSettle();
+
+    await importSodiumOnly(tester);
+    await save(tester);
+
+    final saved = dataSource.saves.single.$1.nutriments;
+    expect(saved.energyKcal100, 200);
+    expect(saved.carbohydrates100, 20);
+    expect(saved.fat100, 8);
+    expect(saved.proteins100, 12);
+  });
+
   testWidgets('a second tap on Save while the first is saving does nothing',
       (tester) async {
     await pumpEditor(tester, customMeal(code: '4006381333931', name: 'Oats'));
@@ -252,6 +363,9 @@ class _FakeConfigRepository implements ConfigRepository {
   @override
   Future<String?> getCustomMealFormMode() async =>
       CustomMealFormMode.simple.name;
+
+  @override
+  Future<void> setCustomMealFormMode(String mode) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

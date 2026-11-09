@@ -27,6 +27,9 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/edit_meal/domain/nutrition_import_parser.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/nutrition_import_dialog.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/nutrition_import_saver.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
@@ -57,6 +60,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   /// bloc finishes loading, and persisted back whenever the user toggles.
   CustomMealFormMode _formMode = CustomMealFormMode.simple;
   bool _formModeHydrated = false;
+  bool _importedMetricMode = false;
 
   final _nameTextController = TextEditingController();
   final _brandsTextController = TextEditingController();
@@ -265,7 +269,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
               child: Semantics(
                 identifier: 'edit-meal-save',
                 child: FilledButton(
-                  onPressed: () => _onSavePressed(_usesImperialUnits),
+                  onPressed: () => _onSavePressed(_usesImperialUnits && !_importedMetricMode),
                   style: FilledButton.styleFrom(
                     shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
                   ),
@@ -408,6 +412,17 @@ class _EditMealScreenState extends State<EditMealScreen> {
                 ? S.of(context).customMealFormSimpleHelp
                 : S.of(context).customMealFormAdvancedHelp,
             style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (_mealEntity.source == MealSourceEntity.custom) ...[
+          Semantics(
+            identifier: 'edit-meal-paste-nutrition',
+            child: OutlinedButton.icon(
+              onPressed: _openNutritionImport,
+              icon: const Icon(Icons.content_paste),
+              label: Text(S.of(context).nutritionPasteAction),
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -608,6 +623,146 @@ class _EditMealScreenState extends State<EditMealScreen> {
     );
   }
 
+  Future<void> _openNutritionImport() async {
+    final entry = await showDialog<NutritionEntry>(
+      context: context,
+      builder: (_) => NutritionImportDialog(saveAll: _saveNutritionBatch),
+    );
+    if (!mounted || entry == null) return;
+    await _applyImportedNutrition(entry);
+  }
+
+  Future<void> _applyImportedNutrition(NutritionEntry entry) async {
+    final values = entry.toPer100();
+    final usesKj = Provider.of<EnergyUnitProvider>(
+      context,
+      listen: false,
+    ).usesKilojoules;
+    final energy = values['kcal'];
+    final imported = <TextEditingController, String>{
+      _nameTextController: entry.name,
+      _brandsTextController: entry.brand,
+      if (energy != null)
+        _kcalTextController: (usesKj ? UnitCalc.kcalToKj(energy) : energy)
+            .toString(),
+      for (final item in _nutrientControllers.entries)
+        if (values[item.key] != null) item.value: values[item.key]!.toString(),
+    };
+    final replaced = imported.entries
+        .where(
+          (item) =>
+              item.key.text.trim().isNotEmpty &&
+              item.key.text.trim() != item.value.trim(),
+        )
+        .length;
+    if (replaced > 0) {
+      final confirmed = await confirmNutritionReplace(context, replaced);
+      if (!confirmed || !mounted) return;
+    }
+    // The import switches the form to per-100 values; the ones it does not
+    // bring were typed on the old basis and are rescaled to stay the same
+    // amount, as Save would have.
+    final retainedFactor = _per100FactorOfForm();
+    final retained = [_kcalTextController, ..._nutrientControllers.values]
+        .where(
+          (controller) =>
+              !imported.containsKey(controller) &&
+              double.tryParse(controller.text) != null,
+        )
+        .toList();
+    final oldUnit = selectedUnit ?? 'g';
+    final oldMealQuantity = _usesImperialUnits && !_importedMetricMode &&
+            _mealQuantityTextController.text.isNotEmpty
+        ? _convertToMetric(_mealQuantityTextController.text, oldUnit)
+        : _mealQuantityTextController.text;
+    final oldServingQuantity = _usesImperialUnits && !_importedMetricMode &&
+            _servingQuantityTextController.text.isNotEmpty
+        ? _convertToMetric(_servingQuantityTextController.text, oldUnit)
+        : _servingQuantityTextController.text;
+    setState(() {
+      _importedMetricMode = true;
+      _mealUnitButtonSegment = [
+        ButtonSegment(value: 'g', label: Text(S.of(context).gramUnit)),
+        ButtonSegment(value: 'ml', label: Text(S.of(context).milliliterUnit)),
+        ButtonSegment(value: 'g/ml', label: Text(S.of(context).gramMilliliterUnit)),
+      ];
+      _mealQuantityTextController.text = oldMealQuantity;
+      _servingQuantityTextController.text = oldServingQuantity;
+      _formMode = CustomMealFormMode.advanced;
+      _isTotal = false;
+      selectedUnit = entry.basis == NutritionBasis.per100ml
+          ? 'ml'
+          : entry.basis == NutritionBasis.per100g
+          ? 'g'
+          : entry.servingUnit;
+      _baseQuantityTextController.text = '100';
+      if (_mealQuantityTextController.text.isEmpty) {
+        _mealQuantityTextController.text = '100';
+      }
+      if (entry.servingSize != null) {
+        _servingQuantityTextController.text = entry.servingSize.toString();
+      }
+      if (retainedFactor != 1) {
+        for (final controller in retained) {
+          final value = double.parse(controller.text) * retainedFactor;
+          controller.text = double.parse(value.toStringAsFixed(3)).toString();
+        }
+      }
+      for (final item in imported.entries) {
+        if (item.value.isNotEmpty) item.key.text = item.value;
+      }
+    });
+  }
+
+  /// The nutrient fields other than energy, by import field name.
+  Map<String, TextEditingController> get _nutrientControllers => {
+    'carbs': _carbsTextController,
+    'fat': _fatTextController,
+    'protein': _proteinTextController,
+    'fiber': _fiberTextController,
+    'saturatedFat': _saturatedFatTextController,
+    'sugars': _sugarsTextController,
+    'sodium': _sodiumTextController,
+    'calcium': _calciumTextController,
+    'iron': _ironTextController,
+    'potassium': _potassiumTextController,
+    'magnesium': _magnesiumTextController,
+    'vitaminD': _vitaminDTextController,
+    'vitaminB12': _vitaminB12TextController,
+  };
+
+  /// What Save multiplies the typed nutrient values by to store them per
+  /// 100: the same arithmetic as `_onSavePressed`, for the form as it is.
+  double _per100FactorOfForm() {
+    if (_formMode == CustomMealFormMode.simple) return 1;
+    final baseText = _baseQuantityTextController.text;
+    final factor = factorTo100gFromBase(baseText);
+    if (!_isTotal) return factor;
+    final mealText = _usesImperialUnits && !_importedMetricMode
+        ? _convertToMetric(
+            _mealQuantityTextController.text,
+            selectedUnit ?? _mealEntity.mealUnit ?? '0',
+          )
+        : _mealQuantityTextController.text;
+    final mealQuantity = double.tryParse(mealText) ?? 0.0;
+    if (mealQuantity <= 0) return factor;
+    final base = double.tryParse(baseText) ?? 100.0;
+    return base / mealQuantity * factor;
+  }
+
+  Future<String> _saveNutritionBatch(List<NutritionEntry> entries) async {
+    final s = S.of(context);
+    final selection = await saveImportedNutritionEntries(
+      _editMealBloc,
+      entries,
+    );
+    return s.nutritionBatchSummary(
+      selection.entries.length,
+      selection.duplicates,
+      selection.invalid,
+    );
+  }
+
   Widget _buildMicroField(
     TextEditingController controller,
     String label,
@@ -647,7 +802,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   String _massUnitSuffix(BuildContext context) {
     final s = S.of(context);
     final unit = selectedUnit ?? _units[2];
-    if (_usesImperialUnits) {
+    if (_usesImperialUnits && !_importedMetricMode) {
       switch (unit) {
         case 'g':
           return s.ozUnit;
@@ -690,6 +845,18 @@ class _EditMealScreenState extends State<EditMealScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(S.of(context).mealNameValidationError)));
         return;
+      }
+
+      if (_mealEntity.source == MealSourceEntity.custom) {
+        final duplicate = _editMealBloc.hasOtherCustomMealWithName(
+          _nameTextController.text, _mealEntity.code,
+        );
+        if (duplicate) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(S.of(context).nutritionDuplicateMessage),
+          ));
+          return;
+        }
       }
 
       // Validate barcode shape if the user typed or scanned one (#167).
@@ -765,8 +932,9 @@ class _EditMealScreenState extends State<EditMealScreen> {
         final enteredKcal = enteredEnergyRaw == null
             ? null
             : (usesKjOnSave
-                ? double.parse(
-                    UnitCalc.kjToKcal(enteredEnergyRaw).toStringAsFixed(1))
+                ? (_importedMetricMode
+                    ? UnitCalc.kjToKcal(enteredEnergyRaw)
+                    : double.parse(UnitCalc.kjToKcal(enteredEnergyRaw).toStringAsFixed(1)))
                 : enteredEnergyRaw);
         final enteredCarbs = double.tryParse(_carbsTextController.text);
         final enteredFat = double.tryParse(_fatTextController.text);

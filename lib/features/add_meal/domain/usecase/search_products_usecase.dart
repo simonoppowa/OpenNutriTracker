@@ -57,14 +57,20 @@ class SearchProductsUseCase {
   Future<SearchProductsResult> searchOFFProductsByString(
     String searchString, {
     bool skipRemote = false,
+    Duration? remoteTimeout,
   }) async {
     if (skipRemote) {
-      return _buildResult(searchString, const [],
-          remoteSkipped: true, cacheSource: MealSourceEntity.off);
+      return _buildResult(
+        searchString,
+        const [],
+        remoteSkipped: true,
+        cacheSource: MealSourceEntity.off,
+      );
     }
     final remote = await _safeRemoteCall(
       'OFF',
       () => _productsRepository.getOFFProductsByString(searchString),
+      timeout: remoteTimeout,
     );
     // Cache the result page. Untouched entries age out after 90 days
     // (RemoteSearchCacheDataSource.pruneStale), so this can't grow
@@ -72,8 +78,12 @@ class SearchProductsUseCase {
     // get their timestamp refreshed and stay until 90 days after the
     // last selection.
     await _cacheRemoteResults(remote.meals);
-    return _buildResult(searchString, remote.meals,
-        remoteFailed: remote.failed, cacheSource: MealSourceEntity.off);
+    return _buildResult(
+      searchString,
+      remote.meals,
+      remoteFailed: remote.failed,
+      cacheSource: MealSourceEntity.off,
+    );
   }
 
   /// Searches the reference-food corpus. "FDC" here names the *data* (USDA
@@ -92,10 +102,15 @@ class SearchProductsUseCase {
     String searchString, {
     bool skipRemote = false,
     bool forResolution = false,
+    Duration? remoteTimeout,
   }) async {
     if (skipRemote) {
-      return _buildResult(searchString, const [],
-          remoteSkipped: true, cacheSource: MealSourceEntity.fdc);
+      return _buildResult(
+        searchString,
+        const [],
+        remoteSkipped: true,
+        cacheSource: MealSourceEntity.fdc,
+      );
     }
     final remote = await _safeRemoteCall(
       'FDC',
@@ -103,10 +118,15 @@ class SearchProductsUseCase {
         searchString,
         forResolution: forResolution,
       ),
+      timeout: remoteTimeout,
     );
     await _cacheRemoteResults(remote.meals);
-    return _buildResult(searchString, remote.meals,
-        remoteFailed: remote.failed, cacheSource: MealSourceEntity.fdc);
+    return _buildResult(
+      searchString,
+      remote.meals,
+      remoteFailed: remote.failed,
+      cacheSource: MealSourceEntity.fdc,
+    );
   }
 
   /// The full Open Food Facts record behind a thin text-search hit, or null
@@ -134,10 +154,15 @@ class SearchProductsUseCase {
   /// source that answered with zero rows.
   Future<({List<MealEntity> meals, bool failed})> _safeRemoteCall(
     String sourceLabel,
-    Future<List<MealEntity>> Function() call,
-  ) async {
+    Future<List<MealEntity>> Function() call, {
+    Duration? timeout,
+  }) async {
     try {
-      return (meals: await call(), failed: false);
+      final request = call();
+      final meals = timeout == null
+          ? await request
+          : await request.timeout(timeout);
+      return (meals: meals, failed: false);
     } catch (exception, stack) {
       _log.warning(
         '$sourceLabel search failed; falling back to custom-meal results only',

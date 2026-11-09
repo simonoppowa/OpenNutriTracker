@@ -15,13 +15,17 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debo
 class _FakeSearchProductsUseCase implements SearchProductsUseCase {
   final List<Completer<SearchProductsResult>> calls = [];
   final List<String> queries = [];
+  final List<Duration?> remoteTimeouts = [];
 
   @override
   Future<SearchProductsResult> searchOFFProductsByString(
     String searchString, {
     bool skipRemote = false,
+    Duration? remoteTimeout,
   }) {
+    if (skipRemote) return Future.value(_localPreviewResult);
     queries.add(searchString);
+    remoteTimeouts.add(remoteTimeout);
     final completer = Completer<SearchProductsResult>();
     calls.add(completer);
     return completer.future;
@@ -32,7 +36,12 @@ class _FakeSearchProductsUseCase implements SearchProductsUseCase {
     String searchString, {
     bool skipRemote = false,
     bool forResolution = false,
-  }) => searchOFFProductsByString(searchString);
+    Duration? remoteTimeout,
+  }) => searchOFFProductsByString(
+    searchString,
+    skipRemote: skipRemote,
+    remoteTimeout: remoteTimeout,
+  );
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -54,6 +63,11 @@ const _emptyResult = SearchProductsResult(
   remoteSourceEmpty: true,
 );
 
+const _localPreviewResult = SearchProductsResult(
+  meals: [],
+  remoteSourceEmpty: false,
+);
+
 /// Waits out the search debounce plus a small margin so the bloc's handler
 /// has started.
 Future<void> _settleDebounce() async {
@@ -73,6 +87,25 @@ void main() {
     });
 
     tearDown(() => bloc.close());
+
+    test(
+        'shows local results while the remote request is pending and passes '
+        'its timeout to the use case', () async {
+      bloc.add(const SearchInputChangedEvent(searchString: 'apple'));
+      await Future<void>.delayed(
+        searchDebounceDuration + searchFirstResultsDelay +
+            const Duration(milliseconds: 50),
+      );
+
+      expect(useCase.calls, hasLength(1));
+      expect(useCase.remoteTimeouts.single, searchRemoteDeadline);
+      expect(bloc.state, isA<ProductsLoadedState>());
+      expect((bloc.state as ProductsLoadedState).remotePending, isTrue);
+
+      useCase.calls.single.complete(_emptyResult);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect((bloc.state as ProductsLoadedState).remotePending, isFalse);
+    });
 
     test(
         'a duplicate debounced event while the first search is in flight '

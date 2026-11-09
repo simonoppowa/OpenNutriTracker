@@ -79,9 +79,22 @@ class DayInfoWidget extends StatefulWidget {
   final Function(
     UserActivityEntity userActivityEntity,
     TrackedDayEntity? trackedDayEntity,
-  ) onCopyActivity;
-  final Function(BuildContext context, IntakeEntity intake, bool usesImperialUnits)?
-      onEditIntake;
+  )
+  onCopyActivity;
+  final Future<void> Function(IntakeEntity intake) onTransferIntake;
+  final Future<void> Function(UserActivityEntity activity) onTransferActivity;
+  final Future<void> Function(
+    List<IntakeEntity> intakes,
+    List<UserActivityEntity> activities,
+    DateTime day,
+  )
+  onTransferDay;
+  final Function(
+    BuildContext context,
+    IntakeEntity intake,
+    bool usesImperialUnits,
+  )?
+  onEditIntake;
   final Function(BuildContext context, UserActivityEntity activity)?
       onEditActivity;
 
@@ -103,6 +116,9 @@ class DayInfoWidget extends StatefulWidget {
     required this.onDeleteActivity,
     required this.onCopyIntake,
     required this.onCopyActivity,
+    required this.onTransferIntake,
+    required this.onTransferActivity,
+    required this.onTransferDay,
     this.onEditIntake,
     this.onEditActivity,
     this.breakfastKcalTarget = 0,
@@ -186,6 +202,8 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
   @override
   Widget build(BuildContext context) {
     final trackedDay = widget.trackedDayEntity;
+    final hasEntries =
+        _allIntakes.isNotEmpty || widget.userActivities.isNotEmpty;
     final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,17 +220,33 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
         ),
+        if (_allIntakes.isNotEmpty || widget.userActivities.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
+            child: Semantics(
+              identifier: 'diary-copy-move-day',
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.content_copy_outlined),
+                label: Text(S.of(context).diaryCopyMoveDayLabel),
+                onPressed: () => widget.onTransferDay(
+                  List.of(_allIntakes),
+                  List.of(widget.userActivities),
+                  widget.selectedDay,
+                ),
+              ),
+            ),
+          ),
         const SizedBox(height: Dimens.spacing8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            trackedDay == null
+            !hasEntries
                 ? EmptyHint(
                     icon: Icons.restaurant_rounded,
                     title: S.of(context).nothingAddedLabel,
                   )
                 : const SizedBox(),
-            trackedDay != null
+            trackedDay != null && hasEntries
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: Dimens.spacing16),
                     child: AppCard(
@@ -285,11 +319,13 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 userActivityList: widget.userActivities,
                 onItemLongPressedCallback: onActivityItemLongPressed,
                 onItemTappedCallback: widget.onEditActivity,
-                onCopyActivityCallback:
-                    _showsCurrentDay
-                        ? null
-                        : (activity) =>
-                            widget.onCopyActivity(activity, widget.trackedDayEntity),
+                onTransferActivityCallback: widget.onTransferActivity,
+                onCopyActivityCallback: _showsCurrentDay
+                    ? null
+                    : (activity) => widget.onCopyActivity(
+                        activity,
+                        widget.trackedDayEntity,
+                      ),
               ),
             ],
             // #150 follow-up: a 0% share hides an empty section so OMAD users
@@ -310,10 +346,10 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
-                onCopyIntakeCallback:
-                    _showsCurrentDay
-                        ? null
-                        : widget.onCopyIntake,
+                onTransferIntakeCallback: widget.onTransferIntake,
+                onCopyIntakeCallback: _showsCurrentDay
+                    ? null
+                    : widget.onCopyIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 trackedDayEntity: trackedDay,
@@ -336,6 +372,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
+                onTransferIntakeCallback: widget.onTransferIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 onCopyIntakeCallback:
@@ -362,10 +399,10 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
-                onCopyIntakeCallback:
-                    _showsCurrentDay
-                        ? null
-                        : widget.onCopyIntake,
+                onTransferIntakeCallback: widget.onTransferIntake,
+                onCopyIntakeCallback: _showsCurrentDay
+                    ? null
+                    : widget.onCopyIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 mealKcalTarget: widget.dinnerKcalTarget,
@@ -387,6 +424,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
+                onTransferIntakeCallback: widget.onTransferIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 onCopyIntakeCallback:

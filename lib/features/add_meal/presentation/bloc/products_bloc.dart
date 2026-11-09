@@ -33,7 +33,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   int _generation = 0;
 
   ProductsBloc(this._searchProductUseCase, this._getConfigUsecase)
-      : super(ProductsInitial()) {
+    : super(ProductsInitial()) {
     on<LoadProductsEvent>(
       (event, emit) => _loadProducts(event.searchString, emit, force: true),
     );
@@ -95,9 +95,31 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       emit(ProductsLoadingState());
     }
     try {
-      final result = await _searchProductUseCase.searchOFFProductsByString(
+      final remote = _searchProductUseCase.searchOFFProductsByString(
         searchString,
+        remoteTimeout: searchRemoteDeadline,
       );
+      final completedBeforePreview = await completedBeforeSearchPreview(remote);
+      if (!completedBeforePreview) {
+        final local = await _searchProductUseCase.searchOFFProductsByString(
+          searchString,
+          skipRemote: true,
+        );
+        if (!emit.isDone && run == _generation) {
+          final config = await _getConfigUsecase.getConfig();
+          if (!emit.isDone && run == _generation) {
+            emit(
+              ProductsLoadedState(
+                products: local.meals,
+                usesImperialUnits: config.usesImperialFoodUnits,
+                remotePending: true,
+                query: searchString,
+              ),
+            );
+          }
+        }
+      }
+      final result = await remote;
       final config = await _getConfigUsecase.getConfig();
       // Cancelled by a newer debounced event while awaiting: the emit below
       // would be a no-op, so this run must not register as completed. A
