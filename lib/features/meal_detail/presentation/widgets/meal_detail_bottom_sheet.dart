@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dar
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/util/quick_serving_option.dart';
+import 'package:opennutritracker/features/meal_detail/util/unit_change.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailBottomSheet extends StatefulWidget {
@@ -258,6 +259,27 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                                 ..._getOtherDropdownItems(context),
                               ],
                               onChanged: (value) {
+                                // The same amount of food in the new unit,
+                                // not the old number: 180 g becomes 1
+                                // serving, not 180 servings.
+                                final converted = value == null
+                                    ? null
+                                    : amountInUnit(
+                                        widget.quantityTextController.text,
+                                        widget.selectedUnit,
+                                        value,
+                                        widget.product,
+                                      );
+                                if (converted != null) {
+                                  // Without the listener, so the new number
+                                  // is not first read in the old unit.
+                                  widget.quantityTextController
+                                      .removeListener(_onQuantityChanged);
+                                  widget.quantityTextController.text =
+                                      converted;
+                                  widget.quantityTextController
+                                      .addListener(_onQuantityChanged);
+                                }
                                 widget.onQuantityOrUnitChanged(
                                   widget.quantityTextController.text,
                                   value,
