@@ -20,8 +20,8 @@ void main() {
     });
 
     tearDown(() async {
-      await Hive.close();
-      Hive.deleteFromDisk();
+      // deleteFromDisk removes only open boxes, so it runs before any close
+      await Hive.deleteFromDisk();
     });
 
     test('addTemplate persists and allTemplates returns it alphabetised',
