@@ -120,13 +120,7 @@ LogTrayItem? defaultLogTrayItem(
   required bool usesImperialUnits,
   required bool defaultToRawFoodUnits,
 }) {
-  final n = meal.nutriments;
-  if (n.energyKcal100 == null ||
-      n.carbohydrates100 == null ||
-      n.fat100 == null ||
-      n.proteins100 == null) {
-    return null;
-  }
+  if (meal.missingRequiredNutrients.isNotEmpty) return null;
 
   final String unit;
   final double quantity;
