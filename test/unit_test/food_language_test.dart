@@ -230,6 +230,26 @@ void main() {
       expect(MealEntity.fromOFFProduct(product()).name, 'Tomatoes');
     });
 
+    test('a blank French or Russian name falls back to English', () {
+      for (final (locale, blank) in [
+        (const Locale('fr', 'FR'), product(fr: ' ')),
+        (const Locale('fr', 'FR'), product(fr: '\t\n')),
+        (const Locale('ru', 'RU'), product(ru: ' ')),
+        (const Locale('ru', 'RU'), product(ru: ' ')),
+      ]) {
+        device([locale]);
+        expect(MealEntity.fromOFFProduct(blank).name, 'Tomatoes');
+      }
+    });
+
+    test('a blank English name does not hide the main-language one', () {
+      device(const [Locale('fr', 'FR')]);
+      expect(
+        MealEntity.fromOFFProduct(product(fr: ' ', en: '  ')).name,
+        'Tomates (main language)',
+      );
+    });
+
     test('keeps French as the last fallback for other languages', () {
       // Unchanged from before #1326: product_name still beats French.
       expect(

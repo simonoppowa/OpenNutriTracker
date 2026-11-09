@@ -140,7 +140,9 @@ class OFFProductDTO {
     SupportedLanguage.pl || SupportedLanguage.zh => null,
   };
 
-  static bool _present(String? name) => name != null && name.isNotEmpty;
+  /// A whitespace-only name counts as absent (user-edited OFF fields can
+  /// hold one): it would show a blank meal name over a usable fallback.
+  static bool _present(String? name) => name != null && name.trim().isNotEmpty;
 
   OFFProductDTO({
     required this.code,
