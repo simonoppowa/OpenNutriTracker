@@ -251,8 +251,7 @@ void main() {
         expect(
           indexed,
           isNot(contains(word)),
-          reason:
-              '"$word" is already in the name or subtitle; Apple combines '
+          reason: '"$word" is already in the name or subtitle; Apple combines '
               'those fields when indexing, so repeating it wastes a slot',
         );
       }
