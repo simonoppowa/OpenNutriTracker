@@ -73,17 +73,22 @@ jobs:
           test/unit_test/products_bloc_search_test.dart
           test/unit_test/search_products_usecase_test.dart
 
-      - name: Check required food database secrets
+      - name: Check optional food database configuration
+        id: backend
         env:
           SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
           SUPABASE_PROJECT_ANON_KEY: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
         run: |
           if [[ -z "$SUPABASE_PROJECT_URL" || -z "$SUPABASE_PROJECT_ANON_KEY" ]]; then
-            echo "::error::Add SUPABASE_PROJECT_URL and SUPABASE_PROJECT_ANON_KEY under Settings > Secrets and variables > Actions to build a search-enabled APK."
-            exit 1
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Building with Supabase placeholders. Open Food Facts and local foods remain available; Supabase food search needs project configuration."
+            echo "Supabase is not configured. This APK can use Open Food Facts and local foods, but Supabase reference-food search will be unavailable." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create environment for search-enabled APK
+      - name: Create environment with Supabase configuration
+        if: steps.backend.outputs.configured == 'true'
         uses: ./.github/actions/write-env-file
         with:
           sentry_dns: https://stub@sentry.io/0
@@ -91,6 +96,7 @@ jobs:
           supabase_project_anon_key: ${{ secrets.SUPABASE_PROJECT_ANON_KEY }}
 
       - name: Regenerate Dart sources with search credentials
+        if: steps.backend.outputs.configured == 'true'
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build feature PR-test debug APK
