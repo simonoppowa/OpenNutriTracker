@@ -1504,6 +1504,7 @@
   "logTrayTitle": "To log · {count}",
   "@logTrayTitle": {"placeholders": {"count": {"type": "int"}}},
   "logTrayRemoveLabel": "Remove from list",
+  "logTrayEditAmountLabel": "Change amount",
   "logTrayAddedLabel": "Added to list",
   "logTrayLogFailedLabel": "Couldn't log these items. Try again.",
   "settingsHealthSyncSubtitle": "Import workouts",
