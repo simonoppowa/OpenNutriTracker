@@ -376,6 +376,50 @@ void main() {
       expect(result.value, closeTo(UnitCalc.lbsToKg(80), 1e-6));
     });
   });
+
+  group('stones', () {
+    // Stones always use the text fields. They must open on the stored weight,
+    // not on 0 st 0 lb, and OK must save it unchanged.
+    Future<void> expectSeededAndSaved(
+      WidgetTester tester,
+      Widget dialog,
+      double Function(Object? popped) kgOf,
+    ) async {
+      final popped = await _openDialog(tester, dialog);
+
+      expect(find.widgetWithText(TextField, '11'), findsOneWidget);
+      expect(find.widgetWithText(TextField, '0.3'), findsOneWidget);
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(kgOf(popped.single), closeTo(70, 1e-9));
+    }
+
+    testWidgets('the weight dialog opens on the stored weight', (tester) async {
+      await expectSeededAndSaved(
+        tester,
+        SetWeightDialog(
+          initialKg: 70,
+          unit: BodyWeightUnit.st,
+          configRepository: _FakeConfigRepository(),
+        ),
+        (popped) => popped as double,
+      );
+    });
+
+    testWidgets('the target dialog opens on the stored weight', (tester) async {
+      await expectSeededAndSaved(
+        tester,
+        SetTargetWeightDialog(
+          initialKg: 70,
+          hasExistingTarget: false,
+          unit: BodyWeightUnit.st,
+          configRepository: _FakeConfigRepository(),
+        ),
+        (popped) => (popped as TargetWeightDialogResult).value!,
+      );
+    });
+  });
   group('dialog title beside the mode toggle', () {
     // The toggle now shares the title row, so at a large font the title must
     // ellipsize on one line rather than overflow. AutoSizeText cannot be used

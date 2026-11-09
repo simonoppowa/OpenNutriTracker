@@ -63,10 +63,9 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
     super.initState();
     _pickerDisplayWeight = _toDisplay(widget.initialKg);
     _pickerAnchorWeight = _pickerDisplayWeight;
-    _textKg = ValueValidator.parseWeightInKg(
-      _pickerDisplayWeight,
-      isImperial: widget.unit == BodyWeightUnit.lb,
-    );
+    // Validated from the stored kg, not the picker value: for stones the
+    // picker value is only a 0 placeholder.
+    _textKg = ValueValidator.parseWeightInKg(widget.initialKg);
     final now = DateTime.now();
     _selectedDate = DateTime(now.year, now.month, now.day);
     _loadInputPreference();
