@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/add_meal/presentation/screens/bulk_add
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/recipe_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/log_tray_widgets.dart';
@@ -60,6 +61,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
   late RecentMealBloc _recentMealBloc;
   late FavouriteMealBloc _favouriteMealBloc;
   late AddMealBloc _addMealBloc;
+
+  /// The Recipes source (#1284), made the first time it is picked: most
+  /// visits never open it, and it watches the recipe box while it lives.
+  RecipeMealBloc? _recipeMealBlocOrNull;
+  RecipeMealBloc get _recipeMealBloc =>
+      _recipeMealBlocOrNull ??= locator<RecipeMealBloc>();
 
   /// Whether the Describe tile's panel is open under the tiles.
   bool _describeOpen = false;
@@ -125,6 +132,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
   void dispose() {
     _searchStringListener.dispose();
     _favouriteMealBloc.close();
+    _recipeMealBlocOrNull?.close();
     _addMealBloc.close();
     _logTray.dispose();
     super.dispose();
@@ -339,13 +347,20 @@ class _AddMealScreenState extends State<AddMealScreen> {
     );
   }
 
+  void _onRecipesRefreshButtonPressed() {
+    _recipeMealBloc.add(
+      LoadRecipeMealEvent(searchString: _searchStringListener.value),
+    );
+  }
+
   /// Resolves the source to search for a query: an empty query always returns
   /// to Recent; a non-empty query searches Products by default, unless the user
   /// has explicitly chosen Food. Keeps the chip selection and the results in sync.
-  /// Favourites is the exception — a chosen list the query filters, so typing
-  /// or clearing the field keeps the user on it.
+  /// Favourites and Recipes are the exception — chosen lists the query
+  /// filters, so typing or clearing the field keeps the user on them.
   _SearchSource _resolveSource(String trimmed) {
     if (_source == _SearchSource.favourites) return _SearchSource.favourites;
+    if (_source == _SearchSource.recipes) return _SearchSource.recipes;
     if (trimmed.isEmpty) return _SearchSource.recent;
     if (_source == _SearchSource.recent) {
       // Typing searches every source at once (All) by default — unless the
@@ -391,6 +406,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     if (source == _SearchSource.favourites) {
       _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: inputText));
     }
+    if (source == _SearchSource.recipes) {
+      _recipeMealBloc.add(LoadRecipeMealEvent(searchString: inputText));
+    }
   }
 
   /// Debounced search-as-you-type. Recent filters local intake history; the
@@ -416,6 +434,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     if (source == _SearchSource.favourites) {
       _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: inputText));
     }
+    if (source == _SearchSource.recipes) {
+      _recipeMealBloc.add(LoadRecipeMealEvent(searchString: inputText));
+    }
   }
 
   void _selectSource(_SearchSource source) {
@@ -435,6 +456,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
     }
     if (source == _SearchSource.favourites) {
       _favouriteMealBloc.add(LoadFavouriteMealEvent(searchString: query));
+    }
+    if (source == _SearchSource.recipes) {
+      _recipeMealBloc.add(LoadRecipeMealEvent(searchString: query));
     }
   }
 
@@ -465,6 +489,10 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 _SearchSource.favourites,
                 S.of(context).favouritesLabel,
               ),
+            ),
+            Semantics(
+              identifier: 'add-meal-source-recipes',
+              child: chip(_SearchSource.recipes, S.of(context).recipesLabel),
             ),
             chip(_SearchSource.all, S.of(context).allItemsLabel),
             chip(_SearchSource.products, S.of(context).searchProductsPage),
@@ -773,6 +801,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
         );
       case _SearchSource.favourites:
         return _buildFavouriteResults(context, query);
+      case _SearchSource.recipes:
+        return _buildRecipeResults(context, query);
       case _SearchSource.recent:
         return BlocBuilder<RecentMealBloc, RecentMealState>(
           bloc: _recentMealBloc,
@@ -878,6 +908,59 @@ class _AddMealScreenState extends State<AddMealScreen> {
             errorText: S.of(context).errorLoadingFavourites,
             onRefreshPressed: _onFavouritesRefreshButtonPressed,
             retryIdentifier: 'add-meal-favourites-retry',
+          );
+        }
+        return const SizedBox();
+      },
+    );
+  }
+
+  /// Every saved recipe, A to Z (#1284); the query filters it. A row is the
+  /// same card search shows, so tapping it opens the same detail page.
+  Widget _buildRecipeResults(BuildContext context, String query) {
+    return BlocBuilder<RecipeMealBloc, RecipeMealState>(
+      bloc: _recipeMealBloc,
+      builder: (context, state) {
+        if (state is RecipeMealInitial) {
+          _recipeMealBloc.add(LoadRecipeMealEvent(searchString: query));
+          return const SizedBox();
+        } else if (state is RecipeMealLoadingState) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 32),
+            child: CircularProgressIndicator(),
+          );
+        } else if (state is RecipeMealLoadedState) {
+          if (state.recipes.isNotEmpty) {
+            return Semantics(
+              identifier: 'add-meal-recipes-list',
+              container: true,
+              child: ListView.builder(
+                itemCount: state.recipes.length,
+                itemBuilder: (context, index) =>
+                    _mealCard(state.recipes[index], state.usesImperialUnits),
+              ),
+            );
+          }
+          if (query.trim().isEmpty) {
+            // Scrollable for the same reason as the empty Recent hint.
+            return SingleChildScrollView(
+              child: EmptyHint(
+                icon: Icons.menu_book_rounded,
+                title: S.of(context).recipesEmptyLabel,
+                subtitle: S.of(context).recipesEmptyHint,
+              ),
+            );
+          }
+          return NoResultsWidget(
+            onScanBarcode: _onBarcodeIconPressed,
+            onCreateCustomFood: () =>
+                _onCustomAddButtonPressed(state.usesImperialUnits),
+          );
+        } else if (state is RecipeMealFailedState) {
+          return ErrorDialog(
+            errorText: S.of(context).recipesLoadErrorLabel,
+            onRefreshPressed: _onRecipesRefreshButtonPressed,
+            retryIdentifier: 'add-meal-recipes-retry',
           );
         }
         return const SizedBox();
@@ -1157,4 +1240,4 @@ class AddMealScreenArguments {
   AddMealScreenArguments(this.mealType, this.day);
 }
 
-enum _SearchSource { recent, favourites, all, products, food }
+enum _SearchSource { recent, favourites, recipes, all, products, food }

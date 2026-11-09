@@ -7,4 +7,7 @@ class GetAllRecipesUseCase {
   GetAllRecipesUseCase(this._repository);
 
   List<RecipeEntity> getAll() => _repository.getAllRecipes();
+
+  /// Fires after every recipe saved, edited or deleted.
+  Stream<void> watch() => _repository.watch();
 }

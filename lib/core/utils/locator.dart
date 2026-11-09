@@ -110,6 +110,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_t
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/bloc/recipe_meal_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
@@ -391,6 +392,9 @@ Future<void> initLocator() async {
   // #1307: the add-food Favourites source. Factory, and closed by the screen,
   // because it holds a subscription to the favourites box.
   locator.registerFactory(() => FavouriteMealBloc(locator(), locator()));
+  // #1284: the add-food Recipes source. Factory, and closed by the screen,
+  // because it holds a subscription to the recipe box.
+  locator.registerFactory(() => RecipeMealBloc(locator(), locator()));
   // One per star, closed by the star's widget.
   locator.registerFactory(() => FavouriteToggleBloc(locator(), locator()));
   // #84: fasting timer. Factory so the screen-scoped timer and dialog
