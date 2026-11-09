@@ -1,4 +1,3 @@
-
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -327,6 +326,35 @@ class SpFoodDataSource {
 
     if (unrankedRows.isEmpty) return const [];
 
+    // The source filter has to run before the cut, not after it (#1272).
+    // food_translation has no source column, so the pool is drawn from every
+    // source; cut first and the twenty can be all rows of a disabled source,
+    // which the filter then empties. With FDC off in German that is the
+    // common case on the resolver's page, where every BLS row takes the
+    // no-portion penalty and twenty portion-bearing FDC rows outrank it.
+    // So when a filter is set, the summaries for the whole pool are fetched
+    // with it first, and only the rows that come back are ranked. With every
+    // source enabled there is nothing to filter, and only the twenty are
+    // fetched, after the cut, as before.
+    List<Map<String, dynamic>>? enabledSummaries;
+    var pool = unrankedRows;
+    if (enabledSources != null) {
+      enabledSummaries = await _rpcRows(client, SPConst.foodSummaryByIdsFn, {
+        'ids': {
+          for (final row in unrankedRows) row[SPConst.translationFoodId] as int,
+        }.toList(),
+        'sources': enabledSources,
+      });
+      final enabledIds = {
+        for (final summary in enabledSummaries) summary[SPConst.foodId],
+      };
+      pool = [
+        for (final row in unrankedRows)
+          if (enabledIds.contains(row[SPConst.translationFoodId])) row,
+      ];
+      if (pool.isEmpty) return const [];
+    }
+
     // PostgREST's `order` query parameter only accepts column references,
     // not computed expressions — `.order(ts_rank(...))` is rejected outright
     // with a parse error (PGRST100), so translated-text relevance has to be
@@ -334,7 +362,7 @@ class SpFoodDataSource {
     // _searchEnglish). Rank the whole candidate pool, then truncate — see
     // _candidatePoolSize for why truncating first would be wrong.
     final translationRows = rankAndTruncateTranslationRows(
-      [...unrankedRows],
+      [...pool],
       searchString,
       forResolution: forResolution,
     );
@@ -357,18 +385,23 @@ class SpFoodDataSource {
       for (final (rank, foodId) in nameByFoodId.keys.indexed) foodId: rank,
     };
 
-    // The source filter is applied on the summary fetch rather than the
-    // translation match: food_translation has no source column.
-    //
     // An RPC for the same reason the search above is one, and it is worth
     // being explicit about why: these ids are *derived from the search
     // term*, so an `in.(...)` filter would put a fingerprint of what the
     // user typed straight back into the URL the gateway logs. Removing the
     // term while leaving its shadow behind would not be worth doing.
-    final response = await _rpcRows(client, SPConst.foodSummaryByIdsFn, {
-      'ids': nameByFoodId.keys.toList(),
-      'sources': enabledSources,
-    });
+    //
+    // With a filter set, the summaries were fetched above for the whole
+    // pool; the twenty kept are taken from those.
+    final response = enabledSummaries != null
+        ? [
+            for (final summary in enabledSummaries)
+              if (nameByFoodId.containsKey(summary[SPConst.foodId])) summary,
+          ]
+        : await _rpcRows(client, SPConst.foodSummaryByIdsFn, {
+            'ids': nameByFoodId.keys.toList(),
+            'sources': enabledSources,
+          });
 
     // A WHERE-IN fetch has no guaranteed relationship to its id list's
     // order, so re-sort onto the translation-relevance order captured above
@@ -586,13 +619,16 @@ List<T> _rankAndTruncate<T>(
         portioned: hasPortion(item) == true ? 1 : 0,
       ),
   ];
-  mergeSort(decorated, compare: (a, b) {
-    final byScore = b.score.compareTo(a.score);
-    if (byScore != 0) return byScore;
-    final byLength = a.length.compareTo(b.length);
-    if (byLength != 0) return byLength;
-    return b.portioned.compareTo(a.portioned);
-  });
+  mergeSort(
+    decorated,
+    compare: (a, b) {
+      final byScore = b.score.compareTo(a.score);
+      if (byScore != 0) return byScore;
+      final byLength = a.length.compareTo(b.length);
+      if (byLength != 0) return byLength;
+      return b.portioned.compareTo(a.portioned);
+    },
+  );
   return [
     for (final entry in decorated.take(SPConst.maxNumberOfItems)) entry.item,
   ];
