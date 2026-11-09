@@ -107,6 +107,7 @@ class OffMicronutrientRepair {
       backendSource: meal.backendSource,
       machineTranslatedName: meal.machineTranslatedName,
       dataVersion: MealDBO.dataVersionOffMicronutrientsInAppUnits,
+      fixedTotals: meal.fixedTotals,
     );
   }
 

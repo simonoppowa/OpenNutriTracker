@@ -32,6 +32,16 @@ class IntakeEntity extends Equatable {
     );
   }
 
+  /// True when this entry is a Quick Add without a weight (#705): its
+  /// totals are the values the user typed and there is no weight to show or
+  /// to scale them by.
+  ///
+  /// Only at the basis the meal was stored for. The same meal logged again
+  /// at another amount — from Recents, through its detail screen — has
+  /// scaled totals, so it shows and edits its amount like any other food.
+  bool get hasFixedTotals =>
+      meal.fixedTotals && amount == MealEntity.fixedTotalsBasis;
+
   double get totalKcal => amount * (meal.nutriments.energyPerUnit ?? 0);
 
   double get totalCarbsGram =>

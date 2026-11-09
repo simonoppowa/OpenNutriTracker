@@ -645,19 +645,19 @@ void main() {
     });
 
     test('a user_intake.csv without the version column is scaled', () {
+      // A pre-#1152 export had neither `meal_data_version` nor the
+      // `meal_fixed_totals` column appended after it (#705).
       final legacyColumns = CsvDataExporter.intakeColumns
-          .where((c) => c != 'meal_data_version')
+          .where((c) => c != 'meal_data_version' && c != 'meal_fixed_totals')
           .toList();
       final csv = CsvDataExporter.intakesToCsv([
         _intake('old', _meal(source: MealSourceDBO.off)),
       ]);
-      // Drop the trailing column the old exporter did not have.
+      // Drop the two trailing columns the old exporter did not have.
+      String dropLast(String line) => line.substring(0, line.lastIndexOf(','));
       final legacyCsv = csv
           .split('\n')
-          .map(
-            (line) =>
-                line.isEmpty ? line : line.substring(0, line.lastIndexOf(',')),
-          )
+          .map((line) => line.isEmpty ? line : dropLast(dropLast(line)))
           .join('\n');
       expect(legacyCsv.split('\n').first, legacyColumns.join(','));
 
@@ -673,7 +673,7 @@ void main() {
       final csv = CsvDataExporter.intakesToCsv([
         _intake('new', _mealWrittenAfter775()),
       ]);
-      expect(csv.split('\n').first, endsWith(',meal_data_version'));
+      expect(csv.split('\n').first.split(','), contains('meal_data_version'));
 
       final parsed = CsvDataExporter.parseIntakesFromCsv(csv).single;
 

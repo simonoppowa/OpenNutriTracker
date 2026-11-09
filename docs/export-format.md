@@ -148,7 +148,8 @@ Array of intake records:
         "vitaminB12100": null,
         "niacin100": null
       },
-      "dataVersion": 1                // see "Micronutrient units" below
+      "dataVersion": 1,               // see "Micronutrient units" below
+      "fixedTotals": null             // true only on a Quick Add without a weight; see below
     }
   }
 ]
@@ -176,6 +177,18 @@ custom meals and the recipe library. Saved custom meals are not part of the
 bundle, so they are repaired on the device only (the app itself never saves
 an `off` product for reuse, so that box is covered for completeness rather
 than for a known row).
+
+#### Quick Add without a weight
+
+A Quick Add entry saved without a weight
+([#705](https://github.com/simonoppowa/OpenNutriTracker/issues/705)) holds
+the totals the user typed as per-100 values, logged at `amount: 100`, and
+its meal carries `"fixedTotals": true` (`meal_fixed_totals` = `true` in the
+CSV). The app then shows it without a weight and does not let its amount
+be changed. The field is absent or `null` everywhere else, including on
+Quick Add entries saved before it existed, which keep showing 100 g/ml. A
+Quick Add saved with a weight is an ordinary entry: per-100 values and the
+real weight as its `amount`.
 
 ### `user_activity.json`
 
@@ -412,6 +425,7 @@ Header lookup is case-insensitive.
 | `vitamin_b12_per_100g`          | number | no       | µg.                                            |
 | `niacin_per_100g`               | number | no       | mg (B3).                                       |
 | `meal_data_version`             | number | no       | See [Micronutrient units](#micronutrient-units-on-open-food-facts-rows). |
+| `meal_fixed_totals`             | string | no       | `true` on a Quick Add saved without a weight, empty otherwise. See [Quick Add without a weight](#quick-add-without-a-weight). |
 
 ### `user_activity.csv`
 
