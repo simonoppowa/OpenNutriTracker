@@ -7,11 +7,15 @@ import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// The "To log" list on the add-food screen: what has been picked so far,
-/// each with a way to take it off again.
+/// each with a way to take it off again, and a tap to change its amount.
 class LogTrayList extends StatelessWidget {
   final LogTray tray;
 
-  const LogTrayList({super.key, required this.tray});
+  /// Opens a row's food with its amount, so the amount can be changed
+  /// before logging. Only rows that [LogTrayItem.canChangeAmount] react.
+  final ValueChanged<LogTrayItem>? onEdit;
+
+  const LogTrayList({super.key, required this.tray, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +76,9 @@ class LogTrayList extends StatelessWidget {
                   child: _LogTrayRow(
                     item: items[i],
                     onRemove: () => tray.removeAt(i),
+                    onTap: onEdit != null && items[i].canChangeAmount
+                        ? () => onEdit!(items[i])
+                        : null,
                   ),
                 ),
             ],
@@ -86,7 +93,10 @@ class _LogTrayRow extends StatelessWidget {
   final LogTrayItem item;
   final VoidCallback onRemove;
 
-  const _LogTrayRow({required this.item, required this.onRemove});
+  /// Null on a row with no amount to change (Quick add).
+  final VoidCallback? onTap;
+
+  const _LogTrayRow({required this.item, required this.onRemove, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -95,66 +105,83 @@ class _LogTrayRow extends StatelessWidget {
         : AppPalette.light;
     final accent = Theme.of(context).colorScheme.primary;
     final textTheme = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 4, 10),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: const BorderRadius.all(Radius.circular(22)),
-        border: Border.all(
+    const radius = BorderRadius.all(Radius.circular(22));
+    final row = Material(
+      color: palette.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(
           color: accent.withValues(alpha: 0.45),
           width: Dimens.hairline,
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: palette.surfaceMuted,
-              borderRadius: Dimens.borderRadiusS,
-            ),
-            child: Icon(Icons.restaurant_rounded, size: 20, color: accent),
-          ),
-          const SizedBox(width: Dimens.spacing12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AutoSizeText(
-                  item.meal.name ?? '?',
-                  maxLines: 1,
-                  minFontSize: 12,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 4, 10),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: palette.surfaceMuted,
+                  borderRadius: Dimens.borderRadiusS,
                 ),
-                Text(
-                  '${item.amountLabel} · '
-                  '${logTrayKcalLabel(context, item.kcal)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: palette.textMuted,
-                  ),
+                child: Icon(Icons.restaurant_rounded, size: 20, color: accent),
+              ),
+              const SizedBox(width: Dimens.spacing12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AutoSizeText(
+                      item.meal.name ?? '?',
+                      maxLines: 1,
+                      minFontSize: 12,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      '${item.amountLabel} · '
+                      '${logTrayKcalLabel(context, item.kcal)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: palette.textMuted,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              // One identifier for every row's control: the rows are found by
+              // their food's name, and an index in the id would shift whenever
+              // an earlier row is removed.
+              Semantics(
+                identifier: 'add-meal-tray-remove',
+                child: IconButton(
+                  onPressed: onRemove,
+                  tooltip: S.of(context).logTrayRemoveLabel,
+                  icon: Icon(Icons.close_rounded, color: palette.textMuted),
+                ),
+              ),
+            ],
           ),
-          // One identifier for every row's control: the rows are found by
-          // their food's name, and an index in the id would shift whenever
-          // an earlier row is removed.
-          Semantics(
-            identifier: 'add-meal-tray-remove',
-            child: IconButton(
-              onPressed: onRemove,
-              tooltip: S.of(context).logTrayRemoveLabel,
-              icon: Icon(Icons.close_rounded, color: palette.textMuted),
-            ),
-          ),
-        ],
+        ),
       ),
+    );
+    if (onTap == null) return row;
+    // One identifier for every tappable row, like the remove control: rows
+    // are found by their food's name.
+    // The hint tells a screen reader what a tap on the row does; the
+    // remove control beside it keeps its own tooltip.
+    return Semantics(
+      identifier: 'add-meal-tray-edit',
+      onTapHint: S.of(context).logTrayEditAmountLabel,
+      child: row,
     );
   }
 }
