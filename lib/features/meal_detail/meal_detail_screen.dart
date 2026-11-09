@@ -431,6 +431,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       intakeTypeEntity,
                       _usesImperialUnits,
                       logTray: _logTray,
+                      editingTrayItem: _editingTrayItem,
                     ),
                   );
                 },
