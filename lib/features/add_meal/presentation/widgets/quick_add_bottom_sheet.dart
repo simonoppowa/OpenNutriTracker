@@ -101,7 +101,9 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     final raw = c.text.trim().replaceAll(',', '.');
     if (raw.isEmpty) return null;
     final value = double.tryParse(raw);
-    if (value == null || value < 0) return null;
+    // tryParse reads "NaN" and "Infinity" too, and the field takes letters:
+    // either would store totals that cannot be shown (#705 review).
+    if (value == null || !value.isFinite || value < 0) return null;
     return value;
   }
 

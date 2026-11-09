@@ -197,7 +197,7 @@ void main() {
   });
 
   group('an invalid weight blocks the entry', () {
-    for (final weight in ['0', '0.0', '-50', '.']) {
+    for (final weight in ['0', '0.0', '-50', '.', 'NaN', 'Infinity']) {
       testWidgets('"$weight"', (tester) async {
         final tray = await _openSheet(tester);
         await _fill(tester, weight: weight);
@@ -208,6 +208,18 @@ void main() {
         expect(tray.items, isEmpty);
       });
     }
+
+    testWidgets('an energy of NaN or Infinity blocks the entry too', (
+      tester,
+    ) async {
+      final tray = await _openSheet(tester);
+      for (final energy in ['NaN', 'Infinity']) {
+        await _fill(tester, energy: energy, weight: '200');
+        expect(_submitEnabled(tester), isFalse, reason: energy);
+      }
+      await _submit(tester);
+      expect(tray.items, isEmpty);
+    });
 
     testWidgets('clearing it again allows a fixed total', (tester) async {
       final tray = await _openSheet(tester);
