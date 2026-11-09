@@ -147,9 +147,13 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
+    // A row already on the list (the review screen accepts a food with a
+    // value missing) keeps the warning but can still change its amount.
+    final amountLocked =
+        productMissingRequiredInfo && widget.editingTrayItem == null;
     final logTray = widget.logTray;
     final addsToList = _addsToList;
-    final canSubmit = !productMissingRequiredInfo && !_submitting;
+    final canSubmit = !amountLocked && !_submitting;
     final missingFieldsText = S.of(
       context,
     ).missingProductInfoFields(_missingRequiredProductInfo().join(', '));
@@ -164,7 +168,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         // typing. Uses the food's own serving when it has one and 100 g
         // for solids. Computed once so the collection-if below can drop
         // the row entirely when nothing applies (no orphan SizedBox).
-        final quickOptions = productMissingRequiredInfo
+        final quickOptions = amountLocked
             ? const <QuickServingOption>[]
             : quickServingOptionsFor(
                 widget.product,
@@ -193,7 +197,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         children: [
                           Expanded(
                             child: TextFormField(
-                              enabled: !productMissingRequiredInfo,
+                              enabled: !amountLocked,
                               controller: widget.quantityTextController,
                               focusNode: _quantityFocusNode,
                               onTap: _selectAllQuantityText,

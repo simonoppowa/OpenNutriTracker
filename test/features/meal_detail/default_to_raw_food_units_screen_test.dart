@@ -333,6 +333,43 @@ void main() {
       expect(quantityField(tester), '330');
     });
 
+    testWidgets('a unit hydration takes away is swapped, keeping the amount', (
+      tester,
+    ) async {
+      // Read as a solid from the thin hit, a drink once the full record
+      // arrives: the dropdown no longer lists g.
+      final thin = MealEntity(
+        code: 'thin-off-turns-liquid',
+        name: 'Thin OFF drink',
+        url: null,
+        mealQuantity: '100',
+        mealUnit: 'g',
+        servingQuantity: null,
+        servingUnit: null,
+        servingSize: null,
+        nutriments: _nutriments,
+        source: MealSourceEntity.off,
+      );
+      hydratedFor = MealEntity(
+        code: 'thin-off-turns-liquid',
+        name: 'Thin OFF drink',
+        url: null,
+        mealQuantity: '100',
+        mealUnit: 'ml',
+        servingQuantity: null,
+        servingUnit: null,
+        servingSize: null,
+        nutriments: _nutriments,
+        source: MealSourceEntity.off,
+        detailed: true,
+      );
+      await pumpMealDetail(tester, thin, editing: row(thin, 200, 'g', 200));
+
+      expect(bloc!.state.selectedUnit, 'ml');
+      expect(bloc!.state.totalQuantityConverted, '200.0');
+      expect(quantityField(tester), '200');
+    });
+
     testWidgets('a unit the screen does not offer opens as its weight', (
       tester,
     ) async {

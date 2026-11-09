@@ -427,6 +427,84 @@ void main() {
     expect(tray.items.single.amount, 80);
   });
 
+  testWidgets('a row whose food lacks a value can still change its amount', (
+    tester,
+  ) async {
+    // The review screen accepts a food with a macro missing; once it is on
+    // the list its amount must stay changeable, warning and all.
+    final noProtein = MealEntity(
+      code: 'no-protein',
+      name: 'Mystery bar',
+      url: null,
+      mealQuantity: null,
+      mealUnit: 'g',
+      servingQuantity: null,
+      servingUnit: 'g',
+      servingSize: null,
+      nutriments: const MealNutrimentsEntity(
+        energyKcal100: 400,
+        carbohydrates100: 50,
+        fat100: 20,
+        proteins100: null,
+        sugars100: null,
+        saturatedFat100: null,
+        fiber100: null,
+      ),
+      source: MealSourceEntity.custom,
+    );
+    final bloc = _CountingMealDetailBloc();
+    addTearDown(bloc.close);
+    final tray = LogTray();
+    addTearDown(tray.dispose);
+    final editing = LogTrayItem(
+      meal: noProtein,
+      unit: 'g',
+      amount: 50,
+      amountLabel: '50 g',
+      quantity: 50,
+      selectedUnit: 'g',
+    );
+    tray.add(editing);
+    bloc.add(
+      UpdateKcalEvent(meal: noProtein, totalQuantity: '80', selectedUnit: 'g'),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: S.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: MealDetailBottomSheet(
+              product: noProtein,
+              day: DateTime(2026, 10, 5),
+              intakeTypeEntity: IntakeTypeEntity.breakfast,
+              quantityTextController: TextEditingController(text: '80'),
+              mealDetailBloc: bloc,
+              selectedUnit: 'g',
+              onQuantityOrUnitChanged: (_, _) {},
+              logTray: tray,
+              editingTrayItem: editing,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<TextField>(find.byType(TextField)).enabled, isTrue);
+    expect(find.textContaining(l10nEn.missingProductInfo), findsOneWidget);
+    await tester.tap(find.bySemanticsIdentifier('meal-detail-add'));
+    await tester.pumpAndSettle();
+
+    expect(bloc.saves, 0);
+    expect(tray.items.single.amount, 80);
+    expect(identical(tray.items.single, editing), isFalse);
+  });
+
   testWidgets('an invalid amount leaves the row as it was', (tester) async {
     GetIt.instance
       ..unregister<GetIntakeUsecase>()
