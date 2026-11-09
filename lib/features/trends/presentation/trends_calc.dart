@@ -2,6 +2,8 @@
 // unit-tested directly. The presentation layer decides what's "on track"
 // (it needs theme colours) and hands the resulting date set in here.
 
+import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
+
 /// Current and longest run of on-track days within [windowStart]..[today]
 /// (both date-only, inclusive). A day not present in [onTrackDays] — whether
 /// off-track or simply untracked — breaks the run. [current] counts the run
@@ -11,7 +13,9 @@
   DateTime windowStart,
   DateTime today,
 ) {
-  final total = today.difference(windowStart).inDays;
+  // Calendar days, not a 24-hour span: across a spring-forward the span is an
+  // hour short and `.inDays` would drop today from the window (#1224).
+  final total = CalendarDayCalc.daysBetween(windowStart, today);
   if (total < 0) return (current: 0, longest: 0);
 
   var longest = 0;
@@ -53,9 +57,11 @@
 ) {
   if (points.length < 2) return null;
 
+  // One calendar day is one x unit, however many hours it had (#1224).
   final first = points.first.date;
   final xs = [
-    for (final p in points) p.date.difference(first).inDays.toDouble(),
+    for (final p in points)
+      CalendarDayCalc.daysBetween(first, p.date).toDouble(),
   ];
   final ys = [for (final p in points) p.kg];
   final n = points.length;

@@ -114,6 +114,22 @@ class _FakeGetWaterIntakeUsecase implements GetWaterIntakeUsecase {
 WeightLogEntity _wl(DateTime date, double kg) =>
     WeightLogEntity(date: date, weightKg: kg);
 
+/// Hours in the local calendar day that starts at [day]'s midnight: 24
+/// normally, 25 on a fall-back day, 23 on a spring-forward day.
+int _hoursIn(DateTime day) =>
+    DateTime(day.year, day.month, day.day + 1).difference(day).inHours;
+
+/// The DST groups need a zone with both transitions; `just test` runs in the
+/// process zone (UTC on CI), where they skip, and `just test_dst` reruns this
+/// file under Europe/Berlin, which fell back on 2025-10-26 and springs
+/// forward on 2026-03-29.
+final String? _skipWithoutDst =
+    _hoursIn(DateTime(2025, 10, 26)) == 25 &&
+        _hoursIn(DateTime(2026, 3, 29)) == 23
+    ? null
+    : 'no DST transitions in zone ${DateTime(2026, 1, 1).timeZoneName}; '
+          'run `just test_dst` (TZ=Europe/Berlin)';
+
 void main() {
   // The bloc anchors every window on midnight-today; mirror that here so the
   // expected ranges line up with what the bloc computes.
@@ -122,6 +138,8 @@ void main() {
   // The bloc ends ranges at the close of the day so a time-stamped tracked
   // day (today's) isn't excluded.
   final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
+  // n calendar days before today, at local midnight (#1224).
+  DateTime ago(int n) => DateTime(today.year, today.month, today.day - n);
   final endOfPriorWeek =
       DateTime(now.year, now.month, now.day - 7, 23, 59, 59);
 
@@ -176,7 +194,7 @@ void main() {
       expect((emitted.last as TrendsLoaded).rangeDays, 30);
       expect(
         trackedDay.rangeCalls.first.start,
-        today.subtract(const Duration(days: 29)),
+        ago(29),
       );
     });
 
@@ -192,10 +210,10 @@ void main() {
       await load(const LoadTrendsEvent());
       // First call is the selected window, second is the prior week.
       expect(trackedDay.rangeCalls.first.start,
-          today.subtract(const Duration(days: 6)));
+          ago(6));
       expect(trackedDay.rangeCalls.first.end, endOfToday);
       expect(trackedDay.rangeCalls[1].start,
-          today.subtract(const Duration(days: 13)));
+          ago(13));
       expect(trackedDay.rangeCalls[1].end, endOfPriorWeek);
     });
 
@@ -203,7 +221,7 @@ void main() {
       final emitted = await load(const LoadTrendsEvent(rangeDays: 90));
       expect((emitted.last as TrendsLoaded).rangeDays, 90);
       expect(trackedDay.rangeCalls.first.start,
-          today.subtract(const Duration(days: 89)));
+          ago(89));
     });
 
     test('weight uses the full history, not a windowed range', () async {
@@ -213,18 +231,18 @@ void main() {
 
     test('weight entries are sorted ascending by date', () async {
       weightLog.result = [
-        _wl(today.subtract(const Duration(days: 1)), 70),
-        _wl(today.subtract(const Duration(days: 3)), 72),
-        _wl(today.subtract(const Duration(days: 2)), 71),
+        _wl(ago(1), 70),
+        _wl(ago(3), 72),
+        _wl(ago(2), 71),
       ];
       final emitted = await load(const LoadTrendsEvent());
       final dates = (emitted.last as TrendsLoaded).weight.map((e) => e.date);
       expect(
         dates.toList(),
         [
-          today.subtract(const Duration(days: 3)),
-          today.subtract(const Duration(days: 2)),
-          today.subtract(const Duration(days: 1)),
+          ago(3),
+          ago(2),
+          ago(1),
         ],
       );
     });
@@ -280,4 +298,82 @@ void main() {
       expect(emitted.map((s) => s.runtimeType), [TrendsLoading, TrendsFailed]);
     });
   });
+
+  // #1224: the tracked-day fetches start at calendar midnight. Each pinned
+  // today puts its transition inside both the 30-day window and the prior
+  // week, so `today.subtract(Duration(days: n))` would start the fetch at
+  // 01:00 (fall-back: an entry stamped before 01:00 drops out) or at 23:00
+  // the evening before (spring-forward: a day too many).
+  final pinned = {
+    'a fall-back': (
+      clock: DateTime(2025, 11, 5, 9),
+      windowStart: DateTime(2025, 10, 7),
+      priorWeekStart: DateTime(2025, 10, 23),
+    ),
+    'a spring-forward': (
+      clock: DateTime(2026, 4, 5, 9),
+      windowStart: DateTime(2026, 3, 7),
+      priorWeekStart: DateTime(2026, 3, 23),
+    ),
+  };
+  for (final MapEntry(key: name, value: p) in pinned.entries) {
+    group('TrendsBloc across $name', () {
+      late _FakeGetTrackedDayUsecase trackedDay;
+      late TrendsBloc bloc;
+      final today = DateTime(p.clock.year, p.clock.month, p.clock.day);
+
+      setUp(() {
+        TrendsBloc.clock = () => p.clock;
+        trackedDay = _FakeGetTrackedDayUsecase();
+        bloc = TrendsBloc(
+          trackedDay,
+          _FakeGetWeightLogUsecase(),
+          _FakeGetUserUsecase(),
+          _FakeGetConfigUsecase(),
+          _FakeGetWaterIntakeUsecase(),
+        );
+      });
+
+      tearDown(() async {
+        TrendsBloc.clock = DateTime.now;
+        await bloc.close();
+      });
+
+      Future<TrendsState> load(int rangeDays) async {
+        bloc.add(LoadTrendsEvent(rangeDays: rangeDays));
+        return bloc.stream.firstWhere((s) => s is! TrendsLoading);
+      }
+
+      test(
+        'the window and prior-week fetches start at calendar midnight',
+        () async {
+          await load(30);
+          expect(trackedDay.rangeCalls.first.start, p.windowStart);
+          expect(
+            trackedDay.rangeCalls.first.end,
+            DateTime(today.year, today.month, today.day, 23, 59, 59),
+          );
+          expect(trackedDay.rangeCalls[1].start, p.priorWeekStart);
+          expect(
+            trackedDay.rangeCalls[1].end,
+            DateTime(today.year, today.month, today.day - 7, 23, 59, 59),
+          );
+        },
+      );
+
+      test('a one-day range fetches today from midnight', () async {
+        await load(1);
+        expect(trackedDay.rangeCalls.first.start, today);
+      });
+
+      test('"All" with no data starts 3650 calendar days back', () async {
+        final state = await load(0) as TrendsLoaded;
+        expect(state.windowDays, 30);
+        expect(
+          trackedDay.rangeCalls.first.start,
+          DateTime(today.year, today.month, today.day - 3649),
+        );
+      });
+    }, skip: _skipWithoutDst);
+  }
 }
