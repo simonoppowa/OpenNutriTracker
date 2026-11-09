@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/util/name_word_match.dart';
 import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
 
 /// Output of a product/food search. [meals] is the deduplicated list shown
@@ -188,13 +189,13 @@ class SearchProductsUseCase {
     final fromCustomMealBox = _customMealDataSource
         .getAllCustomMeals()
         .map(MealEntity.fromMealDBO)
-        .where((meal) => _mealMatchesSearch(meal, normalizedSearchString))
+        .where((meal) => _ownMealMatchesSearch(meal, normalizedSearchString))
         .toList();
 
     final fromRecipes = _recipeDataSource
         .getAllRecipes()
         .map((dbo) => RecipeEntity.fromDBO(dbo).toMealEntity())
-        .where((meal) => _mealMatchesSearch(meal, normalizedSearchString))
+        .where((meal) => _ownMealMatchesSearch(meal, normalizedSearchString))
         .toList();
 
     final recentIntake = await _getIntakeUsecase.getRecentIntake();
@@ -290,6 +291,15 @@ class SearchProductsUseCase {
             false) ||
         (meal.brands?.toLowerCase().contains(normalizedSearchString) ?? false);
   }
+
+  /// A custom meal or recipe also matches when every search word is a word
+  /// of its name, in any order and up to an ending ("soup tomato" finds
+  /// "Tomato Soup", "pancakes" finds "Pancake"). The user named these
+  /// themselves and searches for them from memory; remote and cached
+  /// results keep the plain substring match.
+  bool _ownMealMatchesSearch(MealEntity meal, String normalizedSearchString) =>
+      _mealMatchesSearch(meal, normalizedSearchString) ||
+      nameHasQueryWords(meal.name, normalizedSearchString);
 
   /// The fresh copy of [cached] when this search's remote page returned the
   /// same record, else [cached] itself.

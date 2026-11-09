@@ -918,6 +918,43 @@ void main() {
           containsAll([MealSourceEntity.custom, MealSourceEntity.recipe]));
     });
 
+    test('a recipe matches every search word, in any order and ending',
+        () async {
+      recipeDataSource.recipes.add(_recipeDbo(id: 'r-1', name: 'Tomato Soup'));
+      recipeDataSource.recipes.add(_recipeDbo(id: 'r-2', name: 'Pancake'));
+
+      Future<List<String?>> names(String query) async =>
+          (await useCase.searchOFFProductsByString(query))
+              .meals
+              .map((m) => m.name)
+              .toList();
+
+      expect(await names('soup tomato'), ['Tomato Soup']);
+      expect(await names('pancakes'), ['Pancake']);
+      // The substring match still finds a half-typed word.
+      expect(await names('toma'), ['Tomato Soup']);
+      expect(await names('soup lentil'), isEmpty);
+    });
+
+    test('a custom meal matches every search word, in any order and ending',
+        () async {
+      customMealDataSource.meals
+          .add(_customMealDbo(code: 'cm-1', name: 'Overnight oats'));
+
+      final result = await useCase.searchFDCFoodByString('oat overnight');
+
+      expect(result.meals.map((m) => m.code), ['cm-1']);
+    });
+
+    test('cached remote results keep the substring match only', () async {
+      cachedOffMealDataSource.meals
+          .add(_offCacheDbo(code: 'off-1', name: 'Tomato Soup'));
+
+      final result = await useCase.searchOFFProductsByString('soup tomato');
+
+      expect(result.meals, isEmpty);
+    });
+
     test('recipe outranks OFF cache hit for the same search string', () async {
       recipeDataSource.recipes
           .add(_recipeDbo(id: 'r-1', name: 'Tomato Soup'));
