@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
@@ -1855,6 +1856,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
             amountLabel:
                 '${write.row.amountText.trim()} '
                 '${_unitLabel(context, write.row.effectiveUnit, write.row)}',
+            quantity: write.row.amountText.toLenientDoubleOrNull(),
+            selectedUnit: write.row.effectiveUnit,
           ),
       ]);
       setState(() => _quantityErrors.clear());
