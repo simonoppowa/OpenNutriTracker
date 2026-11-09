@@ -343,7 +343,7 @@
   "errorProductNotFound": "Продукт не найден",
   "exportAction": "Экспорт",
   "exportImportAppDataLabel": "Экспорт / импорт данных приложения",
-  "exportImportCsvRecipesNote": "CSV сохраняет активности, дневник питания и отслеживаемые дни. Рецепты, избранное и прикреплённые фото доступны только в JSON — переключитесь на JSON, если хотите сохранить их в резервной копии.",
+  "exportImportCsvRecipesNote": "CSV сохраняет вашу активность, дневник питания и отслеживаемые дни. Рецепты, избранное и прикреплённые фото доступны только в формате JSON — переключитесь на JSON, если хотите сохранить их в резервной копии.",
   "exportImportDescription": "Вы можете экспортировать данные приложения в zip-файл и импортировать их позже. Это полезно для резервного копирования или переноса на другое устройство.\n\nПриложение не использует облачные сервисы для хранения ваших данных.",
   "exportImportErrorLabel": "Ошибка экспорта / импорта",
   "exportImportSuccessLabel": "Экспорт / импорт выполнены успешно",
@@ -1704,5 +1704,9 @@
         "type": "String"
       }
     }
+  },
+  "hourShortLabel": "Ч",
+  "@hourShortLabel": {
+    "description": "Short unit after a number of hours, e.g. '4 h', read by a screen reader on the day boundary slider."
   }
 }
