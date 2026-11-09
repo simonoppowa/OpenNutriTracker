@@ -129,11 +129,15 @@ class AppPalette {
         onPrimary: onAccent,
         primaryContainer: accent,
         onPrimaryContainer: onAccent,
-        secondary: proteinColor,
+        // On the light canvas the macro teal and amber are ~3.2–4.0:1, too
+        // faint for the small text these roles colour (bulk-add warnings, the
+        // CSV export note), so light mode uses deeper shades that clear AA on
+        // the canvas, cards and muted fills. The macro colours stay as they are.
+        secondary: brightness == Brightness.light ? const Color(0xFF197469) : proteinColor,
         onSecondary: onAccent,
         secondaryContainer: surfaceMuted,
         onSecondaryContainer: textStrong,
-        tertiary: carbsColor,
+        tertiary: brightness == Brightness.light ? const Color(0xFF935D0D) : carbsColor,
         onTertiary: onAccent,
         tertiaryContainer: surfaceMuted,
         onTertiaryContainer: textStrong,
