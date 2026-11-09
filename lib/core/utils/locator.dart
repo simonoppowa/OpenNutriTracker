@@ -112,6 +112,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bl
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/edit_meal/domain/usecase/read_nutrition_label_usecase.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
 import 'package:opennutritracker/features/fasting/data/repository/fasting_repository.dart';
@@ -175,6 +176,12 @@ Future<void> initLocator() async {
       locator<AiCredentialStorage>(),
       (selection) =>
           ModelMealTextInterpreter(mealItemsApiFor(locator(), selection)),
+    ),
+  );
+  locator.registerLazySingleton<ReadNutritionLabelUseCase>(
+    () => ReadNutritionLabelUseCase(
+      locator<AiCredentialStorage>(),
+      locator<http.Client>(),
     ),
   );
   locator.registerLazySingleton<ReadMealPhotoUseCase>(

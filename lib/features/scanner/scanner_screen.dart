@@ -20,6 +20,7 @@ import 'package:opennutritracker/features/home/presentation/screens/import_meal_
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/import_recipe_scanner_screen.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:opennutritracker/features/scanner/presentation/widgets/add_missing_product_button.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -149,11 +150,34 @@ class _ScannerScreenState extends State<ScannerScreen>
             backgroundColor: palette.canvas,
             appBar: AppBar(backgroundColor: palette.canvas),
             body: Center(
-              child: ErrorDialog(
-                errorText: state.type == ScannerFailedStateType.productNotFound
-                    ? S.of(context).errorProductNotFound
-                    : S.of(context).errorFetchingProductData,
-                onRefreshPressed: _onRefreshButtonPressed,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ErrorDialog(
+                      errorText:
+                          state.type == ScannerFailedStateType.productNotFound
+                          ? S.of(context).errorProductNotFound
+                          : S.of(context).errorFetchingProductData,
+                      onRefreshPressed: _onRefreshButtonPressed,
+                    ),
+                    // A barcode nobody knows can become the user's own
+                    // meal. Not in the recipe picker, which wants a product
+                    // handed back rather than a form to fill.
+                    if (state.type == ScannerFailedStateType.productNotFound &&
+                        !_pickMode)
+                      if ((_scannedBarcode, _intakeTypeEntity, _day) case (
+                        final barcode?,
+                        final type?,
+                        final day?,
+                      ))
+                        AddMissingProductButton(
+                          barcode: barcode,
+                          intakeType: type,
+                          day: day,
+                          logTray: _logTray,
+                        ),
+                  ],
+                ),
               ),
             ),
           );
