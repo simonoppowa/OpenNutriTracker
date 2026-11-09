@@ -572,4 +572,78 @@ void main() {
       );
     });
   });
+
+  group('saved recipe names', () {
+    test('are quoted once each, up to the limit', () {
+      final prompt = savedDishesPrompt([
+        'Sklandu rauši (sklandrausis)',
+        ' pelmeni ',
+        'Pelmeni',
+        '',
+        'Grey peas "with bacon"',
+      ])!;
+      expect(
+        prompt,
+        startsWith(
+          'The user has saved these dishes: "Sklandu rauši (sklandrausis)", '
+          '"pelmeni", "Grey peas \\"with bacon\\"". ',
+        ),
+      );
+
+      final many = savedDishesPrompt([
+        for (var i = 0; i < 100; i++) 'dish $i',
+      ])!;
+      expect(many, contains('"dish ${savedDishesLimit - 1}"'));
+      expect(many, isNot(contains('"dish $savedDishesLimit"')));
+    });
+
+    test('none saved: no line', () {
+      expect(savedDishesPrompt(const []), isNull);
+      expect(savedDishesPrompt(const [' ']), isNull);
+    });
+
+    test('go in the photo prompt, after the language', () async {
+      final client = FakeClient(body: toolReply([]));
+      await ModelMealPhotoInterpreter(
+        AnthropicMealItemsApi(client, () => 'test-key'),
+        savedDishes: () => ['Pelmeni'],
+      ).interpret(_photo, localeCode: 'en');
+
+      expect(
+        client.sentBody!['system'],
+        endsWith(
+          'The user\'s app language is "en".\n'
+          '${savedDishesPrompt(['Pelmeni'])}',
+        ),
+      );
+    });
+
+    test('without them the prompt is as before', () async {
+      final client = FakeClient(body: toolReply([]));
+      await interpreterWith(client).interpret(_photo, localeCode: 'en');
+
+      expect(
+        client.sentBody!['system'],
+        endsWith('The user\'s app language is "en".'),
+      );
+    });
+
+    test('a photo is still read when they cannot be read', () async {
+      final client = FakeClient(
+        body: toolReply([
+          {'query': 'Pelmeni', 'quantity': 12},
+        ]),
+      );
+      final result = await ModelMealPhotoInterpreter(
+        AnthropicMealItemsApi(client, () => 'test-key'),
+        savedDishes: () => throw StateError('box closed'),
+      ).interpret(_photo, localeCode: 'en');
+
+      expect(result.items.single.query, 'Pelmeni');
+      expect(
+        client.sentBody!['system'],
+        endsWith('The user\'s app language is "en".'),
+      );
+    });
+  });
 }

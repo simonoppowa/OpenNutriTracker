@@ -13,6 +13,13 @@ class RecipeRepository {
   List<RecipeEntity> getAllRecipes() =>
       _dataSource.getAllRecipes().map(RecipeEntity.fromDBO).toList();
 
+  /// Every recipe's name, the latest changed first.
+  List<String> getRecipeNamesLatestFirst() {
+    final recipes = _dataSource.getAllRecipes()
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return [for (final r in recipes) r.name];
+  }
+
   RecipeEntity? getRecipeById(String id) {
     final dbo = _dataSource.getRecipeById(id);
     return dbo != null ? RecipeEntity.fromDBO(dbo) : null;
