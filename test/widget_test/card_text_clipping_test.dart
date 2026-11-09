@@ -286,7 +286,7 @@ void main() {
         final days = [
           for (var i = 0; i < 7; i++)
             TrackedDayEntity(
-              day: today.subtract(Duration(days: i)),
+              day: DateUtils.dateOnly(today.subtract(Duration(days: i))),
               calorieGoal: c.largeValues ? 12345 : 2000,
               caloriesTracked: c.largeValues ? 12345 : 1800,
               carbsGoal: macro,
@@ -310,7 +310,8 @@ void main() {
               targetWeightKg: null,
               waterByDay: {
                 for (var i = 0; i < 7; i++)
-                  today.subtract(Duration(days: i)): waterMl,
+                  DateUtils.dateOnly(today.subtract(Duration(days: i))):
+                      waterMl,
               },
               waterGoalMl: waterMl,
               usesImperialFoodUnits: false,
