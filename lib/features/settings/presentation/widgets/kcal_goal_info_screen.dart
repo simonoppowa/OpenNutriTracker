@@ -8,10 +8,12 @@ import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
+import 'package:provider/provider.dart';
 
 /// Transparency screen: shows every variable and intermediate step behind
 /// today's kcal goal, so the number on the home screen is fully auditable
@@ -74,6 +76,10 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: Dimens.spacing16),
+              // The short answer first (#1308); the steps below explain
+              // each row.
+              _SummaryCard(breakdown: breakdown),
+              const SizedBox(height: Dimens.spacing12),
               _InputsCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing12),
               _TdeeCard(breakdown: breakdown),
@@ -83,8 +89,6 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
               _ManualAdjustmentCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing12),
               _ActivityCard(breakdown: breakdown),
-              const SizedBox(height: Dimens.spacing12),
-              _ResultCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing12),
               _MacroCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing16),
@@ -370,56 +374,121 @@ class _ActivityCard extends StatelessWidget {
   }
 }
 
-/// The final sum, mirroring the goal shown on the home screen.
-class _ResultCard extends StatelessWidget {
+/// Today's target in a few rows (#1308): maintenance, the weight-goal
+/// deficit or surplus, the manual offset and logged activities, each only
+/// when it changes the number. The rows come from
+/// [KcalGoalBreakdownEntity.summary], so they add up to the total shown
+/// here, which is the goal Home uses.
+class _SummaryCard extends StatelessWidget {
   final KcalGoalBreakdownEntity breakdown;
 
-  const _ResultCard({required this.breakdown});
+  const _SummaryCard({required this.breakdown});
 
   @override
   Widget build(BuildContext context) {
     final l10n = S.of(context);
     final theme = Theme.of(context);
-    return _SectionCard(
-      title: l10n.kcalGoalInfoResultSection,
-      children: [
-        _ValueRow(
-          label: l10n.kcalGoalInfoTdeeResultLabel,
-          value: EnergyDisplay.formatWithUnit(context, breakdown.tdeeKcal),
-        ),
-        _ValueRow(
-          label: l10n.kcalGoalInfoAppliedAdjustmentLabel,
-          value: _signedEnergy(context, breakdown.effectiveAdjustmentKcal),
-        ),
-        _ValueRow(
-          label: l10n.settingsKcalAdjustmentLabel,
-          value: _signedEnergy(context, breakdown.manualKcalAdjustment),
-        ),
-        _ValueRow(
-          label: l10n.activityLabel,
-          value: _signedEnergy(context, breakdown.activityKcal),
-        ),
-        const Divider(height: Dimens.spacing20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                l10n.kcalGoalInfoResultSection,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            Text(
-              EnergyDisplay.formatWithUnit(context, breakdown.totalKcalGoal),
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ],
+    final unit = EnergyDisplay.unitLabel(context);
+    final summary = breakdown.summary(
+      kilojoules: context.watch<EnergyUnitProvider>().usesKilojoules,
     );
+    final hasGoalRow = summary.rows.any(
+      (row) => row.term == KcalGoalSummaryTerm.weightGoal,
+    );
+    return AppCard(
+      key: const ValueKey('kcal-goal-summary'),
+      padding: const EdgeInsets.all(Dimens.spacing16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final row in summary.rows)
+            _ValueRow(
+              label: _termLabel(context, row.term),
+              value: row.term == KcalGoalSummaryTerm.maintenance
+                  ? _energyText(row.value, unit)
+                  : _signedEnergyText(row.value, unit),
+              valueKey: ValueKey('kcal-goal-summary-${row.term.name}'),
+            ),
+          const Divider(height: Dimens.spacing20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.kcalGoalInfoResultSection,
+                  style: theme.textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(width: Dimens.spacing8),
+              // Shrinks rather than wraps or overflows at a large text
+              // scale, so the target stays one readable number.
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Text(
+                    _energyText(summary.total, unit),
+                    key: const ValueKey('kcal-goal-summary-total'),
+                    maxLines: 1,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Dimens.spacing12),
+          if (hasGoalRow) ...[
+            Text(
+              l10n.kcalGoalInfoSummaryIncludedNote,
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: Dimens.spacing4),
+          ],
+          Text(
+            l10n.kcalGoalInfoActivityExplanation,
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: Dimens.spacing4),
+          Semantics(
+            identifier: 'kcal-goal-summary-equation',
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                alignment: AlignmentDirectional.centerStart,
+              ),
+              onPressed: () => _launchEquationSource(context),
+              icon: const Icon(Icons.open_in_new_rounded, size: 18),
+              label: Text(l10n.kcalGoalInfoSummaryEquationLink),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _termLabel(BuildContext context, KcalGoalSummaryTerm term) {
+    final l10n = S.of(context);
+    switch (term) {
+      case KcalGoalSummaryTerm.maintenance:
+        return l10n.kcalGoalInfoSummaryMaintenanceRow;
+      case KcalGoalSummaryTerm.weightGoal:
+        return l10n.kcalGoalInfoSummaryGoalRow(breakdown.goal.getName(context));
+      case KcalGoalSummaryTerm.manualAdjustment:
+        return l10n.settingsKcalAdjustmentLabel;
+      case KcalGoalSummaryTerm.activities:
+        return l10n.kcalGoalInfoSummaryActivitiesRow;
+    }
+  }
+
+  /// Opens the IOM 2005 report the Sources screen cites for the TDEE.
+  Future<void> _launchEquationSource(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final errorText = S.of(context).errorOpeningBrowser;
+    if (await tryLaunchExternalUrl(URLConst.sourceEnergyIomDriURL)) return;
+    messenger.showSnackBar(SnackBar(content: Text(errorText)));
   }
 }
 
@@ -512,11 +581,13 @@ class _ValueRow extends StatelessWidget {
   final String label;
   final String value;
   final bool emphasized;
+  final Key? valueKey;
 
   const _ValueRow({
     required this.label,
     required this.value,
     this.emphasized = false,
+    this.valueKey,
   });
 
   @override
@@ -533,7 +604,16 @@ class _ValueRow extends StatelessWidget {
         children: [
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
           const SizedBox(width: Dimens.spacing8),
-          Text(value, style: valueStyle),
+          // Flexible so a long value at a large text scale wraps instead
+          // of pushing the row past the card edge.
+          Flexible(
+            child: Text(
+              value,
+              key: valueKey,
+              style: valueStyle,
+              textAlign: TextAlign.end,
+            ),
+          ),
         ],
       ),
     );
@@ -601,3 +681,11 @@ String _signedEnergy(BuildContext context, double kcal) {
   if (kcal < 0) return '−$formatted';
   return '+$formatted';
 }
+
+/// A whole display-unit value from [KcalGoalBreakdownEntity.summary], with
+/// the same minus sign the signed rows use.
+String _energyText(int value, String unit) =>
+    value < 0 ? '−${-value} $unit' : '$value $unit';
+
+String _signedEnergyText(int value, String unit) =>
+    value < 0 ? '−${-value} $unit' : '+$value $unit';

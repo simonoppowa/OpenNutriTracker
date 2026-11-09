@@ -14,6 +14,7 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../fixture/user_entity_fixtures.dart';
+import '../../../../helpers/test_l10n.dart';
 
 class _FakeBreakdownUsecase extends Fake implements GetKcalGoalBreakdownUsecase {
   final KcalGoalBreakdownEntity breakdown;
@@ -125,6 +126,71 @@ void main() {
       expect(find.byType(KcalGoalInfoScreen), findsOneWidget);
 
       semanticsHandle.dispose();
+    },
+  );
+
+  Finder goalInfoLink() => find.byWidgetPredicate(
+    (widget) =>
+        widget is Semantics &&
+        widget.properties.identifier == 'home-kcal-goal-info',
+  );
+
+  testWidgets(
+    'a visible "how your goal is calculated" link opens the goal screen '
+    '(#1308: the gauge tap alone was not discoverable)',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_wrap(dashboardWidget(totalKcalLeft: 1900)));
+      await tester.pumpAndSettle();
+
+      expect(goalInfoLink(), findsOneWidget);
+      final label = find.descendant(
+        of: goalInfoLink(),
+        matching: find.text(l10nEn.settingsKcalGoalInfoLabel),
+      );
+      expect(label, findsOneWidget);
+
+      await tester.tap(label);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(KcalGoalInfoScreen), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the goal link does not overflow at text scale 2.0 on a narrow phone',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 2400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      // The flip counter in the gauge already overflows at this scale on
+      // develop; that is a separate problem. Collect layout errors and
+      // fail only on ones that don't come from it.
+      final errors = <FlutterErrorDetails>[];
+      final previousOnError = FlutterError.onError;
+      FlutterError.onError = errors.add;
+      addTearDown(() => FlutterError.onError = previousOnError);
+
+      await tester.pumpWidget(_wrap(dashboardWidget(totalKcalLeft: 1900)));
+      await tester.pumpAndSettle();
+      FlutterError.onError = previousOnError;
+
+      expect(goalInfoLink(), findsOneWidget);
+      final unrelated = errors.where(
+        (details) => !details.toString().contains('animated_flip_counter'),
+      );
+      expect(unrelated.map((details) => details.toString()), isEmpty);
+      final label = find.descendant(
+        of: goalInfoLink(),
+        matching: find.text(l10nEn.settingsKcalGoalInfoLabel),
+      );
+      expect(tester.getRect(label).right, lessThanOrEqualTo(320));
+      expect(tester.getRect(label).left, greaterThanOrEqualTo(0));
     },
   );
 }
