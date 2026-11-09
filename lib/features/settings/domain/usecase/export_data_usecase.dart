@@ -181,10 +181,20 @@ class ExportDataUsecase {
   /// they save through the Downloads root (`/document/2106` on a Pixel 6,
   /// `/document/msf:1234` elsewhere). Only a last segment ending in `.zip`
   /// is taken for a name, so an id is never shown to the user as one.
+  ///
+  /// Only the last segment is decoded, and a name that does not decode
+  /// (`%FF` is valid URI syntax but not UTF-8) is left unknown. The file is
+  /// already written by now, so this must never throw: anything thrown
+  /// here would be reported as a failed write.
   static String? _savedFileName(Uri savedUri) {
-    final segments = savedUri.pathSegments;
-    if (segments.isEmpty) return null;
-    final last = segments.last;
+    final String last;
+    try {
+      last = Uri.decodeComponent(savedUri.path.split('/').last);
+    } on FormatException {
+      return null;
+    } on ArgumentError {
+      return null;
+    }
     if (!last.toLowerCase().endsWith('.$_exportExtension')) return null;
     return last;
   }

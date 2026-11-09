@@ -191,6 +191,36 @@ void main() {
       });
     }
 
+    test(
+      'a malformed escape in a parent folder still names the saved file',
+      () async {
+        // "%FF" is valid URI syntax but not UTF-8, so decoding the whole
+        // path throws. The file is already written; that must not turn
+        // into writeFailed.
+        final saved = await _export(
+          (_, _) async => _androidResult(
+            '/document/primary:backup%FF/opennutritracker-export (3).zip',
+          ),
+        );
+
+        expect(saved!.fileName, 'opennutritracker-export (3).zip');
+      },
+    );
+
+    test(
+      'a malformed escape in the file name succeeds without a name',
+      () async {
+        final saved = await _export(
+          (_, _) async => _androidResult(
+            '/document/primary:Download/opennutritracker-export%FF.zip',
+          ),
+        );
+
+        expect(saved, isNotNull);
+        expect(saved!.fileName, isNull);
+      },
+    );
+
     test('an empty answer from the platform succeeds without a name', () async {
       // The platform returned without an error, so the bytes were handed
       // over; there is just nothing to name.
