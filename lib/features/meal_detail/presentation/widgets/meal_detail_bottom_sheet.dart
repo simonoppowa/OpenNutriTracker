@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -67,6 +68,8 @@ class MealDetailBottomSheet extends StatefulWidget {
 }
 
 class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
+  static final _log = Logger('MealDetailBottomSheet');
+
   final _quantityFocusNode = FocusNode();
 
   /// Set from the first tap on Add until its submission ends. The save can
@@ -489,14 +492,31 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
 
     // The refreshes below only see the intake once it is stored, which
     // can wait for the tracked-day lock (#1317).
-    await widget.mealDetailBloc.addIntake(
-      context,
-      widget.mealDetailBloc.state.selectedUnit,
-      widget.mealDetailBloc.state.totalQuantityConverted,
-      widget.intakeTypeEntity,
-      widget.product,
-      widget.day,
-    );
+    //
+    // A write that failed, or that a profile switch dropped, says so and
+    // stays on the page so the user can try again; "Added" would claim a
+    // food the diary does not have.
+    final messenger = ScaffoldMessenger.of(context);
+    final s = S.of(context);
+    final bool written;
+    try {
+      written = await widget.mealDetailBloc.addIntake(
+        context,
+        widget.mealDetailBloc.state.selectedUnit,
+        widget.mealDetailBloc.state.totalQuantityConverted,
+        widget.intakeTypeEntity,
+        widget.product,
+        widget.day,
+      );
+    } catch (error, stackTrace) {
+      _log.warning('Adding the intake failed', error, stackTrace);
+      _showNotAdded(messenger, s.infoIntakeNotSavedLabel);
+      return;
+    }
+    if (!written) {
+      _showNotAdded(messenger, s.infoIntakeProfileChangedLabel);
+      return;
+    }
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());
@@ -513,6 +533,12 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     Navigator.of(
       context,
     ).popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
+  }
+
+  void _showNotAdded(ScaffoldMessengerState messenger, String message) {
+    messenger
+      ..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   // #212: Check if this meal was already added today for the same meal type

@@ -41,7 +41,7 @@ Completer<void>? _addGate;
 /// Writes like the real blocs: each under the tracked-day lock.
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   @override
-  Future<void> addIntake(
+  Future<bool> addIntake(
     BuildContext context,
     String unit,
     String amountText,
@@ -51,6 +51,7 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   ) => withTrackedDayLock(() async {
     await _addGate?.future;
     _dropLog.add('add');
+    return true;
   });
 }
 
