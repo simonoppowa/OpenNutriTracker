@@ -395,6 +395,65 @@ void main() {
       expect(tray.collects, isTrue);
       expect(notified, 3);
     });
+
+    test('replace swaps one entry in place, by identity', () {
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      final a = LogTrayItem(
+        meal: _meal('A'),
+        unit: 'g',
+        amount: 100,
+        amountLabel: '',
+      );
+      final b = LogTrayItem(
+        meal: _meal('B'),
+        unit: 'g',
+        amount: 100,
+        amountLabel: '',
+      );
+      // Two helpings of B: only the one named changes.
+      final b2 = LogTrayItem(
+        meal: b.meal,
+        unit: 'g',
+        amount: 100,
+        amountLabel: '',
+      );
+      tray.addAll([a, b, b2]);
+      var notified = 0;
+      tray.addListener(() => notified++);
+
+      final bigger = LogTrayItem(
+        meal: b.meal,
+        unit: 'g',
+        amount: 300,
+        amountLabel: '',
+      );
+      tray.replace(b2, bigger);
+
+      expect(tray.items.map((i) => i.amount), [100, 100, 300]);
+      expect(identical(tray.items[1], b), isTrue);
+      expect(identical(tray.items[2], bigger), isTrue);
+      expect(notified, 1);
+    });
+
+    test('replace adds the new entry when the old one is gone', () {
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      final gone = LogTrayItem(
+        meal: _meal('A'),
+        unit: 'g',
+        amount: 100,
+        amountLabel: '',
+      );
+      final edited = LogTrayItem(
+        meal: _meal('A'),
+        unit: 'g',
+        amount: 40,
+        amountLabel: '',
+      );
+      tray.replace(gone, edited);
+      expect(tray.items.single, same(edited));
+    });
   });
 
   group('the log button', () {
@@ -487,6 +546,9 @@ void main() {
       );
       expect(item!.unit, 'serving');
       expect(item.amount, 38);
+      // What the detail screen reopens with when the row is tapped.
+      expect(item.quantity, 1);
+      expect(item.selectedUnit, 'serving');
     });
 
     testWidgets('raw units win over the serving when the user prefers them', (
@@ -500,12 +562,16 @@ void main() {
       expect(item!.unit, 'g');
       expect(item.amount, 100);
       expect(item.amountLabel, '100 ${l10nEn.gramUnit}');
+      expect(item.quantity, 100);
+      expect(item.selectedUnit, 'g');
     });
 
     testWidgets('imperial starts at one ounce', (tester) async {
       final item = await resolve(tester, _meal('Rice'), imperial: true);
       expect(item!.unit, 'oz');
       expect(item.amount, closeTo(28.35, 0.01));
+      expect(item.quantity, 1);
+      expect(item.selectedUnit, 'oz');
     });
 
     testWidgets('a food missing a macro has no default', (tester) async {
@@ -538,6 +604,61 @@ void main() {
       await tester.pumpAndSettle();
       expect(_logButton(), findsNothing);
       expect(_mealDetailBloc.writes, isEmpty);
+    });
+
+    testWidgets('tapping a row opens its amount to change', (tester) async {
+      await _register([_meal('Oats', kcal100: 380), _meal('Milk')]);
+      final pushed = <RouteSettings>[];
+      await _openAddMeal(tester, pushed);
+
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+      await _tapPlus(tester, 'Milk');
+      await tester.pumpAndSettle();
+      expect(pushed, isEmpty);
+
+      final rows = find.bySemanticsIdentifier('add-meal-tray-edit');
+      expect(rows, findsNWidgets(2));
+      await tester.tap(rows.last);
+      await tester.pumpAndSettle();
+
+      final args = pushed.single.arguments as MealDetailScreenArguments;
+      expect(pushed.single.name, NavigationOptions.mealDetailRoute);
+      expect(args.mealEntity.name, 'Milk');
+      expect(args.editingTrayItem, isNotNull);
+      expect(args.editingTrayItem!.quantity, 100);
+      expect(args.editingTrayItem!.selectedUnit, 'g');
+      expect(args.logTray!.items.last, same(args.editingTrayItem));
+      expect(args.intakeTypeEntity, IntakeTypeEntity.breakfast);
+      expect(args.day, DateTime(2026, 10, 18));
+    });
+
+    testWidgets('a Quick add row has no amount to open', (tester) async {
+      await _register([_meal('Oats')]);
+      final pushed = <RouteSettings>[];
+      await _openAddMeal(tester, pushed);
+
+      // With the list empty, Quick add logs at once (#1520); one food on it
+      // first makes Quick add join the list.
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsIdentifier('add-meal-quick-add'));
+      await tester.pumpAndSettle();
+      Finder field(String id) => find.descendant(
+        of: find.bySemanticsIdentifier(id),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(field('quick-add-title'), 'Cake');
+      await tester.enterText(field('quick-add-energy'), '350');
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.bulkAddSubmitLabel(2)), findsOneWidget);
+      // Only the Oats row opens; the Quick add row has no food behind it.
+      expect(find.bySemanticsIdentifier('add-meal-tray-edit'), findsOneWidget);
+      expect(pushed, isEmpty);
     });
 
     testWidgets('one button logs the whole list and returns to the day', (
