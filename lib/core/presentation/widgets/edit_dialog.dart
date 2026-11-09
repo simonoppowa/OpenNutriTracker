@@ -10,6 +10,15 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_
 import 'package:opennutritracker/generated/l10n.dart';
 
 class EditDialog extends StatefulWidget {
+  /// The amount field, for tests.
+  static const amountFieldKey = Key('edit-dialog-amount');
+
+  /// The macros stack once the text scale is above this (130 %), the same
+  /// point at which the home macro rings stack (`MacroNutrientsView`).
+  /// It is measured on 10 px text, so a non-linear scaler is judged by
+  /// how it treats small labels like these.
+  static const stackAboveTextScale = 1.3;
+
   final IntakeEntity intakeEntity;
   final bool usesImperialUnits;
 
@@ -48,6 +57,7 @@ class _EditDialogState extends State<EditDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextFormField(
+            key: EditDialog.amountFieldKey,
             controller: amountEditingController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: CustomTextInputFormatter.doubleOnly(),
@@ -139,7 +149,9 @@ class _EditDialogState extends State<EditDialog> {
     // Side by side the three share a narrow dialog; at a large font they
     // stack, as the home macro rings do. Either way a label too long for
     // its space ("Kohlenhydrate") shrinks rather than overflows.
-    final stack = MediaQuery.textScalerOf(context).scale(10) > 13;
+    final stack =
+        MediaQuery.textScalerOf(context).scale(10) / 10 >
+        EditDialog.stackAboveTextScale;
     Widget fit(Widget macro) => FittedBox(fit: BoxFit.scaleDown, child: macro);
 
     return Column(

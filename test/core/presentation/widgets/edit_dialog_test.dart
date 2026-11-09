@@ -110,7 +110,7 @@ Future<Future<double?>> _open(
   return result;
 }
 
-Finder get _field => find.byType(TextFormField);
+Finder get _field => find.byKey(EditDialog.amountFieldKey);
 
 Future<void> _type(WidgetTester tester, String text) async {
   await tester.enterText(_field, text);
@@ -278,6 +278,20 @@ void main() {
 
     expect(await result, isNull);
   });
+
+  for (final (textScale, stacked) in [(1.3, false), (1.31, true)]) {
+    testWidgets(
+      'the macros ${stacked ? 'stack' : 'sit side by side'} at ${textScale}x',
+      (tester) async {
+        await _open(tester, _intake(), textScale: textScale);
+
+        final carbs = tester.getCenter(find.text(l10nEn.carbsLabel));
+        final fat = tester.getCenter(find.text(l10nEn.fatLabel));
+        expect(fat.dy > carbs.dy, stacked);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   // German has the longest macro label ("Kohlenhydrate"); at a large font
   // it must neither overflow nor wrap to a second line.
