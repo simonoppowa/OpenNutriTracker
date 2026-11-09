@@ -16,11 +16,16 @@ class OnboardingIntroPageBody extends StatefulWidget {
     required this.setPageContent,
     this.initialAcceptedPolicy = false,
     this.initialAcceptedDataCollection = false,
+    this.onRestoreBackup,
   });
 
   final Function(bool active, bool acceptedDataCollection) setPageContent;
   final bool initialAcceptedPolicy;
   final bool initialAcceptedDataCollection;
+
+  /// Restores a backup into the profile being set up (#1355). The button
+  /// is left out when this is null.
+  final Future<void> Function()? onRestoreBackup;
 
   @override
   State<OnboardingIntroPageBody> createState() =>
@@ -31,6 +36,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   late bool _acceptedPolicy = widget.initialAcceptedPolicy;
   late bool _acceptedDataCollection = widget.initialAcceptedDataCollection;
   bool _seedingDemo = false;
+  bool _restoring = false;
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +123,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                       // Stays tappable without the policy so the tap can
                       // explain itself; only the in-flight seed truly
                       // disables it.
-                      onPressed: _seedingDemo
+                      onPressed: _seedingDemo || _restoring
                           ? null
                           : (_acceptedPolicy ? _tryDemo : _policyRequired),
                       style: _acceptedPolicy
@@ -152,6 +158,7 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                if (widget.onRestoreBackup != null) ..._restoreBackup(context),
                 const SizedBox(height: 8.0),
                 TextButton.icon(
                   onPressed: () => _openSources(context),
@@ -166,6 +173,69 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
         }
       },
     );
+  }
+
+  /// The restore button and its subtitle, under the demo. Like Start and
+  /// the demo it needs the privacy policy: a restore continues into the
+  /// rest of onboarding, which records the acceptance when it saves.
+  List<Widget> _restoreBackup(BuildContext context) {
+    final busy = _restoring || _seedingDemo;
+    return [
+      const SizedBox(height: 16.0),
+      Semantics(
+        identifier: 'onboarding-restore-backup',
+        child: SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: busy
+                ? null
+                : (_acceptedPolicy ? _restore : _restorePolicyRequired),
+            style: _acceptedPolicy
+                ? null
+                : OutlinedButton.styleFrom(
+                    foregroundColor: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.38),
+                  ),
+            icon: _restoring
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.settings_backup_restore_outlined),
+            label: Text(S.of(context).onboardingRestoreBackupLabel),
+          ),
+        ),
+      ),
+      const SizedBox(height: 4.0),
+      Text(
+        S.of(context).onboardingRestoreBackupSubtitle,
+        style: Theme.of(context).textTheme.bodySmall,
+        textAlign: TextAlign.center,
+      ),
+    ];
+  }
+
+  Future<void> _restore() async {
+    final onRestoreBackup = widget.onRestoreBackup;
+    if (!_acceptedPolicy || onRestoreBackup == null) return;
+    setState(() => _restoring = true);
+    try {
+      await onRestoreBackup();
+    } finally {
+      if (mounted) setState(() => _restoring = false);
+    }
+  }
+
+  void _restorePolicyRequired() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(S.of(context).onboardingBlockedRestorePolicySnack),
+        ),
+      );
   }
 
   void _togglePolicy() {

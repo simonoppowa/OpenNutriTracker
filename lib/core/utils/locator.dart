@@ -124,6 +124,7 @@ import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:opennutritracker/features/onboarding/domain/usecase/restore_backup_usecase.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_switch_coordinator.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
@@ -576,6 +577,14 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+    ),
+  );
+  // #1355: restoring a backup from the first onboarding page.
+  locator.registerLazySingleton(
+    () => RestoreBackupUsecase(
+      locator(),
+      hasUserData: () => locator<UserDataSource>().hasUserData(),
+      updateDayGoals: (day) => locator<SettingsBloc>().updateTrackedDay(day),
     ),
   );
   locator.registerLazySingleton(
