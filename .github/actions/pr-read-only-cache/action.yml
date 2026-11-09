@@ -1,0 +1,46 @@
+name: Cache (read-only on pull requests)
+description: >-
+  actions/cache everywhere except pull_request, where it only restores.
+  A pull request's cache is scoped to refs/pull/<n>/merge, so no other PR can
+  ever restore it, yet it still counts against the repo's 10 GB cache limit.
+  One Android PR used to save ~8 GB (Gradle 3.9, AVD 2.4-2.7, Flutter 1.7),
+  which evicted the caches every other PR needed and left all of them cold.
+  Saving only from push runs (develop via cache-warm.yml, main via the default
+  workflow) keeps one shared copy that every PR restores.
+inputs:
+  path:
+    description: Same as actions/cache `path`.
+    required: true
+  key:
+    description: Same as actions/cache `key`.
+    required: true
+  restore-keys:
+    description: Same as actions/cache `restore-keys`.
+    required: false
+    default: ''
+outputs:
+  cache-hit:
+    description: '`true` on an exact key match, as actions/cache reports it.'
+    value: ${{ steps.save.outputs.cache-hit || steps.restore.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    # Restores now and saves in the post step at job end, only if the job
+    # succeeded and the key was not an exact hit.
+    - name: Restore cache (saved at job end)
+      id: save
+      if: github.event_name != 'pull_request'
+      uses: actions/cache@v6
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+        restore-keys: ${{ inputs.restore-keys }}
+
+    - name: Restore cache (read-only on pull requests)
+      id: restore
+      if: github.event_name == 'pull_request'
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+        restore-keys: ${{ inputs.restore-keys }}

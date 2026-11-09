@@ -1,0 +1,44 @@
+name: Prepare Android emulator
+description: >-
+  Enables KVM and restores the API 34 AVD snapshot (read-only on pull
+  requests), booting the emulator once to seed it on a cache miss. Shared by
+  android-integration-tests and cache-warm.yml so the snapshot the warm job
+  saves is the one the tests boot.
+outputs:
+  cache-hit:
+    description: '`true` when the AVD cache key matched exactly.'
+    value: ${{ steps.avd-cache.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    # Key includes the API level so a bump invalidates the cache.
+    - name: Cache AVD
+      id: avd-cache
+      uses: ./.github/actions/pr-read-only-cache
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: avd-android-34
+
+    - name: Enable KVM (so the Android emulator runs at native speed)
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    # Only on a cache miss: boots the emulator once to seed the snapshot, then
+    # exits, which makes the test boot that follows much faster. The test
+    # steps must keep the same api-level, target and arch to reuse it.
+    - name: Generate AVD snapshot (cache miss only)
+      if: steps.avd-cache.outputs.cache-hit != 'true'
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 34
+        target: google_apis
+        arch: x86_64
+        force-avd-creation: false
+        emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+        disable-animations: false
+        script: echo "AVD snapshot generated for cache"

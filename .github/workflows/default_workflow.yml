@@ -8,6 +8,8 @@ on:
   # `pull_request` (against `main` and `develop`). The `push: main` trigger
   # only catches post-merge runs on `main`. A direct push to `develop`
   # does not run this workflow — prefer PRs into `develop` (see CONTRIBUTING.md).
+  # The caches PRs restore are saved on `develop` by cache-warm.yml instead,
+  # which runs only the steps that fill them.
   push:
     branches:
       - main
@@ -555,16 +557,6 @@ jobs:
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
 
-      - name: Cache Gradle
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
@@ -574,6 +566,11 @@ jobs:
 
       - name: Install Flutter packages
         run: flutter pub get
+
+      # Gradle cache plus the distribution download with retries. See
+      # .github/actions/setup-gradle.
+      - name: Setup Gradle
+        uses: ./.github/actions/setup-gradle
 
       - name: Generate code
         run: dart run build_runner build --delete-conflicting-outputs
@@ -641,33 +638,6 @@ jobs:
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
 
-      - name: Cache Gradle
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      # Cache the AVD snapshot so future runs skip the slow first-boot.
-      # Key includes the API level so a bump invalidates the cache.
-      - name: Cache AVD
-        uses: actions/cache@v6
-        id: avd-cache
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-android-34
-
-      - name: Enable KVM (so the Android emulator runs at native speed)
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
       - name: Generate stub .env for CI
         uses: ./.github/actions/write-env-file
         with:
@@ -678,25 +648,19 @@ jobs:
       - name: Install Flutter packages
         run: flutter pub get
 
+      # Gradle cache plus the distribution download with retries. See
+      # .github/actions/setup-gradle.
+      - name: Setup Gradle
+        uses: ./.github/actions/setup-gradle
+
       - name: Generate code
         run: dart run build_runner build --delete-conflicting-outputs
 
-      # First emulator-runner pass — only runs when the AVD cache is empty.
-      # It boots the emulator once to seed the snapshot, then exits. This
-      # makes the actual test pass below much faster. Only the first
-      # shard to land on a fresh cache pays this cost; later shards in the
-      # same run reuse the warmed AVD via the actions/cache restore key.
-      - name: Generate AVD snapshot (cache miss only)
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          target: google_apis
-          arch: x86_64
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "AVD snapshot generated for cache"
+      # KVM, the cached AVD snapshot, and a seed boot when the cache is
+      # empty. The steps below keep its api-level, target and arch so they
+      # boot that snapshot. See .github/actions/android-avd.
+      - name: Prepare Android emulator
+        uses: ./.github/actions/android-avd
 
       # Two steps rather than a script-level loop on purpose: the flake we see
       # is the emulator-runner occasionally failing to bring the AVD up before
@@ -1465,16 +1429,6 @@ jobs:
       - name: Setup Flutter + cache packages
         uses: ./.github/actions/setup-flutter-cache
 
-      - name: Cache Gradle
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Generate .env from GitHub Secrets
         uses: ./.github/actions/write-env-file
         env:
@@ -1508,6 +1462,11 @@ jobs:
 
       - name: Install Flutter packages
         run: flutter pub get
+
+      # Same Gradle cache and download retries as android-build. See
+      # .github/actions/setup-gradle.
+      - name: Setup Gradle
+        uses: ./.github/actions/setup-gradle
 
       - name: Generate code
         run: dart run build_runner build --delete-conflicting-outputs

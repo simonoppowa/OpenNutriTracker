@@ -1,0 +1,115 @@
+name: Warm CI caches
+
+# Pull requests restore caches but never save them (see
+# .github/actions/pr-read-only-cache). A PR can restore caches saved on its
+# base branch or on main. default_workflow.yml only runs on push to main, so
+# without this workflow nothing would save caches on develop, the base of
+# every PR.
+#
+# This is a separate workflow rather than `push: develop` on
+# default_workflow.yml on purpose: that would run the whole suite, iOS
+# integration tests on macOS included, on every merge just to save three cache
+# entries. This job runs only what fills them: one debug APK build for Gradle
+# and one emulator seed boot for the AVD, each skipped when its cache already
+# matches exactly. Warm, it takes a few minutes of a free ubuntu runner.
+#
+# The macOS Flutter SDK cache is not warmed here; iOS jobs restore the copy
+# that the push-to-main run saves.
+on:
+  push:
+    branches:
+      - develop
+  # Re-warm by hand after the caches are evicted or age out (7 days unused).
+  workflow_dispatch:
+  # Checks the job itself on PRs that change it. Saves nothing there.
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - .github/workflows/cache-warm.yml
+      - .github/actions/pr-read-only-cache/**
+      - .github/actions/setup-flutter-cache/**
+      - .github/actions/setup-gradle/**
+      - .github/actions/android-avd/**
+
+# A newer develop push makes an older warm run pointless. A cancelled run
+# saves nothing, so the next one still finds the cache missing and fills it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      # Same reason as android-integration-tests: the emulator seed boot can
+      # run out of disk on a stock runner.
+      - name: Free up disk space for the emulator
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup \
+            /usr/local/share/boost /usr/share/swift /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force || true
+          df -h /
+
+      - name: Setup Java (Zulu)
+        id: setup_java_zulu
+        uses: actions/setup-java@v6.1.0
+        continue-on-error: true
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Java (Temurin fallback)
+        if: steps.setup_java_zulu.outcome == 'failure'
+        uses: actions/setup-java@v6.1.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter + cache packages
+        uses: ./.github/actions/setup-flutter-cache
+
+      - name: Generate stub .env for CI
+        uses: ./.github/actions/write-env-file
+        with:
+          sentry_dns: https://stub@sentry.io/0
+          supabase_project_url: https://stub.supabase.co
+          supabase_project_anon_key: ci-stub
+
+      # Always runs, even when nothing below builds: the pub cache is saved at
+      # job end, and on a new pubspec.lock it must hold the new packages, not
+      # just whatever the prefix restore found.
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Setup Gradle
+        id: gradle
+        uses: ./.github/actions/setup-gradle
+
+      - name: Generate code
+        if: steps.gradle.outputs.cache-hit != 'true'
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # Same build as android-build, so the cache holds what PRs resolve.
+      - name: Build APK (debug) to fill the Gradle cache
+        if: steps.gradle.outputs.cache-hit != 'true'
+        run: flutter build apk --flavor full --debug
+
+      - name: Prepare Android emulator
+        uses: ./.github/actions/android-avd
+
+      # What the post steps are about to save, to guide any future trimming
+      # against the 10 GB repo cache limit.
+      - name: Report cache sizes
+        run: |
+          du -sh ~/.gradle/caches/* ~/.gradle/wrapper/dists/* ~/.android/avd \
+            "${PUB_CACHE:-$HOME/.pub-cache}" 2>/dev/null | sort -h || true
