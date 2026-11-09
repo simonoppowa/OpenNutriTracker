@@ -24,15 +24,18 @@ import 'package:opennutritracker/features/add_meal/data/repository/products_repo
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
 import '../../helpers/fake_favourites.dart';
+import '../../helpers/test_l10n.dart';
 
 // #1126: when the user has opted into raw units in Settings, the meal-detail
 // dropdown must skip the serving default even for a food with a scalable
@@ -149,7 +152,11 @@ void main() {
     await getIt.reset();
   });
 
-  Future<void> pumpMealDetail(WidgetTester tester, MealEntity meal) async {
+  Future<void> pumpMealDetail(
+    WidgetTester tester,
+    MealEntity meal, {
+    LogTrayItem? editing,
+  }) async {
     // 600x800 leaves the CustomScrollView with a real maxScrollExtent, so
     // the scroll-offset assertion below can actually fail if the race guard
     // regresses. A taller viewport clamps `animateTo` to 0 and the test
@@ -157,6 +164,9 @@ void main() {
     tester.view.physicalSize = const Size(600, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
+
+    final LogTray? tray = editing == null ? null : (LogTray()..add(editing));
+    if (tray != null) addTearDown(tray.dispose);
 
     final navigatorKey = GlobalKey<NavigatorState>();
     Route<void> routeFor(RouteSettings settings) {
@@ -183,6 +193,8 @@ void main() {
                   IntakeTypeEntity.breakfast,
                   DateTime(2026, 9, 14),
                   false,
+                  logTray: tray,
+                  editingTrayItem: editing,
                 ),
               ),
             ),
@@ -259,6 +271,124 @@ void main() {
       expect(_maxScrollOffset(tester), 0.0);
     },
   );
+
+  // A row on the add-food screen's To-log list reopens with its own amount,
+  // whatever the defaults or the hydrated record would have picked.
+  group('reopened from a To-log row', () {
+    LogTrayItem row(
+      MealEntity meal,
+      double quantity,
+      String unit,
+      double amount,
+    ) => LogTrayItem(
+      meal: meal,
+      unit: unit,
+      amount: amount,
+      amountLabel: '',
+      quantity: quantity,
+      selectedUnit: unit,
+    );
+
+    String quantityField(WidgetTester tester) => tester
+        .widget<TextField>(
+          find
+              .descendant(
+                of: find.byType(MealDetailBottomSheet),
+                matching: find.byType(TextField),
+              )
+              .first,
+        )
+        .controller!
+        .text;
+
+    testWidgets('two servings open as two servings', (tester) async {
+      final meal = _solidWithServing();
+      await pumpMealDetail(tester, meal, editing: row(meal, 2, 'serving', 60));
+
+      expect(bloc!.state.selectedUnit, 'serving');
+      expect(bloc!.state.totalQuantityConverted, '60.0');
+      expect(quantityField(tester), '2');
+      expect(find.text(l10nEn.buttonSaveLabel), findsOneWidget);
+      expect(_maxScrollOffset(tester), 0.0);
+    });
+
+    testWidgets('the raw-units preference does not override it', (
+      tester,
+    ) async {
+      defaultToRawFoodUnits = true;
+      final meal = _solidWithServing();
+      await pumpMealDetail(tester, meal, editing: row(meal, 3, 'serving', 90));
+
+      expect(bloc!.state.selectedUnit, 'serving');
+      expect(bloc!.state.totalQuantityConverted, '90.0');
+      expect(quantityField(tester), '3');
+    });
+
+    testWidgets('a serving found by hydration does not override it', (
+      tester,
+    ) async {
+      hydratedFor = _liquidHydratedOff();
+      final meal = _liquidThinOff();
+      await pumpMealDetail(tester, meal, editing: row(meal, 330, 'ml', 330));
+
+      expect(bloc!.state.selectedUnit, 'ml');
+      expect(bloc!.state.totalQuantityConverted, '330.0');
+      expect(quantityField(tester), '330');
+    });
+
+    testWidgets('a unit hydration takes away is swapped, keeping the amount', (
+      tester,
+    ) async {
+      // Read as a solid from the thin hit, a drink once the full record
+      // arrives: the dropdown no longer lists g.
+      final thin = MealEntity(
+        code: 'thin-off-turns-liquid',
+        name: 'Thin OFF drink',
+        url: null,
+        mealQuantity: '100',
+        mealUnit: 'g',
+        servingQuantity: null,
+        servingUnit: null,
+        servingSize: null,
+        nutriments: _nutriments,
+        source: MealSourceEntity.off,
+      );
+      hydratedFor = MealEntity(
+        code: 'thin-off-turns-liquid',
+        name: 'Thin OFF drink',
+        url: null,
+        mealQuantity: '100',
+        mealUnit: 'ml',
+        servingQuantity: null,
+        servingUnit: null,
+        servingSize: null,
+        nutriments: _nutriments,
+        source: MealSourceEntity.off,
+        detailed: true,
+      );
+      await pumpMealDetail(tester, thin, editing: row(thin, 200, 'g', 200));
+
+      expect(bloc!.state.selectedUnit, 'ml');
+      expect(bloc!.state.totalQuantityConverted, '200.0');
+      expect(quantityField(tester), '200');
+    });
+
+    testWidgets('a unit the screen does not offer opens as its weight', (
+      tester,
+    ) async {
+      // A Describe row's second portion: the dropdown has no "serving#2".
+      final meal = _solidWithServing();
+      await pumpMealDetail(
+        tester,
+        meal,
+        editing: row(meal, 2, 'serving#2', 85),
+      );
+
+      expect(bloc!.state.selectedUnit, 'g');
+      expect(bloc!.state.totalQuantityConverted, '85.0');
+      expect(quantityField(tester), '85');
+    });
+  });
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
