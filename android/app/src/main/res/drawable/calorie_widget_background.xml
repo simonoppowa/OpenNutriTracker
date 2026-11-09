@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The surface card, with the hairline border AppPalette uses for depth
+     instead of shadow (see lib/core/styles/app_palette.dart: border). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <corners android:radius="20dp" />
     <solid android:color="@color/calorie_widget_background" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/calorie_widget_border" />
 </shape>
