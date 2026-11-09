@@ -9,6 +9,8 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/log_tray
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../helpers/test_l10n.dart';
+
 MealEntity _meal(String name, double kcal100) => MealEntity(
   code: name,
   name: name,
@@ -42,6 +44,7 @@ Future<void> _pumpTray(
   WidgetTester tester,
   LogTray tray, {
   bool kilojoules = false,
+  ValueChanged<LogTrayItem>? onEdit,
 }) => tester.pumpWidget(
   ChangeNotifierProvider(
     create: (_) => EnergyUnitProvider(usesKilojoules: kilojoules),
@@ -56,7 +59,7 @@ Future<void> _pumpTray(
       home: Scaffold(
         body: ListView(
           children: [
-            LogTrayList(tray: tray),
+            LogTrayList(tray: tray, onEdit: onEdit),
             LogTrayLogButton(tray: tray, onPressed: () {}),
           ],
         ),
@@ -101,6 +104,41 @@ void main() {
       expect(find.text('80.4 g · 336 kJ'), findsOneWidget);
       expect(find.text('14.4 g · 60 kJ'), findsOneWidget);
       expect(find.text('396 kJ'), findsOneWidget);
+    });
+  });
+
+  group('changing a row\'s amount', () {
+    testWidgets('a row with an amount is a button that says what it does', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      final editable = LogTrayItem(
+        meal: _meal('Oats', 380),
+        unit: 'g',
+        amount: 50,
+        amountLabel: '50 g',
+        quantity: 50,
+        selectedUnit: 'g',
+      );
+      LogTrayItem? opened;
+      final tray = LogTray()
+        ..add(editable)
+        ..add(_item('Quick', 100));
+      await _pumpTray(tester, tray, onEdit: (item) => opened = item);
+
+      final rows = find.bySemanticsIdentifier('add-meal-tray-edit');
+      // The Quick add-style row (no quantity) is not offered.
+      expect(rows, findsOneWidget);
+      expect(
+        tester.getSemantics(rows),
+        isSemantics(
+          hasTapAction: true,
+          onTapHint: l10nEn.logTrayEditAmountLabel,
+        ),
+      );
+      await tester.tap(rows);
+      expect(opened, same(editable));
+      handle.dispose();
     });
   });
 }
