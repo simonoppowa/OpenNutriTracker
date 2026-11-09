@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_units.dart';
+import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
 import '../helpers/recording_add_weight_log_usecase.dart';
@@ -218,6 +219,51 @@ void main() {
 
       expect(bloc.userSelection.foodSourceToggles, stored);
     });
+
+    // #946: switching Open Food Facts off is not a choice of backend
+    // databases. A run through onboarding still seeds those from the
+    // locale, and keeps OFF the way the user left it.
+    test(
+      'Open Food Facts switched off alone keeps the locale defaults',
+      () async {
+        final bloc = await loadedBloc(
+          ConfigDBO(
+            false,
+            false,
+            false,
+            AppThemeDBO.system,
+            usesImperialUnits: null,
+            foodSourceToggles: {OFFConst.offSourceCode: false},
+          ),
+        );
+        addTearDown(bloc.close);
+
+        expect(bloc.userSelection.foodSourceToggles, {
+          ...defaultFoodSourceToggles(Platform.localeName),
+          OFFConst.offSourceCode: false,
+        });
+      },
+    );
+
+    test(
+      'a stored backend choice keeps Open Food Facts switched off',
+      () async {
+        final stored = {'bls': false, OFFConst.offSourceCode: false};
+        final bloc = await loadedBloc(
+          ConfigDBO(
+            false,
+            false,
+            false,
+            AppThemeDBO.system,
+            usesImperialUnits: null,
+            foodSourceToggles: stored,
+          ),
+        );
+        addTearDown(bloc.close);
+
+        expect(bloc.userSelection.foodSourceToggles, stored);
+      },
+    );
   });
 
   group('a second run through onboarding', () {

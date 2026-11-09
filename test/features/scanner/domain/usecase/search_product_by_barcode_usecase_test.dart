@@ -3,9 +3,14 @@ import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
+import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 
 import '../../../../helpers/fake_favourites.dart';
@@ -16,6 +21,7 @@ void main() {
     late _FakeCustomMealDataSource customMealDataSource;
     late _FakeRemoteSearchCacheDataSource cachedOffMealDataSource;
     late FakeFavourites favourites;
+    late _FakeGetConfigUsecase config;
     late SearchProductByBarcodeUseCase useCase;
 
     setUp(() {
@@ -23,11 +29,13 @@ void main() {
       customMealDataSource = _FakeCustomMealDataSource();
       cachedOffMealDataSource = _FakeRemoteSearchCacheDataSource();
       favourites = FakeFavourites();
+      config = _FakeGetConfigUsecase();
       useCase = SearchProductByBarcodeUseCase(
         repo,
         customMealDataSource,
         cachedOffMealDataSource,
         favourites.toggle,
+        config,
       );
     });
 
@@ -231,6 +239,71 @@ void main() {
         100,
       );
     });
+
+    // #946: Open Food Facts can be switched off in Settings → Food
+    // databases. The user's own foods still answer a scan; nothing of OFF
+    // does, the network least of all.
+    group('with Open Food Facts switched off', () {
+      setUp(() => config.toggles = {OFFConst.offSourceCode: false});
+
+      test(
+          'a custom food wins over the OFF product with the same barcode, '
+          'and OFF is not asked', () async {
+        customMealDataSource.meals
+            .add(_customMealDbo(code: '4006381333931', name: 'Mine'));
+        cachedOffMealDataSource.entries
+            .add(_offCacheDbo(code: '4006381333931', name: 'Cached OFF'));
+        repo.barcodeResult = _offMeal(code: '4006381333931');
+
+        final result = await useCase.searchProductByBarcode('4006381333931');
+
+        expect(result.name, 'Mine');
+        expect(result.source, MealSourceEntity.custom);
+        expect(repo.getOFFProductByBarcodeCalls, 0);
+      });
+
+      test(
+          'a barcode only OFF knows is not found, with the reason, and OFF '
+          'is not asked', () async {
+        repo.barcodeResult = _offMeal(code: '5000159407236');
+
+        await expectLater(
+          useCase.searchProductByBarcode('5000159407236'),
+          throwsA(isA<OffDisabledException>()),
+        );
+        expect(repo.getOFFProductByBarcodeCalls, 0);
+        expect(cachedOffMealDataSource.writes, isEmpty);
+      });
+
+      test('a product cached from an earlier OFF scan is not used either',
+          () async {
+        cachedOffMealDataSource.entries
+            .add(_offCacheDbo(code: '7777', name: 'Cached OFF'));
+
+        await expectLater(
+          useCase.searchProductByBarcode('7777'),
+          throwsA(isA<OffDisabledException>()),
+        );
+        expect(repo.getOFFProductByBarcodeCalls, 0);
+      });
+
+      test('the not-found reason is still a ProductNotFoundException', () {
+        // Callers that only know "not found" (the shared-meal importer)
+        // keep treating it as one.
+        expect(OffDisabledException(), isA<ProductNotFoundException>());
+      });
+    });
+
+    test('OFF switched on explicitly behaves as before: live lookup',
+        () async {
+      config.toggles = {OFFConst.offSourceCode: true};
+      repo.barcodeResult = _offMeal(code: '8888');
+
+      final result = await useCase.searchProductByBarcode('8888');
+
+      expect(result.code, '8888');
+      expect(repo.getOFFProductByBarcodeCalls, 1);
+    });
   });
 }
 
@@ -392,3 +465,21 @@ MealNutrimentsEntity _emptyNutriments() => const MealNutrimentsEntity(
       fiber100: null,
     );
 
+
+class _FakeGetConfigUsecase implements GetConfigUsecase {
+  /// Empty is what a user who never opened Food databases has stored.
+  Map<String, bool> toggles = const <String, bool>{};
+
+  @override
+  Future<ConfigEntity> getConfig() async => ConfigEntity(
+        true,
+        true,
+        false,
+        AppThemeEntity.system,
+        foodSourceToggles: toggles,
+      );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected call: ${invocation.memberName}');
+}

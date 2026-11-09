@@ -42,4 +42,6 @@ class ScannerFailedState extends ScannerState {
   List<Object?> get props => [type];
 }
 
-enum ScannerFailedStateType { productNotFound, error }
+/// [offDisabled]: not among the user's own foods, and Open Food Facts is
+/// switched off, so nothing else was asked (#946).
+enum ScannerFailedStateType { productNotFound, offDisabled, error }

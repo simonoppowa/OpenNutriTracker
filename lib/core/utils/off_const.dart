@@ -3,6 +3,12 @@ class OFFConst {
   /// result cards in every app language.
   static const offSourceName = "Open Food Facts";
 
+  /// Key of Open Food Facts' switch in [ConfigEntity.foodSourceToggles],
+  /// next to the backend `food_source` codes. Not one of them: the backend
+  /// search builds its source filter from `SPConst.foodSourceDisplayNames`
+  /// only, so this entry never reaches it (#946).
+  static const offSourceCode = "off";
+
   static const offWebsiteUrl = "https://world.openfoodfacts.org/";
   static const _offBaseUrl = "world.openfoodfacts.org";
   static const _offProductSearchTag = "/api/v2/product";
