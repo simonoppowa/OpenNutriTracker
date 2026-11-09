@@ -505,6 +505,30 @@ void main() {
     expect(identical(tray.items.single, editing), isFalse);
   });
 
+  test('a row to edit without its list is a programming error', () {
+    final row = LogTrayItem(
+      meal: _toast,
+      unit: 'g',
+      amount: 100,
+      amountLabel: '100 g',
+      quantity: 100,
+      selectedUnit: 'g',
+    );
+    expect(
+      () => MealDetailBottomSheet(
+        product: _toast,
+        day: DateTime(2026, 10, 5),
+        intakeTypeEntity: IntakeTypeEntity.breakfast,
+        quantityTextController: TextEditingController(),
+        mealDetailBloc: _CountingMealDetailBloc(),
+        selectedUnit: 'g',
+        onQuantityOrUnitChanged: (_, _) {},
+        editingTrayItem: row,
+      ),
+      throwsAssertionError,
+    );
+  });
+
   testWidgets('an invalid amount leaves the row as it was', (tester) async {
     GetIt.instance
       ..unregister<GetIntakeUsecase>()

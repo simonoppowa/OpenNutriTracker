@@ -57,7 +57,10 @@ class MealDetailBottomSheet extends StatefulWidget {
     this.usesImperialUnits = false,
     this.logTray,
     this.editingTrayItem,
-  });
+  }) : assert(
+         editingTrayItem == null || logTray != null,
+         'a row to edit needs the list it is on',
+       );
 
   @override
   State<MealDetailBottomSheet> createState() => _MealDetailBottomSheetState();
@@ -95,6 +98,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
 
   /// Whether Add puts the food on the list rather than logging it: the list
   /// holds something or a food is on its way onto it (LogTray.collects).
+  /// The row being edited — only with a list to save it to, so a release
+  /// build that broke the pairing logs as a normal Add, label included.
+  LogTrayItem? get _editing =>
+      widget.logTray == null ? null : widget.editingTrayItem;
+
   bool get _addsToList {
     final logTray = widget.logTray;
     return logTray != null && logTray.collects;
@@ -149,8 +157,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
     // A row already on the list (the review screen accepts a food with a
     // value missing) keeps the warning but can still change its amount.
-    final amountLocked =
-        productMissingRequiredInfo && widget.editingTrayItem == null;
+    final amountLocked = productMissingRequiredInfo && _editing == null;
     final logTray = widget.logTray;
     final addsToList = _addsToList;
     final canSubmit = !amountLocked && !_submitting;
@@ -306,7 +313,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             ),
                             icon: const Icon(Icons.add_rounded),
                             label: Text(
-                              widget.editingTrayItem != null
+                              _editing != null
                                   ? S.of(context).buttonSaveLabel
                                   : addsToList
                                   ? S.of(context).addToListLabel
@@ -429,7 +436,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
       return;
     }
 
-    final editing = widget.editingTrayItem;
+    final editing = _editing;
 
     // Check for duplicate additions (#212). Changing the amount of a row
     // already on the list adds nothing, so there is nothing to ask.

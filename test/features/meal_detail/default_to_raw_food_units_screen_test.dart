@@ -165,6 +165,9 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
+    final LogTray? tray = editing == null ? null : (LogTray()..add(editing));
+    if (tray != null) addTearDown(tray.dispose);
+
     final navigatorKey = GlobalKey<NavigatorState>();
     Route<void> routeFor(RouteSettings settings) {
       return MaterialPageRoute<void>(
@@ -190,7 +193,7 @@ void main() {
                   IntakeTypeEntity.breakfast,
                   DateTime(2026, 9, 14),
                   false,
-                  logTray: editing == null ? null : (LogTray()..add(editing)),
+                  logTray: tray,
                   editingTrayItem: editing,
                 ),
               ),
