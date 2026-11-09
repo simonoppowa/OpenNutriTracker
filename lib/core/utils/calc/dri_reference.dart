@@ -209,6 +209,76 @@ const Map<String, Map<_LifeStage, DriReference>> _driTable = {
     _LifeStage.f51to70: DriReference(amount: 320, unit: 'mg', basis: 'RDA'),
     _LifeStage.f71plus: DriReference(amount: 320, unit: 'mg', basis: 'RDA'),
   },
+  NutrientPanelKeys.zinc: {
+    // IOM RDA (2001): men 11 mg, women 8 mg, all adult ages.
+    _LifeStage.m19to30: DriReference(amount: 11, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 11, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 11, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 11, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 8, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 8, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 8, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 8, unit: 'mg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.phosphorus: {
+    // IOM RDA (1997): 700 mg for all adults.
+    _LifeStage.m19to30: DriReference(amount: 700, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 700, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 700, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 700, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 700, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 700, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 700, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 700, unit: 'mg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.vitaminA: {
+    // IOM RDA (2001): men 900 µg RAE, women 700 µg RAE. FDC and the
+    // backend report vitamin A as RAE, the same basis.
+    _LifeStage.m19to30: DriReference(amount: 900, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 900, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 900, unit: 'µg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 900, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 700, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 700, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 700, unit: 'µg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 700, unit: 'µg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.vitaminC: {
+    // IOM RDA (2000): men 90 mg, women 75 mg.
+    _LifeStage.m19to30: DriReference(amount: 90, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 90, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 90, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 90, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 75, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 75, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 75, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 75, unit: 'mg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.vitaminB6: {
+    // IOM RDA (1998): 1.3 mg adults 19 to 50; from 51, men 1.7 mg and
+    // women 1.5 mg.
+    _LifeStage.m19to30: DriReference(amount: 1.3, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 1.3, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 1.7, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 1.7, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 1.3, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 1.3, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 1.5, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 1.5, unit: 'mg', basis: 'RDA'),
+  },
+  NutrientPanelKeys.niacin: {
+    // IOM RDA (1998): men 16 mg, women 14 mg niacin equivalents. Food
+    // tables list preformed niacin, so the panel slightly understates intake
+    // from protein-rich foods (tryptophan also yields niacin).
+    _LifeStage.m19to30: DriReference(amount: 16, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m31to50: DriReference(amount: 16, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m51to70: DriReference(amount: 16, unit: 'mg', basis: 'RDA'),
+    _LifeStage.m71plus: DriReference(amount: 16, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f19to30: DriReference(amount: 14, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f31to50: DriReference(amount: 14, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f51to70: DriReference(amount: 14, unit: 'mg', basis: 'RDA'),
+    _LifeStage.f71plus: DriReference(amount: 14, unit: 'mg', basis: 'RDA'),
+  },
 };
 
 /// Looks up the IOM reference intake for a given nutrient and user.
