@@ -41,6 +41,10 @@ class MealDetailBottomSheet extends StatefulWidget {
   /// instead (#1520). Once the list has items, the main button adds to it.
   final LogTray? logTray;
 
+  /// The row of [logTray] being changed, when the sheet was opened by
+  /// tapping it. The button then saves the new amount over that row.
+  final LogTrayItem? editingTrayItem;
+
   const MealDetailBottomSheet({
     super.key,
     required this.product,
@@ -52,7 +56,11 @@ class MealDetailBottomSheet extends StatefulWidget {
     required this.selectedUnit,
     this.usesImperialUnits = false,
     this.logTray,
-  });
+    this.editingTrayItem,
+  }) : assert(
+         editingTrayItem == null || logTray != null,
+         'a row to edit needs the list it is on',
+       );
 
   @override
   State<MealDetailBottomSheet> createState() => _MealDetailBottomSheetState();
@@ -90,6 +98,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
 
   /// Whether Add puts the food on the list rather than logging it: the list
   /// holds something or a food is on its way onto it (LogTray.collects).
+  /// The row being edited — only with a list to save it to, so a release
+  /// build that broke the pairing logs as a normal Add, label included.
+  LogTrayItem? get _editing =>
+      widget.logTray == null ? null : widget.editingTrayItem;
+
   bool get _addsToList {
     final logTray = widget.logTray;
     return logTray != null && logTray.collects;
@@ -142,9 +155,12 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
+    // A row already on the list (the review screen accepts a food with a
+    // value missing) keeps the warning but can still change its amount.
+    final amountLocked = productMissingRequiredInfo && _editing == null;
     final logTray = widget.logTray;
     final addsToList = _addsToList;
-    final canSubmit = !productMissingRequiredInfo && !_submitting;
+    final canSubmit = !amountLocked && !_submitting;
     final missingFieldsText = S.of(
       context,
     ).missingProductInfoFields(_missingRequiredProductInfo().join(', '));
@@ -159,7 +175,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
         // typing. Uses the food's own serving when it has one and 100 g
         // for solids. Computed once so the collection-if below can drop
         // the row entirely when nothing applies (no orphan SizedBox).
-        final quickOptions = productMissingRequiredInfo
+        final quickOptions = amountLocked
             ? const <QuickServingOption>[]
             : quickServingOptionsFor(
                 widget.product,
@@ -188,7 +204,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         children: [
                           Expanded(
                             child: TextFormField(
-                              enabled: !productMissingRequiredInfo,
+                              enabled: !amountLocked,
                               controller: widget.quantityTextController,
                               focusNode: _quantityFocusNode,
                               onTap: _selectAllQuantityText,
@@ -233,16 +249,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                               items: <DropdownMenuItem<String>>[
                                 // #629: a serving the app cannot scale
                                 // is a no-op dressed as a unit.
-                                if (widget.product.scalableServingQuantity !=
-                                    null)
+                                if (offersServingUnit(widget.product))
                                   _getServingDropdownItem(context),
-                                if (widget.product.isSolid ||
-                                    !widget.product.isLiquid &&
-                                        !widget.product.isSolid)
+                                if (offersSolidUnits(widget.product))
                                   ..._getSolidUnitDropdownItems(context),
-                                if (widget.product.isLiquid ||
-                                    !widget.product.isLiquid &&
-                                        !widget.product.isSolid)
+                                if (offersLiquidUnits(widget.product))
                                   ..._getLiquidUnitDropdownItems(context),
                                 ..._getOtherDropdownItems(context),
                               ],
@@ -302,7 +313,9 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                             ),
                             icon: const Icon(Icons.add_rounded),
                             label: Text(
-                              addsToList
+                              _editing != null
+                                  ? S.of(context).buttonSaveLabel
+                                  : addsToList
                                   ? S.of(context).addToListLabel
                                   : S.of(context).addLabel,
                             ),
@@ -423,8 +436,11 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
       return;
     }
 
-    // Check for duplicate additions (#212)
-    final isDuplicate = await _checkForDuplicate(context);
+    final editing = _editing;
+
+    // Check for duplicate additions (#212). Changing the amount of a row
+    // already on the list adds nothing, so there is nothing to ask.
+    final isDuplicate = editing == null && await _checkForDuplicate(context);
     if (!context.mounted) return;
     if (isDuplicate) {
       final shouldAdd = await _showDuplicateDialog(context);
@@ -435,28 +451,34 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     final logTray = widget.logTray;
     // Asked again rather than taken from the press: a food can reach the
     // list during the checks above, and logging on its own would leave it.
-    if (logTray != null && (toList || logTray.collects)) {
+    // An edited row goes back on the list even if the list emptied
+    // meanwhile; it was never meant to be logged on its own.
+    if (logTray != null && (toList || editing != null || logTray.collects)) {
       // Onto the list, with exactly what `addIntake` below would have been
       // given; the add-food screen writes it when the list is logged.
       final state = widget.mealDetailBloc.state;
-      logTray.add(
-        LogTrayItem(
-          meal: widget.product,
-          unit: storedUnit(state.selectedUnit),
-          amount: double.parse(
-            state.totalQuantityConverted.replaceAll(',', '.'),
-          ),
-          amountLabel: logTrayAmountLabel(
-            context,
-            quantity,
-            state.selectedUnit,
-            widget.product,
-          ),
+      final item = LogTrayItem(
+        meal: widget.product,
+        unit: storedUnit(state.selectedUnit),
+        amount: double.parse(state.totalQuantityConverted.replaceAll(',', '.')),
+        amountLabel: logTrayAmountLabel(
+          context,
+          quantity,
+          state.selectedUnit,
+          widget.product,
         ),
+        quantity: quantity,
+        selectedUnit: state.selectedUnit,
       );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(S.of(context).logTrayAddedLabel)));
+      if (editing != null) {
+        // The row itself shows the new amount; no snackbar needed.
+        logTray.replace(editing, item);
+      } else {
+        logTray.add(item);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).logTrayAddedLabel)),
+        );
+      }
       // Back to the list, past the scanner too when that is how the user
       // came: it replaced itself with this screen.
       Navigator.of(
@@ -629,4 +651,33 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
       ),
     ];
   }
+}
+
+/// Whether the unit dropdown lists a serving for [meal]. #629: a serving the
+/// app cannot scale is a no-op dressed as a unit.
+bool offersServingUnit(MealEntity meal) => meal.scalableServingQuantity != null;
+
+/// Whether the unit dropdown lists g and oz for [meal].
+bool offersSolidUnits(MealEntity meal) =>
+    meal.isSolid || !meal.isLiquid && !meal.isSolid;
+
+/// Whether the unit dropdown lists ml and fl oz for [meal].
+bool offersLiquidUnits(MealEntity meal) =>
+    meal.isLiquid || !meal.isLiquid && !meal.isSolid;
+
+/// Whether [unit] is one of the values the unit dropdown offers for [meal].
+/// A value it does not list would fail the dropdown's assertion.
+bool offersUnit(MealEntity meal, String unit) {
+  if (unit == UnitDropdownItem.serving.toString()) {
+    return offersServingUnit(meal);
+  }
+  if (unit == UnitDropdownItem.g.toString() ||
+      unit == UnitDropdownItem.oz.toString()) {
+    return offersSolidUnits(meal);
+  }
+  if (unit == UnitDropdownItem.ml.toString() ||
+      unit == UnitDropdownItem.flOz.toString()) {
+    return offersLiquidUnits(meal);
+  }
+  return unit == UnitDropdownItem.gml.toString();
 }

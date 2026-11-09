@@ -245,7 +245,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         ],
                         if (!_logTray.isEmpty) ...[
                           const SizedBox(height: Dimens.spacing16),
-                          LogTrayList(tray: _logTray),
+                          LogTrayList(tray: _logTray, onEdit: _onEditTrayItem),
                         ],
                       ],
                     ),
@@ -966,6 +966,24 @@ class _AddMealScreenState extends State<AddMealScreen> {
     // No snackbar: the count on the log button is the confirmation, and a
     // snackbar would sit over the next result someone is about to tap.
     _logTray.add(item);
+  }
+
+  /// Reopens a row's food with its amount; saving there changes the row.
+  void _onEditTrayItem(LogTrayItem item) {
+    final state = _addMealBloc.state;
+    final usesImperialUnits =
+        state is AddMealLoadedState && state.usesImperialUnits;
+    Navigator.of(context).pushNamed(
+      NavigationOptions.mealDetailRoute,
+      arguments: MealDetailScreenArguments(
+        item.meal,
+        _mealType.getIntakeType(),
+        _day,
+        usesImperialUnits,
+        logTray: _logTray,
+        editingTrayItem: item,
+      ),
+    );
   }
 
   /// The full record behind a thin Open Food Facts search hit, so the +
