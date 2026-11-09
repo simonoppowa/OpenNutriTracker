@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/offline_food_db_section.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:opennutritracker/core/utils/safe_url_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -97,6 +98,7 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
                     value: _toggles[sourceCode] ?? true,
                     onChanged: (value) => _toggle(sourceCode, value),
                   ),
+                const OfflineFoodDbSection(),
               ],
             ),
     );
