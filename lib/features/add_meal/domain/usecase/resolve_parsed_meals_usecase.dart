@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
@@ -77,6 +79,12 @@ class ResolveParsedMealsUseCase {
   /// two-item meal costs about as many product reads as tapping + on a
   /// handful of search results.
   static const _maxOffLookups = 5;
+
+  /// How long one full-record lookup may take before its row keeps the
+  /// text-search hit. The Open Food Facts client waits up to 60 s, and the
+  /// review screen waits for every row, so one slow product read would
+  /// hold the whole meal on a spinner.
+  static const _fullRecordTimeout = Duration(seconds: 5);
 
   final _log = Logger('ResolveParsedMealsUseCase');
 
@@ -202,8 +210,9 @@ class ResolveParsedMealsUseCase {
   /// move it. Without the bonus the bound skipped a winner: a detailed
   /// "Apple" with no serving sorts at 0.85 on `apple`, and thin "Apples"
   /// at 0.833 is 0.863 once detailed. None when the first candidate is
-  /// the user's own, which no remote record outranks. A lookup that fails
-  /// leaves the thin hit where it was.
+  /// the user's own, which no remote record outranks. A lookup that fails,
+  /// or takes longer than [_fullRecordTimeout], leaves the thin hit where it
+  /// was.
   Future<List<MealEntity>> _withFullOffRecords(
     List<MealEntity> ranked,
     String query,
@@ -242,7 +251,9 @@ class ResolveParsedMealsUseCase {
 
   Future<MealEntity?> _fullOffRecord(MealEntity meal) async {
     try {
-      return await _searchProductsUseCase.fetchFullOffRecord(meal);
+      return await _searchProductsUseCase
+          .fetchFullOffRecord(meal)
+          .timeout(_fullRecordTimeout);
     } catch (e, stackTrace) {
       _log.warning(
         'Could not fetch the full Open Food Facts record for ${meal.code}',

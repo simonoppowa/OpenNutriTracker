@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -54,6 +56,9 @@ class _FakeSearch implements SearchProductsUseCase {
   final Map<String, MealEntity> fullRecords;
   final Set<String> throwFullRecord;
   final List<String> fullRecordLookups = [];
+
+  /// Codes whose full-record lookup never answers, as on a stalled network.
+  final Set<String> hangFullRecord = {};
   final List<String> started = [];
   final List<String> finished = [];
   int maxConcurrent = 0;
@@ -121,6 +126,7 @@ class _FakeSearch implements SearchProductsUseCase {
     final code = meal.code!;
     fullRecordLookups.add(code);
     if (throwFullRecord.contains(code)) throw StateError('OFF is down');
+    if (hangFullRecord.contains(code)) return Completer<MealEntity?>().future;
     return fullRecords[code];
   }
 
@@ -600,6 +606,28 @@ void main() {
         expect(fake.fullRecordLookups, ['lidl']);
       },
     );
+
+    testWidgets('a lookup that does not answer gives up after 5 s and '
+        'keeps the search hit', (tester) async {
+      final fake = search()..hangFullRecord.addAll({'lidl', 'aldi'});
+      List<ResolvedMealItem>? resolved;
+      unawaited(
+        ResolveParsedMealsUseCase(
+          fake,
+        ).resolve([eggs]).then((rows) => resolved = rows),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 4));
+      expect(resolved, isNull);
+
+      await tester.pump(const Duration(seconds: 2));
+      expect(resolved, isNotNull);
+      final offCandidates = resolved!.single.candidates.where(
+        (meal) => meal.source == MealSourceEntity.off,
+      );
+      expect(offCandidates.map((meal) => meal.brands), ['lidl', 'aldi']);
+      expect(offCandidates.map((meal) => meal.detailed), everyElement(false));
+    });
 
     test('the bound counts what a hit gains once detailed', () async {
       // A cached, detailed "Apple" with no serving sorts at 0.85 under the
