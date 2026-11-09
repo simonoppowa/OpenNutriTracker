@@ -51,7 +51,7 @@ class _NothingLoggedGetIntakeUsecase extends Fake implements GetIntakeUsecase {
 
 /// Throws if asked: editing a row on the list is not a second helping, so
 /// the duplicate check must not run.
-class _UnusedGetIntakeUsecase extends Fake implements GetIntakeUsecase {}
+class _ThrowingGetIntakeUsecase extends Fake implements GetIntakeUsecase {}
 
 class _FakeHomeBloc extends Fake implements HomeBloc {
   @override
@@ -339,7 +339,7 @@ void main() {
   ) async {
     GetIt.instance
       ..unregister<GetIntakeUsecase>()
-      ..registerFactory<GetIntakeUsecase>(_UnusedGetIntakeUsecase.new);
+      ..registerFactory<GetIntakeUsecase>(_ThrowingGetIntakeUsecase.new);
     final bloc = _CountingMealDetailBloc();
     addTearDown(bloc.close);
     final tray = LogTray();
@@ -532,7 +532,7 @@ void main() {
   testWidgets('an invalid amount leaves the row as it was', (tester) async {
     GetIt.instance
       ..unregister<GetIntakeUsecase>()
-      ..registerFactory<GetIntakeUsecase>(_UnusedGetIntakeUsecase.new);
+      ..registerFactory<GetIntakeUsecase>(_ThrowingGetIntakeUsecase.new);
     final bloc = _CountingMealDetailBloc();
     addTearDown(bloc.close);
     final tray = LogTray();

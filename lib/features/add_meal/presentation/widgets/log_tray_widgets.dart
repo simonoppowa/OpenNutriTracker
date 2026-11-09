@@ -176,7 +176,13 @@ class _LogTrayRow extends StatelessWidget {
     if (onTap == null) return row;
     // One identifier for every tappable row, like the remove control: rows
     // are found by their food's name.
-    return Semantics(identifier: 'add-meal-tray-edit', child: row);
+    // The hint tells a screen reader what a tap on the row does; the
+    // remove control beside it keeps its own tooltip.
+    return Semantics(
+      identifier: 'add-meal-tray-edit',
+      onTapHint: S.of(context).logTrayEditAmountLabel,
+      child: row,
+    );
   }
 }
 
