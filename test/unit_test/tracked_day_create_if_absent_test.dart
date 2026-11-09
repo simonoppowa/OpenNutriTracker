@@ -165,7 +165,7 @@ void main() {
 
   tearDown(() async {
     await box.clear();
-    await Hive.close();
+    // deleteFromDisk removes only open boxes, so it runs before any close
     await Hive.deleteFromDisk();
   });
 

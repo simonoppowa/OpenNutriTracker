@@ -206,7 +206,7 @@ void main() {
 
   tearDown(() async {
     ImportWorkoutsUsecase.clock = DateTime.now;
-    await Hive.close();
+    // deleteFromDisk removes only open boxes, so it runs before any close
     await Hive.deleteFromDisk();
   });
 
