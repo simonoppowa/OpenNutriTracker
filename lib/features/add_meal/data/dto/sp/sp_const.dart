@@ -134,17 +134,24 @@ class SPConst {
 
   /// Sources offered in Settings → Food databases. INDB and TBCA exist in
   /// the schema but carry no data yet, so they are not selectable until
-  /// their imports land — add them here once they do. The same holds for
-  /// CIQUAL, Fineli, the Danish FCDB, Matvaretabellen and Livsmedelsverket,
-  /// whose importers
-  /// live in the backend repo (OpenNutriTracker-Backend) and whose rows
-  /// reach the hosted database only when the maintainer runs them.
+  /// their imports land — add them here once they do.
+  ///
+  /// CIQUAL, Fineli, the Danish FCDB, Matvaretabellen and Livsmedelsverket
+  /// are selectable because the offline food database carries them. On the
+  /// hosted backend their rows arrive when the maintainer runs their
+  /// importers; until then a switched-on source simply adds nothing to a
+  /// search.
   static const settingsSelectableFoodSources = [
     'fdc_foundation',
     'fdc_sr_legacy',
     'fdc_survey',
     'fdc_branded',
     'bls',
+    'ciqual',
+    'fineli',
+    'frida',
+    'mvt',
+    'slv',
   ];
 
   /// Public website per backend source: the "learn more" link in Settings →
