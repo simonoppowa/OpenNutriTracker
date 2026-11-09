@@ -321,5 +321,74 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(_summary(), findsOneWidget);
     });
+
+    // Rows must give the label every pixel the value doesn't need, and
+    // bound its lines (AGENTS.md "Row titles must not overflow"). A
+    // Flexible value cell used to take half the row even for "+180 kcal".
+    for (final (scale, width) in [(1.0, 1200.0), (2.0, 320.0)]) {
+      testWidgets('rows keep label space and bound label lines '
+          '(text scale $scale, ${width.toInt()} wide)', (tester) async {
+        await _pump(
+          tester,
+          KcalGoalBreakdownEntity.compute(
+            user: _buildUser(),
+            userKcalAdjustment: -150,
+            totalKcalActivities: 180,
+          ),
+          textScale: scale,
+          size: Size(width, 6000),
+        );
+        expect(tester.takeException(), isNull);
+
+        final terms = [
+          KcalGoalSummaryTerm.maintenance,
+          KcalGoalSummaryTerm.weightGoal,
+          KcalGoalSummaryTerm.manualAdjustment,
+          KcalGoalSummaryTerm.activities,
+        ];
+        for (final term in terms) {
+          final labelFinder = _inSummary(
+            find.byKey(ValueKey('kcal-goal-summary-${term.name}-label')),
+          );
+          final valueFinder = _inSummary(
+            find.byKey(ValueKey('kcal-goal-summary-${term.name}')),
+          );
+          final label = tester.widget<Text>(labelFinder);
+          expect(label.maxLines, 2, reason: term.name);
+          expect(label.overflow, TextOverflow.ellipsis, reason: term.name);
+
+          final rowWidth = tester
+              .getSize(
+                find.ancestor(of: labelFinder, matching: find.byType(Row)),
+              )
+              .width;
+          final valueCell = find.ancestor(
+            of: valueFinder,
+            matching: find.byType(FittedBox),
+          );
+          final valueCellWidth = tester.getSize(valueCell).width;
+          final naturalValueWidth = tester.getSize(valueFinder).width;
+          final labelWidth = tester.getSize(labelFinder).width;
+
+          // The value cell is only as wide as its text, capped at half the
+          // row, where it shrinks instead of overflowing.
+          expect(
+            valueCellWidth,
+            moreOrLessEquals(
+              naturalValueWidth.clamp(0, rowWidth / 2),
+              epsilon: 0.5,
+            ),
+            reason: term.name,
+          );
+          // The label gets everything else.
+          expect(
+            labelWidth,
+            moreOrLessEquals(rowWidth - 8 - valueCellWidth, epsilon: 0.5),
+            reason: term.name,
+          );
+          expect(labelWidth, greaterThanOrEqualTo(rowWidth / 2 - 8));
+        }
+      });
+    }
   });
 }

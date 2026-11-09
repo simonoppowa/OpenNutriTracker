@@ -408,6 +408,7 @@ class _SummaryCard extends StatelessWidget {
                   ? _energyText(row.value, unit)
                   : _signedEnergyText(row.value, unit),
               valueKey: ValueKey('kcal-goal-summary-${row.term.name}'),
+              labelKey: ValueKey('kcal-goal-summary-${row.term.name}-label'),
             ),
           const Divider(height: Dimens.spacing20),
           Row(
@@ -582,12 +583,14 @@ class _ValueRow extends StatelessWidget {
   final String value;
   final bool emphasized;
   final Key? valueKey;
+  final Key? labelKey;
 
   const _ValueRow({
     required this.label,
     required this.value,
     this.emphasized = false,
     this.valueKey,
+    this.labelKey,
   });
 
   @override
@@ -598,27 +601,53 @@ class _ValueRow extends StatelessWidget {
         : theme.textTheme.bodyMedium;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Dimens.spacing4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-          const SizedBox(width: Dimens.spacing8),
-          // Flexible so a long value at a large text scale wraps instead
-          // of pushing the row past the card edge.
-          Flexible(
-            child: Text(
-              value,
-              key: valueKey,
-              style: valueStyle,
-              textAlign: TextAlign.end,
+      child: LayoutBuilder(
+        builder: (context, constraints) => Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // The label keeps every pixel the value doesn't need, and wraps
+            // to at most two lines before it ellipsizes.
+            Expanded(
+              child: Text(
+                label,
+                key: labelKey,
+                style: theme.textTheme.bodyMedium,
+                maxLines: _labelMaxLines,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: Dimens.spacing8),
+            // The value sizes to its content. Only a value too wide for
+            // [_valueMaxWidthFraction] of the row (very large text scale)
+            // shrinks to fit, so it can never take the label's space or
+            // push the row past the card edge.
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: constraints.maxWidth * _valueMaxWidthFraction,
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerEnd,
+                child: Text(
+                  value,
+                  key: valueKey,
+                  style: valueStyle,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+/// Lines a [_ValueRow] label may wrap to before it ellipsizes.
+const int _labelMaxLines = 2;
+
+/// The widest a [_ValueRow] value may get, as a share of the row.
+const double _valueMaxWidthFraction = 0.5;
 
 class _FormulaSideLabel extends StatelessWidget {
   final String text;
