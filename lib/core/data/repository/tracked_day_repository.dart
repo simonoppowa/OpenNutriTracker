@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
+import 'package:opennutritracker/core/domain/entity/nutrient_goal_keys.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 
 class TrackedDayRepository {
@@ -97,23 +98,41 @@ class TrackedDayRepository {
     );
   }
 
+  /// A new day with nothing tracked. It starts with the kcal and macro
+  /// goals passed in, and with the nutrient goals the user has set in
+  /// Settings → Nutrient goals (#1316); a nutrient without one stays null,
+  /// so the panels show its default. The goals are copied, so changing
+  /// them later leaves this day as it was.
   TrackedDayDBO _emptyTrackedDay(
     DateTime day,
     double totalKcalGoal,
     double totalCarbsGoal,
     double totalFatGoal,
     double totalProteinGoal,
-  ) => TrackedDayDBO(
-    day: day,
-    calorieGoal: totalKcalGoal,
-    caloriesTracked: 0,
-    carbsGoal: totalCarbsGoal,
-    carbsTracked: 0,
-    fatGoal: totalFatGoal,
-    fatTracked: 0,
-    proteinGoal: totalProteinGoal,
-    proteinTracked: 0,
-  );
+  ) {
+    final goals = _trackedDayDataSource.userNutrientGoalsNow();
+    return TrackedDayDBO(
+      day: day,
+      calorieGoal: totalKcalGoal,
+      caloriesTracked: 0,
+      carbsGoal: totalCarbsGoal,
+      carbsTracked: 0,
+      fatGoal: totalFatGoal,
+      fatTracked: 0,
+      proteinGoal: totalProteinGoal,
+      proteinTracked: 0,
+      fibreGoal: goals[NutrientGoalKeys.fibre],
+      satFatGoal: goals[NutrientGoalKeys.satFat],
+      sugarsGoal: goals[NutrientGoalKeys.sugars],
+      sodiumGoal: goals[NutrientGoalKeys.sodium],
+      calciumGoal: goals[NutrientGoalKeys.calcium],
+      ironGoal: goals[NutrientGoalKeys.iron],
+      potassiumGoal: goals[NutrientGoalKeys.potassium],
+      vitaminDGoal: goals[NutrientGoalKeys.vitaminD],
+      vitaminB12Goal: goals[NutrientGoalKeys.vitaminB12],
+      magnesiumGoal: goals[NutrientGoalKeys.magnesium],
+    );
+  }
 
   Future<void> addAllTrackedDays(List<TrackedDayDBO> trackedDaysDBO) async {
     await _trackedDayDataSource.saveAllTrackedDays(trackedDaysDBO);
@@ -238,9 +257,19 @@ class TrackedDayRepository {
     );
   }
 
-  Future<void> reconcileDayTracked(DateTime day,
-      double calories, double carbs, double fat, double protein) async {
+  Future<void> reconcileDayTracked(
+    DateTime day,
+    double calories,
+    double carbs,
+    double fat,
+    double protein,
+  ) async {
     await _trackedDayDataSource.reconcileCaloriesAndMacrosTracked(
-        day, calories, carbs, fat, protein);
+      day,
+      calories,
+      carbs,
+      fat,
+      protein,
+    );
   }
 }

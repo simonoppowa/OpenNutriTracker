@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opennutritracker/core/domain/entity/nutrient_goal_keys.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
@@ -186,19 +187,24 @@ class _NutrientGoalsScreenState extends State<NutrientGoalsScreen> {
     final today = await widget.settingsBloc.getTodayTrackedDay(
       await widget.settingsBloc.getCurrentLogicalDay(),
     );
+    // Today's row wins; where it has no goal, or there is no row yet, the
+    // stored goal fills in. Otherwise a fresh day opens at the defaults,
+    // and Save writes them over the user's goals (#1316).
+    final stored = await widget.settingsBloc.getUserNutrientGoals();
     if (!mounted) return;
     setState(() {
       _user = user;
-      _fibre = today?.fibreGoal;
-      _satFat = today?.satFatGoal;
-      _sugars = today?.sugarsGoal;
-      _sodium = today?.sodiumGoal;
-      _calcium = today?.calciumGoal;
-      _iron = today?.ironGoal;
-      _potassium = today?.potassiumGoal;
-      _magnesium = today?.magnesiumGoal;
-      _vitaminD = today?.vitaminDGoal;
-      _vitaminB12 = today?.vitaminB12Goal;
+      _fibre = today?.fibreGoal ?? stored[NutrientGoalKeys.fibre];
+      _satFat = today?.satFatGoal ?? stored[NutrientGoalKeys.satFat];
+      _sugars = today?.sugarsGoal ?? stored[NutrientGoalKeys.sugars];
+      _sodium = today?.sodiumGoal ?? stored[NutrientGoalKeys.sodium];
+      _calcium = today?.calciumGoal ?? stored[NutrientGoalKeys.calcium];
+      _iron = today?.ironGoal ?? stored[NutrientGoalKeys.iron];
+      _potassium = today?.potassiumGoal ?? stored[NutrientGoalKeys.potassium];
+      _magnesium = today?.magnesiumGoal ?? stored[NutrientGoalKeys.magnesium];
+      _vitaminD = today?.vitaminDGoal ?? stored[NutrientGoalKeys.vitaminD];
+      _vitaminB12 =
+          today?.vitaminB12Goal ?? stored[NutrientGoalKeys.vitaminB12];
       _loaded = true;
     });
     _syncControllers();

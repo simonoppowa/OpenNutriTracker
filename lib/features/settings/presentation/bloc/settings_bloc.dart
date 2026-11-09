@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/domain/entity/nutrient_goal_keys.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
@@ -267,10 +268,25 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return await _getTrackedDayUsecase.getTrackedDay(day);
   }
 
+  /// The nutrient goals the user has set, keyed by [NutrientGoalKeys]
+  /// (#1316). The Nutrient goals screen falls back to these for a nutrient
+  /// today's row has no goal for, or when there is no row yet, so it does
+  /// not open at the defaults, and save them, on a fresh day.
+  Future<Map<String, double>> getUserNutrientGoals() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.userNutrientGoals;
+  }
+
   /// #173 (+follow-up): persist user-set per-nutrient goals to today's
   /// tracked-day row. Must be called after ensuring the row exists (the
   /// macro updateTrackedDay flow takes care of creating it). Accepts
   /// the original three nutrients plus the seven from the follow-up.
+  ///
+  /// #1316: also stores them as the profile's nutrient goals, which every
+  /// tracked day created afterwards starts with. With [clearAll] they
+  /// replace the stored goals, so a nutrient left null goes back to its
+  /// default; without it, only the non-null ones are changed. Days that
+  /// already exist, other than [day], keep the goals they have.
   Future<void> setTodayNutrientGoals(
     DateTime day, {
     double? fibreGoal,
@@ -285,8 +301,29 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     double? magnesiumGoal,
     bool clearAll = false,
   }) async {
-    await withTrackedDayLockOnProfile(
-      () => _addTrackedDayUsecase.updateDayNutrientGoals(
+    final entered = {
+      NutrientGoalKeys.fibre: fibreGoal,
+      NutrientGoalKeys.satFat: satFatGoal,
+      NutrientGoalKeys.sugars: sugarsGoal,
+      NutrientGoalKeys.sodium: sodiumGoal,
+      NutrientGoalKeys.calcium: calciumGoal,
+      NutrientGoalKeys.iron: ironGoal,
+      NutrientGoalKeys.potassium: potassiumGoal,
+      NutrientGoalKeys.vitaminD: vitaminDGoal,
+      NutrientGoalKeys.vitaminB12: vitaminB12Goal,
+      NutrientGoalKeys.magnesium: magnesiumGoal,
+    };
+    // Under the same lock and profile check as the row, so a profile
+    // switch cannot put the goals on one profile and the row on another.
+    await withTrackedDayLockOnProfile(() async {
+      final goals = {
+        if (!clearAll) ...await getUserNutrientGoals(),
+        for (final MapEntry(:key, :value) in entered.entries) key: ?value,
+      };
+      await _addConfigUsecase.setConfigUserNutrientGoals(
+        NutrientGoalKeys.sanitise(goals),
+      );
+      await _addTrackedDayUsecase.updateDayNutrientGoals(
         day,
         fibreGoal: fibreGoal,
         satFatGoal: satFatGoal,
@@ -299,8 +336,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
         vitaminB12Goal: vitaminB12Goal,
         magnesiumGoal: magnesiumGoal,
         clearAll: clearAll,
-      ),
-    );
+      );
+    });
   }
 
   Future<void> updateTrackedDay(DateTime day) =>
