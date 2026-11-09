@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class IntakeRepository {
   final IntakeDataSource _intakeDataSource;
@@ -54,12 +55,24 @@ class IntakeRepository {
         .toList();
   }
 
-  Future<List<IntakeEntity>> getRecentIntake() async {
-    final intakeList = await _intakeDataSource.getRecentlyAddedIntake();
+  /// See [IntakeDataSource.getRecentlyAddedIntake].
+  Future<List<IntakeEntity>> getRecentIntake({
+    bool Function(String intakeId)? isHidden,
+  }) async {
+    final intakeList = await _intakeDataSource.getRecentlyAddedIntake(
+      isHidden: isHidden,
+    );
 
     return intakeList
         .map((intakeDBO) => IntakeEntity.fromIntakeDBO(intakeDBO))
         .toList();
+  }
+
+  /// The id of every entry behind [meal]'s row in the Recently list.
+  Future<List<String>> getIntakeIdsInRecentRow(MealEntity meal) {
+    return _intakeDataSource.getIntakeIdsByRecentKey(
+      meal.code ?? meal.name ?? "",
+    );
   }
 
   Future<IntakeEntity?> getIntakeById(String intakeId) async {

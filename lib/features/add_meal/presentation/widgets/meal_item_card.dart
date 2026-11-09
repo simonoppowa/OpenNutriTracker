@@ -34,6 +34,10 @@ class MealItemCard extends StatelessWidget {
   /// amount without opening it. Null keeps the + opening the detail screen.
   final VoidCallback? onQuickAdd;
 
+  /// What a long press on the card does, if anything: the Recently list
+  /// offers to remove the food from it (#1198).
+  final VoidCallback? onLongPress;
+
   const MealItemCard({
     super.key,
     required this.day,
@@ -43,6 +47,7 @@ class MealItemCard extends StatelessWidget {
     this.favouriteSemanticsIdentifier,
     this.logTray,
     this.onQuickAdd,
+    this.onLongPress,
   });
 
   @override
@@ -62,6 +67,7 @@ class MealItemCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
       child: AppCard(
         onTap: () => _onItemPressed(context),
+        onLongPress: onLongPress,
         padding: const EdgeInsets.all(Dimens.spacing12),
         child: Row(
           children: [

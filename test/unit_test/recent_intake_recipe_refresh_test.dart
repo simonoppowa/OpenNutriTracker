@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/hidden_recent_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -32,10 +33,15 @@ void main() {
     final provider = FakeHiveDBProvider(
       intakeBox: await Hive.openBox<IntakeDBO>('recent_refresh_intake'),
       recipeBox: await Hive.openBox<RecipeDBO>('recent_refresh_recipe'),
+      hiddenRecentBox: await Hive.openBox<DateTime>('recent_refresh_hidden'),
     );
     intakeRepo = IntakeRepository(IntakeDataSource(provider));
     recipeRepo = RecipeRepository(RecipeDataSource(provider));
-    usecase = GetIntakeUsecase(intakeRepo, recipeRepo);
+    usecase = GetIntakeUsecase(
+      intakeRepo,
+      recipeRepo,
+      HiddenRecentDataSource(provider),
+    );
   });
 
   tearDown(() async => Hive.deleteFromDisk());

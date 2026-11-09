@@ -1006,6 +1006,22 @@
   "quickAddTitleHint": "Title",
   "readLabel": "I have read and accept the privacy policy.",
   "recentlyAddedLabel": "Recently",
+  "recentRemoveDialogTitle": "Remove from Recently?",
+  "@recentRemoveDialogTitle": {
+    "description": "Title of the dialog a long press on a food in the add-meal Recently list opens (#1198)."
+  },
+  "recentRemoveDialogContent": "Your diary entries and saved foods stay as they are. Log this food again and it comes back here.",
+  "@recentRemoveDialogContent": {
+    "description": "Body of the Remove from Recently dialog: removing only hides the row (#1198)."
+  },
+  "recentRemoveConfirmLabel": "Remove",
+  "@recentRemoveConfirmLabel": {
+    "description": "Confirm button of the Remove from Recently dialog."
+  },
+  "recentRemoveFailedLabel": "Couldn't remove it from Recently. Try again.",
+  "@recentRemoveFailedLabel": {
+    "description": "Snackbar shown when removing a food from the Recently list fails."
+  },
   "recipeAddIngredientLabel": "Add Ingredient",
   "recipeDeleteConfirmContent": "Past diary entries logged from this recipe will be kept.",
   "recipeDeleteConfirmTitle": "Delete recipe?",

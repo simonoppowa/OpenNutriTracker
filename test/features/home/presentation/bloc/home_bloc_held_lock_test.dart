@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/hidden_recent_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
@@ -157,6 +158,7 @@ void main() {
       GetIntakeUsecase(
         intakeRepository,
         RecipeRepository(RecipeDataSource(db)),
+        HiddenRecentDataSource(db),
       ),
       DeleteIntakeUsecase(intakeRepository),
       UpdateIntakeUsecase(intakeRepository),

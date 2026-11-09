@@ -71,6 +71,9 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   Future<List<IntakeEntity>> getRecentIntake() async => const [];
 
   @override
+  Future<List<IntakeEntity>> getRecentIntakeIncludingHidden() async => const [];
+
+  @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
