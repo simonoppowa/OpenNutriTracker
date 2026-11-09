@@ -59,8 +59,14 @@ class _FakeProductsRepository implements ProductsRepository {
   List<MealEntity> offResults = const [];
   List<MealEntity> fdcResults = const [];
 
+  /// Requests each provider was sent, so a round trip can prove it started
+  /// no new search.
+  int offCalls = 0;
+  int fdcCalls = 0;
+
   @override
   Future<List<MealEntity>> getOFFProductsByString(String searchString) async {
+    offCalls++;
     if (offGate != null) await offGate!.future;
     if (offThrows) throw Exception('OFF HTTP 429');
     return offResults;
@@ -71,6 +77,7 @@ class _FakeProductsRepository implements ProductsRepository {
     String searchString, {
     bool forResolution = false,
   }) async {
+    fdcCalls++;
     if (fdcThrows) throw Exception('Supabase timeout');
     return fdcResults;
   }
@@ -352,12 +359,23 @@ void _expectZeroResultState() {
   );
 }
 
-/// Back on Add Meal after a round trip: the query is still in the field and
-/// its zero-result state is still showing.
-void _expectQueryKept(WidgetTester tester, String query) {
+/// Back on Add Meal after a round trip: the query is still in the field,
+/// its zero-result state is still showing, and neither provider was asked
+/// again, not even by a debounced search firing late (#1559 keeps the
+/// results as they were rather than repeating the search).
+Future<void> _expectQueryKept(
+  WidgetTester tester,
+  String query, {
+  required int offCalls,
+  required int fdcCalls,
+}) async {
+  await tester.pump(const Duration(seconds: 1));
+  await tester.pumpAndSettle();
   expect(find.byType(AddMealScreen), findsOneWidget);
   expect(_fieldText(tester), query);
   _expectZeroResultState();
+  expect(_repository.offCalls, offCalls, reason: 'no new OFF search');
+  expect(_repository.fdcCalls, fdcCalls, reason: 'no new Supabase search');
 }
 
 void main() {
@@ -448,6 +466,10 @@ void main() {
     testWidgets('back from the scanner without a result', (tester) async {
       await _register();
       await _search(tester, 'zzqx');
+      final offCalls = _repository.offCalls;
+      final fdcCalls = _repository.fdcCalls;
+      expect(offCalls, greaterThan(0));
+      expect(fdcCalls, greaterThan(0));
 
       await tester.tap(
         find.bySemanticsIdentifier('search-no-results-scan-barcode'),
@@ -457,7 +479,12 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
 
-      _expectQueryKept(tester, 'zzqx');
+      await _expectQueryKept(
+        tester,
+        'zzqx',
+        offCalls: offCalls,
+        fdcCalls: fdcCalls,
+      );
     });
 
     testWidgets('back from the scanner after adding the scanned food', (
@@ -465,6 +492,10 @@ void main() {
     ) async {
       await _register();
       await _search(tester, 'zzqx');
+      final offCalls = _repository.offCalls;
+      final fdcCalls = _repository.fdcCalls;
+      expect(offCalls, greaterThan(0));
+      expect(fdcCalls, greaterThan(0));
 
       await tester.tap(
         find.bySemanticsIdentifier('search-no-results-scan-barcode'),
@@ -476,7 +507,12 @@ void main() {
       await tester.tap(find.text('stub: add to list'));
       await tester.pumpAndSettle();
 
-      _expectQueryKept(tester, 'zzqx');
+      await _expectQueryKept(
+        tester,
+        'zzqx',
+        offCalls: offCalls,
+        fdcCalls: fdcCalls,
+      );
       expect(
         find.bySemanticsIdentifier('add-meal-tray-list'),
         findsOneWidget,
@@ -487,6 +523,10 @@ void main() {
     testWidgets('back from create food after saving it', (tester) async {
       await _register();
       await _search(tester, 'zzqx');
+      final offCalls = _repository.offCalls;
+      final fdcCalls = _repository.fdcCalls;
+      expect(offCalls, greaterThan(0));
+      expect(fdcCalls, greaterThan(0));
 
       await tester.tap(
         find.bySemanticsIdentifier('search-no-results-create-custom-food'),
@@ -501,7 +541,12 @@ void main() {
       await tester.tap(find.text('stub: add to list'));
       await tester.pumpAndSettle();
 
-      _expectQueryKept(tester, 'zzqx');
+      await _expectQueryKept(
+        tester,
+        'zzqx',
+        offCalls: offCalls,
+        fdcCalls: fdcCalls,
+      );
       expect(
         find.bySemanticsIdentifier('add-meal-tray-list'),
         findsOneWidget,
@@ -513,6 +558,10 @@ void main() {
         'in the editor', (tester) async {
       await _register();
       await _search(tester, 'zzqx');
+      final offCalls = _repository.offCalls;
+      final fdcCalls = _repository.fdcCalls;
+      expect(offCalls, greaterThan(0));
+      expect(fdcCalls, greaterThan(0));
 
       // Cancelled at the "create a custom food?" prompt.
       await tester.tap(
@@ -521,7 +570,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text(l10nEn.dialogCancelLabel));
       await tester.pumpAndSettle();
-      _expectQueryKept(tester, 'zzqx');
+      await _expectQueryKept(
+        tester,
+        'zzqx',
+        offCalls: offCalls,
+        fdcCalls: fdcCalls,
+      );
 
       // Cancelled in the editor itself.
       await tester.tap(
@@ -534,7 +588,12 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
 
-      _expectQueryKept(tester, 'zzqx');
+      await _expectQueryKept(
+        tester,
+        'zzqx',
+        offCalls: offCalls,
+        fdcCalls: fdcCalls,
+      );
       expect(find.bySemanticsIdentifier('add-meal-tray-list'), findsNothing);
     });
 
