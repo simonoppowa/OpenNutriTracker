@@ -377,6 +377,7 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
             title: Text(S.of(context).recipeAddIngredientLabel),
           ),
           body: FoodSearchTabView(
+            excludedRecipeId: _bloc.state.id,
             onMealSelected: (meal) => Navigator.of(searchContext).pop(meal),
             onBarcodePressed: () async {
               // Push the scanner in pick-mode — it pops a MealEntity back to

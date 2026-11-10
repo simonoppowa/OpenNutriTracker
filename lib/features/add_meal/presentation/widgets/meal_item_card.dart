@@ -20,11 +20,18 @@ import 'package:opennutritracker/generated/l10n.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 
 class MealItemCard extends StatelessWidget {
-  final DateTime day;
-  final AddMealType addMealType;
+  /// The day and meal the food would be logged to. Both are needed unless
+  /// [onPicked] is set, which never opens the logging flow.
+  final DateTime? day;
+  final AddMealType? addMealType;
   final MealEntity mealEntity;
   final bool usesImperialUnits;
   final String? favouriteSemanticsIdentifier;
+
+  /// Picks the food instead of opening it to log: the card and its + both
+  /// hand it here. The recipe ingredient picker uses this (#1283), so its
+  /// rows look and rank like the add-food screen's but add an ingredient.
+  final ValueChanged<MealEntity>? onPicked;
 
   /// The add-food screen's "To log" list. With one, opening the food adds
   /// to it instead of logging, and [onQuickAdd] answers the +.
@@ -36,10 +43,11 @@ class MealItemCard extends StatelessWidget {
 
   const MealItemCard({
     super.key,
-    required this.day,
+    this.day,
     required this.mealEntity,
-    required this.addMealType,
+    this.addMealType,
     required this.usesImperialUnits,
+    this.onPicked,
     this.favouriteSemanticsIdentifier,
     this.logTray,
     this.onQuickAdd,
@@ -245,12 +253,17 @@ class MealItemCard extends StatelessWidget {
   }
 
   void _onItemPressed(BuildContext context) {
+    final onPicked = this.onPicked;
+    if (onPicked != null) {
+      onPicked(mealEntity);
+      return;
+    }
     Navigator.of(context).pushNamed(
       NavigationOptions.mealDetailRoute,
       arguments: MealDetailScreenArguments(
         mealEntity,
-        addMealType.getIntakeType(),
-        day,
+        addMealType!.getIntakeType(),
+        day!,
         usesImperialUnits,
         logTray: logTray,
       ),
