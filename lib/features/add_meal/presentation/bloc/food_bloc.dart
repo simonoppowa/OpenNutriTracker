@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
@@ -78,9 +80,43 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
       emit(FoodLoadingState());
     }
     try {
-      final result = await _searchProductUseCase.searchFDCFoodByString(
-        searchString,
-      );
+      final remote = _searchProductUseCase
+          .searchFDCFoodByString(searchString)
+          .timeout(searchRemoteDeadline);
+      final completedBeforePreview = await completedBeforeSearchPreview(remote);
+      if (!completedBeforePreview) {
+        final local = await _searchProductUseCase.searchFDCFoodByString(
+          searchString,
+          skipRemote: true,
+        );
+        if (!emit.isDone && run == _generation) {
+          final config = await _getConfigUsecase.getConfig();
+          if (!emit.isDone && run == _generation) {
+            emit(
+              FoodLoadedState(
+                food: local.meals,
+                usesImperialUnits: config.usesImperialFoodUnits,
+                remotePending: true,
+                query: searchString,
+              ),
+            );
+          }
+        }
+      }
+      SearchProductsResult result;
+      try {
+        result = await remote;
+      } on TimeoutException {
+        final local = await _searchProductUseCase.searchFDCFoodByString(
+          searchString,
+          skipRemote: true,
+        );
+        result = SearchProductsResult(
+          meals: local.meals,
+          remoteSourceEmpty: true,
+          remoteSourceFailed: true,
+        );
+      }
       final config = await _getConfigUsecase.getConfig();
       // See ProductsBloc: a newer run of any event type supersedes this one.
       if (emit.isDone || run != _generation) return;

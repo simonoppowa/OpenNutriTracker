@@ -17,6 +17,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_table_calendar.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/day_info_widget.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/diary_transfer_dialog.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -157,36 +158,39 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 return _getLoadingContent();
               } else if (state is CalendarDayLoaded) {
                 return DayInfoWidget(
-                trackedDayEntity: state.trackedDayEntity,
-                selectedDay: _selectedDate,
-                currentDay: _currentDate,
-                userActivities: state.userActivityList,
-                breakfastIntake: state.breakfastIntakeList,
-                lunchIntake: state.lunchIntakeList,
-                dinnerIntake: state.dinnerIntakeList,
-                snackIntake: state.snackIntakeList,
-                onDeleteIntake: _onDeleteIntakeItem,
-                onDeleteActivity: _onDeleteActivityItem,
-                onCopyIntake: _onCopyIntakeItem,
-                onCopyActivity: _onCopyActivityItem,
-                onEditIntake: _onEditIntakeItem,
-                onEditActivity: _onEditActivityItem,
-                usesImperialUnits: usesImperialUnits,
-                showMealMacros: showMealMacros,
-                showActivityTracking: showActivityTracking,
-                breakfastKcalTarget: state.breakfastKcalTarget,
-                lunchKcalTarget: state.lunchKcalTarget,
-                dinnerKcalTarget: state.dinnerKcalTarget,
-                snackKcalTarget: state.snackKcalTarget,
-                breakfastSharePct: state.breakfastSharePct,
-                lunchSharePct: state.lunchSharePct,
-                dinnerSharePct: state.dinnerSharePct,
-                snackSharePct: state.snackSharePct,
-                diarySortPreferences: state.diarySortPreferences,
-              );
-            }
-            return const SizedBox();
-          },
+                  trackedDayEntity: state.trackedDayEntity,
+                  selectedDay: _selectedDate,
+                  currentDay: _currentDate,
+                  userActivities: state.userActivityList,
+                  breakfastIntake: state.breakfastIntakeList,
+                  lunchIntake: state.lunchIntakeList,
+                  dinnerIntake: state.dinnerIntakeList,
+                  snackIntake: state.snackIntakeList,
+                  onDeleteIntake: _onDeleteIntakeItem,
+                  onDeleteActivity: _onDeleteActivityItem,
+                  onCopyIntake: _onCopyIntakeItem,
+                  onCopyActivity: _onCopyActivityItem,
+                  onTransferIntake: _transferIntake,
+                  onTransferActivity: _transferActivity,
+                  onTransferDay: _transferDay,
+                  onEditIntake: _onEditIntakeItem,
+                  onEditActivity: _onEditActivityItem,
+                  usesImperialUnits: usesImperialUnits,
+                  showMealMacros: showMealMacros,
+                  showActivityTracking: showActivityTracking,
+                  breakfastKcalTarget: state.breakfastKcalTarget,
+                  lunchKcalTarget: state.lunchKcalTarget,
+                  dinnerKcalTarget: state.dinnerKcalTarget,
+                  snackKcalTarget: state.snackKcalTarget,
+                  breakfastSharePct: state.breakfastSharePct,
+                  lunchSharePct: state.lunchSharePct,
+                  dinnerSharePct: state.dinnerSharePct,
+                  snackSharePct: state.snackSharePct,
+                  diarySortPreferences: state.diarySortPreferences,
+                );
+              }
+              return const SizedBox();
+            },
           ),
         ),
       ],
@@ -306,6 +310,173 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       );
     }
     _diaryBloc.updateHomePage();
+  }
+
+  Future<DiaryTransferChoice?> _chooseTransfer({
+    IntakeTypeEntity? type,
+    bool includesFoods = true,
+  }) => showDialog<DiaryTransferChoice>(
+    context: context,
+    builder: (_) => DiaryTransferDialog(
+      initialDate: _selectedDate,
+      initialMealType: type,
+      includesFoods: includesFoods,
+    ),
+  );
+
+  void _refreshTransfers() {
+    _diaryBloc.add(const LoadDiaryYearEvent());
+    _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
+    _diaryBloc.updateHomePage();
+  }
+
+  Future<void> _copyIntakeTo(
+    IntakeEntity intake,
+    DiaryTransferChoice choice,
+  ) async {
+    if (!mounted) throw StateError('Diary closed before transfer');
+    await _mealDetailBloc.addIntake(
+      context,
+      intake.unit,
+      intake.amount.toString(),
+      choice.mealType ?? intake.type,
+      intake.meal,
+      choice.entryTime,
+    );
+  }
+
+  Future<void> _copyActivityTo(
+    UserActivityEntity activity,
+    DiaryTransferChoice choice,
+  ) async {
+    final physical = activity.physicalActivityEntity;
+    final time = choice.entryTime;
+    if (physical.isCustom) {
+      final kcal = activity.userKcal ?? activity.burnedKcal;
+      await _activityDetailBloc.persistActivity(
+        kcal.toString(),
+        kcal,
+        physical,
+        time,
+      );
+    } else {
+      // A diary transfer copies the logged energy exactly. Recomputing MET
+      // against today's profile could change an earlier day's totals.
+      await _activityDetailBloc.persistActivity(
+        activity.duration.toString(),
+        activity.burnedKcal,
+        physical,
+        time,
+      );
+    }
+  }
+
+  Future<void> _transferIntake(IntakeEntity intake) async {
+    final sourceDay = _selectedDate;
+    final choice = await _chooseTransfer(type: intake.type);
+    if (choice == null || !mounted) return;
+    try {
+      await _copyIntakeTo(intake, choice);
+      if (choice.move && mounted) {
+        await _calendarDayBloc.deleteIntakeItem(context, intake, sourceDay);
+      }
+      _refreshTransfers();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).diaryTransferSuccessLabel)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(S.of(context).diaryTransferFailedLabel(e.toString())),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _transferActivity(UserActivityEntity activity) async {
+    final sourceDay = _selectedDate;
+    final choice = await _chooseTransfer(includesFoods: false);
+    if (choice == null || !mounted) return;
+    try {
+      await _copyActivityTo(activity, choice);
+      if (choice.move && mounted) {
+        await _calendarDayBloc.deleteUserActivityItem(
+          context,
+          activity,
+          sourceDay,
+        );
+      }
+      _refreshTransfers();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).diaryTransferSuccessLabel)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(S.of(context).diaryTransferFailedLabel(e.toString())),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _transferDay(
+    List<IntakeEntity> intakes,
+    List<UserActivityEntity> activities,
+    DateTime sourceDay,
+  ) async {
+    final choice = await _chooseTransfer();
+    if (choice == null || !mounted) return;
+    if (choice.move && DateUtils.isSameDay(choice.date, sourceDay)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).diaryChooseDifferentDayLabel)),
+      );
+      return;
+    }
+    try {
+      for (final intake in intakes) {
+        await _copyIntakeTo(intake, choice);
+      }
+      for (final activity in activities) {
+        await _copyActivityTo(activity, choice);
+      }
+      if (choice.move) {
+        for (final intake in intakes) {
+          if (!mounted) throw StateError('Diary closed before transfer');
+          await _calendarDayBloc.deleteIntakeItem(context, intake, sourceDay);
+        }
+        for (final activity in activities) {
+          if (!mounted) throw StateError('Diary closed before transfer');
+          await _calendarDayBloc.deleteUserActivityItem(
+            context,
+            activity,
+            sourceDay,
+          );
+        }
+      }
+      _refreshTransfers();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).diaryTransferSuccessLabel)),
+        );
+      }
+    } catch (e) {
+      _refreshTransfers();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(S.of(context).diaryTransferFailedLabel(e.toString())),
+          ),
+        );
+      }
+    }
   }
 
   void _onEditIntakeItem(

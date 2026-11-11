@@ -45,6 +45,7 @@ class IntakeVerticalList extends StatefulWidget {
   final Function(BuildContext, IntakeEntity, bool)? onItemTappedCallback;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
       AddMealType? type)? onCopyIntakeCallback;
+  final Future<void> Function(IntakeEntity intake)? onTransferIntakeCallback;
   final TrackedDayEntity? trackedDayEntity;
   // #150: optional recommended kcal target for this meal section. When
   // supplied and > 0, the section header shows "consumed / target kcal" so
@@ -77,6 +78,7 @@ class IntakeVerticalList extends StatefulWidget {
     this.onItemDragCallback,
     this.onItemTappedCallback,
     this.onCopyIntakeCallback,
+    this.onTransferIntakeCallback,
     this.trackedDayEntity,
     this.mealKcalTarget,
     this.sortType,
@@ -373,6 +375,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       intake: intakeEntity,
                       onItemLongPressed: widget.onItemLongPressedCallback,
                       onItemTapped: widget.onItemTappedCallback,
+                      onTransfer: widget.onTransferIntakeCallback,
                       onShare: () => _shareIntakes(
                         [intakeEntity],
                         title: S.of(context).shareFoodLabel,

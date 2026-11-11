@@ -57,6 +57,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         trackedDaysOffsetMinutes: (fields[40] as num?)?.toInt(),
         localeSyncSeeded: fields[41] as bool?,
         hasLeftTip: fields[42] as bool?,
+        trendsMetricVisibility: (fields[49] as Map?)?.cast<String, bool>(),
+        trendsSelectedRangeDays: (fields[50] as num?)?.toInt(),
+        trendsCustomRangeDays: (fields[51] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -66,7 +69,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(43)
+      ..writeByte(46)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -152,7 +155,13 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(41)
       ..write(obj.localeSyncSeeded)
       ..writeByte(42)
-      ..write(obj.hasLeftTip);
+      ..write(obj.hasLeftTip)
+      ..writeByte(49)
+      ..write(obj.trendsMetricVisibility)
+      ..writeByte(50)
+      ..write(obj.trendsSelectedRangeDays)
+      ..writeByte(51)
+      ..write(obj.trendsCustomRangeDays);
   }
 
   @override
@@ -231,6 +240,13 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
             ?.toInt(),
         localeSyncSeeded: json['localeSyncSeeded'] as bool?,
         hasLeftTip: json['hasLeftTip'] as bool?,
+        trendsMetricVisibility:
+            (json['trendsMetricVisibility'] as Map<String, dynamic>?)?.map(
+              (k, e) => MapEntry(k, e as bool),
+            ),
+        trendsSelectedRangeDays: (json['trendsSelectedRangeDays'] as num?)
+            ?.toInt(),
+        trendsCustomRangeDays: (json['trendsCustomRangeDays'] as num?)?.toInt(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -282,6 +298,9 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'trackedDaysOffsetMinutes': instance.trackedDaysOffsetMinutes,
   'localeSyncSeeded': instance.localeSyncSeeded,
   'hasLeftTip': instance.hasLeftTip,
+  'trendsMetricVisibility': instance.trendsMetricVisibility,
+  'trendsSelectedRangeDays': instance.trendsSelectedRangeDays,
+  'trendsCustomRangeDays': instance.trendsCustomRangeDays,
 };
 
 const _$AppThemeDBOEnumMap = {

@@ -20,6 +20,8 @@ class ActivityVerticalList extends StatefulWidget {
   final Function(BuildContext, UserActivityEntity)? onItemTappedCallback;
   final Function(bool isDragging)? onItemDragCallback;
   final Function(UserActivityEntity)? onCopyActivityCallback;
+  final Future<void> Function(UserActivityEntity activity)?
+  onTransferActivityCallback;
 
   const ActivityVerticalList({
     super.key,
@@ -30,6 +32,7 @@ class ActivityVerticalList extends StatefulWidget {
     this.onItemTappedCallback,
     this.onItemDragCallback,
     this.onCopyActivityCallback,
+    this.onTransferActivityCallback,
   });
 
   @override
@@ -121,6 +124,7 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
                 activityEntity: userActivity,
                 onItemLongPressed: widget.onItemLongPressedCallback,
                 onItemTapped: widget.onItemTappedCallback,
+                onTransfer: widget.onTransferActivityCallback,
                 onItemDragCallback: widget.onItemDragCallback,
                 firstListElement: false,
               ),

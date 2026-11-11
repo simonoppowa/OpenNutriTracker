@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
@@ -19,6 +24,11 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_t
 import 'package:opennutritracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 import '../../../helpers/fake_favourites.dart';
@@ -83,7 +93,23 @@ class _FakeSearch implements SearchProductsUseCase {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
-IntakeEntity _intake(String name) => IntakeEntity(
+/// What logging a food requires: kcal and the three macros.
+const _complete = MealNutrimentsEntity(
+  energyKcal100: 250,
+  carbohydrates100: 40,
+  fat100: 5,
+  proteins100: 10,
+  sugars100: null,
+  saturatedFat100: null,
+  fiber100: null,
+);
+
+IntakeEntity _intake(
+  String name, {
+  double? servingQuantity,
+  MealNutrimentsEntity nutriments = _complete,
+  MealSourceEntity source = MealSourceEntity.custom,
+}) => IntakeEntity(
   id: name,
   unit: 'g',
   amount: 100,
@@ -94,14 +120,95 @@ IntakeEntity _intake(String name) => IntakeEntity(
     url: null,
     mealQuantity: null,
     mealUnit: 'g',
-    servingQuantity: null,
+    servingQuantity: servingQuantity,
     servingUnit: 'g',
     servingSize: null,
-    nutriments: MealNutrimentsEntity.empty(),
-    source: MealSourceEntity.custom,
+    nutriments: nutriments,
+    source: source,
   ),
   dateTime: DateTime(2026, 10, 1),
 );
+
+/// Serves the full record behind a thin Open Food Facts hit.
+class _DetailedCache extends Fake implements RemoteSearchCacheDataSource {
+  final Map<String, MealEntity> detailed;
+
+  _DetailedCache(this.detailed);
+
+  @override
+  MealDBO? getDetailedByBarcode(String barcode) {
+    final meal = detailed[barcode];
+    return meal == null ? null : MealDBO.fromMealEntity(meal);
+  }
+}
+
+class _UnusedProducts extends Fake implements ProductsRepository {}
+
+/// Holds every write until [release] is called.
+class _BlockingMealDetailBloc extends Fake implements MealDetailBloc {
+  final _gate = Completer<void>();
+  final writes = <String>[];
+
+  void release() => _gate.complete();
+
+  @override
+  Future<void> addIntake(
+    BuildContext context,
+    String unit,
+    String amountText,
+    IntakeTypeEntity type,
+    MealEntity meal,
+    DateTime day,
+  ) async {
+    await _gate.future;
+    writes.add(meal.name!);
+  }
+}
+
+class _RecordingMealDetailBloc extends Fake implements MealDetailBloc {
+  final writes = <({String name, String unit, double amount})>[];
+  final attempts = <String>[];
+  final String? failOnceForName;
+  bool _failed = false;
+
+  _RecordingMealDetailBloc({this.failOnceForName});
+
+  @override
+  Future<void> addIntake(
+    BuildContext context,
+    String unit,
+    String amountText,
+    IntakeTypeEntity type,
+    MealEntity meal,
+    DateTime day,
+  ) async {
+    attempts.add(meal.name!);
+    if (!_failed && meal.name == failOnceForName) {
+      _failed = true;
+      throw StateError('Simulated write failure');
+    }
+    writes.add((
+      name: meal.name!,
+      unit: unit,
+      amount: double.parse(amountText),
+    ));
+  }
+}
+
+class _NoopDiaryBloc extends Fake implements DiaryBloc {
+  @override
+  void add(DiaryEvent event) {}
+}
+
+class _NoopCalendarDayBloc extends Fake implements CalendarDayBloc {
+  @override
+  void add(CalendarDayEvent event) {}
+}
+
+class _NoopHomeBloc extends Fake implements HomeBloc {
+  @override
+  void add(HomeEvent event) {}
+}
 
 MealEntity _meal(String name, MealSourceEntity source) => MealEntity(
   code: name,
@@ -172,26 +279,28 @@ Finder _searchAll() => find.text(l10nEn.noResultsSearchAll);
 
 void main() {
   group('RecentMealBloc search-as-you-type', () {
-    test('keystrokes filter the loaded history without re-reading storage',
-        () async {
-      final usecase = _FakeGetIntakeUsecase([
-        _intake('Apple'),
-        _intake('Banana'),
-      ]);
-      final bloc = RecentMealBloc(usecase, _FakeGetConfigUsecase());
-      addTearDown(bloc.close);
+    test(
+      'keystrokes filter the loaded history without re-reading storage',
+      () async {
+        final usecase = _FakeGetIntakeUsecase([
+          _intake('Apple'),
+          _intake('Banana'),
+        ]);
+        final bloc = RecentMealBloc(usecase, _FakeGetConfigUsecase());
+        addTearDown(bloc.close);
 
-      bloc.add(const LoadRecentMealEvent(searchString: ''));
-      await Future<void>.delayed(Duration.zero);
-      for (final query in ['a', 'ap', 'app', 'ban']) {
-        bloc.add(RecentMealSearchChangedEvent(searchString: query));
+        bloc.add(const LoadRecentMealEvent(searchString: ''));
         await Future<void>.delayed(Duration.zero);
-      }
+        for (final query in ['a', 'ap', 'app', 'ban']) {
+          bloc.add(RecentMealSearchChangedEvent(searchString: query));
+          await Future<void>.delayed(Duration.zero);
+        }
 
-      expect(usecase.recentReads, 1);
-      final state = bloc.state as RecentMealLoadedState;
-      expect(state.recentMeals.map((m) => m.name), ['Banana']);
-    });
+        expect(usecase.recentReads, 1);
+        final state = bloc.state as RecentMealLoadedState;
+        expect(state.recentMeals.map((m) => m.name), ['Banana']);
+      },
+    );
 
     test('a keystroke before anything is loaded reads storage once', () async {
       final usecase = _FakeGetIntakeUsecase([_intake('Apple')]);
@@ -224,6 +333,277 @@ void main() {
   group('AddMealScreen sticky Recent search', () {
     tearDown(() async => getIt.reset());
 
+    testWidgets(
+      'quick serving chips keep each selected food independent and save base amounts',
+      (tester) async {
+        await _register([
+          _intake('Bread', servingQuantity: 30),
+          _intake('Cheese', servingQuantity: 20),
+        ]);
+        final saved = _RecordingMealDetailBloc();
+        getIt.registerSingleton<MealDetailBloc>(saved);
+        getIt.registerSingleton<DiaryBloc>(_NoopDiaryBloc());
+        getIt.registerSingleton<CalendarDayBloc>(_NoopCalendarDayBloc());
+        getIt.registerSingleton<HomeBloc>(_NoopHomeBloc());
+        await tester.pumpWidget(_app());
+        await tester.pumpAndSettle();
+        await tester.tap(_withIdentifier('add-meal-select-multiple'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(MealItemCard).at(0));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(MealItemCard).at(1));
+        await tester.pumpAndSettle();
+        expect(find.text(l10nEn.reviewSelectedFoodsCount(2)), findsOneWidget);
+        await tester.tap(find.text(l10nEn.reviewSelectedFoodsCount(2)));
+        await tester.pumpAndSettle();
+
+        expect(find.text('½×'), findsNWidgets(2));
+        expect(find.text('1×'), findsNWidgets(2));
+        expect(find.text('2×'), findsNWidgets(2));
+        await tester.tap(find.text('½×').first);
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widget<TextField>(find.byType(TextField).at(1))
+              .controller!
+              .text,
+          '0.5',
+        );
+        expect(
+          tester
+              .widget<TextField>(find.byType(TextField).at(2))
+              .controller!
+              .text,
+          '100',
+        );
+        await tester.ensureVisible(find.text('2×').last);
+        await tester.tap(find.text('2×').last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+        await tester.pumpAndSettle();
+        expect(saved.writes, [
+          (name: 'Bread', unit: 'serving', amount: 15),
+          (name: 'Cheese', unit: 'serving', amount: 40),
+        ]);
+      },
+    );
+
+    testWidgets(
+      'retry after a partial multi-food write skips committed foods',
+      (tester) async {
+        await _register([_intake('Bread'), _intake('Cheese')]);
+        final saved = _RecordingMealDetailBloc(failOnceForName: 'Cheese');
+        getIt.registerSingleton<MealDetailBloc>(saved);
+        getIt.registerSingleton<DiaryBloc>(_NoopDiaryBloc());
+        getIt.registerSingleton<CalendarDayBloc>(_NoopCalendarDayBloc());
+        getIt.registerSingleton<HomeBloc>(_NoopHomeBloc());
+        await tester.pumpWidget(_app());
+        await tester.pumpAndSettle();
+        await tester.tap(_withIdentifier('add-meal-select-multiple'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byType(MealItemCard).at(0));
+        await tester.tap(find.byType(MealItemCard).at(1));
+        await tester.pumpAndSettle();
+        expect(_withIdentifier('add-meal-review-selected'), findsOneWidget);
+        await tester.tap(_withIdentifier('add-meal-review-selected'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+        await tester.pumpAndSettle();
+        expect(saved.attempts, ['Bread', 'Cheese']);
+        expect(saved.writes.map((write) => write.name), ['Bread']);
+        expect(
+          find.text(l10nEn.selectedFoodsPartialFailureLabel),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Bread'),
+          ),
+          findsNothing,
+        );
+
+        await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+        await tester.pumpAndSettle();
+        expect(saved.attempts, ['Bread', 'Cheese', 'Cheese']);
+        expect(saved.writes.map((write) => write.name), ['Bread', 'Cheese']);
+      },
+    );
+
+    testWidgets('closing a partial batch keeps only unwritten foods selected', (
+      tester,
+    ) async {
+      await _register([_intake('Bread'), _intake('Cheese')]);
+      final saved = _RecordingMealDetailBloc(failOnceForName: 'Cheese');
+      getIt.registerSingleton<MealDetailBloc>(saved);
+      getIt.registerSingleton<DiaryBloc>(_NoopDiaryBloc());
+      getIt.registerSingleton<CalendarDayBloc>(_NoopCalendarDayBloc());
+      getIt.registerSingleton<HomeBloc>(_NoopHomeBloc());
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-select-multiple'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MealItemCard).at(0));
+      await tester.tap(find.byType(MealItemCard).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-review-selected'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(l10nEn.dialogCancelLabel));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.reviewSelectedFoodsCount(1)), findsOneWidget);
+      await tester.tap(_withIdentifier('add-meal-review-selected'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+      await tester.pumpAndSettle();
+      expect(saved.attempts, ['Bread', 'Cheese', 'Cheese']);
+      expect(saved.writes.map((write) => write.name), ['Bread', 'Cheese']);
+    });
+
+    // PR #1491 review: a selected food without kcal or macros was logged
+    // with zeros in their place.
+    testWidgets('a selected food missing required values is not logged', (
+      tester,
+    ) async {
+      await _register([
+        _intake('Mystery', nutriments: MealNutrimentsEntity.empty()),
+        _intake('Bread'),
+      ]);
+      final saved = _RecordingMealDetailBloc();
+      getIt.registerSingleton<MealDetailBloc>(saved);
+      getIt.registerSingleton<DiaryBloc>(_NoopDiaryBloc());
+      getIt.registerSingleton<CalendarDayBloc>(_NoopCalendarDayBloc());
+      getIt.registerSingleton<HomeBloc>(_NoopHomeBloc());
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-select-multiple'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MealItemCard).at(0));
+      await tester.tap(find.byType(MealItemCard).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-review-selected'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining(l10nEn.missingProductInfo),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Mystery'),
+        ),
+        findsNothing,
+      );
+      await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+      await tester.pumpAndSettle();
+      expect(saved.writes.map((write) => write.name), ['Bread']);
+    });
+
+    // PR #1491 review: a thin Open Food Facts hit was reviewed and logged
+    // without its servings and micronutrients.
+    testWidgets('an Open Food Facts hit is reviewed from its full record', (
+      tester,
+    ) async {
+      await _register([
+        _intake(
+          'Granola',
+          source: MealSourceEntity.off,
+          nutriments: MealNutrimentsEntity.empty(),
+        ),
+      ]);
+      final full = _intake('Granola', servingQuantity: 40).meal;
+      getIt
+        ..registerSingleton<RemoteSearchCacheDataSource>(
+          _DetailedCache({'Granola': full}),
+        )
+        // Not reached: the cache answers first.
+        ..registerSingleton<ProductsRepository>(_UnusedProducts());
+      final saved = _RecordingMealDetailBloc();
+      getIt.registerSingleton<MealDetailBloc>(saved);
+      getIt.registerSingleton<DiaryBloc>(_NoopDiaryBloc());
+      getIt.registerSingleton<CalendarDayBloc>(_NoopCalendarDayBloc());
+      getIt.registerSingleton<HomeBloc>(_NoopHomeBloc());
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-select-multiple'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MealItemCard).at(0));
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-review-selected'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1×'), findsOneWidget);
+      await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+      await tester.pumpAndSettle();
+      expect(saved.writes.map((write) => write.name), ['Granola']);
+    });
+
+    // PR #1491 review: Back or the barrier closed the review mid-write, and
+    // reopening it could send the same foods again.
+    testWidgets('the review cannot be closed while it is saving', (
+      tester,
+    ) async {
+      await _register([_intake('Bread')]);
+      final saved = _BlockingMealDetailBloc();
+      getIt.registerSingleton<MealDetailBloc>(saved);
+      getIt.registerSingleton<DiaryBloc>(_NoopDiaryBloc());
+      getIt.registerSingleton<CalendarDayBloc>(_NoopCalendarDayBloc());
+      getIt.registerSingleton<HomeBloc>(_NoopHomeBloc());
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-select-multiple'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MealItemCard).at(0));
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-review-selected'));
+      await tester.pumpAndSettle();
+      expect(_withIdentifier('selected-food-amount-0'), findsOneWidget);
+      expect(_withIdentifier('selected-food-unit-0'), findsOneWidget);
+      expect(_withIdentifier('selected-foods-add'), findsOneWidget);
+
+      await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+      await tester.pump();
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pump();
+      expect(find.byType(AlertDialog), findsOneWidget);
+
+      saved.release();
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(saved.writes, ['Bread']);
+    });
+
+    testWidgets('selects multiple foods and validates every reviewed amount', (
+      tester,
+    ) async {
+      await _register([_intake('Apple'), _intake('Banana')]);
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      await tester.tap(_withIdentifier('add-meal-select-multiple'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MealItemCard).at(0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(MealItemCard).at(1));
+      await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.reviewSelectedFoodsCount(2)), findsOneWidget);
+      await tester.tap(find.text(l10nEn.reviewSelectedFoodsCount(2)));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.reviewSelectedFoodsTitle), findsOneWidget);
+      expect(find.text('½×'), findsNothing);
+      expect(find.text('100 g'), findsNWidgets(2));
+      await tester.enterText(find.byType(TextField).last, '-1');
+      await tester.tap(find.text(l10nEn.addSelectedFoodsLabel));
+      await tester.pumpAndSettle();
+      expect(find.text(l10nEn.enterPositiveAmountsLabel), findsOneWidget);
+    });
+
     testWidgets('each meal result list identifies its parent surface', (
       tester,
     ) async {
@@ -252,35 +632,38 @@ void main() {
     });
 
     testWidgets(
-        'Search all is offered only once the query is long enough to search, '
-        'and typing never re-reads recent history', (tester) async {
-      await _register([_intake('Apple')]);
-      await tester.pumpWidget(_app());
-      await tester.pumpAndSettle();
+      'Search all is offered only once the query is long enough to search, '
+      'and typing never re-reads recent history',
+      (tester) async {
+        await _register([_intake('Apple')]);
+        await tester.pumpWidget(_app());
+        await tester.pumpAndSettle();
 
-      // Explicitly pick Recent so typing stays there (#576).
-      await tester.tap(find.text(l10nEn.recentlyAddedLabel));
-      await tester.pumpAndSettle();
-      expect(_withIdentifier('add-meal-recent-list'), findsOneWidget);
-      final readsBeforeTyping = _intakeUsecase.recentReads;
+        // Explicitly pick Recent so typing stays there (#576).
+        await tester.tap(find.text(l10nEn.recentlyAddedLabel));
+        await tester.pumpAndSettle();
+        expect(_withIdentifier('add-meal-recent-list'), findsOneWidget);
+        final readsBeforeTyping = _intakeUsecase.recentReads;
 
-      // One character: All would refuse to search it, so no CTA.
-      await tester.enterText(find.byType(TextField).first, 'z');
-      await tester.pumpAndSettle();
-      expect(find.text(l10nEn.noResultsFound), findsOneWidget);
-      expect(_searchAll(), findsNothing);
+        // One character: All would refuse to search it, so no CTA.
+        await tester.enterText(find.byType(TextField).first, 'z');
+        await tester.pumpAndSettle();
+        expect(find.text(l10nEn.noResultsFound), findsOneWidget);
+        expect(_searchAll(), findsNothing);
 
-      // Two characters: the CTA appears and runs the promised search.
-      await tester.enterText(find.byType(TextField).first, 'zz');
-      await tester.pumpAndSettle();
-      expect(_searchAll(), findsOneWidget);
-      expect(_intakeUsecase.recentReads, readsBeforeTyping);
+        // Two characters: the CTA appears and runs the promised search.
+        await tester.enterText(find.byType(TextField).first, 'zz');
+        await tester.pumpAndSettle();
+        expect(_searchAll(), findsOneWidget);
+        expect(_intakeUsecase.recentReads, readsBeforeTyping);
 
-      await tester.tap(_searchAll());
-      await tester.pumpAndSettle();
-      expect(_search.offQueries, contains('zz'));
-      expect(_search.fdcQueries, contains('zz'));
-      expect(find.text(l10nEn.noResultsFound), findsOneWidget);
-    });
+        await tester.ensureVisible(_searchAll());
+        await tester.tap(_searchAll());
+        await tester.pumpAndSettle();
+        expect(_search.offQueries, contains('zz'));
+        expect(_search.fdcQueries, contains('zz'));
+        expect(find.text(l10nEn.noResultsFound), findsOneWidget);
+      },
+    );
   });
 }
