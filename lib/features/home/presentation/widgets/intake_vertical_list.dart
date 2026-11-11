@@ -139,9 +139,10 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
   String _buildHeaderSummary(BuildContext context) {
     final consumed = EnergyDisplay.formatValue(context, totalKcal);
     final kcalLine = _hasMealKcalTarget
-        ? S.of(context).diaryMealKcalConsumedOfTarget(
+        ? S.of(context).diaryMealEnergyConsumedOfTarget(
               consumed,
-              EnergyDisplay.formatValue(context, widget.mealKcalTarget!),
+              // The unit rides on the target, so it follows kcal/kJ (#1315).
+              EnergyDisplay.formatWithUnit(context, widget.mealKcalTarget!),
             )
         : EnergyDisplay.formatWithUnit(context, totalKcal);
     if (widget.showMealMacros && totalKcal > 0) {
