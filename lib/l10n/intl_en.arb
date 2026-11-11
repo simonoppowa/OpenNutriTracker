@@ -1469,6 +1469,7 @@
   "bulkAddWaitCancelLabel": "Cancel",
   "bulkAddPhotoLabel": "Read a photo",
   "bulkAddPhotoDisclosureCommon": "OpenNutriTracker keeps no copy of its own, and it is never included in your exports.",
+  "bulkAddPhotoDisclosureRecipeNames": "If you have saved recipes, their names are sent with it, so a dish you saved is found by its name.",
   "bulkAddPhotoDisclosureAnthropic": "The photo is sent to Anthropic to identify the foods in it.",
   "bulkAddPhotoDisclosureOpenRouter": "The photo is sent to OpenRouter, which forwards it to {provider} to identify the foods in it.",
   "@bulkAddPhotoDisclosureOpenRouter": {"placeholders": {"provider": {"type": "String"}}},

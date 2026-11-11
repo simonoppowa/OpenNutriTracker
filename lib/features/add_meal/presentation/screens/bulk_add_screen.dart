@@ -1627,7 +1627,10 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 '$disclosure '
-                '${S.of(sheetContext).bulkAddPhotoDisclosureCommon}\n\n'
+                '${S.of(sheetContext).bulkAddPhotoDisclosureCommon} '
+                // The photo prompt lists the user's recipe names, which are
+                // theirs too, so the sheet says so before the photo goes.
+                '${S.of(sheetContext).bulkAddPhotoDisclosureRecipeNames}\n\n'
                 // The photo path has no deterministic fallback, so this is
                 // the only surface besides Settings where a user opts into a
                 // model. The stability note belongs on both.

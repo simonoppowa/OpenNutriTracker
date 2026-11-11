@@ -1368,6 +1368,11 @@ void main() {
       find.textContaining(l10nEn.bulkAddPhotoDisclosureCommon),
       findsOneWidget,
     );
+    // The photo prompt carries the saved recipe names, so the sheet says so.
+    expect(
+      find.textContaining(l10nEn.bulkAddPhotoDisclosureRecipeNames),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a photo with no food says so, not "nothing to log yet"', (
