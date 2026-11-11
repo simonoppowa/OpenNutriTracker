@@ -13,6 +13,8 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/util/food_emoji_resolver.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -178,7 +180,8 @@ class IntakeCard extends StatelessWidget {
 }
 
 /// The leading thumbnail: a user photo, the remote OFF/FDC image, or a soft
-/// fallback chip with a food icon — clipped to a rounded square.
+/// fallback chip — the food's emoji for an FDC base food, as in search
+/// (#1288), else a food icon — clipped to a rounded square.
 class _Thumbnail extends StatelessWidget {
   final IntakeEntity intake;
   final AppPalette palette;
@@ -211,10 +214,22 @@ class _Thumbnail extends StatelessWidget {
     );
   }
 
-  Widget _fallback() => Container(
-        color: palette.surfaceMuted,
-        child: Icon(Icons.restaurant_rounded, color: palette.textMuted, size: 24),
-      );
+  Widget _fallback() {
+    // Same rule as MealItemCard: only FDC base foods, whose head noun names
+    // the food, get an emoji; branded OFF products keep the icon.
+    final emoji = intake.meal.source == MealSourceEntity.fdc
+        ? resolveFoodEmoji(intake.meal.name)
+        : null;
+    return Container(
+      color: palette.surfaceMuted,
+      alignment: Alignment.center,
+      child: emoji != null
+          ? ExcludeSemantics(
+              child: Text(emoji, style: const TextStyle(fontSize: 26)),
+            )
+          : Icon(Icons.restaurant_rounded, color: palette.textMuted, size: 24),
+    );
+  }
 }
 
 class _LocalMealImage extends StatelessWidget {
