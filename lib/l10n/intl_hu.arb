@@ -1755,5 +1755,52 @@
   },
   "logTrayRemoveLabel": "Törlés a listából",
   "logTrayAddedLabel": "Hozzáadva a listához",
-  "logTrayLogFailedLabel": "Nem sikerült rögzíteni ezeket az elemeket. Próbálja meg újra."
+  "logTrayLogFailedLabel": "Nem sikerült rögzíteni ezeket az elemeket. Próbálja meg újra.",
+  "addToSectionLabel": "Hozzáadás ehhez: {section}",
+  "@addToSectionLabel": {
+    "description": "Screen reader label of the plus at the foot of a meal or activity list, e.g. 'Add to Breakfast'.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "hourShortLabel": "ó",
+  "@hourShortLabel": {
+    "description": "Short unit after a number of hours, e.g. '4 h', read by a screen reader on the day boundary slider."
+  },
+  "onboardingPageProgressSemantic": "{current} / {total} oldal",
+  "@onboardingPageProgressSemantic": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingMacrosChangeLaterHint": "Ezeket később módosíthatja a Beállítások → {category} → {item} menüpontban.",
+  "@onboardingMacrosChangeLaterHint": {
+    "description": "Under the macro gram targets on the onboarding overview. Says the values are not edited here and where they can be changed. {category} is the Settings group name and {item} the row name, both filled in from their own strings.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Goals & nutrition"
+      },
+      "item": {
+        "type": "String",
+        "example": "Macro split"
+      }
+    }
+  },
+  "settingsShowAiFeaturesLabel": "AI-funkciók megjelenítése",
+  "@settingsShowAiFeaturesLabel": {
+    "description": "Settings switch (#1518). Off hides Snap meal, the AI badges and AI meal assistance, and stops anything being sent to an AI model."
+  },
+  "settingsShowAiFeaturesSubtitle": "Étel lefotózása és AI alapú étkezési támogatás. Kikapcsolt állapotban semmilyen adat nem kerül továbbításra egy AI-modell felé.",
+  "shareCodeErrorLabel": "Nem sikerült megosztani a kódot. Próbálja meg újra, vagy inkább másolja ki.",
+  "shareFoodLabel": "Ételmegosztás",
+  "shareQrTooLargeLabel": "Ez a kód túl nagy ahhoz, hogy QR-kódként jelenjen meg. Ehelyett másolja ki vagy ossza meg a kódot szövegként.",
+  "shareQrUnavailableLabel": "Nem sikerült létrehozni a QR-képet. Ehelyett másolja ki vagy ossza meg a kódot szövegként."
 }
