@@ -540,6 +540,14 @@
   "inconsistentNutritionWarningTitle": "Numbers don't quite line up",
   "infoAddedActivityLabel": "Added new activity",
   "infoAddedIntakeLabel": "Added new intake",
+  "infoIntakeNotSavedLabel": "Not added: it couldn't be saved.",
+  "@infoIntakeNotSavedLabel": {
+    "description": "Snackbar on the food page when tapping Add failed to save the food. The page stays open so the user can try again."
+  },
+  "infoIntakeProfileChangedLabel": "Not added: the profile changed.",
+  "@infoIntakeProfileChangedLabel": {
+    "description": "Snackbar on the food page when the active profile was switched while the food was being added, so it was not saved to either profile."
+  },
   "ironLabel": "iron",
   "itemDeletedSnackbar": "Item deleted",
   "itemUpdatedSnackbar": "Item updated",

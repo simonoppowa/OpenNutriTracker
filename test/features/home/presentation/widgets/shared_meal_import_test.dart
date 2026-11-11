@@ -135,12 +135,13 @@ class _Intakes extends Fake implements MealDetailBloc {
   final units = <String>[];
   Completer<void>? firstWrite;
   @override
-  Future<void> addIntake(BuildContext context, String unit, String amountText,
+  Future<bool> addIntake(BuildContext context, String unit, String amountText,
       IntakeTypeEntity type, MealEntity meal, DateTime day) async {
     meals.add(meal);
     amounts.add(amountText);
     units.add(unit);
     if (meals.length == 1 && firstWrite != null) await firstWrite!.future;
+    return true;
   }
 }
 

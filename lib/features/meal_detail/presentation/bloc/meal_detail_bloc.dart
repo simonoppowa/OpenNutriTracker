@@ -167,7 +167,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   /// read-modify-write (`TrackedDayDataSource.addDayCaloriesTracked`), so
   /// overlapping calls interleave their reads and silently lose updates —
   /// a batch logged concurrently under-counts the day.
-  Future<void> addIntake(
+  ///
+  /// Completes with false when a profile switch overtook the write and
+  /// nothing was stored, so the caller does not report the food as added.
+  Future<bool> addIntake(
     BuildContext context,
     String unit,
     String amountText,
@@ -198,7 +201,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     // back out and puts the day's totals back to what they were, so the
     // caller's retry starts from where the first attempt did instead of
     // logging the food a second time.
-    await withTrackedDayLockOnProfile(() async {
+    final written = await withTrackedDayLockOnProfile(() async {
       await _addIntakeUseCase.addIntake(intakeEntity);
       TrackedDayEntity? before;
       try {
@@ -211,8 +214,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         await _rollBackIntake(intakeEntity, day, before, e, st);
         rethrow;
       }
+      return true;
     });
     unawaited(_refreshCacheForSelectedMeal(meal));
+    return written ?? false;
   }
 
   /// Best-effort cache refresh after the user logs a meal. For OFF items
