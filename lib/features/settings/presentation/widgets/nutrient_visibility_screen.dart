@@ -72,6 +72,18 @@ class _NutrientVisibilityScreenState extends State<NutrientVisibilityScreen> {
         return s.vitaminB12Label;
       case NutrientPanelKeys.magnesium:
         return s.magnesiumLabel;
+      case NutrientPanelKeys.zinc:
+        return s.zincLabel;
+      case NutrientPanelKeys.phosphorus:
+        return s.phosphorusLabel;
+      case NutrientPanelKeys.vitaminA:
+        return s.vitaminALabel;
+      case NutrientPanelKeys.vitaminC:
+        return s.vitaminCLabel;
+      case NutrientPanelKeys.vitaminB6:
+        return s.vitaminB6Label;
+      case NutrientPanelKeys.niacin:
+        return s.niacinLabel;
       default:
         return key;
     }
