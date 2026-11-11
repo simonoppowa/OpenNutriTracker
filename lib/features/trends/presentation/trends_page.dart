@@ -476,10 +476,20 @@ class _MacrosTrendCard extends StatelessWidget {
     required this.rangeDays,
   });
 
+  /// The day's intake averaged over every day of the range.
   double _avg(Iterable<double?> values) {
     final present = values.whereType<double>().toList();
     if (present.isEmpty) return 0;
     return present.reduce((a, b) => a + b) / rangeDays;
+  }
+
+  /// The goal averaged over the days that have one. A day without a
+  /// tracked-day row has no goal rather than a goal of zero, so dividing
+  /// by the range showed a week with one day logged a seventh of the goal.
+  double _avgGoal(Iterable<double?> values) {
+    final present = values.whereType<double>().toList();
+    if (present.isEmpty) return 0;
+    return present.reduce((a, b) => a + b) / present.length;
   }
 
   @override
@@ -487,11 +497,11 @@ class _MacrosTrendCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final rows = [
       (S.of(context).carbsLabel, _avg(days.map((d) => d.carbsTracked)),
-          _avg(days.map((d) => d.carbsGoal)), palette.carbs),
+          _avgGoal(days.map((d) => d.carbsGoal)), palette.carbs),
       (S.of(context).fatLabel, _avg(days.map((d) => d.fatTracked)),
-          _avg(days.map((d) => d.fatGoal)), palette.fat),
+          _avgGoal(days.map((d) => d.fatGoal)), palette.fat),
       (S.of(context).proteinLabel, _avg(days.map((d) => d.proteinTracked)),
-          _avg(days.map((d) => d.proteinGoal)), palette.protein),
+          _avgGoal(days.map((d) => d.proteinGoal)), palette.protein),
     ];
     return AppCard(
       padding: const EdgeInsets.all(Dimens.spacing20),
@@ -511,7 +521,8 @@ class _MacrosTrendCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis),
                 ),
                 const SizedBox(width: Dimens.spacing8),
-                Text('${intake.toInt()} / ${goal.toInt()} g',
+                // Rounded, not cut off: 438.9 g reads 439 g.
+                Text('${intake.round()} / ${goal.round()} g',
                     style: text.bodySmall?.copyWith(color: palette.textStrong, fontWeight: FontWeight.w700)),
               ],
             ),
