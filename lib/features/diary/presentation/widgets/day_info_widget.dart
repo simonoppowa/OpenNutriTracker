@@ -29,9 +29,10 @@ class DayInfoWidget extends StatefulWidget {
 
   /// The Diary's "today": the logical day under the "Day starts at"
   /// boundary, which is yesterday's date while the boundary is still
-  /// ahead (#1360). Copying an entry goes to this day, so it is offered
-  /// only on the other days; on this one a copy would land on the same
-  /// day as a duplicate.
+  /// ahead (#1360). Copying goes to this day. A long-pressed entry and an
+  /// activity offer it only on the other days, where a copy would not land
+  /// on the same day as a duplicate; a meal section's menu offers it here
+  /// too, to copy a meal into another meal of the same day (#842).
   final DateTime currentDay;
   final TrackedDayEntity? trackedDayEntity;
   final List<UserActivityEntity> userActivities;
@@ -310,10 +311,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
-                onCopyIntakeCallback:
-                    _showsCurrentDay
-                        ? null
-                        : widget.onCopyIntake,
+                onCopyIntakeCallback: widget.onCopyIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 trackedDayEntity: trackedDay,
@@ -338,10 +336,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onItemTappedCallback: widget.onEditIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
-                onCopyIntakeCallback:
-                    _showsCurrentDay
-                        ? null
-                        : widget.onCopyIntake,
+                onCopyIntakeCallback: widget.onCopyIntake,
                 trackedDayEntity: trackedDay,
                 mealKcalTarget: widget.lunchKcalTarget,
                 sortType: _sortByMeal[IntakeTypeEntity.lunch],
@@ -362,10 +357,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onDeleteIntakeCallback: _deleteIntakeOnShownDay,
                 onItemLongPressedCallback: onIntakeItemLongPressed,
                 onItemTappedCallback: widget.onEditIntake,
-                onCopyIntakeCallback:
-                    _showsCurrentDay
-                        ? null
-                        : widget.onCopyIntake,
+                onCopyIntakeCallback: widget.onCopyIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
                 mealKcalTarget: widget.dinnerKcalTarget,
@@ -389,10 +381,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onItemTappedCallback: widget.onEditIntake,
                 usesImperialUnits: widget.usesImperialUnits,
                 showMealMacros: widget.showMealMacros,
-                onCopyIntakeCallback:
-                    _showsCurrentDay
-                        ? null
-                        : widget.onCopyIntake,
+                onCopyIntakeCallback: widget.onCopyIntake,
                 trackedDayEntity: trackedDay,
                 mealKcalTarget: widget.snackKcalTarget,
                 sortType: _sortByMeal[IntakeTypeEntity.snack],

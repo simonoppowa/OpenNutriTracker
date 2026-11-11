@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/day_info_widget.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
@@ -75,6 +76,7 @@ Future<void> _pumpOmadDay(
   required List<IntakeEntity> breakfastIntake,
   void Function(IntakeEntity intake, DateTime day)? onDeleteIntake,
   void Function(IntakeEntity intake)? onCopyIntake,
+  void Function(IntakeEntity intake, AddMealType? type)? onCopyIntakeToMeal,
   // A past day unless a test says otherwise.
   DateTime? currentDay,
 }) async {
@@ -98,7 +100,10 @@ Future<void> _pumpOmadDay(
             showActivityTracking: false,
             onDeleteIntake: onDeleteIntake ?? (_, _) {},
             onDeleteActivity: (_, _) {},
-            onCopyIntake: (intake, _, _) => onCopyIntake?.call(intake),
+            onCopyIntake: (intake, _, type) {
+              onCopyIntake?.call(intake);
+              onCopyIntakeToMeal?.call(intake, type);
+            },
             onCopyActivity: (_, _) {},
             breakfastSharePct: 0,
             lunchSharePct: 0,
@@ -179,8 +184,9 @@ void main() {
   });
 
   // #1360: with "Day starts at" still ahead, the Diary's today is
-  // yesterday's date. Copying goes to that day, so it must not be offered
-  // there, whatever DateTime.now() says.
+  // yesterday's date. Copying goes to that day, so a long-pressed entry
+  // does not offer it there, whatever DateTime.now() says; a meal section
+  // does, to copy the meal into another meal of the same day (#842).
   group('on the Diary\'s today', () {
     testWidgets('a long-press asks to delete, without offering a copy', (
       WidgetTester tester,
@@ -206,16 +212,29 @@ void main() {
       expect(copied, isEmpty);
     });
 
-    testWidgets('the section menu has no Copy', (WidgetTester tester) async {
+    testWidgets('the section menu copies a meal into another meal', (
+      WidgetTester tester,
+    ) async {
+      final copied = <(IntakeEntity, AddMealType?)>[];
       await _pumpOmadDay(
         tester,
         breakfastIntake: const [],
         currentDay: DateTime(2026, 6, 15),
+        onCopyIntakeToMeal: (intake, type) => copied.add((intake, type)),
       );
 
       await tester.tap(find.bySemanticsIdentifier('intake-section-menu'));
       await tester.pumpAndSettle();
-      expect(find.text(l10nEn.dialogCopyLabel), findsNothing);
+      await tester.tap(find.text(l10nEn.dialogCopyLabel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButton<AddMealType>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.snackLabel).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+
+      expect(copied, [(_dinner, AddMealType.snackType)]);
     });
   });
 

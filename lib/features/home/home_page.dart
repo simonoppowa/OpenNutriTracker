@@ -30,6 +30,7 @@ import 'package:opennutritracker/features/home/presentation/widgets/fasting_home
 import 'package:opennutritracker/features/home/presentation/widgets/quick_water_widget.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_weight_widget.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomePage extends StatefulWidget {
@@ -43,6 +44,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final log = Logger('HomePage');
 
   late HomeBloc _homeBloc;
+  late MealDetailBloc _mealDetailBloc;
   bool _isIntakeDragging = false;
   bool _isActivityDragging = false;
   bool get _isDragging => _isIntakeDragging || _isActivityDragging;
@@ -51,6 +53,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = locator<HomeBloc>();
+    _mealDetailBloc = locator<MealDetailBloc>();
     // Workouts that landed in the health store while the app was closed. Run
     // from here rather than from bootstrap so a launch import reaches the
     // same diary refresh a resume import does.
@@ -260,6 +263,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 addMealType: AddMealType.breakfastType,
                 intakeList: breakfastIntakeList,
                 onDeleteIntakeCallback: onDeleteIntake,
+                onCopyIntakeCallback: onCopyIntake,
                 onItemDragCallback: onIntakeItemDrag,
                 onItemTappedCallback: onIntakeItemTapped,
                 usesImperialUnits: usesImperialUnits,
@@ -277,6 +281,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 addMealType: AddMealType.lunchType,
                 intakeList: lunchIntakeList,
                 onDeleteIntakeCallback: onDeleteIntake,
+                onCopyIntakeCallback: onCopyIntake,
                 onItemDragCallback: onIntakeItemDrag,
                 onItemTappedCallback: onIntakeItemTapped,
                 usesImperialUnits: usesImperialUnits,
@@ -294,6 +299,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 listIcon: IntakeTypeEntity.dinner.getIconData(),
                 intakeList: dinnerIntakeList,
                 onDeleteIntakeCallback: onDeleteIntake,
+                onCopyIntakeCallback: onCopyIntake,
                 onItemDragCallback: onIntakeItemDrag,
                 onItemTappedCallback: onIntakeItemTapped,
                 usesImperialUnits: usesImperialUnits,
@@ -311,6 +317,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 addMealType: AddMealType.snackType,
                 intakeList: snackIntakeList,
                 onDeleteIntakeCallback: onDeleteIntake,
+                onCopyIntakeCallback: onCopyIntake,
                 onItemDragCallback: onIntakeItemDrag,
                 onItemTappedCallback: onIntakeItemTapped,
                 usesImperialUnits: usesImperialUnits,
@@ -489,6 +496,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   ) async {
     await _homeBloc.deleteIntakeItem(intake);
     _homeBloc.add(const LoadItemsEvent());
+  }
+
+  /// Copies [intake] to today, into the meal [type] the section's menu
+  /// picked (#842). Home lists today, so this is how a meal is logged
+  /// again later in the same day, under another meal.
+  Future<void> onCopyIntake(
+    IntakeEntity intake,
+    TrackedDayEntity? trackedDayEntity,
+    AddMealType? type,
+  ) async {
+    await _mealDetailBloc.addIntake(
+      context,
+      intake.unit,
+      intake.amount.toString(),
+      type?.getIntakeType() ?? intake.type,
+      intake.meal,
+      DateTime.now(),
+    );
+    _homeBloc.add(const LoadItemsEvent());
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
   }
 
   void _confirmDelete(BuildContext context, IntakeEntity intake) async {
