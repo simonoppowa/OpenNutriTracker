@@ -9,6 +9,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/serving_label_localizer.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
+import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -506,10 +507,14 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
     locator<CalendarDayBloc>().add(const RefreshCalendarDayEvent());
 
     if (!context.mounted) return;
-    // Show snackbar and return to dashboard
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)));
+    // Show snackbar and return to dashboard. It names the meal, which a
+    // large font can squeeze off the add screen's title.
+    final mealName = AddMealExtension.fromIntakeTypeEntity(
+      widget.intakeTypeEntity,
+    ).getTypeName(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(S.of(context).quickAddAddedSnack(mealName))),
+    );
     Navigator.of(
       context,
     ).popUntil(namedRouteOrFirst(NavigationOptions.mainRoute));
