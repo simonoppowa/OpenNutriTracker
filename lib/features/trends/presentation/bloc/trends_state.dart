@@ -27,6 +27,9 @@ class TrendsLoaded extends TrendsState {
   final int waterGoalMl;
   // #1306: water amounts follow the food unit preference (ml / fl oz).
   final bool usesImperialFoodUnits;
+  // The configured day start (#139), in minutes after midnight, so the
+  // cards' windows end on the same logical today as the bloc's ranges.
+  final int dayStartMinutes;
 
   const TrendsLoaded({
     required this.rangeDays,
@@ -39,7 +42,12 @@ class TrendsLoaded extends TrendsState {
     required this.waterByDay,
     required this.waterGoalMl,
     this.usesImperialFoodUnits = false,
+    this.dayStartMinutes = 0,
   });
+
+  /// The Diary's today, which every window on the page ends on.
+  DateTime get logicalToday =>
+      DayBoundaryCalc.currentLogicalDayMinutes(dayStartMinutes);
 
   @override
   List<Object?> get props => [
@@ -53,6 +61,7 @@ class TrendsLoaded extends TrendsState {
         waterByDay,
         waterGoalMl,
         usesImperialFoodUnits,
+        dayStartMinutes,
       ];
 }
 
