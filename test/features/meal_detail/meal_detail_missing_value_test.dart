@@ -37,7 +37,7 @@ import '../../helpers/test_l10n.dart';
 // #1474: a food missing a required value (BLS "Apfel getrocknet" had no
 // fat) disabled Add, yet the screen showed "0.0 g" fat as if it were known.
 // A missing value shows as missing, a real 0 as 0, and the warning names
-// what is missing.
+// what is missing, energy in the unit the user reads it in.
 
 MealEntity _driedApple({double? energyKcal100 = 242, double? fat100}) =>
     MealEntity(
@@ -92,7 +92,11 @@ void main() {
     await getIt.reset();
   });
 
-  Future<void> pumpMealDetail(WidgetTester tester, MealEntity meal) async {
+  Future<void> pumpMealDetail(
+    WidgetTester tester,
+    MealEntity meal, {
+    bool usesKilojoules = false,
+  }) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -104,7 +108,7 @@ void main() {
 
     await tester.pumpWidget(
       ChangeNotifierProvider<EnergyUnitProvider>(
-        create: (_) => EnergyUnitProvider(),
+        create: (_) => EnergyUnitProvider(usesKilojoules: usesKilojoules),
         child: MaterialApp(
           localizationsDelegates: const [S.delegate],
           supportedLocales: S.supportedLocales,
@@ -150,7 +154,10 @@ void main() {
     expect(find.textContaining('0.0 g'), findsNothing);
     expect(inTable(find.text('0.0g')), findsNothing);
 
-    expect(find.textContaining(l10nEn.missingProductInfo), findsOneWidget);
+    expect(
+      find.textContaining(l10nEn.missingProductInfoPer100g),
+      findsOneWidget,
+    );
     expect(
       find.textContaining(l10nEn.missingProductInfoFields(l10nEn.fatLabel)),
       findsOneWidget,
@@ -164,7 +171,7 @@ void main() {
     expect(inTable(find.text('0.0g')), findsOneWidget);
     expect(find.text(missingNutrientPlaceholder), findsNothing);
 
-    expect(find.textContaining(l10nEn.missingProductInfo), findsNothing);
+    expect(find.textContaining(l10nEn.missingProductInfoPer100g), findsNothing);
   });
 
   testWidgets('missing energy and fat show as missing and are both named', (
@@ -181,7 +188,24 @@ void main() {
     expect(
       find.textContaining(
         l10nEn.missingProductInfoFields(
-          '${l10nEn.energyLabel}, ${l10nEn.fatLabel}',
+          '${l10nEn.energyInUnitLabel(l10nEn.kcalLabel)}, ${l10nEn.fatLabel}',
+        ),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('missing energy is named in kJ for a kJ user', (tester) async {
+    await pumpMealDetail(
+      tester,
+      _driedApple(energyKcal100: null, fat100: 1),
+      usesKilojoules: true,
+    );
+
+    expect(
+      find.textContaining(
+        l10nEn.missingProductInfoFields(
+          l10nEn.energyInUnitLabel(l10nEn.kjLabel),
         ),
       ),
       findsOneWidget,
