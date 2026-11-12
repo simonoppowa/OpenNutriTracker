@@ -286,5 +286,20 @@ void main() {
       expect(find.textContaining('× 30 % ÷ 9'), findsOneWidget);
       expect(find.textContaining('× 30 % ÷ 4'), findsOneWidget);
     });
+
+    // Edge-to-edge draws the navigation bar over the list; its end clears
+    // the bar so the last row is not under it.
+    testWidgets('the list ends above the navigation bar', (tester) async {
+      // A 48 dp bar; _pump renders at 1x.
+      tester.view.padding = const FakeViewPadding(bottom: 48);
+      tester.view.viewPadding = const FakeViewPadding(bottom: 48);
+      await _pump(tester, maleBreakdown());
+
+      final padding = tester.widget<ListView>(find.byType(ListView)).padding!;
+      expect(
+        padding.resolve(TextDirection.ltr).bottom,
+        greaterThanOrEqualTo(48),
+      );
+    });
   });
 }

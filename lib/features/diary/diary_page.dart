@@ -139,6 +139,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
               padding: const EdgeInsets.only(right: Dimens.spacing8),
               child: IconButton(
                 icon: const Icon(Icons.today_rounded),
+                tooltip: S.of(context).diaryGoToTodayLabel,
                 onPressed: () => _onDateSelected(_currentDate, trackedDaysMap),
               ),
             ),

@@ -64,9 +64,13 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           return ListView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: Dimens.spacing16,
-              vertical: Dimens.spacing16,
+            // The list draws under the navigation bar (edge-to-edge), so
+            // its end clears the bar for the last row to be readable.
+            padding: EdgeInsets.fromLTRB(
+              Dimens.spacing16,
+              Dimens.spacing16,
+              Dimens.spacing16,
+              Dimens.spacing16 + MediaQuery.paddingOf(context).bottom,
             ),
             children: [
               Text(
