@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/chart_touch.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
@@ -145,8 +146,9 @@ class WeightTrendChart extends StatelessWidget {
     final minY = rangeSpots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
     final maxY = rangeSpots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
     // Pad so points don't sit on the edges. When all weights are identical we
-    // still need a non-zero range or fl_chart throws.
-    final yPadding = ((maxY - minY) * 0.15).clamp(0.5, 5.0);
+    // still need a non-zero range or fl_chart throws. The floor is small so
+    // a week's few tenths of change still fill the chart.
+    final yPadding = ((maxY - minY) * 0.15).clamp(0.1, 5.0);
 
     final targetY = targetWeightKg == null ? null : _toChartY(targetWeightKg!);
     // Only draw the dashed reference when the target sits within (or just
@@ -159,8 +161,19 @@ class WeightTrendChart extends StatelessWidget {
 
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final dateFormat = DateFormat.MMMd(localeTag);
-    // ~5 evenly spaced date labels regardless of window length.
-    final labelInterval = (windowDays / 5)
+    // Read here: the tooltip is built outside this build.
+    final l10n = S.of(context);
+    final unitLabel = switch (bodyWeightUnit) {
+      BodyWeightUnit.kg => l10n.kgLabel,
+      BodyWeightUnit.lb => l10n.lbsLabel,
+      BodyWeightUnit.st => l10n.stLabel,
+    };
+    // At large text the axes widen to fit their labels ("87.5", not "87."
+    // over "5") and the dates thin out so they don't overlap.
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    // ~5 evenly spaced date labels regardless of window length (3 at large
+    // text).
+    final labelInterval = (windowDays / (textScale >= 1.5 ? 3 : 5))
         .ceilToDouble()
         .clamp(1.0, double.infinity)
         .toDouble();
@@ -201,6 +214,19 @@ class WeightTrendChart extends StatelessWidget {
             maxY: maxY + yPadding,
             gridData: const FlGridData(show: false),
             borderData: FlBorderData(show: false),
+            // Each number says which series it is, at one decimal, with its
+            // unit: fl_chart's default printed the moving average unrounded
+            // ("95.13333333333337") and unlabelled beside the weigh-in.
+            lineTouchData: labelledTouch(context, (s) {
+              final weight = s.y.toStringAsFixed(1);
+              return s.barIndex == 0
+                  ? l10n.weightChartWeighedTooltip(weight, unitLabel)
+                  : l10n.weightChartAverageTooltip(
+                      movingAverageWindowDays ?? 0,
+                      weight,
+                      unitLabel,
+                    );
+            }),
             titlesData: FlTitlesData(
               topTitles: const AxisTitles(
                 sideTitles: SideTitles(showTitles: false),
@@ -211,7 +237,7 @@ class WeightTrendChart extends StatelessWidget {
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 40,
+                  reservedSize: 40 * textScale,
                   interval: yAxisInterval,
                   // The padded bounds sit off the tick grid, and fl_chart
                   // labels them by default: 62–65.8 kg pads up to 66.37,
@@ -227,7 +253,7 @@ class WeightTrendChart extends StatelessWidget {
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: _bottomTitlesReservedSize,
+                  reservedSize: _bottomTitlesReservedSize * textScale,
                   interval: labelInterval,
                   getTitlesWidget: (value, meta) {
                     final day = dayAt(value.toInt());
