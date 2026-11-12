@@ -448,6 +448,16 @@
   "editItemDialogTitle": "Edit item",
   "editMealLabel": "Edit meal",
   "editRecipeTitle": "Edit Recipe",
+  "energyInUnitLabel": "energy ({unit})",
+  "@energyInUnitLabel": {
+    "description": "Energy named with the user's energy unit, in the food detail screen's list of missing values, e.g. 'Missing: energy (kJ), fat'.",
+    "placeholders": {
+      "unit": {
+        "type": "String",
+        "example": "kJ"
+      }
+    }
+  },
   "energyLabel": "energy",
   "energyLeftLabel": "left",
   "energyTooMuchLabel": "too much",
@@ -625,6 +635,10 @@
         "example": "fat, protein"
       }
     }
+  },
+  "missingProductInfoPer100g": "Can't log this food: it needs energy, carbohydrate, fat and protein per 100 g.",
+  "@missingProductInfoPer100g": {
+    "description": "Warning on the food detail screen when a food lacks a value it needs to be logged; the next line names the missing ones ('Missing: …')."
   },
   "monounsaturatedFatLabel": "monounsaturated fat",
   "newCustomMealLabel": "New Custom Food",

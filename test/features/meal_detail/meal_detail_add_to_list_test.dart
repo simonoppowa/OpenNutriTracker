@@ -496,7 +496,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.widget<TextField>(find.byType(TextField)).enabled, isTrue);
-    expect(find.textContaining(l10nEn.missingProductInfo), findsOneWidget);
+    expect(
+      find.textContaining(l10nEn.missingProductInfoPer100g),
+      findsOneWidget,
+    );
     await tester.tap(find.bySemanticsIdentifier('meal-detail-add'));
     await tester.pumpAndSettle();
 
