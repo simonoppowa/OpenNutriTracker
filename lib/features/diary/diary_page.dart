@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/edit_activity_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -323,6 +324,16 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
         usesImperialUnits: usesImperialUnits,
       ),
     );
+    if (changeIntakeAmount == EditDialog.deleteResult) {
+      // Asked as a long-press delete asks, and deleted on the same day.
+      if (!context.mounted) return;
+      final delete = await showDialog<bool>(
+        context: context,
+        builder: (context) => const DeleteDialog(),
+      );
+      if (delete == true) _onDeleteIntakeItem(intakeEntity, day);
+      return;
+    }
     if (changeIntakeAmount != null) {
       await _calendarDayBloc.updateIntakeItem(
         intakeEntity.id,
