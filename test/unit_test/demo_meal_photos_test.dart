@@ -40,8 +40,7 @@ void main() {
   });
 
   group('demo meal photos', () {
-    test('every food resolves to a bundled photo and never a remote URL',
-        () async {
+    test('every food photo is bundled, never a remote URL', () async {
       final foods = await buildDemoFoods();
       final all = <(String, dynamic)>[
         ('oatmeal', foods.oatmeal),
@@ -56,6 +55,8 @@ void main() {
         ('apple', foods.apple),
         ('broccoli', foods.broccoli),
       ];
+      // These four have no fitting photo and show the plain food icon.
+      const noPhoto = {'brownRice', 'wholegrainBread', 'almonds', 'broccoli'};
 
       for (final (label, meal) in all) {
         // The whole point of bundling: a seeded demo meal must never carry
@@ -65,6 +66,11 @@ void main() {
             reason: '$label must not hotlink a thumbnail');
         expect(meal.mainImageUrl, isNull,
             reason: '$label must not hotlink a main image');
+
+        if (noPhoto.contains(label)) {
+          expect(meal.localImagePath, isNull, reason: '$label has no photo');
+          continue;
+        }
 
         expect(meal.localImagePath, isNotNull,
             reason: '$label lost its bundled photo — check that its photoId '
