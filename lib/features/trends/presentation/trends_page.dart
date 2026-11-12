@@ -2,12 +2,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/chart_touch.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
@@ -266,10 +268,14 @@ class _CaloriesTrendCard extends StatelessWidget {
     // plotted line, the goal reference and the tooltip all read in kcal or kJ.
     final spots = <FlSpot>[];
     final goals = <double>[];
+    final dates = <DateTime>[];
+    var loggedDays = 0;
     for (int i = 0; i < rangeDays; i++) {
       final day = today.subtract(Duration(days: rangeDays - 1 - i));
       final d = byDay[DateTime(day.year, day.month, day.day)];
       final tracked = d?.caloriesTracked ?? 0;
+      dates.add(day);
+      if (tracked > 0) loggedDays++;
       spots.add(FlSpot(i.toDouble(), EnergyDisplay.convert(context, tracked)));
       if (d != null && d.calorieGoal > 0) {
         goals.add(EnergyDisplay.convert(context, d.calorieGoal));
@@ -278,6 +284,9 @@ class _CaloriesTrendCard extends StatelessWidget {
     final avgGoal = goals.isEmpty ? 0.0 : goals.reduce((a, b) => a + b) / goals.length;
     final maxTracked = spots.fold<double>(0, (m, s) => s.y > m ? s.y : m);
     final maxY = [maxTracked, avgGoal].reduce((a, b) => a > b ? a : b) * 1.15 + 1;
+    final unit = EnergyDisplay.unitLabel(context);
+    final dateFormat =
+        DateFormat.MMMd(Localizations.localeOf(context).toLanguageTag());
 
     return AppCard(
       padding: const EdgeInsets.all(Dimens.spacing20),
@@ -286,57 +295,58 @@ class _CaloriesTrendCard extends StatelessWidget {
         children: [
           Text(S.of(context).trendsCaloriesLabel, style: text.titleMedium),
           const SizedBox(height: Dimens.spacing20),
-          Semantics(
-            label: S.of(context).trendsCaloriesLabel,
-            child: SizedBox(
-            height: 140,
-            child: LineChart(
-              LineChartData(
-                minX: 0,
-                maxX: (rangeDays - 1).toDouble(),
-                minY: 0,
-                maxY: maxY,
-                gridData: const FlGridData(show: false),
-                borderData: FlBorderData(show: false),
-                titlesData: const FlTitlesData(show: false),
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipItems: (spots) => [
-                      for (final s in spots)
-                        LineTooltipItem(
-                          s.y.toInt().toString(),
-                          text.labelMedium ?? const TextStyle(),
-                        ),
+          // A range with nothing logged says so, rather than drawing a flat
+          // line along the bottom.
+          if (loggedDays == 0)
+            _NoDataInRange(S.of(context).trendsNoCaloriesInRange)
+          else
+            Semantics(
+              label: S.of(context).trendsCaloriesLabel,
+              child: SizedBox(
+                height: 140,
+                child: LineChart(
+                  LineChartData(
+                    minX: 0,
+                    maxX: (rangeDays - 1).toDouble(),
+                    minY: 0,
+                    maxY: maxY,
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    titlesData: const FlTitlesData(show: false),
+                    lineTouchData: labelledTouch(
+                      context,
+                      (s) => s.y.toInt().toString(),
+                      after: (s) =>
+                          ' $unit\n${dateFormat.format(dates[s.x.round()])}',
+                    ),
+                    // Dashed average-goal reference: the line above/below it
+                    // reads as days over / under goal at a glance.
+                    extraLinesData: avgGoal <= 0
+                        ? const ExtraLinesData()
+                        : ExtraLinesData(horizontalLines: [
+                            HorizontalLine(
+                              y: avgGoal,
+                              color: palette.textMuted,
+                              strokeWidth: 1.2,
+                              dashArray: const [6, 4],
+                            ),
+                          ]),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: spots,
+                        isCurved: true,
+                        preventCurveOverShooting: true,
+                        color: accent,
+                        barWidth: 3,
+                        dotData: FlDotData(show: rangeDays <= 7),
+                        belowBarData: BarAreaData(
+                            show: true, color: accent.withValues(alpha: 0.12)),
+                      ),
                     ],
                   ),
                 ),
-                // Dashed average-goal reference: the line above/below it reads
-                // as days over / under goal at a glance.
-                extraLinesData: avgGoal <= 0
-                    ? const ExtraLinesData()
-                    : ExtraLinesData(horizontalLines: [
-                        HorizontalLine(
-                          y: avgGoal,
-                          color: palette.textMuted,
-                          strokeWidth: 1.2,
-                          dashArray: const [6, 4],
-                        ),
-                      ]),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: spots,
-                    isCurved: true,
-                    preventCurveOverShooting: true,
-                    color: accent,
-                    barWidth: 3,
-                    dotData: FlDotData(show: rangeDays <= 7),
-                    belowBarData: BarAreaData(show: true, color: accent.withValues(alpha: 0.12)),
-                  ),
-                ],
               ),
             ),
-          ),
-          ),
         ],
       ),
     );
@@ -369,11 +379,13 @@ class _WaterTrendCard extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final spots = <FlSpot>[];
+    final dates = <DateTime>[];
     var sum = 0;
     var loggedDays = 0;
     for (int i = 0; i < rangeDays; i++) {
       final day = today.subtract(Duration(days: rangeDays - 1 - i));
       final ml = waterByDay[DateTime(day.year, day.month, day.day)] ?? 0;
+      dates.add(day);
       spots.add(FlSpot(i.toDouble(), _toUnit(ml)));
       if (ml > 0) {
         sum += ml;
@@ -382,8 +394,16 @@ class _WaterTrendCard extends StatelessWidget {
     }
     final avgMl = loggedDays == 0 ? 0 : (sum / rangeDays).round();
     final goal = _toUnit(goalMl);
-    final maxWater = spots.fold<double>(0, (m, s) => s.y > m ? s.y : m);
-    final maxY = [maxWater, goal].reduce((a, b) => a > b ? a : b) * 1.15 + 1;
+    // From a little under the period's lowest day to a little over its
+    // highest (or the goal), so the days' differences fill the chart.
+    final range = fittedRange([
+      for (final s in spots) s.y,
+      if (goalMl > 0) goal,
+    ], minSpan: _toUnit(100));
+    final unit =
+        usesImperialUnits ? S.of(context).flOzUnit : S.of(context).mlLabel;
+    final dateFormat =
+        DateFormat.MMMd(Localizations.localeOf(context).toLanguageTag());
 
     return AppCard(
       padding: const EdgeInsets.all(Dimens.spacing20),
@@ -410,56 +430,56 @@ class _WaterTrendCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: Dimens.spacing20),
-          Semantics(
-            label: S.of(context).trendsWaterLabel,
-            child: SizedBox(
-              height: 140,
-              child: LineChart(
-                LineChartData(
-                  minX: 0,
-                  maxX: (rangeDays - 1).toDouble(),
-                  minY: 0,
-                  maxY: maxY,
-                  gridData: const FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
-                  titlesData: const FlTitlesData(show: false),
-                  lineTouchData: LineTouchData(
-                    touchTooltipData: LineTouchTooltipData(
-                      getTooltipItems: (spots) => [
-                        for (final s in spots)
-                          LineTooltipItem(
-                            s.y.round().toString(),
-                            text.labelMedium ?? const TextStyle(),
-                          ),
-                      ],
+          if (loggedDays == 0)
+            _NoDataInRange(S.of(context).trendsNoWaterInRange)
+          else
+            Semantics(
+              label: S.of(context).trendsWaterLabel,
+              child: SizedBox(
+                height: 140,
+                child: LineChart(
+                  LineChartData(
+                    minX: 0,
+                    maxX: (rangeDays - 1).toDouble(),
+                    minY: range.min,
+                    maxY: range.max,
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    titlesData: const FlTitlesData(show: false),
+                    lineTouchData: labelledTouch(
+                      context,
+                      (s) => s.y.round().toString(),
+                      after: (s) =>
+                          ' $unit\n${dateFormat.format(dates[s.x.round()])}',
                     ),
+                    extraLinesData: goalMl <= 0
+                        ? const ExtraLinesData()
+                        : ExtraLinesData(horizontalLines: [
+                            HorizontalLine(
+                              y: goal,
+                              color: palette.textMuted,
+                              strokeWidth: 1.2,
+                              dashArray: const [6, 4],
+                            ),
+                          ]),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: spots,
+                        isCurved: true,
+                        preventCurveOverShooting: true,
+                        color: color,
+                        barWidth: 3,
+                        // A dot a day up to a month, so each day's total
+                        // reads as its own point on the 30-day range too.
+                        dotData: FlDotData(show: rangeDays <= 31),
+                        belowBarData: BarAreaData(
+                            show: true, color: color.withValues(alpha: 0.12)),
+                      ),
+                    ],
                   ),
-                  extraLinesData: goalMl <= 0
-                      ? const ExtraLinesData()
-                      : ExtraLinesData(horizontalLines: [
-                          HorizontalLine(
-                            y: goal,
-                            color: palette.textMuted,
-                            strokeWidth: 1.2,
-                            dashArray: const [6, 4],
-                          ),
-                        ]),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: spots,
-                      isCurved: true,
-                      preventCurveOverShooting: true,
-                      color: color,
-                      barWidth: 3,
-                      dotData: FlDotData(show: rangeDays <= 7),
-                      belowBarData: BarAreaData(
-                          show: true, color: color.withValues(alpha: 0.12)),
-                    ),
-                  ],
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -528,6 +548,29 @@ class _MacrosTrendCard extends StatelessWidget {
             const SizedBox(height: Dimens.spacing16),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Stands in for a chart whose range has nothing logged, at the chart's
+/// height so the card keeps its size.
+class _NoDataInRange extends StatelessWidget {
+  final String message;
+  const _NoDataInRange(this.message);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 140,
+      child: Center(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
       ),
     );
   }

@@ -2,6 +2,8 @@
 // unit-tested directly. The presentation layer decides what's "on track"
 // (it needs theme colours) and hands the resulting date set in here.
 
+import 'dart:math' as math;
+
 /// Current and longest run of on-track days within [windowStart]..[today]
 /// (both date-only, inclusive). A day not present in [onTrackDays] — whether
 /// off-track or simply untracked — breaks the run. [current] counts the run
@@ -82,4 +84,19 @@
   }
 
   return (ratePerWeek: ratePerWeek, weeksToTarget: weeksToTarget);
+}
+
+/// The y range a chart of [values] spans: a little under the lowest to a
+/// little over the highest, so a period's changes fill the chart instead of
+/// sitting on top of a bar from zero. Values that are all positive keep the
+/// range at or above zero. [minSpan] keeps a flat period from stretching
+/// tiny differences across the whole chart.
+({double min, double max}) fittedRange(
+  Iterable<double> values, {
+  double minSpan = 1,
+}) {
+  if (values.isEmpty) return (min: 0, max: minSpan);
+  final lo = values.reduce(math.min), hi = values.reduce(math.max);
+  final pad = math.max(hi - lo, minSpan) * 0.15;
+  return (min: lo >= 0 && lo - pad < 0 ? 0 : lo - pad, max: hi + pad);
 }
