@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:opennutritracker/core/presentation/widgets/local_user_image.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 
@@ -15,12 +16,14 @@ class ImageFullScreen extends StatefulWidget {
 
 class _ImageFullScreenState extends State<ImageFullScreen> {
   late String imageUrl;
+  String? _localImagePath;
 
   @override
   void didChangeDependencies() {
     final args =
         ModalRoute.of(context)?.settings.arguments as ImageFullScreenArguments;
     imageUrl = args.imageUrl;
+    _localImagePath = args.localImagePath;
     super.didChangeDependencies();
   }
 
@@ -32,15 +35,22 @@ class _ImageFullScreenState extends State<ImageFullScreen> {
       body: InteractiveViewer(
         child: Hero(
           tag: ImageFullScreen.fullScreenHeroTag,
-          child: CachedNetworkImage(
-            width: double.infinity,
-            height: double.infinity,
-            cacheManager: locator<CacheManager>(),
-            imageUrl: imageUrl,
-            fit: BoxFit.cover,
-            placeholder: (context, string) => const MealPlaceholder(),
-            errorWidget: (context, url, error) => const MealPlaceholder(),
-          ),
+          child: _localImagePath != null
+              ? LocalUserImage(
+                  relativePath: _localImagePath!,
+                  width: double.infinity,
+                  height: double.infinity,
+                  placeholder: const MealPlaceholder(),
+                )
+              : CachedNetworkImage(
+                  width: double.infinity,
+                  height: double.infinity,
+                  cacheManager: locator<CacheManager>(),
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, string) => const MealPlaceholder(),
+                  errorWidget: (context, url, error) => const MealPlaceholder(),
+                ),
         ),
       ),
     );
@@ -50,5 +60,7 @@ class _ImageFullScreenState extends State<ImageFullScreen> {
 class ImageFullScreenArguments {
   final String imageUrl;
 
-  ImageFullScreenArguments(this.imageUrl);
+  final String? localImagePath;
+
+  ImageFullScreenArguments(this.imageUrl, {this.localImagePath});
 }

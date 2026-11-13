@@ -23,6 +23,7 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
   /// Kept as a future so a keystroke that arrives while a load is still
   /// running waits for that load rather than starting a second one.
   Future<_RecentSnapshot>? _snapshot;
+  int _generation = 0;
 
   RecentMealBloc(this._getIntakeUsecase, this._getConfigUsecase)
       : super(RecentMealInitial()) {
@@ -42,12 +43,13 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
     String searchString,
     Emitter<RecentMealState> emit,
   ) async {
+    final run = ++_generation;
     // Only blank to the spinner when storage actually has to be read; an
     // in-memory filter is instant and would just flicker.
     if (_snapshot == null) emit(RecentMealLoadingState());
     try {
       final snapshot = await (_snapshot ??= _loadSnapshot());
-      if (emit.isDone) return;
+      if (emit.isDone || run != _generation) return;
       final query = searchString.toLowerCase();
       final matches = query.isEmpty
           ? snapshot.intakes
@@ -59,6 +61,7 @@ class RecentMealBloc extends Bloc<RecentMealEvent, RecentMealState> {
         ),
       );
     } catch (error) {
+      if (emit.isDone || run != _generation) return;
       log.severe(error);
       // Forget the failed read so Retry (or the next keystroke) tries again.
       _snapshot = null;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/presentation/widgets/local_user_image.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
@@ -484,22 +485,31 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 child: GestureDetector(
                   child: Hero(
                     tag: ImageFullScreen.fullScreenHeroTag,
-                    child: CachedNetworkImage(
-                      width: 250,
-                      height: 250,
-                      cacheManager: locator<CacheManager>(),
-                      imageUrl: meal.mainImageUrl ?? "",
-                      fit: BoxFit.cover,
-                      placeholder: (context, string) => const MealPlaceholder(),
-                      errorWidget: (context, url, error) =>
-                          const MealPlaceholder(),
-                    ),
+                    child: meal.localImagePath != null
+                        ? LocalUserImage(
+                            relativePath: meal.localImagePath!,
+                            width: 250,
+                            height: 250,
+                            placeholder: const MealPlaceholder(),
+                          )
+                        : CachedNetworkImage(
+                            width: 250,
+                            height: 250,
+                            cacheManager: locator<CacheManager>(),
+                            imageUrl: meal.mainImageUrl ?? "",
+                            fit: BoxFit.cover,
+                            placeholder: (context, string) =>
+                                const MealPlaceholder(),
+                            errorWidget: (context, url, error) =>
+                                const MealPlaceholder(),
+                          ),
                   ),
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       NavigationOptions.imageFullScreenRoute,
                       arguments: ImageFullScreenArguments(
                         meal.mainImageUrl ?? "",
+                        localImagePath: meal.localImagePath,
                       ),
                     );
                   },

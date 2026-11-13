@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
@@ -222,6 +223,7 @@ void main() {
     final getIntake = GetIntakeUsecase(
       intakeRepository,
       RecipeRepository(RecipeDataSource(db)),
+      CustomMealDataSource(db),
     );
     locator
       ..registerSingleton<DiaryBloc>(

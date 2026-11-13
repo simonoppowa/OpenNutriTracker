@@ -284,6 +284,7 @@ void main() {
       GetIntakeUsecase(
         intakeRepository,
         RecipeRepository(RecipeDataSource(db)),
+        CustomMealDataSource(db),
       ),
       DeleteIntakeUsecase(intakeRepository),
       addTrackedDay,
