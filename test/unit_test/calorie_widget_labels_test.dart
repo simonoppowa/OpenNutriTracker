@@ -27,6 +27,12 @@ void main() {
       'unit': 'kcal',
       'openApp': 'Open the app',
       'description': "Today's calories eaten and your goal.",
+      // The macro-row names and the gram unit, for an Android widget that
+      // composes its rows without any Swift-side or Kotlin-side strings.
+      'protein': 'protein',
+      'carbs': 'carbs',
+      'fat': 'fat',
+      'gram': 'g',
     });
     expect(labels.figureJson(), {
       'goal': 'of 2001',

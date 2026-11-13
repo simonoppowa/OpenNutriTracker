@@ -159,8 +159,10 @@ class _AccentColourScreenState extends State<AccentColourScreen> {
                                   ),
                           ),
                           child: selected
-                              ? const Icon(Icons.check_rounded,
-                                  color: Colors.white)
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  color: AppPalette.readableOn(color),
+                                )
                               : null,
                         ),
                       ),

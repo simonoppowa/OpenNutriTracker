@@ -23,6 +23,7 @@ import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/logger_config.dart';
 import 'package:opennutritracker/core/utils/sentry_config.dart';
@@ -48,6 +49,7 @@ import 'package:opennutritracker/features/home/presentation/screens/import_meal_
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/bloc/tip_jar_cubit.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/accent_colour_screen.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
@@ -89,11 +91,21 @@ Future<void> _bootstrapApp() async {
     return;
   }
 
+  // Finish tip purchases an earlier run left open, and on Google Play
+  // consume leftover tips, before anything else can buy one (#1536).
+  // Again on every return to the foreground, for a payment that cleared
+  // while the app was in the background.
+  unawaited(locator<TipJarCubit>().start());
+  locator<TipJarCubit>().watchAppResumes();
+
   // Drop cached remote-search results that haven't been touched in 90
   // days. Done once per app start; no need to schedule a recurring task.
   unawaited(
     locator<RemoteSearchCacheDataSource>().pruneStale(const Duration(days: 90)),
   );
+  // Read once ahead of the add-food screen, so a user who hid the AI
+  // features never sees the Snap meal tile appear for a frame (#1518).
+  unawaited(locator<AiCredentialStorage>().isHidden());
 
   final isUserInitialized = await locator<UserDataSource>().hasUserData();
   final configRepo = locator<ConfigRepository>();

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -33,21 +32,18 @@ abstract class CalorieWidgetStore {
   Future<void> relabel(S s);
 }
 
-/// App Group on iOS, shared preferences on Android. Android has no
-/// widget UI in this milestone; the save still runs so a later widget
-/// can reuse the same keys.
+/// Shared preferences on both platforms (an App Group on iOS). The iOS
+/// extension and the Android provider both read the same keys the app
+/// writes (`CalorieWidgetSnapshot.storageKey`).
 class HomeWidgetCalorieStore implements CalorieWidgetStore {
-  final bool _isIOS;
   final Future<String> Function() _bundleId;
   String? _appGroupId;
   int _generation = 0;
   Future<void> _last = Future.value();
 
   HomeWidgetCalorieStore({
-    @visibleForTesting bool? isIOS,
     @visibleForTesting Future<String> Function()? bundleId,
-  }) : _isIOS = isIOS ?? Platform.isIOS,
-       _bundleId = bundleId ?? _platformBundleId;
+  }) : _bundleId = bundleId ?? _platformBundleId;
 
   static Future<String> _platformBundleId() async =>
       (await PackageInfo.fromPlatform()).packageName;
@@ -115,7 +111,7 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
     final group = _appGroupId ??= CalorieWidgetSnapshot.appGroupIdFor(
       await _bundleId(),
     );
-    if (_isIOS) await HomeWidget.setAppGroupId(group);
+    await HomeWidget.setAppGroupId(group);
     return group;
   }
 
@@ -142,15 +138,16 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
         appGroupId: group,
       );
     }
-    if (!_isIOS) return;
     try {
       await HomeWidget.updateWidget(
         iOSName: CalorieWidgetSnapshot.iosWidgetKind,
+        qualifiedAndroidName: CalorieWidgetSnapshot.androidWidgetQualifiedName,
       );
     } on MissingPluginException {
       // Tests and platforms without the plugin skip the reload.
     } on PlatformException {
-      // The extension is absent until the iOS target is embedded.
+      // The iOS extension is absent until its target is embedded; the
+      // Android provider until its manifest entry ships.
     }
   }
 }

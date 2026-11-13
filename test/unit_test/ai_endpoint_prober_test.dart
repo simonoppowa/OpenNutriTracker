@@ -133,6 +133,50 @@ void main() {
     });
   });
 
+  group('turning AI off mid-probe (#1518)', () {
+    test('the photo request is not sent, and nothing is concluded', () async {
+      final client = _ScriptedClient([
+        _reply(
+          _toolReply([
+            {'query': 'bread'},
+          ]),
+        ),
+      ]);
+      var asked = 0;
+
+      final result = await _prober(client).probe(
+        _selection,
+        stillWanted: () async {
+          asked++;
+          // Asked only once the text request has gone out.
+          expect(client.requests, hasLength(1));
+          return false;
+        },
+      );
+
+      expect(asked, 1);
+      expect(client.requests, hasLength(1));
+      expect(result, AiEndpointProbe.unknown);
+    });
+
+    test('while still wanted, both requests go out', () async {
+      final client = _ScriptedClient([
+        _reply(
+          _toolReply([
+            {'query': 'bread'},
+          ]),
+        ),
+      ]);
+
+      final result = await _prober(
+        client,
+      ).probe(_selection, stillWanted: () async => true);
+
+      expect(client.requests, hasLength(2));
+      expect(result.photo, AiCapability.passed);
+    });
+  });
+
   group('what is not conclusive stays unknown', () {
     test('an unreachable endpoint produces no verdict at all', () async {
       final client = _ScriptedClient([_throws(Exception('no route to host'))]);

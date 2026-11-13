@@ -76,6 +76,7 @@ class _ProfilePageState extends State<ProfilePage> {
             state.bodyWeightUnit,
             state.usesImperialHeightUnits,
             state.effectiveWaterGoalMl,
+            state.usesImperialFoodUnits,
           );
         } else {
           return _getLoadingContent();
@@ -95,6 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
     BodyWeightUnit bodyWeightUnit,
     bool usesImperialHeightUnits,
     int effectiveWaterGoalMl,
+    bool usesImperialFoodUnits,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
@@ -258,8 +260,10 @@ class _ProfilePageState extends State<ProfilePage> {
               palette: palette,
               icon: Icons.water_drop_rounded,
               title: S.of(context).settingsWaterGoalLabel,
-              subtitle: '$effectiveWaterGoalMl ${S.of(context).mlLabel}',
-              onTap: () => _showWaterGoalDialog(context),
+              subtitle: usesImperialFoodUnits
+                  ? '${UnitCalc.mlToFlOz(effectiveWaterGoalMl.toDouble()).round()} ${S.of(context).flOzUnit}'
+                  : '$effectiveWaterGoalMl ${S.of(context).mlLabel}',
+              onTap: () => _showWaterGoalDialog(context, usesImperialFoodUnits),
             ),
           ],
         ),
@@ -587,12 +591,13 @@ class _ProfilePageState extends State<ProfilePage> {
     await _profileBloc.updateUser(userEntity);
   }
 
-  void _showWaterGoalDialog(BuildContext context) {
+  void _showWaterGoalDialog(BuildContext context, bool usesImperialUnits) {
     showDialog(
       context: context,
       builder: (context) => WaterGoalDialog(
         settingsBloc: locator<SettingsBloc>(),
         homeBloc: locator<HomeBloc>(),
+        usesImperialUnits: usesImperialUnits,
       ),
     );
   }

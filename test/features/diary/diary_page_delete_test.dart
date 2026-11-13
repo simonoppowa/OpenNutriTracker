@@ -219,15 +219,18 @@ void main() {
 
     final getConfig = GetConfigUsecase(configRepository);
     final getTrackedDay = GetTrackedDayUsecase(trackedDayRepository);
+    final getIntake = GetIntakeUsecase(
+      intakeRepository,
+      RecipeRepository(RecipeDataSource(db)),
+    );
     locator
-      ..registerSingleton<DiaryBloc>(DiaryBloc(getTrackedDay, getConfig))
+      ..registerSingleton<DiaryBloc>(
+        DiaryBloc(getTrackedDay, getConfig, getIntake),
+      )
       ..registerSingleton<CalendarDayBloc>(
         CalendarDayBloc(
           GetUserActivityUsecase(activityRepository),
-          GetIntakeUsecase(
-            intakeRepository,
-            RecipeRepository(RecipeDataSource(db)),
-          ),
+          getIntake,
           DeleteIntakeUsecase(intakeRepository),
           DeleteUserActivityUsecase(activityRepository, configRepository),
           getTrackedDay,

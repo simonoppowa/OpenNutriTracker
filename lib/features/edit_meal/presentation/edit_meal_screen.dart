@@ -48,6 +48,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   late IntakeTypeEntity _intakeTypeEntity;
   late bool _usesImperialUnits;
   LogTray? _logTray;
+  LogTrayItem? _editingTrayItem;
 
   late bool _editOnly;
 
@@ -220,6 +221,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _usesImperialUnits = args.usesImperialUnits;
     _editOnly = args.editOnly;
     _logTray = args.logTray;
+    _editingTrayItem = args.editingTrayItem;
 
     _nameTextController.text = _mealEntity.name ?? "";
     _brandsTextController.text = _mealEntity.brands ?? "";
@@ -1047,6 +1049,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
             _day,
             usesImperialUnits,
             logTray: _logTray,
+            editingTrayItem: _editingTrayItem,
           ),
         );
       }
@@ -1195,6 +1198,10 @@ class EditMealScreenArguments {
   /// new food opens in so that it adds there instead of logging.
   final LogTray? logTray;
 
+  /// The row of [logTray] the detail screen was changing, handed back to
+  /// the detail screen the save opens so that it still saves over that row.
+  final LogTrayItem? editingTrayItem;
+
   EditMealScreenArguments(
     this.day,
     this.mealEntity,
@@ -1202,6 +1209,7 @@ class EditMealScreenArguments {
     this.usesImperialUnits, {
     this.editOnly = false,
     this.logTray,
+    this.editingTrayItem,
   });
 }
 

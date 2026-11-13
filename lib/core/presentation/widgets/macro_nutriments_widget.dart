@@ -31,11 +31,17 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
-    return Row(
+    // At a large font the rings stack, so their values are not cut off.
+    final stack = MediaQuery.textScalerOf(context).scale(10) > 13;
+    Widget fit(Widget ring) => stack ? ring : Expanded(child: ring);
+    return Flex(
+      direction: stack ? Axis.vertical : Axis.horizontal,
+      crossAxisAlignment:
+          stack ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Expanded(
-          child: _MacroRing(
+        fit(
+          _MacroRing(
             intake: widget.totalCarbsIntake,
             goal: widget.totalCarbsGoal,
             label: S.of(context).carbsLabel,
@@ -43,8 +49,8 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
             palette: palette,
           ),
         ),
-        Expanded(
-          child: _MacroRing(
+        fit(
+          _MacroRing(
             intake: widget.totalFatsIntake,
             goal: widget.totalFatsGoal,
             label: S.of(context).fatLabel,
@@ -52,8 +58,8 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
             palette: palette,
           ),
         ),
-        Expanded(
-          child: _MacroRing(
+        fit(
+          _MacroRing(
             intake: widget.totalProteinsIntake,
             goal: widget.totalProteinsGoal,
             label: S.of(context).proteinLabel,

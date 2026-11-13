@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
@@ -83,6 +84,7 @@ class _TrendsView extends StatelessWidget {
               goalMl: state.waterGoalMl,
               rangeDays: state.windowDays,
               palette: palette,
+              usesImperialUnits: state.usesImperialFoodUnits,
             ),
             const SizedBox(height: Dimens.spacing16),
             _WeightCard(
@@ -346,12 +348,19 @@ class _WaterTrendCard extends StatelessWidget {
   final int goalMl;
   final int rangeDays;
   final AppPalette palette;
+  final bool usesImperialUnits;
   const _WaterTrendCard({
     required this.waterByDay,
     required this.goalMl,
     required this.rangeDays,
     required this.palette,
+    this.usesImperialUnits = false,
   });
+
+  // #1306: plot, label and tooltip in fl oz with imperial food units, the way
+  // the calorie card follows the energy unit (#1362).
+  double _toUnit(num ml) =>
+      usesImperialUnits ? UnitCalc.mlToFlOz(ml.toDouble()) : ml.toDouble();
 
   @override
   Widget build(BuildContext context) {
@@ -365,16 +374,16 @@ class _WaterTrendCard extends StatelessWidget {
     for (int i = 0; i < rangeDays; i++) {
       final day = today.subtract(Duration(days: rangeDays - 1 - i));
       final ml = waterByDay[DateTime(day.year, day.month, day.day)] ?? 0;
-      spots.add(FlSpot(i.toDouble(), ml.toDouble()));
+      spots.add(FlSpot(i.toDouble(), _toUnit(ml)));
       if (ml > 0) {
         sum += ml;
         loggedDays++;
       }
     }
-    final avg = loggedDays == 0 ? 0 : (sum / rangeDays).round();
+    final avgMl = loggedDays == 0 ? 0 : (sum / rangeDays).round();
+    final goal = _toUnit(goalMl);
     final maxWater = spots.fold<double>(0, (m, s) => s.y > m ? s.y : m);
-    final maxY =
-        [maxWater, goalMl.toDouble()].reduce((a, b) => a > b ? a : b) * 1.15 + 1;
+    final maxY = [maxWater, goal].reduce((a, b) => a > b ? a : b) * 1.15 + 1;
 
     return AppCard(
       padding: const EdgeInsets.all(Dimens.spacing20),
@@ -391,7 +400,10 @@ class _WaterTrendCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis),
               ),
               Text(
-                S.of(context).waterChipLabel(avg, goalMl),
+                usesImperialUnits
+                    ? S.of(context).waterChipLabelFlOz(
+                        _toUnit(avgMl).round(), goal.round())
+                    : S.of(context).waterChipLabel(avgMl, goalMl),
                 style: text.bodySmall?.copyWith(
                     color: palette.textMuted, fontWeight: FontWeight.w700),
               ),
@@ -416,7 +428,7 @@ class _WaterTrendCard extends StatelessWidget {
                       getTooltipItems: (spots) => [
                         for (final s in spots)
                           LineTooltipItem(
-                            s.y.toInt().toString(),
+                            s.y.round().toString(),
                             text.labelMedium ?? const TextStyle(),
                           ),
                       ],
@@ -426,7 +438,7 @@ class _WaterTrendCard extends StatelessWidget {
                       ? const ExtraLinesData()
                       : ExtraLinesData(horizontalLines: [
                           HorizontalLine(
-                            y: goalMl.toDouble(),
+                            y: goal,
                             color: palette.textMuted,
                             strokeWidth: 1.2,
                             dashArray: const [6, 4],

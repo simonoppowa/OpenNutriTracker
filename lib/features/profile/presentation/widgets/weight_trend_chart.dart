@@ -35,6 +35,13 @@ class WeightTrendChart extends StatelessWidget {
   @visibleForTesting
   static DateTime Function() clock = DateTime.now;
 
+  /// Height of the date labels under the plot; the y-axis gets the rest.
+  static const double _bottomTitlesReservedSize = 28;
+
+  /// Least vertical room one weight label needs: a `labelSmall` line
+  /// (11.5 px) plus a gap, so neighbouring labels never touch.
+  static const double _minYLabelSpacing = 24;
+
   const WeightTrendChart({
     super.key,
     required this.entries,
@@ -158,6 +165,29 @@ class WeightTrendChart extends StatelessWidget {
         .clamp(1.0, double.infinity)
         .toDouble();
 
+    // Below ~3 kg/lb of spread the ticks sit less than a unit apart and a
+    // zero-decimal label would round two neighbours to the same whole
+    // number ("62, 62, 63, 63" in #1445). Pair a half-unit interval with a
+    // one-decimal label so no two ticks ever print the same text. Stones
+    // is always one decimal because 2.20462/14 rarely lands on a whole.
+    final narrowRange = (maxY - minY) < 3;
+    final yAxisDecimals =
+        bodyWeightUnit == BodyWeightUnit.st || narrowRange ? 1 : 0;
+    // On a wide range one-unit ticks crowd together (80–100 kg pads to
+    // 77–103: 27 labels in under 200 px), so step the interval up through
+    // multiples of the base until the labels fit the plot's height. Every
+    // multiple keeps the ticks on values the chosen decimals print exactly.
+    final baseYInterval = yAxisDecimals == 1 ? 0.5 : 1.0;
+    final yRange = (maxY + yPadding) - (minY - yPadding);
+    final maxYLabels =
+        (chartHeight - _bottomTitlesReservedSize) / _minYLabelSpacing;
+    final yAxisInterval = [1, 2, 5, 10, 20, 50]
+        .map((step) => baseYInterval * step)
+        .firstWhere(
+          (interval) => yRange / interval <= maxYLabels,
+          orElse: () => baseYInterval * 100,
+        );
+
     return Padding(
       key: const Key('weightHistoryChart'),
       padding: const EdgeInsets.fromLTRB(16, 16, 24, 16),
@@ -182,10 +212,14 @@ class WeightTrendChart extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   reservedSize: 40,
+                  interval: yAxisInterval,
+                  // The padded bounds sit off the tick grid, and fl_chart
+                  // labels them by default: 62–65.8 kg pads up to 66.37,
+                  // which prints "66" right beside the regular tick at 66.
+                  minIncluded: false,
+                  maxIncluded: false,
                   getTitlesWidget: (value, meta) => Text(
-                    value.toStringAsFixed(
-                      bodyWeightUnit == BodyWeightUnit.st ? 1 : 0,
-                    ),
+                    value.toStringAsFixed(yAxisDecimals),
                     style: theme.textTheme.labelSmall,
                   ),
                 ),
@@ -193,7 +227,7 @@ class WeightTrendChart extends StatelessWidget {
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 28,
+                  reservedSize: _bottomTitlesReservedSize,
                   interval: labelInterval,
                   getTitlesWidget: (value, meta) {
                     final day = dayAt(value.toInt());

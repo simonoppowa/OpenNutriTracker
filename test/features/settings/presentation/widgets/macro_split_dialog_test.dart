@@ -361,4 +361,35 @@ void main() {
     expect(roundMacroPercentsToHundred(60, 15, 25), (60, 15, 25));
     expect(roundMacroPercentsToHundred(0, 0, 0), (60, 15, 25));
   });
+
+  testWidgets('a screen reader hears each slider as the share it sets', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _wrap(
+        Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (_) => MacroSplitDialog(
+                settingsBloc: _FakeSettingsBloc(),
+                homeBloc: _FakeHomeBloc(),
+              ),
+            ),
+            child: const Text('Open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    // Carbs 60%, protein 15%, fat 25%, from the fake's stored goals; the
+    // slider's own default would read its position in the range instead.
+    for (final share in ['60%', '15%', '25%']) {
+      expect(find.semantics.byValue(share), findsOneWidget, reason: share);
+    }
+    semantics.dispose();
+  });
 }

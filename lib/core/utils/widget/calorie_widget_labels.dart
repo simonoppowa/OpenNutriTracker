@@ -28,6 +28,14 @@ class CalorieWidgetLabels {
   final String openApp;
   final String description;
 
+  /// Macro-row names and the gram unit, so an Android widget composes
+  /// its rows without a shader of its own Dart. Language-only like
+  /// everything else here.
+  final String protein;
+  final String carbs;
+  final String fat;
+  final String gram;
+
   const CalorieWidgetLabels({
     required this.title,
     required this.unit,
@@ -35,6 +43,10 @@ class CalorieWidgetLabels {
     required this.accessibility,
     required this.openApp,
     required this.description,
+    this.protein = '',
+    this.carbs = '',
+    this.fat = '',
+    this.gram = '',
   });
 
   /// The labels for [snapshot] in the language of [s]. The goal and the
@@ -63,6 +75,10 @@ class CalorieWidgetLabels {
       accessibility: s.calorieWidgetAccessibilityLabel(consumed, goal),
       openApp: s.calorieWidgetOpenAppHint,
       description: s.calorieWidgetDescription,
+      protein: s.proteinLabel,
+      carbs: s.carbsLabel,
+      fat: s.fatLabel,
+      gram: s.gramUnit,
     );
   }
 
@@ -87,6 +103,13 @@ class CalorieWidgetLabels {
     'unit': unit,
     'openApp': openApp,
     'description': description,
+    // Empty strings rather than absent keys: a wipe keeps the labels
+    // storage, so the reader must not branch on key presence for text
+    // that the language, not the profile, decides.
+    'protein': protein,
+    'carbs': carbs,
+    'fat': fat,
+    'gram': gram,
   };
 
   Map<String, String> figureJson() => {

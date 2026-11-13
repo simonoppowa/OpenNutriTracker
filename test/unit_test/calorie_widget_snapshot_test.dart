@@ -25,6 +25,59 @@ void main() {
       });
     });
 
+    test('no macro figures are stored as an absent key, not a null', () async {
+      // Older readers decode the same snapshot unchanged.
+      final snapshot = CalorieWidgetSnapshot.fromHome(
+        consumedKcal: 10,
+        goalKcal: 2000,
+        offsetMinutes: 0,
+        now: DateTime(2026, 9, 23, 13, 0),
+      );
+
+      expect(snapshot.toJson().containsKey('macros'), isFalse);
+      expect(CalorieWidgetMacros.fromJson(snapshot.toJson()['macros']), isNull);
+    });
+
+    test('macro figures round-trip grams and goals', () async {
+      const macros = CalorieWidgetMacros(
+        proteinIntakeG: 9,
+        proteinGoalG: 75,
+        carbsIntakeG: 20,
+        carbsGoalG: 300,
+        fatsIntakeG: 4,
+        fatsGoalG: 67,
+      );
+      final snapshot = CalorieWidgetSnapshot.fromHome(
+        consumedKcal: 10,
+        goalKcal: 2000,
+        offsetMinutes: 0,
+        now: DateTime(2026, 9, 23, 13, 0),
+        macros: macros,
+      );
+
+      expect(snapshot.macros, macros);
+      expect(CalorieWidgetMacros.fromJson(snapshot.toJson()['macros']), macros);
+    });
+
+    test('a snapshot without a goal carries no macro rows', () {
+      final snapshot = CalorieWidgetSnapshot.fromHome(
+        consumedKcal: 40,
+        goalKcal: 0,
+        offsetMinutes: 0,
+        now: DateTime(2026, 9, 23, 8, 0),
+        macros: const CalorieWidgetMacros(
+          proteinIntakeG: 9,
+          proteinGoalG: 75,
+          carbsIntakeG: 20,
+          carbsGoalG: 300,
+          fatsIntakeG: 4,
+          fatsGoalG: 67,
+        ),
+      );
+
+      expect(snapshot.macros, isNull);
+    });
+
     test('a zero goal is a placeholder, not a progress ring', () {
       final snapshot = CalorieWidgetSnapshot.fromHome(
         consumedKcal: 40,

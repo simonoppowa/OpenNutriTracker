@@ -34,8 +34,10 @@ import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/tracked_day_boundary_record.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
@@ -328,7 +330,18 @@ void main() {
         expect(movedDuringExport, isFalse);
         expect(configs.getConfigNow().trackedDaysOffsetMinutes, 0);
         expect(dayBox.get('2026-10-05')!.calorieGoal, 2150);
-        expect(dayBox.containsKey('2026-10-04'), isFalse);
+        // The 4th, which lists nothing now, keeps its row for its goal
+        // (#1440), counts nothing and has handed the ride's credit on.
+        final left = dayBox.get('2026-10-04')!;
+        expect(left.calorieGoal, 2000, reason: 'the ride is credited once');
+        expect(left.carbsGoal, 250 - MacroCalc.getTotalCarbsGoal(150));
+        expect(left.fatGoal, 70 - MacroCalc.getTotalFatsGoal(150));
+        expect(left.proteinGoal, 100 - MacroCalc.getTotalProteinsGoal(150));
+        expect(left.caloriesTracked, 0);
+        expect(left.carbsTracked, 0);
+        expect(left.fatTracked, 0);
+        expect(left.proteinTracked, 0);
+        expect(TrackedDayEntity.fromTrackedDayDBO(left).hasConsumed, isFalse);
       } finally {
         if (!days.release.isCompleted) days.release.complete();
         await Hive.close();

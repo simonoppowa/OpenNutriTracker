@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class DiaryTableCalendar extends StatefulWidget {
@@ -15,6 +16,10 @@ class DiaryTableCalendar extends StatefulWidget {
 
   final Map<String, TrackedDayEntity> trackedDaysMap;
 
+  /// The keys of the days with at least one entry logged. Only these are
+  /// marked: a row can outlive its day's entries, kept for its goals.
+  final Set<String> daysWithEntries;
+
   const DiaryTableCalendar({
     super.key,
     required this.onDateSelected,
@@ -23,6 +28,7 @@ class DiaryTableCalendar extends StatefulWidget {
     required this.currentDate,
     required this.selectedDate,
     required this.trackedDaysMap,
+    required this.daysWithEntries,
   });
 
   @override
@@ -71,6 +77,13 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           Dimens.spacing12,
         ),
         child: TableCalendar(
+          // Without this, `table_calendar` falls back to `en_US` and the
+          // month header, day-of-week headings and selected-day label stay
+          // English while the rest of the Diary follows the app locale
+          // (#1442). `GlobalMaterialLocalizations` is wired in `main.dart`,
+          // so the intl date symbols for every supported locale are already
+          // loaded by the time this builds.
+          locale: Localizations.localeOf(context).toLanguageTag(),
           headerStyle: HeaderStyle(
             titleCentered: true,
             formatButtonVisible: false,
@@ -79,8 +92,18 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
                   color: palette.textStrong,
                 ) ??
                 const TextStyle(),
-            leftChevronIcon: Icon(Icons.chevron_left_rounded, color: palette.textMuted, size: 26),
-            rightChevronIcon: Icon(Icons.chevron_right_rounded, color: palette.textMuted, size: 26),
+            leftChevronIcon: Icon(
+              Icons.chevron_left_rounded,
+              color: palette.textMuted,
+              size: 26,
+              semanticLabel: S.of(context).calendarPreviousMonthLabel,
+            ),
+            rightChevronIcon: Icon(
+              Icons.chevron_right_rounded,
+              color: palette.textMuted,
+              size: 26,
+              semanticLabel: S.of(context).calendarNextMonthLabel,
+            ),
             headerPadding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
           ),
           daysOfWeekStyle: DaysOfWeekStyle(
@@ -133,8 +156,13 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
           selectedDayPredicate: (day) => isSameDay(widget.selectedDate, day),
           calendarBuilders: CalendarBuilders(
             markerBuilder: (context, date, events) {
-              final trackedDay = widget.trackedDaysMap[date.toParsedDay()];
-              if (trackedDay != null) {
+              final key = date.toParsedDay();
+              final trackedDay = widget.trackedDaysMap[key];
+              // A day with nothing logged gets no marker, even with a row
+              // that keeps its goals (#1440). Asked of the entries, not the
+              // row's totals: a zero-calorie entry still counts as logged,
+              // and a deleted entry can leave a rounding residue behind.
+              if (trackedDay != null && widget.daysWithEntries.contains(key)) {
                 return Container(
                   margin: const EdgeInsets.only(top: 10),
                   padding: const EdgeInsets.all(1),

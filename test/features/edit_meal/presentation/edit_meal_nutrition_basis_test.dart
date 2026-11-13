@@ -452,6 +452,11 @@ void main() {
                 kcalForQuantity(1, 'serving', reopened),
                 closeTo(276, 0.7),
               );
+              await reopenPreferences(tester);
+              expect(
+                await preferences.getCustomMealNutrientsTotal(),
+                mode == 'total',
+              );
               await pumpEditor(tester, reopened);
               expect(
                 double.parse((await energy(tester)).controller!.text),
