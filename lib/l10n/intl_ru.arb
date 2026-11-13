@@ -694,7 +694,7 @@
   "paHeadingWinterActivities": "зимние активности",
   "paHighIntensityIntervalExercise": "высокоинтенсивная интервальная тренировка",
   "paHighIntensityIntervalExerciseDesc": "умеренная нагрузка",
-  "paHighIntensityIntervalExerciseVigorous": "высокоинтенсивная интервальная тренировка",
+  "paHighIntensityIntervalExerciseVigorous": "Энергичная высокоинтенсивная интервальная тренировка",
   "paHighIntensityIntervalExerciseVigorousDesc": "берпи, скалолаз, прыжки из приседа, табата, высокая нагрузка",
   "paHikingCrossCountry": "хайкинг",
   "paHikingCrossCountryDesc": "по пересечённой местности",
@@ -1708,5 +1708,71 @@
   "hourShortLabel": "Ч",
   "@hourShortLabel": {
     "description": "Short unit after a number of hours, e.g. '4 h', read by a screen reader on the day boundary slider."
+  },
+  "onboardingPageProgressSemantic": "Страница {current} из {total}",
+  "@onboardingPageProgressSemantic": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingMacrosChangeLaterHint": "Вы можете изменить это позже в Настройках → {category} → {item}.",
+  "@onboardingMacrosChangeLaterHint": {
+    "description": "Under the macro gram targets on the onboarding overview. Says the values are not edited here and where they can be changed. {category} is the Settings group name and {item} the row name, both filled in from their own strings.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Goals & nutrition"
+      },
+      "item": {
+        "type": "String",
+        "example": "Macro split"
+      }
+    }
+  },
+  "paTrackField2": "Легкая атлетика (прыжки и метание копья)",
+  "shareFoodLabel": "Легкая атлетика (барьерный бег)",
+  "shareQrUnavailableLabel": "Не удалось создать QR-код. Скопируйте или поделитесь кодом в виде текста.",
+  "logWaterAmountLabelFlOz": "Добавить {amount} жидк. унц",
+  "@logWaterAmountLabelFlOz": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "waterChipLabelFlOz": "{current} / {goal} жидк. унц",
+  "@waterChipLabelFlOz": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceInputStartTooltip": "Скажите, что вы съели",
+  "voiceInputStopTooltip": "Остановить запись",
+  "voiceInputLanguageTooltip": "Язык ввода: {language}. Нажмите для смены.",
+  "@voiceInputLanguageTooltip": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceInputPermissionDenied": "Разрешите доступ к микрофону и распознаванию речи, чтобы продиктовать прием пищи.",
+  "voiceInputUnavailable": "На этом устройстве не поддерживается распознавание речи.",
+  "aiAssistProbeUnknownLabel": "Еще не проверено.",
+  "aiAssistProbePhotoFailedLabel": "Проверено — эта модель не вернула элементов по фото, поэтому распознавание фото на этом сервере недоступно.",
+  "aiAssistModelMoreItemsLabel": "Распознает больше продуктов на фото",
+  "aiAssistModelCheaperThanRecommendedLabel": "Дешевле рекомендуемой модели",
+  "@aiAssistModelCheaperThanRecommendedLabel": {
+    "description": "Note under a model in the AI settings: it costs less than the first (recommended) model. A price fact only, no claim about quality."
   }
 }
