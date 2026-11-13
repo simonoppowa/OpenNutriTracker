@@ -21,11 +21,15 @@ import 'package:opennutritracker/features/add_meal/data/repository/products_repo
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/daily_kcal_overview.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_nutriments_table.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -66,12 +70,14 @@ void main() {
   final getIt = GetIt.instance;
   MealDetailBloc? bloc;
   late FakeFavourites favourites;
+  late _FakeAddIntakeUsecase intakes;
 
   setUp(() {
     bloc = null;
+    intakes = _FakeAddIntakeUsecase();
     getIt.registerLazySingleton<MealDetailBloc>(
       () => bloc = MealDetailBloc(
-        _FakeAddIntakeUsecase(),
+        intakes,
         _FakeAddTrackedDayUsecase(),
         _FakeGetKcalGoalUsecase(),
         _FakeGetMacroGoalUsecase(),
@@ -94,11 +100,17 @@ void main() {
   });
 
   tearDown(() async {
+    await bloc?.close();
     await getIt.reset();
   });
 
-  Future<void> pumpMealDetail(WidgetTester tester, MealEntity meal) async {
-    tester.view.physicalSize = const Size(1080, 2400);
+  Future<void> pumpMealDetail(
+    WidgetTester tester,
+    MealEntity meal, {
+    LogTray? tray,
+    Size size = const Size(1080, 2400),
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
@@ -127,6 +139,7 @@ void main() {
                   IntakeTypeEntity.breakfast,
                   DateTime(2026, 9, 14),
                   false,
+                  logTray: tray,
                 ),
               ),
             ),
@@ -141,6 +154,93 @@ void main() {
   Finder chip(String id) => find.byWidgetPredicate(
         (w) => w is Semantics && w.properties.identifier == 'meal-detail-chip-$id',
       );
+
+  Future<void> expectNutritionAboveFooter(WidgetTester tester) async {
+    final scroll = tester.widget<CustomScrollView>(
+      find.byType(CustomScrollView),
+    );
+    final position = scroll.controller!.position;
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    expect(position.pixels, position.maxScrollExtent);
+
+    final table = find.descendant(
+      of: find.byType(MealDetailNutrimentsTable),
+      matching: find.byType(Table),
+    );
+    final protein = find.descendant(
+      of: table,
+      matching: find.text(l10nEn.proteinLabel),
+    );
+    final value = find.descendant(of: table, matching: find.text('5.0g')).last;
+    final footerTop = tester.getTopLeft(find.byType(MealDetailBottomSheet)).dy;
+    final headerBottom = tester.getBottomLeft(find.byType(DailyKcalOverview)).dy;
+    for (final cell in [protein, value]) {
+      final rowCell = find
+          .ancestor(of: cell, matching: find.byType(Padding))
+          .first;
+      final rect = tester.getRect(rowCell);
+      expect(rect.top, greaterThanOrEqualTo(headerBottom));
+      expect(
+        rect.bottom,
+        lessThanOrEqualTo(footerTop),
+        reason: 'Final nutrition cell $rect must clear footer at $footerTop',
+      );
+    }
+    expect(tester.takeException(), isNull);
+  }
+
+  for (final toList in [false, true]) {
+    testWidgets('portrait nutrition clears two-action footer; '
+        '${toList ? "Add to list" : "Add"} remains usable', (tester) async {
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      await pumpMealDetail(
+        tester,
+        _solidThirtyGramServing(),
+        tray: tray,
+        size: const Size(393, 852),
+      );
+      expect(find.text(l10nEn.addLabel), findsOneWidget);
+      expect(find.text(l10nEn.addToListLabel), findsOneWidget);
+      await expectNutritionAboveFooter(tester);
+      final add = find.bySemanticsIdentifier('meal-detail-add');
+      final list = find.bySemanticsIdentifier('meal-detail-add-to-list');
+      expect(add.hitTestable(), findsOneWidget);
+      expect(list.hitTestable(), findsOneWidget);
+      await tester.tap(toList ? list : add);
+      await tester.pumpAndSettle();
+      expect(intakes.added, toList ? 0 : 1);
+      expect(tray.length, toList ? 1 : 0);
+    });
+  }
+
+  testWidgets(
+    'safe insets and keyboard keep one-action nutrition and Add usable',
+    (tester) async {
+      tester.view.padding = const FakeViewPadding(top: 24, bottom: 24);
+      await pumpMealDetail(
+        tester,
+        _solidThirtyGramServing(),
+        size: const Size(430, 932),
+      );
+      await tester.tap(find.byType(TextFormField).first);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 240);
+      await tester.pumpAndSettle();
+      await expectNutritionAboveFooter(tester);
+      expect(
+        find.bySemanticsIdentifier('meal-detail-add-to-list'),
+        findsNothing,
+      );
+      final add = find.bySemanticsIdentifier('meal-detail-add');
+      expect(add.hitTestable(), findsOneWidget);
+      expect(tester.getBottomLeft(add).dy, lessThanOrEqualTo(932 - 240));
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+      expect(intakes.added, 1);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     '0.5x on a 30 g serving lands 15 g in state.totalQuantityConverted',
@@ -237,7 +337,11 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
 
 class _FakeAddIntakeUsecase implements AddIntakeUsecase {
   @override
-  Future<void> addIntake(IntakeEntity intakeEntity) async {}
+  Future<void> addIntake(IntakeEntity intakeEntity) async {
+    added++;
+  }
+
+  int added = 0;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

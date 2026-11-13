@@ -340,43 +340,51 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         child: Scaffold(
           backgroundColor:
               (Theme.of(context).brightness == Brightness.dark ? AppPalette.dark : AppPalette.light).canvas,
-          body: BlocBuilder<MealDetailBloc, MealDetailState>(
-            bloc: _mealDetailBloc,
-            builder: (context, state) {
-              if (state is MealDetailInitial) {
-                return _getLoadedContent(
-                  context,
-                  state.totalQuantityConverted,
-                  state.totalKcal,
-                  state.totalCarbs,
-                  state.totalFat,
-                  state.totalProtein,
-                  state.selectedUnit,
-                  state.dayKcalConsumed,
-                  state.dayKcalGoal,
-                  state.isHydrating,
-                );
-              }
-              return const Center(child: CircularProgressIndicator());
-            },
-          ),
-        bottomSheet: BlocSelector<MealDetailBloc, MealDetailState, String>(
-          bloc: _mealDetailBloc,
-          selector: (state) => state.selectedUnit,
-          builder: (context, selectedUnit) {
-            return MealDetailBottomSheet(
-              product: meal,
-              day: _day,
-              intakeTypeEntity: intakeTypeEntity,
-              selectedUnit: selectedUnit,
-              usesImperialUnits: _usesImperialUnits,
-              mealDetailBloc: _mealDetailBloc,
-              quantityTextController: quantityTextController,
-              onQuantityOrUnitChanged: onQuantityOrUnitChanged,
-              logTray: _logTray,
-              editingTrayItem: _editingTrayItem,
-            );
-          },
+          // Reserve the footer's actual height, including wrapped chips and
+          // the optional second action, instead of covering the scroll content.
+          body: Column(
+            children: [
+              Expanded(
+                child: BlocBuilder<MealDetailBloc, MealDetailState>(
+                  bloc: _mealDetailBloc,
+                  builder: (context, state) {
+                    if (state is MealDetailInitial) {
+                      return _getLoadedContent(
+                        context,
+                        state.totalQuantityConverted,
+                        state.totalKcal,
+                        state.totalCarbs,
+                        state.totalFat,
+                        state.totalProtein,
+                        state.selectedUnit,
+                        state.dayKcalConsumed,
+                        state.dayKcalGoal,
+                        state.isHydrating,
+                      );
+                    }
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                ),
+              ),
+              BlocSelector<MealDetailBloc, MealDetailState, String>(
+                bloc: _mealDetailBloc,
+                selector: (state) => state.selectedUnit,
+                builder: (context, selectedUnit) {
+                  return MealDetailBottomSheet(
+                    product: meal,
+                    day: _day,
+                    intakeTypeEntity: intakeTypeEntity,
+                    selectedUnit: selectedUnit,
+                    usesImperialUnits: _usesImperialUnits,
+                    mealDetailBloc: _mealDetailBloc,
+                    quantityTextController: quantityTextController,
+                    onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+                    logTray: _logTray,
+                    editingTrayItem: _editingTrayItem,
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),
@@ -582,7 +590,6 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                           children: [SizedBox(height: 32), OffDisclaimer()],
                         )
                       : const SizedBox(),
-                  const SizedBox(height: 200.0), // height added to scroll
                 ],
               ),
             ),
