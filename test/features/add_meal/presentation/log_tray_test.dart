@@ -13,6 +13,8 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -20,6 +22,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
@@ -191,6 +194,36 @@ class _FakeCalendarDayBloc extends Fake implements CalendarDayBloc {
   void add(CalendarDayEvent event) {}
 }
 
+/// Quick add's direct write: records the intakes it stores.
+class _RecordingAddIntakeUsecase extends Fake implements AddIntakeUsecase {
+  final stored = <IntakeEntity>[];
+
+  @override
+  Future<void> addIntake(IntakeEntity intakeEntity) async =>
+      stored.add(intakeEntity);
+}
+
+/// A day that already has its row, so Quick add only adds to its totals.
+class _ExistingDayAddTrackedDayUsecase extends Fake
+    implements AddTrackedDayUsecase {
+  @override
+  Future<bool> hasTrackedDay(DateTime day) async => true;
+
+  @override
+  Future<void> addDayCaloriesTracked(
+    DateTime day,
+    double caloriesTracked,
+  ) async {}
+
+  @override
+  Future<void> addDayMacrosTracked(
+    DateTime day, {
+    double? carbsTracked,
+    double? fatTracked,
+    double? proteinTracked,
+  }) async {}
+}
+
 final getIt = GetIt.instance;
 FakeFavourites? _favourites;
 late _FakeMealDetailBloc _mealDetailBloc;
@@ -339,6 +372,88 @@ void main() {
       expect(tray.isEmpty, isTrue);
       expect(notified, 6);
     });
+
+    test('a food on its way counts as collecting before it arrives', () {
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      var notified = 0;
+      tray.addListener(() => notified++);
+      expect(tray.collects, isFalse);
+
+      tray.beginPending();
+      expect(tray.isEmpty, isTrue);
+      expect(tray.collects, isTrue);
+
+      // A lookup that ends without adding anything (a food the detail
+      // screen has to open instead) leaves the list as it was.
+      tray.endPending();
+      expect(tray.collects, isFalse);
+
+      tray.add(
+        LogTrayItem(meal: _meal('A'), unit: 'g', amount: 1, amountLabel: ''),
+      );
+      expect(tray.collects, isTrue);
+      expect(notified, 3);
+    });
+
+    test('replace swaps one entry in place, by identity', () {
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      final a = LogTrayItem(
+        meal: _meal('A'),
+        unit: 'g',
+        amount: 100,
+        amountLabel: '',
+      );
+      final b = LogTrayItem(
+        meal: _meal('B'),
+        unit: 'g',
+        amount: 100,
+        amountLabel: '',
+      );
+      // Two helpings of B: only the one named changes.
+      final b2 = LogTrayItem(
+        meal: b.meal,
+        unit: 'g',
+        amount: 100,
+        amountLabel: '',
+      );
+      tray.addAll([a, b, b2]);
+      var notified = 0;
+      tray.addListener(() => notified++);
+
+      final bigger = LogTrayItem(
+        meal: b.meal,
+        unit: 'g',
+        amount: 300,
+        amountLabel: '',
+      );
+      tray.replace(b2, bigger);
+
+      expect(tray.items.map((i) => i.amount), [100, 100, 300]);
+      expect(identical(tray.items[1], b), isTrue);
+      expect(identical(tray.items[2], bigger), isTrue);
+      expect(notified, 1);
+    });
+
+    test('replace adds the new entry when the old one is gone', () {
+      final tray = LogTray();
+      addTearDown(tray.dispose);
+      final gone = LogTrayItem(
+        meal: _meal('A'),
+        unit: 'g',
+        amount: 100,
+        amountLabel: '',
+      );
+      final edited = LogTrayItem(
+        meal: _meal('A'),
+        unit: 'g',
+        amount: 40,
+        amountLabel: '',
+      );
+      tray.replace(gone, edited);
+      expect(tray.items.single, same(edited));
+    });
   });
 
   group('the log button', () {
@@ -431,6 +546,9 @@ void main() {
       );
       expect(item!.unit, 'serving');
       expect(item.amount, 38);
+      // What the detail screen reopens with when the row is tapped.
+      expect(item.quantity, 1);
+      expect(item.selectedUnit, 'serving');
     });
 
     testWidgets('raw units win over the serving when the user prefers them', (
@@ -444,12 +562,16 @@ void main() {
       expect(item!.unit, 'g');
       expect(item.amount, 100);
       expect(item.amountLabel, '100 ${l10nEn.gramUnit}');
+      expect(item.quantity, 100);
+      expect(item.selectedUnit, 'g');
     });
 
     testWidgets('imperial starts at one ounce', (tester) async {
       final item = await resolve(tester, _meal('Rice'), imperial: true);
       expect(item!.unit, 'oz');
       expect(item.amount, closeTo(28.35, 0.01));
+      expect(item.quantity, 1);
+      expect(item.selectedUnit, 'oz');
     });
 
     testWidgets('a food missing a macro has no default', (tester) async {
@@ -482,6 +604,62 @@ void main() {
       await tester.pumpAndSettle();
       expect(_logButton(), findsNothing);
       expect(_mealDetailBloc.writes, isEmpty);
+    });
+
+    testWidgets('tapping a row opens its amount to change', (tester) async {
+      await _register([_meal('Oats', kcal100: 380), _meal('Milk')]);
+      final pushed = <RouteSettings>[];
+      await _openAddMeal(tester, pushed);
+
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+      await _tapPlus(tester, 'Milk');
+      await tester.pumpAndSettle();
+      expect(pushed, isEmpty);
+
+      final rows = find.bySemanticsIdentifier('add-meal-tray-edit');
+      expect(rows, findsNWidgets(2));
+      await tester.ensureVisible(rows.last);
+      await tester.tap(rows.last);
+      await tester.pumpAndSettle();
+
+      final args = pushed.single.arguments as MealDetailScreenArguments;
+      expect(pushed.single.name, NavigationOptions.mealDetailRoute);
+      expect(args.mealEntity.name, 'Milk');
+      expect(args.editingTrayItem, isNotNull);
+      expect(args.editingTrayItem!.quantity, 100);
+      expect(args.editingTrayItem!.selectedUnit, 'g');
+      expect(args.logTray!.items.last, same(args.editingTrayItem));
+      expect(args.intakeTypeEntity, IntakeTypeEntity.breakfast);
+      expect(args.day, DateTime(2026, 10, 18));
+    });
+
+    testWidgets('a Quick add row has no amount to open', (tester) async {
+      await _register([_meal('Oats')]);
+      final pushed = <RouteSettings>[];
+      await _openAddMeal(tester, pushed);
+
+      // With the list empty, Quick add logs at once (#1520); one food on it
+      // first makes Quick add join the list.
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsIdentifier('add-meal-quick-add'));
+      await tester.pumpAndSettle();
+      Finder field(String id) => find.descendant(
+        of: find.bySemanticsIdentifier(id),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(field('quick-add-title'), 'Cake');
+      await tester.enterText(field('quick-add-energy'), '350');
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10nEn.bulkAddSubmitLabel(2)), findsOneWidget);
+      // Only the Oats row opens; the Quick add row has no food behind it.
+      expect(find.bySemanticsIdentifier('add-meal-tray-edit'), findsOneWidget);
+      expect(pushed, isEmpty);
     });
 
     testWidgets('one button logs the whole list and returns to the day', (
@@ -576,12 +754,7 @@ void main() {
       expect(review.logTray, same(detail.logTray));
     });
 
-    testWidgets('Quick add puts its entry on the list and stays here', (
-      tester,
-    ) async {
-      await _register([]);
-      await _openAddMeal(tester, []);
-
+    Future<void> fillQuickAdd(WidgetTester tester) async {
       await tester.tap(find.bySemanticsIdentifier('add-meal-quick-add'));
       await tester.pumpAndSettle();
       Finder field(String id) => find.descendant(
@@ -591,7 +764,18 @@ void main() {
       await tester.enterText(field('quick-add-title'), 'Cake');
       await tester.enterText(field('quick-add-energy'), '350');
       await tester.pumpAndSettle();
-      await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+    }
+
+    testWidgets('Quick add\'s Add to list puts its entry on the list', (
+      tester,
+    ) async {
+      await _register([]);
+      await _openAddMeal(tester, []);
+
+      await fillQuickAdd(tester);
+      // With nothing on the list yet, Add itself logs at once (#1520), so
+      // starting a list is the second button.
+      await tester.tap(find.bySemanticsIdentifier('quick-add-add-to-list'));
       await tester.pumpAndSettle();
 
       expect(find.byType(AddMealScreen), findsOneWidget);
@@ -602,6 +786,149 @@ void main() {
       await tester.tap(_logButton());
       await tester.pumpAndSettle();
       expect(_mealDetailBloc.writes.single.name, 'Cake');
+    });
+
+    testWidgets('with nothing on the list, Quick add\'s Add logs at once', (
+      tester,
+    ) async {
+      await _register([]);
+      final addIntake = _RecordingAddIntakeUsecase();
+      getIt
+        ..registerSingleton<AddIntakeUsecase>(addIntake)
+        ..registerSingleton<AddTrackedDayUsecase>(
+          _ExistingDayAddTrackedDayUsecase(),
+        );
+      await _openAddMeal(tester, []);
+
+      await fillQuickAdd(tester);
+      await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+      await tester.pumpAndSettle();
+
+      // Logged and back on the day, as before the list existed (#1520).
+      expect(addIntake.stored.single.meal.name, 'Cake');
+      expect(find.byKey(const Key('main')), findsOneWidget);
+      expect(_mealDetailBloc.writes, isEmpty);
+    });
+
+    testWidgets('once the list has items, Quick add\'s Add joins it', (
+      tester,
+    ) async {
+      await _register([_meal('Oats')]);
+      await _openAddMeal(tester, []);
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+
+      await fillQuickAdd(tester);
+      expect(find.bySemanticsIdentifier('quick-add-add-to-list'), findsNothing);
+      await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddMealScreen), findsOneWidget);
+      expect(find.text(l10nEn.bulkAddSubmitLabel(2)), findsOneWidget);
+      expect(_mealDetailBloc.writes, isEmpty);
+    });
+
+    testWidgets(
+      'with a + still fetching, Quick add\'s Add joins the list instead of '
+      'leaving without that food',
+      (tester) async {
+        await _register([_meal('Granola', source: MealSourceEntity.off)]);
+        final addIntake = _RecordingAddIntakeUsecase();
+        getIt
+          ..registerSingleton<AddIntakeUsecase>(addIntake)
+          ..registerSingleton<AddTrackedDayUsecase>(
+            _ExistingDayAddTrackedDayUsecase(),
+          );
+        _products.full = _meal(
+          'Granola',
+          source: MealSourceEntity.off,
+          servingQuantity: 45,
+          servingSize: '45 g',
+          detailed: true,
+        );
+        await _openAddMeal(tester, []);
+        final gate = _products.gate = Completer<void>();
+        await _tapPlus(tester, 'Granola');
+        await tester.pump();
+
+        await fillQuickAdd(tester);
+        // The list is still empty, but Granola is on its way onto it.
+        expect(
+          find.bySemanticsIdentifier('quick-add-add-to-list'),
+          findsNothing,
+        );
+        await tester.tap(find.bySemanticsIdentifier('quick-add-submit'));
+        await tester.pumpAndSettle();
+        expect(addIntake.stored, isEmpty);
+        expect(find.byType(AddMealScreen), findsOneWidget);
+
+        gate.complete();
+        await tester.pumpAndSettle();
+        await tester.tap(_logButton());
+        await tester.pumpAndSettle();
+        expect(_mealDetailBloc.writes.map((w) => w.name), ['Cake', 'Granola']);
+      },
+    );
+
+    testWidgets('leaving while a + is still fetching does not throw', (
+      tester,
+    ) async {
+      await _register([_meal('Granola', source: MealSourceEntity.off)]);
+      _products.full = _meal(
+        'Granola',
+        source: MealSourceEntity.off,
+        detailed: true,
+      );
+      await _openAddMeal(tester, []);
+      final gate = _products.gate = Completer<void>();
+      await _tapPlus(tester, 'Granola');
+      await tester.pump();
+
+      // The list is empty, so Back leaves at once and disposes it.
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(AddMealScreen), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the log button stays above the keyboard (#1520)', (
+      tester,
+    ) async {
+      await _register([_meal('Oats')]);
+      await _openAddMeal(tester, []);
+      await _tapPlus(tester, 'Oats');
+      await tester.pumpAndSettle();
+
+      final search = find.descendant(
+        of: find.byType(MealSearchBar),
+        matching: find.byType(TextField),
+      );
+      await tester.showKeyboard(search);
+      const keyboard = 336.0;
+      tester.view.viewInsets = const FakeViewPadding(bottom: keyboard);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pumpAndSettle();
+
+      // Above the keyboard's top edge, where it can be seen and tapped.
+      final screenHeight = tester.view.physicalSize.height;
+      expect(_logButton(), findsOneWidget);
+      expect(
+        tester.getBottomLeft(_logButton()).dy,
+        lessThanOrEqualTo(screenHeight - keyboard),
+      );
+      // Moving the button did not take the focus off the search field,
+      // which would close the keyboard again.
+      final editable = tester.widget<EditableText>(
+        find.descendant(of: search, matching: find.byType(EditableText)),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+
+      await tester.tap(_logButton());
+      await tester.pumpAndSettle();
+      expect(_mealDetailBloc.writes.single.name, 'Oats');
     });
 
     testWidgets('+ on a thin search hit uses the full record\'s serving', (

@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/ai_assist_dialog.dart';
 import 'package:opennutritracker/core/styles/accent_colors.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
@@ -89,6 +90,11 @@ class _OnboardingOtherOptionsPageBodyState
   /// Null when the stored name is unrecognised — see #753.
   AiProvider? _aiProvider;
 
+  /// Whether the AI features are hidden (#1518). The flag outlives a data
+  /// wipe, and on iOS the keystore outlives a reinstall, so a returning user
+  /// can reach this page with it already set.
+  bool _aiHidden = false;
+
   @override
   void initState() {
     super.initState();
@@ -99,8 +105,10 @@ class _OnboardingOtherOptionsPageBodyState
     final storage = widget.aiCredentials;
     if (storage == null) return;
     final summary = await storage.readSummary();
+    final hidden = await storage.isHidden();
     if (!mounted) return;
     setState(() {
+      _aiHidden = hidden;
       _aiConfigured = summary.configured;
       _aiEnabled = summary.enabled;
       _aiEndpoint = summary.endpoint;
@@ -241,7 +249,7 @@ class _OnboardingOtherOptionsPageBodyState
                 ),
         ),
         child: selected && child == null
-            ? const Icon(Icons.check_rounded, color: Colors.white)
+            ? Icon(Icons.check_rounded, color: AppPalette.readableOn(color))
             : child,
       ),
     );
@@ -354,7 +362,7 @@ class _OnboardingOtherOptionsPageBodyState
   /// predate this row and do not exercise it.
   List<Widget>? _buildAiAssistSection(BuildContext context, S s) {
     final storage = widget.aiCredentials;
-    if (storage == null) return null;
+    if (storage == null || _aiHidden) return null;
 
     // Null until the keystore read lands, and it stays a null *widget* rather
     // than an empty `Text`: the point of the null is that the row says nothing

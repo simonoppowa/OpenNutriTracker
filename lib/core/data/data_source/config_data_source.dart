@@ -257,6 +257,30 @@ class ConfigDataSource {
     await _update((c) => c.localeSyncSeeded = null);
   }
 
+  /// Whether a tip has gone through on this device (#1536).
+  ///
+  /// Read and written on the shared app box alone, never through
+  /// [_readMerged] / [_writeBoth]: a payment can complete while a profile
+  /// switch has the per-profile box closed, and recording it must not fail
+  /// then. The stale copy [_writeBoth] leaves in a profile box is ignored —
+  /// this field is not in the personal-field overlay — and the next
+  /// [_update] copies the app box's value over it.
+  Future<bool> getHasLeftTip() async =>
+      _appBox.get(_configKey)?.hasLeftTip ?? false;
+
+  Future<void> setHasLeftTip() => _updateAppOnly((c) => c.hasLeftTip = true);
+
+  Future<void> clearHasLeftTip() => _updateAppOnly((c) => c.hasLeftTip = null);
+
+  Future<void> _updateAppOnly(void Function(ConfigDBO config) mutate) async {
+    final stored = _appBox.get(_configKey);
+    final config = stored != null
+        ? ConfigDBO.fromJson(stored.toJson())
+        : ConfigDBO.empty();
+    mutate(config);
+    await _appBox.put(_configKey, config);
+  }
+
   Future<void> setConfigShowMicronutrients(bool show) async {
     await _update((c) => c.showMicronutrients = show);
   }

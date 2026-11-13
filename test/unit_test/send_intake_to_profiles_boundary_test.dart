@@ -15,8 +15,10 @@ import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/send_intake_to_profiles_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/tracked_day_reconciler.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -175,6 +177,18 @@ void main() {
     expect(row, isNotNull);
     expect(row!.caloriesTracked, 200);
     expect(row.calorieGoal, 2150, reason: 'the ride is credited once');
-    expect(rowsB.containsKey('2026-10-05'), isFalse);
+    // The 5th, which lists nothing now, keeps its row for its goal
+    // (#1440), counts nothing and has handed the ride's credit on.
+    final left = rowsB.get('2026-10-05');
+    expect(left, isNotNull);
+    expect(left!.calorieGoal, 2000, reason: 'the ride is credited once');
+    expect(left.carbsGoal, 250 - MacroCalc.getTotalCarbsGoal(150));
+    expect(left.fatGoal, 70 - MacroCalc.getTotalFatsGoal(150));
+    expect(left.proteinGoal, 100 - MacroCalc.getTotalProteinsGoal(150));
+    expect(left.caloriesTracked, 0);
+    expect(left.carbsTracked, 0);
+    expect(left.fatTracked, 0);
+    expect(left.proteinTracked, 0);
+    expect(TrackedDayEntity.fromTrackedDayDBO(left).hasConsumed, isFalse);
   });
 }

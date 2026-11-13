@@ -38,6 +38,12 @@ party, and to the Supabase food backend.
 > *Processed ephemerally* — Open Food Facts' retention is not this project's to
 > warrant, and the privacy policy already says so.
 
+The destinations below were re-checked against `main` on 2026-11-03 (2.6.0):
+the app still sends user data only to Open Food Facts, the Supabase food
+backend, the AI provider the user configured, and Sentry. The two other hosts
+in `lib/` carry none: `fdc.nal.usda.gov` is a source link the user opens, and
+`images.unsplash.com` serves the demo's stock photos.
+
 ### 2. Photos are not declared, and the app sends them to a third party
 
 Verified in the shipped code, not inferred: the AI meal-photo path
@@ -92,7 +98,7 @@ Nothing in the app can delete what has already gone off-device:
 | Recipient | What reached it | Deletable from the app? |
 |---|---|---|
 | Sentry | crash reports, kept 30 days per the policy | no |
-| AI provider (OpenAI / Anthropic / OpenRouter / own server) | meal photo, meal text | no |
+| AI provider (OpenAI / Anthropic / OpenRouter / Google Gemini entered as own server / own server) | meal photo, meal text | no |
 | Open Food Facts | search terms, scanned barcodes | no |
 | Supabase food backend | search terms | no |
 
@@ -117,15 +123,28 @@ and `READ_TOTAL_CALORIES_BURNED`. The **Health apps declaration** (Play Console
 → App content) has to be brought in line with that in the same pass — it was
 last edited before any health permission existed in the app.
 
+## "Encrypted in transit": stays Yes, and what that rests on
+
+Decided by the maintainer on 2026-09-28
+([#1050](https://github.com/simonoppowa/OpenNutriTracker/issues/1050#issuecomment-5879001311)).
+The own-server AI provider accepts an `http://` address for a private or
+loopback destination (`lib/core/utils/plaintext_destination_guard.dart`), and
+the form's answer is app-wide with no conditional. It stays **Yes** because
+Play's question covers the data the app *collects*, and collection means data
+transmitted to the developer or a third party. A server the user runs on a
+network they control is neither, so that path is outside the form. Everything
+the form does cover goes over HTTPS: Open Food Facts and the Supabase gateway,
+Anthropic, OpenAI and OpenRouter, and Sentry.
+
+It rests on [#816](https://github.com/simonoppowa/OpenNutriTracker/issues/816),
+still open: if a server the user runs does count as collection, the answer
+becomes **No**, or the carve-out goes so that every destination is HTTPS.
+Reopen it then, or if Google flags the declaration.
+
 ## Still open, needing a decision rather than a lookup
 
 - **Approximate location.** It is declared as collected. Whatever justified it
   should be written down here, or the entry removed.
-- **"Encrypted in transit" vs the own-server AI provider.** The own-server
-  provider accepts an `http://` address for private/loopback destinations. The
-  form's answer is app-wide with no conditional, so either that carve-out goes
-  (`lib/core/utils/plaintext_destination_guard.dart`) or the answer becomes No.
-  See [#816](https://github.com/simonoppowa/OpenNutriTracker/issues/816).
 - **The provider API key as a user identifier.** It travels on every AI request
   and works as a stable per-user handle at the vendor. Whether that is a
   "User ID" the app collects is a genuine judgment call — the argument against

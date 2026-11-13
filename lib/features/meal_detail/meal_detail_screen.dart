@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/demo/unsplash_attribution.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -53,6 +54,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   final quantityTextController = TextEditingController();
   late bool _usesImperialUnits;
   LogTray? _logTray;
+  LogTrayItem? _editingTrayItem;
   bool _showMicronutrients = false;
   // #1126: preloaded from `ConfigEntity.defaultToRawFoodUnits`. False keeps
   // the pre-existing "serving wins whenever one exists" default; true
@@ -148,7 +150,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       intakeTypeEntity = args.intakeTypeEntity;
       _usesImperialUnits = args.usesImperialUnits;
       _logTray = args.logTray;
+      _editingTrayItem = args.editingTrayItem;
       _argumentsRead = true;
+      _applyEditedSelection();
 
       // Thin OFF search results get hydrated to the full product record
       // (serving fields + micronutrients) once, in the background; the
@@ -161,6 +165,54 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     _applyInitialSelection();
 
     super.didChangeDependencies();
+  }
+
+  /// Opened from a row on the To-log list: start from that row's amount, and
+  /// mark it as the user's choice so neither the raw-units preference nor
+  /// hydration replaces it with a default.
+  ///
+  /// A unit the dropdown does not list for this food — a Describe row's
+  /// second portion — opens as its weight in g/ml instead, which is the same
+  /// amount and keeps the dropdown valid.
+  void _applyEditedSelection() {
+    final item = _editingTrayItem;
+    if (item == null || !item.canChangeAmount) return;
+    var unit = item.selectedUnit!;
+    var quantity = item.quantity!;
+    if (!offersUnit(meal, unit)) {
+      unit = _baseUnitFor(meal);
+      quantity = item.amount;
+    }
+    _initialUnit = unit;
+    _initialQuantity = _formatQuantity(quantity);
+    _userChangedSelection = true;
+    _applyingInitialSelection = true;
+    try {
+      quantityTextController.text = _initialQuantity;
+    } finally {
+      _applyingInitialSelection = false;
+    }
+    _mealDetailBloc.add(
+      UpdateKcalEvent(
+        meal: meal,
+        totalQuantity: _initialQuantity,
+        selectedUnit: _initialUnit,
+      ),
+    );
+  }
+
+  /// The g, ml or g/ml unit the dropdown always offers for [meal].
+  static String _baseUnitFor(MealEntity meal) => meal.isLiquid
+      ? UnitDropdownItem.ml.toString()
+      : meal.isSolid
+      ? UnitDropdownItem.g.toString()
+      : UnitDropdownItem.gml.toString();
+
+  static String _formatQuantity(double value) {
+    final rounded = (value * 100).round() / 100;
+    return rounded == rounded.roundToDouble()
+        ? rounded.toStringAsFixed(0)
+        : rounded.toString();
   }
 
   /// Pick the default unit and quantity from the meal's shape. Serving-based
@@ -238,8 +290,31 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   /// default now that serving data exists); otherwise just recompute totals
   /// against the fuller nutriments while keeping the user's selection.
   void _onMealHydrated(MealEntity full) {
+    final previous = _mealDetailBloc.state;
     setState(() => meal = full);
-    if (_userChangedSelection) {
+    if (_userChangedSelection && !offersUnit(meal, previous.selectedUnit)) {
+      // The full record changed the food's shape — a thin hit read as a
+      // solid turns out to be a drink — and the kept unit is no longer in
+      // the dropdown. Keep the amount, in the unit it now offers.
+      final amount = previous.totalQuantityConverted.toLenientDoubleOrNull();
+      final unit = _baseUnitFor(meal);
+      final quantity = amount == null
+          ? quantityTextController.text
+          : _formatQuantity(amount);
+      _applyingInitialSelection = true;
+      try {
+        quantityTextController.text = quantity;
+      } finally {
+        _applyingInitialSelection = false;
+      }
+      _mealDetailBloc.add(
+        UpdateKcalEvent(
+          meal: meal,
+          totalQuantity: quantity,
+          selectedUnit: unit,
+        ),
+      );
+    } else if (_userChangedSelection) {
       _mealDetailBloc.add(
         UpdateKcalEvent(
           meal: meal,
@@ -299,6 +374,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               quantityTextController: quantityTextController,
               onQuantityOrUnitChanged: onQuantityOrUnitChanged,
               logTray: _logTray,
+              editingTrayItem: _editingTrayItem,
             );
           },
           ),
@@ -382,6 +458,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       intakeTypeEntity,
                       _usesImperialUnits,
                       logTray: _logTray,
+                      editingTrayItem: _editingTrayItem,
                     ),
                   );
                 },
@@ -558,12 +635,18 @@ class MealDetailScreenArguments {
   /// to it and returns there instead of logging.
   final LogTray? logTray;
 
+  /// The row of [logTray] being changed, when the screen was opened by
+  /// tapping it: the screen opens with that row's amount, and its button
+  /// saves over the row instead of adding another.
+  final LogTrayItem? editingTrayItem;
+
   MealDetailScreenArguments(
     this.mealEntity,
     this.intakeTypeEntity,
     this.day,
     this.usesImperialUnits, {
     this.logTray,
+    this.editingTrayItem,
   });
 }
 

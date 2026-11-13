@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/domain/entity/recipe_ingredient_entity.dar
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 class IngredientListItem extends StatelessWidget {
   final RecipeIngredientEntity ingredient;
@@ -56,7 +57,9 @@ class IngredientListItem extends StatelessWidget {
                   children: [
                     Text(
                       meal.name ?? '?',
-                      maxLines: 1,
+                      // What tells foods apart ("raw", "dried") often ends
+                      // the name, so it wraps rather than being cut off.
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                     ),
@@ -74,6 +77,7 @@ class IngredientListItem extends StatelessWidget {
               if (onRemove != null)
                 IconButton(
                   icon: Icon(Icons.delete_outline_rounded, color: palette.textMuted, size: 22),
+                  tooltip: S.of(context).removeIngredientLabel,
                   onPressed: onRemove,
                 ),
             ],

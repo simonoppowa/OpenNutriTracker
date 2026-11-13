@@ -51,8 +51,10 @@ Rules:
   its ingredients.
 - "query" is the food name alone, with no amount in it, in the user's app
   language. Keep a brand only if it is legible in the photo.
-- Only include "quantity" when you can count discrete items: 2 eggs, 3
-  sausages, 1 banana. A count has no unit, so never include "unit".
+- Include "quantity" whenever you can count discrete items, and count
+  them: 2 eggs, 3 sausages, 1 banana, 14 dumplings, 1 whole pizza. A dish
+  served as pieces (dumplings, pancakes, tarts, rolls) is counted, roughly
+  if there are many. A count has no unit, so never include "unit".
 - For anything you cannot count — rice, salad, sauce, soup, a drink — omit
   "quantity". Do not guess grams or millilitres from a photograph. The app
   asks the user for the amount, and a guess they cannot check is worse than

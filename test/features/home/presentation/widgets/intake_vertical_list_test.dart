@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
+import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/core/domain/entity/recipe_ingredient_entity.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
 import 'package:opennutritracker/features/home/domain/entity/shared_meal_payload.dart';
@@ -50,8 +54,6 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   });
 }
 
-class _FakeRecipeRepository extends Fake implements RecipeRepository {}
-
 class _FakeHomeBloc extends Fake implements HomeBloc {
   @override
   Future<void> deleteIntakeItem(IntakeEntity intakeEntity) =>
@@ -90,6 +92,18 @@ class _SingleProfileGetProfilesUsecase implements GetProfilesUsecase {
 
   @override
   ProfileEntity? getActiveProfile() => _profile;
+}
+
+class _RecipeDataSource extends Fake implements RecipeDataSource {
+  final _recipes = <String, RecipeDBO>{};
+
+  @override
+  Future<void> saveRecipe(RecipeDBO recipe) async {
+    _recipes[recipe.id] = recipe;
+  }
+
+  @override
+  RecipeDBO? getRecipeById(String id) => _recipes[id];
 }
 
 IntakeEntity _buildIntake({
@@ -144,9 +158,11 @@ Widget _wrapWithMaterial(Widget child) {
 void main() {
   setUpAll(() {
     final locator = GetIt.instance;
+    locator.registerSingleton<RecipeRepository>(
+      RecipeRepository(_RecipeDataSource()),
+    );
     locator.registerFactory<MealDetailBloc>(_FakeMealDetailBloc.new);
     locator.registerFactory<HomeBloc>(_FakeHomeBloc.new);
-    locator.registerFactory<RecipeRepository>(_FakeRecipeRepository.new);
     locator.registerFactory<DiaryBloc>(_FakeDiaryBloc.new);
     locator.registerFactory<CalendarDayBloc>(_FakeCalendarDayBloc.new);
     locator.registerFactory<GetProfilesUsecase>(
@@ -214,6 +230,8 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        expect(find.text(l10nEn.shareFoodLabel), findsOneWidget);
+        expect(find.text(l10nEn.dialogDeleteLabel), findsOneWidget);
         await tester.tap(find.text(l10nEn.dialogDeleteLabel));
         await tester.pumpAndSettle();
         expect(find.text(l10nEn.deleteTimeDialogTitle), findsOneWidget);
@@ -331,6 +349,142 @@ void main() {
     ]);
     expect(payload.items.map((item) => item.amount), [100, 50]);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sharing one food exports only its logged portion', (
+    tester,
+  ) async {
+    final selected = _buildIntake(
+      id: 'selected',
+      name: 'Selected food',
+      amount: 60,
+      kcal100: 200,
+      carbs100: 20,
+      fat100: 10,
+      protein100: 5,
+    );
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: [intakes.single, selected],
+          usesImperialUnits: false,
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('selected')),
+        matching: find.byIcon(Icons.more_vert_rounded),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(l10nEn.dialogDeleteLabel), findsOneWidget);
+    await tester.tap(find.text(l10nEn.shareFoodLabel));
+    await tester.pumpAndSettle();
+
+    final dialog = tester.widget<ShareQrDialog>(find.byType(ShareQrDialog));
+    expect(dialog.title, l10nEn.shareFoodLabel);
+    final shared = SharedMealPayload.fromJsonString(dialog.code);
+    expect(shared.totalCount, 1);
+    expect(shared.items.single.name, 'Selected food');
+    expect(shared.items.single.amount, 60);
+    expect(shared.items.single.unit, 'g');
+    expect(shared.items.single.energyKcal100, 200);
+    expect(shared.items.single.carbohydrates100, 20);
+    expect(shared.items.single.fat100, 10);
+    expect(shared.items.single.proteins100, 5);
+
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byType(PopupMenuButton<VerticalListPopupMenuSelections>),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.shareMealLabel));
+    await tester.pumpAndSettle();
+
+    final mealDialog = tester.widget<ShareQrDialog>(find.byType(ShareQrDialog));
+    expect(mealDialog.title, l10nEn.shareMealLabel);
+    final wholeMeal = SharedMealPayload.fromJsonString(mealDialog.code);
+    expect(wholeMeal.totalCount, 2);
+    expect(wholeMeal.items.map((item) => item.name), [
+      'Test Meal',
+      'Selected food',
+    ]);
+  });
+
+  testWidgets('sharing one recipe keeps its ingredients and logged portion', (
+    tester,
+  ) async {
+    final recipe = RecipeEntity(
+      id: 'recipe',
+      name: 'Homemade soup',
+      description: null,
+      ingredients: [
+        RecipeIngredientEntity(
+          snapshotMeal: intakes.single.meal,
+          amount: 100,
+          unit: 'g',
+          convertedAmountG: 100,
+        ),
+      ],
+      totalWeightG: 100,
+      aggregatedNutrimentsPer100: intakes.single.meal.nutriments,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+      servingsCount: null,
+    );
+    await GetIt.instance<RecipeRepository>().saveRecipe(recipe);
+    final selected = IntakeEntity(
+      id: 'recipe-intake',
+      unit: 'g',
+      amount: 75,
+      type: IntakeTypeEntity.breakfast,
+      meal: recipe.toMealEntity(),
+      dateTime: DateTime(2026, 1, 1),
+    );
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: [intakes.single, selected],
+          usesImperialUnits: false,
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('recipe-intake')),
+        matching: find.byIcon(Icons.more_vert_rounded),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share food'));
+    await tester.pumpAndSettle();
+
+    final dialog = tester.widget<ShareQrDialog>(find.byType(ShareQrDialog));
+    final shared = SharedMealPayload.fromJsonString(dialog.code);
+    expect(shared.totalCount, 1);
+    expect(shared.items, isEmpty);
+    expect(shared.recipes.single.amount, 75);
+    expect(shared.recipes.single.unit, 'g');
+    final importedRecipe = shared.recipes.single.recipe.toRecipeEntity();
+    expect(importedRecipe.name, 'Homemade soup');
+    expect(importedRecipe.ingredients.single.snapshotMeal.name, 'Test Meal');
+    expect(importedRecipe.ingredients.single.convertedAmountG, 100);
+    expect(importedRecipe.aggregatedNutrimentsPer100.energyKcal100, 200);
   });
 
   testWidgets('passes macro sort to rows and drag feedback', (tester) async {

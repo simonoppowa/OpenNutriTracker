@@ -26,6 +26,7 @@ class IntakeCard extends StatelessWidget {
   final Function(BuildContext, IntakeEntity)? onItemLongPressed;
   final Function(BuildContext, IntakeEntity, bool)? onItemTapped;
   final VoidCallback? onDelete;
+  final VoidCallback? onShare;
   final bool firstListElement;
   final bool usesImperialUnits;
   final DiarySortType? sortType;
@@ -36,6 +37,7 @@ class IntakeCard extends StatelessWidget {
     this.onItemLongPressed,
     this.onItemTapped,
     this.onDelete,
+    this.onShare,
     required this.firstListElement,
     required this.usesImperialUnits,
     this.sortType,
@@ -139,7 +141,7 @@ class IntakeCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (onDelete != null)
+                if (onDelete != null || onShare != null)
                   Semantics(
                     identifier: 'intake-item-menu',
                     container: true,
@@ -150,13 +152,22 @@ class IntakeCard extends StatelessWidget {
                       ),
                       shape: Dimens.shapeM,
                       itemBuilder: (_) => [
-                        PopupMenuItem<void>(
-                          onTap: onDelete,
-                          child: Semantics(
-                            identifier: 'intake-delete-food',
-                            child: Text(s.dialogDeleteLabel),
+                        if (onShare != null)
+                          PopupMenuItem<void>(
+                            onTap: onShare,
+                            child: Semantics(
+                              identifier: 'intake-share-food',
+                              child: Text(s.shareFoodLabel),
+                            ),
                           ),
-                        ),
+                        if (onDelete != null)
+                          PopupMenuItem<void>(
+                            onTap: onDelete,
+                            child: Semantics(
+                              identifier: 'intake-delete-food',
+                              child: Text(s.dialogDeleteLabel),
+                            ),
+                          ),
                       ],
                     ),
                   ),

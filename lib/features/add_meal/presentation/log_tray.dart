@@ -24,12 +24,24 @@ class LogTrayItem {
   /// the converted [amount] cannot reproduce it.
   final String amountLabel;
 
+  /// The amount and unit as picked on the detail screen — 2 and `serving`,
+  /// 150 and `g` — so tapping the row reopens that screen with them and the
+  /// amount can still be changed before logging. Null on an entry with no
+  /// food behind it to reopen (Quick add).
+  final double? quantity;
+  final String? selectedUnit;
+
   const LogTrayItem({
     required this.meal,
     required this.unit,
     required this.amount,
     required this.amountLabel,
+    this.quantity,
+    this.selectedUnit,
   });
+
+  /// True when tapping the row can reopen the food with its amount.
+  bool get canChangeAmount => quantity != null && selectedUnit != null;
 
   /// Energy for this amount, or 0 when the food carries none.
   double get kcal => amount * (meal.nutriments.energyPerUnit ?? 0);
@@ -50,6 +62,29 @@ class LogTray extends ChangeNotifier {
 
   int get length => _items.length;
 
+  int _pending = 0;
+
+  /// Whether a new food should join the list rather than be logged on its
+  /// own: the list holds something, or a food is still on its way onto it.
+  ///
+  /// Logging on its own leaves the add-food screen, so a sheet that went by
+  /// [isEmpty] alone would leave while a + was still fetching its food, and
+  /// that food would arrive on a list nobody logs.
+  bool get collects => _items.isNotEmpty || _pending > 0;
+
+  /// Marks a food as on its way onto the list, until [endPending].
+  void beginPending() {
+    _pending++;
+    notifyListeners();
+  }
+
+  /// The food [beginPending] announced has arrived or will not come.
+  void endPending() {
+    assert(_pending > 0, 'endPending without beginPending');
+    _pending--;
+    notifyListeners();
+  }
+
   double get totalKcal => _items.fold(0, (sum, item) => sum + item.kcal);
 
   void add(LogTrayItem item) {
@@ -59,6 +94,19 @@ class LogTray extends ChangeNotifier {
 
   void addAll(Iterable<LogTrayItem> items) {
     _items.addAll(items);
+    notifyListeners();
+  }
+
+  /// Puts [updated] where [old] is — by identity, so of two helpings of one
+  /// food only the one being edited changes. Adds [updated] when [old] is no
+  /// longer on the list, so a changed amount is never silently dropped.
+  void replace(LogTrayItem old, LogTrayItem updated) {
+    final index = _items.indexWhere((item) => identical(item, old));
+    if (index < 0) {
+      _items.add(updated);
+    } else {
+      _items[index] = updated;
+    }
     notifyListeners();
   }
 
@@ -129,6 +177,8 @@ LogTrayItem? defaultLogTrayItem(
     unit: storedUnit(unit),
     amount: convertQuantityToBaseUnit(quantity, unit, meal),
     amountLabel: logTrayAmountLabel(context, quantity, unit, meal),
+    quantity: quantity,
+    selectedUnit: unit,
   );
 }
 

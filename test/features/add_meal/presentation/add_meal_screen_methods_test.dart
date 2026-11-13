@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +17,7 @@ import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
@@ -212,16 +214,39 @@ Future<void> _confirm(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
+/// A keystore holding only the flag that hides the AI features (#1518).
+class _HiddenAiStorage implements FlutterSecureStorage {
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => key == 'AiAssistHiddenTag' ? 'true' : null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 final getIt = GetIt.instance;
 FakeFavourites? _favourites;
 
 Future<void> _register({
   bool imperial = false,
+  bool aiHidden = false,
   int offsetHours = 0,
   int offsetMinutes = 0,
   List<IntakeEntity> yesterday = const [],
 }) async {
   await getIt.reset();
+  if (aiHidden) {
+    getIt.registerSingleton<AiCredentialStorage>(
+      AiCredentialStorage(_HiddenAiStorage()),
+    );
+  }
   final config = _FakeGetConfigUsecase(
     imperial: imperial,
     offsetHours: offsetHours,
@@ -624,6 +649,26 @@ void main() {
     // second screen's app-bar icon is gone: both now start from here.
     expect(find.bySemanticsIdentifier('meal-search-barcode'), findsNothing);
     expect(find.bySemanticsIdentifier('add-meal-bulk-add'), findsNothing);
+  });
+
+  testWidgets('with the AI features hidden, Snap meal goes and Describe '
+      'loses its AI badge (#1518)', (tester) async {
+    await _register(aiHidden: true);
+    await tester.pumpWidget(_app([]));
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsIdentifier('add-meal-method-photo'), findsNothing);
+    expect(find.text(l10nEn.addMealSnapMealLabel), findsNothing);
+    expect(
+      find.bySemanticsIdentifier('add-meal-method-barcode'),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsIdentifier('add-meal-method-describe'),
+      findsOneWidget,
+    );
+    expect(find.text('AI'), findsNothing);
+    expect(find.byIcon(Icons.auto_awesome_rounded), findsNothing);
   });
 
   testWidgets('Barcode opens the scanner for this meal', (tester) async {

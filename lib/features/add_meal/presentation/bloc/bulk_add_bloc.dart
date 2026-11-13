@@ -9,6 +9,7 @@ import 'package:opennutritracker/features/add_meal/domain/usecase/resolve_parsed
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_match.dart';
 import 'package:opennutritracker/features/add_meal/util/portion_unit.dart';
+import 'package:opennutritracker/features/add_meal/util/recipe_count.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/util/meal_quantity_converter.dart';
 
@@ -166,7 +167,12 @@ class BulkAddRow extends Equatable {
           // Nothing stated, and nothing for the number to count — or a
           // portion named that the food's own rows do not hold, so the
           // count fell to the default row instead.
-          ? meal?.servingQuantity == null || portionKeyMissed
+          ? meal?.servingQuantity == null ||
+                portionKeyMissed ||
+                // More servings than a recipe's batch makes. A count the
+                // user typed is the one to check: correcting it is how the
+                // flag gets settled.
+                countExceedsRecipe(meal, _servingsCount)
           // A unit *was* stated but this food cannot honour it, so
           // `effectiveUnit` quietly substituted another. Live probing found
           // a model answering "three slices of bread" as `3 serving`; on a
@@ -174,6 +180,15 @@ class BulkAddRow extends Equatable {
           // warning, because the old condition only looked at a *missing*
           // unit. A substituted one is just as wrong and less visible.
           : effectiveUnit != unit);
+
+  /// The count [countExceedsRecipe] checks: the amount the user typed once
+  /// they edited it (half-typed text falls back), else the parsed count.
+  double get _servingsCount {
+    final typed = amountEditedByUser
+        ? double.tryParse(amountText.trim().replaceAll(',', '.'))
+        : null;
+    return typed ?? resolved.parsed.quantity!;
+  }
 
   /// True when the model named a portion, this food has portions to choose
   /// from, and neither that word nor the query words is one of them.

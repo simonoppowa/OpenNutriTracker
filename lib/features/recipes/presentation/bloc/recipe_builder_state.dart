@@ -102,6 +102,21 @@ class RecipeBuilderState extends Equatable {
     );
   }
 
+  /// What Save writes, normalised the way Save normalises it, so two states
+  /// that would save the same recipe compare equal. Leaves out save
+  /// diagnostics ([saveError], [errorMessage], [isSaving]) and derived
+  /// values (#1443).
+  List<Object?> get savedContent => [
+        name.trim(),
+        (description?.trim().isEmpty ?? true) ? null : description!.trim(),
+        servingsCount,
+        ingredients,
+        totalWeightG,
+        totalWeightOverridden,
+        tags,
+        imagePath,
+      ];
+
   @override
   List<Object?> get props => [
         id,

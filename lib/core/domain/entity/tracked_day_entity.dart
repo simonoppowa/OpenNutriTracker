@@ -92,6 +92,15 @@ class TrackedDayEntity extends Equatable {
     );
   }
 
+  /// True when the day counts anything eaten. A row can count nothing: its
+  /// entries were deleted, a day-boundary move listed them on another day
+  /// (the row stays for its goals, #1440), or it holds only an activity.
+  bool get hasConsumed =>
+      caloriesTracked != 0 ||
+      (carbsTracked ?? 0) != 0 ||
+      (fatTracked ?? 0) != 0 ||
+      (proteinTracked ?? 0) != 0;
+
   // TODO: make enum class for rating
   Color getCalendarDayRatingColor(BuildContext context) {
     if (_hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked)) {

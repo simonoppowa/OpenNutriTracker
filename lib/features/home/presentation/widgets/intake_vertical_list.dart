@@ -253,28 +253,10 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                           }
                         case VerticalListPopupMenuSelections.onShare:
                           if (context.mounted) {
-                            final code = SharedMealPayload.fromIntakeList(
-                              widget.intakeList,
-                              recipeRepository: locator<RecipeRepository>(),
-                            ).toJsonString();
-                            final hasOtherProfiles =
-                                locator<GetProfilesUsecase>()
-                                        .getProfiles()
-                                        .length >
-                                    1;
-                            await showDialog(
-                              context: context,
-                              builder: (_) => ShareQrDialog(
-                                title: S.of(context).shareMealLabel,
-                                code: code,
-                                fileBaseName: 'meal_qr',
-                                onCopyToProfile: hasOtherProfiles
-                                    ? () => showCopyToProfileSheet(
-                                          context,
-                                          widget.intakeList,
-                                        )
-                                    : null,
-                              ),
+                            await _shareIntakes(
+                              intakes,
+                              title: S.of(context).shareMealLabel,
+                              fileBaseName: 'meal_qr',
                             );
                           }
                         case VerticalListPopupMenuSelections.onImport:
@@ -393,6 +375,11 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       onItemLongPressed: widget.onItemLongPressedCallback,
                       onItemTapped: widget.onItemTappedCallback,
                       onDelete: () => _confirmDeleteIntake(intakeEntity),
+                      onShare: () => _shareIntakes(
+                        [intakeEntity],
+                        title: S.of(context).shareFoodLabel,
+                        fileBaseName: 'food_qr',
+                      ),
                       firstListElement: false,
                       usesImperialUnits: widget.usesImperialUnits,
                       sortType: widget.sortType,
@@ -403,6 +390,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                   onTap: () => _onPlaceholderCardTapped(context),
                   firstListElement: true,
                   semanticIdentifier: 'add-meal-placeholder',
+                  label: S.of(context).addToSectionLabel(widget.title),
                 ),
               ],
             );
@@ -424,6 +412,30 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
     if (shouldDelete == true) {
       onDeleteIntake(intake, trackedDay);
     }
+  }
+
+  Future<void> _shareIntakes(
+    List<IntakeEntity> intakes, {
+    required String title,
+    required String fileBaseName,
+  }) async {
+    final code = SharedMealPayload.fromIntakeList(
+      intakes,
+      recipeRepository: locator<RecipeRepository>(),
+    ).toJsonString();
+    final hasOtherProfiles =
+        locator<GetProfilesUsecase>().getProfiles().length > 1;
+    await showDialog(
+      context: context,
+      builder: (_) => ShareQrDialog(
+        title: title,
+        code: code,
+        fileBaseName: fileBaseName,
+        onCopyToProfile: hasOtherProfiles
+            ? () => showCopyToProfileSheet(context, intakes)
+            : null,
+      ),
+    );
   }
 
   Widget _buildSortMenu(BuildContext context) {

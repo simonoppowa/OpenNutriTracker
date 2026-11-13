@@ -142,7 +142,14 @@ class AiEndpointProbeRunner {
         // Kept in step so a caller joining mid-flight compares against what
         // is really being tested.
         running.testing = tested;
-        final found = await _prober.probe(selection, localeCode: localeCode);
+        final found = await _prober.probe(
+          selection,
+          localeCode: localeCode,
+          // Null again once the user hides or pauses the AI features, as at
+          // the read above: a probe already under way stops sending then.
+          stillWanted: () async =>
+              await _credentials.selectionFor(provider) != null,
+        );
         // Compare and write in the store as one serialized operation. A check
         // here would leave a window where a configuration change clears the
         // slot before this stale verdict fills it back in.

@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/data/repository/tracked_day_repository.dar
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
@@ -351,6 +352,24 @@ void main() {
   double totalTracked() =>
       trackedDayBox.values.fold(0.0, (sum, row) => sum + row.caloriesTracked);
 
+  /// The row of [key], whose day lists nothing, as it is kept for its goals
+  /// (#1440): counting nothing, holding [calorieGoal], and drawing no
+  /// calendar marker.
+  void expectKeptEmpty(String key, {required double calorieGoal}) {
+    final row = trackedDayBox.get(key);
+    expect(row, isNotNull, reason: 'the row keeps the day\'s goals (#1440)');
+    expect(row!.caloriesTracked, 0);
+    expect(row.carbsTracked, 0);
+    expect(row.fatTracked, 0);
+    expect(row.proteinTracked, 0);
+    expect(row.calorieGoal, closeTo(calorieGoal, 1e-9));
+    expect(
+      TrackedDayEntity.fromTrackedDayDBO(row).hasConsumed,
+      isFalse,
+      reason: 'a day with nothing eaten has no calendar marker',
+    );
+  }
+
   Future<int> reconcile({Future<TrackedDayGoals> Function()? currentGoals}) =>
       ensureTrackedDaysMatchEntries(
         db,
@@ -372,7 +391,8 @@ void main() {
     }
 
     test('moves onto the day the Diary lists its entries under, and the '
-        'stale row goes with its marker', () async {
+        'stale row keeps its goal, counts nothing and shows no '
+        'marker', () async {
       await logAsOlderBuild();
 
       expect(await reconcile(), 2);
@@ -390,7 +410,8 @@ void main() {
         boundaryHours: 4,
       );
       expect(nextDay.intakes, 0);
-      expect(nextDay.row, isNull, reason: 'nothing is listed on the 5th');
+      expectKeptEmpty('2026-10-05', calorieGoal: 1800);
+      expect(trackedDayBox.get('2026-10-05')!.fibreGoal, 35);
       expect(totalTracked(), 200);
     });
 
@@ -429,8 +450,8 @@ void main() {
       expect(trackedDayBox.get('2026-09-30')!.calorieGoal, 1800);
     });
 
-    test('a stale row that also holds a NaN total is removed by the '
-        'activation repairs, not zeroed and kept', () async {
+    test('a stale row that also holds a NaN total is kept by the '
+        'activation repairs with finite zero totals', () async {
       await logAsOlderBuild();
       // A NaN intake (#1254) also reached the stale row's running total.
       trackedDayBox.get('2026-10-05')!
@@ -441,11 +462,9 @@ void main() {
       // What startup and a profile switch run.
       await ensureTrackedDaysRepaired(db, ConfigDataSource(db));
 
-      expect(
-        trackedDayBox.containsKey('2026-10-05'),
-        isFalse,
-        reason: 'the 5th lists nothing; a zeroed row would keep its marker',
-      );
+      // The 5th lists nothing: its row keeps its goal and counts nothing,
+      // the NaN included, so it draws no marker.
+      expectKeptEmpty('2026-10-05', calorieGoal: 1800);
       final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
       expect(day.row!.caloriesTracked, 200);
       expect(totalTracked(), 200);
@@ -467,11 +486,10 @@ void main() {
 
       expect(await reconcile(), 2);
 
-      expect(
-        trackedDayBox.containsKey('2026-10-05'),
-        isFalse,
-        reason: 'nothing is listed on the 5th',
-      );
+      // Nothing is listed on the 5th: its row keeps its base goal, the
+      // walk's credit gone with the walk.
+      expectKeptEmpty('2026-10-05', calorieGoal: 1800);
+      expect(trackedDayBox.get('2026-10-05')!.carbsGoal, closeTo(225, 1e-9));
       final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
       expect(day.activities, 1);
       expect(day.row!.calorieGoal, 1950, reason: '1800 plus the walk, once');
@@ -544,11 +562,9 @@ void main() {
       expect(day.activities, 1);
       expect(day.row!.calorieGoal, 2150, reason: '2000 plus the walk, once');
       expect(day.row!.caloriesTracked, 200);
-      expect(
-        (await diaryDay(DateTime.utc(2026, 10, 5), boundaryHours: 4)).row,
-        isNull,
-        reason: 'the 5th has nothing listed, so no marker',
-      );
+      // The 5th has nothing listed: its row is back at the base goal and
+      // draws no marker.
+      expectKeptEmpty('2026-10-05', calorieGoal: 2000);
       expect(recordedOffset(), 240);
       expect(await reconcile(), 0);
     });
@@ -583,8 +599,8 @@ void main() {
       setDayBoundary = SetDayBoundaryUsecase(db, ConfigDataSource(db));
     });
 
-    test('takes the rows along: no entry counted twice, no marker left on '
-        'a day with nothing listed', () async {
+    test('takes the rows along: no entry counted twice, and a day with '
+        'nothing listed keeps its row and goal but no marker', () async {
       await addFood(DateTime(2026, 10, 4, 12));
       await addFood(DateTime(2026, 10, 5, 2));
       expect((await diaryDay(DateTime.utc(2026, 10, 5))).row, isNotNull);
@@ -599,7 +615,7 @@ void main() {
         boundaryHours: 4,
       );
       expect(nextDay.intakes, 0);
-      expect(nextDay.row, isNull);
+      expectKeptEmpty('2026-10-05', calorieGoal: 2000);
       expect(totalTracked(), 400);
       expect(recordedOffset(), 240);
       expect(await reconcile(), 0, reason: 'activation finds nothing to do');
@@ -615,10 +631,8 @@ void main() {
       final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
       expect(day.activities, 1);
       expect(day.row!.calorieGoal, 2150);
-      expect(
-        (await diaryDay(DateTime.utc(2026, 10, 5), boundaryHours: 4)).row,
-        isNull,
-      );
+      // The walk's credit moved off the 5th, whose row keeps its base goal.
+      expectKeptEmpty('2026-10-05', calorieGoal: 2000);
 
       await setDayBoundary.setDayBoundary(0, 0);
 
@@ -680,7 +694,7 @@ void main() {
       // No other code has run since the call: there was no point at which
       // a writer could land between the pass's reads and its writes.
       expect(trackedDayBox.get('2026-10-04')?.caloriesTracked, 200);
-      expect(trackedDayBox.containsKey('2026-10-05'), isFalse);
+      expect(trackedDayBox.get('2026-10-05')?.caloriesTracked, 0);
       expect(await pending, 2);
     });
 
@@ -742,7 +756,7 @@ void main() {
       final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
       expect(day.intakes, 2);
       expect(day.row!.caloriesTracked, 400, reason: 'not 600');
-      expect(trackedDayBox.containsKey('2026-10-05'), isFalse);
+      expectKeptEmpty('2026-10-05', calorieGoal: 2000);
       expect(totalTracked(), 400);
     });
 
@@ -768,7 +782,8 @@ void main() {
       final day = await diaryDay(DateTime.utc(2026, 10, 4), boundaryHours: 4);
       expect(day.activities, 1);
       expect(day.row!.calorieGoal, 2150, reason: 'not 2300');
-      expect(trackedDayBox.containsKey('2026-10-05'), isFalse);
+      // The walk's credit left the 5th with the walk.
+      expectKeptEmpty('2026-10-05', calorieGoal: 2000);
     });
 
     test('a food logged across a profile activation is counted once', () async {

@@ -108,6 +108,11 @@ class SPConst {
     'bls': 'Bundeslebensmittelschlüssel (BLS)',
     'indb': 'Indian Nutrient Databank (INDB)',
     'tbca': 'Tabela Brasileira de Composição de Alimentos (TBCA)',
+    'ciqual': 'Table de composition nutritionnelle Ciqual (ANSES)',
+    'fineli': 'Fineli – Finnish Food Composition Database (THL)',
+    'frida': 'Danish Food Composition Database (DTU)',
+    'mvt': 'Matvaretabellen (Mattilsynet)',
+    'slv': 'Livsmedelsdatabasen (Livsmedelsverket)',
   };
 
   /// Compact source labels for chips on list items, where the full
@@ -120,11 +125,20 @@ class SPConst {
     'bls': 'BLS',
     'indb': 'INDB',
     'tbca': 'TBCA',
+    'ciqual': 'CIQUAL',
+    'fineli': 'Fineli',
+    'frida': 'DTU FCDB',
+    'mvt': 'Matvaretabellen',
+    'slv': 'Livsmedelsverket',
   };
 
   /// Sources offered in Settings → Food databases. INDB and TBCA exist in
   /// the schema but carry no data yet, so they are not selectable until
-  /// their imports land — add them here once they do.
+  /// their imports land — add them here once they do. The same holds for
+  /// CIQUAL, Fineli, the Danish FCDB, Matvaretabellen and Livsmedelsverket,
+  /// whose importers
+  /// live in the backend repo (OpenNutriTracker-Backend) and whose rows
+  /// reach the hosted database only when the maintainer runs them.
   static const settingsSelectableFoodSources = [
     'fdc_foundation',
     'fdc_sr_legacy',
@@ -144,6 +158,11 @@ class SPConst {
     'bls': 'https://www.blsdb.de',
     'indb': 'https://www.anuvaad.org.in',
     'tbca': 'https://www.tbca.net.br',
+    'ciqual': 'https://ciqual.anses.fr',
+    'fineli': 'https://fineli.fi',
+    'frida': 'https://fcdb.fooddata.dk',
+    'mvt': 'https://www.matvaretabellen.no',
+    'slv': 'https://soknaringsinnehall.livsmedelsverket.se',
   };
 
   /// BCP 47 locale used in food_translation for [language], or null when

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
@@ -38,6 +40,12 @@ class _Config extends Fake implements GetConfigUsecase {
     AppThemeEntity.system,
     dayStartOffsetHours: dayStartOffsetHours,
   );
+}
+
+class _NoIntakes extends Fake implements GetIntakeUsecase {
+  @override
+  Future<Set<String>> getDayKeysWithIntakes(int offsetTotalMinutes) async =>
+      {};
 }
 
 class _NoTrackedDays extends Fake implements GetTrackedDayUsecase {
@@ -100,7 +108,7 @@ void main() {
     // test's fake-async zone resolves its futures on the real clock, and
     // pump() never sees its load finish.
     config = _Config();
-    diaryBloc = DiaryBloc(_NoTrackedDays(), config);
+    diaryBloc = DiaryBloc(_NoTrackedDays(), config, _NoIntakes());
     calendarDayBloc = _RecordingCalendarDayBloc();
     locator
       ..registerSingleton<DiaryBloc>(diaryBloc)
@@ -109,7 +117,14 @@ void main() {
       ..registerSingleton<ActivityDetailBloc>(_FakeActivityDetailBloc());
     await tester.pumpWidget(
       const MaterialApp(
-        localizationsDelegates: [S.delegate],
+        // The calendar now reads the app locale (#1442), so the intl date
+        // symbols the global delegates load have to be present.
+        localizationsDelegates: [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         supportedLocales: S.supportedLocales,
         home: Scaffold(body: DiaryPage()),
       ),

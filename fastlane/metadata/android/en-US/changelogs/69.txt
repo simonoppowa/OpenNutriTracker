@@ -1,0 +1,9 @@
+- Android: home-screen widget with today's calories
+- Dictate a meal on the Describe fields
+- Share a single food as a code
+- New Support page in Settings: tip jar, translate, rate and report
+- Russian interface language
+- Water in fl oz when you use imperial units
+- Newer AI models for photo and text meals
+- Better labels and text wrapping for screen readers and large fonts
+- Fixed: day goals after changing the day end, and decimal nutrient goals

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A solid-color sweep gradient: useLevel trims the sweep to the
+     ProgressBar's level, so the arc only covers the consumed fraction.
+     The rotate wrapper in calorie_widget_ring.xml moves the sweep's
+     start from 3 o'clock to 12 o'clock. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="ring"
+    android:useLevel="true"
+    android:thickness="6dp">
+    <gradient
+        android:type="sweep"
+        android:useLevel="true"
+        android:startColor="@color/calorie_widget_ring_progress"
+        android:centerColor="@color/calorie_widget_ring_progress"
+        android:endColor="@color/calorie_widget_ring_progress" />
+</shape>
