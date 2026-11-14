@@ -62,6 +62,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
   final _carbsController = TextEditingController();
   final _fatController = TextEditingController();
   final _proteinController = TextEditingController();
+  final _weightController = TextEditingController();
 
   bool _saving = false;
 
@@ -70,6 +71,8 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     super.initState();
     _titleController.addListener(_onRequiredFieldChanged);
     _energyController.addListener(_onRequiredFieldChanged);
+    // A weight that is typed but not usable blocks the entry (#705).
+    _weightController.addListener(_onRequiredFieldChanged);
     // The button reads "Add" or "Add to list" from the list's state, which
     // a food arriving from a + changes while the sheet is open.
     widget.logTray?.addListener(_onTrayChanged);
@@ -80,11 +83,13 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     widget.logTray?.removeListener(_onTrayChanged);
     _titleController.removeListener(_onRequiredFieldChanged);
     _energyController.removeListener(_onRequiredFieldChanged);
+    _weightController.removeListener(_onRequiredFieldChanged);
     _titleController.dispose();
     _energyController.dispose();
     _carbsController.dispose();
     _fatController.dispose();
     _proteinController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -96,14 +101,31 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     final raw = c.text.trim().replaceAll(',', '.');
     if (raw.isEmpty) return null;
     final value = double.tryParse(raw);
-    if (value == null || value < 0) return null;
+    // tryParse reads "NaN" and "Infinity" too, and the field takes letters:
+    // either would store totals that cannot be shown (#705 review).
+    if (value == null || !value.isFinite || value < 0) return null;
     return value;
+  }
+
+  /// The weight typed, in grams, or null when the field is left empty.
+  double? get _weight => _weightInvalid ? null : _parsed(_weightController);
+
+  /// A weight was typed that cannot be one: zero, negative or not a number.
+  /// Empty is not invalid — it means the weight is unknown (#705).
+  bool get _weightInvalid {
+    if (_weightController.text.trim().isEmpty) return false;
+    final weight = _parsed(_weightController);
+    return weight == null || weight <= 0;
   }
 
   bool get _canSubmit {
     final energy = _parsed(_energyController);
     final hasTitle = _titleController.text.trim().isNotEmpty;
-    return !_saving && hasTitle && energy != null && energy > 0;
+    return !_saving &&
+        hasTitle &&
+        energy != null &&
+        energy > 0 &&
+        !_weightInvalid;
   }
 
   /// Whether the main button adds to the list rather than logging.
@@ -123,6 +145,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     final fat = _parsed(_fatController);
     final protein = _parsed(_proteinController);
     final title = _titleController.text.trim();
+    final weight = _weight;
 
     try {
       final intake = _buildIntake(
@@ -131,6 +154,7 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
         fat: fat,
         protein: protein,
         title: title,
+        weight: weight,
       );
       final logTray = widget.logTray;
       // Asked again, not taken from the press: a food that reached the list
@@ -141,7 +165,9 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
             meal: intake.meal,
             unit: intake.unit,
             amount: intake.amount,
-            amountLabel: S.of(context).quickAddCardLabel,
+            amountLabel: weight == null
+                ? S.of(context).quickAddCardLabel
+                : logTrayAmountLabel(context, weight, intake.unit, intake.meal),
           ),
         );
         Navigator.of(context).pop();
@@ -193,39 +219,52 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     required double? fat,
     required double? protein,
     required String title,
+    required double? weight,
   }) {
-    // Store per-100g, intake amount = 100g, so totals math returns the
-    // exact values the user typed.
+    // The values typed are totals. Nutrition is stored per 100 g, so they
+    // are scaled to that basis and the intake carries the amount they are
+    // totals for: the weight when there is one, otherwise 100 g/ml with the
+    // meal marked as fixed totals (#705), so nothing shows or rescales that
+    // made-up 100.
+    final basis = weight ?? MealEntity.fixedTotalsBasis;
+    double? per100(double? total) => total == null ? null : total * 100 / basis;
     final nutriments = MealNutrimentsEntity(
-      energyKcal100: kcal,
-      carbohydrates100: carbs,
-      fat100: fat,
-      proteins100: protein,
+      energyKcal100: per100(kcal),
+      carbohydrates100: per100(carbs),
+      fat100: per100(fat),
+      proteins100: per100(protein),
       sugars100: null,
       saturatedFat100: null,
       fiber100: null,
     );
+    final unit = weight == null ? 'gml' : 'g';
     final meal = MealEntity(
       code: IdGenerator.getUniqueID(),
       name: title,
       url: null,
-      mealQuantity: '100',
-      mealUnit: 'gml',
+      mealQuantity: _formatWeight(basis),
+      mealUnit: unit,
       servingQuantity: null,
-      servingUnit: 'gml',
+      servingUnit: unit,
       servingSize: '',
       nutriments: nutriments,
       source: MealSourceEntity.custom,
+      fixedTotals: weight == null,
     );
     return IntakeEntity(
       id: IdGenerator.getUniqueID(),
       unit: 'g',
-      amount: 100,
+      amount: basis,
       type: widget.intakeType,
       meal: meal,
       dateTime: widget.day,
     );
   }
+
+  /// "100", "312.5": how the weight is kept as the meal's quantity.
+  static String _formatWeight(double grams) => grams == grams.roundToDouble()
+      ? grams.toStringAsFixed(0)
+      : grams.toString();
 
   Future<void> _updateTrackedDay(IntakeEntity intake) async {
     final addTrackedDay = locator<AddTrackedDayUsecase>();
@@ -322,6 +361,15 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
               isRequired: false,
               numeric: true,
             ),
+            _field(
+              controller: _weightController,
+              identifier: 'quick-add-weight',
+              label: s.quickAddWeightHint,
+              isRequired: false,
+              numeric: true,
+              helperText: s.quickAddWeightHelper,
+              errorText: _weightInvalid ? s.quickAddWeightInvalid : null,
+            ),
             const SizedBox(height: 16),
             Semantics(
               identifier: 'quick-add-submit',
@@ -363,6 +411,8 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     required bool isRequired,
     required bool numeric,
     bool autofocus = false,
+    String? helperText,
+    String? errorText,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -377,6 +427,10 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
           inputFormatters: numeric ? CustomTextInputFormatter.doubleOnly() : null,
           decoration: InputDecoration(
             labelText: isRequired ? '$label *' : label,
+            helperText: helperText,
+            helperMaxLines: 3,
+            errorText: errorText,
+            errorMaxLines: 3,
             border: const OutlineInputBorder(),
           ),
         ),

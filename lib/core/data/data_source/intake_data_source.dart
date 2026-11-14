@@ -217,6 +217,7 @@ class IntakeDataSource {
       backendSource: logged.backendSource,
       machineTranslatedName: logged.machineTranslatedName,
       dataVersion: logged.dataVersion,
+      fixedTotals: logged.fixedTotals,
     );
 
     final suffixes = [

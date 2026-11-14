@@ -185,7 +185,8 @@ class MealItemCard extends StatelessWidget {
             foreground: palette.textMuted,
           )
         : null;
-    final quantity = mealEntity.mealQuantity != null
+    // A Quick Add without a weight (#705) has only its made-up 100 g/ml.
+    final quantity = mealEntity.mealQuantity != null && !mealEntity.fixedTotals
         ? MealValueUnitText(
             value: mealEntity.mealQuantity?.toLenientDoubleOrNull() ?? 0,
             meal: mealEntity,
