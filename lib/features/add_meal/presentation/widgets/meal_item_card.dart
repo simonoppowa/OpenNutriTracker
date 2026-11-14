@@ -14,6 +14,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/favourite_toggle_button.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_macros_line.dart';
 import 'package:opennutritracker/features/add_meal/util/food_emoji_resolver.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -93,6 +94,7 @@ class MealItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: Dimens.spacing4),
                   _buildSubtitle(context, palette, accent, isRecipe),
+                  MealMacrosLine(meal: mealEntity),
                 ],
               ),
             ),

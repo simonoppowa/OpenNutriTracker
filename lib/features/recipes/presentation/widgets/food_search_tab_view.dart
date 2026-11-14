@@ -14,6 +14,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bl
 import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debounce.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_macros_line.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -146,7 +147,7 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
               if (index == state.products.length) {
                 return const NoResultsWidget();
               }
-              return _PickableMealCard(
+              return PickableMealCard(
                 meal: state.products[index],
                 onTap: widget.onMealSelected,
               );
@@ -191,7 +192,7 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
             itemCount: state.food.length + (state.remoteSourceEmpty ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == state.food.length) return const NoResultsWidget();
-              return _PickableMealCard(
+              return PickableMealCard(
                 meal: state.food[index],
                 onTap: widget.onMealSelected,
               );
@@ -234,7 +235,7 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
           if (state.recentMeals.isEmpty) return const NoResultsWidget();
           return ListView.builder(
             itemCount: state.recentMeals.length,
-            itemBuilder: (context, index) => _PickableMealCard(
+            itemBuilder: (context, index) => PickableMealCard(
               meal: state.recentMeals[index],
               onTap: widget.onMealSelected,
             ),
@@ -276,11 +277,13 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
   }
 }
 
-class _PickableMealCard extends StatelessWidget {
+/// One row of the ingredient picker: tapping it hands the meal back
+/// instead of opening its detail screen. Public for its widget tests.
+class PickableMealCard extends StatelessWidget {
   final MealEntity meal;
   final void Function(MealEntity meal) onTap;
 
-  const _PickableMealCard({required this.meal, required this.onTap});
+  const PickableMealCard({super.key, required this.meal, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -328,20 +331,27 @@ class _PickableMealCard extends StatelessWidget {
                       ),
                 const SizedBox(width: Dimens.spacing12),
                 Expanded(
-                  child: AutoSizeText.rich(
-                    TextSpan(
-                      text: meal.name ?? '?',
-                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                      children: [
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AutoSizeText.rich(
                         TextSpan(
-                          text: ' ${meal.brands ?? ''}',
-                          style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
+                          text: meal.name ?? '?',
+                          style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                          children: [
+                            TextSpan(
+                              text: ' ${meal.brands ?? ''}',
+                              style: textTheme.bodyMedium?.copyWith(color: palette.textMuted),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    style: textTheme.titleSmall,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                        style: textTheme.titleSmall,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      MealMacrosLine(meal: meal),
+                    ],
                   ),
                 ),
                 const SizedBox(width: Dimens.spacing8),
