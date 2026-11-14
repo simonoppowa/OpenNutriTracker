@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- calorie_widget for heights below the one it needs: the same views
+     with smaller rings, and the provider hides the title while the
+     figures show. The Pixel launcher gives a landscape widget 109dp
+     whatever its rows, a little under the 110dp minHeight in
+     calorie_widget_info. Less the 24dp padding that leaves 85dp: room
+     for the wide body's 82dp ring, or the narrow body's 64dp ring, 2dp
+     margin and 16dp goal caption, each with about 2dp to spare. The
+     ring's hole is two thirds of its box, so the text inside is smaller
+     too. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calorie_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/calorie_widget_background"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/calorie_widget_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:textColor="@color/calorie_widget_text"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/calorie_widget_body_wide"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="82dp"
+            android:layout_height="82dp">
+
+            <ProgressBar
+                android:id="@+id/calorie_widget_ring_wide"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:indeterminate="false"
+                android:max="10000"
+                android:progressDrawable="@drawable/calorie_widget_ring" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/calorie_widget_consumed_wide"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/calorie_widget_text"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/calorie_widget_unit_wide"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/calorie_widget_text_secondary"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/calorie_widget_goal_wide"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/calorie_widget_text_secondary"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <include layout="@layout/calorie_widget_macros" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/calorie_widget_body_narrow"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+
+            <ProgressBar
+                android:id="@+id/calorie_widget_ring_narrow"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:indeterminate="false"
+                android:max="10000"
+                android:progressDrawable="@drawable/calorie_widget_ring" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/calorie_widget_consumed_narrow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/calorie_widget_text"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/calorie_widget_unit_narrow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/calorie_widget_text_secondary"
+                    android:textSize="9sp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/calorie_widget_goal_caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center"
+            android:textColor="@color/calorie_widget_text_secondary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <include layout="@layout/calorie_widget_placeholder" />
+</LinearLayout>
