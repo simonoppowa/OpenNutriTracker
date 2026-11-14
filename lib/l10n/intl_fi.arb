@@ -129,5 +129,24 @@
   "settingsDeleteAllDataLabel": "Nollaa profiilin tiedot",
   "settingsDeleteAllDataSubtitle": "Profiili, ateriat, aktiviteetit, painon historia ja paastoajat",
   "settingsDeleteAllDataConfirmTitle": "Nollaa profiilin tiedot?",
-  "policyChangeNoticeTitle": "Päivitimme tietosuojakäytäntöä"
+  "policyChangeNoticeTitle": "Päivitimme tietosuojakäytäntöä",
+  "settingsFoodSourcesSubtitle": "Valitse mistä ruokahakutulokset tulevat",
+  "onboardingOtherOptionsLabel": "Muut vaihtoehdot",
+  "ageLabel": "Ikä",
+  "caloriesProfileEstrogenTypicalLabel": "Estrogeeninen viite",
+  "caloriesProfileInfoTitle": "Kalorin viittaus",
+  "caloriesProfileTestosteroneTypicalLabel": "Testosteroni-tyypillinen viittaus",
+  "chooseWeeklyWeightGoalLabel": "Viikoittainen paino",
+  "chooseWeightGoalLabel": "Valitse painon tavoite",
+  "csvImportPartialLabel": "Tuotu {imported} ateria(t); {skipped} rivi(t) jätettiin väliin virheellisten tietojen vuoksi.",
+  "@csvImportPartialLabel": {
+    "placeholders": {
+      "imported": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  }
 }
