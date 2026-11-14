@@ -66,6 +66,9 @@ class HiveDBProvider extends ChangeNotifier {
   // list of what *this* person usually eats, unlike the shared custom-meal
   // and recipe libraries it may point into.
   static const favouriteMealBoxName = 'FavouriteMealBox';
+  // #1198: the diary entries whose foods the user removed from the add-meal
+  // Recently list, keyed by entry id. Per-profile, like the entries.
+  static const hiddenRecentBoxName = 'HiddenRecentBox';
   // #471: registry of profiles. Global — shared across every profile so
   // the app can enumerate and switch profiles before any one of them is
   // active.
@@ -90,6 +93,7 @@ class HiveDBProvider extends ChangeNotifier {
     waterIntakeBoxName,
     fastingBoxName,
     favouriteMealBoxName,
+    hiddenRecentBoxName,
   ];
 
   // Global boxes — opened once, never closed on a profile switch.
@@ -118,6 +122,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
   Box<FavouriteMealDBO>? _favouriteMealBox;
+  Box<DateTime>? _hiddenRecentBox;
 
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
@@ -141,6 +146,8 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_fastingBox, fastingBoxName);
   Box<FavouriteMealDBO> get favouriteMealBox =>
       _requireBox(_favouriteMealBox, favouriteMealBoxName);
+  Box<DateTime> get hiddenRecentBox =>
+      _requireBox(_hiddenRecentBox, hiddenRecentBoxName);
 
   Box<T> _requireBox<T>(Box<T>? box, String name) {
     if (_switching) {
@@ -241,6 +248,9 @@ class HiveDBProvider extends ChangeNotifier {
     _favouriteMealBox = await _openEncryptedBox(
       boxNameFor(favouriteMealBoxName, suffix),
     );
+    _hiddenRecentBox = await _openEncryptedBox(
+      boxNameFor(hiddenRecentBoxName, suffix),
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -254,6 +264,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
       if (_favouriteMealBox != null) _favouriteMealBox!.close(),
+      if (_hiddenRecentBox != null) _hiddenRecentBox!.close(),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -264,6 +275,7 @@ class HiveDBProvider extends ChangeNotifier {
     _waterIntakeBox = null;
     _fastingBox = null;
     _favouriteMealBox = null;
+    _hiddenRecentBox = null;
   }
 
   /// Opens (or returns the already-open) box for an arbitrary profile

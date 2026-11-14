@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/data_source/hidden_recent_data_source.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -8,8 +9,13 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 class GetIntakeUsecase {
   final IntakeRepository _intakeRepository;
   final RecipeRepository _recipeRepository;
+  final HiddenRecentDataSource _hiddenRecent;
 
-  GetIntakeUsecase(this._intakeRepository, this._recipeRepository);
+  GetIntakeUsecase(
+    this._intakeRepository,
+    this._recipeRepository,
+    this._hiddenRecent,
+  );
 
   /// The day label the `getToday…` reads below filter on. The queries
   /// take a label, so the boundary has to be resolved here rather than
@@ -113,8 +119,24 @@ class GetIntakeUsecase {
   /// its old name, nutrition and servings kept being offered (#1276). A
   /// recipe that still exists is offered as it is now; a deleted one keeps
   /// its last snapshot, and the intakes themselves are never rewritten.
+  ///
+  /// This is the add-meal Recently list, so a food the user removed from it
+  /// is left out until it is logged again (#1198).
   Future<List<IntakeEntity>> getRecentIntake() async {
-    final recent = await _intakeRepository.getRecentIntake();
+    return _withCurrentRecipes(
+      await _intakeRepository.getRecentIntake(
+        isHidden: _hiddenRecent.hiddenIntakes(),
+      ),
+    );
+  }
+
+  /// [getRecentIntake] with the foods removed from Recently kept in. Search
+  /// draws on this: removing a food from Recently does not unfind it.
+  Future<List<IntakeEntity>> getRecentIntakeIncludingHidden() async {
+    return _withCurrentRecipes(await _intakeRepository.getRecentIntake());
+  }
+
+  List<IntakeEntity> _withCurrentRecipes(List<IntakeEntity> recent) {
     return recent.map((intake) {
       final meal = intake.meal;
       if (meal.source != MealSourceEntity.recipe || meal.code == null) {

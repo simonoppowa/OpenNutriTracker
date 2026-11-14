@@ -52,7 +52,7 @@ class _FakeProductsRepository implements ProductsRepository {
 
 class _NoIntake implements GetIntakeUsecase {
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => const [];
+  Future<List<IntakeEntity>> getRecentIntakeIncludingHidden() async => const [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

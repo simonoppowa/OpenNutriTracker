@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/data_source/custom_activity_template_
 import 'package:opennutritracker/core/data/data_source/favourite_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service_factory.dart';
+import 'package:opennutritracker/core/data/data_source/hidden_recent_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
@@ -53,6 +54,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templates_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_favourite_meals_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/hide_recent_meal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_breakdown_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
@@ -479,7 +481,10 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
-    () => GetIntakeUsecase(locator(), locator()),
+    () => GetIntakeUsecase(locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton<HideRecentMealUsecase>(
+    () => HideRecentMealUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<AddIntakeUsecase>(
     () => AddIntakeUsecase(locator()),
@@ -705,6 +710,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => TrackedDayDataSource(hiveDBProvider));
   locator.registerLazySingleton<WeightLogDataSource>(
     () => WeightLogDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<HiddenRecentDataSource>(
+    () => HiddenRecentDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton<FavouriteMealDataSource>(
     () => FavouriteMealDataSource(hiveDBProvider),

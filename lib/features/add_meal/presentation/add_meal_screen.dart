@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/usecase/hide_recent_meal_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -28,6 +29,7 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/no_resul
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/partial_results_notice.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/quick_add_bottom_sheet.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/remove_from_recent_dialog.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -793,9 +795,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   child: ListView.builder(
                     itemCount: state.recentMeals.length,
                     itemBuilder: (context, index) {
+                      final meal = state.recentMeals[index];
                       return _mealCard(
-                        state.recentMeals[index],
+                        meal,
                         state.usesImperialUnits,
+                        onLongPress: () => _onRecentMealLongPressed(meal),
                       );
                     },
                   ),
@@ -898,14 +902,44 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   /// A search result, wired to this screen's list: opening it adds there,
   /// and its + adds the default amount without opening it.
-  Widget _mealCard(MealEntity meal, bool usesImperialUnits) => MealItemCard(
+  Widget _mealCard(
+    MealEntity meal,
+    bool usesImperialUnits, {
+    VoidCallback? onLongPress,
+  }) => MealItemCard(
     day: _day,
     mealEntity: meal,
     addMealType: _mealType,
     usesImperialUnits: usesImperialUnits,
     logTray: _logTray,
     onQuickAdd: () => _onQuickAddToTray(meal, usesImperialUnits),
+    onLongPress: onLongPress,
   );
+
+  /// #1198: a long press on a Recently row offers to take the food off the
+  /// list, the way a long press on a diary entry offers to delete it. Only
+  /// the row goes — see [HideRecentMealUsecase].
+  Future<void> _onRecentMealLongPressed(MealEntity meal) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => const RemoveFromRecentDialog(),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await locator<HideRecentMealUsecase>().hide(meal);
+    } catch (e, stackTrace) {
+      _log.severe('Removing a food from Recently failed', e, stackTrace);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).recentRemoveFailedLabel)),
+      );
+      return;
+    }
+    if (!mounted) return;
+    _recentMealBloc.add(
+      LoadRecentMealEvent(searchString: _searchStringListener.value),
+    );
+  }
 
   Future<void> _onQuickAddToTray(
     MealEntity meal,

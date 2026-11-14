@@ -130,6 +130,7 @@ void main() {
         fastingBox: await Hive.openBox<FastingSessionDBO>('delete_all_fast'),
         favouriteMealBox:
             await Hive.openBox<FavouriteMealDBO>('delete_all_favourites'),
+        hiddenRecentBox: await Hive.openBox<DateTime>('delete_all_hidden'),
       );
       final configDataSource = ConfigDataSource(provider);
       configRepository = ConfigRepository(configDataSource);
