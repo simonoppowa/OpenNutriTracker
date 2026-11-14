@@ -220,6 +220,19 @@ class ConfigDBO extends HiveObject {
   // (`DeleteAllUserDataUsecase`). Null means no tip.
   @HiveField(42)
   bool? hasLeftTip;
+  // Opt-in export of logged meals and water to Health Connect / Apple Health
+  // (#103). Per-profile, like the import: each profile mirrors its own diary.
+  @HiveField(45)
+  bool? healthExportEnabled;
+  @HiveField(46)
+  DateTime? healthLastExportAt;
+  // Diary day (`yyyy-MM-dd`) → fingerprint of what this app last wrote to
+  // the store for it, with the absolute window it was written in; a day
+  // that still hashes the same in the same window is left alone. Device-wide, unlike the two
+  // above: the store is one person's, so the last profile to write a day
+  // owns it (its id is part of the fingerprint).
+  @HiveField(47)
+  Map<String, String>? healthExportedDays;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -262,6 +275,9 @@ class ConfigDBO extends HiveObject {
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
     this.hasLeftTip,
+    this.healthExportEnabled,
+    this.healthLastExportAt,
+    this.healthExportedDays,
   });
 
   factory ConfigDBO.empty() =>

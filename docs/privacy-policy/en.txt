@@ -130,7 +130,7 @@ Depending on what is described below, third parties may be involved in the activ
 
 Most devices allow for the User to control which Data is accessed or stored.
 
-Health and fitness data (workout import)
+Health and fitness data (workout import and nutrition export)
 
 This Application can import workouts from Health Connect (Android) or Apple Health (iOS). The feature is off until you switch it on in Settings → Health sync, and switching it on is what triggers the platform's own permission prompt.
 
@@ -143,7 +143,7 @@ On Android it additionally reads the total energy burned, distance and step coun
 
 Workouts are added to your diary. The body fat reading, where one exists, is used only to personalise how much of a workout's energy this Application suggests crediting toward your daily goal.
 
-Access is read-only. Nothing is ever written back to Health Connect or Apple Health.
+The import is read-only. Separately, you can turn on exporting your diary in Settings → Health sync: the meals and water you log are then written to Health Connect or Apple Health as nutrition and hydration entries, and only entries this Application wrote are ever changed or removed there. The export is off by default.
 
 This data is not transmitted. It is held in the encrypted database on your device, is not sent to the Owner or to any third party, and leaves the device only through a backup or export you carry out yourself.
 

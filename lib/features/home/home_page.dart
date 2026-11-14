@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_diary_to_health_usecase.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -55,6 +56,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // from here rather than from bootstrap so a launch import reaches the
     // same diary refresh a resume import does.
     unawaited(_importHealthWorkouts());
+    unawaited(locator<ExportDiaryToHealthUsecase>().exportIfDue());
     super.initState();
   }
 
@@ -124,6 +126,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       log.info('App resumed');
       _refreshPageOnDayChange();
       unawaited(_importHealthWorkouts());
+    }
+    // On pause too, so a meal logged just before switching to the health app
+    // is there when it opens.
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.paused) {
+      unawaited(locator<ExportDiaryToHealthUsecase>().exportIfDue());
     }
     super.didChangeAppLifecycleState(state);
   }

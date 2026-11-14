@@ -1,4 +1,5 @@
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_export_records.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 
 /// The [HealthService] used when there is no health store to talk to —
@@ -24,4 +25,15 @@ class NoopHealthService implements HealthService {
 
   @override
   Future<double?> readLatestBodyFatPercent() async => null;
+
+  @override
+  Future<bool> requestExportPermissions() async => false;
+
+  @override
+  Future<void> replaceExportedDay({
+    required DateTime from,
+    required DateTime to,
+    required List<ExportedMeal> meals,
+    required List<ExportedWater> water,
+  }) async => throw StateError('No health store on this platform');
 }

@@ -133,6 +133,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _addConfigUsecase.setConfigHealthWorkoutKcalMultiplier(multiplier);
   }
 
+  Future<void> setHealthExportEnabled(bool enabled) {
+    return _addConfigUsecase.setConfigHealthExportEnabled(enabled);
+  }
+
   Future<void> setShowMealMacros(bool showMealMacros) {
     return _addConfigUsecase.setConfigShowMealMacros(showMealMacros);
   }

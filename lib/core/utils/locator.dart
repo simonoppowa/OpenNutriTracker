@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/data/data_source/weight_log_data_source.da
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
@@ -48,6 +49,7 @@ import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/export_diary_to_health_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_all_recipes_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templates_usecase.dart';
@@ -509,6 +511,15 @@ Future<void> initLocator() async {
       locator(),
     ),
   );
+  locator.registerLazySingleton<ExportDiaryToHealthUsecase>(
+    () => ExportDiaryToHealthUsecase(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
+  );
   locator.registerLazySingleton<DeleteUserActivityUsecase>(
     () => DeleteUserActivityUsecase(locator(), locator()),
   );
@@ -681,6 +692,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<HealthImportRepository>(
     () => HealthImportRepository(locator()),
+  );
+  locator.registerLazySingleton<HealthExportRepository>(
+    () => HealthExportRepository(locator()),
   );
 
   // DataSources

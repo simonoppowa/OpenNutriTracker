@@ -123,6 +123,10 @@ and `READ_TOTAL_CALORIES_BURNED`. The **Health apps declaration** (Play Console
 → App content) has to be brought in line with that in the same pass — it was
 last edited before any health permission existed in the app.
 
+The nutrition export (#103) adds `WRITE_NUTRITION` and `WRITE_HYDRATION`, both
+opt-in. The declaration has to cover those writes before the release that
+carries them ships.
+
 ## "Encrypted in transit": stays Yes, and what that rests on
 
 Decided by the maintainer on 2026-09-28

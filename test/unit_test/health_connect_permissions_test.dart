@@ -168,13 +168,18 @@ void main() {
       );
     });
 
-    test('no health permission is declared beyond those two', () {
+    test('no health permission is declared beyond those four', () {
       // Catches a new read added here without the declaration form being
       // updated to match. A plugin merging one in never reaches this set —
       // that is the separate plugin test below.
       expect(
         declared,
-        {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
+        {
+          'READ_EXERCISE',
+          'READ_TOTAL_CALORIES_BURNED',
+          'WRITE_NUTRITION',
+          'WRITE_HYDRATION',
+        },
         reason:
             'Every declared Health Connect permission has to be justified by '
             'a feature in the Play Console declaration form. Adding one here '
@@ -217,10 +222,10 @@ void main() {
       );
     });
 
-    test('nothing is ever written back', () {
+    test('only the nutrition export writes', () {
       expect(
         declared.where((permission) => permission.startsWith('WRITE_')),
-        isEmpty,
+        {'WRITE_NUTRITION', 'WRITE_HYDRATION'},
       );
     });
   });
@@ -245,7 +250,7 @@ void main() {
         .where((file) => file.path.endsWith('AndroidManifest.xml'))
         .toList();
 
-    test('declares those two health permissions and no others', () {
+    test('declares those four health permissions and no others', () {
       // Not a failure: the Android build is not a precondition for the unit
       // suite, and `linux-checks` never runs one. Silence would be, though —
       // a skipped guard that reads as a passing one is the failure mode this
@@ -266,7 +271,12 @@ void main() {
         // actually shipped is the last place to be picky about spelling.
         expect(
           healthIn(mergedManifest.readAsStringSync()).kept,
-          {'READ_EXERCISE', 'READ_TOTAL_CALORIES_BURNED'},
+          {
+            'READ_EXERCISE',
+            'READ_TOTAL_CALORIES_BURNED',
+            'WRITE_NUTRITION',
+            'WRITE_HYDRATION',
+          },
           reason:
               '${mergedManifest.path} ships a health permission set the '
               'repo did not declare, and one the plugin check did not '
