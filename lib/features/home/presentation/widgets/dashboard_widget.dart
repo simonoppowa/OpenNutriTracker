@@ -1,4 +1,5 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -284,7 +285,18 @@ class _MacroTile extends StatelessWidget {
             children: [
               Container(width: 9, height: 9, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
               const SizedBox(width: 6),
-              Flexible(child: Text(label, style: textTheme.labelMedium)),
+              // #589: three tiles share a phone's width, so a long label
+              // (German "Kohlenhydrate") or a large font broke mid-word over
+              // several lines. Shrink it onto one line instead.
+              Expanded(
+                child: AutoSizeText(
+                  label,
+                  style: textTheme.labelMedium,
+                  maxLines: 1,
+                  minFontSize: 9,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: Dimens.spacing12),
@@ -298,9 +310,17 @@ class _MacroTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Dimens.spacing12),
-          Text(
-            '${intake.toInt()}/${goal.toInt()} g',
-            style: textTheme.bodySmall?.copyWith(color: palette.textStrong, fontWeight: FontWeight.w700),
+          // Scale the total down rather than wrap or ellipsize it: a lone
+          // "g" on a second line or "1234/12…" misreads the same way the
+          // clipped leading digit did (#589).
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              '${intake.toInt()}/${goal.toInt()} g',
+              maxLines: 1,
+              style: textTheme.bodySmall?.copyWith(color: palette.textStrong, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
