@@ -59,6 +59,9 @@ and so are the **goal settings** you set under Settings → Calculations, as
 `goal_settings.json` ([#1363](https://github.com/simonoppowa/OpenNutriTracker/issues/1363)).
 
 The user can re-import the same zip via **Settings → Import**, in either format.
+On a fresh install the first onboarding page also offers **Restore from backup**
+([#1355](https://github.com/simonoppowa/OpenNutriTracker/issues/1355)). It runs the
+same JSON import, then asks only for the body profile the backup leaves out.
 Import merges into what is on the device: an intake, activity or recipe whose
 `id` is already stored is replaced by the imported row, as is a Custom activity
 template with the same name, a favourite for the same food (see
