@@ -70,6 +70,17 @@ class PhysicalActivityEntity extends Equatable {
         PhysicalActivityTypeEntity.conditioningExercise,
       );
 
+  /// The entity to log when the user typed [name] on the Custom activity
+  /// screen (#512). A non-blank name becomes the label via [customNamed];
+  /// a blank or missing one keeps this entity as it is, so an unnamed
+  /// entry still reads "Custom activity" and one re-logged from Recents
+  /// keeps the name it already has. Compendium activities ignore it.
+  PhysicalActivityEntity withCustomName(String? name) {
+    final trimmed = name?.trim() ?? '';
+    if (!isCustom || trimmed.isEmpty) return this;
+    return PhysicalActivityEntity.customNamed(trimmed);
+  }
+
   @override
   List<Object?> get props => [code, specificActivity, description, mets];
 

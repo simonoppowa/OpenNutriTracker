@@ -136,6 +136,10 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                   child: top > barsHeight - offset && top < barsHeight + offset
                       ? Text(
                           activityEntity.getName(context),
+                          // A named Custom activity re-opened from Recents
+                          // can carry a long user-typed name (#512).
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,
@@ -265,7 +269,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
 
   Future<void> onAddButtonPressed(
     BuildContext context, {
-    String? templateName,
+    String? customName,
     bool saveAsTemplate = false,
   }) async {
     // The bloc treats `persistActivity`'s first argument as a kcal value
@@ -285,10 +289,13 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         );
       }
     }
+    // #512: the name typed for a Custom activity labels the logged entry
+    // too, not only the optional template; a blank name keeps the
+    // generic "Custom activity" label.
     final persisted = _activityDetailBloc.persistActivity(
       quantityForBloc,
       totalKcal,
-      activityEntity,
+      activityEntity.withCustomName(customName),
       _day,
     );
 
@@ -298,11 +305,11 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     // and provided a name to find it by later.
     if (saveAsTemplate &&
         activityEntity.isCustom &&
-        templateName != null &&
-        templateName.isNotEmpty) {
+        customName != null &&
+        customName.isNotEmpty) {
       _activityDetailBloc.saveCustomActivityTemplate(
         CustomActivityTemplateEntity(
-          name: templateName,
+          name: customName,
           typicalKcal: totalKcal,
         ),
       );
