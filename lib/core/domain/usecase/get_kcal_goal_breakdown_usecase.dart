@@ -43,6 +43,7 @@ class GetKcalGoalBreakdownUsecase {
       userCarbsGoalPct: config.userCarbGoalPct,
       userFatsGoalPct: config.userFatGoalPct,
       userProteinsGoalPct: config.userProteinGoalPct,
+      macroGramGoals: config.macroGramGoals,
     );
   }
 }

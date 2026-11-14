@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/app_const.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 
 part 'settings_event.dart';
@@ -230,7 +231,45 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       proteinGoalPct.toInt() / 100,
       fatGoalPct.toInt() / 100,
     );
+    // Saving a split switches gram goals off (#642). The grams are kept,
+    // so switching to grams again restores them.
+    await _addConfigUsecase.setConfigMacroGoalsInGrams(false);
   }
+
+  /// #642: whether gram macro goals are in effect, and the stored grams
+  /// (kept while the split is in use). Stored grams that are not valid read
+  /// as null, so the dialog starts from the split instead.
+  Future<({bool inGrams, MacroGrams? grams})> getMacroGramGoals() async {
+    final config = await _getConfigUsecase.getConfig();
+    final carbs = config.userCarbGoalGrams;
+    final protein = config.userProteinGoalGrams;
+    final fat = config.userFatGoalGrams;
+    final stored =
+        MacroGramGoals.isValidGrams(carbs) &&
+            MacroGramGoals.isValidGrams(protein) &&
+            MacroGramGoals.isValidGrams(fat)
+        ? (carbs: carbs!, protein: protein!, fat: fat!)
+        : null;
+    return (inGrams: config.macroGramGoals != null, grams: stored);
+  }
+
+  /// #642: stores absolute macro goals in grams and switches to them.
+  Future<void> setMacroGramGoals(
+    double carbGrams,
+    double proteinGrams,
+    double fatGrams,
+  ) async {
+    await _addConfigUsecase.setConfigMacroGoalGrams(
+      carbGrams,
+      proteinGrams,
+      fatGrams,
+    );
+  }
+
+  /// Today's calorie goal before activities: what gram goals are compared
+  /// against, and what they start from on the first switch (#642).
+  Future<double> getKcalGoalWithoutActivities() =>
+      _getKcalGoalUsecase.getKcalGoal(totalKcalActivitiesParam: 0);
 
   // #150: per-meal kcal share configuration
   Future<Map<String, int>> getMealKcalSharesPct() async {

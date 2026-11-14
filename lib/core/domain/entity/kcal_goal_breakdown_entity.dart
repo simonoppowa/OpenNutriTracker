@@ -70,6 +70,10 @@ class KcalGoalBreakdownEntity extends Equatable {
   final double fatsGoalGrams;
   final double proteinsGoalGrams;
 
+  /// #642: the gram goals are the user's own, not derived from
+  /// [totalKcalGoal]; the fractions above are then unused.
+  final bool macroGoalsInGrams;
+
   const KcalGoalBreakdownEntity({
     required this.age,
     required this.heightCM,
@@ -98,6 +102,7 @@ class KcalGoalBreakdownEntity extends Equatable {
     required this.carbsGoalGrams,
     required this.fatsGoalGrams,
     required this.proteinsGoalGrams,
+    this.macroGoalsInGrams = false,
   });
 
   /// Whether the taper actually changed the adjustment for this snapshot.
@@ -115,6 +120,7 @@ class KcalGoalBreakdownEntity extends Equatable {
     double? userCarbsGoalPct,
     double? userFatsGoalPct,
     double? userProteinsGoalPct,
+    MacroGrams? macroGramGoals,
   }) {
     final palValue = PalCalc.getPALValueFromActivityCategory(user);
 
@@ -220,9 +226,10 @@ class KcalGoalBreakdownEntity extends Equatable {
       fatsFractionGoal: userFatsGoalPct ?? MacroCalc.defaultFatsPercentageGoal,
       proteinsFractionGoal:
           userProteinsGoalPct ?? MacroCalc.defaultProteinsPercentageGoal,
-      carbsGoalGrams: carbsGrams,
-      fatsGoalGrams: fatsGrams,
-      proteinsGoalGrams: proteinsGrams,
+      carbsGoalGrams: macroGramGoals?.carbs ?? carbsGrams,
+      fatsGoalGrams: macroGramGoals?.fat ?? fatsGrams,
+      proteinsGoalGrams: macroGramGoals?.protein ?? proteinsGrams,
+      macroGoalsInGrams: macroGramGoals != null,
     );
   }
 
@@ -255,5 +262,6 @@ class KcalGoalBreakdownEntity extends Equatable {
     carbsGoalGrams,
     fatsGoalGrams,
     proteinsGoalGrams,
+    macroGoalsInGrams,
   ];
 }

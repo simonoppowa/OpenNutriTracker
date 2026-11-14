@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -92,6 +93,13 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
 
   @override
   Future<double?> getUserFatGoalPct() async => 0.25;
+
+  @override
+  Future<({bool inGrams, MacroGrams? grams})> getMacroGramGoals() async =>
+      (inGrams: false, grams: null);
+
+  @override
+  Future<double> getKcalGoalWithoutActivities() async => 2000;
 
   @override
   Future<void> setMacroGoals(

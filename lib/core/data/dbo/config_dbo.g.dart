@@ -57,6 +57,10 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         trackedDaysOffsetMinutes: (fields[40] as num?)?.toInt(),
         localeSyncSeeded: fields[41] as bool?,
         hasLeftTip: fields[42] as bool?,
+        userMacroGoalsInGrams: fields[44] as bool?,
+        userCarbGoalGrams: (fields[45] as num?)?.toDouble(),
+        userProteinGoalGrams: (fields[46] as num?)?.toDouble(),
+        userFatGoalGrams: (fields[47] as num?)?.toDouble(),
       )
       ..userCarbGoalPct = (fields[6] as num?)?.toDouble()
       ..userProteinGoalPct = (fields[7] as num?)?.toDouble()
@@ -66,7 +70,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(43)
+      ..writeByte(47)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -152,7 +156,15 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(41)
       ..write(obj.localeSyncSeeded)
       ..writeByte(42)
-      ..write(obj.hasLeftTip);
+      ..write(obj.hasLeftTip)
+      ..writeByte(44)
+      ..write(obj.userMacroGoalsInGrams)
+      ..writeByte(45)
+      ..write(obj.userCarbGoalGrams)
+      ..writeByte(46)
+      ..write(obj.userProteinGoalGrams)
+      ..writeByte(47)
+      ..write(obj.userFatGoalGrams);
   }
 
   @override
@@ -231,6 +243,11 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
             ?.toInt(),
         localeSyncSeeded: json['localeSyncSeeded'] as bool?,
         hasLeftTip: json['hasLeftTip'] as bool?,
+        userMacroGoalsInGrams: json['userMacroGoalsInGrams'] as bool?,
+        userCarbGoalGrams: (json['userCarbGoalGrams'] as num?)?.toDouble(),
+        userProteinGoalGrams: (json['userProteinGoalGrams'] as num?)
+            ?.toDouble(),
+        userFatGoalGrams: (json['userFatGoalGrams'] as num?)?.toDouble(),
       )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -282,6 +299,10 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'trackedDaysOffsetMinutes': instance.trackedDaysOffsetMinutes,
   'localeSyncSeeded': instance.localeSyncSeeded,
   'hasLeftTip': instance.hasLeftTip,
+  'userMacroGoalsInGrams': instance.userMacroGoalsInGrams,
+  'userCarbGoalGrams': instance.userCarbGoalGrams,
+  'userProteinGoalGrams': instance.userProteinGoalGrams,
+  'userFatGoalGrams': instance.userFatGoalGrams,
 };
 
 const _$AppThemeDBOEnumMap = {

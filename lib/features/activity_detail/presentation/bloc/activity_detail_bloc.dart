@@ -11,7 +11,6 @@ import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templat
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/met_calc.dart';
 import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
@@ -163,16 +162,17 @@ class ActivityDetailBloc
       );
     }
 
-    final carbsIncrease = MacroCalc.getTotalCarbsGoal(caloriesBurned);
-    final fatIncrease = MacroCalc.getTotalFatsGoal(caloriesBurned);
-    final proteinIncrease = MacroCalc.getTotalProteinsGoal(caloriesBurned);
+    // Nothing while gram macro goals are set (#642).
+    final increase = await _getMacroGoalUsecase.getActivityMacroShare(
+      caloriesBurned,
+    );
 
     await _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
     await _addTrackedDayUsecase.increaseDayMacroGoals(
       day,
-      carbsAmount: carbsIncrease,
-      fatAmount: fatIncrease,
-      proteinAmount: proteinIncrease,
+      carbsAmount: increase.carbs,
+      fatAmount: increase.fat,
+      proteinAmount: increase.protein,
     );
   }
 }
