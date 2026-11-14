@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -22,6 +23,11 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 class TrendsPage extends StatefulWidget {
   const TrendsPage({super.key});
+
+  /// The clock the cards read "today" from. Tests pin it to a day near a DST
+  /// transition (#1224).
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
 
   @override
   State<TrendsPage> createState() => _TrendsPageState();
@@ -147,12 +153,13 @@ class _StreakCard extends StatelessWidget {
     final accent = Theme.of(context).colorScheme.primary;
     final errorColor = Theme.of(context).colorScheme.error;
     final text = Theme.of(context).textTheme;
-    final now = DateTime.now();
+    final now = TrendsPage.clock();
     final today = DateTime(now.year, now.month, now.day);
-    final windowStart =
-        DateTime(today.year, today.month, today.day - (rangeDays - 1));
+    final windowStart = CalendarDayCalc.addDays(today, -(rangeDays - 1));
     final weekEnd = today;
-    final weekStart = weekEnd.subtract(const Duration(days: 6));
+    // Calendar days: a `Duration` lands an hour off midnight across a DST
+    // transition and can pull an eighth day into the week (#1224).
+    final weekStart = CalendarDayCalc.addDays(weekEnd, -6);
 
     bool onTrack(TrackedDayEntity d) =>
         d.getCalendarDayRatingColor(context) != errorColor;
@@ -169,8 +176,7 @@ class _StreakCard extends StatelessWidget {
     final priorOnTrack = priorWeek.where(onTrack).toList();
     final thisWeek = onTrackDays
         .where((day) =>
-            day.isAfter(weekStart.subtract(const Duration(days: 1))) &&
-            day.isBefore(weekEnd.add(const Duration(days: 1))))
+            !day.isBefore(weekStart) && !day.isAfter(weekEnd))
         .length;
     final delta = priorOnTrack.isNotEmpty
         ? thisWeek - priorOnTrack.length
@@ -258,7 +264,7 @@ class _CaloriesTrendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final accent = Theme.of(context).colorScheme.primary;
-    final now = DateTime.now();
+    final now = TrendsPage.clock();
     final today = DateTime(now.year, now.month, now.day);
     final byDay = {for (final d in days) DateTime(d.day.year, d.day.month, d.day.day): d};
     // Full per-day series across the window; missing days contribute 0 tracked.
@@ -266,9 +272,11 @@ class _CaloriesTrendCard extends StatelessWidget {
     // plotted line, the goal reference and the tooltip all read in kcal or kJ.
     final spots = <FlSpot>[];
     final goals = <double>[];
+    // One key per calendar day: a 24-hour step skips a day across a
+    // spring-forward (#1224).
+    final windowDays = CalendarDayCalc.daysEnding(today, rangeDays);
     for (int i = 0; i < rangeDays; i++) {
-      final day = today.subtract(Duration(days: rangeDays - 1 - i));
-      final d = byDay[DateTime(day.year, day.month, day.day)];
+      final d = byDay[windowDays[i]];
       final tracked = d?.caloriesTracked ?? 0;
       spots.add(FlSpot(i.toDouble(), EnergyDisplay.convert(context, tracked)));
       if (d != null && d.calorieGoal > 0) {
@@ -366,14 +374,15 @@ class _WaterTrendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final color = palette.proteinColor;
-    final now = DateTime.now();
+    final now = TrendsPage.clock();
     final today = DateTime(now.year, now.month, now.day);
     final spots = <FlSpot>[];
     var sum = 0;
     var loggedDays = 0;
+    // One key per calendar day, as on the calorie card (#1224).
+    final windowDays = CalendarDayCalc.daysEnding(today, rangeDays);
     for (int i = 0; i < rangeDays; i++) {
-      final day = today.subtract(Duration(days: rangeDays - 1 - i));
-      final ml = waterByDay[DateTime(day.year, day.month, day.day)] ?? 0;
+      final ml = waterByDay[windowDays[i]] ?? 0;
       spots.add(FlSpot(i.toDouble(), _toUnit(ml)));
       if (ml > 0) {
         sum += ml;

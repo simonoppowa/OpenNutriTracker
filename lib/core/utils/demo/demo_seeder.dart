@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -25,6 +26,7 @@ import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_profiles_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_profile_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/met_calc.dart';
@@ -157,7 +159,9 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   final waterIntakeDBOs = <WaterIntakeDBO>[];
 
   for (var daysAgo = options.daysOfHistory - 1; daysAgo >= 0; daysAgo--) {
-    final day = startOfToday.subtract(Duration(days: daysAgo));
+    // Calendar days, like the user-facing write sites: a `Duration` lands an
+    // hour off midnight across a DST transition (#1224).
+    final day = CalendarDayCalc.addDays(startOfToday, -daysAgo);
 
     // Activity on roughly half of all days, always including today so the
     // Home screen has something to show immediately after seeding.
@@ -272,7 +276,7 @@ Future<void> seedDemoData(DemoSeedOptions options) async {
   await locator<TrackedDayRepository>().addAllTrackedDays(trackedDayDBOs);
   await locator<WaterIntakeRepository>().addAllEntries(waterIntakeDBOs);
   await locator<WeightLogRepository>().addAllEntries(
-    _buildWeightLog(startOfToday, user.weightKG, options),
+    buildDemoWeightLog(startOfToday, user.weightKG, options),
   );
 
   final fastingRepository = locator<FastingRepository>();
@@ -426,7 +430,8 @@ Future<void> _setupActiveProfile() async {
 /// [DemoSeedOptions.startWeightKg] down to the user's current weight, with
 /// randomised jitter so the chart doesn't look like a perfectly straight
 /// or perfectly formulaic line.
-List<WeightLogDBO> _buildWeightLog(
+@visibleForTesting
+List<WeightLogDBO> buildDemoWeightLog(
   DateTime startOfToday,
   double currentWeightKg,
   DemoSeedOptions options,
@@ -444,7 +449,7 @@ List<WeightLogDBO> _buildWeightLog(
     entries.add(
       WeightLogDBO.fromWeightLogEntity(
         WeightLogEntity(
-          date: startOfToday.subtract(Duration(days: daysAgo)),
+          date: CalendarDayCalc.addDays(startOfToday, -daysAgo),
           weightKg: double.parse((trendWeight + jitter).toStringAsFixed(1)),
         ),
       ),

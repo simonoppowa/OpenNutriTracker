@@ -19,4 +19,17 @@ class CalendarDayCalc {
       to.day,
     ).difference(DateTime.utc(from.year, from.month, from.day)).inDays;
   }
+
+  /// Local midnight [days] calendar days after [day] (before it when
+  /// negative). Built from year/month/day, which DateTime normalises, so it
+  /// stays on midnight where `day.add(Duration(days: n))` would land an hour
+  /// off across a transition (#1224).
+  static DateTime addDays(DateTime day, int days) =>
+      DateTime(day.year, day.month, day.day + days);
+
+  /// The [count] calendar days ending on [today], oldest first, each at local
+  /// midnight. Empty when [count] is zero or negative.
+  static List<DateTime> daysEnding(DateTime today, int count) => [
+    for (var i = count - 1; i >= 0; i--) addDays(today, -i),
+  ];
 }
