@@ -138,6 +138,33 @@ void main() {
     expect(await storage.readApiKey(), 'sk-test');
   });
 
+  test('drops invisible characters a pasted key carried (#1253)', () async {
+    // Fake key. U+2060 is what the #1253 report has around "AQ...", and a
+    // header holding it makes the request fail before it is sent.
+    await storage.writeApiKey('\u2060AQ.FAKE-fake_key\u2060\n');
+
+    expect(await storage.readApiKey(), 'AQ.FAKE-fake_key');
+  });
+
+  test('a key saved with invisible characters by an older build is read '
+      'without them (#1253)', () async {
+    await storage.writeApiKey('AQ.FAKE-fake_key');
+    // What an older build, which only trimmed, left in the keystore.
+    final slot = backing.store.entries
+        .singleWhere((e) => e.value == 'AQ.FAKE-fake_key')
+        .key;
+    backing.store[slot] = '\u2060AQ.FAKE-fake_key\u2060';
+
+    expect(await storage.readApiKey(), 'AQ.FAKE-fake_key');
+  });
+
+  test('a key of nothing but invisible characters clears', () async {
+    await storage.writeApiKey('sk-test');
+    await storage.writeApiKey('\u2060\u200B');
+
+    expect(await storage.hasApiKey(), isFalse);
+  });
+
   test('a blank key clears rather than storing an empty credential', () async {
     // An empty string would be stored happily and then fail later as a
     // puzzling 401.

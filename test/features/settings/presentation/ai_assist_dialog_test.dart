@@ -4028,4 +4028,180 @@ void main() {
       );
     });
   });
+
+  group('a pasted key (#1253)', () {
+    // Every key here is an obviously fake string, never a real credential.
+    const gemini = 'https://generativelanguage.googleapis.com/v1beta/openai/';
+    Finder keyField() => find.bySemanticsIdentifier('ai-assist-key-field');
+
+    TextField keyTextField(WidgetTester tester) => tester.widget<TextField>(
+      find.descendant(of: keyField(), matching: find.byType(TextField)),
+    );
+
+    Future<void> tapOk(WidgetTester tester) async {
+      final ok = find.text(l10nEn.dialogOKLabel);
+      await tester.ensureVisible(ok);
+      await tester.pumpAndSettle();
+      await tester.tap(ok);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('an AQ. key is saved without what the paste added', (
+      tester,
+    ) async {
+      // U+2060 WORD JOINER is what the #1253 report has around every
+      // "AQ...". Kept, it made every request fail on the phone, which the
+      // app could only call a connection problem.
+      await storage.setTermsAccepted(true, endpoint: gemini);
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+        gemini,
+      );
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-model-field'),
+        'gemini-fake-model',
+      );
+      await tester.enterText(keyField(), '\u2060AQ.FAKE-fake_key\u2060\n');
+      await tester.pump();
+      await tapOk(tester);
+
+      expect(
+        await storage.readApiKey(provider: AiProvider.ownServer),
+        'AQ.FAKE-fake_key',
+      );
+    });
+
+    testWidgets('a legacy AIza key is saved as it was typed', (tester) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.enterText(keyField(), 'AIzaFAKE-fake_key');
+      await tapOk(tester);
+
+      expect(
+        await storage.readApiKey(provider: AiProvider.anthropic),
+        'AIzaFAKE-fake_key',
+      );
+    });
+
+    testWidgets('a key that cannot be sent is refused without being echoed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      // Two halves of a key with a space between, as a note that wrapped
+      // it gives it back. (A single-line field already drops a line break.)
+      await tester.enterText(keyField(), 'sk-FAKE-first second-half');
+      await tapOk(tester);
+
+      expect(await storage.readApiKey(provider: AiProvider.anthropic), isNull);
+      expect(find.byType(AiAssistDialog), findsOneWidget, reason: 'not closed');
+      final error = keyTextField(tester).decoration!.errorText;
+      expect(error, l10nEn.aiAssistKeyMalformedLabel);
+      expect(error, isNot(contains('FAKE')));
+      expect(error, isNot(contains('second-half')));
+
+      // Typing again takes the refusal away, and a clean key saves.
+      await tester.enterText(keyField(), 'sk-FAKE-whole');
+      await tester.pump();
+      expect(keyTextField(tester).decoration!.errorText, isNull);
+      await tapOk(tester);
+      expect(
+        await storage.readApiKey(provider: AiProvider.anthropic),
+        'sk-FAKE-whole',
+      );
+    });
+
+    testWidgets('a refusal goes with the key when switching provider', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.enterText(keyField(), 'sk-FAKE first');
+      await tapOk(tester);
+      expect(
+        keyTextField(tester).decoration!.errorText,
+        l10nEn.aiAssistKeyMalformedLabel,
+      );
+
+      await tester.ensureVisible(find.text('OpenRouter'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OpenRouter'));
+      await tester.pumpAndSettle();
+
+      expect(keyTextField(tester).controller!.text, isEmpty);
+      expect(keyTextField(tester).decoration!.errorText, isNull);
+    });
+
+    testWidgets('a refusal goes with the key when the address moves to '
+        'another server', (tester) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel));
+      await tester.pumpAndSettle();
+      final endpointField = find.bySemanticsIdentifier(
+        'ai-assist-endpoint-field',
+      );
+      await tester.enterText(endpointField, 'http://192.168.1.5:11434');
+      await tester.enterText(
+        find.bySemanticsIdentifier('ai-assist-model-field'),
+        'fake-model',
+      );
+      await tester.enterText(keyField(), 'sk-FAKE first');
+      await tester.pump();
+      await tapOk(tester);
+      expect(
+        keyTextField(tester).decoration!.errorText,
+        l10nEn.aiAssistKeyMalformedLabel,
+      );
+
+      // The typed key belonged to the first server, so the field empties.
+      await tester.enterText(endpointField, 'http://192.168.1.9:11434');
+      await tester.pumpAndSettle();
+
+      expect(keyTextField(tester).controller!.text, isEmpty);
+      expect(keyTextField(tester).decoration!.errorText, isNull);
+    });
+
+    testWidgets('an empty key field saves nothing and refuses nothing', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(storage));
+      await tester.pumpAndSettle();
+      await tester.enterText(keyField(), '  \u2060 ');
+      await tapOk(tester);
+
+      expect(find.byType(AiAssistDialog), findsNothing);
+      expect(await storage.readApiKey(provider: AiProvider.anthropic), isNull);
+    });
+
+    testWidgets('the model list gets the cleaned key, and never a malformed '
+        'one', (tester) async {
+      final server = _Server.listing(const ['gemini-fake-model']);
+      await tester.pumpWidget(_app(storage, modelList: server.api));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel));
+      await tester.pumpAndSettle();
+
+      Future<void> commit(String endpoint) async {
+        await tester.enterText(
+          find.bySemanticsIdentifier('ai-assist-endpoint-field'),
+          endpoint,
+        );
+        await tester.pump();
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pumpAndSettle();
+      }
+
+      await tester.enterText(keyField(), '\u2060AQ.FAKE-fake_key\u2060\n');
+      await commit(gemini);
+      await tester.enterText(keyField(), 'AQ.FAKE broken');
+      await commit('https://other.example.org/v1');
+
+      expect(server.authorizations, ['Bearer AQ.FAKE-fake_key', null]);
+    });
+  });
 }
