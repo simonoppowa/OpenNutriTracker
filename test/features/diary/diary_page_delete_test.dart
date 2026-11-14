@@ -35,6 +35,7 @@ import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.d
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
@@ -337,6 +338,32 @@ void main() {
     expect(activityBox.isEmpty, isTrue);
     expect(rowOf(today)!.calorieGoal, 2000, reason: 'was lowered to 1850');
     expect(rowOf(yesterday), isNull);
+  });
+
+  testWidgets('the edit dialog\'s Delete asks, then deletes on the entry\'s '
+      'day', (tester) async {
+    await setUpDiary(yesterdayHasRow: true);
+    await openYesterday(tester);
+
+    await tester.tap(find.text('Toast'));
+    await settle(tester);
+    await tester.tap(find.bySemanticsIdentifier('edit-item-delete'));
+    await settle(tester);
+    expect(find.byType(DeleteDialog), findsOneWidget);
+    await tester.tap(find.text(l10nEn.dialogCancelLabel));
+    await settle(tester);
+    expect(intakeBox.length, 1, reason: 'Cancel keeps the entry');
+
+    await tester.tap(find.text('Toast'));
+    await settle(tester);
+    await tester.tap(find.bySemanticsIdentifier('edit-item-delete'));
+    await settle(tester);
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await settle(tester);
+
+    expect(intakeBox.isEmpty, isTrue);
+    expect(rowOf(yesterday)!.caloriesTracked, 0);
+    expect(rowOf(today)!.caloriesTracked, 500);
   });
 
   group('#1360: "today" moving on while a dialog is open', () {
