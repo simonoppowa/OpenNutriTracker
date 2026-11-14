@@ -66,6 +66,7 @@ class _TrendsView extends StatelessWidget {
           children: [
             _StreakCard(
               days: state.days,
+              today: state.logicalToday,
               priorWeek: state.priorWeek,
               rangeDays: state.windowDays,
               palette: palette,
@@ -74,13 +75,17 @@ class _TrendsView extends StatelessWidget {
             _RangeSelector(rangeDays: state.rangeDays),
             const SizedBox(height: Dimens.spacing16),
             _CaloriesTrendCard(
-                days: state.days, rangeDays: state.windowDays, palette: palette),
+                days: state.days,
+                today: state.logicalToday,
+                rangeDays: state.windowDays,
+                palette: palette),
             const SizedBox(height: Dimens.spacing16),
             _MacrosTrendCard(
                 days: state.days, rangeDays: state.windowDays, palette: palette),
             const SizedBox(height: Dimens.spacing16),
             _WaterTrendCard(
               waterByDay: state.waterByDay,
+              today: state.logicalToday,
               goalMl: state.waterGoalMl,
               rangeDays: state.windowDays,
               palette: palette,
@@ -132,11 +137,14 @@ class _RangeSelector extends StatelessWidget {
 
 class _StreakCard extends StatelessWidget {
   final List<TrackedDayEntity> days;
+  // The Diary's logical today (#139), which the streak and week run to.
+  final DateTime today;
   final List<TrackedDayEntity> priorWeek;
   final int rangeDays;
   final AppPalette palette;
   const _StreakCard({
     required this.days,
+    required this.today,
     required this.priorWeek,
     required this.rangeDays,
     required this.palette,
@@ -147,8 +155,6 @@ class _StreakCard extends StatelessWidget {
     final accent = Theme.of(context).colorScheme.primary;
     final errorColor = Theme.of(context).colorScheme.error;
     final text = Theme.of(context).textTheme;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final windowStart =
         DateTime(today.year, today.month, today.day - (rangeDays - 1));
     final weekEnd = today;
@@ -250,16 +256,20 @@ class _WeekDeltaChip extends StatelessWidget {
 
 class _CaloriesTrendCard extends StatelessWidget {
   final List<TrackedDayEntity> days;
+  final DateTime today; // the Diary's logical today (#139), the window's end
   final int rangeDays;
   final AppPalette palette;
-  const _CaloriesTrendCard({required this.days, required this.rangeDays, required this.palette});
+  const _CaloriesTrendCard({
+    required this.days,
+    required this.today,
+    required this.rangeDays,
+    required this.palette,
+  });
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final accent = Theme.of(context).colorScheme.primary;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final byDay = {for (final d in days) DateTime(d.day.year, d.day.month, d.day.day): d};
     // Full per-day series across the window; missing days contribute 0 tracked.
     // Values are converted to the user's energy unit up front (#1362), so the
@@ -267,7 +277,12 @@ class _CaloriesTrendCard extends StatelessWidget {
     final spots = <FlSpot>[];
     final goals = <double>[];
     for (int i = 0; i < rangeDays; i++) {
-      final day = today.subtract(Duration(days: rangeDays - 1 - i));
+      // Calendar days, as the bloc's range counts them (#1207).
+      final day = DateTime(
+        today.year,
+        today.month,
+        today.day - (rangeDays - 1 - i),
+      );
       final d = byDay[DateTime(day.year, day.month, day.day)];
       final tracked = d?.caloriesTracked ?? 0;
       spots.add(FlSpot(i.toDouble(), EnergyDisplay.convert(context, tracked)));
@@ -345,12 +360,14 @@ class _CaloriesTrendCard extends StatelessWidget {
 
 class _WaterTrendCard extends StatelessWidget {
   final Map<DateTime, int> waterByDay;
+  final DateTime today; // the Diary's logical today (#139), the window's end
   final int goalMl;
   final int rangeDays;
   final AppPalette palette;
   final bool usesImperialUnits;
   const _WaterTrendCard({
     required this.waterByDay,
+    required this.today,
     required this.goalMl,
     required this.rangeDays,
     required this.palette,
@@ -366,13 +383,16 @@ class _WaterTrendCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final color = palette.proteinColor;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final spots = <FlSpot>[];
     var sum = 0;
     var loggedDays = 0;
     for (int i = 0; i < rangeDays; i++) {
-      final day = today.subtract(Duration(days: rangeDays - 1 - i));
+      // Calendar days, as the bloc's range counts them (#1207).
+      final day = DateTime(
+        today.year,
+        today.month,
+        today.day - (rangeDays - 1 - i),
+      );
       final ml = waterByDay[DateTime(day.year, day.month, day.day)] ?? 0;
       spots.add(FlSpot(i.toDouble(), _toUnit(ml)));
       if (ml > 0) {
