@@ -1774,5 +1774,25 @@
   "aiAssistModelCheaperThanRecommendedLabel": "Дешевле рекомендуемой модели",
   "@aiAssistModelCheaperThanRecommendedLabel": {
     "description": "Note under a model in the AI settings: it costs less than the first (recommended) model. A price fact only, no claim about quality."
-  }
+  },
+  "sharedMealParseLabel": "Разобрать",
+  "sharedMealInvalidCodeLabel": "Введите правильный код общего приема пищи.",
+  "missingProductInfoFields": "Отсутствует: {fields}",
+  "@missingProductInfoFields": {
+    "description": "Under the missing-information warning on the food detail screen; names the required values the food lacks. {fields} is a comma-separated list of the nutrient labels, e.g. 'Missing: fat, protein'.",
+    "placeholders": {
+      "fields": {
+        "type": "String",
+        "example": "fat, protein"
+      }
+    }
+  },
+  "paTrackField1": "Легкая атлетика (метания)",
+  "paTrackField3": "Легкая атлетика (барьерный бег)",
+  "settingsShowAiFeaturesLabel": "Показывать функции ИИ",
+  "@settingsShowAiFeaturesLabel": {
+    "description": "Settings switch (#1518). Off hides Snap meal, the AI badges and AI meal assistance, and stops anything being sent to an AI model."
+  },
+  "settingsShowAiFeaturesSubtitle": "Снимок еды и помощь ИИ. Пока функция выключена, данные не отправляется в модель ИИ.",
+  "shareCodeErrorLabel": "Не удалось поделиться кодом. Попробуйте еще раз или скопируйте его."
 }
