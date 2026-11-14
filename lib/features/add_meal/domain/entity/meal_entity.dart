@@ -409,7 +409,7 @@ class MealEntity extends Equatable {
     return MealEntity(
       code: offProduct.code,
       name: offProduct.getLocaleName(
-        SupportedLanguage.fromCode(AppLocale.localeName),
+        SupportedLanguage.fromCode(AppLocale.foodLocaleName),
         knownName: knownName,
       ),
       brands: offProduct.brands,

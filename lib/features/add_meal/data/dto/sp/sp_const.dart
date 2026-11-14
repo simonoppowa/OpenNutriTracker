@@ -189,11 +189,14 @@ class SPConst {
         return 'uk';
       case SupportedLanguage.hu:
       case SupportedLanguage.es:
-        // food_translation has no Hungarian or Spanish rows yet. Returning
-        // the code would cost every search in these languages a
-        // guaranteed-empty translation RPC before the English one, plus an
-        // empty portion-label request, for no result. Flip to 'hu' / 'es'
-        // once the backend carries the rows.
+      case SupportedLanguage.ru:
+      case SupportedLanguage.fr:
+        // food_translation has no Hungarian or Spanish rows yet, and
+        // Russian and French were added (#1326) without rows known to
+        // exist. Returning the code would cost every search in these
+        // languages a guaranteed-empty translation RPC before the English
+        // one, plus an empty portion-label request, for no result. Flip to
+        // the language code once the backend carries the rows.
         return null;
     }
   }
