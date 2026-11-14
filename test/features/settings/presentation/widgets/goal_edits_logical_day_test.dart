@@ -63,6 +63,9 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   }
 
   @override
+  Future<Map<String, double>> getUserNutrientGoals() async => const {};
+
+  @override
   Future<void> setTodayNutrientGoals(
     DateTime day, {
     double? fibreGoal,

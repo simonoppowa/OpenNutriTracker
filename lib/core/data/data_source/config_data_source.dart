@@ -64,6 +64,7 @@ class ConfigDataSource {
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
       merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
       merged.trackedDaysOffsetMinutes = profile.trackedDaysOffsetMinutes;
+      merged.userNutrientGoals = profile.userNutrientGoals;
     } else {
       // Explicitly clear personal fields so they don't leak from the
       // app box after a profile reset. A fresh profile therefore reads as
@@ -81,6 +82,7 @@ class ConfigDataSource {
       merged.healthDeletedExternalIds = null;
       merged.healthDeletedWorkouts = null;
       merged.trackedDaysOffsetMinutes = null;
+      merged.userNutrientGoals = null;
     }
     return merged;
   }
@@ -367,6 +369,16 @@ class ConfigDataSource {
     await _update((c) => c.dailyWaterGoalMl = goalMl);
   }
 
+  /// Replaces the active profile's nutrient goals (#1316). An empty map is
+  /// stored as null: no goal of the user's own for any nutrient.
+  Future<void> setConfigUserNutrientGoals(Map<String, double> goals) async {
+    await _update(
+      (c) => c.userNutrientGoals = goals.isEmpty
+          ? null
+          : Map<String, double>.from(goals),
+    );
+  }
+
   /// Replaces every per-profile goal at once, as a restore from a backup
   /// does (#1363). One write, so the goals cannot end up half restored. A
   /// null clears that override and the app falls back to its default.
@@ -377,6 +389,7 @@ class ConfigDataSource {
     required double? fatGoalPct,
     required Map<String, int>? mealKcalSharesPct,
     required int? dailyWaterGoalMl,
+    required Map<String, double>? nutrientGoals,
   }) async {
     await _update((c) {
       c.userKcalAdjustment = kcalAdjustment;
@@ -387,6 +400,9 @@ class ConfigDataSource {
           ? null
           : Map<String, int>.from(mealKcalSharesPct);
       c.dailyWaterGoalMl = dailyWaterGoalMl;
+      c.userNutrientGoals = nutrientGoals == null || nutrientGoals.isEmpty
+          ? null
+          : Map<String, double>.from(nutrientGoals);
     });
   }
 

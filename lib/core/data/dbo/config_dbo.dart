@@ -221,6 +221,16 @@ class ConfigDBO extends HiveObject {
   @HiveField(42)
   bool? hasLeftTip;
 
+  // #1316: the goals set under Settings → Nutrient goals, keyed by
+  // [NutrientGoalKeys]. Every tracked day created afterwards starts with
+  // them; days that already exist keep the goals they have. Per profile,
+  // like the kcal and macro goals (`ConfigDataSource._readMerged`). Null,
+  // or a nutrient missing from the map, means the default reference value.
+  // Field 48 because 43–47 are claimed by goal fields in other open
+  // changes.
+  @HiveField(48)
+  Map<String, double>? userNutrientGoals;
+
   ConfigDBO(
     this.hasAcceptedDisclaimer,
     this.hasAcceptedPolicy,
@@ -262,6 +272,7 @@ class ConfigDBO extends HiveObject {
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
     this.hasLeftTip,
+    this.userNutrientGoals,
   });
 
   factory ConfigDBO.empty() =>

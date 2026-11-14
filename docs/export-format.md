@@ -246,14 +246,18 @@ keeps its own goals. Those older builds ignore the file when they meet it.
     "dinner": 30,
     "snack": 10
   },
-  "dailyWaterGoalMl": 2600          // 100..10000
+  "dailyWaterGoalMl": 2600,         // 100..10000
+  "nutrientGoals": {                // the Nutrient goals new days start with:
+    "iron": 30.0,                   //   amounts of 0 or more, in the unit the
+    "fibre": 40.0                   //   screen shows; a nutrient left out has
+  }                                 //   no goal of its own
 }
 ```
 
 `null`, or a missing key, means the app default — no kcal adjustment, the
 60 / 15 / 25 carbs / protein / fat split, the 30 / 40 / 20 / 10 meal shares,
-the water goal seeded from the profile — and importing it puts that goal back
-to the default. A file with a value outside the ranges above, or a number
+the water goal seeded from the profile, the reference value for each
+nutrient — and importing it puts that goal back to the default. A file with a value outside the ranges above, or a number
 that is not finite, is rejected, and
 the whole zip with it, before anything on the device changes. The tolerances
 allow for rounding in older builds. `version` goes up only for a change an
@@ -262,10 +266,17 @@ and imports the rest. Unknown keys are ignored.
 
 Only goals that belong to a profile are in the file:
 
-- **Per-nutrient goals** (fibre, sodium, the vitamins …) are not settings
-  today but columns of each day in `user_tracked_day.json`, and travel there.
-  They belong in this file once they apply beyond the day they were set on
+- **Per-nutrient goals** (fibre, sodium, the vitamins …) are in two places.
+  `nutrientGoals` holds the ones set under Settings → Nutrient goals, which
+  every day created afterwards starts with
   ([#1316](https://github.com/simonoppowa/OpenNutriTracker/issues/1316)).
+  Each day also keeps the goals it was created with, as columns in
+  `user_tracked_day.json`, so importing this file does not change past days.
+  The keys are `fibre`, `satFat`, `sugars`, `sodium`, `calcium`, `iron`,
+  `potassium`, `vitaminD`, `vitaminB12` and `magnesium`; one this build does
+  not know is ignored. Files from builds before #1316 have no
+  `nutrientGoals`, so, like any missing key, importing one puts the nutrient
+  goals back to the defaults.
 - **Device-wide preferences** — theme, accent colour, language, units, kJ /
   kcal, reminders, the diary day boundary, view toggles, food sources — are
   shared by every profile on the device, so a restore into one profile should
