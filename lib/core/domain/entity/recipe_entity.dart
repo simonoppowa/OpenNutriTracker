@@ -81,7 +81,9 @@ class RecipeEntity extends Equatable {
   // results, MealDetailScreen, and IntakeDBO snapshot pipeline with no
   // special-case branches downstream. When `servingsCount` is set, the
   // returned MealEntity exposes serving values so the unit dropdown offers
-  // "serving" alongside grams.
+  // "serving" alongside grams. The serving label reads as a food's does,
+  // one serving and its weight ("1 serving (387.5 g)"): stored in English
+  // and translated at display time like every other serving label.
   MealEntity toMealEntity() {
     final hasServings = servingsCount != null && servingsCount! > 0;
     return MealEntity(
@@ -95,11 +97,18 @@ class RecipeEntity extends Equatable {
       mealUnit: 'g',
       servingQuantity: hasServings ? totalWeightG / servingsCount! : null,
       servingUnit: hasServings ? 'g' : null,
-      servingSize: hasServings ? '$servingsCount servings' : null,
+      servingSize: hasServings
+          ? '1 serving (${_formatGrams(totalWeightG / servingsCount!)} g)'
+          : null,
       nutriments: aggregatedNutrimentsPer100,
       source: MealSourceEntity.recipe,
     );
   }
+
+  /// A whole number of grams without decimals, any other to one decimal.
+  static String _formatGrams(double grams) => grams == grams.roundToDouble()
+      ? grams.toInt().toString()
+      : grams.toStringAsFixed(1);
 
   RecipeEntity copyWith({
     String? id,

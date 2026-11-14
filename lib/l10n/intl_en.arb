@@ -1039,6 +1039,10 @@
   "recipeTotalWeightManualHelper": "Entered manually, so changing ingredients won't change it.",
   "recipeTotalWeightLabel": "Total weight (g)",
   "recipeTotalWeightUseIngredientTotalButton": "Use ingredient total",
+  "recipeWholeLabel": "Whole recipe",
+  "@recipeWholeLabel": {
+    "description": "Shown under a recipe's total weight on its food page, so the weight reads as the whole recipe rather than one serving."
+  },
   "recipesEmptyHint": "Build a meal from multiple ingredients and reuse it like any other food.",
   "recipesEmptyLabel": "No recipes yet",
   "recipesFilterAllLabel": "All",
