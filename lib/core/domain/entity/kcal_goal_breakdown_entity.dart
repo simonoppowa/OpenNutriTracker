@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/calc/pal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
 
 /// Snapshot of every variable and intermediate result that goes into the
 /// daily kcal goal, for the transparency screen ("How your calorie goal is
@@ -107,6 +108,52 @@ class KcalGoalBreakdownEntity extends Equatable {
   /// Whether the averaged non-binary midpoint is in effect.
   bool get usesAveragedReference =>
       tdeeMaleReferenceKcal != null && tdeeFemaleReferenceKcal != null;
+
+  /// The short "how today's target is built" summary (#1308), in whole
+  /// display units (kJ when [kilojoules] is set, kcal otherwise).
+  ///
+  /// The rows add up to [KcalGoalSummary.total] exactly, and the total is
+  /// [totalKcalGoal] rounded the way every other screen rounds it. Rounding
+  /// each term on its own can miss the total by a unit or more (a tapered
+  /// −287.5 next to a TDEE of 3164.98), so each row is instead the step
+  /// between the rounded running totals, summed in the order
+  /// [CalorieGoalCalc.getTotalKcalGoal] sums them. The first row is still
+  /// the rounded TDEE shown in step 1.
+  ///
+  /// A term that contributes nothing once rounded (maintain, no logged
+  /// activity, no manual offset, a fully tapered goal) gets no row. The
+  /// total is not clamped, because the goal is not clamped anywhere else.
+  ///
+  /// A fixed daily goal (#671) would replace the first three terms with a
+  /// single row here, keeping the activity row.
+  KcalGoalSummary summary({bool kilojoules = false}) {
+    int toUnit(double kcal) =>
+        (kilojoules ? UnitCalc.kcalToKj(kcal) : kcal).round();
+
+    final terms = <(KcalGoalSummaryTerm, double)>[
+      (KcalGoalSummaryTerm.maintenance, tdeeKcal),
+      (KcalGoalSummaryTerm.weightGoal, effectiveAdjustmentKcal),
+      (KcalGoalSummaryTerm.manualAdjustment, manualKcalAdjustment),
+      (KcalGoalSummaryTerm.activities, activityKcal),
+    ];
+    final total = toUnit(totalKcalGoal);
+    final rows = <KcalGoalSummaryRow>[];
+    var runningKcal = 0.0;
+    var shownSoFar = 0;
+    for (var i = 0; i < terms.length; i++) {
+      final (term, kcal) = terms[i];
+      runningKcal += kcal;
+      // The last step lands on the shown total itself, so the rows can't
+      // drift from it even by a float ulp.
+      final shownRunning = i == terms.length - 1 ? total : toUnit(runningKcal);
+      final value = shownRunning - shownSoFar;
+      shownSoFar = shownRunning;
+      if (term == KcalGoalSummaryTerm.maintenance || value != 0) {
+        rows.add(KcalGoalSummaryRow(term: term, value: value));
+      }
+    }
+    return KcalGoalSummary(rows: rows, total: total);
+  }
 
   factory KcalGoalBreakdownEntity.compute({
     required UserEntity user,
@@ -256,4 +303,43 @@ class KcalGoalBreakdownEntity extends Equatable {
     fatsGoalGrams,
     proteinsGoalGrams,
   ];
+}
+
+/// One term of the daily calorie target, in calculation order.
+enum KcalGoalSummaryTerm {
+  /// Estimated maintenance energy (TDEE).
+  maintenance,
+
+  /// Deficit or surplus for the weight goal, after the taper.
+  weightGoal,
+
+  /// The user's own offset from Settings.
+  manualAdjustment,
+
+  /// Energy burned by activities logged today.
+  activities,
+}
+
+/// A row of [KcalGoalSummary]: a term and what it adds, in whole display
+/// units (negative for a deficit).
+class KcalGoalSummaryRow extends Equatable {
+  final KcalGoalSummaryTerm term;
+  final int value;
+
+  const KcalGoalSummaryRow({required this.term, required this.value});
+
+  @override
+  List<Object?> get props => [term, value];
+}
+
+/// The rows that build today's target and the target itself, in whole
+/// display units. The rows always add up to [total].
+class KcalGoalSummary extends Equatable {
+  final List<KcalGoalSummaryRow> rows;
+  final int total;
+
+  const KcalGoalSummary({required this.rows, required this.total});
+
+  @override
+  List<Object?> get props => [rows, total];
 }
