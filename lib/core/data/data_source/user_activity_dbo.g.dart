@@ -25,13 +25,14 @@ class UserActivityDBOAdapter extends TypeAdapter<UserActivityDBO> {
       userKcal: (fields[5] as num?)?.toDouble(),
       externalId: fields[6] as String?,
       sourceReportedKcal: (fields[7] as num?)?.toDouble(),
+      loggedUtcOffsetMinutes: (fields[8] as num?)?.toInt(),
     );
   }
 
   @override
   void write(BinaryWriter writer, UserActivityDBO obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class UserActivityDBOAdapter extends TypeAdapter<UserActivityDBO> {
       ..writeByte(6)
       ..write(obj.externalId)
       ..writeByte(7)
-      ..write(obj.sourceReportedKcal);
+      ..write(obj.sourceReportedKcal)
+      ..writeByte(8)
+      ..write(obj.loggedUtcOffsetMinutes);
   }
 
   @override

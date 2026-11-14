@@ -41,6 +41,7 @@ class UserActivityDataSource {
           userKcal: dbo.userKcal,
           externalId: dbo.externalId,
           sourceReportedKcal: dbo.sourceReportedKcal,
+          loggedUtcOffsetMinutes: dbo.loggedUtcOffsetMinutes,
         ),
       ),
       (dbo) => isBlankId(dbo.id) ? null : dbo.id,
@@ -92,6 +93,7 @@ class UserActivityDataSource {
       // an edited imported workout eligible for a second import.
       externalId: existing.externalId,
       sourceReportedKcal: existing.sourceReportedKcal,
+      loggedUtcOffsetMinutes: existing.loggedUtcOffsetMinutes,
     );
     await _userActivityBox.putAll({for (final key in keys) key: edited()});
     return _userActivityBox.get(keys.first);
@@ -128,7 +130,7 @@ class UserActivityDataSource {
         .where(
           (activity) => DayBoundaryCalc.isMomentInLogicalDayMinutes(
             day,
-            activity.date,
+            activity.loggedWallClock,
             totalMinutes,
             clockReading: activity.externalId != null,
           ),
