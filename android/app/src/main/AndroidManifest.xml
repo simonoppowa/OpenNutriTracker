@@ -4,6 +4,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Voice input: dictate a meal on the Describe fields. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- RECORD_AUDIO alone makes Play treat a microphone as required, which
+         dropped 13 devices (mostly tablets) from 2.7.0. Voice input is
+         optional: on a device without a microphone the button reports that
+         dictation is unavailable. -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <!-- #312: Notification reminders -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>

@@ -2,6 +2,7 @@ package com.opennutritracker.ont.opennutritracker
 
 import android.app.LocaleManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.LocaleList
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -21,6 +22,7 @@ class MainActivity : FlutterFragmentActivity() {
     private val localeChannelName = "com.opennutritracker/locale"
     private val healthRationaleChannelName = "com.opennutritracker/health_rationale"
     private val healthConnectChannelName = "com.opennutritracker/health_connect"
+    private val deviceChannelName = "com.opennutritracker/device"
 
     /**
      * Scope for the Health Connect reads, which are suspend functions.
@@ -105,6 +107,19 @@ class MainActivity : FlutterFragmentActivity() {
                             applicationContext,
                         )
                     }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // The manifest declares the microphone optional, so the app installs
+        // on tablets without one. Voice input asks here first and tells the
+        // user dictation is unavailable instead of failing silently.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, deviceChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "hasMicrophone" -> result.success(
+                        packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE),
+                    )
                     else -> result.notImplemented()
                 }
             }
