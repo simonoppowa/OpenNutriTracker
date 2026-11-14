@@ -595,6 +595,46 @@ void main() {
     });
   }
 
+  testWidgets('precise metric serving can be deleted and restored to 30g', (
+    tester,
+  ) async {
+    await pumpEditor(tester, _food(servingQuantity: 28.3495));
+    // A no-op save must retain all canonical digits before editing.
+    final unchanged = await saveAndReopen(tester);
+    expect(unchanged.servingQuantity, 28.3495);
+    expect(unchanged.mealQuantity, '60');
+    expectDensity(unchanged);
+    imperial = true;
+    await pumpEditor(tester, unchanged);
+    final imperialRoundTrip = await saveAndReopen(tester);
+    expect(imperialRoundTrip.servingQuantity, 28.3495);
+    expect(imperialRoundTrip.mealQuantity, '60');
+    expectDensity(imperialRoundTrip);
+    imperial = false;
+    await pumpEditor(tester, imperialRoundTrip);
+    final serving = await field(tester, '${l10nEn.servingSizeLabelMetric} (g)');
+    expect(tester.widget<TextFormField>(serving).controller!.text, '28.3495');
+    for (final text in ['28.349', '28.348', '', '3', '30']) {
+      await tester.enterText(serving, text);
+      expect(tester.widget<TextFormField>(serving).controller!.text, text);
+    }
+    final restored = await saveAndReopen(tester);
+    expect(restored.servingQuantity, 30);
+    expect(restored.mealQuantity, '60');
+    expect(kcalForQuantity(1, 'serving', restored), 138);
+    expectDensity(restored);
+    await pumpEditor(tester, restored);
+    expect(
+      tester
+          .widget<TextFormField>(
+            await field(tester, '${l10nEn.servingSizeLabelMetric} (g)'),
+          )
+          .controller!
+          .text,
+      '30.0',
+    );
+  });
+
   testWidgets('serving edit changes serving totals once, not per-100 density', (
     tester,
   ) async {

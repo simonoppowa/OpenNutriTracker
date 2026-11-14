@@ -4,7 +4,8 @@ class CustomTextInputFormatter {
   /// Allows a decimal number with at most [maxDecimals] places (comma or
   /// period), normalising the separator to a period. Defaults to two decimals
   /// so every food-quantity field accepts the same precision; pass a different
-  /// limit only where a field genuinely needs more.
+  /// limit only where a field genuinely needs more. Loaded values with extra
+  /// precision remain editable without increasing their fractional precision.
   static List<TextInputFormatter> doubleOnly({int maxDecimals = 2}) =>
       <TextInputFormatter>[
         // Reject inputs with too many decimals by returning oldValue.
@@ -16,7 +17,14 @@ class CustomTextInputFormatter {
           final text = newValue.text.replaceAll(',', '.');
           final dotIdx = text.indexOf('.');
           if (dotIdx >= 0 && text.length - dotIdx - 1 > maxDecimals) {
-            return oldValue;
+            final oldText = oldValue.text.replaceAll(',', '.');
+            final decimal = RegExp(r'^\d*\.\d*$');
+            // Unit conversions can prefill more precision than typing allows.
+            if (!decimal.hasMatch(text) ||
+                !decimal.hasMatch(oldText) ||
+                text.length - dotIdx > oldText.length - oldText.indexOf('.')) {
+              return oldValue;
+            }
           }
           return newValue;
         }),
