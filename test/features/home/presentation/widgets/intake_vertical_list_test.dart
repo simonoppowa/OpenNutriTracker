@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart'
 import 'package:opennutritracker/features/home/domain/entity/shared_meal_payload.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/presentation/widgets/copy_to_meal_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
@@ -38,6 +39,12 @@ final _dropLog = <String>[];
 /// Holds the add of a drag open, as a slow write would.
 Completer<void>? _addGate;
 
+/// What "Copy to other meal" asked the bloc to copy (#842).
+final _copyCalls = <(List<IntakeEntity>, IntakeTypeEntity)>[];
+
+/// What the next copy reports: a count, or a failure to throw.
+Object _copyResult = 1;
+
 /// Writes like the real blocs: each under the tracked-day lock.
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   @override
@@ -52,6 +59,19 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
     await _addGate?.future;
     _dropLog.add('add');
   });
+
+  @override
+  Future<int> copyIntakesToMeal(
+    BuildContext context,
+    List<IntakeEntity> intakes,
+    IntakeTypeEntity target, {
+    ProfileStamp? startedOn,
+  }) async {
+    _copyCalls.add((intakes, target));
+    final result = _copyResult;
+    if (result is int) return result;
+    throw result;
+  }
 }
 
 class _FakeHomeBloc extends Fake implements HomeBloc {
@@ -483,6 +503,7 @@ void main() {
       // Empty section: no Copy/Delete/Share — nothing to act on. Import is
       // always available so the user can scan a QR to populate the section.
       expect(find.text(l10nEn.dialogCopyLabel), findsNothing);
+      expect(find.text(l10nEn.copyToOtherMealLabel), findsNothing);
       expect(find.text(l10nEn.deleteAllLabel), findsNothing);
       expect(find.text(l10nEn.shareMealLabel), findsNothing);
       expect(find.text(l10nEn.importMealLabel), findsOneWidget);
@@ -565,5 +586,224 @@ void main() {
     await tester.pump();
 
     expect(_dropLog, ['add', 'delete', 'switch']);
+  });
+
+  group('Copy to other meal (#842)', () {
+    final lunch = [
+      _buildIntake(
+        id: 'rice',
+        name: 'Rice',
+        amount: 200,
+        kcal100: 130,
+        carbs100: 28,
+        fat100: 0.3,
+        protein100: 2.7,
+      ),
+      _buildIntake(
+        id: 'curry',
+        name: 'Curry',
+        amount: 250,
+        kcal100: 90,
+        carbs100: 6,
+        fat100: 5,
+        protein100: 7,
+      ),
+    ];
+
+    setUp(() {
+      _copyCalls.clear();
+      _copyResult = 2;
+    });
+
+    /// A lunch section as Home builds it: today, no "Copy to today", in a
+    /// scrolling list.
+    Widget lunchSection(List<IntakeEntity> intakes) => _wrapWithMaterial(
+      ListView(
+        children: [
+          IntakeVerticalList(
+            day: DateTime(2026, 11, 9),
+            title: 'Lunch',
+            listIcon: Icons.lunch_dining_outlined,
+            addMealType: AddMealType.lunchType,
+            intakeList: intakes,
+            usesImperialUnits: false,
+            onDeleteIntakeCallback: (_, _) {},
+          ),
+        ],
+      ),
+    );
+
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(
+        find.byType(PopupMenuButton<VerticalListPopupMenuSelections>),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> openPicker(WidgetTester tester) async {
+      await openMenu(tester);
+      await tester.tap(find.text(l10nEn.copyToOtherMealLabel));
+      await tester.pumpAndSettle();
+    }
+
+    Finder bySemanticsId(String id) => find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.identifier == id,
+    );
+
+    testWidgets('a meal with entries on today offers it, with an id', (
+      tester,
+    ) async {
+      await tester.pumpWidget(lunchSection(lunch));
+      await openMenu(tester);
+
+      expect(find.text(l10nEn.copyToOtherMealLabel), findsOneWidget);
+      expect(bySemanticsId('intake-copy-to-other-meal'), findsOneWidget);
+      // Home has no "Copy to today" for today's own meals.
+      expect(find.text(l10nEn.dialogCopyLabel), findsNothing);
+    });
+
+    testWidgets('an empty meal does not offer it', (tester) async {
+      await tester.pumpWidget(lunchSection(const []));
+      await openMenu(tester);
+
+      expect(find.text(l10nEn.copyToOtherMealLabel), findsNothing);
+    });
+
+    testWidgets('a past day offers it next to Copy to today', (tester) async {
+      await tester.pumpWidget(
+        _wrapWithMaterial(
+          IntakeVerticalList(
+            day: DateTime(2026, 11, 8),
+            title: 'Lunch',
+            listIcon: Icons.lunch_dining_outlined,
+            addMealType: AddMealType.lunchType,
+            intakeList: lunch,
+            usesImperialUnits: false,
+            onCopyIntakeCallback: (_, _, _) {},
+            onDeleteIntakeCallback: (_, _) {},
+          ),
+        ),
+      );
+      await openMenu(tester);
+
+      expect(find.text(l10nEn.dialogCopyLabel), findsOneWidget);
+      expect(find.text(l10nEn.copyToOtherMealLabel), findsOneWidget);
+    });
+
+    testWidgets('the picker lists the other meals, not the source', (
+      tester,
+    ) async {
+      await tester.pumpWidget(lunchSection(lunch));
+      await openPicker(tester);
+
+      final dialog = find.byType(CopyToMealDialog);
+      expect(dialog, findsOneWidget);
+      expect(
+        find.descendant(of: dialog, matching: find.text(l10nEn.lunchLabel)),
+        findsNothing,
+      );
+      for (final (label, id) in [
+        (l10nEn.breakfastLabel, 'copy-to-meal-breakfast'),
+        (l10nEn.dinnerLabel, 'copy-to-meal-dinner'),
+        (l10nEn.snackLabel, 'copy-to-meal-snack'),
+      ]) {
+        expect(
+          find.descendant(of: dialog, matching: find.text(label)),
+          findsOneWidget,
+        );
+        expect(bySemanticsId(id), findsOneWidget);
+      }
+      expect(bySemanticsId('copy-to-meal-lunch'), findsNothing);
+    });
+
+    testWidgets('picking Dinner copies the whole meal and says how many', (
+      tester,
+    ) async {
+      await tester.pumpWidget(lunchSection(lunch));
+      await openPicker(tester);
+
+      await tester.tap(find.text(l10nEn.dinnerLabel));
+      await tester.pumpAndSettle();
+
+      expect(_copyCalls, hasLength(1));
+      final (copied, target) = _copyCalls.single;
+      expect(copied.map((i) => i.id), ['rice', 'curry']);
+      expect(target, IntakeTypeEntity.dinner);
+      expect(
+        find.text(l10nEn.copiedToMealSnackbar(2, l10nEn.dinnerLabel)),
+        findsOneWidget,
+      );
+      expect(find.text('Copied 2 items to Dinner'), findsOneWidget);
+    });
+
+    testWidgets('one copied item reads in the singular', (tester) async {
+      _copyResult = 1;
+      await tester.pumpWidget(lunchSection([lunch.first]));
+      await openPicker(tester);
+
+      await tester.tap(find.text(l10nEn.snackLabel));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Copied 1 item to Snack'), findsOneWidget);
+    });
+
+    testWidgets('cancelling the picker copies nothing', (tester) async {
+      await tester.pumpWidget(lunchSection(lunch));
+      await openPicker(tester);
+
+      await tester.tap(find.text(l10nEn.dialogCancelLabel));
+      await tester.pumpAndSettle();
+
+      expect(_copyCalls, isEmpty);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('a copy a profile switch abandoned shows no confirmation', (
+      tester,
+    ) async {
+      _copyResult = 0;
+      await tester.pumpWidget(lunchSection(lunch));
+      await openPicker(tester);
+
+      await tester.tap(find.text(l10nEn.dinnerLabel));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('a copy that stops partway says so', (tester) async {
+      _copyResult = CopyIntakesToMealException(
+        1,
+        StateError('disk full'),
+        StackTrace.empty,
+      );
+      await tester.pumpWidget(lunchSection(lunch));
+      await openPicker(tester);
+
+      await tester.tap(find.text(l10nEn.dinnerLabel));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(l10nEn.copyToMealFailedSnackbar(l10nEn.dinnerLabel)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('picker options fit a narrow screen at a large font', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(lunchSection(lunch));
+      expect(tester.takeException(), isNull, reason: 'section');
+      await openMenu(tester);
+      expect(tester.takeException(), isNull, reason: 'menu');
+      await tester.tap(find.text(l10nEn.copyToOtherMealLabel));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'dialog');
+    });
   });
 }

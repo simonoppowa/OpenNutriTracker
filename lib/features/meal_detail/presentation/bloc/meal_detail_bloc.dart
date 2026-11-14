@@ -215,6 +215,49 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     unawaited(_refreshCacheForSelectedMeal(meal));
   }
 
+  /// Copies [intakes] into the [target] meal (#842), each on the day it is
+  /// logged on, so a meal's entries reach another meal of that same day.
+  /// Returns how many were copied.
+  ///
+  /// Each copy is logged through [addIntake], the path "Copy to today"
+  /// takes: a new id, the source's unit, amount and food, and the day's
+  /// totals raised with it. The source entries are left as they are.
+  ///
+  /// All copies run under one tracked-day lock, so a profile switch either
+  /// waits for every one of them or, when it got there first, the copy is
+  /// abandoned and returns 0: the entries of one profile never land in
+  /// another. [startedOn] is the profile the user started the copy on.
+  ///
+  /// A failed write stops the copy. The entries copied before it stay,
+  /// each whole with its totals, and [CopyIntakesToMealException] says how
+  /// many there were.
+  Future<int> copyIntakesToMeal(
+    BuildContext context,
+    List<IntakeEntity> intakes,
+    IntakeTypeEntity target, {
+    ProfileStamp? startedOn,
+  }) async {
+    var copied = 0;
+    try {
+      await withTrackedDayLockOnProfile(() async {
+        for (final intake in intakes) {
+          await addIntake(
+            context,
+            intake.unit,
+            intake.amount.toString(),
+            target,
+            intake.meal,
+            intake.dateTime,
+          );
+          copied++;
+        }
+      }, startedOn: startedOn);
+    } catch (e, st) {
+      throw CopyIntakesToMealException(copied, e, st);
+    }
+    return copied;
+  }
+
   /// Best-effort cache refresh after the user logs a meal. For OFF items
   /// with a barcode, attempts a fresh lookup and overwrites the cache
   /// entry with the result. For everything else (FDC, custom, no
@@ -342,6 +385,21 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       proteinTracked: intakeEntity.totalProteinsGram,
     );
   }
+}
+
+/// A "Copy to other meal" that stopped partway; see
+/// [MealDetailBloc.copyIntakesToMeal].
+class CopyIntakesToMealException implements Exception {
+  /// How many entries were copied before the failure.
+  final int copied;
+  final Object cause;
+  final StackTrace stackTrace;
+
+  CopyIntakesToMealException(this.copied, this.cause, this.stackTrace);
+
+  @override
+  String toString() =>
+      'CopyIntakesToMealException: $copied copied before $cause';
 }
 
 enum UnitDropdownItem {
