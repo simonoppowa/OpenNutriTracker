@@ -220,6 +220,18 @@ class ConfigDBO extends HiveObject {
   // (`DeleteAllUserDataUsecase`). Null means no tip.
   @HiveField(42)
   bool? hasLeftTip;
+  // Opt-in body weight import from Health Connect / Apple Health — the route
+  // by which a smart scale, or an aggregator such as Health Sync, reaches the
+  // weight log. Separate from [healthImportEnabled] because it asks the
+  // platform for a different permission, and a user can want one without the
+  // other. Null means never enabled, which reads as off.
+  @HiveField(43)
+  bool? healthWeightImportEnabled;
+  // Watermark for the weight import, kept apart from [healthLastImportAt] so
+  // switching weight import on later still backfills rather than starting
+  // from wherever the workout import had got to.
+  @HiveField(44)
+  DateTime? healthWeightLastImportAt;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -262,6 +274,8 @@ class ConfigDBO extends HiveObject {
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
     this.hasLeftTip,
+    this.healthWeightImportEnabled,
+    this.healthWeightLastImportAt,
   });
 
   factory ConfigDBO.empty() =>

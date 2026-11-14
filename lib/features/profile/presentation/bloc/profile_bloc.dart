@@ -76,17 +76,51 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> updateUser(UserEntity userEntity) =>
       _updateUser(userEntity, ProfileStamp.now());
 
+  /// Runs what saving a weight change sets off — today's calorie goal and
+  /// every screen that reads the user — for a weight that reached the user
+  /// record without going through [updateUser]. The health weight import
+  /// writes the current weight itself and calls this afterwards, as does
+  /// deleting the imported entry that weight came from.
+  ///
+  /// The user is read inside the lock, not before it: an edit saved through
+  /// [updateUser] while this waited would otherwise have its goal replaced
+  /// by one worked out from the older user. Nothing is refreshed when no
+  /// user is left — "Delete all my data" can land before a late signal.
+  Future<void> reloadAfterWeightImport() async {
+    final startedOn = ProfileStamp.now();
+    final updated = await withTrackedDayLockOnProfile(() async {
+      if (!await _getUserUsecase.hasUserData()) return false;
+      final user = await _getUserUsecase.getUserData();
+      await _updateTrackedDayCalorieGoal(user, DateTime.now());
+      return true;
+    }, startedOn: startedOn);
+    if (updated != true) return;
+    _reloadAfterUserChange();
+  }
+
   Future<void> _updateUser(
     UserEntity userEntity,
     ProfileStamp startedOn,
   ) async {
     final updated = await withTrackedDayLockOnProfile(() async {
+      // The weight is the one field that moves behind the screens: the
+      // weight log writes it (a weight entered, an entry deleted, a health
+      // import), and every caller that changes it goes through there first.
+      // A dialog that edits another field still holds the copy of the user
+      // it opened with, so its weight is taken from the stored user rather
+      // than written back over a weight saved since.
+      if (await _getUserUsecase.hasUserData()) {
+        userEntity.weightKG = (await _getUserUsecase.getUserData()).weightKG;
+      }
       await _addUserUsecase.addUser(userEntity);
       await _updateTrackedDayCalorieGoal(userEntity, DateTime.now());
       return true;
     }, startedOn: startedOn);
     if (updated != true) return;
+    _reloadAfterUserChange();
+  }
 
+  void _reloadAfterUserChange() {
     // Refresh Profile
     add(LoadProfileEvent());
     // Refresh Home Page
