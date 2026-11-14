@@ -1571,5 +1571,7 @@
   "removeIngredientLabel": "Remove ingredient",
   "@removeIngredientLabel": {
     "description": "Tooltip and screen reader label of the delete button on a recipe ingredient row."
-  }
+  },
+  "weightInputPickerTooltip": "Slider",
+  "weightInputKeyboardTooltip": "Text input"
 }

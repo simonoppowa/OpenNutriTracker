@@ -210,6 +210,14 @@ class ConfigRepository {
     await _configDataSource.setConfigScannerPortraitLock(value);
   }
 
+  Future<bool> getUseTextForWeightInput() async {
+    return await _configDataSource.getUseTextForWeightInput();
+  }
+
+  Future<void> setUseTextForWeightInput(bool useText) async {
+    await _configDataSource.setUseTextForWeightInput(useText);
+  }
+
   Future<void> setConfigFoodSourceToggles(Map<String, bool> toggles) async {
     await _configDataSource.setConfigFoodSourceToggles(toggles);
   }

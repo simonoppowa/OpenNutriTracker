@@ -220,6 +220,10 @@ class ConfigDBO extends HiveObject {
   // (`DeleteAllUserDataUsecase`). Null means no tip.
   @HiveField(42)
   bool? hasLeftTip;
+  // #1509: whether the weight dialogs open on the text field instead of the
+  // horizontal picker. Null means the picker (the old behaviour).
+  @HiveField(48)
+  bool? useTextForWeightInput;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -262,6 +266,7 @@ class ConfigDBO extends HiveObject {
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
     this.hasLeftTip,
+    this.useTextForWeightInput,
   });
 
   factory ConfigDBO.empty() =>
