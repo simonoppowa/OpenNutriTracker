@@ -861,6 +861,137 @@ void main() {
     );
   });
 
+  // #576: the All list ranks what the user has logged above the rest of
+  // the merged page, so each search reports which of its results those are.
+  group('SearchProductsUseCase recentlyLoggedKeys', () {
+    late _FakeProductsRepository productsRepository;
+    late _FakeGetIntakeUsecase getIntakeUsecase;
+    late _FakeCustomMealDataSource customMealDataSource;
+    late _FakeRemoteSearchCacheDataSource cache;
+    late _FakeGetConfigUsecase getConfigUsecase;
+    late SearchProductsUseCase useCase;
+
+    setUp(() {
+      productsRepository = _FakeProductsRepository();
+      getIntakeUsecase = _FakeGetIntakeUsecase();
+      customMealDataSource = _FakeCustomMealDataSource();
+      cache = _FakeRemoteSearchCacheDataSource();
+      getConfigUsecase = _FakeGetConfigUsecase();
+      useCase = SearchProductsUseCase(
+        productsRepository,
+        getIntakeUsecase,
+        customMealDataSource,
+        cache,
+        _FakeRecipeDataSource(),
+        getConfigUsecase,
+      );
+    });
+
+    MealEntity off(String code, String name) =>
+        _meal(code: code, name: name, source: MealSourceEntity.off);
+    MealEntity fdc(String code, String name, {String? backendSource}) => _meal(
+      code: code,
+      name: name,
+      source: MealSourceEntity.fdc,
+      backendSource: backendSource,
+    );
+
+    test('names logged results on the page, most recent first', () async {
+      productsRepository.offResults['banana'] = [
+        off('b-1', 'Banana'),
+        off('b-2', 'Banana chips'),
+        off('b-3', 'Banana bread'),
+      ];
+      getIntakeUsecase.recentIntake = [
+        _intake('i-1', off('b-3', 'Banana bread')),
+        _intake('i-2', off('b-2', 'Banana chips')),
+      ];
+
+      final result = await useCase.searchOFFProductsByString('banana');
+
+      expect(result.recentlyLoggedKeys.toList(), ['off:b-3', 'off:b-2']);
+    });
+
+    test('a blank search names nothing logged', () async {
+      getIntakeUsecase.recentIntake = [_intake('i-1', off('b-1', 'Banana'))];
+
+      final result = await useCase.searchOFFProductsByString('  ');
+
+      expect(result.recentlyLoggedKeys, isEmpty);
+    });
+
+    test('leaves out logged records the search did not return', () async {
+      productsRepository.offResults['banana'] = [off('b-1', 'Banana')];
+      getIntakeUsecase.recentIntake = [
+        _intake('i-1', off('a-1', 'Apple')),
+        _intake('i-2', off('b-gone', 'Banana split')),
+      ];
+
+      final result = await useCase.searchOFFProductsByString('banana');
+
+      expect(result.recentlyLoggedKeys, isEmpty);
+    });
+
+    test('only names records of the source searched', () async {
+      productsRepository.fdcResults['banana'] = [fdc('b-1', 'Banana, raw')];
+      getIntakeUsecase.recentIntake = [
+        _intake('i-1', off('b-1', 'Banana')),
+        _intake('i-2', fdc('b-1', 'Banana, raw')),
+      ];
+
+      final result = await useCase.searchFDCFoodByString('banana');
+
+      expect(result.recentlyLoggedKeys.toList(), ['fdc:b-1']);
+    });
+
+    test(
+      'custom meals are not named: they already rank as the user\'s own',
+      () async {
+        final custom = _meal(
+          code: 'c-1',
+          name: 'Banana porridge',
+          source: MealSourceEntity.custom,
+        );
+        getIntakeUsecase.recentIntake = [_intake('i-1', custom)];
+
+        final result = await useCase.searchOFFProductsByString('banana');
+
+        expect(result.meals, [custom]);
+        expect(result.recentlyLoggedKeys, isEmpty);
+      },
+    );
+
+    test(
+      'a failed source still names the logged copy the cache answered',
+      () async {
+        await cache.cache(MealDBO.fromMealEntity(off('b-1', 'Banana')));
+        productsRepository.offThrowOn.add('banana');
+        getIntakeUsecase.recentIntake = [_intake('i-1', off('b-1', 'Banana'))];
+
+        final result = await useCase.searchOFFProductsByString('banana');
+
+        expect(result.remoteSourceFailed, isTrue);
+        expect(result.meals.map((m) => m.code), ['b-1']);
+        expect(result.recentlyLoggedKeys.toList(), ['off:b-1']);
+      },
+    );
+
+    test('a logged record from a disabled food source stays hidden', () async {
+      await cache.cache(
+        MealDBO.fromMealEntity(fdc('bls-1', 'Apfel roh', backendSource: 'bls')),
+      );
+      getConfigUsecase.foodSourceToggles = {'bls': false};
+      getIntakeUsecase.recentIntake = [
+        _intake('i-1', fdc('bls-1', 'Apfel roh', backendSource: 'bls')),
+      ];
+
+      final result = await useCase.searchFDCFoodByString('apfel');
+
+      expect(result.meals, isEmpty);
+      expect(result.recentlyLoggedKeys, isEmpty);
+    });
+  });
+
   group('SearchProductsUseCase recipes integration', () {
     late _FakeProductsRepository productsRepository;
     late _FakeGetIntakeUsecase getIntakeUsecase;
