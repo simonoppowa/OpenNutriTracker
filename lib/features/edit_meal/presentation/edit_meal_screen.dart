@@ -248,36 +248,42 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _maybeReinterpretKcalField(usesKj);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
-    return SafeArea(
-      child: Scaffold(
+    // The Scaffold fills the screen so its canvas colour paints behind the
+    // status bar and the home indicator. A SafeArea around it left those
+    // insets unpainted, and they showed black (#819). The AppBar clears the
+    // status bar, and the SafeArea on the body keeps the form clear of the
+    // home indicator.
+    return Scaffold(
+      backgroundColor: palette.canvas,
+      appBar: AppBar(
         backgroundColor: palette.canvas,
-        appBar: AppBar(
-          backgroundColor: palette.canvas,
-          surfaceTintColor: Colors.transparent,
-          toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
-          title: Text(
-            S.of(context).editMealLabel,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(Dimens.spacing16, 0, Dimens.spacing16, 0),
-              child: Semantics(
-                identifier: 'edit-meal-save',
-                child: FilledButton(
-                  onPressed: () => _onSavePressed(_usesImperialUnits),
-                  style: FilledButton.styleFrom(
-                    shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
-                  ),
-                  child: Text(S.of(context).buttonSaveLabel),
+        surfaceTintColor: Colors.transparent,
+        toolbarHeight: MediaQuery.textScalerOf(context).scale(kToolbarHeight),
+        title: Text(
+          S.of(context).editMealLabel,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Dimens.spacing16, 0, Dimens.spacing16, 0),
+            child: Semantics(
+              identifier: 'edit-meal-save',
+              child: FilledButton(
+                onPressed: () => _onSavePressed(_usesImperialUnits),
+                style: FilledButton.styleFrom(
+                  shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
                 ),
+                child: Text(S.of(context).buttonSaveLabel),
               ),
             ),
-          ],
-        ),
-        body: BlocBuilder<EditMealBloc, EditMealState>(
+          ),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        child: BlocBuilder<EditMealBloc, EditMealState>(
           bloc: _editMealBloc,
           builder: (BuildContext context, EditMealState state) {
             if (state is EditMealLoadingState) {
