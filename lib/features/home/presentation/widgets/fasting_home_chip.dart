@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Renders only while a fasting session is active. The chip is the home
@@ -20,7 +21,15 @@ class FastingHomeChip extends StatelessWidget {
     return BlocProvider(
       create: (_) =>
           locator<FastingBloc>()..add(const FastingLoadRequested()),
-      child: const _FastingHomeChipView(),
+      // The chip owns its own FastingBloc, so a fast started or ended on
+      // the fasting screen only shows up here once Home reloads (#1636).
+      child: BlocListener<HomeBloc, HomeState>(
+        bloc: locator<HomeBloc>(),
+        listenWhen: (_, state) => state is HomeLoadedState,
+        listener: (context, _) =>
+            context.read<FastingBloc>().add(const FastingLoadRequested()),
+        child: const _FastingHomeChipView(),
+      ),
     );
   }
 }
