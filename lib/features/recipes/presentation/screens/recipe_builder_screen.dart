@@ -11,8 +11,13 @@ import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
+import 'package:opennutritracker/core/utils/id_generator.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/edit_meal/domain/nutrition_import_parser.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/nutrition_import_dialog.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/nutrition_import_saver.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_builder_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/food_search_tab_view.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/ingredient_list_item.dart';
@@ -174,6 +179,15 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
                 onRemove: () => _onRemoveImage(context),
               ),
               const SizedBox(height: Dimens.spacing16),
+              Semantics(
+                identifier: 'recipe-builder-paste-nutrition',
+                child: OutlinedButton.icon(
+                  onPressed: () => _openNutritionPaste(context),
+                  icon: const Icon(Icons.content_paste_outlined),
+                  label: Text(S.of(context).nutritionPasteAction),
+                ),
+              ),
+              const SizedBox(height: Dimens.spacing12),
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -410,6 +424,82 @@ class _RecipeBuilderScreenState extends State<RecipeBuilderScreen> {
         unit: selection.unit,
       ),
     );
+  }
+
+  Future<void> _openNutritionPaste(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => NutritionImportDialog(
+        saveAll: _saveImportedFoods,
+        applyAll: _addImportedToRecipe,
+      ),
+    );
+  }
+
+  Future<void> _addImportedToRecipe(List<NutritionEntry> entries) async {
+    if (entries.any(
+      (entry) =>
+          entry.basis == NutritionBasis.per100ml || entry.servingUnit == 'ml',
+    )) {
+      throw FormatException(S.of(context).recipeNutritionImportMassRequired);
+    }
+    final replacements =
+        (_nameController.text.trim().isNotEmpty ? 1 : 0) +
+        _bloc.state.ingredients.length;
+    if (replacements > 0) {
+      final replace = await confirmNutritionReplace(context, replacements);
+      if (!replace || !context.mounted) {
+        throw const FormatException('Import was cancelled.');
+      }
+    }
+
+    for (var i = _bloc.state.ingredients.length - 1; i >= 0; i--) {
+      _bloc.add(RemoveIngredientEvent(i));
+    }
+    // The imported amounts set the weight: a typed total belongs to the
+    // ingredients being replaced.
+    _bloc.add(const ResetTotalWeightEvent());
+    for (final entry in entries) {
+      final values = entry.toPer100();
+      final meal = MealEntity(
+        code: IdGenerator.getUniqueID(),
+        name: entry.name.trim(),
+        brands: entry.brand.trim().isEmpty ? null : entry.brand.trim(),
+        url: null,
+        mealQuantity: '100',
+        mealUnit: 'g',
+        servingQuantity: entry.servingSize,
+        servingUnit: entry.servingUnit,
+        servingSize: entry.servingSize == null
+            ? null
+            : '${entry.servingSize} g',
+        nutriments: importedNutriments(values),
+        source: MealSourceEntity.custom,
+      );
+      final amount = entry.basis == NutritionBasis.per100g
+          ? 100.0
+          : entry.servingSize!;
+      _bloc.add(AddIngredientEvent(meal: meal, amount: amount, unit: 'g'));
+    }
+    if (entries.length == 1) {
+      _nameController.text = entries.single.name.trim();
+      _bloc.add(UpdateNameEvent(entries.single.name.trim()));
+    }
+  }
+
+  Future<String> _saveImportedFoods(List<NutritionEntry> entries) async {
+    final selection = await saveImportedNutritionEntries(
+      locator<EditMealBloc>(),
+      entries,
+    );
+    if (!mounted) return '';
+    return S
+        .of(context)
+        .nutritionBatchSummary(
+          selection.entries.length,
+          selection.duplicates,
+          selection.invalid,
+        );
   }
 
   Future<void> _onEditIngredient(BuildContext context, int index) async {

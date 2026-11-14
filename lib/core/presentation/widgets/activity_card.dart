@@ -15,6 +15,7 @@ class ActivityCard extends StatelessWidget {
   final Function(BuildContext, UserActivityEntity)? onItemTapped;
   final Function(bool isDragging)? onItemDragCallback;
   final bool firstListElement;
+  final Future<void> Function(UserActivityEntity activity)? onTransfer;
 
   const ActivityCard({
     super.key,
@@ -23,6 +24,7 @@ class ActivityCard extends StatelessWidget {
     required this.firstListElement,
     this.onItemTapped,
     this.onItemDragCallback,
+    this.onTransfer,
   });
 
   @override
@@ -95,6 +97,15 @@ class ActivityCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                if (onTransfer != null)
+                  Semantics(
+                    identifier: 'diary-transfer-activity',
+                    child: IconButton(
+                      tooltip: S.of(context).diaryTransferTitle,
+                      icon: const Icon(Icons.more_vert_rounded),
+                      onPressed: () => onTransfer!(activityEntity),
+                    ),
+                  ),
               ],
             ),
           ),

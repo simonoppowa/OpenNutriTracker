@@ -588,6 +588,7 @@ jobs:
         # should validate.
         run: flutter build apk --flavor full --debug
 
+
   android-integration-tests:
     # Same as iOS: runs in parallel from the start, gated on neither
     # android-build (it rebuilds the app itself) nor a file-discovery job.
