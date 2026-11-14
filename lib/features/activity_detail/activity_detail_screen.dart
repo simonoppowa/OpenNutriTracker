@@ -77,10 +77,16 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: palette.canvas,
-        body: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
+    // The Scaffold fills the screen so its canvas colour paints behind the
+    // status bar and the home indicator. A SafeArea around it left those
+    // insets unpainted, and they showed black. The pinned SliverAppBar clears
+    // the status bar, and the SafeArea on the body keeps the content clear of
+    // the side insets in landscape.
+    return Scaffold(
+      backgroundColor: palette.canvas,
+      body: SafeArea(
+        top: false,
+        child: BlocBuilder<ActivityDetailBloc, ActivityDetailState>(
           bloc: _activityDetailBloc,
           builder: (context, state) {
             if (state is ActivityDetailInitial) {
@@ -95,7 +101,14 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             }
           },
         ),
-        bottomSheet: ActivityDetailBottomSheet(
+      ),
+      // Scaffold strips the bottom padding from the bottom sheet's
+      // MediaQuery, so the sheet's own SafeArea would see none and leave Add
+      // behind the home indicator. Hand it the screen's insets back: its
+      // surface still paints behind the indicator, its content sits above it.
+      bottomSheet: MediaQuery(
+        data: MediaQuery.of(context),
+        child: ActivityDetailBottomSheet(
           onAddButtonPressed: onAddButtonPressed,
           quantityTextController: quantityTextController,
           activityEntity: activityEntity,
