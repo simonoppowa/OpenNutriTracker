@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart
 import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/weight_trend_chart.dart';
@@ -280,6 +281,23 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       ),
     );
     await _load();
+    await _refreshAfterWrite(result.date);
+  }
+
+  /// A reading for today also becomes the user's current weight (see
+  /// [AddWeightLogUsecase]), which Home shows and the kcal goal depends on.
+  /// Route that through [ProfileBloc.updateUser] like the Home and Profile
+  /// weight dialogs do, so Home, Diary and Trends all refresh (#1635).
+  Future<void> _refreshAfterWrite(DateTime date) async {
+    final now = DateTime.now();
+    final isToday =
+        date.year == now.year && date.month == now.month && date.day == now.day;
+    final getUser = _getUserUsecase;
+    if (isToday && getUser != null && locator.isRegistered<ProfileBloc>()) {
+      final user = await getUser.getUserData();
+      await locator<ProfileBloc>().updateUser(user);
+      return;
+    }
     reloadDiaryAndTrends();
   }
 
