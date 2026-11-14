@@ -173,8 +173,20 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   // since the follow-up, minutes 0-59 so shift workers on 04:30 (or
   // 03:45) can be exact. One write that also moves the tracked-day rows
   // onto the days their entries are now listed under (#1317).
+  //
+  // #1441: the move can make another date the logical today. Home shows
+  // today's goals from the live settings and the Diary shows the day's
+  // row, so that row gets the live goals, as after a goal edit or an
+  // import (#1394). Only an existing row: the move logs nothing, and the
+  // days before keep the goals they were stored with.
   Future<void> setDayStartOffset(int hours, int minutes) async {
+    final startedOn = ProfileStamp.now();
     await _setDayBoundaryUsecase.setDayBoundary(hours, minutes);
+    await withTrackedDayLockOnProfile(
+      () async =>
+          _writeDayGoals(await getCurrentLogicalDay(), createIfAbsent: false),
+      startedOn: startedOn,
+    );
   }
 
   Future<int> getDayStartOffsetHours() async {
@@ -306,44 +318,53 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   Future<void> updateTrackedDay(DateTime day) =>
       // The goal counts the day's activities, so it is read and written
       // with no boundary move between (#1317).
-      withTrackedDayLockOnProfile(() async {
-        final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-        final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
-          totalKcalGoal,
-        );
-        final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(
-          totalKcalGoal,
-        );
-        final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
-          totalKcalGoal,
-        );
+      withTrackedDayLockOnProfile(
+        () => _writeDayGoals(day, createIfAbsent: true),
+      );
 
-        final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
+  /// Writes the live kcal and macro goals onto [day]'s row. Without a
+  /// row, creates one when [createIfAbsent], else writes nothing. Runs
+  /// under the tracked-day lock.
+  Future<void> _writeDayGoals(
+    DateTime day, {
+    required bool createIfAbsent,
+  }) async {
+    final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
+    if (!hasTrackedDay && !createIfAbsent) return;
 
-        if (hasTrackedDay) {
-          await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
-          await _addTrackedDayUsecase.updateDayMacroGoals(
-            day,
-            carbsGoal: totalCarbsGoal,
-            fatGoal: totalFatGoal,
-            proteinGoal: totalProteinGoal,
-          );
-        } else {
-          // No diary entry yet for this day (e.g. first thing in the
-          // morning, or right after onboarding). Create the row from the
-          // current goals, as callers rely on: without it, follow-up
-          // writes like setTodayNutrientGoals find no row and are
-          // silently skipped (#1348). Same creation pattern as
-          // MealDetailBloc/ActivityDetailBloc.
-          await _addTrackedDayUsecase.addNewTrackedDay(
-            day,
-            totalKcalGoal,
-            totalCarbsGoal,
-            totalFatGoal,
-            totalProteinGoal,
-          );
-        }
-      });
+    final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
+    final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+      totalKcalGoal,
+    );
+    final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+    final totalProteinGoal = await _getMacroGoalUsecase.getProteinsGoal(
+      totalKcalGoal,
+    );
+
+    if (hasTrackedDay) {
+      await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
+      await _addTrackedDayUsecase.updateDayMacroGoals(
+        day,
+        carbsGoal: totalCarbsGoal,
+        fatGoal: totalFatGoal,
+        proteinGoal: totalProteinGoal,
+      );
+    } else {
+      // No diary entry yet for this day (e.g. first thing in the
+      // morning, or right after onboarding). Create the row from the
+      // current goals, as callers rely on: without it, follow-up
+      // writes like setTodayNutrientGoals find no row and are
+      // silently skipped (#1348). Same creation pattern as
+      // MealDetailBloc/ActivityDetailBloc.
+      await _addTrackedDayUsecase.addNewTrackedDay(
+        day,
+        totalKcalGoal,
+        totalCarbsGoal,
+        totalFatGoal,
+        totalProteinGoal,
+      );
+    }
+  }
 }
 
 enum SystemDropDownType { metric, imperial }
