@@ -377,13 +377,15 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   /// The labels of the required values the product lacks, so the warning
   /// can say which one is missing (#1474).
   List<String> _missingRequiredProductInfo() {
-    final productNutriments = widget.product.nutriments;
     final s = S.of(context);
     return [
-      if (productNutriments.energyKcal100 == null) s.energyLabel,
-      if (productNutriments.carbohydrates100 == null) s.carbohydrateLabel,
-      if (productNutriments.fat100 == null) s.fatLabel,
-      if (productNutriments.proteins100 == null) s.proteinLabel,
+      for (final nutrient in widget.product.missingRequiredNutrients)
+        switch (nutrient) {
+          RequiredNutrient.energy => s.energyLabel,
+          RequiredNutrient.carbohydrates => s.carbohydrateLabel,
+          RequiredNutrient.fat => s.fatLabel,
+          RequiredNutrient.protein => s.proteinLabel,
+        },
     ];
   }
 
