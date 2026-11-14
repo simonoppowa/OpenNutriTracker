@@ -27,8 +27,11 @@ import java.time.Instant
  * and steps were read and thrown away. Everything the import actually consumes
  * — id, start, end, activity type, writing app — is on the session record.
  *
- * Only `READ_EXERCISE` is needed here. The calorie read stays on the plugin,
- * which needs only `READ_TOTAL_CALORIES_BURNED`.
+ * The sessions need only `READ_EXERCISE`. Their energy comes from
+ * [readTotalCaloriesBurned], which needs only `READ_TOTAL_CALORIES_BURNED`:
+ * it moved here from the plugin because the plugin's `getData` catches every
+ * exception, a rate limit included, and answers with an empty list, which
+ * the import took for workouts with no energy (#1459).
  */
 object HealthConnectWorkoutReader {
 
@@ -91,6 +94,53 @@ object HealthConnectWorkoutReader {
         } while (pageToken != null)
 
         return sessions
+    }
+
+    /**
+     * TOTAL_CALORIES_BURNED records whose interval Health Connect matches to
+     * `[from, to)`, as plain maps for the method channel: interval, energy in
+     * kilocalories, and the package that wrote the record. Paged to
+     * exhaustion like [readExerciseSessions]; a long backfill against a
+     * per-minute calorie stream runs to many pages.
+     *
+     * The Dart side widens the window around the sessions and attributes each
+     * record by its overlap with a session, so nothing here filters further.
+     */
+    suspend fun readTotalCaloriesBurned(
+        context: Context,
+        fromMillis: Long,
+        toMillis: Long,
+    ): List<Map<String, Any?>> {
+        val client = HealthConnectClient.getOrCreate(context)
+        val timeRange = TimeRangeFilter.between(
+            Instant.ofEpochMilli(fromMillis),
+            Instant.ofEpochMilli(toMillis),
+        )
+
+        val calories = mutableListOf<Map<String, Any?>>()
+        var pageToken: String? = null
+        do {
+            val response = client.readRecords(
+                ReadRecordsRequest(
+                    recordType = TotalCaloriesBurnedRecord::class,
+                    timeRangeFilter = timeRange,
+                    pageToken = pageToken,
+                ),
+            )
+            for (record in response.records) {
+                calories.add(
+                    mapOf(
+                        "startMillis" to record.startTime.toEpochMilli(),
+                        "endMillis" to record.endTime.toEpochMilli(),
+                        "kcal" to record.energy.inKilocalories,
+                        "sourceName" to record.metadata.dataOrigin.packageName,
+                    ),
+                )
+            }
+            pageToken = response.pageToken
+        } while (pageToken != null)
+
+        return calories
     }
 
     /**

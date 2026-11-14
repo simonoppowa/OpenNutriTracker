@@ -110,6 +110,96 @@ void main() {
     );
   });
 
+  group('readTotalCaloriesBurned', () {
+    Map<String, Object?> calories({
+      Object? startMillis,
+      Object? endMillis,
+      Object? kcal = 120.5,
+      Object? sourceName = 'com.fitbit.FitbitMobile',
+    }) => {
+      'startMillis':
+          startMillis ?? DateTime(2026, 8, 13, 18).millisecondsSinceEpoch,
+      'endMillis':
+          endMillis ?? DateTime(2026, 8, 13, 18, 15).millisecondsSinceEpoch,
+      'kcal': kcal,
+      'sourceName': sourceName,
+    };
+
+    test('the window crosses the channel as epoch milliseconds', () async {
+      await reader.readTotalCaloriesBurned(from: from, to: to);
+
+      expect(lastCall?.method, 'readTotalCaloriesBurned');
+      expect(lastCall?.arguments, {
+        'fromMillis': from.millisecondsSinceEpoch,
+        'toMillis': to.millisecondsSinceEpoch,
+      });
+    });
+
+    test('a record keeps its interval, energy and writer', () async {
+      response = [calories()];
+
+      final records = await reader.readTotalCaloriesBurned(from: from, to: to);
+
+      expect(records, hasLength(1));
+      expect(records.single.start, DateTime(2026, 8, 13, 18));
+      expect(records.single.end, DateTime(2026, 8, 13, 18, 15));
+      expect(records.single.kcal, 120.5);
+      expect(records.single.sourceName, 'com.fitbit.FitbitMobile');
+    });
+
+    test('a whole-number energy is accepted', () async {
+      // The platform sends a Double, but a codec is free to hand an integral
+      // value over as an int.
+      response = [calories(kcal: 2400)];
+
+      final records = await reader.readTotalCaloriesBurned(from: from, to: to);
+
+      expect(records.single.kcal, 2400.0);
+    });
+
+    test('one malformed record costs that record, not the read', () async {
+      response = [
+        calories(kcal: null),
+        calories(startMillis: 'not a number'),
+        calories(sourceName: null),
+        calories(kcal: 75),
+        'not a map',
+      ];
+
+      final records = await reader.readTotalCaloriesBurned(from: from, to: to);
+
+      expect(records.map((record) => record.kcal), [75.0]);
+    });
+
+    test('nothing back means no records', () async {
+      response = null;
+
+      expect(await reader.readTotalCaloriesBurned(from: from, to: to), isEmpty);
+    });
+
+    // #1459: the plugin's calorie read answered a rate limit with an empty
+    // list, so every workout lost its energy and the import moved on.
+    test(
+      'a rate-limited read throws rather than reporting no energy',
+      () async {
+        response = PlatformException(
+          code: HealthConnectWorkoutReader.rateLimitedCode,
+        );
+
+        await expectLater(
+          reader.readTotalCaloriesBurned(from: from, to: to),
+          throwsA(
+            isA<PlatformException>().having(
+              HealthConnectWorkoutReader.isRateLimited,
+              'isRateLimited',
+              isTrue,
+            ),
+          ),
+        );
+      },
+    );
+  });
+
   group('hasWorkoutReadPermissions', () {
     test('relays the platform\'s answer', () async {
       response = true;

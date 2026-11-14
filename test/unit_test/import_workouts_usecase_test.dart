@@ -2,9 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:health/health.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/health/calorie_record.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_package_service.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
 import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
@@ -85,6 +90,39 @@ class _FakeHealthService extends Fake implements HealthService {
 
   @override
   Future<double?> readLatestBodyFatPercent() async => bodyFatPercent;
+}
+
+/// The plugin, which the Android workout path must no longer touch at all:
+/// any call into it fails the test.
+class _UntouchableHealth extends Fake implements Health {}
+
+/// The app's own Health Connect channel, without a platform.
+class _FakeWorkoutReader extends Fake implements HealthConnectWorkoutReader {
+  List<ExternalWorkout> sessions = const [];
+  List<CalorieRecord> calorieRecords = const [];
+  Object? calorieError;
+
+  @override
+  Future<bool> hasWorkoutReadPermissions() async => true;
+
+  @override
+  Future<List<ExternalWorkout>> readExerciseSessions({
+    required DateTime from,
+    required DateTime to,
+  }) async => [
+    for (final session in sessions)
+      if (!session.start.isBefore(from) && session.start.isBefore(to)) session,
+  ];
+
+  @override
+  Future<List<CalorieRecord>> readTotalCaloriesBurned({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final error = calorieError;
+    if (error != null) throw error;
+    return calorieRecords;
+  }
 }
 
 ExternalWorkout _workout({
@@ -422,6 +460,52 @@ void main() {
       expect(await usecase.importNow(), equals(0));
       expect(await userActivityRepository.getAllUserActivityDBO(), isEmpty);
       expect(await trackedDayRepository.getAllTrackedDaysDBO(), isEmpty);
+    });
+
+    // #948: on device the import read its window, stamped "Last import" and
+    // filed nothing, with not one line in logcat to say why. A run now says
+    // what it read and what it dropped, in counts only.
+    test('a run reports what it skipped, in counts', () async {
+      healthService.workouts = [
+        _workout(
+          id: 'no-energy',
+          start: DateTime(2026, 5, 23, 7, 0),
+          energyBurnedKcal: null,
+        ),
+        _workout(
+          id: 'instant',
+          start: DateTime(2026, 5, 23, 9, 0),
+          duration: Duration.zero,
+        ),
+        _workout(id: 'good', start: DateTime(2026, 5, 23, 10, 0)),
+      ];
+      final messages = <String>[];
+      final subscription = Logger.root.onRecord
+          .where((record) => record.loggerName == 'ImportWorkoutsUsecase')
+          .listen((record) => messages.add(record.message));
+      addTearDown(subscription.cancel);
+
+      await usecase.importNow();
+      await usecase.importNow();
+
+      expect(messages, [
+        'Workout import read 3 workout(s): 1 imported, '
+            '2 without energy or duration, 0 already imported or deleted',
+        'Workout import read 3 workout(s): 0 imported, '
+            '2 without energy or duration, 1 already imported or deleted',
+      ]);
+    });
+
+    test('an empty window is reported too', () async {
+      final messages = <String>[];
+      final subscription = Logger.root.onRecord
+          .where((record) => record.loggerName == 'ImportWorkoutsUsecase')
+          .listen((record) => messages.add(record.message));
+      addTearDown(subscription.cancel);
+
+      await usecase.importNow();
+
+      expect(messages, ['Workout import read 0 workout(s)']);
     });
 
     test('nothing is read at all while the user has not opted in', () async {
@@ -824,5 +908,131 @@ void main() {
       );
       expect(trackedDayBox.containsKey('2026-05-23'), isFalse);
     });
+  });
+
+  // The same use case over the real Android service, so the failure paths of
+  // the Health Connect reads are checked where they matter: in the diary and
+  // the watermark.
+  group('ImportWorkoutsUsecase over Health Connect', () {
+    late _FakeWorkoutReader reader;
+    late ImportWorkoutsUsecase androidUsecase;
+
+    final sessionStart = DateTime(2026, 5, 22, 18, 0);
+
+    setUp(() {
+      reader = _FakeWorkoutReader();
+      androidUsecase = ImportWorkoutsUsecase(
+        HealthImportRepository(
+          HealthPackageService(
+            _UntouchableHealth(),
+            workoutReader: reader,
+            platform: HealthTargetPlatform.android,
+          ),
+        ),
+        configRepository,
+        userActivityRepository,
+        GetPhysicalActivityUsecase(
+          PhysicalActivityRepository(PhysicalActivityDataSource()),
+        ),
+        LogUserActivityUsecase(
+          AddUserActivityUsecase(userActivityRepository),
+          AddTrackedDayUsecase(trackedDayRepository),
+          getKcalGoalUsecase,
+          getMacroGoalUsecase,
+        ),
+        provider,
+      );
+      reader.sessions = [
+        ExternalWorkout(
+          id: 'hc-session-1',
+          start: sessionStart,
+          end: sessionStart.add(const Duration(hours: 1)),
+          activityTypeName: 'FLEXIBILITY',
+          sourceAppName: 'com.fitbit.FitbitMobile',
+        ),
+      ];
+    });
+
+    // #948: Health Connect held the day's total calories as one record,
+    // starting at midnight, so no record started inside the session and the
+    // workout was dropped as having no energy.
+    test('a workout whose calories are one all-day record lands on its day, '
+        'once', () async {
+      reader.calorieRecords = [
+        CalorieRecord(
+          start: DateTime(2026, 5, 22),
+          end: DateTime(2026, 5, 23),
+          kcal: 2400,
+          sourceName: 'com.fitbit.FitbitMobile',
+        ),
+      ];
+
+      expect(await androidUsecase.importNow(), equals(1));
+
+      final activities = await userActivityRepository.getAllUserActivityDBO();
+      expect(activities, hasLength(1));
+      expect(activities.single.externalId, equals('hc-session-1'));
+      expect(activities.single.sourceReportedKcal, closeTo(100, 0.001));
+      expect(trackedDayBox.containsKey('2026-05-22'), isTrue);
+
+      // The next run re-reads the overlap and files nothing new.
+      ImportWorkoutsUsecase.clock = () => now.add(const Duration(hours: 2));
+      expect(await androidUsecase.importNow(), equals(0));
+      expect(
+        await userActivityRepository.getAllUserActivityDBO(),
+        hasLength(1),
+      );
+    });
+
+    // #1459: the calorie read used to answer a rate limit with an empty list.
+    test('a rate-limited calorie read files nothing, leaves the watermark, '
+        'and the run after the back-off imports the workout', () async {
+      reader.calorieRecords = [
+        CalorieRecord(
+          start: sessionStart,
+          end: sessionStart.add(const Duration(hours: 1)),
+          kcal: 180,
+          sourceName: 'com.fitbit.FitbitMobile',
+        ),
+      ];
+      reader.calorieError = PlatformException(
+        code: HealthConnectWorkoutReader.rateLimitedCode,
+      );
+
+      expect(await androidUsecase.importIfDue(), equals(0));
+      expect(await userActivityRepository.getAllUserActivityDBO(), isEmpty);
+      expect((await configRepository.getConfig()).healthLastImportAt, isNull);
+
+      reader.calorieError = null;
+      ImportWorkoutsUsecase.clock = () =>
+          now.add(ImportWorkoutsUsecase.rateLimitBackoff);
+      expect(await androidUsecase.importIfDue(), equals(1));
+    });
+
+    test('a failed calorie read reaches the user-initiated path', () async {
+      reader.calorieError = PlatformException(
+        code: 'health_connect_unavailable',
+      );
+
+      await expectLater(
+        androidUsecase.importNow(),
+        throwsA(isA<PlatformException>()),
+      );
+      expect((await configRepository.getConfig()).healthLastImportAt, isNull);
+    });
+
+    test(
+      'an empty Health Connect files nothing and covers the window',
+      () async {
+        reader.sessions = const [];
+
+        expect(await androidUsecase.importNow(), equals(0));
+        expect(await userActivityRepository.getAllUserActivityDBO(), isEmpty);
+        expect(
+          (await configRepository.getConfig()).healthLastImportAt,
+          equals(now),
+        );
+      },
+    );
   });
 }

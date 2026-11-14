@@ -4,6 +4,7 @@ import 'dart:math' show max;
 import 'package:health/health.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:opennutritracker/core/data/data_source/health/calorie_record.dart';
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_connect_workout_reader.dart';
 import 'package:opennutritracker/core/data/data_source/health/health_service.dart';
@@ -39,7 +40,9 @@ enum HealthTargetPlatform {
 ///
 ///  * workouts are read outside the plugin, by
 ///    [HealthConnectWorkoutReader] — the plugin's own workout read pulls
-///    distance and steps for every session and fails entirely without them;
+///    distance and steps for every session and fails entirely without them.
+///    Their calorie records come through the same reader, because the
+///    plugin's calorie read answers any failure with an empty list (#1459);
 ///  * body fat is not read at all, and the calorie-credit suggestion falls
 ///    back to the BMI-derived percentile it already used for anyone whose
 ///    health store had no body fat on record.
@@ -55,7 +58,8 @@ class HealthPackageService implements HealthService {
   /// separate TOTAL_CALORIES_BURNED records — so the calorie read is what
   /// gives an imported workout its kcal. HealthKit puts the total on the
   /// workout itself, so asking for this on iOS would add a permission row the
-  /// feature never uses.
+  /// feature never uses. Requested through the plugin, read through
+  /// [HealthConnectWorkoutReader].
   static const _androidEnergyType = HealthDataType.TOTAL_CALORIES_BURNED;
 
   /// Body fat personalises the calorie-credit suggestion. iOS only; see the
@@ -81,6 +85,18 @@ class HealthPackageService implements HealthService {
   /// personalised suggestion, and short enough that a stale composition from
   /// several years ago doesn't drive it.
   static const _bodyFatLookback = Duration(days: 365);
+
+  /// How far the Android calorie read reaches beyond the sessions it is for.
+  ///
+  /// Some writers keep a calorie record per day, which starts at midnight —
+  /// before the session, and often before the import window too. Whether
+  /// Health Connect's time filter returns a record that only overlaps the
+  /// window is not something its documentation settles, so the read starts a
+  /// day before the earliest session and ends a day after the latest one,
+  /// which holds such a record either way. Attribution only counts the part
+  /// of a record that overlaps a session, so the wider read adds nothing to
+  /// any workout on its own.
+  static const _calorieReadMargin = Duration(days: 1);
 
   static final _log = Logger('HealthPackageService');
   final Health _health;
@@ -200,10 +216,11 @@ class HealthPackageService implements HealthService {
 
   /// Workouts from Health Connect, read outside the plugin.
   ///
-  /// A session record carries no energy, so the calorie records for the whole
-  /// window are read once and attributed per workout by
-  /// [androidWorkoutEnergyKcal] — which is also why the plugin's own totals
-  /// were never used here even when they were available.
+  /// A session record carries no energy, so the calorie records around all
+  /// the sessions are read once and attributed per workout by
+  /// [androidWorkoutEnergyKcal]. Both reads throw when Health Connect refuses
+  /// them; a refused calorie read must not turn into workouts without energy,
+  /// which the import would skip and then never read again (#1459).
   Future<List<ExternalWorkout>> _readAndroidWorkouts({
     required DateTime from,
     required DateTime to,
@@ -213,10 +230,15 @@ class HealthPackageService implements HealthService {
       to: to,
     );
     if (sessions.isEmpty) return const <ExternalWorkout>[];
-    final calorieRecords = await _health.getHealthDataFromTypes(
-      types: const [_androidEnergyType],
-      startTime: from,
-      endTime: to,
+    var earliestStart = sessions.first.start;
+    var latestEnd = sessions.first.end;
+    for (final session in sessions) {
+      if (session.start.isBefore(earliestStart)) earliestStart = session.start;
+      if (session.end.isAfter(latestEnd)) latestEnd = session.end;
+    }
+    final calorieRecords = await _workoutReader.readTotalCaloriesBurned(
+      from: earliestStart.subtract(_calorieReadMargin),
+      to: latestEnd.add(_calorieReadMargin),
     );
     return [
       for (final session in sessions)
@@ -251,25 +273,26 @@ class HealthPackageService implements HealthService {
   /// track sessions in one app and calories in another) — never the
   /// cross-source total.
   ///
-  /// A record belongs to the window when it STARTS inside it ([start]
-  /// inclusive, [end] exclusive) — the same startTime-based semantics Health
-  /// Connect's own between() filter applies.
+  /// Each record counts for the share of it that overlaps `[start, end)`,
+  /// spread evenly over the record's own interval: a 15-minute record that
+  /// began five minutes before the session counts two thirds, and a record
+  /// covering the whole day counts the session's slice of the day. Counting
+  /// only records that START inside the session (as this did before #948)
+  /// gave a workout nothing when its writer kept one record per day, or
+  /// when a short session began partway through a bucket — and a workout
+  /// with no energy is never imported. A zero-length record counts in full
+  /// when it lies in the session.
   @visibleForTesting
   static double? androidWorkoutEnergyKcal({
     required DateTime start,
     required DateTime end,
     required String sourceName,
-    required List<HealthDataPoint> calorieRecords,
+    required List<CalorieRecord> calorieRecords,
   }) {
     final kcalBySource = <String, double>{};
     for (final record in calorieRecords) {
-      if (record.dateFrom.isBefore(start) || !record.dateFrom.isBefore(end)) {
-        continue;
-      }
-      final value = record.value;
-      if (value is! NumericHealthValue) continue;
-      final kcal = _energyInKcal(value.numericValue, record.unit);
-      if (kcal == null) continue;
+      final kcal = _overlappingKcal(record, start: start, end: end);
+      if (kcal <= 0) continue;
       kcalBySource.update(
         record.sourceName,
         (sum) => sum + kcal,
@@ -280,6 +303,25 @@ class HealthPackageService implements HealthService {
     if (ownKcal > 0) return ownKcal;
     final largestKcal = kcalBySource.values.fold(0.0, max);
     return largestKcal > 0 ? largestKcal : null;
+  }
+
+  /// The part of [record]'s energy that falls inside `[start, end)`.
+  static double _overlappingKcal(
+    CalorieRecord record, {
+    required DateTime start,
+    required DateTime end,
+  }) {
+    final recordMicros = record.end.difference(record.start).inMicroseconds;
+    if (recordMicros <= 0) {
+      final inside =
+          !record.start.isBefore(start) && record.start.isBefore(end);
+      return inside ? record.kcal : 0;
+    }
+    final overlapStart = record.start.isAfter(start) ? record.start : start;
+    final overlapEnd = record.end.isBefore(end) ? record.end : end;
+    final overlapMicros = overlapEnd.difference(overlapStart).inMicroseconds;
+    if (overlapMicros <= 0) return 0;
+    return record.kcal * overlapMicros / recordMicros;
   }
 
   @override
