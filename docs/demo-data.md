@@ -23,7 +23,9 @@ shipped-in-every-build feature:
   of `MainScreen`; tapping "Set up your profile" wipes it and returns to
   onboarding (mirrors `SettingsScreen._confirmDeleteAllData`'s
   confirm-then-wipe-then-route pattern). Whether the active profile holds
-  sample data is tracked by `ConfigEntity.isDemoData`, cleared for free by
+  sample data is tracked by `ConfigEntity.isDemoData` — stored in the
+  per-profile `ConfigBox`, never the shared `AppConfigBox`, so onboarding a
+  second profile leaves the first one's banner alone — cleared for free by
   `DeleteAllUserDataUsecase.deleteAll()` (which already wipes the whole
   config box) and defensively re-cleared when real onboarding completes
   (`OnboardingBloc.saveOnboardingData`).
