@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:opennutritracker/core/l10n/shipped_locales.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -462,7 +463,8 @@ void main() {
     );
     expect(dialogList, findsOneWidget);
 
-    final lastLanguage = find.text('Español');
+    // The picker lists the map in order, so its last entry is the last row.
+    final lastLanguage = find.text(shippedLocales.values.last);
     await tester.scrollUntilVisible(lastLanguage, 100, scrollable: dialogList);
     await tester.tap(lastLanguage);
     await tester.pumpAndSettle();
@@ -471,7 +473,7 @@ void main() {
       tester
           .widget<RadioGroup<String>>(find.byType(RadioGroup<String>))
           .groupValue,
-      'es',
+      shippedLocales.keys.last,
     );
     final actions = tester.getRect(
       find
