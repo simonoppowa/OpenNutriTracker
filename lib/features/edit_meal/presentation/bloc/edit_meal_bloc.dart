@@ -193,6 +193,9 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       servingSize: oldMealEntity.servingSize,
       nutriments: newMealNutriments,
       source: oldMealEntity.source,
+      // What the user typed replaces the OFF record, so meal detail must not
+      // hydrate over it (#1597).
+      detailed: oldMealEntity.source == MealSourceEntity.off,
       // #64 follow-up: a freshly-picked local photo wins over what was
       // on the old entity; a clear flag means the user removed the
       // photo and the slug should be wiped from the saved meal.
