@@ -1,1 +1,133 @@
-{}
+{
+  "activityExample": "esimerkiksi juoksu, pyöräily, jooga...",
+  "activityLabel": "Aktiviteetti",
+  "addItemLabel": "Lisää uusi tuote:",
+  "addLabel": "Lisää",
+  "addToSectionLabel": "Lisää {section}",
+  "@addToSectionLabel": {
+    "description": "Screen reader label of the plus at the foot of a meal or activity list, e.g. 'Add to Breakfast'.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "additionalInfoLabelCustom": "Muokattu raaka-aine",
+  "additionalInfoLabelSource": "Lisää tietoa\n{sourceName}",
+  "@additionalInfoLabelSource": {
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "foodSourcesAlwaysEnabledLabel": "Aina käytössä",
+  "foodSourcesHelpText": "Hakutulokset ovat peräisin näistä tietokannoista. Open Food Facts mahdollistaa tuotteen ja viivakoodin etsinnän ja ovat aina käytössä.",
+  "machineTranslatedNameHint": "Nimi käännetty automaattisesti",
+  "settingsFoodSourcesLabel": "Ruokatietokannat",
+  "onboardingOtherOptionsSubtitle": "Personoi ohjelmaa - voit muuttaa kaiken myöhemmin asetuksista",
+  "additionalInfoLabelOFF": "Lisää tietoa\nOpenFoodFacts",
+  "additionalInfoLabelRecipe": "Muokattu resepti",
+  "additionalInfoLabelUnknown": "Tuntematon raaka-aine",
+  "allItemsLabel": "Kaikki",
+  "alphaVersionName": "[Alpha]",
+  "appDescription": "OpenNutriTracker on ilmainen ja avoimen lähdekoodin kalori ja ravinteiden seuranta, joka kunnioittaa yksityisyyttäsi.",
+  "appLicenseLabel": "GPL-3.0 lisenssi",
+  "appTitle": "OpenNutriTracker",
+  "appVersionName": "Versio {versionNumber}",
+  "@appVersionName": {
+    "placeholders": {
+      "versionNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "barcodeInvalidEan13CheckDigit": "Tämä 13-numeroinen viivakoodi näyttää väärältä: sen viimeinen numero ei vastaa muita",
+  "bmiInfo": "Body Mass Index (BMI) on indeksi, joka luokittelee ylipainon ja lihavuuden aikuisille. Se määritellään painona kilogrammoina, jotka on jaettu metrien korkeuden neliöllä (kg/m2).\n\nBMI ei erota rasvaa ja lihasmassaa ja voi olla harhaanjohtava joillekin ihmisille.",
+  "bmiInfoClassificationSection": "WHO-luokitus",
+  "bmiInfoFormulaSection": "Kaava",
+  "bmiInfoScreenTitle": "Miten BMI lasketaan",
+  "bmiLabel": "BMI",
+  "breakfastExample": "mm. viljaa, maitoa, kahvia.",
+  "breakfastLabel": "Aamupala",
+  "burnedLabel": "kulutettu",
+  "buttonNextLabel": "SEUR.",
+  "buttonResetLabel": "Nollaa",
+  "buttonSaveLabel": "Tallenna",
+  "buttonStartLabel": "ALOITA",
+  "buttonYesLabel": "KYLLÄ",
+  "calciumLabel": "kalsium",
+  "calculationsMacronutrientsDistributionLabel": "Makrojen jakelu",
+  "calculationsMacrosDistribution": "{pctCarbs}% hiilihydraatteja, {pctFats}% rasvaa, {pctProteins}% proteiineja",
+  "@calculationsMacrosDistribution": {
+    "placeholders": {
+      "pctCarbs": {},
+      "pctFats": {},
+      "pctProteins": {}
+    }
+  },
+  "calculationsRecommendedLabel": "(suositus)",
+  "calculationsTDEELabel": "TDEE-yhtälö",
+  "calorieWidgetDescription": "Päivän syödyt kalorit ja tavoitteet.",
+  "@calorieWidgetDescription": {
+    "description": "Subtitle of the calorie widget in the iOS widget gallery."
+  },
+  "caloriesProfileAveragedLabel": "Keskimääräinen viittaus (oletuksena)",
+  "carbohydrateLabel": "hiilihydraatti",
+  "carbsLabel": "hiilihydraatit",
+  "carbsLabelShort": "h",
+  "cholesterolLabel": "kolesteroli",
+  "clearOffCacheConfirmContent": "Poistaa paikallisesti välimuistista haku- ja skannaustulokset palveluista Open Food Facts ja FDC. Välimuisti rakentuu automaattisesti, kun etsit ja skannaat tuotteita. Muokattuihin aterioita ei vaikutusta.",
+  "clearOffCacheLabel": "Tyhjennä välimuistista kohteita",
+  "cmLabel": "cm",
+  "codeCopiedLabel": "Koodi kopioitu",
+  "copyCodeLabel": "Kopioi koodi",
+  "copyDialogTitle": "Mihin ateriaan haluat kopioida?",
+  "copyOrDeleteTimeDialogTitle": "Mitä haluat tehdä?",
+  "createCustomDialogContent": "Haluatko luoda mukautetun aterian?",
+  "createRecipeTitle": "Luo resepti",
+  "csvImportContributeOffAndroidLink": "Android",
+  "csvImportContributeOffIosLink": "iOS",
+  "csvImportContributeOffPrefix": "Onko sinulla viivakoodi? Auta kaikkia osallistumalla Open Food Facts:",
+  "csvImportErrorLabel": "CSV-tiedostoa ei voi lukea. Tarkista muotoilu ja yritä uudelleen.",
+  "csvImportSuccessLabel": "Tuotu {count} ateria(t).",
+  "@csvImportSuccessLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customActivityKcalHint": "esimerkiksi 250",
+  "customActivityKcalLabel": "Kulutetut kalorit",
+  "customActivityName": "Mukautettu aktiviteetti",
+  "customActivityNameFieldHint": "esimerkiksi työmatkapyöräily",
+  "customActivityNameFieldLabel": "Nimi (valinnainen)",
+  "customActivityPickFromTemplate": "Valitse tallennetuista malleista",
+  "customActivitySaveAsTemplate": "Tallenna malli seuraavaa kertaa varten",
+  "customMealBarcodeInvalid": "Viivakoodin on oltava 8-14 numeroa",
+  "customMealBarcodeLabel": "Viivakoodi",
+  "customMealBarcodeScanButton": "Skannaa viivakoodi",
+  "customMealFormAdvanced": "Edistynyt",
+  "customMealFormAdvancedHelp": "Aseta koot ja per-100 arvot täsmälliseen skaalaukseen.",
+  "customMealFormSimple": "Yksinkertainen",
+  "customMealFormSimpleHelp": "Kirjoita kokonaismäärä yhtä annosta varten.",
+  "customMealFormSimpleFieldHelper": "{unit} yhdessä annoksessa",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "customMealsDeleteConfirmContent": "Kaikki tämän profiilin päiväkirjamerkinnät, jotka käyttävät tätä ateriaa, poistetaan.",
+  "customMealsDeleteConfirmTitle": "Poistetaan mukautettu ateria?",
+  "customMealsEmptyLabel": "Mukautettuja aterioita ei ole vielä tallennettu.",
+  "dailyKcalAdjustmentLabel": "Päivittäinen Kcal-säätö:",
+  "dailyKjAdjustmentLabel": "Päivittäinen KJ:n säätö:",
+  "deleteAllLabel": "Poista kaikki",
+  "settingsDeleteAllDataLabel": "Nollaa profiilin tiedot",
+  "settingsDeleteAllDataSubtitle": "Profiili, ateriat, aktiviteetit, painon historia ja paastoajat",
+  "settingsDeleteAllDataConfirmTitle": "Nollaa profiilin tiedot?",
+  "policyChangeNoticeTitle": "Päivitimme tietosuojakäytäntöä"
+}
