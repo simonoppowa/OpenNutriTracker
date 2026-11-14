@@ -15,8 +15,13 @@ import 'package:opennutritracker/generated/l10n.dart';
 
 /// Sits in the state an import ends in, so the dialog runs its reload.
 class _SucceededExportImportBloc extends Fake implements ExportImportBloc {
+  _SucceededExportImportBloc([this.savedFileName]);
+
+  final String? savedFileName;
+
   @override
-  ExportImportState get state => ExportImportSuccess();
+  ExportImportState get state =>
+      ExportImportSuccess(savedFileName: savedFileName);
 
   @override
   Stream<ExportImportState> get stream =>
@@ -61,10 +66,12 @@ class _TrendsBloc extends Fake implements TrendsBloc {
 }
 
 void main() {
-  void register(TrendsState trendsState) {
+  void register(TrendsState trendsState, {String? savedFileName}) {
     _events.clear();
     locator
-      ..registerSingleton<ExportImportBloc>(_SucceededExportImportBloc())
+      ..registerSingleton<ExportImportBloc>(
+        _SucceededExportImportBloc(savedFileName),
+      )
       ..registerSingleton<HomeBloc>(_HomeBloc())
       ..registerSingleton<DiaryBloc>(_DiaryBloc())
       ..registerSingleton<CalendarDayBloc>(_CalendarDayBloc())
@@ -121,5 +128,32 @@ void main() {
     await pumpDialog(tester);
 
     expect(_events.whereType<LoadTrendsEvent>(), isEmpty);
+  });
+
+  testWidgets('an export saved under a new name shows that name (#763)', (
+    tester,
+  ) async {
+    register(
+      const TrendsInitial(),
+      savedFileName: 'opennutritracker-export (2).zip',
+    );
+
+    await pumpDialog(tester);
+
+    expect(
+      find.text('Export saved as opennutritracker-export (2).zip'),
+      findsOneWidget,
+    );
+    expect(find.text('Export / Import successful'), findsNothing);
+  });
+
+  testWidgets('a success without a saved name keeps the generic message', (
+    tester,
+  ) async {
+    register(const TrendsInitial());
+
+    await pumpDialog(tester);
+
+    expect(find.text('Export / Import successful'), findsOneWidget);
   });
 }

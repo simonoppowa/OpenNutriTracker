@@ -113,7 +113,13 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(S.of(context).exportImportSuccessLabel),
+                          child: Text(
+                            state.savedFileName == null
+                                ? S.of(context).exportImportSuccessLabel
+                                : S
+                                      .of(context)
+                                      .exportSavedAsLabel(state.savedFileName!),
+                          ),
                         ),
                       ],
                     );

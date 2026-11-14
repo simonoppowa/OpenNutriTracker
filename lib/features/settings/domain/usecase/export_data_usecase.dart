@@ -31,6 +31,38 @@ import 'package:opennutritracker/features/settings/domain/tracked_day_boundary_r
 /// CSV is a one-way spreadsheet-friendly view for analysis / sharing.
 enum ExportFormat { json, csv }
 
+/// Hands [bytes] to the platform's save dialog, offering [fileName].
+///
+/// Returns where the platform says the file went, or null when the user
+/// dismissed the dialog. Throws when the platform reports the write failed.
+typedef SaveExportFile =
+    Future<Uri?> Function(String fileName, Uint8List bytes);
+
+Future<Uri?> _saveWithFilePicker(String fileName, Uint8List bytes) =>
+    FilePicker.saveFile(
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: [_exportExtension],
+      bytes: bytes,
+    );
+
+const _exportExtension = 'zip';
+
+/// An export whose bytes reached the location the user picked.
+class SavedExport {
+  /// The name the file was saved under, when the platform's answer carries
+  /// one.
+  ///
+  /// It can differ from the name offered in the save dialog: Android's
+  /// document providers rename a file that would replace an existing one,
+  /// so a second export to Downloads lands as
+  /// `opennutritracker-export (1).zip` (#763). Null when the answer names
+  /// no file, for example a Downloads document id like `msf:1234`.
+  final String? fileName;
+
+  const SavedExport({this.fileName});
+}
+
 class ExportDataUsecase {
   final UserActivityRepository _userActivityRepository;
   final IntakeRepository _intakeRepository;
@@ -42,6 +74,10 @@ class ExportDataUsecase {
   final ConfigRepository _configRepository;
   final FavouriteMealRepository _favouriteMealRepository;
 
+  /// Seam for tests: `FilePicker.saveFile` is static and needs a platform
+  /// channel.
+  final SaveExportFile _saveFile;
+
   ExportDataUsecase(
     this._userActivityRepository,
     this._intakeRepository,
@@ -51,8 +87,9 @@ class ExportDataUsecase {
     this._weightLogRepository,
     this._customActivityTemplateRepository,
     this._configRepository,
-    this._favouriteMealRepository,
-  );
+    this._favouriteMealRepository, {
+    SaveExportFile saveFile = _saveWithFilePicker,
+  }) : _saveFile = saveFile;
 
   /// Exports user activity, intake, tracked day, recipe, weight-log, Custom
   /// activity template and favourites data, plus the profile's goal
@@ -65,7 +102,12 @@ class ExportDataUsecase {
   /// activity templates, goal settings and favourites are omitted from CSV
   /// because their shape doesn't flatten cleanly. A user who wants both can
   /// run the export twice. See `docs/export-format.md` for the schema.
-  Future<bool> exportData(
+  ///
+  /// Returns the [SavedExport] once the zip is written, or null when the
+  /// user dismissed the save dialog. A save under another name than
+  /// [exportZipFileName] is a success too: the platform picked a free name
+  /// rather than replace an older export (#763).
+  Future<SavedExport?> exportData(
     String exportZipFileName,
     String userActivityJsonFileName,
     String userIntakeJsonFileName,
@@ -113,22 +155,48 @@ class ExportDataUsecase {
       ExportImportFailureReason.writeFailed,
       'Could not save $exportZipFileName',
       () async {
-        final result = await FilePicker.saveFile(
-          fileName: exportZipFileName,
-          type: FileType.custom,
-          allowedExtensions: ['zip'],
-          bytes: Uint8List.fromList(zipBytes),
+        final savedUri = await _saveFile(
+          exportZipFileName,
+          Uint8List.fromList(zipBytes),
         );
 
-        if (result == null) {
+        if (savedUri == null) {
           // User cancelled the save dialog.
-          return false;
+          return null;
         }
 
-        ExportWriteVerifier.verify(result, zipBytes.length);
-        return true;
+        // Reads back whatever savedUri points at, so a renamed file is
+        // checked at its new name, not the one we offered.
+        ExportWriteVerifier.verify(savedUri, zipBytes.length);
+        return SavedExport(fileName: _savedFileName(savedUri));
       },
     );
+  }
+
+  /// The file name at the end of [savedUri], or null when it is not one.
+  ///
+  /// Android hands back the saved document's URI path. It ends in the file
+  /// name when the user saves through the device's storage root
+  /// (`/document/primary:Download/x (1).zip`), but is an opaque id when
+  /// they save through the Downloads root (`/document/2106` on a Pixel 6,
+  /// `/document/msf:1234` elsewhere). Only a last segment ending in `.zip`
+  /// is taken for a name, so an id is never shown to the user as one.
+  ///
+  /// Only the last segment is decoded, and a name that does not decode
+  /// (`%FF` is valid URI syntax but not UTF-8) is left unknown. The file is
+  /// already written by now, so this must never throw: anything thrown
+  /// here would be reported as a failed write.
+  static String? _savedFileName(Uri savedUri) {
+    final String last;
+    try {
+      last = Uri.decodeComponent(savedUri.path.split('/').last);
+    } on FormatException {
+      return null;
+    } on ArgumentError {
+      return null;
+    }
+    if (!last.toLowerCase().endsWith('.$_exportExtension')) return null;
+    return last;
   }
 
   /// Builds the bundle in memory, without touching the file picker.
