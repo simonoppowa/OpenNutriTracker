@@ -81,7 +81,9 @@ class RecipeEntity extends Equatable {
   // results, MealDetailScreen, and IntakeDBO snapshot pipeline with no
   // special-case branches downstream. When `servingsCount` is set, the
   // returned MealEntity exposes serving values so the unit dropdown offers
-  // "serving" alongside grams.
+  // "serving" alongside grams. The recipe's photo travels as the meal's
+  // `localImagePath`, so the search row, meal detail and diary card show it
+  // the way they show a custom meal's (#675).
   MealEntity toMealEntity() {
     final hasServings = servingsCount != null && servingsCount! > 0;
     return MealEntity(
@@ -98,6 +100,7 @@ class RecipeEntity extends Equatable {
       servingSize: hasServings ? '$servingsCount servings' : null,
       nutriments: aggregatedNutrimentsPer100,
       source: MealSourceEntity.recipe,
+      localImagePath: imagePath,
     );
   }
 
