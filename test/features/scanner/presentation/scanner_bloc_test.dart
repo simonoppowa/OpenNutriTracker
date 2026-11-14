@@ -42,6 +42,14 @@ void main() {
       expect(state.type, ScannerFailedStateType.productNotFound);
     });
 
+    test(
+        'a barcode not found because Open Food Facts is switched off says '
+        'so (#946)', () async {
+      final state = await scanFailingWith(OffDisabledException());
+
+      expect(state.type, ScannerFailedStateType.offDisabled);
+    });
+
     test('any other failure reports a generic error', () async {
       final state = await scanFailingWith(Exception('OFF HTTP 500'));
 

@@ -1,5 +1,6 @@
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/utils/off_const.dart';
 
 class GetConfigUsecase {
   final ConfigRepository _configRepository;
@@ -10,13 +11,16 @@ class GetConfigUsecase {
     return await _configRepository.getConfig();
   }
 
-  /// Whether the user has ever chosen which food databases to search.
-  /// Null in the DBO means untouched; [ConfigEntity] flattens that to an
-  /// empty map, which reads the same as "all enabled".
+  /// Whether the user has ever chosen which backend food databases to
+  /// search. Null in the DBO means untouched; [ConfigEntity] flattens that
+  /// to an empty map, which reads the same as "all enabled". Open Food
+  /// Facts' own switch (#946) is not such a choice: a map holding only that
+  /// still leaves the backend databases to their locale defaults.
   Future<bool> hasExplicitFoodSourceToggles() async {
     final config = await _configRepository.getConfigDBO();
     final toggles = config.foodSourceToggles;
-    return toggles != null && toggles.isNotEmpty;
+    return toggles != null &&
+        toggles.keys.any((code) => code != OFFConst.offSourceCode);
   }
 
   /// Whether a unit preference has ever been stored, as opposed to merely

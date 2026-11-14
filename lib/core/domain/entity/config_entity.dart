@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/utils/off_const.dart';
 
 class ConfigEntity extends Equatable {
   // #150: keys for the per-meal kcal share map. Kept as plain strings rather
@@ -83,8 +84,8 @@ class ConfigEntity extends Equatable {
   final bool? scannerPortraitLock;
   // Per-source enable flags for the food search, keyed by backend
   // food_source code (see SPConst.foodSourceDisplayNames). A source not in
-  // the map is enabled — see [isFoodSourceEnabled]. Open Food Facts is
-  // always enabled and never appears here.
+  // the map is enabled — see [isFoodSourceEnabled]. Open Food Facts has
+  // its own entry under [OFFConst.offSourceCode] — see [isOffEnabled].
   final Map<String, bool> foodSourceToggles;
 
   /// True only when the active profile holds sample data seeded from the
@@ -328,6 +329,11 @@ class ConfigEntity extends Equatable {
   /// and is always enabled.
   bool isFoodSourceEnabled(String sourceCode) =>
       foodSourceToggles[sourceCode] ?? true;
+
+  /// Whether product search and barcode scans may use Open Food Facts.
+  /// On unless the user switched it off in Settings → Food databases, so
+  /// every install from before #946 keeps searching it.
+  bool get isOffEnabled => isFoodSourceEnabled(OFFConst.offSourceCode);
 
   /// The combined day-start offset in minutes — what callers actually need
   /// when comparing two `DateTime`s under the configured boundary. Hours and

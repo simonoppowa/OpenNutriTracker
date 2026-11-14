@@ -31,7 +31,9 @@ class ScannerBloc extends Bloc<ScannerEvent, ScannerState> {
           ),
         );
       } catch (exception) {
-        if (exception is ProductNotFoundException) {
+        if (exception is OffDisabledException) {
+          emit(const ScannerFailedState(ScannerFailedStateType.offDisabled));
+        } else if (exception is ProductNotFoundException) {
           emit(
             const ScannerFailedState(ScannerFailedStateType.productNotFound),
           );
