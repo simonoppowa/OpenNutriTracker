@@ -15,6 +15,9 @@ import '../../../../helpers/test_l10n.dart';
 class _FakeSettingsBloc extends Fake implements SettingsBloc {
   @override
   Future<double> getKcalAdjustment() async => 300;
+
+  @override
+  Future<double?> getFixedKcalGoal() async => null;
 }
 
 class _FakeProfileBloc extends Fake implements ProfileBloc {
@@ -51,14 +54,14 @@ void main() {
   ) async {
     await _pumpDialog(tester, usesKj: true);
 
-    expect(find.text(l10nEn.settingsKjAdjustmentLabel), findsOneWidget);
-    expect(find.text(l10nEn.settingsKcalAdjustmentLabel), findsNothing);
+    expect(find.text(l10nEn.settingsKjGoalLabel), findsOneWidget);
+    expect(find.text(l10nEn.settingsKcalGoalLabel), findsNothing);
   });
 
   testWidgets('the title names kcal otherwise', (tester) async {
     await _pumpDialog(tester, usesKj: false);
 
-    expect(find.text(l10nEn.settingsKcalAdjustmentLabel), findsOneWidget);
-    expect(find.text(l10nEn.settingsKjAdjustmentLabel), findsNothing);
+    expect(find.text(l10nEn.settingsKcalGoalLabel), findsOneWidget);
+    expect(find.text(l10nEn.settingsKjGoalLabel), findsNothing);
   });
 }

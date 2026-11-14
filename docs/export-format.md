@@ -237,6 +237,8 @@ keeps its own goals. Those older builds ignore the file when they meet it.
 {
   "version": 1,                     // format version, see below
   "kcalAdjustment": -300.0,         // kcal added to the daily goal, -1000..1000
+  "fixedKcalGoal": 1800.0,          // fixed daily goal in kcal, 500..10000;
+                                    //   replaces the calculated goal (#671)
   "carbGoalPct": 0.4,               // macro split as fractions of the kcal goal:
   "proteinGoalPct": 0.3,            //   all three set and adding up to 1
   "fatGoalPct": 0.3,                //   (± 0.05), or all three null
@@ -251,7 +253,7 @@ keeps its own goals. Those older builds ignore the file when they meet it.
 ```
 
 `null`, or a missing key, means the app default — no kcal adjustment, the
-60 / 15 / 25 carbs / protein / fat split, the 30 / 40 / 20 / 10 meal shares,
+calculated daily goal rather than a fixed one, the 60 / 15 / 25 carbs / protein / fat split, the 30 / 40 / 20 / 10 meal shares,
 the water goal seeded from the profile — and importing it puts that goal back
 to the default. A file with a value outside the ranges above, or a number
 that is not finite, is rejected, and
@@ -259,6 +261,12 @@ the whole zip with it, before anything on the device changes. The tolerances
 allow for rounding in older builds. `version` goes up only for a change an
 older build would misread; a build that meets a newer version skips this file
 and imports the rest. Unknown keys are ignored.
+
+`fixedKcalGoal` came after version 1 without a bump: a build that predates it
+ignores the key and restores the calculated goal with `kcalAdjustment`, and a
+file from such a build has no key, so importing it switches a fixed goal back
+to the calculated one. While a fixed goal is set, `kcalAdjustment` is kept but
+not applied, so switching back in Settings restores it.
 
 Only goals that belong to a profile are in the file:
 

@@ -53,6 +53,7 @@ class ConfigDataSource {
         : ConfigDBO.empty();
     if (profile != null) {
       merged.userKcalAdjustment = profile.userKcalAdjustment;
+      merged.userFixedKcalGoal = profile.userFixedKcalGoal;
       merged.userCarbGoalPct = profile.userCarbGoalPct;
       merged.userProteinGoalPct = profile.userProteinGoalPct;
       merged.userFatGoalPct = profile.userFatGoalPct;
@@ -70,6 +71,7 @@ class ConfigDataSource {
       // opted out of the health import with no watermark of its own, which
       // is what it is.
       merged.userKcalAdjustment = null;
+      merged.userFixedKcalGoal = null;
       merged.userCarbGoalPct = null;
       merged.userProteinGoalPct = null;
       merged.userFatGoalPct = null;
@@ -198,6 +200,12 @@ class ConfigDataSource {
 
   Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
     await _update((c) => c.userKcalAdjustment = kcalAdjustment);
+  }
+
+  /// Sets the fixed daily kcal goal (#671), or clears it with null so the
+  /// calculated goal applies again.
+  Future<void> setConfigFixedKcalGoal(double? kcal) async {
+    await _update((c) => c.userFixedKcalGoal = kcal);
   }
 
   Future<void> setConfigCarbGoalPct(double carbGoalPct) async {
@@ -372,6 +380,7 @@ class ConfigDataSource {
   /// null clears that override and the app falls back to its default.
   Future<void> setConfigGoalSettings({
     required double? kcalAdjustment,
+    required double? fixedKcalGoal,
     required double? carbGoalPct,
     required double? proteinGoalPct,
     required double? fatGoalPct,
@@ -380,6 +389,7 @@ class ConfigDataSource {
   }) async {
     await _update((c) {
       c.userKcalAdjustment = kcalAdjustment;
+      c.userFixedKcalGoal = fixedKcalGoal;
       c.userCarbGoalPct = carbGoalPct;
       c.userProteinGoalPct = proteinGoalPct;
       c.userFatGoalPct = fatGoalPct;

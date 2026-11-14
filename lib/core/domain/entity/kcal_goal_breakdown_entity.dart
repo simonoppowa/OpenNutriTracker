@@ -54,8 +54,15 @@ class KcalGoalBreakdownEntity extends Equatable {
   // Step 4 — kcal burned by today's logged activities.
   final double activityKcal;
 
+  /// The user's fixed daily goal (#671), or null when the goal is
+  /// calculated. Only a usable value lands here; see
+  /// [CalorieGoalCalc.validFixedKcalGoal]. When set, steps 1–3 above are
+  /// still filled in for reference but do not enter [totalKcalGoal].
+  final double? fixedKcalGoal;
+
   /// The resulting goal; always equals
-  /// TDEE + effective adjustment + manual offset + activity kcal, and always
+  /// TDEE + effective adjustment + manual offset + activity kcal, or
+  /// [fixedKcalGoal] + activity kcal when a fixed goal is set, and always
   /// equals [CalorieGoalCalc.getTotalKcalGoal] for the same inputs.
   final double totalKcalGoal;
 
@@ -91,6 +98,7 @@ class KcalGoalBreakdownEntity extends Equatable {
     required this.effectiveAdjustmentKcal,
     required this.manualKcalAdjustment,
     required this.activityKcal,
+    this.fixedKcalGoal,
     required this.totalKcalGoal,
     required this.carbsFractionGoal,
     required this.fatsFractionGoal,
@@ -104,6 +112,9 @@ class KcalGoalBreakdownEntity extends Equatable {
   bool get taperChangedAdjustment =>
       taperEnabled && baseAdjustmentKcal != effectiveAdjustmentKcal;
 
+  /// Whether a fixed daily goal replaces the calculated one.
+  bool get usesFixedGoal => fixedKcalGoal != null;
+
   /// Whether the averaged non-binary midpoint is in effect.
   bool get usesAveragedReference =>
       tdeeMaleReferenceKcal != null && tdeeFemaleReferenceKcal != null;
@@ -111,6 +122,7 @@ class KcalGoalBreakdownEntity extends Equatable {
   factory KcalGoalBreakdownEntity.compute({
     required UserEntity user,
     double? userKcalAdjustment,
+    double? fixedKcalGoal,
     required double totalKcalActivities,
     double? userCarbsGoalPct,
     double? userFatsGoalPct,
@@ -179,6 +191,7 @@ class KcalGoalBreakdownEntity extends Equatable {
       totalKcalActivities,
       kcalUserAdjustment: userKcalAdjustment,
       caloriesTaperEnabled: user.caloriesTaperEnabled,
+      fixedKcalGoal: fixedKcalGoal,
     );
 
     final carbsGrams = MacroCalc.getTotalCarbsGoal(
@@ -215,6 +228,7 @@ class KcalGoalBreakdownEntity extends Equatable {
       effectiveAdjustmentKcal: effectiveAdjustment,
       manualKcalAdjustment: userKcalAdjustment ?? 0,
       activityKcal: totalKcalActivities,
+      fixedKcalGoal: CalorieGoalCalc.validFixedKcalGoal(fixedKcalGoal),
       totalKcalGoal: totalGoal,
       carbsFractionGoal: userCarbsGoalPct ?? MacroCalc.defaultCarbsPercentageGoal,
       fatsFractionGoal: userFatsGoalPct ?? MacroCalc.defaultFatsPercentageGoal,
@@ -248,6 +262,7 @@ class KcalGoalBreakdownEntity extends Equatable {
     effectiveAdjustmentKcal,
     manualKcalAdjustment,
     activityKcal,
+    fixedKcalGoal,
     totalKcalGoal,
     carbsFractionGoal,
     fatsFractionGoal,

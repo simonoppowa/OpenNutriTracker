@@ -330,7 +330,7 @@ The app makes no requests to USDA. `SearchProductsUseCase.searchFDCFoodByString`
 Calculation utilities live in `lib/core/utils/calc/`:
 
 - **TDEE** — `TDEECalc.getTDEEKcalIOM2005()` (IOM 2005 gender-specific equation). A WHO 2001 formula exists but is unused.
-- **Calorie goal** — TDEE + weight-goal adjustment (±500 kcal) + optional user kcal offset + today's burned activity kcal.
+- **Calorie goal** — TDEE + weight-goal adjustment (±500 kcal) + optional user kcal offset + today's burned activity kcal. A fixed goal set in Settings (`ConfigDBO.userFixedKcalGoal`, 500–10000 kcal) replaces the first three terms; activity kcal is still added.
 - **Macro defaults** — 60% carbs / 25% fat / 15% protein of total kcal goal. Per-macro overrides stored in `ConfigEntity`.
 - **MET** — `MetCalc` converts MET × weight × hours to burned kcal for activities.
 
