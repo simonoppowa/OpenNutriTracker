@@ -15,6 +15,9 @@ class _FakeGetAllRecipesUseCase implements GetAllRecipesUseCase {
     }
     return recipes;
   }
+
+  @override
+  Stream<void> watch() => const Stream.empty();
 }
 
 RecipeEntity _recipe({
