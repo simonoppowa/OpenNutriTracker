@@ -1296,5 +1296,14 @@
     }
   },
   "dataCollectionLabel": "Envoyer des rapports d'erreur pour aider à corriger les bugs. Aucune donnée relative à l'alimentation ou au poids n'est incluse.",
-  "policyChangeNoticeTitle": "Nous avons mis à jour la politique de confidentialité"
+  "policyChangeNoticeTitle": "Nous avons mis à jour la politique de confidentialité",
+  "addToSectionLabel": "Ajouter à {section}",
+  "@addToSectionLabel": {
+    "description": "Screen reader label of the plus at the foot of a meal or activity list, e.g. 'Add to Breakfast'.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  }
 }
