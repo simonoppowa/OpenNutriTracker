@@ -55,8 +55,14 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
   // Picker display value for kg / lb paths.
   late double _pickerDisplayWeight;
 
-  // Stones path: kg from BodyWeightInput, null if invalid/empty.
+  // Typed path: kg from BodyWeightInput, null if invalid/empty. Always used
+  // for stones; for kg / lb only when [_typedLast] is set.
   double? _stKg;
+
+  // For kg / lb the ruler takes a drag that screen-reader users cannot make,
+  // and a target far off takes many flings, so a typed field sits under it.
+  // The field follows the ruler; whichever was moved last is the value saved.
+  bool _typedLast = false;
 
   @override
   void initState() {
@@ -89,7 +95,7 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
 
   void _submitValue() {
     final double kg;
-    if (widget.unit == BodyWeightUnit.st) {
+    if (widget.unit == BodyWeightUnit.st || _typedLast) {
       final valid = _stKg;
       if (valid == null) {
         Navigator.of(context).pop();
@@ -113,6 +119,10 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
     final minWeight = minSelectableWeight(_pickerDisplayWeight, isImperial);
     final maxWeight = maxSelectableWeight(_pickerDisplayWeight, isImperial);
 
+    final invalid =
+        (widget.unit == BodyWeightUnit.st || _typedLast) && _stKg == null;
+    final error = invalid ? S.of(context).onboardingWrongWeightLabel : null;
+
     return AlertDialog(
       title: Text(S.of(context).profileTargetWeightLabel),
       content: Wrap(
@@ -125,24 +135,48 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
                   unit: BodyWeightUnit.st,
                   identifierPrefix: 'set-target-weight-dialog',
                   autofocus: true,
+                  errorText: error,
                   onChangedKg: (kg) => setState(() => _stKg = kg),
                 )
               else
-                HorizontalPicker(
-                  height: 100,
-                  backgroundColor: Colors.transparent,
-                  minValue: minWeight,
-                  maxValue: maxWeight,
-                  initialPosition: InitialPosition.center,
-                  divisions: 1000,
-                  suffix: isImperial
-                      ? S.of(context).lbsLabel
-                      : S.of(context).kgLabel,
-                  onChanged: (value) {
-                    setState(() {
-                      _pickerDisplayWeight = value;
-                    });
-                  },
+                // The typed field below says the weight; the ruler is dimmed
+                // while a typed weight is the one that will be saved.
+                ExcludeSemantics(
+                  child: Opacity(
+                    opacity: _typedLast ? 0.38 : 1,
+                    child: HorizontalPicker(
+                      height: 100,
+                      backgroundColor: Colors.transparent,
+                      minValue: minWeight,
+                      maxValue: maxWeight,
+                      initialPosition: InitialPosition.center,
+                      divisions: 1000,
+                      suffix: isImperial
+                          ? S.of(context).lbsLabel
+                          : S.of(context).kgLabel,
+                      onChanged: (value) {
+                        setState(() {
+                          _pickerDisplayWeight = value;
+                          _typedLast = false;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              if (widget.unit != BodyWeightUnit.st)
+                BodyWeightInput(
+                  // Reseeded each time the ruler moves.
+                  key: ValueKey(_pickerDisplayWeight.toStringAsFixed(1)),
+                  initialKg: _pickerWeightToKg(
+                    double.parse(_pickerDisplayWeight.toStringAsFixed(1)),
+                  ),
+                  unit: widget.unit,
+                  identifierPrefix: 'set-target-weight-dialog',
+                  errorText: error,
+                  onChangedKg: (kg) => setState(() {
+                    _stKg = kg;
+                    _typedLast = true;
+                  }),
                 ),
             ],
           ),
@@ -161,7 +195,7 @@ class _SetTargetWeightDialogState extends State<SetTargetWeightDialog> {
           child: Text(S.of(context).dialogCancelLabel),
         ),
         TextButton(
-          onPressed: _submitValue,
+          onPressed: invalid ? null : _submitValue,
           child: Text(S.of(context).dialogOKLabel),
         ),
       ],
