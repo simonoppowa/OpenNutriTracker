@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -35,10 +36,27 @@ import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
 /// Both rules live here rather than in either client because they are
 /// properties of reading photographs, not of a provider. A provider added
 /// later inherits them without being asked to.
+///
+/// **A dish the user saved is named as they saved it.** A photograph names
+/// a regional dish generically — "dumplings" for the user's own "Pelmeni" —
+/// and the search then never reaches the recipe they made for it. So the
+/// prompt lists the names of their saved recipes, [savedDishesLimit] at most
+/// and the latest changed first, and asks for one by its exact name only when
+/// the photo clearly shows it ([savedDishesPrompt]). Only the names go: no
+/// ingredient, amount or nutrition value of a recipe is sent.
 class ModelMealPhotoInterpreter implements MealPhotoInterpreter {
+  static final _log = Logger('ModelMealPhotoInterpreter');
+
   final MealItemsApi _api;
 
-  ModelMealPhotoInterpreter(this._api);
+  /// The names of the user's saved recipes, the latest changed first. Asked
+  /// at each read, so a recipe saved a moment ago is already among them.
+  /// Null where there are none to offer, as for the setup probe, which
+  /// sends nothing of the user's.
+  final List<String> Function()? _savedDishes;
+
+  ModelMealPhotoInterpreter(this._api, {List<String> Function()? savedDishes})
+    : _savedDishes = savedDishes;
 
   static const _systemPrompt = '''
 You identify the foods visible in a photograph of a meal so they can be
@@ -72,17 +90,31 @@ Rules:
     MealPhoto photo, {
     String? localeCode,
   }) async {
+    final saved = savedDishesPrompt(_savedDishNames());
     final result = await _api.requestItems(
       content: MealPhotoContent(
         mediaType: photo.mediaType,
         base64Data: base64Encode(photo.bytes),
       ),
-      system: localeCode == null
-          ? _systemPrompt
-          : '$_systemPrompt\nThe user\'s app language is "$localeCode".',
+      system:
+          (localeCode == null
+              ? _systemPrompt
+              : '$_systemPrompt\nThe user\'s app language is "$localeCode".') +
+          (saved == null ? '' : '\n$saved'),
     );
 
     return _sizesOnly(_countsOnly(result));
+  }
+
+  /// The saved recipe names, or none when they cannot be read: the photo is
+  /// still worth reading without them.
+  List<String> _savedDishNames() {
+    try {
+      return _savedDishes?.call() ?? const [];
+    } catch (e, stackTrace) {
+      _log.warning('Saved recipes unreadable', e, stackTrace);
+      return const [];
+    }
   }
 
   /// Drops any amount that is not a whole count of visible things.
@@ -162,4 +194,27 @@ Rules:
     final word = item.portion?.trim().toLowerCase();
     return word != null && _photoSizes.contains(word) ? word : null;
   }
+}
+
+/// How many saved recipe names a photo read carries at most.
+const savedDishesLimit = 60;
+
+/// The prompt line for the user's saved recipe [names], latest changed
+/// first, or null when there are none.
+///
+/// Each name is quoted as JSON, so a name with a quote or a comma in it is
+/// still one name. Blank names go, and a name differing only in case from
+/// one before it, then the rest past [savedDishesLimit] — the latest changed
+/// are the likeliest to be on the plate.
+String? savedDishesPrompt(List<String> names) {
+  final seen = <String>{};
+  final unique = [
+    for (final name in names.map((n) => n.trim()))
+      if (name.isNotEmpty && seen.add(name.toLowerCase())) name,
+  ].take(savedDishesLimit).toList();
+  if (unique.isEmpty) return null;
+  return 'The user has saved these dishes: '
+      '${unique.map(jsonEncode).join(', ')}. When the photo clearly shows one '
+      'of them, use its name exactly as the query; otherwise name the food '
+      'as usual.';
 }
