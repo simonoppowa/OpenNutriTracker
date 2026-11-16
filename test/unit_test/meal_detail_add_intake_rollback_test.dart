@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
@@ -10,6 +12,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
@@ -141,7 +144,7 @@ void main() {
 
   tearDown(() => bloc.close());
 
-  Future<void> logToast() => bloc.addIntake(
+  Future<bool> logToast() => bloc.addIntake(
     _FakeContext(),
     'g',
     '50',
@@ -209,10 +212,27 @@ void main() {
   });
 
   test('a save that succeeds is untouched by any of this', () async {
-    await logToast();
+    expect(await logToast(), isTrue);
 
     expect(store.intakes, hasLength(1));
     expect(store.kcal, 100);
+  });
+
+  test('a save a profile switch overtook stores nothing and says so', () async {
+    // Another write holds the lock while a profile switch queues behind
+    // it; the add starts on the old profile and waits behind the switch.
+    final holder = Completer<void>();
+    final held = withTrackedDayLock(() => holder.future);
+    final switched = withProfileSwitchLock(() async {});
+    final added = logToast();
+
+    holder.complete();
+    await held;
+    await switched;
+
+    expect(await added, isFalse);
+    expect(store.intakes, isEmpty);
+    expect(store.kcal, 0);
   });
 }
 

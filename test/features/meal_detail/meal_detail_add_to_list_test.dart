@@ -85,7 +85,7 @@ class _CountingMealDetailBloc extends MealDetailBloc {
   var saves = 0;
 
   @override
-  Future<void> addIntake(
+  Future<bool> addIntake(
     BuildContext context,
     String unit,
     String amountText,
@@ -94,7 +94,7 @@ class _CountingMealDetailBloc extends MealDetailBloc {
     DateTime day,
   ) {
     saves++;
-    return Future.value();
+    return Future.value(true);
   }
 }
 
