@@ -29,6 +29,7 @@ import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
+import 'package:opennutritracker/features/edit_meal/util/simple_form.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -284,7 +285,13 @@ class _EditMealScreenState extends State<EditMealScreen> {
               return _getLoadingContent();
             } else if (state is EditMealLoadedState) {
               if (!_formModeHydrated) {
-                _formMode = state.formMode;
+                // Only a custom food shows the Simple / Advanced toggle,
+                // and the simple form would reset any other serving to
+                // 100 on save; everything else opens the advanced form.
+                _formMode = _mealEntity.source == MealSourceEntity.custom &&
+                        simpleFormKeeps(_mealEntity)
+                    ? state.formMode
+                    : CustomMealFormMode.advanced;
                 _formModeHydrated = true;
               }
               return _getLoadedContent(state.usesImperialUnits, usesKj);
