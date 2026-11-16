@@ -180,9 +180,34 @@ class MealTextParseResult {
 /// so a substring test reports a unit in exactly the phrase this exists to
 /// catch. [_leadingQuantity] and [_trailingQuantity] only see a unit when a
 /// number is against it.
-bool textStatesAUnit(String input) => _segment(
-  input,
-).any((segment) => _extractQuantityAndUnit(segment).unit != null);
+///
+/// Those two only look at either end of a segment, so [_unitInPhrase] also
+/// asks the middle of one. An amount inside a phrase — `a 330 ml can of
+/// coke`, `1 apple and 30 g almonds` — or standing alone after a comma —
+/// `grey peas with bacon, 300 g` — is stated just as plainly, and without it
+/// the model's `330 ml` lost its unit and was logged as 330 servings.
+bool textStatesAUnit(String input) => _segment(input).any(
+  (segment) =>
+      _extractQuantityAndUnit(segment).unit != null ||
+      _unitInPhrase.hasMatch(segment),
+);
+
+/// A number with a unit symbol against it, anywhere in a segment.
+///
+/// The Latin symbols must end the word, so `2 large eggs` states no `l` and
+/// `3 lemons` no `l`; the number must not follow a letter, so `B12 tablet`
+/// states nothing either, except in a script that puts no space between
+/// words (`一碗200克米饭`). The CJK symbols need no word boundary for the
+/// same reason.
+final _unitInPhrase = RegExp(
+  r'(?<![\d.,]|(?!'
+  '$_unspacedScript'
+  r')\p{L})'
+  '$_number'
+  r'\s*(?:(?:kg|lb|ml|oz|g|l)(?![\p{L}\d])|毫升|千克|克|升)',
+  unicode: true,
+  caseSensitive: false,
+);
 
 MealTextParseResult validateParsedMealItems(
   List<ParsedMealItem> candidates, {
