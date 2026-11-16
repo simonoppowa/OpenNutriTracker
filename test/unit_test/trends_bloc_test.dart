@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 
 /// Records the (start, end) ranges it is asked for so the bloc's date-window
@@ -83,6 +84,7 @@ class _FakeGetUserUsecase implements GetUserUsecase {
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
   bool usesImperialUnits = false;
+  int dayStartOffsetHours = 0;
 
   @override
   Future<ConfigEntity> getConfig() async => ConfigEntity(
@@ -91,6 +93,7 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
         false,
         AppThemeEntity.system,
         usesImperialUnits: usesImperialUnits,
+        dayStartOffsetHours: dayStartOffsetHours,
         bodyWeightUnit:
             usesImperialUnits ? BodyWeightUnit.lb : BodyWeightUnit.kg,
       );
@@ -124,6 +127,9 @@ void main() {
   final endOfToday = DateTime(now.year, now.month, now.day, 23, 59, 59);
   final endOfPriorWeek =
       DateTime(now.year, now.month, now.day - 7, 23, 59, 59);
+  // Windows are counted in calendar days, so a DST change inside one does
+  // not move its start (#1207).
+  DateTime daysBack(int n) => DateTime(today.year, today.month, today.day - n);
 
   group('TrendsBloc', () {
     late _FakeGetTrackedDayUsecase trackedDay;
@@ -176,7 +182,7 @@ void main() {
       expect((emitted.last as TrendsLoaded).rangeDays, 30);
       expect(
         trackedDay.rangeCalls.first.start,
-        today.subtract(const Duration(days: 29)),
+        daysBack(29),
       );
     });
 
@@ -191,19 +197,16 @@ void main() {
         () async {
       await load(const LoadTrendsEvent());
       // First call is the selected window, second is the prior week.
-      expect(trackedDay.rangeCalls.first.start,
-          today.subtract(const Duration(days: 6)));
+      expect(trackedDay.rangeCalls.first.start, daysBack(6));
       expect(trackedDay.rangeCalls.first.end, endOfToday);
-      expect(trackedDay.rangeCalls[1].start,
-          today.subtract(const Duration(days: 13)));
+      expect(trackedDay.rangeCalls[1].start, daysBack(13));
       expect(trackedDay.rangeCalls[1].end, endOfPriorWeek);
     });
 
     test('a 90-day window pulls 90 days of calories', () async {
       final emitted = await load(const LoadTrendsEvent(rangeDays: 90));
       expect((emitted.last as TrendsLoaded).rangeDays, 90);
-      expect(trackedDay.rangeCalls.first.start,
-          today.subtract(const Duration(days: 89)));
+      expect(trackedDay.rangeCalls.first.start, daysBack(89));
     });
 
     test('weight uses the full history, not a windowed range', () async {
@@ -278,6 +281,71 @@ void main() {
       trackedDay.throws = true;
       final emitted = await load(const LoadTrendsEvent());
       expect(emitted.map((s) => s.runtimeType), [TrendsLoading, TrendsFailed]);
+    });
+
+    // #139: with the day starting at 04:00, 02:00 on Tuesday the 15th is
+    // still Monday the 14th in the Diary, and so it is here.
+    group('with a day-start offset', () {
+      setUp(() {
+        DayBoundaryCalc.clock = () => DateTime(2026, 9, 15, 2);
+        config.dayStartOffsetHours = 4;
+      });
+      tearDown(() => DayBoundaryCalc.clock = DateTime.now);
+
+      test('the ranges end on the logical today', () async {
+        final emitted = await load(const LoadTrendsEvent());
+        expect(trackedDay.rangeCalls.first, (
+          start: DateTime(2026, 9, 8),
+          end: DateTime(2026, 9, 14, 23, 59, 59),
+        ));
+        expect(trackedDay.rangeCalls[1], (
+          start: DateTime(2026, 9, 1),
+          end: DateTime(2026, 9, 7, 23, 59, 59),
+        ));
+        final loaded = emitted.last as TrendsLoaded;
+        expect(loaded.dayStartMinutes, 240);
+        expect(loaded.logicalToday, DateTime(2026, 9, 14));
+      });
+
+      test('water is filed under its logical day, as Home counts it',
+          () async {
+        water.result = [
+          WaterIntakeEntity(
+            id: 'late',
+            dateTime: DateTime(2026, 9, 15, 2),
+            amountMl: 300,
+          ),
+          WaterIntakeEntity(
+            id: 'evening',
+            dateTime: DateTime(2026, 9, 14, 20),
+            amountMl: 200,
+          ),
+        ];
+        final emitted = await load(const LoadTrendsEvent());
+        expect(
+          (emitted.last as TrendsLoaded).waterByDay,
+          {DateTime(2026, 9, 14): 500},
+        );
+      });
+
+      test('"All" counts its span to the logical today', () async {
+        weightLog.result = [_wl(DateTime(2026, 9, 9), 80)];
+        final emitted = await load(const LoadTrendsEvent(rangeDays: 0));
+        // The 9th to the 14th, inclusive; the wall clock would say 7.
+        expect((emitted.last as TrendsLoaded).windowDays, 6);
+      });
+    });
+
+    test('windows count calendar days across a clock change', () async {
+      // Most of Europe falls back on 25 October 2026, so the window ending
+      // on 1 November holds one 25-hour day.
+      DayBoundaryCalc.clock = () => DateTime(2026, 11, 1, 9);
+      addTearDown(() => DayBoundaryCalc.clock = DateTime.now);
+      await load(const LoadTrendsEvent());
+      expect(trackedDay.rangeCalls[0].start, DateTime(2026, 10, 26));
+      expect(trackedDay.rangeCalls[1].start, DateTime(2026, 10, 19));
+      await load(const LoadTrendsEvent(rangeDays: 90));
+      expect(trackedDay.rangeCalls[2].start, DateTime(2026, 8, 4));
     });
   });
 }
