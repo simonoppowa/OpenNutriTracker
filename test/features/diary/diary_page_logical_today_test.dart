@@ -181,4 +181,19 @@ void main() {
     expect(calendar(tester).selectedDate, picked);
     expect(calendarDayBloc.loadedDays.length, loadsBefore);
   });
+  testWidgets('away from today, the button back to it says what it does', (
+    tester,
+  ) async {
+    await pumpDiary(tester);
+    expect(find.byTooltip('Go to today'), findsNothing);
+
+    calendar(tester).onDateSelected(DateTime.utc(2026, 10, 3), const {});
+    await pumpFrames(tester);
+    expect(find.byTooltip('Go to today'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Go to today'));
+    await pumpFrames(tester);
+    expect(calendar(tester).selectedDate, _logicalToday);
+    expect(find.byTooltip('Go to today'), findsNothing);
+  });
 }

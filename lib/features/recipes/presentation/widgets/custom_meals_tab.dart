@@ -69,7 +69,12 @@ class CustomMealsTab extends StatelessWidget {
           final palette = isDark ? AppPalette.dark : AppPalette.light;
           final textTheme = Theme.of(context).textTheme;
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
+            // The list draws under the navigation bar (edge-to-edge), so
+            // its end clears the bar for the last meal to be reachable.
+            padding: EdgeInsets.only(
+              top: Dimens.spacing8,
+              bottom: Dimens.spacing8 + MediaQuery.paddingOf(context).bottom,
+            ),
             itemCount: state.meals.length,
             itemBuilder: (context, index) {
               final meal = state.meals[index];
