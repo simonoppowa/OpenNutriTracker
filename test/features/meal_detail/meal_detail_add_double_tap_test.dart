@@ -168,4 +168,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(bloc.saves, 1);
   });
+
+  // A large font can squeeze the meal off the add screen's title, so the
+  // snackbar names it.
+  testWidgets('the snackbar after Add names the meal', (tester) async {
+    final bloc = _GatedMealDetailBloc();
+    addTearDown(bloc.close);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [S.delegate],
+        supportedLocales: S.supportedLocales,
+        home: Scaffold(
+          body: MealDetailBottomSheet(
+            product: _toast,
+            day: DateTime(2026, 10, 5),
+            intakeTypeEntity: IntakeTypeEntity.breakfast,
+            quantityTextController: TextEditingController(text: '100'),
+            mealDetailBloc: bloc,
+            selectedUnit: 'g',
+            onQuantityOrUnitChanged: (_, _) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.add_rounded));
+    await tester.pump();
+    bloc.save.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Added to Breakfast'), findsOneWidget);
+  });
 }
