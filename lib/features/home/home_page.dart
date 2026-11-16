@@ -470,6 +470,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         usesImperialUnits: usesImperialUnits,
       ),
     );
+    if (changeIntakeAmount == EditDialog.deleteResult) {
+      // Asked as a drag to the bin asks.
+      if (context.mounted) _confirmDelete(context, intakeEntity);
+      return;
+    }
     if (changeIntakeAmount != null) {
       await _homeBloc.updateIntakeItem(intakeEntity.id, {
         'amount': changeIntakeAmount,
