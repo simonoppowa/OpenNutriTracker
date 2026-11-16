@@ -2,13 +2,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
+import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
+import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/utils/extensions.dart';
 
+import '../fixture/user_entity_fixtures.dart';
 import '../helpers/fake_hive_db_provider.dart';
 import '../helpers/hive_test_setup.dart';
+
+/// Holds one user in memory and counts the saves.
+class _FakeUserRepository extends Fake implements UserRepository {
+  _FakeUserRepository(this.user);
+
+  UserEntity user;
+  int saves = 0;
+
+  @override
+  Future<UserEntity> getUserData() async => user;
+
+  @override
+  Future<void> updateUserData(UserEntity userEntity) async {
+    user = userEntity;
+    saves++;
+  }
+}
 
 /// Weight log rows are keyed by the local day they were saved on, but show
 /// the date stored inside them. A time-zone change can move that stored
@@ -20,6 +41,7 @@ void main() {
   late Box<WeightLogDBO> box;
   late GetWeightLogUsecase getUsecase;
   late DeleteWeightLogUsecase deleteUsecase;
+  late _FakeUserRepository users;
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +57,19 @@ void main() {
       WeightLogDataSource(FakeHiveDBProvider(weightLogBox: box)),
     );
     getUsecase = GetWeightLogUsecase(repository);
-    deleteUsecase = DeleteWeightLogUsecase(repository);
+    final fixture =
+        UserEntityFixtures.youngSedentaryMaleWantingToMaintainWeight;
+    users = _FakeUserRepository(
+      UserEntity(
+        birthday: fixture.birthday,
+        heightCM: fixture.heightCM,
+        weightKG: 80.0,
+        gender: fixture.gender,
+        goal: fixture.goal,
+        pal: fixture.pal,
+      ),
+    );
+    deleteUsecase = DeleteWeightLogUsecase(repository, users);
   });
 
   tearDown(() async {
@@ -123,5 +157,62 @@ void main() {
     final typed = WeightLogEntity(date: DateTime(2026, 3, 11), weightKg: 80.0);
 
     expect(read, typed);
+  });
+
+  group('the user\'s current weight', () {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    test('goes back to the newest reading left when today\'s is '
+        'deleted', () async {
+      final threeDaysAgo = today.subtract(const Duration(days: 3));
+      final weekAgo = today.subtract(const Duration(days: 7));
+      await box.put(
+        weekAgo.toParsedDay(),
+        WeightLogDBO(date: weekAgo, weightKg: 83.0),
+      );
+      await box.put(
+        threeDaysAgo.toParsedDay(),
+        WeightLogDBO(date: threeDaysAgo, weightKg: 82.0),
+      );
+      await box.put(
+        today.toParsedDay(),
+        WeightLogDBO(date: today, weightKg: 80.0),
+      );
+
+      await deleteUsecase.deleteEntry(await shownEntry(80.0));
+
+      expect(users.user.weightKG, 82.0);
+      expect(users.saves, 1);
+    });
+
+    test('stays when an earlier reading is deleted', () async {
+      final threeDaysAgo = today.subtract(const Duration(days: 3));
+      await box.put(
+        threeDaysAgo.toParsedDay(),
+        WeightLogDBO(date: threeDaysAgo, weightKg: 82.0),
+      );
+      await box.put(
+        today.toParsedDay(),
+        WeightLogDBO(date: today, weightKg: 80.0),
+      );
+
+      await deleteUsecase.deleteEntry(await shownEntry(82.0));
+
+      expect(users.user.weightKG, 80.0);
+      expect(users.saves, 0);
+    });
+
+    test('stays when today\'s was the only reading', () async {
+      await box.put(
+        today.toParsedDay(),
+        WeightLogDBO(date: today, weightKg: 80.0),
+      );
+
+      await deleteUsecase.deleteEntry(await shownEntry(80.0));
+
+      expect(users.user.weightKG, 80.0);
+      expect(users.saves, 0);
+    });
   });
 }
