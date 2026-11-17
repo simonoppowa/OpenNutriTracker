@@ -93,6 +93,9 @@ Future<LineChart> _pumpCaloriesChart(
     ),
   );
   await tester.pump();
+  // The calorie card is on the page the calories tile opens.
+  await tester.tap(find.byKey(const ValueKey('trends-tile-calories')));
+  await tester.pumpAndSettle();
   // The calorie card is the first line chart on the page.
   return tester.widgetList<LineChart>(find.byType(LineChart)).first;
 }
