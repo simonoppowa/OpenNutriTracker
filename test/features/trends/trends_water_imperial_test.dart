@@ -91,6 +91,9 @@ Future<void> _pump(WidgetTester tester, {required bool imperial}) async {
     ),
   );
   await tester.pump();
+  // The water card is on the page the water tile opens.
+  await tester.tap(find.byKey(const ValueKey('trends-tile-water')));
+  await tester.pumpAndSettle();
 }
 
 /// The water card's chart is the only one with today's water as its last

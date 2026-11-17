@@ -18,6 +18,7 @@ import 'package:opennutritracker/features/profile/presentation/widgets/set_weigh
 import 'package:opennutritracker/features/profile/presentation/widgets/weight_trend_chart.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/features/trends/presentation/trends_calc.dart';
+import 'package:opennutritracker/features/trends/presentation/widgets/trends_overview.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class TrendsPage extends StatefulWidget {
@@ -60,72 +61,40 @@ class _TrendsView extends StatelessWidget {
         if (state is! TrendsLoaded) {
           return const Center(child: CircularProgressIndicator());
         }
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(
-              Dimens.spacing16, Dimens.spacing8, Dimens.spacing16, Dimens.spacing32),
-          children: [
-            _StreakCard(
-              days: state.days,
-              priorWeek: state.priorWeek,
-              rangeDays: state.windowDays,
-              palette: palette,
-            ),
-            const SizedBox(height: Dimens.spacing16),
-            _RangeSelector(rangeDays: state.rangeDays),
-            const SizedBox(height: Dimens.spacing16),
-            _CaloriesTrendCard(
-                days: state.days, rangeDays: state.windowDays, palette: palette),
-            const SizedBox(height: Dimens.spacing16),
-            _MacrosTrendCard(
-                days: state.days, rangeDays: state.windowDays, palette: palette),
-            const SizedBox(height: Dimens.spacing16),
-            _WaterTrendCard(
-              waterByDay: state.waterByDay,
-              goalMl: state.waterGoalMl,
-              rangeDays: state.windowDays,
-              palette: palette,
-              usesImperialUnits: state.usesImperialFoodUnits,
-            ),
-            const SizedBox(height: Dimens.spacing16),
-            _WeightCard(
-              entries: state.weight,
-              bodyWeightUnit: state.bodyWeightUnit,
-              targetWeightKg: state.targetWeightKg,
-              rangeDays: state.windowDays,
-              palette: palette,
-            ),
-          ],
+        return TrendsOverview(
+          state: state,
+          streak: _StreakCard(
+            days: state.days,
+            priorWeek: state.priorWeek,
+            rangeDays: state.windowDays,
+            palette: palette,
+          ),
+          caloriesCard: (s, palette) => _CaloriesTrendCard(
+            days: s.days,
+            rangeDays: s.windowDays,
+            palette: palette,
+          ),
+          macrosCard: (s, palette) => _MacrosTrendCard(
+            days: s.days,
+            rangeDays: s.windowDays,
+            palette: palette,
+          ),
+          waterCard: (s, palette) => _WaterTrendCard(
+            waterByDay: s.waterByDay,
+            goalMl: s.waterGoalMl,
+            rangeDays: s.windowDays,
+            palette: palette,
+            usesImperialUnits: s.usesImperialFoodUnits,
+          ),
+          weightCard: (s, palette) => _WeightCard(
+            entries: s.weight,
+            bodyWeightUnit: s.bodyWeightUnit,
+            targetWeightKg: s.targetWeightKg,
+            rangeDays: s.windowDays,
+            palette: palette,
+          ),
         );
       },
-    );
-  }
-}
-
-class _RangeSelector extends StatelessWidget {
-  final int rangeDays;
-  const _RangeSelector({required this.rangeDays});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Semantics(
-        identifier: 'trends-range-selector',
-        child: SegmentedButton<int>(
-          showSelectedIcon: false,
-          segments: [
-            const ButtonSegment(value: 7, label: Text('7d')),
-            const ButtonSegment(value: 30, label: Text('30d')),
-            const ButtonSegment(value: 90, label: Text('90d')),
-            // 0 is the "All" sentinel; the bloc resolves it to the full span.
-            ButtonSegment(value: 0, label: Text(S.of(context).allItemsLabel)),
-          ],
-          selected: {rangeDays},
-          onSelectionChanged: (s) => context
-              .read<TrendsBloc>()
-              .add(LoadTrendsEvent(rangeDays: s.first)),
-        ),
-      ),
     );
   }
 }
