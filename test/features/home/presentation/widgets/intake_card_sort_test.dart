@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -131,6 +132,19 @@ void main() {
     final context = tester.element(find.byType(IntakeCard));
     final s = S.of(context);
     expect(find.text('30,0 ${s.gramUnit} ${s.carbsLabel}'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('at twice the font size a long name wraps onto a second line', (
+    tester,
+  ) async {
+    await tester.pumpWidget(wrap(null, scale: 2));
+    await tester.pump();
+    final name = tester.renderObject<RenderParagraph>(
+      find.text(intake().meal.name!),
+    );
+    final oneLine = name.getFullHeightForCaret(const TextPosition(offset: 0));
+    expect(name.size.height, greaterThan(oneLine * 1.5));
     expect(tester.takeException(), isNull);
   });
 }

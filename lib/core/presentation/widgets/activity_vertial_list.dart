@@ -54,16 +54,21 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
               ),
               const SizedBox(width: Dimens.spacing8),
               Expanded(
-                child: AutoSizeText(
-                  widget.title,
-                  maxLines: 1,
-                  minFontSize: 14,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge,
+                // A heading screen readers can jump between.
+                child: Semantics(
+                  header: true,
+                  child: AutoSizeText(
+                    widget.title,
+                    maxLines: 1,
+                    minFontSize: 14,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
               ),
               const SizedBox(width: Dimens.spacing8),
               PopupMenuButton<_ActivityPopupMenuSelection>(
+                tooltip: S.of(context).sectionOptionsLabel(widget.title),
                 onSelected: (_ActivityPopupMenuSelection selection) async {
                   switch (selection) {
                     case _ActivityPopupMenuSelection.onCopy:

@@ -113,4 +113,10 @@ void main() {
       expect('a,b'.withDotDecimal(), 'a,b');
     });
   });
+
+  testWidgets('the plus says which food it adds', (tester) async {
+    await pumpCard(tester, '100');
+
+    expect(find.byTooltip('Add Skyr'), findsOneWidget);
+  });
 }

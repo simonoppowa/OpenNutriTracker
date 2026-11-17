@@ -90,7 +90,9 @@ class IntakeCard extends StatelessWidget {
                       AutoSizeText(
                         intake.meal.name ?? "?",
                         style: textTheme.titleSmall?.copyWith(color: palette.textStrong),
-                        maxLines: 1,
+                        // A long name wraps once at a large font before
+                        // it is cut.
+                        maxLines: 2,
                         minFontSize: 11,
                         overflow: TextOverflow.ellipsis,
                       ),

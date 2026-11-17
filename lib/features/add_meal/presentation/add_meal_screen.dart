@@ -182,6 +182,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     onPressed: () =>
                         _onCustomAddButtonPressed(state.usesImperialUnits),
                     icon: const Icon(Icons.add_circle_outline),
+                    tooltip: S.of(context).newCustomMealLabel,
                   ),
                 );
               }

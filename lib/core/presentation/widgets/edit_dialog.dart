@@ -37,6 +37,9 @@ class _EditDialogState extends State<EditDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(S.of(context).editItemDialogTitle),
+      // At a large font above the keyboard a small screen is shorter than
+      // the dialog.
+      scrollable: true,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
