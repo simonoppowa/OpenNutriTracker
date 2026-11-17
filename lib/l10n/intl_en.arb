@@ -215,6 +215,15 @@
   },
   "activityExample": "e.g. running, biking, yoga ...",
   "activityLabel": "Activity",
+  "addFoodLabel": "Add {food}",
+  "@addFoodLabel": {
+    "description": "Screen reader label of the plus on a food search result, e.g. 'Add Banana'.",
+    "placeholders": {
+      "food": {
+        "type": "String"
+      }
+    }
+  },
   "addItemLabel": "Add new Item:",
   "addLabel": "Add",
   "addToSectionLabel": "Add to {section}",
@@ -1059,6 +1068,15 @@
   "searchLabel": "Search",
   "searchProductsPage": "Products",
   "searchResultsLabel": "Search results",
+  "sectionOptionsLabel": "{section} options",
+  "@sectionOptionsLabel": {
+    "description": "Screen reader label of the menu button in a meal or activity list's header, e.g. 'Breakfast options'.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
   "selectGenderDialogLabel": "Select Gender",
   "selectHeightDialogLabel": "Select Height",
   "selectPalCategoryLabel": "Select Activity Level",

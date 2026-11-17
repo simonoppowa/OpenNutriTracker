@@ -566,4 +566,99 @@ void main() {
 
     expect(_dropLog, ['add', 'delete', 'switch']);
   });
+
+  testWidgets('the section title is a heading and its menu names the section', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: intakes,
+          usesImperialUnits: false,
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      tester.getSemantics(find.text('Breakfast')),
+      isSemantics(isHeader: true),
+    );
+    expect(
+      find.byTooltip(l10nEn.sectionOptionsLabel('Breakfast')),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('the header summary is read in words', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: intakes,
+          usesImperialUnits: false,
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.bySemanticsLabel(
+        '200 ${l10nEn.kcalLabel}, '
+        '20 ${l10nEn.gramUnit} ${l10nEn.carbsLabel}, '
+        '10 ${l10nEn.gramUnit} ${l10nEn.fatLabel}, '
+        '5 ${l10nEn.gramUnit} ${l10nEn.proteinLabel}',
+      ),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('at twice the font size the header summary wraps, uncut', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(360, 800),
+            textScaler: TextScaler.linear(2),
+          ),
+          child: IntakeVerticalList(
+            day: DateTime(2026, 1, 1),
+            title: 'Breakfast',
+            listIcon: Icons.bakery_dining_outlined,
+            addMealType: AddMealType.breakfastType,
+            intakeList: intakes,
+            usesImperialUnits: false,
+            onDeleteIntakeCallback: (_, _) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final summary = tester.renderObject<RenderParagraph>(
+      find.descendant(
+        of: find.text(headerWithMacros()),
+        matching: find.byType(RichText),
+      ),
+    );
+    expect(summary.didExceedMaxLines, isFalse);
+  });
 }

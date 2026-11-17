@@ -463,6 +463,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   );
                 },
                 icon: const Icon(Icons.edit_rounded),
+                tooltip: S.of(context).editMealLabel,
               ),
             ),
           ],

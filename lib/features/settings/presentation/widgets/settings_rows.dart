@@ -28,11 +28,15 @@ class SettingsCategoryHeader extends StatelessWidget {
         Dimens.spacing12,
         Dimens.spacing8,
       ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: palette.textMuted,
-          fontWeight: FontWeight.w700,
+      // A heading screen readers can jump between.
+      child: Semantics(
+        header: true,
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: palette.textMuted,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
