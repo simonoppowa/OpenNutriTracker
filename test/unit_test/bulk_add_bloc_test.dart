@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_photo_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
+import 'package:opennutritracker/features/add_meal/domain/usecase/pick_resolved_matches_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_photo_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/read_meal_text_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -189,6 +191,34 @@ Future<BulkAddLoadedState> parse(
   return await bloc.stream.firstWhere((s) => s is BulkAddLoadedState)
       as BulkAddLoadedState;
 }
+
+/// Answers the match-picking request with [items] and counts the requests.
+class _PickingApi implements MealItemsApi {
+  final List<ParsedMealItem> items;
+  int calls = 0;
+
+  _PickingApi(this.items);
+
+  @override
+  Future<MealTextParseResult> requestItems({
+    required MealContent content,
+    required String system,
+  }) async {
+    calls++;
+    return MealTextParseResult(items: items, errors: const []);
+  }
+}
+
+PickResolvedMatchesUseCase _pickerWith(_PickingApi api) =>
+    PickResolvedMatchesUseCase(
+      AiCredentialStorage(
+        _MapStorage({
+          'AiApiKeyTag.anthropic': 'sk-test',
+          'AiAssistEnabledTag': 'true',
+        }),
+      ),
+      (_) => api,
+    );
 
 void main() {
   test('a parsed line becomes one row per item', () async {
@@ -1721,6 +1751,44 @@ void main() {
 
       expect(row.quantityError, isNotNull);
       expect(row.willBeLogged, isTrue);
+    });
+  });
+
+  group('match picking', () {
+    final eggs = {
+      'eggs': [meal('Egg yolk, raw'), meal('Egg, whole, raw')],
+    };
+
+    test('a line the model read takes the candidate it picked', () async {
+      final api = _PickingApi(const [ParsedMealItem(query: '1:c1')]);
+      final bloc = BulkAddBloc(
+        ResolveParsedMealsUseCase(_FakeSearch(eggs)),
+        readerReturning(const [ParsedMealItem(query: 'eggs', quantity: 2)]),
+        photoReaderWithoutKey(),
+        matchPicker: _pickerWith(api),
+      );
+
+      final state = await parse(bloc, 'two eggs');
+
+      expect(api.calls, 1);
+      final row = state.rows.single;
+      expect(row.meal, same(row.resolved.candidates[1]));
+      expect(row.amountText, '2');
+    });
+
+    test('a line the parser read is never sent for picking', () async {
+      final api = _PickingApi(const [ParsedMealItem(query: '1:c1')]);
+      final bloc = BulkAddBloc(
+        ResolveParsedMealsUseCase(_FakeSearch(eggs)),
+        parserOnlyReader(),
+        photoReaderWithoutKey(),
+        matchPicker: _pickerWith(api),
+      );
+
+      final state = await parse(bloc, '2 eggs');
+
+      expect(api.calls, 0);
+      expect(state.rows.single.selectedIndex, 0);
     });
   });
 }
