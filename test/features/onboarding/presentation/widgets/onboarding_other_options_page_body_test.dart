@@ -67,21 +67,20 @@ void main() {
   testWidgets('the collapsed summary counts the enabled sources', (
     tester,
   ) async {
-    // Four of five selectable sources on, plus Open Food Facts, which is
-    // always searched and has no switch: 5 of 6.
+    // All selectable sources but one on, plus Open Food Facts, which is
+    // always searched and has no switch. Counted from the list, so adding a
+    // source does not rewrite the test.
+    final total = SPConst.settingsSelectableFoodSources.length + 1;
     await pumpPage(
       tester,
       toggles: {
-        'fdc_foundation': true,
-        'fdc_sr_legacy': true,
-        'fdc_survey': true,
-        'fdc_branded': false,
-        'bls': true,
+        for (final s in SPConst.settingsSelectableFoodSources)
+          s: s != 'fdc_branded',
       },
     );
 
     expect(
-      find.text(l10nEn.onboardingFoodSourcesEnabledCount(5, 6)),
+      find.text(l10nEn.onboardingFoodSourcesEnabledCount(total - 1, total)),
       findsOneWidget,
     );
   });
@@ -113,8 +112,9 @@ void main() {
       onToggles: (toggles) => reported = toggles,
     );
 
+    final total = SPConst.settingsSelectableFoodSources.length + 1;
     expect(
-      find.text(l10nEn.onboardingFoodSourcesEnabledCount(6, 6)),
+      find.text(l10nEn.onboardingFoodSourcesEnabledCount(total, total)),
       findsOneWidget,
     );
 
@@ -129,7 +129,7 @@ void main() {
 
     expect(reported?['bls'], isFalse);
     expect(
-      find.text(l10nEn.onboardingFoodSourcesEnabledCount(5, 6)),
+      find.text(l10nEn.onboardingFoodSourcesEnabledCount(total - 1, total)),
       findsOneWidget,
     );
   });

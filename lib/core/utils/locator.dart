@@ -145,6 +145,8 @@ import 'package:opennutritracker/features/settings/presentation/bloc/settings_bl
 import 'package:opennutritracker/features/settings/data/tip_store.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/tip_jar_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/food_rpc_client.dart';
+import 'package:opennutritracker/features/add_meal/data/offline_food_db/offline_food_db.dart';
 
 final locator = GetIt.instance;
 
@@ -221,6 +223,15 @@ Future<void> initLocator() async {
     debug: false,
   );
   locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
+  // Food searches read the offline database while one with a schema this
+  // build knows is installed, and the hosted backend otherwise.
+  final offlineFoodDb = OfflineFoodDb(
+    fallback: SupabaseFoodRpcClient(Supabase.instance.client),
+    httpClient: locator<http.Client>(),
+  );
+  await offlineFoodDb.open();
+  locator.registerSingleton<OfflineFoodDb>(offlineFoodDb);
+  locator.registerSingleton<FoodRpcClient>(offlineFoodDb);
 
   // Notification service (#312)
   locator.registerLazySingleton<NotificationService>(

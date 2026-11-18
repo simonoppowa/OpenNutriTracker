@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/app_locale.dart';
 import 'package:opennutritracker/core/utils/retry_util.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
+import 'package:opennutritracker/features/add_meal/data/data_sources/food_rpc_client.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_portion_entity.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/sp/sp_food_dto.dart';
@@ -106,7 +107,7 @@ class SpFoodDataSource {
     List<String>? enabledSources, {
     required bool forResolution,
   }) async {
-    final supaBaseClient = locator<SupabaseClient>();
+    final supaBaseClient = _rpcClient();
     if (locale != null) {
       final localized = await _searchByTranslation(
         supaBaseClient,
@@ -158,7 +159,7 @@ class SpFoodDataSource {
 
     try {
       final rows = await _rpcRows(
-        locator<SupabaseClient>(),
+        _rpcClient(),
         SPConst.portionLabelsByFoodIdsFn,
         {'ids': foodIds, 'loc': locale},
       );
@@ -208,7 +209,7 @@ class SpFoodDataSource {
 
     try {
       final rows = await _rpcRows(
-        locator<SupabaseClient>(),
+        _rpcClient(),
         SPConst.portionsByFoodIdsFn,
         // English has no translations to look for, and the function treats an
         // unmatched locale as "none verified", so passing 'en' asks the same
@@ -256,26 +257,22 @@ class SpFoodDataSource {
     return enabled;
   }
 
-  /// Calls [fn] and hands back its rows.
-  ///
-  /// `rpc` posts [params] as the request body and leaves the URL as a bare
-  /// `/rest/v1/rpc/<fn>` — which is the entire point of routing search this
-  /// way — but it is typed `dynamic`, where `select()` handed back a typed
-  /// list. One cast in one place rather than three.
+  /// What answers the backend's food functions: a registered
+  /// [FoodRpcClient] when there is one, the hosted Supabase project
+  /// otherwise.
+  FoodRpcClient _rpcClient() => locator.isRegistered<FoodRpcClient>()
+      ? locator<FoodRpcClient>()
+      : SupabaseFoodRpcClient(locator<SupabaseClient>());
+
+  /// Calls [fn] and hands back its rows (see [SupabaseFoodRpcClient.rpc]).
   Future<List<Map<String, dynamic>>> _rpcRows(
-    SupabaseClient client,
+    FoodRpcClient client,
     String fn,
     Map<String, dynamic> params,
-  ) async {
-    final response = await client.rpc(fn, params: params);
-    // A set-returning function with no matches answers with an empty array,
-    // never null; null would mean the function itself returned NULL, which
-    // none of these can.
-    return (response as List).cast<Map<String, dynamic>>();
-  }
+  ) => client.rpc(fn, params);
 
   Future<List<SpFoodDTO>> _searchEnglish(
-    SupabaseClient client,
+    FoodRpcClient client,
     String searchString,
     List<String>? enabledSources, {
     required bool forResolution,
@@ -313,7 +310,7 @@ class SpFoodDataSource {
   /// Match the translated descriptions first, then fetch the summary rows
   /// for the matched food ids and carry the translated name over.
   Future<List<SpFoodDTO>> _searchByTranslation(
-    SupabaseClient client,
+    FoodRpcClient client,
     String locale,
     String searchString,
     List<String>? enabledSources, {
