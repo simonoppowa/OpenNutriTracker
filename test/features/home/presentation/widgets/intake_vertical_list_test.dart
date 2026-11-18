@@ -490,6 +490,49 @@ void main() {
     },
   );
 
+  // #1315: with a meal target the header read "837 / 2439 kcal" in kJ mode,
+  // because the unit was baked into the string while both numbers were kJ.
+  Widget targetHeader({required bool usesKilojoules}) {
+    return ChangeNotifierProvider<EnergyUnitProvider>(
+      create: (_) => EnergyUnitProvider(usesKilojoules: usesKilojoules),
+      child: MaterialApp(
+        localizationsDelegates: const [S.delegate],
+        supportedLocales: S.supportedLocales,
+        home: Scaffold(
+          body: IntakeVerticalList(
+            day: DateTime(2026, 1, 1),
+            title: 'Breakfast',
+            listIcon: Icons.bakery_dining_outlined,
+            addMealType: AddMealType.breakfastType,
+            intakeList: intakes,
+            usesImperialUnits: false,
+            showMealMacros: false,
+            mealKcalTarget: 583,
+            onDeleteIntakeCallback: (_, _) {},
+          ),
+        ),
+      ),
+    );
+  }
+
+  testWidgets('meal target header shows kcal in kcal mode', (tester) async {
+    await tester.pumpWidget(targetHeader(usesKilojoules: false));
+    await tester.pump();
+
+    expect(find.text('200 / 583 ${l10nEn.kcalLabel}'), findsOneWidget);
+  });
+
+  testWidgets('meal target header shows kJ in kJ mode (#1315)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(targetHeader(usesKilojoules: true));
+    await tester.pump();
+
+    // 200 kcal * 4.184 = 836.8 -> 837; 583 kcal * 4.184 = 2439.3 -> 2439
+    expect(find.text('837 / 2439 ${l10nEn.kjLabel}'), findsOneWidget);
+    expect(find.textContaining(l10nEn.kcalLabel), findsNothing);
+  });
+
   // Regression: at a phone-width header the title used to be starved of space
   // by a Spacer competing with the kcal summary for flex, so "Breakfast"
   // wrapped onto a second line ("Breakfas" / "t"). The title now takes an

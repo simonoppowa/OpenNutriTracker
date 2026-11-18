@@ -41,7 +41,8 @@
       }
     }
   },
-  "@diaryMealKcalConsumedOfTarget": {
+  "@diaryMealEnergyConsumedOfTarget": {
+    "description": "Meal section header on Home: energy eaten against the meal's target. {target} already carries its unit (kcal or kJ), so the text must not add one.",
     "placeholders": {
       "consumed": {
         "type": "String"
@@ -418,7 +419,7 @@
   "dialogOKLabel": "OK",
   "diaryFutureDateWarning": "You are editing a future date",
   "diaryLabel": "Diary",
-  "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
+  "diaryMealEnergyConsumedOfTarget": "{consumed} / {target}",
   "diaryNutrientPanelDataDisclaimer": "Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.",
   "diaryNutrientPanelTitle": "Today's nutrients",
   "driPanelInfoTitle": "Reference intake",
