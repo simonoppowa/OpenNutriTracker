@@ -151,7 +151,7 @@ class IntakeCard extends StatelessWidget {
                         color: palette.textMuted,
                       ),
                       shape: Dimens.shapeM,
-                      itemBuilder: (_) => [
+                      itemBuilder: (menuContext) => [
                         if (onShare != null)
                           PopupMenuItem<void>(
                             onTap: onShare,
@@ -165,7 +165,11 @@ class IntakeCard extends StatelessWidget {
                             onTap: onDelete,
                             child: Semantics(
                               identifier: 'intake-delete-food',
-                              child: Text(s.dialogDeleteLabel),
+                              child: Text(
+                                MaterialLocalizations.of(
+                                  menuContext,
+                                ).deleteButtonTooltip,
+                              ),
                             ),
                           ),
                       ],

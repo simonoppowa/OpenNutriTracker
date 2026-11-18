@@ -339,7 +339,7 @@ void main() {
       await tester.ensureVisible(menu);
       await tester.tap(menu);
       await settle(tester);
-      await tester.tap(find.text(l10nEn.dialogDeleteLabel));
+      await tester.tap(find.text('Delete'));
       await settle(tester);
       expect(find.text(l10nEn.deleteTimeDialogTitle), findsOneWidget);
       expect(find.text(l10nEn.copyOrDeleteTimeDialogTitle), findsNothing);
@@ -451,7 +451,7 @@ void main() {
           if (useMenu) {
             await tester.tap(find.bySemanticsIdentifier('intake-item-menu'));
             await settle(tester);
-            await tester.tap(find.text(l10nEn.dialogDeleteLabel));
+            await tester.tap(find.text('Delete'));
           } else {
             await tester.longPress(find.text('Toast'));
           }

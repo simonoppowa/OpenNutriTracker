@@ -231,8 +231,8 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.text(l10nEn.shareFoodLabel), findsOneWidget);
-        expect(find.text(l10nEn.dialogDeleteLabel), findsOneWidget);
-        await tester.tap(find.text(l10nEn.dialogDeleteLabel));
+        expect(find.text('Delete'), findsOneWidget);
+        await tester.tap(find.text('Delete'));
         await tester.pumpAndSettle();
         expect(find.text(l10nEn.deleteTimeDialogTitle), findsOneWidget);
       }
@@ -289,17 +289,17 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text(l10nEn.dialogDeleteLabel), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
 
     setHostState(() => showList = false);
     await tester.pumpAndSettle();
     expect(listState.mounted, isFalse);
     expect(find.byType(IntakeVerticalList), findsNothing);
     expect(tester.state(find.byType(Navigator)), same(navigator));
-    expect(find.text(l10nEn.dialogDeleteLabel), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text(l10nEn.dialogDeleteLabel));
+    await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byType(AlertDialog), findsNothing);
@@ -385,7 +385,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text(l10nEn.dialogDeleteLabel), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
     await tester.tap(find.text(l10nEn.shareFoodLabel));
     await tester.pumpAndSettle();
 
