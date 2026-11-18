@@ -1,3 +1,4 @@
+import 'package:opennutritracker/features/add_meal/data/app_language_note.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_items_api.dart';
 import 'package:opennutritracker/features/add_meal/domain/meal_text_interpreter.dart';
 import 'package:opennutritracker/features/add_meal/util/meal_text_parser.dart';
@@ -32,7 +33,8 @@ Rules:
 - One entry per distinct food. Split on any punctuation or conjunction the
   user's language uses.
 - "query" is the food name alone, with no amount in it, in the same language
-  the user wrote. Keep a brand if one is given.
+  the user wrote unless a line below names another. Keep a brand if one is
+  given.
 - Only include "quantity" if the user stated an amount, including as a word
   ("two eggs" -> 2) or a counter ("2个鸡蛋" -> 2). If no amount is stated,
   omit both "quantity" and "unit".
@@ -63,7 +65,7 @@ Rules:
       content: MealTextContent(trimmed),
       system: localeCode == null
           ? _systemPrompt
-          : '$_systemPrompt\nThe user\'s app language is "$localeCode".',
+          : '$_systemPrompt\n${appLanguageNote(localeCode)}',
     );
   }
 }
