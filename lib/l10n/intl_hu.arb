@@ -1802,5 +1802,111 @@
   "shareCodeErrorLabel": "Nem sikerült megosztani a kódot. Próbálja meg újra, vagy inkább másolja ki.",
   "shareFoodLabel": "Ételmegosztás",
   "shareQrTooLargeLabel": "Ez a kód túl nagy ahhoz, hogy QR-kódként jelenjen meg. Ehelyett másolja ki vagy ossza meg a kódot szövegként.",
-  "shareQrUnavailableLabel": "Nem sikerült létrehozni a QR-képet. Ehelyett másolja ki vagy ossza meg a kódot szövegként."
+  "shareQrUnavailableLabel": "Nem sikerült létrehozni a QR-képet. Ehelyett másolja ki vagy ossza meg a kódot szövegként.",
+  "logWaterAmountLabelFlOz": "{amount} fl.oz hozzáadása",
+  "@logWaterAmountLabelFlOz": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "waterChipLabelFlOz": "{current} / {goal} fl.oz",
+  "@waterChipLabelFlOz": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceInputStartTooltip": "Mondja el, mit szeretne enni",
+  "voiceInputStopTooltip": "Ne hallgasson tovább",
+  "voiceInputLanguageTooltip": "Diktálás nyelve: {language}. Érintse meg a váltáshoz.",
+  "@voiceInputLanguageTooltip": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceInputPermissionDenied": "Engedélyezze a mikrofon és a beszédfelismerés használatát az étel lediktálásához.",
+  "voiceInputUnavailable": "Ezen a készüléken a beszédfelismerés nem érhető el.",
+  "aiAssistDisclosureOwnServerGemini": "Cím megadása esetén a „több elemes hozzáadás” képernyőn beírt szöveg, valamint az ott kiválasztott és beolvasott fénykép továbbításra kerül a Google Gemini API-jához a {host} címen. Ez nem egy Ön által üzemeltetett szerver: az adatokat a Google kapja meg, és a jelen projektnek nincs kapcsolata a Google-lal. A Gemini API ingyenes használata esetén a Google felhasználhatja a beküldött adatokat termékei és gépi tanulási modelljei fejlesztésére, és azokat emberi értékelők is elolvashatják. Fizetős használat, valamint az EGT-ben, Svájcban és az Egyesült Királyságban történő bármilyen használat esetén a Google nem használja fel az adatokat termékfejlesztésre, de a visszaélések észlelése érdekében korlátozott ideig naplózza azokat.",
+  "@aiAssistDisclosureOwnServerGemini": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistModelCheaperThanRecommendedLabel": "Olcsóbb, mint az ajánlott modell",
+  "@aiAssistModelCheaperThanRecommendedLabel": {
+    "description": "Note under a model in the AI settings: it costs less than the first (recommended) model. A price fact only, no claim about quality."
+  },
+  "logTrayEditAmountLabel": "Összeg módosítása",
+  "settingsSupportLabel": "Az OpenNutriTracker támogatása",
+  "settingsSupportSubtitle": "Javaslat, fordítás, kódolás, értékelés",
+  "supportHeader": "Az OpenNutriTracker ingyenes, reklámmentes és nyílt forráskódú, önkéntesek hozták létre. Ha hasznosnak találja, íme néhány mód, ahogyan Ön is segíthet.",
+  "supportGroupSpreadWord": "Hírek megosztása",
+  "supportGroupSkills": "Ajánlja fel a tudását",
+  "supportGroupMoney": "Támogatás pénzzel",
+  "supportRateTitle": "Alkalmazás értékelése",
+  "supportRateSubtitle": "Az értékelés segít másoknak megtalálni az OpenNutriTracker alkalmazást.",
+  "supportShareTitle": "Ossza meg egy barátjával",
+  "supportShareSubtitle": "Küldjön el egy linket bármelyik alkalmazáson keresztül.",
+  "supportStarTitle": "Követés a GitHubon",
+  "supportStarSubtitle": "Figyeljen a projektre ott, ahol a fejlesztők is megfordulnak.",
+  "supportTranslateTitle": "Segítsen a fordításban",
+  "supportTranslateSubtitle": "Fordítsa le a böngészőjében a Weblate segítségével. Nincs szükség programozásra.",
+  "supportReportTitle": "Hiba vagy ötlet bejelentése",
+  "supportReportSubtitle": "Nyisson meg egy hibajelentést a GitHubon! Mások is láthatják és szavazhatnak rá.",
+  "supportCodeTitle": "Kód beküldése",
+  "supportCodeSubtitle": "Flutter és Dart. Kezdje a közreműködői útmutatóval.",
+  "supportTipTitle": "Borravaló adása",
+  "supportTipSubtitle": "Egyszeri adomány az áruházon keresztül. Nem nyit meg semmit — csupán segítséget jelent.",
+  "supportTipSmall": "Egy kis apró",
+  "supportTipMedium": "Közepes borravaló",
+  "supportTipLarge": "Nagyobb támogatás",
+  "supportTipThanksTitle": "Köszönöm!",
+  "supportTipThanksBody": "A(z) {tipName} ({price}) hozzájárul ahhoz, hogy az OpenNutriTracker ingyenes maradjon.",
+  "@supportTipThanksBody": {
+    "placeholders": {
+      "tipName": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "supportTipLeft": "Borravalót adott – köszönöm!",
+  "supportTipLoadFailed": "A borravalók nem tölthetők be. Ezek az alkalmazás App Store-os és Google Play-es verzióiban működnek.",
+  "supportTipPending": "A borravalója a fizetés feldolgozására vár.",
+  "supportTipFailed": "A borravaló nem került átutalásra.",
+  "supportShareLinks": "App Store: {appStoreUrl}\nGoogle Play: {playStoreUrl}",
+  "@supportShareLinks": {
+    "placeholders": {
+      "appStoreUrl": {
+        "type": "String"
+      },
+      "playStoreUrl": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarPreviousMonthLabel": "Előző hónap",
+  "@calendarPreviousMonthLabel": {
+    "description": "Screen reader label of the Diary calendar's left arrow."
+  },
+  "calendarNextMonthLabel": "Következő hónap",
+  "@calendarNextMonthLabel": {
+    "description": "Screen reader label of the Diary calendar's right arrow."
+  },
+  "removeIngredientLabel": "Hozzávaló eltávolítása",
+  "@removeIngredientLabel": {
+    "description": "Tooltip and screen reader label of the delete button on a recipe ingredient row."
+  }
 }
