@@ -44,6 +44,7 @@ MealEntity _food({
   String unit = 'g',
   String? quantity = '60',
   double? servingQuantity,
+  MealNutrimentsEntity? nutriments,
 }) => MealEntity(
   code: 'basis-food',
   name: 'Sixty gram food',
@@ -53,21 +54,23 @@ MealEntity _food({
   servingQuantity: servingQuantity ?? double.tryParse(quantity ?? ''),
   servingUnit: unit,
   servingSize: '1 portion ($quantity $unit)',
-  nutriments: const MealNutrimentsEntity(
-    energyKcal100: 460,
-    carbohydrates100: 60,
-    fat100: 20,
-    proteins100: 10,
-    sugars100: 12,
-    saturatedFat100: 5,
-    fiber100: 8,
-    sodium100: 100,
-    calcium100: 40,
-    iron100: 2,
-    potassium100: 300,
-    magnesium100: 10,
-    vitaminB12100: 0.5,
-  ),
+  nutriments:
+      nutriments ??
+      const MealNutrimentsEntity(
+        energyKcal100: 460,
+        carbohydrates100: 60,
+        fat100: 20,
+        proteins100: 10,
+        sugars100: 12,
+        saturatedFat100: 5,
+        fiber100: 8,
+        sodium100: 100,
+        calcium100: 40,
+        iron100: 2,
+        potassium100: 300,
+        magnesium100: 10,
+        vitaminB12100: 0.5,
+      ),
   source: MealSourceEntity.custom,
   detailed: true,
 );
@@ -310,6 +313,61 @@ void main() {
       ConfigDataSource(FakeHiveDBProvider(configBox: configBox)),
     );
   }
+
+  testWidgets('kJ basis round trip keeps the Per 100 g field readable', (
+    tester,
+  ) async {
+    kilojoules = true;
+    await pumpEditor(tester, _food(servingQuantity: 30));
+    expect((await energy(tester)).controller!.text, '1924.6');
+    await toggleTotal(tester);
+    expect((await energy(tester)).controller!.text, '1154.76');
+    await per100(tester, 'g');
+    expect((await energy(tester)).controller!.text, '1924.6');
+  });
+
+  testWidgets('tiny package values survive repeated toggles and save', (
+    tester,
+  ) async {
+    kilojoules = true;
+    const fiber = 0.00012345678901234567;
+    await pumpEditor(
+      tester,
+      _food(
+        quantity: '0.01',
+        nutriments: const MealNutrimentsEntity(
+          energyKcal100: 0.024,
+          carbohydrates100: null,
+          fat100: null,
+          proteins100: null,
+          sugars100: null,
+          saturatedFat100: null,
+          fiber100: fiber,
+        ),
+      ),
+    );
+    for (var i = 0; i < 3; i++) {
+      await toggleTotal(tester);
+      expect((await energy(tester)).controller!.text, '0.00001');
+      await per100(tester, 'g');
+      expect((await energy(tester)).controller!.text, '0.1');
+    }
+    await toggleTotal(tester);
+    final reopened = await saveAndReopen(tester);
+    expect(reopened.nutriments.energyKcal100, closeTo(0.0239005736, 1e-10));
+    expect(reopened.nutriments.fiber100, closeTo(fiber, 3e-20));
+    expect(reopened.nutriments.carbohydrates100, isNull);
+    await pumpEditor(tester, reopened);
+    expect((await energy(tester)).controller!.text, '0.00001');
+    final fiberField = tester.widget<TextFormField>(
+      await field(tester, l10nEn.fiberLabel),
+    );
+    expect(fiberField.controller!.text, '1.23456789012346e-8');
+    final blank = tester.widget<TextFormField>(
+      await field(tester, l10nEn.mealCarbsLabel),
+    );
+    expect(blank.controller!.text, isEmpty);
+  });
 
   testWidgets('remembers explicit package-total selection on reopen', (
     tester,
@@ -814,11 +872,101 @@ void main() {
     },
   );
 
+  testWidgets('package total can save carbs equal to the package size', (
+    tester,
+  ) async {
+    await pumpEditor(
+      tester,
+      _food(
+        quantity: '10',
+        nutriments: const MealNutrimentsEntity(
+          energyKcal100: 400,
+          carbohydrates100: 100,
+          fat100: 0,
+          proteins100: 0,
+          sugars100: null,
+          saturatedFat100: null,
+          fiber100: null,
+        ),
+      ),
+    );
+    await toggleTotal(tester);
+    await tester.enterText(
+      await field(tester, '${l10nEn.mealSizeLabel} (g)'),
+      '7',
+    );
+    await tester.pumpAndSettle();
+    final carbs = tester.widget<TextFormField>(
+      await field(tester, l10nEn.mealCarbsLabel),
+    );
+    expect(carbs.controller!.text, '7.0');
+    final reopened = await saveAndReopen(tester);
+    expect(reopened.mealQuantity, '7');
+    expect(reopened.nutriments.carbohydrates100, closeTo(100, 1e-12));
+  });
+
+  for (final cancel in [true, false]) {
+    testWidgets('scaled fiber respects IME ${cancel ? 'cancel' : 'commit'}', (
+      tester,
+    ) async {
+      const fiber = 8.123456789012345;
+      await pumpEditor(
+        tester,
+        _food(
+          nutriments: const MealNutrimentsEntity(
+            energyKcal100: 460,
+            carbohydrates100: 60,
+            fat100: 20,
+            proteins100: 10,
+            sugars100: null,
+            saturatedFat100: null,
+            fiber100: fiber,
+          ),
+        ),
+      );
+      await toggleTotal(tester);
+      final finder = await field(tester, l10nEn.fiberLabel);
+      await tester.showKeyboard(finder);
+      final controller = tester.widget<TextFormField>(finder).controller!;
+      final shown = controller.text;
+      final changed = '5${shown.substring(1)}';
+      tester.testTextInput.updateEditingValue(
+        TextEditingValue(
+          text: changed,
+          selection: const TextSelection.collapsed(offset: 1),
+          composing: const TextRange(start: 0, end: 1),
+        ),
+      );
+      await tester.pump();
+      expect(controller.text, changed);
+      expect(controller.value.composing.isCollapsed, isFalse);
+      tester.testTextInput.updateEditingValue(
+        TextEditingValue(
+          text: cancel ? shown : changed,
+          selection: const TextSelection.collapsed(offset: 1),
+        ),
+      );
+      await tester.pump();
+      expect(controller.value.composing.isCollapsed, isTrue);
+      await per100(tester, 'g');
+      final expected = cancel ? fiber : double.parse(changed) * (100 / 60);
+      if (cancel) {
+        expect(controller.text, fiber.toString());
+      } else {
+        expect(double.parse(controller.text), closeTo(expected, 1e-14));
+      }
+      final reopened = await saveAndReopen(tester);
+      expect(reopened.nutriments.fiber100, closeTo(expected, 1e-15));
+    });
+  }
+
   testWidgets(
     'explicit nutrition base edit reinterprets input with immediate label',
     (tester) async {
       imperial = true;
-      await pumpEditor(tester, _food());
+      await pumpEditor(tester, _food(servingQuantity: 30));
+      await toggleTotal(tester);
+      await per100(tester, 'g');
       await tester.enterText(
         await field(tester, '${l10nEn.baseQuantityLabel} (g)'),
         '60',
@@ -826,6 +974,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(double.parse((await energy(tester)).controller!.text), 460);
       expect(find.text('Per 60 g'), findsWidgets);
+      await simple(tester);
+      expect(double.parse((await energy(tester)).controller!.text), 230);
+      await advanced(tester);
       for (final (label, value) in [
         ('${l10nEn.mealEnergyLabel} (${l10nEn.kcalLabel})', '276'),
         (l10nEn.mealCarbsLabel, '36'),
@@ -857,6 +1008,10 @@ void main() {
     ]) {
       await tester.enterText(await field(tester, label), value);
     }
+    await per100(tester, 'g');
+    expect(double.parse((await energy(tester)).controller!.text), 500);
+    await toggleTotal(tester);
+    expect((await energy(tester)).controller!.text, '300');
     final reopened = await saveAndReopen(tester);
     expect(reopened.nutriments.energyKcal100, 500);
     expect(reopened.nutriments.carbohydrates100, closeTo(66.6667, 0.0001));
@@ -890,6 +1045,13 @@ void main() {
       expect(
         double.parse((await energy(tester)).controller!.text),
         closeTo(1154.784, 1e-8),
+      );
+      provider.updateUsesKilojoules(false);
+      kilojoules = false;
+      await tester.pumpAndSettle();
+      expect(
+        double.parse((await energy(tester)).controller!.text),
+        closeTo(276, 1e-8),
       );
       expectDensity(await saveAndReopen(tester));
     },

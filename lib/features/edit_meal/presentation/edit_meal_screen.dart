@@ -65,21 +65,21 @@ class _EditMealScreenState extends State<EditMealScreen> {
   final _mealQuantityTextController = TextEditingController();
   final _servingQuantityTextController = TextEditingController();
   final _baseQuantityTextController = TextEditingController(text: '100');
-  final _kcalTextController = TextEditingController();
-  final _carbsTextController = TextEditingController();
-  final _fatTextController = TextEditingController();
-  final _proteinTextController = TextEditingController();
+  final _kcalTextController = _NutrientTextController();
+  final _carbsTextController = _NutrientTextController();
+  final _fatTextController = _NutrientTextController();
+  final _proteinTextController = _NutrientTextController();
   // Advanced-mode micronutrient controllers (#232 follow-up: all 10 panel nutrients)
-  final _fiberTextController = TextEditingController();
-  final _saturatedFatTextController = TextEditingController();
-  final _sugarsTextController = TextEditingController();
-  final _sodiumTextController = TextEditingController();
-  final _calciumTextController = TextEditingController();
-  final _ironTextController = TextEditingController();
-  final _potassiumTextController = TextEditingController();
-  final _magnesiumTextController = TextEditingController();
-  final _vitaminDTextController = TextEditingController();
-  final _vitaminB12TextController = TextEditingController();
+  final _fiberTextController = _NutrientTextController();
+  final _saturatedFatTextController = _NutrientTextController();
+  final _sugarsTextController = _NutrientTextController();
+  final _sodiumTextController = _NutrientTextController();
+  final _calciumTextController = _NutrientTextController();
+  final _ironTextController = _NutrientTextController();
+  final _potassiumTextController = _NutrientTextController();
+  final _magnesiumTextController = _NutrientTextController();
+  final _vitaminDTextController = _NutrientTextController();
+  final _vitaminB12TextController = _NutrientTextController();
 
   final _units = ['g', 'ml', 'g/ml'];
   String? selectedUnit;
@@ -101,7 +101,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   // Metric quantity represented by the current nutrient fields, not package size.
   double _nutrientBasis = 100;
 
-  List<TextEditingController> get _nutrientControllers => [
+  List<_NutrientTextController> get _nutrientControllers => [
     _kcalTextController,
     _carbsTextController,
     _fatTextController,
@@ -177,11 +177,9 @@ class _EditMealScreenState extends State<EditMealScreen> {
   }
 
   void _rescaleNutrients(double basis) {
-    if (!basis.isFinite || basis <= 0) return;
-    final factor = basis / _nutrientBasis;
+    if (!basis.isFinite || basis <= 0 || basis == _nutrientBasis) return;
     for (final controller in _nutrientControllers) {
-      final value = double.tryParse(controller.text);
-      if (value != null) controller.text = (value * factor).toString();
+      controller.rescale(_nutrientBasis, basis);
     }
     _nutrientBasis = basis;
   }
@@ -411,11 +409,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
       _lastRenderedUsesKj = usesKj;
       return;
     }
-    final current = double.tryParse(_kcalTextController.text);
+    final current = double.tryParse(_kcalTextController.unroundedText);
     if (current != null) {
       final converted = usesKj
           ? UnitCalc.kcalToKj(current)
           : UnitCalc.kjToKcal(current);
+      _kcalTextController.resetScale();
       _kcalTextController.text = converted.toStringOrEmpty();
     }
     _lastRenderedUsesKj = usesKj;
@@ -619,7 +618,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
             onChanged: (_) {
               setState(() {
                 // Label-basis edits reinterpret input; view toggles do not.
-                if (!_isTotal && _activeNutritionBasis > 0) {
+                if (!_isTotal &&
+                    _activeNutritionBasis > 0 &&
+                    _activeNutritionBasis != _nutrientBasis) {
+                  for (final controller in _nutrientControllers) {
+                    controller.reinterpretBasis();
+                  }
                   _nutrientBasis = _activeNutritionBasis;
                 }
               });
@@ -768,7 +772,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
   }
 
   Widget _buildMicroField(
-    TextEditingController controller,
+    _NutrientTextController controller,
     String label,
     String unit,
     String? helperText,
@@ -885,10 +889,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
         final usesKjOnSave =
             Provider.of<EnergyUnitProvider>(context, listen: false)
                 .usesKilojoules;
-        final enteredEnergyRaw = double.tryParse(_kcalTextController.text);
+        final enteredEnergyRaw = double.tryParse(
+          _kcalTextController.unroundedText,
+        );
         final kcalTextForSimple = (enteredEnergyRaw != null && usesKjOnSave)
             ? UnitCalc.kjToKcal(enteredEnergyRaw).toString()
-            : _kcalTextController.text;
+            : _kcalTextController.unroundedText;
         // Treat empty Simple-mode macro fields as an explicit zero rather
         // than null. A user filling out a custom meal in Simple mode is the
         // source of truth for that food — many real foods genuinely have
@@ -908,19 +914,19 @@ class _EditMealScreenState extends State<EditMealScreen> {
           nutritionBasis.toString(),
           _usesDefaultSimpleServing ? _units[2] : selectedUnit,
           _simpleFieldOrZero(kcalTextForSimple),
-          _simpleFieldOrZero(_carbsTextController.text),
-          _simpleFieldOrZero(_fatTextController.text),
-          _simpleFieldOrZero(_proteinTextController.text),
-          fiberText: _fiberTextController.text,
-          saturatedFatText: _saturatedFatTextController.text,
-          sugarsText: _sugarsTextController.text,
-          sodiumText: _sodiumTextController.text,
-          calciumText: _calciumTextController.text,
-          ironText: _ironTextController.text,
-          potassiumText: _potassiumTextController.text,
-          magnesiumText: _magnesiumTextController.text,
-          vitaminDText: _vitaminDTextController.text,
-          vitaminB12Text: _vitaminB12TextController.text,
+          _simpleFieldOrZero(_carbsTextController.unroundedText),
+          _simpleFieldOrZero(_fatTextController.unroundedText),
+          _simpleFieldOrZero(_proteinTextController.unroundedText),
+          fiberText: _fiberTextController.unroundedText,
+          saturatedFatText: _saturatedFatTextController.unroundedText,
+          sugarsText: _sugarsTextController.unroundedText,
+          sodiumText: _sodiumTextController.unroundedText,
+          calciumText: _calciumTextController.unroundedText,
+          ironText: _ironTextController.unroundedText,
+          potassiumText: _potassiumTextController.unroundedText,
+          magnesiumText: _magnesiumTextController.unroundedText,
+          vitaminDText: _vitaminDTextController.unroundedText,
+          vitaminB12Text: _vitaminB12TextController.unroundedText,
           barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
@@ -935,22 +941,28 @@ class _EditMealScreenState extends State<EditMealScreen> {
         final usesKjOnSave =
             Provider.of<EnergyUnitProvider>(context, listen: false)
                 .usesKilojoules;
-        final enteredEnergyRaw = double.tryParse(_kcalTextController.text);
+        final enteredEnergyRaw = double.tryParse(
+          _kcalTextController.unroundedText,
+        );
         final enteredKcal = enteredEnergyRaw == null
             ? null
             : (usesKjOnSave
                   ? UnitCalc.kjToKcal(enteredEnergyRaw)
                   : enteredEnergyRaw);
-        final enteredCarbs = double.tryParse(_carbsTextController.text);
-        final enteredFat = double.tryParse(_fatTextController.text);
-        final enteredProtein = double.tryParse(_proteinTextController.text);
+        final enteredCarbs = double.tryParse(
+          _carbsTextController.unroundedText,
+        );
+        final enteredFat = double.tryParse(_fatTextController.unroundedText);
+        final enteredProtein = double.tryParse(
+          _proteinTextController.unroundedText,
+        );
 
         for (final entry in {
-          'Carbs': enteredCarbs,
-          'Fat': enteredFat,
-          'Protein': enteredProtein,
+          'Carbs': _carbsTextController,
+          'Fat': _fatTextController,
+          'Protein': _proteinTextController,
         }.entries) {
-          if (entry.value != null && entry.value! > baseQty) {
+          if (entry.value.exceedsBasis(baseQty)) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(
                     '${entry.key} cannot exceed base quantity (${baseQty}g/ml)')));
@@ -1004,20 +1016,20 @@ class _EditMealScreenState extends State<EditMealScreen> {
           servingQuantity,
           nutritionBasis.toString(),
           selectedUnit,
-          enteredKcal?.toString() ?? _kcalTextController.text,
-          _carbsTextController.text,
-          _fatTextController.text,
-          _proteinTextController.text,
-          fiberText: _fiberTextController.text,
-          saturatedFatText: _saturatedFatTextController.text,
-          sugarsText: _sugarsTextController.text,
-          sodiumText: _sodiumTextController.text,
-          calciumText: _calciumTextController.text,
-          ironText: _ironTextController.text,
-          potassiumText: _potassiumTextController.text,
-          magnesiumText: _magnesiumTextController.text,
-          vitaminDText: _vitaminDTextController.text,
-          vitaminB12Text: _vitaminB12TextController.text,
+          enteredKcal?.toString() ?? _kcalTextController.unroundedText,
+          _carbsTextController.unroundedText,
+          _fatTextController.unroundedText,
+          _proteinTextController.unroundedText,
+          fiberText: _fiberTextController.unroundedText,
+          saturatedFatText: _saturatedFatTextController.unroundedText,
+          sugarsText: _sugarsTextController.unroundedText,
+          sodiumText: _sodiumTextController.unroundedText,
+          calciumText: _calciumTextController.unroundedText,
+          ironText: _ironTextController.unroundedText,
+          potassiumText: _potassiumTextController.unroundedText,
+          magnesiumText: _magnesiumTextController.unroundedText,
+          vitaminDText: _vitaminDTextController.unroundedText,
+          vitaminB12Text: _vitaminB12TextController.unroundedText,
           barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
@@ -1184,6 +1196,75 @@ class _EditMealScreenState extends State<EditMealScreen> {
       default:
         return value;
     }
+  }
+}
+
+// A scaled field keeps its original value and basis so view changes do not
+// multiply already-rounded text or accumulate error over repeated toggles.
+class _NutrientTextController extends TextEditingController {
+  ({String text, double value, double basis})? _source;
+  ({String text, double value})? _scaled;
+
+  String get unroundedText {
+    final scaled = _scaled;
+    return scaled != null && scaled.text == text
+        ? scaled.value.toString()
+        : text;
+  }
+
+  @override
+  set value(TextEditingValue newValue) {
+    // The IME may restore the original text when composition is canceled.
+    if (newValue.composing.isCollapsed && newValue.text != _scaled?.text) {
+      resetScale();
+    }
+    super.value = newValue;
+  }
+
+  void resetScale() {
+    _source = null;
+    _scaled = null;
+  }
+
+  // A label-basis edit reinterprets the current amount without converting it.
+  void reinterpretBasis() => _source = null;
+
+  bool exceedsBasis(double basis) {
+    final scaled = _scaled;
+    final source = _source;
+    if (source != null &&
+        scaled != null &&
+        scaled.text == text &&
+        scaled.value.isFinite) {
+      // Compare in the original basis so a scale product just over the
+      // boundary cannot reject an exactly valid amount.
+      return source.value > source.basis;
+    }
+    return (double.tryParse(unroundedText) ?? 0) > basis;
+  }
+
+  void rescale(double from, double to) {
+    if (_scaled?.text != text) resetScale();
+    var source = _source;
+    if (source == null) {
+      final value = double.tryParse(unroundedText);
+      if (value == null) return;
+      source = _source = (text: text, value: value, basis: from);
+    }
+    if (source.basis == to) {
+      _showScaled(source.text, source.value);
+      return;
+    }
+    final scaled = source.value * (to / source.basis);
+    // Trim binary arithmetic tails in the display only. Significant digits
+    // (not decimal places) keep small, nonzero quantities visible.
+    final compact = double.parse(scaled.toStringAsPrecision(15));
+    _showScaled((compact.isFinite ? compact : scaled).toString(), scaled);
+  }
+
+  void _showScaled(String display, double amount) {
+    _scaled = (text: display, value: amount);
+    text = display;
   }
 }
 
