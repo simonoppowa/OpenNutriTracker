@@ -4,7 +4,9 @@ import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/activity_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
+import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/home/domain/entity/shared_activity_payload.dart';
@@ -37,8 +39,16 @@ class ActivityVerticalList extends StatefulWidget {
 }
 
 class _ActivityVerticalListState extends State<ActivityVerticalList> {
+  // #1299: the same sum the dashboard shows as "Burned" for this day.
+  double get _totalKcalBurned => widget.userActivityList.fold(
+        0,
+        (previousValue, activity) => previousValue + activity.burnedKcal,
+      );
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final palette = isDark ? AppPalette.dark : AppPalette.light;
     return Column(
       children: [
         Container(
@@ -63,6 +73,16 @@ class _ActivityVerticalListState extends State<ActivityVerticalList> {
                 ),
               ),
               const SizedBox(width: Dimens.spacing8),
+              // Shown only once something is logged, like the meal headers.
+              if (widget.userActivityList.isNotEmpty)
+                Text(
+                  EnergyDisplay.formatWithUnit(context, _totalKcalBurned),
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: palette.textMuted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
               PopupMenuButton<_ActivityPopupMenuSelection>(
                 onSelected: (_ActivityPopupMenuSelection selection) async {
                   switch (selection) {
