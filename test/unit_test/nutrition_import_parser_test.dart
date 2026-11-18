@@ -34,6 +34,14 @@ void main() {
     expect(ambiguous.issues.join(' '), contains('Ambiguous units'));
   });
 
+  test('unit in a plain-text label applies to a following value', () {
+    final entry = NutritionImportParser.parseText(
+      'Per 100 g\nEnergy (kJ): 840\nSodium (g): 0.5',
+    );
+    expect(entry.toPer100()['kcal'], closeTo(840 / 4.184, 0.000001));
+    expect(entry.toPer100()['sodium'], 500);
+  });
+
   test('a package does not inherit a serving size or its unit', () {
     final entry = NutritionImportParser.parseText(
       'Food\nServing size: 50 g\nPer package\nEnergy 200 kcal',

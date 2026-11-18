@@ -49,7 +49,10 @@ class _Picker extends FilePickerPlatform {
 }
 
 void main() {
-  Future<void> open(WidgetTester tester) async {
+  Future<void> open(
+    WidgetTester tester, {
+    Future<String> Function(List<NutritionEntry>)? saveAll,
+  }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -57,7 +60,7 @@ void main() {
       MaterialApp(
         localizationsDelegates: const [S.delegate],
         supportedLocales: S.supportedLocales,
-        home: const Scaffold(body: NutritionImportDialog()),
+        home: Scaffold(body: NutritionImportDialog(saveAll: saveAll)),
       ),
     );
     await tester.pumpAndSettle();
@@ -95,7 +98,11 @@ void main() {
   testWidgets('changing basis uses its size and preserves size edits', (
     tester,
   ) async {
-    await open(tester);
+    List<NutritionEntry>? saved;
+    await open(tester, saveAll: (entries) async {
+      saved = entries;
+      return 'Saved';
+    });
     await tester.enterText(
       find.bySemanticsIdentifier('nutrition-paste-text'),
       'Crackers\nServing size: 50 g\nPackage size: 200 g\n'
@@ -106,6 +113,10 @@ void main() {
     await changeBasis(tester, NutritionBasis.per100g, 'Package');
     await show(tester, input('serving-size'));
     expect(tester.widget<TextField>(input('serving-size')).controller!.text, '200.0');
+    await tester.tap(find.bySemanticsIdentifier('nutrition-save-all'));
+    await tester.pumpAndSettle();
+    expect(saved, isNotNull);
+    expect(saved!.single.toPer100()['kcal'], 100);
     await tester.enterText(input('serving-size'), '225');
     await changeBasis(tester, NutritionBasis.package, '100 g');
     await changeBasis(tester, NutritionBasis.per100g, 'Package');

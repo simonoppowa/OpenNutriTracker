@@ -604,26 +604,28 @@ class NutritionImportParser {
         final match = matches[i];
         final label = match.group(0)!;
         var field = fieldFor(label);
-        if (cells.length > 1) {
-          final rowUnits = _headingUnits(cells.first).toSet();
-          final firstNumber = _number.firstMatch(selectedCell!);
-          final suffix = firstNumber == null
-              ? ''
-              : selectedCell.substring(firstNumber.end).trimLeft();
-          if (rowUnits.length > 1 &&
-              !RegExp(r'^[a-zA-Zµμ%]').hasMatch(suffix)) {
-            entry.issues.add(
-              'Ambiguous units for $label; enter the correct value in the preview.',
-            );
-            continue;
-          }
-        }
-        final tail = cells.length > 1
-            ? _withHeadingUnit(selectedCell!, headingUnit(cells.first))
+        final rawTail = cells.length > 1
+            ? selectedCell!
             : line.substring(
                 match.end,
                 i + 1 < matches.length ? matches[i + 1].start : line.length,
               );
+        final firstNumber = _number.firstMatch(rawTail);
+        final heading = cells.length > 1
+            ? cells.first
+            : rawTail.substring(0, firstNumber?.start ?? rawTail.length);
+        final rowUnits = _headingUnits(heading).toSet();
+        final suffix = firstNumber == null
+            ? ''
+            : rawTail.substring(firstNumber.end).trimLeft();
+        if (rowUnits.length > 1 &&
+            !RegExp(r'^[a-zA-Zµμ%]').hasMatch(suffix)) {
+          entry.issues.add(
+            'Ambiguous units for $label; enter the correct value in the preview.',
+          );
+          continue;
+        }
+        final tail = _withHeadingUnit(rawTail, headingUnit(heading));
         if (field == 'kcal' &&
             RegExp(
               r'^\s*[:;]?\s*\d+(?:[.,]\d+)?\s*kj\b',
