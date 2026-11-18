@@ -319,6 +319,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     context: context,
     builder: (_) => DiaryTransferDialog(
       initialDate: _selectedDate,
+      firstDate: _currentDate.subtract(_calendarDurationDays),
+      lastDate: _currentDate.add(_calendarDurationDays),
       initialMealType: type,
       includesFoods: includesFoods,
     ),

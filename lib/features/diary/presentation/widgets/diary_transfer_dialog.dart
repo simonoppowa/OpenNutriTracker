@@ -21,12 +21,16 @@ class DiaryTransferChoice {
 
 class DiaryTransferDialog extends StatefulWidget {
   final DateTime initialDate;
+  final DateTime firstDate;
+  final DateTime lastDate;
   final IntakeTypeEntity? initialMealType;
   final bool includesFoods;
 
   const DiaryTransferDialog({
     super.key,
     required this.initialDate,
+    required this.firstDate,
+    required this.lastDate,
     this.initialMealType,
     this.includesFoods = true,
   });
@@ -36,8 +40,17 @@ class DiaryTransferDialog extends StatefulWidget {
 }
 
 class _DiaryTransferDialogState extends State<DiaryTransferDialog> {
-  late DateTime _date = widget.initialDate;
+  late DateTime _date = _boundedInitialDate();
   late IntakeTypeEntity? _mealType = widget.initialMealType;
+
+  DateTime _boundedInitialDate() {
+    final initial = DateUtils.dateOnly(widget.initialDate);
+    final first = DateUtils.dateOnly(widget.firstDate);
+    final last = DateUtils.dateOnly(widget.lastDate);
+    if (initial.isBefore(first)) return first;
+    if (initial.isAfter(last)) return last;
+    return initial;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +70,8 @@ class _DiaryTransferDialogState extends State<DiaryTransferDialog> {
                 final selected = await showDatePicker(
                   context: context,
                   initialDate: _date,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
+                  firstDate: widget.firstDate,
+                  lastDate: widget.lastDate,
                 );
                 if (selected != null) setState(() => _date = selected);
               },

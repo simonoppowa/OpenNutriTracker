@@ -2,6 +2,48 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/features/edit_meal/domain/nutrition_import_parser.dart';
 
 void main() {
+  test('pasted table row units are applied to the selected column', () {
+    const label = 'Nutrient\tPer 100 g\tPer serving\n'
+        'Serving size: 50 g\n'
+        'Energy (kJ)\t840\t420\n'
+        'Sodium (g)\t0.5\t0.25';
+    final per100 = NutritionImportParser.parseText(label);
+    expect(per100.values['kj'], 840);
+    expect(per100.toPer100()['kcal'], closeTo(840 / 4.184, 0.000001));
+    expect(per100.toPer100()['sodium'], 500);
+    final serving = NutritionImportParser.parseText(
+      label,
+      selectedBasis: NutritionBasis.serving,
+    );
+    expect(serving.toPer100()['kcal'], closeTo(840 / 4.184, 0.000001));
+    expect(serving.toPer100()['sodium'], 500);
+    expect(serving.issues, isEmpty);
+  });
+
+  test('explicit table cell units win and ambiguous headings are flagged', () {
+    final explicit = NutritionImportParser.parseText(
+      'Nutrient\tPer 100 g\nEnergy (kJ)\t250 kcal\nSodium (g)\t300 mg',
+    );
+    expect(explicit.values['kcal'], 250);
+    expect(explicit.values['sodium'], 300);
+    final ambiguous = NutritionImportParser.parseText(
+      'Nutrient\tPer 100 g\nEnergy (kJ/kcal)\t840\nProtein (g)\t3',
+    );
+    expect(ambiguous.values['kj'], isNull);
+    expect(ambiguous.values['kcal'], isNull);
+    expect(ambiguous.issues.join(' '), contains('Ambiguous units'));
+  });
+
+  test('a package does not inherit a serving size or its unit', () {
+    final entry = NutritionImportParser.parseText(
+      'Food\nServing size: 50 g\nPer package\nEnergy 200 kcal',
+    );
+    expect(entry.basis, NutritionBasis.package);
+    expect(entry.servingSize, isNull);
+    expect(entry.servingUnit, isNull);
+    expect(entry.toPer100, throwsFormatException);
+  });
+
   test('serving weight in a parenthesized product description is used', () {
     final food = NutritionImportParser.parseText('''
 Food: Plant-Based Whopper

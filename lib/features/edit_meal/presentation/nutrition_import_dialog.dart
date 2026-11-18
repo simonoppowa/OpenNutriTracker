@@ -50,6 +50,7 @@ class _NutritionImportDialogState extends State<NutritionImportDialog> {
   /// switching foods reloads the checkbox from here. A basis change
   /// re-parses a food into a new entry, whose issues need a new review.
   final _reviewed = Set<NutritionEntry>.identity();
+  final _basisSizes = <int, Map<NutritionBasis, ({String size, String? unit})>>{};
   String? _message;
   NutritionBasis _basis = NutritionBasis.unknown;
   String? _unit;
@@ -70,6 +71,7 @@ class _NutritionImportDialogState extends State<NutritionImportDialog> {
 
   void _showEntries(List<NutritionEntry> entries, List<String> errors) {
     _reviewed.clear();
+    _basisSizes.clear();
     setState(() {
       _entries = entries;
       _errors = errors;
@@ -255,6 +257,7 @@ class _NutritionImportDialogState extends State<NutritionImportDialog> {
 
   void _changeBasis(NutritionBasis basis) {
     if (_entries.isEmpty) return;
+    (_basisSizes[_index] ??= {})[_basis] = (size: _size.text, unit: _unit);
     NutritionEntry parsed;
     if (_sources.length > 1) {
       var offset = 0;
@@ -300,10 +303,16 @@ class _NutritionImportDialogState extends State<NutritionImportDialog> {
     }
     parsed.name = _name.text;
     parsed.brand = _brand.text;
-    parsed.servingSize = _size.text.trim().isEmpty
-        ? null
-        : double.tryParse(_size.text.trim().replaceAll(',', '.'));
-    parsed.servingUnit = _unit;
+    // Empty-basis file results still need their source row so switching back
+    // can find the original food again.
+    parsed.sourceRow ??= _current.sourceRow;
+    final savedSize = _basisSizes[_index]?[basis];
+    if (savedSize != null) {
+      parsed.servingSize = double.tryParse(
+        savedSize.size.trim().replaceAll(',', '.'),
+      );
+      parsed.servingUnit = savedSize.unit;
+    }
     if (!parsed.hasNutrients) {
       parsed.issues.add(
         'No values in this column. Enter values manually or choose another basis.',
@@ -311,6 +320,10 @@ class _NutritionImportDialogState extends State<NutritionImportDialog> {
     }
     _entries[_index] = parsed;
     _load(_index);
+    if (savedSize != null) {
+      _size.text = savedSize.size;
+      setState(() => _unit = savedSize.unit);
+    }
   }
 
   /// Opens the first food whose issues have not been reviewed, and says so.

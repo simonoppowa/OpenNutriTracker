@@ -202,11 +202,18 @@ class NutritionImportParser {
   /// The unit a CSV heading or JSON key declares for its values, such as
   /// `Sodium (g)` or `sodium_g`. A basis (`per 100 g`) or a serving amount
   /// (`per serving (30 g)`) is not a unit.
-  static String? headingUnit(String heading) {
+  static Iterable<String> _headingUnits(String heading) {
     final stripped = heading
         .replaceAll(_per100, ' ')
         .replaceAll(RegExp(r'\d+(?:[.,]\d+)?\s*(?:g|ml)\b'), ' ');
-    return _headingUnit.firstMatch(stripped)?.group(1)?.toLowerCase();
+    return _headingUnit
+        .allMatches(stripped)
+        .map((match) => match.group(1)!.toLowerCase());
+  }
+
+  static String? headingUnit(String heading) {
+    final units = _headingUnits(heading);
+    return units.isEmpty ? null : units.first;
   }
 
   /// [raw] with the heading's [unit] added when the cell names none.
@@ -474,12 +481,14 @@ class NutritionImportParser {
         () => (parseNumber(match[2]!), null),
       );
     }
-    final explicitUnit = RegExp(
-      r'^(?:serving|portion|package)\s*unit\s*[:\t]\s*(g|ml)\s*$',
+    final explicitUnits = <String, String>{};
+    for (final match in RegExp(
+      r'^(serving|portion|package)\s*unit\s*[:\t]\s*(g|ml)\s*$',
       caseSensitive: false,
       multiLine: true,
-    ).firstMatch(text);
-    final explicitServingUnit = explicitUnit?[1]!.toLowerCase();
+    ).allMatches(text)) {
+      explicitUnits[match[1]!.toLowerCase()] = match[2]!.toLowerCase();
+    }
     final basisHints = <NutritionBasis>[];
     for (final line in lines) {
       for (final cell in line.split('\t')) {
@@ -499,20 +508,29 @@ class NutritionImportParser {
             ? basisHints.first
             : NutritionBasis.unknown);
     entry.basis = preferred;
-    final size =
-        sizes[switch (preferred) {
-          NutritionBasis.portion => 'portion',
-          NutritionBasis.package => 'package',
-          _ => 'serving',
-        }] ??
-        (sizes.length == 1
-            ? sizes.values.single
-            : sizes['serving'] ?? sizes['portion'] ?? sizes['package']);
+    var sizeKind = switch (preferred) {
+      NutritionBasis.portion => 'portion',
+      NutritionBasis.package => 'package',
+      _ => 'serving',
+    };
+    // Per-100 labels may also describe a default serving. A per-package,
+    // portion, or serving value must use that basis's own size.
+    if ((preferred == NutritionBasis.per100g ||
+            preferred == NutritionBasis.per100ml ||
+            preferred == NutritionBasis.unknown) &&
+        !sizes.containsKey(sizeKind)) {
+      if (sizes.containsKey('portion')) {
+        sizeKind = 'portion';
+      } else if (sizes.containsKey('package')) {
+        sizeKind = 'package';
+      }
+    }
+    final size = sizes[sizeKind];
     if (size != null) {
       entry.servingSize = size.$1;
       entry.servingUnit = size.$2;
     }
-    entry.servingUnit = explicitServingUnit ?? entry.servingUnit;
+    entry.servingUnit = explicitUnits[sizeKind] ?? entry.servingUnit;
     if (selectedBasis != null &&
         basisHints.length == 1 &&
         selectedBasis != basisHints.first) {
@@ -586,8 +604,22 @@ class NutritionImportParser {
         final match = matches[i];
         final label = match.group(0)!;
         var field = fieldFor(label);
+        if (cells.length > 1) {
+          final rowUnits = _headingUnits(cells.first).toSet();
+          final firstNumber = _number.firstMatch(selectedCell!);
+          final suffix = firstNumber == null
+              ? ''
+              : selectedCell.substring(firstNumber.end).trimLeft();
+          if (rowUnits.length > 1 &&
+              !RegExp(r'^[a-zA-Zµμ%]').hasMatch(suffix)) {
+            entry.issues.add(
+              'Ambiguous units for $label; enter the correct value in the preview.',
+            );
+            continue;
+          }
+        }
         final tail = cells.length > 1
-            ? selectedCell!
+            ? _withHeadingUnit(selectedCell!, headingUnit(cells.first))
             : line.substring(
                 match.end,
                 i + 1 < matches.length ? matches[i + 1].start : line.length,

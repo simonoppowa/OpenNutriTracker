@@ -26,6 +26,8 @@ void main() {
                   context: context,
                   builder: (_) => DiaryTransferDialog(
                     initialDate: DateTime(2026, 10, 28),
+                    firstDate: DateTime(2021, 10, 29),
+                    lastDate: DateTime(2031, 10, 27),
                     initialMealType: IntakeTypeEntity.lunch,
                   ),
                 );
@@ -80,11 +82,46 @@ void main() {
         ],
         supportedLocales: S.supportedLocales,
         home: Scaffold(
-          body: DiaryTransferDialog(initialDate: DateTime(2026, 10, 28)),
+          body: DiaryTransferDialog(
+            initialDate: DateTime(2026, 10, 28),
+            firstDate: DateTime(2021, 10, 29),
+            lastDate: DateTime(2031, 10, 27),
+          ),
         ),
       ),
     );
     expect(find.bySemanticsIdentifier('diary-transfer-copy'), findsOneWidget);
     expect(find.bySemanticsIdentifier('diary-transfer-move'), findsOneWidget);
+  });
+
+  testWidgets('date picker uses diary bounds and clamps an initial date', (
+    tester,
+  ) async {
+    final first = DateTime(2021, 10, 29);
+    final last = DateTime(2031, 10, 27);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: const [
+          S.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: S.supportedLocales,
+        home: Scaffold(
+          body: DiaryTransferDialog(
+            initialDate: DateTime(2040),
+            firstDate: first,
+            lastDate: last,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.bySemanticsIdentifier('diary-transfer-date'));
+    await tester.pumpAndSettle();
+    final picker = tester.widget<DatePickerDialog>(find.byType(DatePickerDialog));
+    expect(picker.firstDate, first);
+    expect(picker.lastDate, last);
+    expect(picker.initialDate, last);
   });
 }
