@@ -1249,27 +1249,47 @@ struct NutrientEntity: AppEntity {
 
 @available(iOS 17.0, *)
 struct NutrientQuery: EntityQuery {
+    /// Resolves by id and never loses one, so a saved choice survives a
+    /// missing or older name list. A name the app did not write falls back
+    /// to the fixed labels, and then to the id. The widget itself shows its
+    /// placeholder for a nutrient it has no figure for.
     func entities(for identifiers: [String]) async throws -> [NutrientEntity] {
-        Self.offered().filter { identifiers.contains($0.id) }
+        let labels = CalorieLabels.load()
+        return identifiers.map { NutrientEntity(id: $0, name: Self.name(for: $0, labels: labels)) }
     }
 
+    /// Calories, the three macros, and the nutrients that are in the
+    /// snapshot now, so the picker does not list ones the app hides. The
+    /// order is the app's. Before the app has written a list, only
+    /// calories and the macros are offered.
     func suggestedEntities() async throws -> [NutrientEntity] {
-        Self.offered()
-    }
-
-    /// Calories, as the widget has always shown.
-    func defaultResult() async -> NutrientEntity? {
-        Self.offered().first { $0.id == NutrientId.calories }
-    }
-
-    /// What the app last wrote. Before its first write there is only
-    /// Calories, under the same English fallback the widget itself uses.
-    private static func offered() -> [NutrientEntity] {
-        let names = CalorieLabels.load().nutrientNames
-        guard !names.isEmpty else {
-            return [NutrientEntity(id: NutrientId.calories, name: CalorieLabels.load().title)]
+        let labels = CalorieLabels.load()
+        let present = Set(CalorieReading.load().nutrients.keys)
+        let fixed = [NutrientId.calories, NutrientId.protein, NutrientId.carbs, NutrientId.fat]
+        var ids = fixed
+        for entry in labels.nutrientNames where present.contains(entry.id) && !ids.contains(entry.id) {
+            ids.append(entry.id)
         }
-        return names.map { NutrientEntity(id: $0.id, name: $0.name) }
+        return ids.map { NutrientEntity(id: $0, name: Self.name(for: $0, labels: labels)) }
+    }
+
+    /// Calories, built here so it does not depend on the app's name list.
+    func defaultResult() async -> NutrientEntity? {
+        NutrientEntity(
+            id: NutrientId.calories,
+            name: Self.name(for: NutrientId.calories, labels: CalorieLabels.load())
+        )
+    }
+
+    private static func name(for id: String, labels: CalorieLabels) -> String {
+        if let name = labels.name(forNutrient: id) { return name }
+        switch id {
+        case NutrientId.calories: return labels.title
+        case NutrientId.protein: return labels.protein
+        case NutrientId.carbs: return labels.carbs
+        case NutrientId.fat: return labels.fat
+        default: return id
+        }
     }
 }
 
