@@ -63,6 +63,10 @@ private struct StoredLanguageLabels: Decodable {
     var rowDescription: String?
     // Added for the nutrient picker. Absent in a write from an older app.
     var nutrients: Lossy<[Lossy<StoredNutrientName>]>?
+    // Added for the small macros and water widgets.
+    var macrosTitle: String?
+    var macrosDescription: String?
+    var waterDescription: String?
 }
 
 /// What the app says about one nutrient: the goal phrase, such as "of 30",
@@ -77,6 +81,11 @@ private struct StoredFigureLabels: Decodable {
     var accessibility: String?
     var rowAccessibility: String?
     var nutrients: Lossy<[String: StoredFigureNutrient]>?
+    // The small macros and water widgets. Each is left out when the app
+    // wrote no such figure.
+    var macrosAccessibility: String?
+    var waterAccessibility: String?
+    var waterGoal: String?
 }
 
 /// One macro row or the water figure, as the app wrote it. Every field is
@@ -143,6 +152,13 @@ private struct CalorieLabels {
     var nutrientNames: [NutrientName]
     /// Goal phrases and VoiceOver sentences by nutrient id.
     var nutrientFigures: [String: StoredFigureNutrient]
+    // The small macros and water widgets.
+    var macrosTitle: String
+    var macrosDescription: String
+    var waterDescription: String
+    var macrosAccessibility: String
+    var waterAccessibility: String
+    var waterGoal: String
 
     /// The goal and VoiceOver lines come from `reading`, which decoded
     /// them from the same stored value as its figures.
@@ -189,8 +205,51 @@ private struct CalorieLabels {
                 or: accessibility
             ),
             nutrientNames: NutrientName.list(from: language?.nutrients?.value),
-            nutrientFigures: reading?.nutrientFigureLabels ?? [:]
+            nutrientFigures: reading?.nutrientFigureLabels ?? [:],
+            macrosTitle: stored(language?.macrosTitle, or: "Macros"),
+            macrosDescription: stored(
+                language?.macrosDescription,
+                or: "Today's protein, fat and carbs against your goals."
+            ),
+            waterDescription: stored(
+                language?.waterDescription,
+                or: "Today's water against your goal."
+            ),
+            macrosAccessibility: stored(
+                reading?.macrosAccessibilityLabel,
+                or: Self.macrosFallbackSentence(reading)
+            ),
+            waterAccessibility: stored(
+                reading?.waterAccessibilityLabel,
+                or: Self.waterFallbackSentence(reading)
+            ),
+            waterGoal: stored(
+                reading?.waterGoalLabel,
+                or: "of \(reading?.water?.goal ?? 0)"
+            )
         )
+    }
+
+    /// English only until the app has written its own sentence.
+    private static func macrosFallbackSentence(_ reading: CalorieReading?) -> String {
+        func part(_ name: String, _ figure: NutrientFigure?) -> String? {
+            guard let figure = figure else { return nil }
+            return figure.goal > 0
+                ? "\(name) \(figure.value) of \(figure.goal) grams"
+                : "\(name) \(figure.value) grams"
+        }
+        return [
+            part("Protein", reading?.protein),
+            part("Fat", reading?.fat),
+            part("Carbs", reading?.carbs),
+        ].compactMap { $0 }.joined(separator: ". ")
+    }
+
+    private static func waterFallbackSentence(_ reading: CalorieReading?) -> String {
+        guard let water = reading?.water else { return "" }
+        return water.goal > 0
+            ? "Water \(water.value) of \(water.goal) millilitres"
+            : "Water \(water.value) millilitres"
     }
 
     /// The name the app wrote for a nutrient, if it wrote one.
@@ -298,6 +357,9 @@ private struct CalorieReading {
     // them. Empty when the app is older or wrote none.
     var nutrients: [String: NutrientReading] = [:]
     var nutrientFigureLabels: [String: StoredFigureNutrient] = [:]
+    var macrosAccessibilityLabel: String? = nil
+    var waterAccessibilityLabel: String? = nil
+    var waterGoalLabel: String? = nil
 
     /// One read and one decode, so the day, the figures and their labels
     /// all come from the same write.
@@ -322,7 +384,10 @@ private struct CalorieReading {
             protein: NutrientFigure(stored.macros?.protein),
             water: NutrientFigure(stored.water),
             nutrients: NutrientReading.byId(from: stored.nutrients?.value),
-            nutrientFigureLabels: stored.labels?.nutrients?.value ?? [:]
+            nutrientFigureLabels: stored.labels?.nutrients?.value ?? [:],
+            macrosAccessibilityLabel: stored.labels?.macrosAccessibility,
+            waterAccessibilityLabel: stored.labels?.waterAccessibility,
+            waterGoalLabel: stored.labels?.waterGoal
         )
     }
 
@@ -904,6 +969,114 @@ private struct NutritionRowView: View {
     }
 }
 
+/// One macro in the small macros widget: its name, grams over goal grams,
+/// and a thin bar. The name and the numbers carry the meaning, so the bar
+/// colour is never the only cue.
+private struct MacroRow: View {
+    var label: String
+    var figure: NutrientFigure
+    var unit: String
+    var color: Color
+
+    private var amount: String {
+        figure.goal > 0
+            ? "\(figure.value) / \(figure.goal) \(unit)"
+            : "\(figure.value) \(unit)"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(label)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                Spacer(minLength: 4)
+                // The numbers shrink before the name does, and are never cut.
+                Text(amount)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .layoutPriority(1)
+            }
+            NutrientBar(progress: figure.progress, color: color)
+        }
+    }
+}
+
+/// Protein, fat and carbs as three stacked rows. It reads the same macros
+/// the one-row widget reads. If the app wrote none, it shows the same
+/// placeholder as the other widgets.
+private struct MacrosSmallView: View {
+    var entry: CalorieEntry
+
+    private var rows: [(label: String, figure: NutrientFigure, color: Color)] {
+        let labels = entry.labels
+        let reading = entry.reading
+        return [
+            reading.protein.map { (labels.protein, $0, NutritionRowColors.protein) },
+            reading.fat.map { (labels.fat, $0, NutritionRowColors.fat) },
+            reading.carbs.map { (labels.carbs, $0, NutritionRowColors.carbs) },
+        ].compactMap { $0 }
+    }
+
+    var body: some View {
+        Group {
+            if entry.showsNumbers, !rows.isEmpty {
+                VStack(spacing: 12) {
+                    ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                        MacroRow(
+                            label: row.label,
+                            figure: row.figure,
+                            unit: entry.labels.gram,
+                            color: row.color
+                        )
+                    }
+                }
+                .padding(12)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(entry.labels.macrosAccessibility))
+            } else {
+                CalorieWidgetPlaceholder(labels: entry.labels)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Text may grow to accessibility1 and no further, so three rows
+        // keep fitting the small widget.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        .widgetBackground()
+    }
+}
+
+/// Today's water over its goal, in millilitres, in a neutral ring: the app
+/// has no water colour. The number and the unit are always written.
+private struct WaterSmallView: View {
+    var entry: CalorieEntry
+
+    var body: some View {
+        Group {
+            if entry.showsNumbers, let water = entry.reading.water {
+                RingFigureView(
+                    name: entry.labels.water,
+                    value: "\(water.value)",
+                    unit: entry.labels.milliliter,
+                    goalPhrase: water.progress == nil ? nil : entry.labels.waterGoal,
+                    progress: water.progress,
+                    ringColor: NutritionRowColors.water,
+                    accessibility: entry.labels.waterAccessibility
+                )
+            } else {
+                CalorieWidgetPlaceholder(labels: entry.labels)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        .widgetBackground()
+    }
+}
+
 private extension View {
     /// From iOS 17 the system already insets widget content. Before that
     /// the content has to leave its own margin, as the ring widget does.
@@ -961,6 +1134,36 @@ struct OneRowNutritionWidget: Widget {
         .configurationDisplayName(CalorieLabels.load().rowTitle)
         .description(CalorieLabels.load().rowDescription)
         .supportedFamilies([.systemMedium])
+    }
+}
+
+/// Protein, fat and carbs in the small size. It reads the same snapshot and
+/// uses the same timeline as the other widgets, so the day boundary and the
+/// "Open the app" placeholder behave the same.
+struct MacrosSmallWidget: Widget {
+    let kind = "MacrosSmallWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
+            MacrosSmallView(entry: entry)
+        }
+        .configurationDisplayName(CalorieLabels.load().macrosTitle)
+        .description(CalorieLabels.load().macrosDescription)
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+/// Today's water in the small size, with the same timeline as the others.
+struct WaterSmallWidget: Widget {
+    let kind = "WaterSmallWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
+            WaterSmallView(entry: entry)
+        }
+        .configurationDisplayName(CalorieLabels.load().water)
+        .description(CalorieLabels.load().waterDescription)
+        .supportedFamilies([.systemSmall])
     }
 }
 
@@ -1059,6 +1262,8 @@ private struct CalorieWidgetBundleModern: WidgetBundle {
     var body: some Widget {
         NutrientCalorieWidget()
         OneRowNutritionWidget()
+        MacrosSmallWidget()
+        WaterSmallWidget()
     }
 }
 
@@ -1067,6 +1272,8 @@ private struct CalorieWidgetBundleClassic: WidgetBundle {
     var body: some Widget {
         CalorieProgressWidget()
         OneRowNutritionWidget()
+        MacrosSmallWidget()
+        WaterSmallWidget()
     }
 }
 
