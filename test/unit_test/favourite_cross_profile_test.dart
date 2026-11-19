@@ -23,6 +23,7 @@ import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dar
 import 'package:opennutritracker/core/domain/usecase/delete_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/other_profile_diaries_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
@@ -69,6 +70,15 @@ class _ProfilesProvider extends FakeHiveDBProvider {
 }
 
 /// A custom-meal save that waits for the test to let it land.
+/// The diaries here are the active profile's only.
+class _NoOtherProfileDiaries implements OtherProfileDiariesUsecase {
+  @override
+  Future<void> forEachLoggingCustomMeal(
+    String mealKey,
+    Future<void> Function(IntakeRepository, AddTrackedDayUsecase) action,
+  ) async {}
+}
+
 class _GatedCustomMealDataSource extends CustomMealDataSource {
   _GatedCustomMealDataSource(super.db);
 
@@ -300,6 +310,7 @@ void main() {
           ),
         ),
         repository,
+        _NoOtherProfileDiaries(),
       ).merge(loserKey: 'L', winnerKey: 'W');
 
       for (final id in ['a', 'b', 'c']) {

@@ -45,6 +45,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_custom_activity_temp
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/other_profile_diaries_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
@@ -344,6 +345,7 @@ Future<void> initLocator() async {
           locator(),
           locator(),
           locator(),
+          locator(),
         ),
   );
 
@@ -635,7 +637,16 @@ Future<void> initLocator() async {
     () => DeleteRecipeUseCase(locator(), locator()),
   );
   locator.registerLazySingleton(
-    () => MergeCustomMealsUseCase(locator(), locator(), locator(), locator()),
+    () => MergeCustomMealsUseCase(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+    ),
+  );
+  locator.registerLazySingleton<OtherProfileDiariesUsecase>(
+    () => OtherProfileDiariesUsecase(locator()),
   );
 
   // Repositories

@@ -2,10 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/other_profile_diaries_usecase.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
@@ -21,6 +23,7 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final MergeCustomMealsUseCase _mergeCustomMealsUseCase;
   final FavouriteMealRepository _favouriteMealRepository; // #1307
+  final OtherProfileDiariesUsecase _otherProfileDiaries; // #1421
 
   CustomMealsBloc(
     this._customMealDataSource,
@@ -29,6 +32,7 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
     this._addTrackedDayUsecase,
     this._mergeCustomMealsUseCase,
     this._favouriteMealRepository,
+    this._otherProfileDiaries,
   ) : super(CustomMealsInitial()) {
     on<LoadCustomMealsEvent>((event, emit) async {
       emit(CustomMealsLoadingState());
@@ -53,28 +57,26 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
           await _favouriteMealRepository.keepLatestCustomMealSnapshot(
             event.mealKey,
           );
-          await _customMealDataSource.deleteCustomMeal(event.mealKey);
 
-          final allCustom = await _getIntakeUsecase.getCustomMealIntakes();
-          final toDelete = allCustom
-              .where(
-                (intake) =>
-                    (intake.meal.code ?? intake.meal.name) == event.mealKey,
-              )
-              .toList();
-          for (final intake in toDelete) {
-            await _deleteIntakeUsecase.deleteIntake(intake);
-            await _addTrackedDayUsecase.removeDayCaloriesTracked(
-              intake.dateTime,
-              intake.totalKcal,
-            );
-            await _addTrackedDayUsecase.removeDayMacrosTracked(
-              intake.dateTime,
-              carbsTracked: intake.totalCarbsGram,
-              fatTracked: intake.totalFatsGram,
-              proteinTracked: intake.totalProteinsGram,
-            );
-          }
+          // The library is shared, so the entries every profile logged
+          // with the meal go with it (#1421). The meal leaves the library
+          // last: a delete that fails part-way can be run again.
+          await _deleteEntriesOf(
+            event.mealKey,
+            await _getIntakeUsecase.getCustomMealIntakes(),
+            _deleteIntakeUsecase.deleteIntake,
+            _addTrackedDayUsecase,
+          );
+          await _otherProfileDiaries.forEachLoggingCustomMeal(
+            event.mealKey,
+            (intakeRepository, addTrackedDayUsecase) async => _deleteEntriesOf(
+              event.mealKey,
+              await intakeRepository.getCustomMealIntakes(),
+              intakeRepository.deleteIntake,
+              addTrackedDayUsecase,
+            ),
+          );
+          await _customMealDataSource.deleteCustomMeal(event.mealKey);
           return true;
         });
         if (deleted != true) return;
@@ -110,5 +112,31 @@ class CustomMealsBloc extends Bloc<CustomMealsEvent, CustomMealsState> {
         emit(CustomMealsFailedState());
       }
     });
+  }
+
+  /// Deletes the entries in [customIntakes] logged as [mealKey] and takes
+  /// them off their days' totals.
+  static Future<void> _deleteEntriesOf(
+    String mealKey,
+    List<IntakeEntity> customIntakes,
+    Future<void> Function(IntakeEntity intake) deleteIntake,
+    AddTrackedDayUsecase addTrackedDayUsecase,
+  ) async {
+    final toDelete = customIntakes
+        .where((intake) => (intake.meal.code ?? intake.meal.name) == mealKey)
+        .toList();
+    for (final intake in toDelete) {
+      await deleteIntake(intake);
+      await addTrackedDayUsecase.removeDayCaloriesTracked(
+        intake.dateTime,
+        intake.totalKcal,
+      );
+      await addTrackedDayUsecase.removeDayMacrosTracked(
+        intake.dateTime,
+        carbsTracked: intake.totalCarbsGram,
+        fatTracked: intake.totalFatsGram,
+        proteinTracked: intake.totalProteinsGram,
+      );
+    }
   }
 }
