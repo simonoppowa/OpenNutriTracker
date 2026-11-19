@@ -57,6 +57,12 @@ class CalorieWidgetLabels {
   final String macrosDescription;
   final String waterDescription;
 
+  /// What the small widgets say instead of "Open the app" when the app is
+  /// up to date but has no figure to show: the chosen nutrient is not
+  /// shown in the app, or there is no water goal. Language-only.
+  final String nutrientNotShown;
+  final String waterNoGoal;
+
   /// The nutrient widget's names by stable id: calories, the three macros
   /// and the panel nutrients. The Edit Widget picker offers exactly these.
   /// Language-only, so the picker works before the first Home write and
@@ -96,6 +102,8 @@ class CalorieWidgetLabels {
     this.macrosTitle = '',
     this.macrosDescription = '',
     this.waterDescription = '',
+    this.nutrientNotShown = '',
+    this.waterNoGoal = '',
     this.nutrientNames = const {},
     this.macrosAccessibility = '',
     this.waterAccessibility = '',
@@ -160,6 +168,8 @@ class CalorieWidgetLabels {
       macrosTitle: s.macrosSmallWidgetDisplayName,
       macrosDescription: s.macrosSmallWidgetDescription,
       waterDescription: s.waterSmallWidgetDescription,
+      nutrientNotShown: s.nutrientWidgetNotShownLabel,
+      waterNoGoal: s.waterSmallWidgetNoGoalLabel,
       nutrientNames: _nutrientNames(s),
       macrosAccessibility: macros == null
           ? ''
@@ -314,6 +324,8 @@ class CalorieWidgetLabels {
     'macrosTitle': macrosTitle,
     'macrosDescription': macrosDescription,
     'waterDescription': waterDescription,
+    'nutrientNotShown': nutrientNotShown,
+    'waterNoGoal': waterNoGoal,
     // A list, not a map, so the picker keeps this order.
     'nutrients': [
       for (final entry in nutrientNames.entries)

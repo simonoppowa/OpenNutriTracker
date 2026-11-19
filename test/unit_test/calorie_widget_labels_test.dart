@@ -44,6 +44,9 @@ void main() {
       'macrosTitle': 'Macros',
       'macrosDescription': "Today's protein, fat and carbs against your goals.",
       'waterDescription': "Today's water against your goal.",
+      // What a small widget says when the app has no figure to show.
+      'nutrientNotShown': 'Not shown in the app',
+      'waterNoGoal': 'No water goal set',
       // The names the nutrient picker offers, by stable id, in the order
       // the picker lists them.
       'nutrients': [
@@ -240,6 +243,19 @@ void main() {
       expect(figures.containsKey('sodium'), isFalse);
       // The picker still offers it. It shows a placeholder until shown again.
       expect(labels.nutrientNames['sodium'], 'sodium');
+    });
+
+    test('the no-figure lines are language-only and translated', () {
+      final de = lookupS(const Locale('de'));
+      final withFigures = CalorieWidgetLabels.of(de, full);
+      final without = CalorieWidgetLabels.of(de, snapshotWith());
+
+      expect(withFigures.nutrientNotShown, de.nutrientWidgetNotShownLabel);
+      expect(withFigures.waterNoGoal, de.waterSmallWidgetNoGoalLabel);
+      expect(without.languageJson()['nutrientNotShown'], isNotEmpty);
+      expect(without.languageJson()['waterNoGoal'], isNotEmpty);
+      // They are not figure text, so a wipe keeps them with the language.
+      expect(without.figureJson().containsKey('nutrientNotShown'), isFalse);
     });
 
     test('the nutrient names do not depend on the figures', () {

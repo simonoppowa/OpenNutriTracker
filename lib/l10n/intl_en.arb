@@ -681,6 +681,10 @@
   "nutrientPanelLimitLabel": "limit",
   "nutrientPanelDayLabel": "Day",
   "nutrientPanelWeekLabel": "Week",
+  "nutrientWidgetNotShownLabel": "Not shown in the app",
+  "@nutrientWidgetNotShownLabel": {
+    "description": "Shown under the nutrient's name in the small iOS nutrient widget when the app does not show that nutrient, for example because it is hidden in Settings."
+  },
   "nutrientWidgetAccessibilityLabel": "{nutrient}: {amount} {unit} of {goal} {unit}",
   "@nutrientWidgetAccessibilityLabel": {
     "description": "Spoken by VoiceOver for the small iOS nutrient widget when the nutrient has a goal, e.g. 'fiber: 12.5 g of 30 g'. The nutrient is its name in the app, and the unit is g, mg or µg.",
@@ -1320,6 +1324,10 @@
   "vitaminCLabel": "vitamin C",
   "vitaminDLabel": "vitamin D",
   "warningLabel": "Warning",
+  "waterSmallWidgetNoGoalLabel": "No water goal set",
+  "@waterSmallWidgetNoGoalLabel": {
+    "description": "Shown under the name in the small iOS water widget when there is no daily water goal to measure against."
+  },
   "waterSmallWidgetAccessibilityLabel": "Water {water} of {goal} millilitres.",
   "@waterSmallWidgetAccessibilityLabel": {
     "description": "Spoken by VoiceOver for the small iOS water widget: today's water drunk of the daily goal.",
