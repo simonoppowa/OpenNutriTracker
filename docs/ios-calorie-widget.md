@@ -23,6 +23,65 @@ From the larger Dynamic Type sizes the cells wrap onto two lines. Text stops gro
 
 The stored keys do not name a platform. Android does not show this widget. Its provider ignores the new keys.
 
+## Small widgets
+
+Three widgets use the small size. That is the 2x2 slot on the Home Screen. With the one-row widget, the extension has four widget kinds:
+
+- `CalorieProgressWidget`: small. Calories as a ring. On iOS 17 and later it can show another nutrient.
+- `NutritionRowWidget`: medium. Calories, macros and water in one row.
+- `MacrosSmallWidget`: small. Protein, fat and carbs as three rows.
+- `WaterSmallWidget`: small. Water as a ring.
+
+All four read the same snapshot. They share the day boundary and the "Open the app" placeholder. Each write from the app reloads every kind.
+
+### Nutrient picker
+
+The kind `CalorieProgressWidget` is unchanged. A widget already on a Home Screen stays there. To pick a nutrient, long-press the widget and choose Edit Widget. Calories are the default.
+
+The picker needs iOS 17. It is an App Intent configuration. The extension targets iOS 15.5. Below iOS 17 the widget is the one it always was, and it shows calories.
+
+The extension picks one of two widget bundles at start-up. `WidgetBundleBuilder` accepts `if #available` but not `else`. Both versions of this widget have the same kind, so both cannot be listed.
+
+The picker offers calories, protein, carbs, fat and the ten nutrients of the Diary panel. The app writes their names into the language labels as an ordered list of `{id, name}`. The names are in the app's own language. The widget's query reads that list. No name is Swift copy.
+
+Two strings are fixed English: the intent's title and its parameter label. App Intents reads those at build time.
+
+If a nutrient has a goal, the widget shows its amount, its unit, "of GOAL" and a ring. If it has no goal, the widget shows the amount alone. If the chosen nutrient is not in the snapshot, the widget shows the placeholder. That happens when the person hid the nutrient in the app settings, and before the app has written.
+
+### Macros and water
+
+The macros widget shows three rows. Each row has the name, grams over goal grams, and a thin bar. The colours are the app's macro colours.
+
+The water widget shows millilitres over the goal in a neutral ring. The app has no water colour.
+
+If the app wrote no macros, the macros widget shows the placeholder. If it wrote no water, the water widget does. Text stops growing at `accessibility1`.
+
+### New snapshot fields
+
+The snapshot gains one optional key. If the app has no figure, the key is left out:
+
+- `nutrients`: a list of `{"id", "consumed", "goal", "unit"}`. The id is a key from the Diary nutrient panel, such as `fiber` or `vitamin_b12`. `consumed` and `goal` have one decimal, in the unit of the nutrient. `unit` is `g`, `mg` or `µg`. If there is no goal, `goal` is left out. If the person hid a nutrient, it is not in the list.
+
+The goal is the one the Diary panel shows. It is the goal set for the day. If there is none, it is the reference for the person's age and gender. If there is none of those, it is the published default.
+
+Calories and the three macros are not repeated in this list. The widget takes them from `consumed`, `goal` and `macros`.
+
+The unit rule is the existing one. The kilojoule and fluid-ounce preferences are not applied.
+
+The label rule is the existing one too:
+
+- `ont_calorie_labels` holds the language-only labels. It gains `macrosTitle`, `macrosDescription`, `waterDescription` and `nutrients`. The last is the ordered list of names.
+- The snapshot holds the labels that describe figures. They are `macrosAccessibility`, `waterAccessibility`, `waterGoal` and `nutrients`. The last is a map from id to `{"goal", "accessibility"}`. If the nutrient has no goal, the goal phrase is left out.
+- If the language changes, the app rewrites both. Home does not need to reload.
+
+Every new field is optional. A write from an older app decodes in the new extension. A new write decodes in an older one. If a value has the wrong shape, the extension skips it. It never drops the calorie figures.
+
+Home does not read the intakes again. It sums the intakes it already holds, with the same code as the panel. It reads the tracked day once more, for the goals the person set. If that read fails, the goals fall back to the references.
+
+### Not covered
+
+These widgets are for iOS only. This change does not touch the Android provider or its layout. The provider ignores the new keys.
+
 ## App Group
 
 Each flavor has its own App Group, so a develop install (for example `just dev_seed`) next to the App Store build can never overwrite or clear that build's widget:
