@@ -674,7 +674,7 @@ private struct RingFigureView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .padding(12)
+        .contentInset()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibility))
     }
@@ -726,9 +726,10 @@ private struct CalorieWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Text may grow to accessibility1 and no further, so the ring and
-        // the number keep fitting the small widget.
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        // Text stops growing at xxxLarge. The ring is about 50 pt wide
+        // inside its stroke, and above that size the number and its unit
+        // would no longer fit. The numbers shrink before they are cut.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .widgetBackground()
     }
 }
@@ -754,7 +755,7 @@ private struct CalorieWidgetPlaceholder: View {
                 .lineLimit(3)
                 .minimumScaleFactor(0.7)
         }
-        .padding(12)
+        .contentInset()
         .accessibilityElement(children: .combine)
     }
 }
@@ -929,7 +930,7 @@ private struct NutritionRowView: View {
                     alignment: .center
                 )
         }
-        .rowInset()
+        .contentInset(.horizontal)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(entry.labels.rowAccessibility))
     }
@@ -1087,7 +1088,7 @@ private struct MacrosSmallView: View {
                         )
                     }
                 }
-                .padding(12)
+                .contentInset()
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(entry.labels.macrosAccessibility))
             } else {
@@ -1098,9 +1099,10 @@ private struct MacrosSmallView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Text may grow to accessibility1 and no further, so three rows
-        // keep fitting the small widget.
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        // Text stops growing at xxxLarge. Three one-line rows with their
+        // bars and gaps are estimated to fit the small widget there; above
+        // it they would not. This is an estimate, not a render.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .widgetBackground()
     }
 }
@@ -1133,20 +1135,21 @@ private struct WaterSmallView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .widgetBackground()
     }
 }
 
 private extension View {
-    /// From iOS 17 the system already insets widget content. Before that
-    /// the content has to leave its own margin, as the ring widget does.
+    /// From iOS 17 the system already insets widget content, so the
+    /// content adds nothing. Before that it has to leave its own 12 pt
+    /// margin. Every widget view uses this, so none is inset twice.
     @ViewBuilder
-    func rowInset() -> some View {
+    func contentInset(_ edges: Edge.Set = .all) -> some View {
         if #available(iOSApplicationExtension 17.0, *) {
             self
         } else {
-            padding(.horizontal, 12)
+            padding(edges, 12)
         }
     }
 
