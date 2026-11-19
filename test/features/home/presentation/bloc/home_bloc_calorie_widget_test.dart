@@ -79,11 +79,15 @@ class _NoActivities extends Fake implements GetUserActivityUsecase {
   }) async => [];
 }
 
-class _NoWater extends Fake implements GetWaterIntakeUsecase {
+class _Water extends Fake implements GetWaterIntakeUsecase {
+  final List<WaterIntakeEntity> entries;
+
+  _Water([this.entries = const []]);
+
   @override
   Future<List<WaterIntakeEntity>> getTodayEntries({
     required int dayStartOffsetTotalMinutes,
-  }) async => [];
+  }) async => entries;
 }
 
 class _User extends Fake implements GetUserUsecase {
@@ -102,14 +106,20 @@ class _KcalGoal extends Fake implements GetKcalGoalUsecase {
 }
 
 class _MacroGoal extends Fake implements GetMacroGoalUsecase {
-  @override
-  Future<double> getCarbsGoal(double totalCalorieGoal) async => 0;
+  final double carbs;
+  final double fats;
+  final double proteins;
+
+  _MacroGoal({this.carbs = 0, this.fats = 0, this.proteins = 0});
 
   @override
-  Future<double> getFatsGoal(double totalCalorieGoal) async => 0;
+  Future<double> getCarbsGoal(double totalCalorieGoal) async => carbs;
 
   @override
-  Future<double> getProteinsGoal(double totalCalorieGoal) async => 0;
+  Future<double> getFatsGoal(double totalCalorieGoal) async => fats;
+
+  @override
+  Future<double> getProteinsGoal(double totalCalorieGoal) async => proteins;
 }
 
 /// Drops a write from before a clear, as [HomeWidgetCalorieStore] does.
@@ -147,6 +157,8 @@ void main() {
   Future<HomeBloc> home(
     CalorieWidgetStore store, {
     void Function()? duringLoad,
+    GetWaterIntakeUsecase? water,
+    GetMacroGoalUsecase? macroGoals,
   }) async {
     final db = FakeHiveDBProvider(
       configBox: await Hive.openBox<ConfigDBO>(
@@ -169,10 +181,10 @@ void main() {
       _UnusedDeleteUserActivityUsecase(),
       _UnusedAddTrackedDayUsecase(),
       _KcalGoal(),
-      _MacroGoal(),
+      macroGoals ?? _MacroGoal(),
       _UnusedUpdateUserActivityUsecase(),
       _User(),
-      _NoWater(),
+      water ?? _Water(),
       _UnusedAddWaterIntakeUsecase(),
       _UnusedDeleteWaterIntakeUsecase(),
       calorieWidgetStore: store,
@@ -208,6 +220,65 @@ void main() {
       reason: 'the extension must expire it, not show it as the 5th',
     );
   });
+
+  test(
+    'a load publishes macro goals and today\'s water beside the ring',
+    () async {
+      final store = _RecordingStore();
+      final bloc = await home(
+        store,
+        macroGoals: _MacroGoal(carbs: 300.4, fats: 66.6, proteins: 75),
+        water: _Water([
+          WaterIntakeEntity(
+            id: 'a',
+            dateTime: DateTime(2026, 10, 5, 9),
+            amountMl: 250,
+          ),
+          WaterIntakeEntity(
+            id: 'b',
+            dateTime: DateTime(2026, 10, 5, 11),
+            amountMl: 500,
+          ),
+        ]),
+      );
+
+      await load(bloc);
+
+      final snapshot = store.written.single;
+      expect(
+        snapshot.macros,
+        const CalorieWidgetMacros(
+          proteinIntakeG: 0,
+          proteinGoalG: 75,
+          carbsIntakeG: 0,
+          carbsGoalG: 300,
+          fatsIntakeG: 0,
+          fatsGoalG: 67,
+        ),
+      );
+      // 750 ml drunk; the goal is the fixture user's own water goal.
+      expect(
+        snapshot.water,
+        const CalorieWidgetWater(intakeMl: 750, goalMl: 1900),
+      );
+      expect(snapshot.toJson()['water'], {'ml': 750, 'goalMl': 1900});
+    },
+  );
+
+  test(
+    'a day with no water logged publishes zero millilitres, not none',
+    () async {
+      final store = _RecordingStore();
+      final bloc = await home(store);
+
+      await load(bloc);
+
+      expect(
+        store.written.single.water,
+        const CalorieWidgetWater(intakeMl: 0, goalMl: 1900),
+      );
+    },
+  );
 
   test('a load that read its figures before the widget was cleared does '
       'not write them back', () async {

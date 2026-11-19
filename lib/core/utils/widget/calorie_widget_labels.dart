@@ -36,6 +36,18 @@ class CalorieWidgetLabels {
   final String fat;
   final String gram;
 
+  /// The one-row widget: the water name and its unit, and the name and
+  /// text the widget gallery shows. Language-only as well.
+  final String water;
+  final String milliliter;
+  final String rowTitle;
+  final String rowDescription;
+
+  /// One VoiceOver sentence for the one-row widget, with every figure.
+  /// Empty when the snapshot has no macros or no water, so the reader
+  /// falls back to [accessibility] rather than speak a figure it lacks.
+  final String rowAccessibility;
+
   const CalorieWidgetLabels({
     required this.title,
     required this.unit,
@@ -47,6 +59,11 @@ class CalorieWidgetLabels {
     this.carbs = '',
     this.fat = '',
     this.gram = '',
+    this.water = '',
+    this.milliliter = '',
+    this.rowTitle = '',
+    this.rowDescription = '',
+    this.rowAccessibility = '',
   });
 
   /// The labels for [snapshot] in the language of [s]. The goal and the
@@ -57,6 +74,8 @@ class CalorieWidgetLabels {
         s,
         consumedKcal: snapshot.consumedKcal,
         goalKcal: snapshot.goalKcal,
+        macros: snapshot.macros,
+        water: snapshot.water,
       );
 
   /// The labels for figures already stored, for when only the language
@@ -65,6 +84,8 @@ class CalorieWidgetLabels {
     S s, {
     required int consumedKcal,
     required int goalKcal,
+    CalorieWidgetMacros? macros,
+    CalorieWidgetWater? water,
   }) {
     final consumed = '$consumedKcal';
     final goal = '$goalKcal';
@@ -79,6 +100,24 @@ class CalorieWidgetLabels {
       carbs: s.carbsLabel,
       fat: s.fatLabel,
       gram: s.gramUnit,
+      water: s.trendsWaterLabel,
+      milliliter: s.mlLabel,
+      rowTitle: s.nutritionRowWidgetDisplayName,
+      rowDescription: s.nutritionRowWidgetDescription,
+      rowAccessibility: macros == null || water == null
+          ? ''
+          : s.nutritionRowWidgetAccessibilityLabel(
+              consumed,
+              goal,
+              '${macros.carbsIntakeG}',
+              '${macros.carbsGoalG}',
+              '${macros.fatsIntakeG}',
+              '${macros.fatsGoalG}',
+              '${macros.proteinIntakeG}',
+              '${macros.proteinGoalG}',
+              '${water.intakeMl}',
+              '${water.goalMl}',
+            ),
     );
   }
 
@@ -110,11 +149,17 @@ class CalorieWidgetLabels {
     'carbs': carbs,
     'fat': fat,
     'gram': gram,
+    'water': water,
+    'milliliter': milliliter,
+    'rowTitle': rowTitle,
+    'rowDescription': rowDescription,
   };
 
   Map<String, String> figureJson() => {
     'goal': goal,
     'accessibility': accessibility,
+    // Left out, not empty, so a reader falls back to `accessibility`.
+    if (rowAccessibility.isNotEmpty) 'rowAccessibility': rowAccessibility,
   };
 
   String encodeLanguage() => jsonEncode(languageJson());

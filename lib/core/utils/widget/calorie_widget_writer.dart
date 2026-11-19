@@ -94,6 +94,8 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
       s,
       consumedKcal: (stored?['consumed'] as int?) ?? 0,
       goalKcal: (stored?['goal'] as int?) ?? 0,
+      macros: CalorieWidgetMacros.fromJson(stored?['macros']),
+      water: CalorieWidgetWater.fromJson(stored?['water']),
     );
     await _save({
       CalorieWidgetLabels.storageKey: labels.encodeLanguage(),
@@ -138,10 +140,22 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
         appGroupId: group,
       );
     }
+    await _reload(
+      iOSName: CalorieWidgetSnapshot.iosWidgetKind,
+      qualifiedAndroidName: CalorieWidgetSnapshot.androidWidgetQualifiedName,
+    );
+    // Android has no second provider: the plugin finds no class for this
+    // name there and answers with a PlatformException, which is ignored.
+    await _reload(iOSName: CalorieWidgetSnapshot.nutritionRowIosWidgetKind);
+  }
+
+  /// Each widget is reloaded on its own, so one that cannot be reached
+  /// does not stop the next.
+  Future<void> _reload({String? iOSName, String? qualifiedAndroidName}) async {
     try {
       await HomeWidget.updateWidget(
-        iOSName: CalorieWidgetSnapshot.iosWidgetKind,
-        qualifiedAndroidName: CalorieWidgetSnapshot.androidWidgetQualifiedName,
+        iOSName: iOSName,
+        qualifiedAndroidName: qualifiedAndroidName,
       );
     } on MissingPluginException {
       // Tests and platforms without the plugin skip the reload.

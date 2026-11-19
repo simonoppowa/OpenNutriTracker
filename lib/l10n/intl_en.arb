@@ -650,6 +650,50 @@
   "nutrientPanelDayLabel": "Day",
   "nutrientPanelWeekLabel": "Week",
   "nutritionInfoLabel": "Nutrition Information",
+  "nutritionRowWidgetAccessibilityLabel": "{calories} of {calorieGoal} kilocalories. Carbs {carbs} of {carbsGoal} grams. Fat {fat} of {fatGoal} grams. Protein {protein} of {proteinGoal} grams. Water {water} of {waterGoal} millilitres.",
+  "@nutritionRowWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS one-row nutrition widget: today's calories, macros and water, each as eaten of goal.",
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      },
+      "calorieGoal": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "carbsGoal": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "fatGoal": {
+        "type": "String"
+      },
+      "protein": {
+        "type": "String"
+      },
+      "proteinGoal": {
+        "type": "String"
+      },
+      "water": {
+        "type": "String"
+      },
+      "waterGoal": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionRowWidgetDescription": "Today's calories, macros and water in one row.",
+  "@nutritionRowWidgetDescription": {
+    "description": "Subtitle of the one-row nutrition widget in the iOS widget gallery."
+  },
+  "nutritionRowWidgetDisplayName": "Nutrition",
+  "@nutritionRowWidgetDisplayName": {
+    "description": "Name of the one-row nutrition widget in the iOS widget gallery."
+  },
   "nutritionalStatusNormalWeight": "Normal Weight",
   "nutritionalStatusObeseClassI": "Obesity Class I",
   "nutritionalStatusObeseClassII": "Obesity Class II",

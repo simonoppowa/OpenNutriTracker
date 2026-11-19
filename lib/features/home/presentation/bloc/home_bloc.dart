@@ -274,6 +274,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           fatsIntakeG: totalFatsIntake.round(),
           fatsGoalG: totalFatsGoal.round(),
         ),
+        water: CalorieWidgetWater(
+          intakeMl: totalWaterMl,
+          goalMl: configData.effectiveDailyWaterGoalMl(
+            user.gender,
+            caloriesProfile: user.caloriesProfile,
+          ),
+        ),
       );
     });
   }
@@ -285,6 +292,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required DateTime logicalDay,
     required int generation,
     CalorieWidgetMacros? macros,
+    CalorieWidgetWater? water,
   }) async {
     final snapshot = CalorieWidgetSnapshot.fromHome(
       consumedKcal: consumedKcal,
@@ -292,6 +300,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       offsetMinutes: offsetMinutes,
       logicalDay: logicalDay,
       macros: macros,
+      water: water,
     );
     try {
       await _calorieWidgetStore.write(
