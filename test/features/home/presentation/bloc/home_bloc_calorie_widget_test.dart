@@ -7,6 +7,8 @@ import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
@@ -20,6 +22,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
@@ -29,6 +32,9 @@ import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -40,8 +46,10 @@ import '../../../../helpers/hive_test_setup.dart';
 /// standing in for whatever happens while the load is still reading.
 class _Intake extends Fake implements GetIntakeUsecase {
   final void Function() duringLoad;
+  final List<IntakeEntity> breakfast;
+  final List<IntakeEntity> lunch;
 
-  _Intake(this.duringLoad);
+  _Intake(this.duringLoad, {this.breakfast = const [], this.lunch = const []});
 
   @override
   Future<List<IntakeEntity>> getTodayBreakfastIntake({
@@ -49,14 +57,14 @@ class _Intake extends Fake implements GetIntakeUsecase {
     int dayStartOffsetMinutes = 0,
   }) async {
     duringLoad();
-    return [];
+    return breakfast;
   }
 
   @override
   Future<List<IntakeEntity>> getTodayLunchIntake({
     int dayStartOffsetHours = 0,
     int dayStartOffsetMinutes = 0,
-  }) async => [];
+  }) async => lunch;
 
   @override
   Future<List<IntakeEntity>> getTodayDinnerIntake({
@@ -89,6 +97,51 @@ class _Water extends Fake implements GetWaterIntakeUsecase {
     required int dayStartOffsetTotalMinutes,
   }) async => entries;
 }
+
+/// The day's own goals, as the nutrient panel reads them.
+class _TrackedDay extends Fake implements GetTrackedDayUsecase {
+  final TrackedDayEntity? day;
+  final bool fails;
+  final asked = <DateTime>[];
+
+  _TrackedDay(this.day, {this.fails = false});
+
+  @override
+  Future<TrackedDayEntity?> getTrackedDay(DateTime day) async {
+    asked.add(day);
+    if (fails) throw StateError('tracked day box is closed');
+    return this.day;
+  }
+}
+
+IntakeEntity _fibreRichIntake() => IntakeEntity(
+  id: 'fibre-meal',
+  unit: 'g',
+  amount: 200,
+  type: IntakeTypeEntity.breakfast,
+  dateTime: DateTime(2026, 10, 5, 8),
+  meal: MealEntity(
+    code: 'test',
+    name: 'test meal',
+    url: null,
+    mealQuantity: null,
+    mealUnit: 'g',
+    servingQuantity: null,
+    servingUnit: 'g',
+    servingSize: null,
+    source: MealSourceEntity.custom,
+    nutriments: MealNutrimentsEntity(
+      energyKcal100: 100,
+      carbohydrates100: 0,
+      fat100: 0,
+      proteins100: 0,
+      sugars100: null,
+      saturatedFat100: null,
+      fiber100: 5,
+      sodium100: 400,
+    ),
+  ),
+);
 
 class _User extends Fake implements GetUserUsecase {
   @override
@@ -159,6 +212,10 @@ void main() {
     void Function()? duringLoad,
     GetWaterIntakeUsecase? water,
     GetMacroGoalUsecase? macroGoals,
+    List<IntakeEntity> breakfast = const [],
+    List<IntakeEntity> lunch = const [],
+    GetTrackedDayUsecase? trackedDay,
+    Map<String, bool>? nutrientVisibility,
   }) async {
     final db = FakeHiveDBProvider(
       configBox: await Hive.openBox<ConfigDBO>(
@@ -169,12 +226,15 @@ void main() {
     final configs = ConfigDataSource(db);
     await configs.initializeConfig();
     await configs.setConfigDayStartOffsetHours(4);
+    if (nutrientVisibility != null) {
+      await configs.setConfigNutrientPanelVisibility(nutrientVisibility);
+    }
     final configRepository = ConfigRepository(configs);
 
     final bloc = HomeBloc(
       GetConfigUsecase(configRepository),
       AddConfigUsecase(configRepository),
-      _Intake(duringLoad ?? () {}),
+      _Intake(duringLoad ?? () {}, breakfast: breakfast, lunch: lunch),
       _UnusedDeleteIntakeUsecase(),
       _UnusedUpdateIntakeUsecase(),
       _NoActivities(),
@@ -188,6 +248,7 @@ void main() {
       _UnusedAddWaterIntakeUsecase(),
       _UnusedDeleteWaterIntakeUsecase(),
       calorieWidgetStore: store,
+      getTrackedDayUsecase: trackedDay,
     );
     addTearDown(bloc.close);
     return bloc;
@@ -279,6 +340,117 @@ void main() {
       );
     },
   );
+
+  group('nutrients for the widget', () {
+    test('a load publishes the panel nutrients it already summed', () async {
+      final store = _RecordingStore();
+      final tracked = _TrackedDay(
+        TrackedDayEntity(
+          day: DateTime(2026, 10, 5),
+          calorieGoal: 2000,
+          caloriesTracked: 0,
+          fibreGoal: 28,
+        ),
+      );
+      final bloc = await home(
+        store,
+        breakfast: [_fibreRichIntake()],
+        lunch: [_fibreRichIntake()],
+        trackedDay: tracked,
+      );
+
+      await load(bloc);
+
+      final nutrients = store.written.single.nutrients;
+      expect(nutrients.map((nutrient) => nutrient.id), NutrientPanelKeys.all);
+      // Both meals count: 2 x (200 g x 5 / 100) = 20 g of fibre.
+      final fibre = nutrients.firstWhere((n) => n.id == 'fiber');
+      expect(fibre.consumed, 20);
+      expect(fibre.unit, 'g');
+      expect(fibre.goal, 28, reason: 'the day\'s own goal, as in the panel');
+      final sodium = nutrients.firstWhere((n) => n.id == 'sodium');
+      expect(sodium.consumed, 1600);
+      expect(sodium.unit, 'mg');
+    });
+
+    test('the day it asks the goals of is the day the load read', () async {
+      DayBoundaryCalc.clock = () => DateTime(2026, 10, 5, 3, 59, 59);
+      final tracked = _TrackedDay(null);
+      final store = _RecordingStore();
+      final bloc = await home(store, trackedDay: tracked);
+
+      await load(bloc);
+
+      expect(tracked.asked, [DateTime(2026, 10, 4)]);
+    });
+
+    test('a nutrient the person hid is not published', () async {
+      final store = _RecordingStore();
+      final bloc = await home(
+        store,
+        nutrientVisibility: {'sodium': false},
+        breakfast: [_fibreRichIntake()],
+      );
+
+      await load(bloc);
+
+      final ids = store.written.single.nutrients.map((n) => n.id);
+      expect(ids, isNot(contains('sodium')));
+      expect(ids, contains('fiber'));
+    });
+
+    test('without a tracked-day source the published goals are the '
+        'references', () async {
+      final store = _RecordingStore();
+      final bloc = await home(store);
+
+      await load(bloc);
+
+      final fibre = store.written.single.nutrients.firstWhere(
+        (n) => n.id == 'fiber',
+      );
+      expect(fibre.goal, isNotNull);
+      expect(fibre.consumed, 0);
+    });
+
+    test('a tracked-day read that fails costs the nutrients their own '
+        'goals, not the write', () async {
+      final store = _RecordingStore();
+      final bloc = await home(
+        store,
+        trackedDay: _TrackedDay(null, fails: true),
+        breakfast: [_fibreRichIntake()],
+      );
+
+      await load(bloc);
+
+      final snapshot = store.written.single;
+      expect(snapshot.hasData, isTrue);
+      expect(snapshot.consumedKcal, 200, reason: 'the ring is untouched');
+      expect(
+        snapshot.nutrients.firstWhere((n) => n.id == 'fiber').consumed,
+        10,
+      );
+    });
+
+    test('a load read before a clear still drops its nutrients too', () async {
+      final store = _RecordingStore();
+      var cleared = false;
+      final bloc = await home(
+        store,
+        breakfast: [_fibreRichIntake()],
+        duringLoad: () {
+          if (cleared) return;
+          cleared = true;
+          unawaited(store.clear());
+        },
+      );
+
+      await load(bloc);
+
+      expect(store.written, isEmpty);
+    });
+  });
 
   test('a load that read its figures before the widget was cleared does '
       'not write them back', () async {

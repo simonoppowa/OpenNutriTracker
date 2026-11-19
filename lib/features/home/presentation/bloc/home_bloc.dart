@@ -5,6 +5,8 @@ import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/entity/water_intake_entity.dart';
@@ -19,6 +21,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
@@ -26,6 +29,7 @@ import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecas
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_nutrients.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
@@ -55,6 +59,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final AddWaterIntakeUsecase _addWaterIntakeUsecase;
   final DeleteWaterIntakeUsecase _deleteWaterIntakeUsecase;
   final CalorieWidgetStore _calorieWidgetStore;
+  final GetTrackedDayUsecase? _getTrackedDayUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -75,7 +80,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     this._addWaterIntakeUsecase,
     this._deleteWaterIntakeUsecase, {
     CalorieWidgetStore? calorieWidgetStore,
+    GetTrackedDayUsecase? getTrackedDayUsecase,
   }) : _calorieWidgetStore = calorieWidgetStore ?? HomeWidgetCalorieStore(),
+       _getTrackedDayUsecase = getTrackedDayUsecase,
        super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       emit(HomeLoadingState());
@@ -281,8 +288,48 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             caloriesProfile: user.caloriesProfile,
           ),
         ),
+        nutrients: await _widgetNutrients(
+          intakes: [
+            ...breakfastIntakeList,
+            ...lunchIntakeList,
+            ...dinnerIntakeList,
+            ...snackIntakeList,
+          ],
+          visibility: configData.nutrientPanelVisibility,
+          user: user,
+          day: loadDay,
+        ),
       );
     });
+  }
+
+  /// The panel nutrients for the widget, from the intakes this load has
+  /// already read. The one extra read is the day's tracked row, for the
+  /// person's own nutrient goals. If it fails the goals fall back to the
+  /// references, and if the sums fail the widget gets no nutrients; the
+  /// ring, macros and water are written either way.
+  Future<List<CalorieWidgetNutrient>> _widgetNutrients({
+    required List<IntakeEntity> intakes,
+    required Map<String, bool> visibility,
+    required UserEntity user,
+    required DateTime day,
+  }) async {
+    try {
+      TrackedDayEntity? trackedDay;
+      try {
+        trackedDay = await _getTrackedDayUsecase?.getTrackedDay(day);
+      } catch (_) {
+        trackedDay = null;
+      }
+      return CalorieWidgetNutrients.forDay(
+        intakes: intakes,
+        visibility: visibility,
+        user: user,
+        trackedDay: trackedDay,
+      );
+    } catch (_) {
+      return const [];
+    }
   }
 
   Future<void> _publishCalorieWidget({
@@ -293,6 +340,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required int generation,
     CalorieWidgetMacros? macros,
     CalorieWidgetWater? water,
+    List<CalorieWidgetNutrient> nutrients = const [],
   }) async {
     final snapshot = CalorieWidgetSnapshot.fromHome(
       consumedKcal: consumedKcal,
@@ -301,6 +349,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       logicalDay: logicalDay,
       macros: macros,
       water: water,
+      nutrients: nutrients,
     );
     try {
       await _calorieWidgetStore.write(

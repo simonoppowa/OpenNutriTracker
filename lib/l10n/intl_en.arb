@@ -586,6 +586,38 @@
   "lunchExample": "e.g. pizza, salad, rice ...",
   "lunchLabel": "Lunch",
   "macroDistributionLabel": "Macronutrient Distribution:",
+  "macrosSmallWidgetAccessibilityLabel": "Protein {protein} of {proteinGoal} grams. Fat {fat} of {fatGoal} grams. Carbs {carbs} of {carbsGoal} grams.",
+  "@macrosSmallWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the small iOS macros widget: today's protein, fat and carbs, each as eaten of goal.",
+    "placeholders": {
+      "protein": {
+        "type": "String"
+      },
+      "proteinGoal": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "fatGoal": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "carbsGoal": {
+        "type": "String"
+      }
+    }
+  },
+  "macrosSmallWidgetDescription": "Today's protein, fat and carbs against your goals.",
+  "@macrosSmallWidgetDescription": {
+    "description": "Subtitle of the small macros widget in the iOS widget gallery."
+  },
+  "macrosSmallWidgetDisplayName": "Macros",
+  "@macrosSmallWidgetDisplayName": {
+    "description": "Name of the small macros widget in the iOS widget gallery. It shows protein, fat and carbs."
+  },
   "magnesiumLabel": "magnesium",
   "mealBrandsLabel": "Brands",
   "mealCarbsLabel": "Carbohydrates",
@@ -649,6 +681,39 @@
   "nutrientPanelLimitLabel": "limit",
   "nutrientPanelDayLabel": "Day",
   "nutrientPanelWeekLabel": "Week",
+  "nutrientWidgetAccessibilityLabel": "{nutrient}: {amount} {unit} of {goal} {unit}",
+  "@nutrientWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the small iOS nutrient widget when the nutrient has a goal, e.g. 'fiber: 12.5 g of 30 g'. The nutrient is its name in the app, and the unit is g, mg or µg.",
+    "placeholders": {
+      "nutrient": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "nutrientWidgetAccessibilityNoGoalLabel": "{nutrient}: {amount} {unit}",
+  "@nutrientWidgetAccessibilityNoGoalLabel": {
+    "description": "Spoken by VoiceOver for the small iOS nutrient widget when the nutrient has no goal, e.g. 'sodium: 800 mg'.",
+    "placeholders": {
+      "nutrient": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "nutritionInfoLabel": "Nutrition Information",
   "nutritionRowWidgetAccessibilityLabel": "{calories} of {calorieGoal} kilocalories. Carbs {carbs} of {carbsGoal} grams. Fat {fat} of {fatGoal} grams. Protein {protein} of {proteinGoal} grams. Water {water} of {waterGoal} millilitres.",
   "@nutritionRowWidgetAccessibilityLabel": {
@@ -1255,6 +1320,22 @@
   "vitaminCLabel": "vitamin C",
   "vitaminDLabel": "vitamin D",
   "warningLabel": "Warning",
+  "waterSmallWidgetAccessibilityLabel": "Water {water} of {goal} millilitres.",
+  "@waterSmallWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the small iOS water widget: today's water drunk of the daily goal.",
+    "placeholders": {
+      "water": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "waterSmallWidgetDescription": "Today's water against your goal.",
+  "@waterSmallWidgetDescription": {
+    "description": "Subtitle of the small water widget in the iOS widget gallery."
+  },
   "weeklyWeightGoalKgPerWeek": "{rate} kg/week",
   "weeklyWeightGoalLabel": "Weekly rate",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/week",

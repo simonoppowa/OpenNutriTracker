@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_nutrients.dart';
 
 /// The macro rows the widget shows under the ring, in grams. Grams are
 /// what the home screen itself displays, and the macro goals already
@@ -137,6 +138,11 @@ class CalorieWidgetSnapshot {
   /// It reads the same [storageKey] value as the ring widget.
   static const nutritionRowIosWidgetKind = 'NutritionRowWidget';
 
+  /// The small macros widget and the small water widget (iOS, 2x2). Both
+  /// read the same [storageKey] value as the other widgets.
+  static const macrosSmallIosWidgetKind = 'MacrosSmallWidget';
+  static const waterSmallIosWidgetKind = 'WaterSmallWidget';
+
   /// The Android `AppWidgetProvider`, as its fully qualified source class
   /// name. The plugin's `androidName` would resolve against the running
   /// application id instead, which carries the develop flavour's `.develop`
@@ -165,6 +171,11 @@ class CalorieWidgetSnapshot {
   /// less, or when the snapshot was decoded from an older write.
   final CalorieWidgetWater? water;
 
+  /// The panel nutrients the person has not hidden, for the nutrient
+  /// widget. Empty when Home had none, when the calorie goal is zero, or
+  /// when the snapshot was decoded from an older write.
+  final List<CalorieWidgetNutrient> nutrients;
+
   const CalorieWidgetSnapshot({
     required this.hasData,
     required this.dayId,
@@ -173,6 +184,7 @@ class CalorieWidgetSnapshot {
     required this.goalKcal,
     this.macros,
     this.water,
+    this.nutrients = const [],
   });
 
   /// Builds the snapshot Home should publish.
@@ -191,6 +203,7 @@ class CalorieWidgetSnapshot {
     required int offsetMinutes,
     CalorieWidgetMacros? macros,
     CalorieWidgetWater? water,
+    List<CalorieWidgetNutrient> nutrients = const [],
     DateTime? logicalDay,
     DateTime? now,
   }) {
@@ -208,6 +221,7 @@ class CalorieWidgetSnapshot {
       goalKcal: hasData ? goal : 0,
       macros: hasData ? macros : null,
       water: hasData && water != null && water.goalMl > 0 ? water : null,
+      nutrients: hasData ? nutrients : const [],
     );
   }
 
@@ -242,6 +256,8 @@ class CalorieWidgetSnapshot {
     // today) decode the same snapshot without knowing about it.
     if (macros != null) 'macros': macros!.toJson(),
     if (water != null) 'water': water!.toJson(),
+    if (nutrients.isNotEmpty)
+      'nutrients': [for (final nutrient in nutrients) nutrient.toJson()],
   };
 
   /// The value stored under [storageKey]: this snapshot with the figure

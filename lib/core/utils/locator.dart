@@ -273,6 +273,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       calorieWidgetStore: locator<CalorieWidgetStore>(),
+      getTrackedDayUsecase: locator<GetTrackedDayUsecase>(),
     ),
   );
   locator.registerLazySingleton(

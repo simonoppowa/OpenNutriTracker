@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_nutrients.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -96,6 +97,7 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
       goalKcal: (stored?['goal'] as int?) ?? 0,
       macros: CalorieWidgetMacros.fromJson(stored?['macros']),
       water: CalorieWidgetWater.fromJson(stored?['water']),
+      nutrients: CalorieWidgetNutrient.listFromJson(stored?['nutrients']),
     );
     await _save({
       CalorieWidgetLabels.storageKey: labels.encodeLanguage(),
@@ -144,9 +146,15 @@ class HomeWidgetCalorieStore implements CalorieWidgetStore {
       iOSName: CalorieWidgetSnapshot.iosWidgetKind,
       qualifiedAndroidName: CalorieWidgetSnapshot.androidWidgetQualifiedName,
     );
-    // Android has no second provider: the plugin finds no class for this
-    // name there and answers with a PlatformException, which is ignored.
-    await _reload(iOSName: CalorieWidgetSnapshot.nutritionRowIosWidgetKind);
+    // Android has no other provider: the plugin finds no class for these
+    // names there and answers with a PlatformException, which is ignored.
+    for (final kind in [
+      CalorieWidgetSnapshot.nutritionRowIosWidgetKind,
+      CalorieWidgetSnapshot.macrosSmallIosWidgetKind,
+      CalorieWidgetSnapshot.waterSmallIosWidgetKind,
+    ]) {
+      await _reload(iOSName: kind);
+    }
   }
 
   /// Each widget is reloaded on its own, so one that cannot be reached
