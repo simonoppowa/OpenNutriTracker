@@ -42,11 +42,23 @@ The picker needs iOS 17. It is an App Intent configuration. The extension target
 
 The extension picks one of two widget bundles at start-up. `WidgetBundleBuilder` accepts `if #available` but not `else`. Both versions of this widget have the same kind, so both cannot be listed.
 
-The picker offers calories, protein, carbs, fat and the ten nutrients of the Diary panel. The app writes their names into the language labels as an ordered list of `{id, name}`. The names are in the app's own language. The widget's query reads that list. No name is Swift copy.
+The picker offers calories, protein, carbs, fat and the nutrients of the Diary panel that are in the snapshot now. A nutrient the person hid in the app is not offered. The app writes the names into the language labels as an ordered list of `{id, name}`. The names are in the app's own language. The widget's query reads that list. No name is Swift copy.
+
+A saved choice is never lost. The query resolves an id even when the name list is missing. Then it uses the fixed label for calories or a macro, and else the id. The default is built as calories, and the parameter is optional. No choice means calories.
 
 Two strings are fixed English: the intent's title and its parameter label. App Intents reads those at build time.
 
-If a nutrient has a goal, the widget shows its amount, its unit, "of GOAL" and a ring. If it has no goal, the widget shows the amount alone. If the chosen nutrient is not in the snapshot, the widget shows the placeholder. That happens when the person hid the nutrient in the app settings, and before the app has written.
+If a nutrient has a goal, the widget shows its amount, its unit, "of GOAL" and a ring. If it has no goal, the widget shows the amount alone.
+
+The amount and the goal phrase come from the app as strings, with one format: up to one decimal, no digit grouping, and the decimal mark of the app's language. So a cell reads "3456,7" over "von 3500". Before the app has written them, the widget uses one ungrouped format for both.
+
+If the chosen nutrient is not in the snapshot, the widget shows its name and a line. If the app is up to date, the line is "Not shown in the app". That happens when the person hid the nutrient. Before the app has written, or after a write from an older app, the line is "Open the app".
+
+### Placeholders and the gallery
+
+Every widget shows its own name as the title of its placeholder: Calories or the chosen nutrient, Macros, Water, or Nutrition. The line under it is "Open the app", except for two cases. A nutrient that the app does not show says "Not shown in the app". Water with no daily goal says "No water goal set". Both lines are language-only labels, written by the app. A write from an older app has neither, so the widget says "Open the app".
+
+In the widget gallery and the Edit Widget picker, a widget with no current figures shows a made-up sample with numbers. The sample covers all four kinds and every nutrient the picker offers. It is never used on a Home Screen. Its names and goal phrases are English until the app has written its own names.
 
 ### Macros and water
 
@@ -54,7 +66,13 @@ The macros widget shows three rows. Each row has the name, grams over goal grams
 
 The water widget shows millilitres over the goal in a neutral ring. The app has no water colour.
 
-If the app wrote no macros, the macros widget shows the placeholder. If it wrote no water, the water widget does. Text stops growing at `accessibility1`.
+If the app wrote no macros, the macros widget shows the placeholder. If it wrote no water, the water widget does.
+
+### Text size and insets
+
+The ring, macros and water widgets stop growing text at `xxxLarge`. Above that, the number and unit inside the ring, and three rows in the small widget, would not fit. The numbers also shrink before they are cut. This cap applies to the old calorie widget too. Its text no longer grows above `xxxLarge`. The one-row widget wraps and stops at `accessibility1`. These sizes are estimates, not renders.
+
+From iOS 17 the system insets widget content. Below iOS 17 each widget adds 12 pt itself. One helper does this for every view, so no widget is inset twice.
 
 ### New snapshot fields
 
@@ -70,11 +88,13 @@ The unit rule is the existing one. The kilojoule and fluid-ounce preferences are
 
 The label rule is the existing one too:
 
-- `ont_calorie_labels` holds the language-only labels. It gains `macrosTitle`, `macrosDescription`, `waterDescription` and `nutrients`. The last is the ordered list of names.
-- The snapshot holds the labels that describe figures. They are `macrosAccessibility`, `waterAccessibility`, `waterGoal` and `nutrients`. The last is a map from id to `{"goal", "accessibility"}`. If the nutrient has no goal, the goal phrase is left out.
+- `ont_calorie_labels` holds the language-only labels. It gains `macrosTitle`, `macrosDescription`, `waterDescription`, `nutrientNotShown`, `waterNoGoal` and `nutrients`. The last is the ordered list of names.
+- The snapshot holds the labels that describe figures. They are `macrosAccessibility`, `waterAccessibility`, `waterGoal` and `nutrients`. The last is a map from id to `{"value", "goal", "accessibility"}`. `value` is written only for the panel nutrients. The macros are whole numbers, and the widget prints those itself. If the nutrient has no goal, the goal phrase is left out.
 - If the language changes, the app rewrites both. Home does not need to reload.
 
-Every new field is optional. A write from an older app decodes in the new extension. A new write decodes in an older one. If a value has the wrong shape, the extension skips it. It never drops the calorie figures.
+Every new field is optional. A write from an older app decodes in the new extension. A new write decodes in an older one.
+
+The extension reads `macros`, `water`, `labels` and `nutrients` through a decoder that skips a value of the wrong shape. Each macro row and each entry of the label map is skipped alone. The figure fields are read as numbers with a fraction and rounded, so `9.5` in a gram field does not make the snapshot unreadable. The calorie figures `consumed` and `goal` must be whole numbers. If either has a fraction or the wrong type, the whole snapshot is unreadable and every widget shows its placeholder.
 
 Home does not read the intakes again. It sums the intakes it already holds, with the same code as the panel. It reads the tracked day once more, for the goals the person set. If that read fails, the goals fall back to the references.
 
