@@ -4,6 +4,25 @@ A small, read-only Home Screen widget shows today's calories eaten, the daily go
 
 Android stores the same snapshot and has no widget UI yet. That work is tracked separately.
 
+## One-row nutrition widget
+
+A second widget shows calories, carbs, fat, protein and water in one horizontal row. Its kind is `NutritionRowWidget`. It supports the medium family only. It is declared in `CalorieWidget.swift` next to the ring widget and is part of the same extension and the same widget bundle.
+
+It reads the same snapshot, the same labels and the same timeline as the ring widget. The day boundary and the "Open the app" placeholder are shared code. Each write from the app reloads both kinds.
+
+The snapshot gains two optional parts. Both are left out when the app has no figure:
+
+- `macros`: `protein`, `carbs` and `fat`, each `{"g": consumed grams, "goalG": goal grams}`. The ring widget's data already had this.
+- `water`: `{"ml": consumed millilitres, "goalMl": goal millilitres}`. It is left out when the goal is zero or less.
+
+All figures are whole numbers. Water is stored in millilitres. The fluid-ounce preference is not applied, just as the kilojoule preference is not applied to calories. A cell whose figure is missing is not drawn. A goal of zero or less draws the number without a bar.
+
+The labels travel the same way as before. The language-only labels gain `water`, `milliliter`, `rowTitle` and `rowDescription`. The figure labels gain `rowAccessibility`, one VoiceOver sentence with every figure. It is written only when macros and water are both present. Otherwise the widget reads the calorie sentence. Old and new writes decode in old and new extensions, because every new field is optional.
+
+From the larger Dynamic Type sizes the cells wrap onto two lines. Text stops growing at `accessibility1`.
+
+The stored keys do not name a platform. Android does not show this widget. Its provider ignores the new keys.
+
 ## App Group
 
 Each flavor has its own App Group, so a develop install (for example `just dev_seed`) next to the App Store build can never overwrite or clear that build's widget:
