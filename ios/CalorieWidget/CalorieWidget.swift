@@ -2,6 +2,8 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
+// MARK: - Stored snapshot and labels
+
 /// Reads the App Group snapshot written by `CalorieWidgetSnapshot`.
 /// The day boundary matches `DayBoundaryCalc`: subtract the offset, then
 /// take the local calendar day. When that day id no longer matches, the
@@ -138,6 +140,8 @@ private struct StoredSnapshot: Decodable {
     var water: Lossy<StoredWater>?
     var nutrients: Lossy<[Lossy<StoredNutrient>]>?
 }
+
+// MARK: - Labels
 
 /// Copy the app writes in its own language (`CalorieWidgetLabels` in Dart),
 /// so translations come through the ARB/Weblate pipeline. The English
@@ -320,6 +324,8 @@ private enum NutrientId {
     static let fat = "fat"
 }
 
+// MARK: - Readings and figures
+
 /// A consumed amount and its goal as whole numbers: grams for a macro and
 /// millilitres for water. A goal of zero or less has no bar.
 private struct AmountFigure {
@@ -485,6 +491,8 @@ private struct CalorieReading {
     }
 }
 
+// MARK: - Entries and providers
+
 private struct CalorieEntry: TimelineEntry {
     var date: Date
     var reading: CalorieReading
@@ -613,6 +621,8 @@ private struct CalorieProvider: TimelineProvider {
         completion(CalorieEntries.timeline())
     }
 }
+
+// MARK: - Views
 
 /// What the small calorie widget shows for one nutrient: the number, its
 /// unit, the goal phrase and a ring when there is a goal, and the words
@@ -1238,10 +1248,16 @@ private extension View {
     }
 }
 
-/// The kind of the small calorie widget. It never changes, so a widget
-/// already on a Home Screen keeps its place when the app is updated.
+// MARK: - Widgets
+
+/// The kind strings of the four widgets, in one place. Dart reloads them by
+/// name (`CalorieWidgetSnapshot`). They never change: the calorie kind keeps
+/// a widget already on a Home Screen in place when the app is updated.
 private enum CalorieWidgetKind {
     static let calories = "CalorieProgressWidget"
+    static let row = "NutritionRowWidget"
+    static let macros = "MacrosSmallWidget"
+    static let water = "WaterSmallWidget"
 }
 
 /// iOS 15.5 to 16.x: the small calorie widget as it always was. It shows
@@ -1251,11 +1267,12 @@ struct CalorieProgressWidget: Widget {
     let kind = CalorieWidgetKind.calories
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
+        let labels = CalorieLabels.load()
+        return StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
             CalorieWidgetView(entry: entry)
         }
-        .configurationDisplayName(CalorieLabels.load().title)
-        .description(CalorieLabels.load().description)
+        .configurationDisplayName(labels.title)
+        .description(labels.description)
         .supportedFamilies([.systemSmall])
     }
 }
@@ -1264,14 +1281,15 @@ struct CalorieProgressWidget: Widget {
 /// same snapshot and uses the same timeline as the ring widget, so the day
 /// boundary and the "Open the app" placeholder behave the same.
 struct OneRowNutritionWidget: Widget {
-    let kind = "NutritionRowWidget"
+    let kind = CalorieWidgetKind.row
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
+        let labels = CalorieLabels.load()
+        return StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
             NutritionRowView(entry: entry)
         }
-        .configurationDisplayName(CalorieLabels.load().rowTitle)
-        .description(CalorieLabels.load().rowDescription)
+        .configurationDisplayName(labels.rowTitle)
+        .description(labels.rowDescription)
         .supportedFamilies([.systemMedium])
     }
 }
@@ -1280,31 +1298,35 @@ struct OneRowNutritionWidget: Widget {
 /// uses the same timeline as the other widgets, so the day boundary and the
 /// "Open the app" placeholder behave the same.
 struct MacrosSmallWidget: Widget {
-    let kind = "MacrosSmallWidget"
+    let kind = CalorieWidgetKind.macros
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
+        let labels = CalorieLabels.load()
+        return StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
             MacrosSmallView(entry: entry)
         }
-        .configurationDisplayName(CalorieLabels.load().macrosTitle)
-        .description(CalorieLabels.load().macrosDescription)
+        .configurationDisplayName(labels.macrosTitle)
+        .description(labels.macrosDescription)
         .supportedFamilies([.systemSmall])
     }
 }
 
 /// Today's water in the small size, with the same timeline as the others.
 struct WaterSmallWidget: Widget {
-    let kind = "WaterSmallWidget"
+    let kind = CalorieWidgetKind.water
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
+        let labels = CalorieLabels.load()
+        return StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
             WaterSmallView(entry: entry)
         }
-        .configurationDisplayName(CalorieLabels.load().water)
-        .description(CalorieLabels.load().waterDescription)
+        .configurationDisplayName(labels.water)
+        .description(labels.waterDescription)
         .supportedFamilies([.systemSmall])
     }
 }
+
+// MARK: - Nutrient picker (iOS 17)
 
 /// One nutrient in the Edit Widget picker. The names are the app's own
 /// strings in the app's language: the app writes them into the App Group
@@ -1397,18 +1419,21 @@ struct NutrientCalorieWidget: Widget {
     let kind = CalorieWidgetKind.calories
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(
+        let labels = CalorieLabels.load()
+        return AppIntentConfiguration(
             kind: kind,
             intent: NutrientIntent.self,
             provider: NutrientProvider()
         ) { entry in
             CalorieWidgetView(entry: entry)
         }
-        .configurationDisplayName(CalorieLabels.load().title)
-        .description(CalorieLabels.load().description)
+        .configurationDisplayName(labels.title)
+        .description(labels.description)
         .supportedFamilies([.systemSmall])
     }
 }
+
+// MARK: - Bundles
 
 /// The widgets on iOS 17 and later: the small calorie widget with its
 /// Edit Widget picker.
