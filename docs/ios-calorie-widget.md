@@ -6,7 +6,7 @@ Android stores the same snapshot and has no widget UI yet. That work is tracked 
 
 ## One-row nutrition widget
 
-A second widget shows calories, carbs, fat, protein and water in one horizontal row. Its kind is `NutritionRowWidget`. It supports the medium family only. It is declared in `CalorieWidget.swift` next to the ring widget and is part of the same extension and the same widget bundle.
+A second widget shows calories, protein, fat, carbs and water side by side. Calories are a ring of completion, the three macros are stacked rows, and water is a tall level gauge that fills from the bottom. Its kind is `NutritionRowWidget`. It supports the medium family only. It is declared in `CalorieWidget.swift` next to the ring widget and is part of the same extension and the same widget bundle.
 
 It reads the same snapshot, the same labels and the same timeline as the ring widget. The day boundary and the "Open the app" placeholder are shared code. Each write from the app reloads both kinds.
 
@@ -15,11 +15,11 @@ The snapshot gains two optional parts. Both are left out when the app has no fig
 - `macros`: `protein`, `carbs` and `fat`, each `{"g": consumed grams, "goalG": goal grams}`. The ring widget's data already had this.
 - `water`: `{"ml": consumed millilitres, "goalMl": goal millilitres}`. It is left out when the goal is zero or less.
 
-All figures are whole numbers. Water is stored in millilitres. The fluid-ounce preference is not applied, just as the kilojoule preference is not applied to calories. A cell whose figure is missing is not drawn. A goal of zero or less draws the number without a bar.
+All figures are whole numbers. Water is stored in millilitres. The fluid-ounce preference is not applied, just as the kilojoule preference is not applied to calories. A region whose figure is missing is not drawn. A goal of zero or less draws the number without a bar.
 
 The labels travel the same way as before. The language-only labels gain `water`, `milliliter`, `rowTitle` and `rowDescription`. The figure labels gain `rowAccessibility`, one VoiceOver sentence with every figure. It is written only when macros and water are both present. Otherwise the widget reads the calorie sentence. Old and new writes decode in old and new extensions, because every new field is optional.
 
-From the larger Dynamic Type sizes the cells wrap onto two lines. Text stops growing at `accessibility1`.
+From `xLarge` the ring gets smaller and the water level drops its name and its "of GOAL" line, so the numbers keep their room. Text stops growing at `xxxLarge`.
 
 The stored keys do not name a platform. Android does not show this widget. Its provider ignores the new keys.
 
@@ -28,7 +28,7 @@ The stored keys do not name a platform. Android does not show this widget. Its p
 Three widgets use the small size. That is the 2x2 slot on the Home Screen. With the one-row widget, the extension has four widget kinds:
 
 - `CalorieProgressWidget`: small. Calories as a ring. On iOS 17 and later it can show another nutrient.
-- `NutritionRowWidget`: medium. Calories, macros and water in one row.
+- `NutritionRowWidget`: medium. A calorie ring, stacked macros and a water level.
 - `MacrosSmallWidget`: small. Protein, fat and carbs as three rows.
 - `WaterSmallWidget`: small. Water as a ring.
 
@@ -70,7 +70,7 @@ If the app wrote no macros, the macros widget shows the placeholder. If it wrote
 
 ### Text size and insets
 
-The ring, macros and water widgets stop growing text at `xxxLarge`. Above that, the number and unit inside the ring, and three rows in the small widget, would not fit. The numbers also shrink before they are cut. This cap applies to the old calorie widget too. Its text no longer grows above `xxxLarge`. The one-row widget wraps and stops at `accessibility1`. These sizes are estimates, not renders.
+The ring, macros and water widgets stop growing text at `xxxLarge`. Above that, the number and unit inside the ring, and three rows in the small widget, would not fit. The numbers also shrink before they are cut. This cap applies to the old calorie widget too. Its text no longer grows above `xxxLarge`. The wide widget stops at `xxxLarge` too, and from `xLarge` it drops the water name and goal line. The calorie and nutrient rings use the app's brand green, `0E7A4D` in light mode and `34D08A` in dark mode, because the extension has no accent colour asset. The water ring stays neutral. The sizes were checked in the iOS 27 simulator.
 
 From iOS 17 the system insets widget content. Below iOS 17 each widget adds 12 pt itself. One helper does this for every view, so no widget is inset twice.
 

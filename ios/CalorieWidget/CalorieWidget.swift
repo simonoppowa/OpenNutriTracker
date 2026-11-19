@@ -712,6 +712,56 @@ private struct NutrientDisplay {
     }
 }
 
+/// A number with its unit under it. The ring in the small widgets and the
+/// ring in the wide widget both print their figure with it.
+private struct FigureText: View {
+    var value: String
+    var unit: String
+    var font: Font
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(value)
+                .font(font.weight(.semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(unit)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+        }
+    }
+}
+
+/// A grey track and a round-capped arc from the top, clockwise, 8 pt wide.
+/// `progress` is consumed over goal, already clamped to 0...1. The small
+/// ring widgets and the wide widget draw the ring with it, so they match.
+private struct ProgressRing<Content: View>: View {
+    var progress: Double
+    var color: Color
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(NutritionRowColors.track, lineWidth: 8)
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    color,
+                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+            // The 8 pt stroke and a 4 pt gap stay clear of the figure, which
+            // shrinks to fit instead of touching the ring.
+            content()
+                .padding(.horizontal, 12)
+        }
+    }
+}
+
 /// A figure as a number and its unit, with a ring and a goal phrase when
 /// there is a goal. The ring widget and the water widget both use it.
 private struct RingFigureView: View {
@@ -733,17 +783,8 @@ private struct RingFigureView: View {
                     .minimumScaleFactor(0.6)
             }
             if let progress = progress {
-                ZStack {
-                    Circle()
-                        .stroke(Color.secondary.opacity(0.25), lineWidth: 8)
-                    Circle()
-                        .trim(from: 0, to: progress)
-                        .stroke(
-                            ringColor,
-                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                        )
-                        .rotationEffect(.degrees(-90))
-                    figure(font: .title2)
+                ProgressRing(progress: progress, color: ringColor) {
+                    FigureText(value: value, unit: unit, font: .title2)
                 }
                 .padding(.horizontal, 8)
                 if let goalPhrase = goalPhrase {
@@ -755,28 +796,13 @@ private struct RingFigureView: View {
                 }
             } else {
                 // No goal, so nothing to measure against: the amount alone.
-                figure(font: .title)
+                FigureText(value: value, unit: unit, font: .title)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .contentInset()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibility))
-    }
-
-    private func figure(font: Font) -> some View {
-        VStack(spacing: 0) {
-            Text(value)
-                .font(font.weight(.semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-            Text(unit)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-        }
     }
 }
 
@@ -797,7 +823,7 @@ private struct CalorieWidgetView: View {
                     unit: display.unit,
                     goalPhrase: display.goalPhrase,
                     progress: display.progress,
-                    ringColor: Color.accentColor,
+                    ringColor: NutritionRowColors.ring,
                     accessibility: display.accessibility
                 )
             } else {
@@ -853,6 +879,10 @@ private enum NutritionRowColors {
     static let fat = dynamic(light: 0xD05536, dark: 0xFF937B)
     static let protein = dynamic(light: 0x1F8E80, dark: 0x49C9B8)
     static let water = Color.secondary
+    /// The ring colour of the calorie and nutrient rings, small and wide.
+    /// The app's brand green. The extension has no AccentColor asset, so
+    /// `Color.accentColor` would be the system blue here.
+    static let ring = dynamic(light: 0x0E7A4D, dark: 0x34D08A)
     static let track = Color.secondary.opacity(0.25)
 
     private static func dynamic(light: UInt32, dark: UInt32) -> Color {
@@ -890,102 +920,53 @@ private struct NutrientBar: View {
     }
 }
 
-/// Grams or millilitres, a thin bar, and the name in words.
-private struct NutrientCell: View {
-    var figure: AmountFigure
-    var unit: String
-    var label: String
-    var color: Color
+/// Water as a tall capsule that fills from the bottom, consumed over goal.
+/// The top of the fill is flat, like a liquid level. Neutral colour: the app
+/// has no water colour. A goal of zero or less leaves the capsule empty.
+private struct WaterLevel: View {
+    var progress: Double?
 
     var body: some View {
-        VStack(spacing: 3) {
-            HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text("\(figure.value)")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(.primary)
-                Text(unit)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-            .lineLimit(1)
-            .minimumScaleFactor(0.5)
-            NutrientBar(progress: figure.progress, color: color)
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-        }
-    }
-}
-
-/// Calories eaten, the unit, and the goal. No bar: the ring widget has one.
-private struct CaloriesCell: View {
-    var labels: CalorieLabels
-    var consumed: Int
-    /// The wrapped layout has less height, so the number and unit share
-    /// one line there.
-    var compact: Bool
-
-    var body: some View {
-        VStack(spacing: 1) {
-            if compact {
-                HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    number
-                    unit
+        GeometryReader { proxy in
+            ZStack(alignment: .bottom) {
+                Rectangle().fill(NutritionRowColors.track)
+                if let progress = progress {
+                    Rectangle()
+                        .fill(NutritionRowColors.water)
+                        .frame(height: proxy.size.height * CGFloat(progress))
                 }
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-            } else {
-                number.lineLimit(1).minimumScaleFactor(0.5)
-                unit.lineLimit(1).minimumScaleFactor(0.6)
             }
-            Text(labels.goal)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
+            .clipShape(Capsule())
         }
-    }
-
-    private var number: some View {
-        Text("\(consumed)")
-            .font(.title2.weight(.semibold))
-            .foregroundStyle(.primary)
-    }
-
-    private var unit: some View {
-        Text(labels.unit)
-            .font(.caption2)
-            .foregroundStyle(.secondary)
+        .frame(width: 28)
+        .accessibilityHidden(true)
     }
 }
 
+/// The wide widget, left to right: calories in a ring, the three macros
+/// stacked, and water as a level.
 private struct NutritionRowView: View {
     var entry: CalorieEntry
 
     @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .caption) private var goalLineHeight: CGFloat = 16
 
-    private enum Kind: Hashable {
-        case calories, carbs, fat, protein, water
-    }
+    /// From xLarge the three regions no longer fit side by side with all
+    /// their labels, so the ring gets smaller and the water level drops its
+    /// name and its "of GOAL" line. Every number stays.
+    private var compact: Bool { typeSize >= .xLarge }
 
-    /// Spacing between cells, and the room the calorie cell gets over the
-    /// others: it holds the longest number and the goal phrase.
-    private let spacing: CGFloat = 8
-    private let caloriesWeight: CGFloat = 1.25
+    private let spacing: CGFloat = 12
+    private var maxRing: CGFloat { compact ? 84 : 104 }
 
-    /// At larger text sizes five cells no longer fit one row without
-    /// shrinking the numbers, so the same cells wrap onto two lines.
-    private var wraps: Bool { typeSize >= .xLarge }
-
-    private var kinds: [Kind] {
-        var kinds: [Kind] = [.calories]
-        if entry.reading.carbs != nil { kinds.append(.carbs) }
-        if entry.reading.fat != nil { kinds.append(.fat) }
-        if entry.reading.protein != nil { kinds.append(.protein) }
-        if entry.reading.water != nil { kinds.append(.water) }
-        return kinds
+    private var macroRows: [(label: String, figure: AmountFigure, color: Color)] {
+        let labels = entry.labels
+        let reading = entry.reading
+        return [
+            reading.protein.map { (labels.protein, $0, NutritionRowColors.protein) },
+            reading.fat.map { (labels.fat, $0, NutritionRowColors.fat) },
+            reading.carbs.map { (labels.carbs, $0, NutritionRowColors.carbs) },
+        ].compactMap { $0 }
     }
 
     var body: some View {
@@ -1000,110 +981,103 @@ private struct NutritionRowView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Text may grow to accessibility1 and no further, so the cells
-        // keep fitting the widget.
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        // Text stops growing at xxxLarge, as in the small widgets. Above
+        // that, a ring, three macro rows and a water level would no longer
+        // fit one 4x2 widget. Every number shrinks before it is cut.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .widgetBackground()
     }
 
     private var rowBody: some View {
         GeometryReader { proxy in
-            content(width: proxy.size.width)
+            content(height: proxy.size.height)
                 .frame(
                     width: proxy.size.width,
                     height: proxy.size.height,
                     alignment: .center
                 )
         }
-        .contentInset(.horizontal)
+        .contentInset()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(entry.labels.rowAccessibility))
     }
 
-    @ViewBuilder
-    private func content(width: CGFloat) -> some View {
-        if wraps {
-            let columns = 3
-            let first = Array(kinds.prefix(columns))
-            let second = Array(kinds.dropFirst(columns))
-            let cellWidth = (width - spacing * CGFloat(columns - 1))
-                / CGFloat(columns)
-            VStack(spacing: 10) {
-                cellRow(first, cellWidth: cellWidth)
-                if !second.isEmpty {
-                    cellRow(second, cellWidth: cellWidth)
-                }
-            }
-        } else {
-            let weights = kinds.map { $0 == .calories ? caloriesWeight : 1 }
-            let room = width - spacing * CGFloat(kinds.count - 1)
-            let unit = room / weights.reduce(0, +)
-            HStack(spacing: spacing) {
-                ForEach(kinds, id: \.self) { kind in
-                    cell(kind)
-                        .frame(
-                            width: unit * (kind == .calories ? caloriesWeight : 1)
-                        )
-                }
-            }
-        }
-    }
-
-    private func cellRow(_ row: [Kind], cellWidth: CGFloat) -> some View {
-        HStack(spacing: spacing) {
-            ForEach(row, id: \.self) { kind in
-                cell(kind).frame(width: cellWidth)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func cell(_ kind: Kind) -> some View {
+    private func content(height: CGFloat) -> some View {
         let labels = entry.labels
-        switch kind {
-        case .calories:
-            CaloriesCell(
-                labels: labels,
-                consumed: entry.reading.consumed,
-                compact: wraps
-            )
-        case .carbs:
-            if let figure = entry.reading.carbs {
-                NutrientCell(
-                    figure: figure,
-                    unit: labels.gram,
-                    label: labels.carbs,
-                    color: NutritionRowColors.carbs
-                )
+        let ring = max(min(height - goalLineHeight - 6, maxRing), 0)
+        return HStack(spacing: spacing) {
+            VStack(spacing: 4) {
+                ProgressRing(progress: calorieProgress, color: NutritionRowColors.ring) {
+                    FigureText(
+                        value: "\(entry.reading.consumed)",
+                        unit: labels.unit,
+                        font: .title2
+                    )
+                }
+                .frame(width: ring, height: ring)
+                Text(labels.goal)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
-        case .fat:
-            if let figure = entry.reading.fat {
-                NutrientCell(
-                    figure: figure,
-                    unit: labels.gram,
-                    label: labels.fat,
-                    color: NutritionRowColors.fat
-                )
+            .frame(width: ring)
+            .layoutPriority(1)
+            if !macroRows.isEmpty {
+                VStack(spacing: 10) {
+                    ForEach(Array(macroRows.enumerated()), id: \.offset) { _, row in
+                        MacroRow(
+                            label: row.label,
+                            figure: row.figure,
+                            unit: labels.gram,
+                            color: row.color,
+                            namePriority: 1
+                        )
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            } else {
+                Spacer(minLength: 0)
             }
-        case .protein:
-            if let figure = entry.reading.protein {
-                NutrientCell(
-                    figure: figure,
-                    unit: labels.gram,
-                    label: labels.protein,
-                    color: NutritionRowColors.protein
-                )
-            }
-        case .water:
-            if let figure = entry.reading.water {
-                NutrientCell(
-                    figure: figure,
-                    unit: labels.milliliter,
-                    label: labels.water,
-                    color: NutritionRowColors.water
-                )
+            if let water = entry.reading.water {
+                HStack(spacing: 6) {
+                    WaterLevel(progress: water.progress)
+                    VStack(alignment: .leading, spacing: 1) {
+                        if !compact {
+                            Text(labels.water)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                        }
+                        Text(verbatim: "\(water.value)")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                        Text(labels.milliliter)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                        if water.progress != nil, !compact {
+                            Text(labels.waterGoal)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                        }
+                    }
+                    .layoutPriority(1)
+                }
             }
         }
+    }
+
+    /// Consumed over goal, clamped to 0...1, as the small ring does.
+    private var calorieProgress: Double {
+        let goal = max(entry.reading.goal, 1)
+        return min(max(Double(entry.reading.consumed) / Double(goal), 0), 1)
     }
 }
 
@@ -1115,6 +1089,9 @@ private struct MacroRow: View {
     var figure: AmountFigure
     var unit: String
     var color: Color
+    /// The wide widget gives the name the room first, so at large text the
+    /// numbers shrink and the name is never cut to an ellipsis.
+    var namePriority: Double = 0
 
     private var amount: String {
         figure.goal > 0
@@ -1130,6 +1107,7 @@ private struct MacroRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
+                    .layoutPriority(namePriority)
                 Spacer(minLength: 4)
                 // The numbers shrink before the name does, and are never cut.
                 Text(amount)
@@ -1137,7 +1115,7 @@ private struct MacroRow: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
-                    .layoutPriority(1)
+                    .layoutPriority(namePriority > 0 ? 0 : 1)
             }
             NutrientBar(progress: figure.progress, color: color)
         }
