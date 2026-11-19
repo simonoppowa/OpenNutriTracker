@@ -67,6 +67,11 @@ private struct StoredLanguageLabels: Decodable {
     var macrosTitle: String?
     var macrosDescription: String?
     var waterDescription: String?
+    // What the small widgets say when the app is up to date but has no
+    // figure for them. Absent in a write from an older app, which is how
+    // the widget tells that case from "the app has not written yet".
+    var nutrientNotShown: String?
+    var waterNoGoal: String?
 }
 
 /// What the app says about one nutrient: the goal phrase, such as "of 30",
@@ -165,6 +170,10 @@ private struct CalorieLabels {
     var macrosAccessibility: String
     var waterAccessibility: String
     var waterGoal: String
+    /// Nil when the app has not written these lines, so the widget says
+    /// "Open the app" instead.
+    var nutrientNotShown: String?
+    var waterNoGoal: String?
 
     /// The goal and VoiceOver lines come from `reading`, which decoded
     /// them from the same stored value as its figures.
@@ -232,7 +241,9 @@ private struct CalorieLabels {
             waterGoal: stored(
                 reading?.waterGoalLabel,
                 or: "of \(reading?.water?.goal ?? 0)"
-            )
+            ),
+            nutrientNotShown: language?.nutrientNotShown.flatMap { $0.isEmpty ? nil : $0 },
+            waterNoGoal: language?.waterNoGoal.flatMap { $0.isEmpty ? nil : $0 }
         )
     }
 
@@ -261,6 +272,12 @@ private struct CalorieLabels {
     /// The name the app wrote for a nutrient, if it wrote one.
     func name(forNutrient id: String) -> String? {
         nutrientNames.first { $0.id == id }?.name
+    }
+
+    /// The heading of the small calorie widget for a nutrient, also when
+    /// it has no figure: the nutrient's name, or "Calories".
+    func heading(forNutrient id: String) -> String {
+        id == NutrientId.calories ? title : (name(forNutrient: id) ?? title)
     }
 }
 
@@ -699,7 +716,13 @@ private struct CalorieWidgetView: View {
                     accessibility: display.accessibility
                 )
             } else {
-                CalorieWidgetPlaceholder(labels: entry.labels)
+                // The nutrient's name stays. With current figures but not
+                // this one, say so instead of asking to open the app.
+                CalorieWidgetPlaceholder(
+                    title: entry.labels.heading(forNutrient: entry.nutrientId),
+                    message: (entry.showsNumbers ? entry.labels.nutrientNotShown : nil)
+                        ?? entry.labels.openApp
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -711,17 +734,25 @@ private struct CalorieWidgetView: View {
 }
 
 /// Shown until the app has written today's figures, and again once the
-/// day boundary has passed. Both widgets use it.
+/// day boundary has passed. Every widget uses it, each with its own name
+/// as the title. The message is "Open the app", or a line that says why
+/// there is no figure when the app is up to date.
 private struct CalorieWidgetPlaceholder: View {
-    var labels: CalorieLabels
+    var title: String
+    var message: String
 
     var body: some View {
         VStack(spacing: 4) {
-            Text(labels.title)
+            Text(title)
                 .font(.headline)
-            Text(labels.openApp)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+            Text(message)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+                .minimumScaleFactor(0.7)
         }
         .padding(12)
         .accessibilityElement(children: .combine)
@@ -876,7 +907,10 @@ private struct NutritionRowView: View {
             if entry.showsNumbers {
                 rowBody
             } else {
-                CalorieWidgetPlaceholder(labels: entry.labels)
+                CalorieWidgetPlaceholder(
+                    title: entry.labels.rowTitle,
+                    message: entry.labels.openApp
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1057,7 +1091,10 @@ private struct MacrosSmallView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(entry.labels.macrosAccessibility))
             } else {
-                CalorieWidgetPlaceholder(labels: entry.labels)
+                CalorieWidgetPlaceholder(
+                    title: entry.labels.macrosTitle,
+                    message: entry.labels.openApp
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1086,7 +1123,13 @@ private struct WaterSmallView: View {
                     accessibility: entry.labels.waterAccessibility
                 )
             } else {
-                CalorieWidgetPlaceholder(labels: entry.labels)
+                CalorieWidgetPlaceholder(
+                    title: entry.labels.water,
+                    // Water is left out when there is no daily goal. If the
+                    // app is up to date, say so instead of "Open the app".
+                    message: (entry.showsNumbers && entry.reading.water == nil
+                        ? entry.labels.waterNoGoal : nil) ?? entry.labels.openApp
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
