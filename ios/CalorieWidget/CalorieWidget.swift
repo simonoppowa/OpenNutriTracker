@@ -873,12 +873,16 @@ private struct CalorieWidgetPlaceholder: View {
 
 /// The one-row widget's colours. The three macro colours are the app's own
 /// (`AppPalette`), which stay the same across every accent theme. The app
-/// has no water colour, so water uses the neutral secondary colour.
+/// has no water colour, so water has its own aqua blue, defined here.
 private enum NutritionRowColors {
     static let carbs = dynamic(light: 0xB87410, dark: 0xF2B45A)
     static let fat = dynamic(light: 0xD05536, dark: 0xFF937B)
     static let protein = dynamic(light: 0x1F8E80, dark: 0x49C9B8)
-    static let water = Color.secondary
+    /// Water, in the small widget's ring and the wide widget's level: an
+    /// aqua blue, bluer than the protein teal so the two stay apart. The app
+    /// has no water colour. At least 3:1 against the track and the widget
+    /// background in both modes.
+    static let water = dynamic(light: 0x1478A0, dark: 0x56C2E6)
     /// The ring colour of the calorie and nutrient rings, small and wide.
     /// The app's brand green. The extension has no AccentColor asset, so
     /// `Color.accentColor` would be the system blue here.
@@ -921,8 +925,8 @@ private struct NutrientBar: View {
 }
 
 /// Water as a tall capsule that fills from the bottom, consumed over goal.
-/// The top of the fill is flat, like a liquid level. Neutral colour: the app
-/// has no water colour. A goal of zero or less leaves the capsule empty.
+/// The top of the fill is flat, like a liquid level. A goal of zero or less
+/// leaves the capsule empty.
 private struct WaterLevel: View {
     var progress: Double?
 
@@ -938,26 +942,23 @@ private struct WaterLevel: View {
             }
             .clipShape(Capsule())
         }
-        .frame(width: 28)
+        .frame(width: 24)
         .accessibilityHidden(true)
     }
 }
 
 /// The wide widget, left to right: calories in a ring, the three macros
-/// stacked, and water as a level.
+/// stacked, and water as a level at the trailing edge.
 private struct NutritionRowView: View {
     var entry: CalorieEntry
 
     @Environment(\.dynamicTypeSize) private var typeSize
-    @ScaledMetric(relativeTo: .caption) private var goalLineHeight: CGFloat = 16
-
-    /// From xLarge the three regions no longer fit side by side with all
-    /// their labels, so the ring gets smaller and the water level drops its
-    /// name and its "of GOAL" line. Every number stays.
+    /// From xLarge the ring gets smaller, so the macros keep their width.
+    /// Every number stays.
     private var compact: Bool { typeSize >= .xLarge }
 
-    private let spacing: CGFloat = 12
-    private var maxRing: CGFloat { compact ? 84 : 104 }
+    private let spacing: CGFloat = 10
+    private var maxRing: CGFloat { compact ? 80 : 88 }
 
     private var macroRows: [(label: String, figure: AmountFigure, color: Color)] {
         let labels = entry.labels
@@ -1004,24 +1005,19 @@ private struct NutritionRowView: View {
 
     private func content(height: CGFloat) -> some View {
         let labels = entry.labels
-        let ring = max(min(height - goalLineHeight - 6, maxRing), 0)
+        // The stroke is drawn 4 pt outside the ring's frame, so the frame
+        // leaves 8 pt of the height and the column adds it back to its width.
+        let ring = max(min(height - 8, maxRing), 0)
         return HStack(spacing: spacing) {
-            VStack(spacing: 4) {
-                ProgressRing(progress: calorieProgress, color: NutritionRowColors.ring) {
-                    FigureText(
-                        value: "\(entry.reading.consumed)",
-                        unit: labels.unit,
-                        font: .title2
-                    )
-                }
-                .frame(width: ring, height: ring)
-                Text(labels.goal)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
+            ProgressRing(progress: calorieProgress, color: NutritionRowColors.ring) {
+                FigureText(
+                    value: "\(entry.reading.consumed)",
+                    unit: labels.unit,
+                    font: .title2
+                )
             }
-            .frame(width: ring)
+            .frame(width: ring, height: ring)
+            .padding(4)
             .layoutPriority(1)
             if !macroRows.isEmpty {
                 VStack(spacing: 10) {
@@ -1031,7 +1027,8 @@ private struct NutritionRowView: View {
                             figure: row.figure,
                             unit: labels.gram,
                             color: row.color,
-                            namePriority: 1
+                            namePriority: 1,
+                            short: true
                         )
                     }
                 }
@@ -1040,36 +1037,26 @@ private struct NutritionRowView: View {
                 Spacer(minLength: 0)
             }
             if let water = entry.reading.water {
-                HStack(spacing: 6) {
+                // The level sits at the trailing edge with its label under
+                // it: the number and the unit only. The goal is in the
+                // VoiceOver sentence, and the level shows the progress. From
+                // xLarge the unit goes first. The number never does.
+                VStack(spacing: 4) {
                     WaterLevel(progress: water.progress)
-                    VStack(alignment: .leading, spacing: 1) {
-                        if !compact {
-                            Text(labels.water)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.6)
-                        }
-                        Text(verbatim: "\(water.value)")
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
+                    Text(verbatim: "\(water.value)")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                    if !compact {
                         Text(labels.milliliter)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.6)
-                        if water.progress != nil, !compact {
-                            Text(labels.waterGoal)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.6)
-                        }
                     }
-                    .layoutPriority(1)
                 }
+                .layoutPriority(1)
             }
         }
     }
@@ -1092,9 +1079,15 @@ private struct MacroRow: View {
     /// The wide widget gives the name the room first, so at large text the
     /// numbers shrink and the name is never cut to an ellipsis.
     var namePriority: Double = 0
+    /// The wide widget's shorter row: "102/116" with no unit and no spaces,
+    /// in a smaller size. The name and the Dart sentence carry the rest.
+    var short = false
 
     private var amount: String {
-        figure.goal > 0
+        if short {
+            return figure.goal > 0 ? "\(figure.value)/\(figure.goal)" : "\(figure.value)"
+        }
+        return figure.goal > 0
             ? "\(figure.value) / \(figure.goal) \(unit)"
             : "\(figure.value) \(unit)"
     }
@@ -1111,7 +1104,7 @@ private struct MacroRow: View {
                 Spacer(minLength: 4)
                 // The numbers shrink before the name does, and are never cut.
                 Text(amount)
-                    .font(.caption.weight(.semibold))
+                    .font((short ? Font.caption2 : Font.caption).weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
@@ -1170,8 +1163,8 @@ private struct MacrosSmallView: View {
     }
 }
 
-/// Today's water over its goal, in millilitres, in a neutral ring: the app
-/// has no water colour. The number and the unit are always written.
+/// Today's water over its goal, in millilitres, in an aqua ring. The number
+/// and the unit are always written.
 private struct WaterSmallView: View {
     var entry: CalorieEntry
 
