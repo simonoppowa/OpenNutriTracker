@@ -27,7 +27,13 @@ import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
+import 'package:opennutritracker/core/data/data_source/medication_data_source.dart';
+import 'package:opennutritracker/core/data/repository/medication_repository.dart';
 import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
+import 'package:opennutritracker/core/domain/usecase/add_medication_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/delete_medication_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_medication_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/toggle_medication_taken_usecase.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_custom_activity_template_usecase.dart';
@@ -558,6 +564,18 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<DeleteWaterIntakeUsecase>(
     () => DeleteWaterIntakeUsecase(locator()),
   );
+  locator.registerLazySingleton<AddMedicationUsecase>(
+    () => AddMedicationUsecase(locator()),
+  );
+  locator.registerLazySingleton<GetMedicationUsecase>(
+    () => GetMedicationUsecase(locator()),
+  );
+  locator.registerLazySingleton<DeleteMedicationUsecase>(
+    () => DeleteMedicationUsecase(locator()),
+  );
+  locator.registerLazySingleton<ToggleMedicationTakenUsecase>(
+    () => ToggleMedicationTakenUsecase(locator()),
+  );
   locator.registerLazySingleton(
     () => GetKcalGoalUsecase(locator(), locator(), locator()),
   );
@@ -667,6 +685,9 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<WaterIntakeRepository>(
     () => WaterIntakeRepository(locator()),
   );
+  locator.registerLazySingleton<MedicationRepository>(
+    () => MedicationRepository(locator()),
+  );
   locator.registerLazySingleton<RecipeRepository>(
     () => RecipeRepository(locator()),
   );
@@ -711,6 +732,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<WaterIntakeDataSource>(
     () => WaterIntakeDataSource(hiveDBProvider),
+  );
+  locator.registerLazySingleton<MedicationDataSource>(
+    () => MedicationDataSource(hiveDBProvider),
   );
   locator.registerLazySingleton(() => CustomMealDataSource(hiveDBProvider));
   locator.registerLazySingleton(() => RecipeDataSource(hiveDBProvider));

@@ -1,31 +1,42 @@
-# Plano de Evolução: Sistema de Travas (Locks) e Simplificação de Unidades no Diálogo de Metas
+# Plano de Implementação: Novo Módulo de Medicamentos
 
-Este documento descreve as alterações para implementar botões de trava (*lock/unlock*) independentes para Calorias e cada um dos 3 macronutrientes, além de simplificar os botões de unidade para `%`, `g` e `g/kg`.
+Este documento descreve a arquitetura e o plano de implementação para o novo módulo de **Medicamentos** no OpenNutriTracker, permitindo o acompanhamento diário de doses (`mL`, `mg`, `mcg`) com marcação de concluído (*checkbox*), integrado tanto no **Diário** quanto na **Home**.
 
 ## Revisão Necessária pelo Usuário
 
 > [!IMPORTANT]
-> **1. Botões de Trava (Lock):** Cada campo (Calorias, Proteína, Carboidratos e Gordura) terá um botão de trava (`IconButton` com ícone de cadeado). O que estiver travado **não pode mudar** ao alterar outros campos.
-> **2. Regras de Recálculo com Travas:**
-> - Se **Kcal estiver travada**, alterar Kcal preenche automaticamente os macros não travados (padrão inicial: Proteína = 2g/kg, Gordura = 1g/kg, Carboidratos = restante).
-> - Se **Kcal e Proteína estiverem travadas**, alterar Carboidratos ajustará apenas a Gordura.
-> - Se **Kcal, Proteína e Carboidratos estiverem travadas**, a Gordura se ajustará automaticamente para fechar a meta calórica exata.
-> **3. Simplificação dos Botões de Unidade:** Os botões de unidade global agora exibirão apenas `%`, `g` e `g/kg`.
+> **1. Armazenamento Local (Hive):** Será criado um novo objeto DBO (`MedicationDBO`) e uma nova Hive Box (`MedicationBox`), salvos por perfil de usuário.
+> **2. Flexibilidade por Dia:** Cada registro de medicamento pertence a um dia específico (`day`), permitindo doses variáveis conforme o dia (ex: 10 mL hoje, 15 mL amanhã).
+> **3. Unidades de Medida:** Suporte estrito às unidades `mL`, `mg` e `mcg`.
+> **4. Diário e Home:** O painel de medicamentos será exibido no Diário (para a data selecionada) e na Home (para o dia atual), contendo caixas de seleção (*checkboxes*) para marcar facilmente se já tomou ou não.
+
+## Questões em Aberto
+
+- Nenhuma questão pendente; o escopo atende a acompanhamento simples com unidades em mL, mg e mcg e checagem diária.
 
 ## Mudanças Propostas
 
-### 1. Refatoração do `SetDayGoalsDialog`
-- **[MODIFY]** [set_day_goals_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/diary/presentation/widgets/set_day_goals_dialog.dart):
-  - Adicionar estados booleanos de trava (`_isKcalLocked`, `_isProteinLocked`, `_isCarbsLocked`, `_isFatLocked`).
-  - Adicionar ícones de cadeado (`Icons.lock_rounded` / `Icons.lock_open_rounded`) em cada linha (Kcal, Proteína, Carboidratos, Gordura).
-  - Implementar o motor de balanceamento que respeita as travas ativas ao recalcular valores.
-  - Simplificar os rótulos dos botões de unidade para `%`, `g`, `g/kg`.
+### 1. Camada de Dados (`core/data`)
+- **[NEW]** [medication_dbo.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/dbo/medication_dbo.dart): Objeto Hive annotado (`typeId` livre, ex: 31) com campos `id`, `day`, `name`, `amount`, `unit` e `taken`.
+- **[MODIFY]** [hive_db_provider.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/utils/hive_db_provider.dart): Registrar a nova `medicationBoxName` e incluí-la em `perProfileBoxNames`.
+- **[NEW]** [medication_data_source.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/data_source/medication_data_source.dart): Acesso à Hive Box de medicamentos.
+- **[NEW]** [medication_repository.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/repository/medication_repository.dart): Repositório mediador.
+
+### 2. Camada de Domínio (`core/domain`)
+- **[NEW]** [medication_entity.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/domain/entity/medication_entity.dart): Entidade de domínio.
+- **[NEW]** Casos de uso: `AddMedicationUsecase`, `GetMedicationUsecase`, `DeleteMedicationUsecase`, `ToggleMedicationTakenUsecase`.
+
+### 3. Camada de Apresentação (UI e BLoC)
+- **[NEW]** [add_medication_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/medications/presentation/widgets/add_medication_dialog.dart): Diálogo para incluir/editar medicamento (Nome, Quantidade, Unidade: mL/mg/mcg).
+- **[NEW]** [medications_section_widget.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/medications/presentation/widgets/medications_section_widget.dart): Widget de lista com *checkboxes* para marcar os medicamentos como tomados.
+- **[MODIFY]** Integração na `DayInfoWidget` (Diário) e `HomePage` / `HomeBloc` (Home).
 
 ## Plano de Verificação
 
 ### Testes Automatizados
-- Executar `flutter test` para garantir a integridade dos testes do projeto.
+- Executar `flutter test` após a geração dos adaptadores do Hive (`just build` / `build_runner`).
 
 ### Verificação Manual
-- Testar o bloqueio de campos via ícone de cadeado no diálogo de metas do Diário.
-- Validar se os cálculos respeitam estritamente os itens travados.
+- Adicionar medicamentos com diferentes unidades (`mL`, `mg`, `mcg`) no Diário.
+- Marcar e desmarcar o *checkbox* de tomados.
+- Verificar a exibição na tela Home.

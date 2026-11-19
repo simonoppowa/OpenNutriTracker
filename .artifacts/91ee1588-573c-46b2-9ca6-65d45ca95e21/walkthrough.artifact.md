@@ -1,21 +1,26 @@
-# Sumário da Implementação - Sistema de Travas (Locks) e Simplificação de Unidades
+# Sumário da Implementação - Módulo de Medicamentos
 
-Este documento resume as melhorias implementadas no diálogo de definição de metas diárias (`SetDayGoalsDialog`).
+Este documento descreve a implementação do novo módulo de **Medicamentos** no OpenNutriTracker.
 
 ## Mudanças Realizadas
 
-### 1. Sistema de Travas Independentes (Locks)
-- **[MODIFY]** [set_day_goals_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/diary/presentation/widgets/set_day_goals_dialog.dart):
-  - Adicionado um botão de cadeado (`lock_rounded` / `lock_open_rounded`) ao lado de cada campo (Calorias, Proteína, Carboidratos e Gordura).
-  - O campo travado fica bloqueado para edição direta (`readOnly: true`) e serve como âncora fixa para o motor de balanceamento.
-  - Se Kcal estiver travada, alterar um macro rebalanceia automaticamente os demais macros livres para manter a meta calórica exata. Se múltiplos campos estiverem travados, o algoritmo distribui proporcionalmente o restante entre os campos livres remanescentes.
+### 1. Modelo de Dados e Armazenamento (Clean Architecture)
+- **[NEW]** [medication_dbo.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/dbo/medication_dbo.dart): Objeto do Hive com campos `id`, `day`, `name`, `amount`, `unit` (`mL`, `mg`, `mcg`) e `taken`.
+- **[NEW]** [medication_entity.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/domain/entity/medication_entity.dart): Entidade de domínio.
+- **[MODIFY]** [hive_db_provider.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/utils/hive_db_provider.dart): Adicionada a nova Hive Box `MedicationBox` por perfil de usuário.
+- **[NEW]** [medication_data_source.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/data_source/medication_data_source.dart) & [medication_repository.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/repository/medication_repository.dart).
+- **[NEW]** Casos de Uso: `AddMedicationUsecase`, `GetMedicationUsecase`, `DeleteMedicationUsecase`, `ToggleMedicationTakenUsecase`.
+- **[MODIFY]** [locator.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/utils/locator.dart): Registro de todos os repositórios e casos de uso de medicamentos.
 
-### 2. Inicialização com Padrões Inteligentes
-- Dias sem metas personalizadas iniciam automaticamente com valores sugeridos com base no peso corporal (Proteína = 2.0 g/kg, Gordura = 1.0 g/kg e o restante preenchido com Carboidratos).
+### 2. Componentes de Interface (UI)
+- **[NEW]** [add_medication_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/medications/presentation/widgets/add_medication_dialog.dart): Diálogo para inclusão e edição de medicamentos (Nome, Quantidade e Unidade: `mL`, `mg`, `mcg`).
+- **[NEW]** [medications_section_widget.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/medications/presentation/widgets/medications_section_widget.dart): Cartão com lista de medicamentos do dia, suporte a múltiplos itens, botões para editar/excluir e **checkboxes de checagem**.
 
-### 3. Simplificação das Unidades
-- Os botões de unidade global foram simplificados para exibir apenas **`g`**, **`%`** e **`g/kg`**.
+### 3. Integração no Diário e na Home
+- **[MODIFY]** [day_info_widget.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/diary/presentation/widgets/day_info_widget.dart): Exibição da seção de medicamentos no Diário para a data selecionada.
+- **[MODIFY]** [home_page.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/home/home_page.dart): Exibição da seção de medicamentos na tela Home para o dia atual.
 
 ## Validação
 
-- O código compila com sucesso e o comportamento das travas e recálculo automático foi validado.
+- Código compilado e verificado via `flutter test`.
+- O modelo permite doses flexíveis por dia e marcadores de check/uncheck instantâneos.

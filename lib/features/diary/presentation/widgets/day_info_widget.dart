@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/set_day_goals_dialog.dart';
+import 'package:opennutritracker/features/medications/presentation/widgets/medications_section_widget.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
@@ -288,6 +289,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                     ),
                   )
                 : const SizedBox(),
+            MedicationsSectionWidget(selectedDay: widget.selectedDay),
             // #160 + #173 + #404: Daily micronutrient panel — aggregates
             // ten nutrients (fibre, sodium, saturated fat, sugar, calcium,
             // iron, potassium, vitamin D, vitamin B12, magnesium) across

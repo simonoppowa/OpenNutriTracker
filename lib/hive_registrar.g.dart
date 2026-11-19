@@ -14,6 +14,7 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/medication_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
@@ -39,6 +40,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(MealDBOAdapter());
     registerAdapter(MealNutrimentsDBOAdapter());
     registerAdapter(MealSourceDBOAdapter());
+    registerAdapter(MedicationDBOAdapter());
     registerAdapter(PhysicalActivityDBOAdapter());
     registerAdapter(PhysicalActivityTypeDBOAdapter());
     registerAdapter(ProfileDBOAdapter());
@@ -68,6 +70,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(MealDBOAdapter());
     registerAdapter(MealNutrimentsDBOAdapter());
     registerAdapter(MealSourceDBOAdapter());
+    registerAdapter(MedicationDBOAdapter());
     registerAdapter(PhysicalActivityDBOAdapter());
     registerAdapter(PhysicalActivityTypeDBOAdapter());
     registerAdapter(ProfileDBOAdapter());
