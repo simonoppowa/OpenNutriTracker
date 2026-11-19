@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -28,6 +29,24 @@ private enum CalorieWidgetKeys {
     }
 }
 
+/// Decodes to nil instead of failing. One value of a type this extension
+/// does not know must not throw away the calorie figures beside it, so the
+/// lists and maps the nutrient widget added are read through this.
+private struct Lossy<Value: Decodable>: Decodable {
+    var value: Value?
+
+    init(from decoder: Decoder) throws {
+        value = try? decoder.singleValueContainer().decode(Value.self)
+    }
+}
+
+/// One name the Edit Widget picker offers. A list, not a map, so the
+/// picker keeps the order the app wrote.
+private struct StoredNutrientName: Decodable {
+    var id: String?
+    var name: String?
+}
+
 private struct StoredLanguageLabels: Decodable {
     var title: String?
     var unit: String?
@@ -42,12 +61,22 @@ private struct StoredLanguageLabels: Decodable {
     var milliliter: String?
     var rowTitle: String?
     var rowDescription: String?
+    // Added for the nutrient picker. Absent in a write from an older app.
+    var nutrients: Lossy<[Lossy<StoredNutrientName>]>?
+}
+
+/// What the app says about one nutrient: the goal phrase, such as "of 30",
+/// left out when there is no goal, and the VoiceOver sentence.
+private struct StoredFigureNutrient: Decodable {
+    var goal: String?
+    var accessibility: String?
 }
 
 private struct StoredFigureLabels: Decodable {
     var goal: String?
     var accessibility: String?
     var rowAccessibility: String?
+    var nutrients: Lossy<[String: StoredFigureNutrient]>?
 }
 
 /// One macro row or the water figure, as the app wrote it. Every field is
@@ -69,6 +98,15 @@ private struct StoredWater: Decodable {
     var goalMl: Int?
 }
 
+/// One nutrient the app tracks, in its own unit. A missing goal means the
+/// app has none to show.
+private struct StoredNutrient: Decodable {
+    var id: String?
+    var consumed: Double?
+    var goal: Double?
+    var unit: String?
+}
+
 private struct StoredSnapshot: Decodable {
     var hasData: Bool
     var day: String
@@ -78,6 +116,7 @@ private struct StoredSnapshot: Decodable {
     var labels: StoredFigureLabels?
     var macros: StoredMacros?
     var water: StoredWater?
+    var nutrients: Lossy<[Lossy<StoredNutrient>]>?
 }
 
 /// Copy the app writes in its own language (`CalorieWidgetLabels` in Dart),
@@ -100,6 +139,10 @@ private struct CalorieLabels {
     var rowTitle: String
     var rowDescription: String
     var rowAccessibility: String
+    /// The names the Edit Widget picker offers, in the app's order.
+    var nutrientNames: [NutrientName]
+    /// Goal phrases and VoiceOver sentences by nutrient id.
+    var nutrientFigures: [String: StoredFigureNutrient]
 
     /// The goal and VoiceOver lines come from `reading`, which decoded
     /// them from the same stored value as its figures.
@@ -144,9 +187,41 @@ private struct CalorieLabels {
             rowAccessibility: stored(
                 reading?.rowAccessibilityLabel,
                 or: accessibility
-            )
+            ),
+            nutrientNames: NutrientName.list(from: language?.nutrients?.value),
+            nutrientFigures: reading?.nutrientFigureLabels ?? [:]
         )
     }
+
+    /// The name the app wrote for a nutrient, if it wrote one.
+    func name(forNutrient id: String) -> String? {
+        nutrientNames.first { $0.id == id }?.name
+    }
+}
+
+/// A nutrient the picker offers, with its name in the app's language.
+private struct NutrientName {
+    var id: String
+    var name: String
+
+    static func list(from stored: [Lossy<StoredNutrientName>]?) -> [NutrientName] {
+        (stored ?? []).compactMap { entry in
+            guard
+                let id = entry.value?.id, !id.isEmpty,
+                let name = entry.value?.name, !name.isEmpty
+            else { return nil }
+            return NutrientName(id: id, name: name)
+        }
+    }
+}
+
+/// The ids the snapshot already carries as top-level figures. Every other
+/// id is one the app wrote in its `nutrients` list.
+private enum NutrientId {
+    static let calories = "calories"
+    static let protein = "protein"
+    static let carbs = "carbs"
+    static let fat = "fat"
 }
 
 /// A consumed amount and its goal, in grams for a macro and in millilitres
@@ -173,6 +248,37 @@ private struct NutrientFigure {
     }
 }
 
+/// One nutrient in its own unit. A goal of zero or less is no goal.
+private struct NutrientReading {
+    var value: Double
+    var goal: Double?
+    var unit: String
+
+    var progress: Double? {
+        guard let goal = goal else { return nil }
+        return min(max(value / goal, 0), 1)
+    }
+
+    static func byId(from stored: [Lossy<StoredNutrient>]?) -> [String: NutrientReading] {
+        var readings: [String: NutrientReading] = [:]
+        for entry in stored ?? [] {
+            guard
+                let nutrient = entry.value,
+                let id = nutrient.id, !id.isEmpty,
+                let consumed = nutrient.consumed, consumed.isFinite,
+                let unit = nutrient.unit, !unit.isEmpty
+            else { continue }
+            let goal = nutrient.goal.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
+            readings[id] = NutrientReading(
+                value: max(consumed, 0),
+                goal: goal,
+                unit: unit
+            )
+        }
+        return readings
+    }
+}
+
 private struct CalorieReading {
     var hasData: Bool
     var dayId: String
@@ -188,6 +294,10 @@ private struct CalorieReading {
     var fat: NutrientFigure? = nil
     var protein: NutrientFigure? = nil
     var water: NutrientFigure? = nil
+    // The nutrient widget's figures, by id, and what the app says about
+    // them. Empty when the app is older or wrote none.
+    var nutrients: [String: NutrientReading] = [:]
+    var nutrientFigureLabels: [String: StoredFigureNutrient] = [:]
 
     /// One read and one decode, so the day, the figures and their labels
     /// all come from the same write.
@@ -210,7 +320,9 @@ private struct CalorieReading {
             carbs: NutrientFigure(stored.macros?.carbs),
             fat: NutrientFigure(stored.macros?.fat),
             protein: NutrientFigure(stored.macros?.protein),
-            water: NutrientFigure(stored.water)
+            water: NutrientFigure(stored.water),
+            nutrients: NutrientReading.byId(from: stored.nutrients?.value),
+            nutrientFigureLabels: stored.labels?.nutrients?.value ?? [:]
         )
     }
 
@@ -262,32 +374,38 @@ private struct CalorieEntry: TimelineEntry {
     var reading: CalorieReading
     var labels: CalorieLabels
     var showsNumbers: Bool
+    /// Which nutrient the small calorie widget shows. Calories until the
+    /// person picks another one (iOS 17 and later).
+    var nutrientId: String = NutrientId.calories
 }
 
-private struct CalorieProvider: TimelineProvider {
-    func placeholder(in context: Context) -> CalorieEntry {
+/// The one place the day boundary and the placeholder are decided. The
+/// classic provider and the iOS 17 configurable one both call it, so a
+/// widget can never disagree with another about when to expire.
+private enum CalorieEntries {
+    static func placeholder(nutrientId: String = NutrientId.calories) -> CalorieEntry {
         CalorieEntry(
             date: Date(),
             reading: CalorieReading(hasData: false, dayId: "", offsetMinutes: 0, consumed: 0, goal: 0),
             labels: CalorieLabels.load(),
-            showsNumbers: false
+            showsNumbers: false,
+            nutrientId: nutrientId
         )
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (CalorieEntry) -> Void) {
+    static func snapshot(nutrientId: String = NutrientId.calories) -> CalorieEntry {
         let reading = CalorieReading.load()
         let now = Date()
-        completion(
-            CalorieEntry(
-                date: now,
-                reading: reading,
-                labels: CalorieLabels.load(for: reading),
-                showsNumbers: reading.isCurrent(at: now)
-            )
+        return CalorieEntry(
+            date: now,
+            reading: reading,
+            labels: CalorieLabels.load(for: reading),
+            showsNumbers: reading.isCurrent(at: now),
+            nutrientId: nutrientId
         )
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<CalorieEntry>) -> Void) {
+    static func timeline(nutrientId: String = NutrientId.calories) -> Timeline<CalorieEntry> {
         let reading = CalorieReading.load()
         let labels = CalorieLabels.load(for: reading)
         let now = Date()
@@ -296,15 +414,184 @@ private struct CalorieProvider: TimelineProvider {
             date: now,
             reading: reading,
             labels: labels,
-            showsNumbers: reading.isCurrent(at: now)
+            showsNumbers: reading.isCurrent(at: now),
+            nutrientId: nutrientId
         )
         let expired = CalorieEntry(
             date: boundary,
             reading: reading,
             labels: labels,
-            showsNumbers: false
+            showsNumbers: false,
+            nutrientId: nutrientId
         )
-        completion(Timeline(entries: [current, expired], policy: .after(boundary)))
+        return Timeline(entries: [current, expired], policy: .after(boundary))
+    }
+}
+
+private struct CalorieProvider: TimelineProvider {
+    func placeholder(in context: Context) -> CalorieEntry {
+        CalorieEntries.placeholder()
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (CalorieEntry) -> Void) {
+        completion(CalorieEntries.snapshot())
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<CalorieEntry>) -> Void) {
+        completion(CalorieEntries.timeline())
+    }
+}
+
+/// What the small calorie widget shows for one nutrient: the number, its
+/// unit, the goal phrase and a ring when there is a goal, and the words
+/// VoiceOver reads.
+private struct NutrientDisplay {
+    /// Nil for calories, which keep the look the widget always had.
+    var name: String?
+    var value: String
+    var unit: String
+    /// Nil when there is no goal. Then there is no ring and no "of".
+    var goalPhrase: String?
+    var progress: Double?
+    var accessibility: String
+
+    /// Nil when the app has not written this nutrient: the person hid it,
+    /// the app is older, or it has not written yet. The widget then shows
+    /// its placeholder, never a number that is not there.
+    static func make(id: String, reading: CalorieReading, labels: CalorieLabels) -> NutrientDisplay? {
+        switch id {
+        case NutrientId.calories:
+            let goal = max(reading.goal, 1)
+            return NutrientDisplay(
+                name: nil,
+                value: "\(reading.consumed)",
+                unit: labels.unit,
+                goalPhrase: labels.goal,
+                progress: min(max(Double(reading.consumed) / Double(goal), 0), 1),
+                accessibility: labels.accessibility
+            )
+        case NutrientId.protein:
+            return macro(id, reading.protein, labels: labels)
+        case NutrientId.carbs:
+            return macro(id, reading.carbs, labels: labels)
+        case NutrientId.fat:
+            return macro(id, reading.fat, labels: labels)
+        default:
+            guard let nutrient = reading.nutrients[id] else { return nil }
+            let figure = labels.nutrientFigures[id]
+            let name = labels.name(forNutrient: id) ?? id
+            let value = format(nutrient.value)
+            let goalText = nutrient.goal.map { format($0) }
+            return NutrientDisplay(
+                name: name,
+                value: value,
+                unit: nutrient.unit,
+                goalPhrase: goalText.map { stored(figure?.goal, or: "of \($0)") },
+                progress: nutrient.progress,
+                accessibility: stored(
+                    figure?.accessibility,
+                    or: [name, value, nutrient.unit].joined(separator: " ")
+                )
+            )
+        }
+    }
+
+    private static func macro(_ id: String, _ figure: NutrientFigure?, labels: CalorieLabels) -> NutrientDisplay? {
+        guard let figure = figure else { return nil }
+        let name = labels.name(forNutrient: id) ?? id
+        let storedFigure = labels.nutrientFigures[id]
+        return NutrientDisplay(
+            name: name,
+            value: "\(figure.value)",
+            unit: labels.gram,
+            goalPhrase: figure.progress == nil
+                ? nil
+                : stored(storedFigure?.goal, or: "of \(figure.goal)"),
+            progress: figure.progress,
+            accessibility: stored(
+                storedFigure?.accessibility,
+                or: "\(name) \(figure.value) \(labels.gram)"
+            )
+        )
+    }
+
+    /// Up to one decimal place, in the device's number format. The app
+    /// already rounded to one decimal.
+    private static func format(_ amount: Double) -> String {
+        amount.formatted(.number.precision(.fractionLength(0...1)))
+    }
+
+    private static func stored(_ value: String?, or fallback: String) -> String {
+        guard let value = value, !value.isEmpty else { return fallback }
+        return value
+    }
+}
+
+/// A figure as a number and its unit, with a ring and a goal phrase when
+/// there is a goal. The ring widget and the water widget both use it.
+private struct RingFigureView: View {
+    var name: String?
+    var value: String
+    var unit: String
+    var goalPhrase: String?
+    var progress: Double?
+    var ringColor: Color
+    var accessibility: String
+
+    var body: some View {
+        VStack(spacing: 6) {
+            if let name = name {
+                Text(name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            }
+            if let progress = progress {
+                ZStack {
+                    Circle()
+                        .stroke(Color.secondary.opacity(0.25), lineWidth: 8)
+                    Circle()
+                        .trim(from: 0, to: progress)
+                        .stroke(
+                            ringColor,
+                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                    figure(font: .title2)
+                }
+                .padding(.horizontal, 8)
+                if let goalPhrase = goalPhrase {
+                    Text(goalPhrase)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                }
+            } else {
+                // No goal, so nothing to measure against: the amount alone.
+                figure(font: .title)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .padding(12)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(accessibility))
+    }
+
+    private func figure(font: Font) -> some View {
+        VStack(spacing: 0) {
+            Text(value)
+                .font(font.weight(.semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(unit)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+        }
     }
 }
 
@@ -313,51 +600,30 @@ private struct CalorieWidgetView: View {
 
     var body: some View {
         Group {
-            if entry.showsNumbers {
-                progressBody
+            if entry.showsNumbers,
+               let display = NutrientDisplay.make(
+                   id: entry.nutrientId,
+                   reading: entry.reading,
+                   labels: entry.labels
+               ) {
+                RingFigureView(
+                    name: display.name,
+                    value: display.value,
+                    unit: display.unit,
+                    goalPhrase: display.goalPhrase,
+                    progress: display.progress,
+                    ringColor: Color.accentColor,
+                    accessibility: display.accessibility
+                )
             } else {
-                placeholderBody
+                CalorieWidgetPlaceholder(labels: entry.labels)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Text may grow to accessibility1 and no further, so the ring and
+        // the number keep fitting the small widget.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .widgetBackground()
-    }
-
-    private var progressBody: some View {
-        let goal = max(entry.reading.goal, 1)
-        let progress = min(max(Double(entry.reading.consumed) / Double(goal), 0), 1)
-        return VStack(spacing: 6) {
-            ZStack {
-                Circle()
-                    .stroke(Color.secondary.opacity(0.25), lineWidth: 8)
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(
-                        Color.accentColor,
-                        style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
-                VStack(spacing: 0) {
-                    Text("\(entry.reading.consumed)")
-                        .font(.title2.weight(.semibold))
-                        .minimumScaleFactor(0.6)
-                    Text(entry.labels.unit)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.horizontal, 8)
-            Text(entry.labels.goal)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-        .padding(12)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(entry.labels.accessibility))
-    }
-
-    private var placeholderBody: some View {
-        CalorieWidgetPlaceholder(labels: entry.labels)
     }
 }
 
@@ -660,8 +926,17 @@ private extension View {
     }
 }
 
+/// The kind of the small calorie widget. It never changes, so a widget
+/// already on a Home Screen keeps its place when the app is updated.
+private enum CalorieWidgetKind {
+    static let calories = "CalorieProgressWidget"
+}
+
+/// iOS 15.5 to 16.x: the small calorie widget as it always was. It shows
+/// calories, because choosing a nutrient needs an App Intent
+/// configuration, which starts at iOS 17.
 struct CalorieProgressWidget: Widget {
-    let kind = "CalorieProgressWidget"
+    let kind = CalorieWidgetKind.calories
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CalorieProvider()) { entry in
@@ -689,10 +964,123 @@ struct OneRowNutritionWidget: Widget {
     }
 }
 
-@main
-struct CalorieWidgetBundle: WidgetBundle {
+/// One nutrient in the Edit Widget picker. The names are the app's own
+/// strings in the app's language: the app writes them into the App Group
+/// and this query offers them, so none of them is Swift copy.
+@available(iOS 17.0, *)
+struct NutrientEntity: AppEntity {
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Nutrient")
+    static let defaultQuery = NutrientQuery()
+
+    var id: String
+    var name: String
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: "\(name)")
+    }
+}
+
+@available(iOS 17.0, *)
+struct NutrientQuery: EntityQuery {
+    func entities(for identifiers: [String]) async throws -> [NutrientEntity] {
+        Self.offered().filter { identifiers.contains($0.id) }
+    }
+
+    func suggestedEntities() async throws -> [NutrientEntity] {
+        Self.offered()
+    }
+
+    /// Calories, as the widget has always shown.
+    func defaultResult() async -> NutrientEntity? {
+        Self.offered().first { $0.id == NutrientId.calories }
+    }
+
+    /// What the app last wrote. Before its first write there is only
+    /// Calories, under the same English fallback the widget itself uses.
+    private static func offered() -> [NutrientEntity] {
+        let names = CalorieLabels.load().nutrientNames
+        guard !names.isEmpty else {
+            return [NutrientEntity(id: NutrientId.calories, name: CalorieLabels.load().title)]
+        }
+        return names.map { NutrientEntity(id: $0.id, name: $0.name) }
+    }
+}
+
+/// The Edit Widget sheet of the small calorie widget. No choice made means
+/// calories.
+@available(iOS 17.0, *)
+struct NutrientIntent: WidgetConfigurationIntent {
+    static let title: LocalizedStringResource = "Nutrient"
+
+    @Parameter(title: "Nutrient")
+    var nutrient: NutrientEntity?
+}
+
+@available(iOS 17.0, *)
+private struct NutrientProvider: AppIntentTimelineProvider {
+    func placeholder(in context: Context) -> CalorieEntry {
+        CalorieEntries.placeholder()
+    }
+
+    func snapshot(for configuration: NutrientIntent, in context: Context) async -> CalorieEntry {
+        CalorieEntries.snapshot(nutrientId: configuration.nutrient?.id ?? NutrientId.calories)
+    }
+
+    func timeline(for configuration: NutrientIntent, in context: Context) async -> Timeline<CalorieEntry> {
+        CalorieEntries.timeline(nutrientId: configuration.nutrient?.id ?? NutrientId.calories)
+    }
+}
+
+/// iOS 17 and later: the same widget, with the nutrient chosen in its Edit
+/// Widget sheet. It has the same kind as the classic one, and the day
+/// boundary and placeholder come from the same code.
+@available(iOS 17.0, *)
+struct NutrientCalorieWidget: Widget {
+    let kind = CalorieWidgetKind.calories
+
+    var body: some WidgetConfiguration {
+        AppIntentConfiguration(
+            kind: kind,
+            intent: NutrientIntent.self,
+            provider: NutrientProvider()
+        ) { entry in
+            CalorieWidgetView(entry: entry)
+        }
+        .configurationDisplayName(CalorieLabels.load().title)
+        .description(CalorieLabels.load().description)
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+/// The widgets on iOS 17 and later: the small calorie widget with its
+/// Edit Widget picker.
+@available(iOS 17.0, *)
+private struct CalorieWidgetBundleModern: WidgetBundle {
+    var body: some Widget {
+        NutrientCalorieWidget()
+        OneRowNutritionWidget()
+    }
+}
+
+/// The widgets before iOS 17: the small calorie widget as it was.
+private struct CalorieWidgetBundleClassic: WidgetBundle {
     var body: some Widget {
         CalorieProgressWidget()
         OneRowNutritionWidget()
+    }
+}
+
+/// `WidgetBundleBuilder` accepts `if #available` but not `else`, and the
+/// classic and the configurable small calorie widget share one kind, so
+/// they cannot both be listed. The bundle is chosen here instead, once, as
+/// the extension starts.
+@main
+struct CalorieWidgetEntry {
+    static func main() {
+        if #available(iOSApplicationExtension 17.0, *) {
+            CalorieWidgetBundleModern.main()
+        } else {
+            CalorieWidgetBundleClassic.main()
+        }
     }
 }
