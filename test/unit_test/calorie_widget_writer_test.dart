@@ -335,6 +335,7 @@ void main() {
       {'id': 'sodium', 'consumed': 800.0, 'unit': 'mg'},
     ]);
     expect(decoded['labels']['nutrients']['fiber'], {
+      'value': '12.5',
       'goal': 'of 30',
       'accessibility': 'fiber: 12.5 g of 30 g',
     });

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui' show Locale;
 
 import 'package:flutter/widgets.dart' show basicLocaleListResolution;
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:opennutritracker/core/l10n/app_locales.dart';
 import 'package:opennutritracker/core/utils/app_locale.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_nutrients.dart';
@@ -223,12 +224,21 @@ class CalorieWidgetLabels {
     List<CalorieWidgetNutrient> nutrients,
   ) {
     final names = _nutrientNames(s);
-    Map<String, String> figure(CalorieWidgetNutrient nutrient) {
+    // The panel nutrients carry fractions, so their amounts are written
+    // here in the app's language and the widget prints them as given. The
+    // macros are whole grams and the widget prints those itself.
+    Map<String, String> figure(
+      CalorieWidgetNutrient nutrient, {
+      bool writesValue = true,
+    }) {
       final name = names[nutrient.id] ?? nutrient.id;
-      final amount = _figure(nutrient.consumed);
+      final amount = writesValue
+          ? _amount(s, nutrient.consumed)
+          : _figure(nutrient.consumed);
       final goal = nutrient.goal;
       if (goal == null) {
         return {
+          if (writesValue) 'value': amount,
           'accessibility': s.nutrientWidgetAccessibilityNoGoalLabel(
             name,
             amount,
@@ -236,8 +246,9 @@ class CalorieWidgetLabels {
           ),
         };
       }
-      final goalText = _figure(goal);
+      final goalText = writesValue ? _amount(s, goal) : _figure(goal);
       return {
+        if (writesValue) 'value': amount,
         'goal': s.calorieWidgetGoalLabel(goalText),
         'accessibility': s.nutrientWidgetAccessibilityLabel(
           name,
@@ -265,6 +276,7 @@ class CalorieWidgetLabels {
             macros.proteinIntakeG,
             macros.proteinGoalG,
           ),
+          writesValue: false,
         ),
         CalorieWidgetNutrientIds.carbs: figure(
           gram(
@@ -272,6 +284,7 @@ class CalorieWidgetLabels {
             macros.carbsIntakeG,
             macros.carbsGoalG,
           ),
+          writesValue: false,
         ),
         CalorieWidgetNutrientIds.fat: figure(
           gram(
@@ -279,10 +292,17 @@ class CalorieWidgetLabels {
             macros.fatsIntakeG,
             macros.fatsGoalG,
           ),
+          writesValue: false,
         ),
       },
     };
   }
+
+  /// An amount in the app's language, with up to one decimal and no digit
+  /// grouping. The value and its goal both use it, so a cell never reads
+  /// "3,456.7" over "of 3500".
+  static String _amount(S s, double value) =>
+      NumberFormat('0.#', s.localeName).format(value);
 
   /// A whole amount without a decimal, any other with one.
   static String _figure(double value) => value == value.roundToDouble()

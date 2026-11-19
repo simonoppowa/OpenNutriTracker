@@ -210,10 +210,14 @@ void main() {
       ).figureJson();
 
       expect(json['nutrients'], {
-        'fiber': {'goal': 'of 30', 'accessibility': 'fiber: 12.5 g of 30 g'},
+        'fiber': {
+          'value': '12.5',
+          'goal': 'of 30',
+          'accessibility': 'fiber: 12.5 g of 30 g',
+        },
         // No goal, so no phrase and no "of": a missing figure is never
         // spoken or shown as zero.
-        'sodium': {'accessibility': 'sodium: 800 mg'},
+        'sodium': {'value': '800', 'accessibility': 'sodium: 800 mg'},
         'protein': {'goal': 'of 75', 'accessibility': 'protein: 9 g of 75 g'},
         'carbs': {'goal': 'of 300', 'accessibility': 'carbs: 20 g of 300 g'},
         'fat': {'goal': 'of 67', 'accessibility': 'fat: 4 g of 67 g'},
@@ -243,6 +247,31 @@ void main() {
       expect(figures.containsKey('sodium'), isFalse);
       // The picker still offers it. It shows a placeholder until shown again.
       expect(labels.nutrientNames['sodium'], 'sodium');
+    });
+
+    test('a figure and its goal share one format, never grouped', () {
+      const big = CalorieWidgetNutrient(
+        id: 'potassium',
+        consumed: 3456.7,
+        goal: 3500,
+        unit: 'mg',
+      );
+      final snapshot = snapshotWith(nutrients: const [big]);
+      final de = lookupS(const Locale('de'));
+      Map<Object?, Object?> figureOf(S strings) =>
+          CalorieWidgetLabels.of(strings, snapshot).figureJson()['nutrients']!
+              as Map<Object?, Object?>;
+      final english = figureOf(lookupS(const Locale('en')));
+      final german = figureOf(de);
+
+      // The value and the goal text are both ungrouped, never "3,456.7"
+      // over "of 3500".
+      final englishFigure = english['potassium']! as Map;
+      final germanFigure = german['potassium']! as Map;
+      expect(englishFigure['value'], '3456.7');
+      expect(englishFigure['goal'], 'of 3500');
+      expect(germanFigure['value'], '3456,7');
+      expect(germanFigure['goal'], de.calorieWidgetGoalLabel('3500'));
     });
 
     test('the no-figure lines are language-only and translated', () {
@@ -285,11 +314,14 @@ void main() {
       expect(german.nutrientNames['calories'], de.trendsCaloriesLabel);
       expect(german.nutrientNames['vitamin_b12'], de.vitaminB12Label);
       expect(german.nutrientNames['protein'], de.proteinLabel);
+      // The amounts are written in the app's language, so a German
+      // decimal comma comes with the German words.
       expect((german.figureJson()['nutrients']! as Map)['fiber'], {
+        'value': '12,5',
         'goal': de.calorieWidgetGoalLabel('30'),
         'accessibility': de.nutrientWidgetAccessibilityLabel(
           de.fiberLabel,
-          '12.5',
+          '12,5',
           'g',
           '30',
         ),
@@ -337,8 +369,13 @@ void main() {
       );
 
       expect(labels.figureJson()['nutrients'], {
-        'iron': {'goal': 'of 18', 'accessibility': 'iron: 8 mg of 18 mg'},
+        'iron': {
+          'value': '8',
+          'goal': 'of 18',
+          'accessibility': 'iron: 8 mg of 18 mg',
+        },
         'vitamin_b12': {
+          'value': '1.3',
           'goal': 'of 2.4',
           'accessibility': 'vitamin B12: 1.3 µg of 2.4 µg',
         },
