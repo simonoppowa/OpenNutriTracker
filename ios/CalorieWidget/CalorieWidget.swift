@@ -72,6 +72,8 @@ private struct StoredLanguageLabels: Decodable {
 /// What the app says about one nutrient: the goal phrase, such as "of 30",
 /// left out when there is no goal, and the VoiceOver sentence.
 private struct StoredFigureNutrient: Decodable {
+    /// The amount, written in the app's language with the goal's format.
+    var value: String?
     var goal: String?
     var accessibility: String?
 }
@@ -80,7 +82,7 @@ private struct StoredFigureLabels: Decodable {
     var goal: String?
     var accessibility: String?
     var rowAccessibility: String?
-    var nutrients: Lossy<[String: StoredFigureNutrient]>?
+    var nutrients: Lossy<[String: Lossy<StoredFigureNutrient>]>?
     // The small macros and water widgets. Each is left out when the app
     // wrote no such figure.
     var macrosAccessibility: String?
@@ -88,23 +90,23 @@ private struct StoredFigureLabels: Decodable {
     var waterGoal: String?
 }
 
-/// One macro row or the water figure, as the app wrote it. Every field is
-/// optional so a write from an older or newer app never fails the decode of
-/// the calorie figures beside it.
+/// One macro row or the water figure, as the app wrote it. The amounts are
+/// read as `Double` and rounded when they are used, so a fraction such as
+/// 9.5 never fails the decode. Today's app writes whole numbers.
 private struct StoredMacroRow: Decodable {
-    var g: Int?
-    var goalG: Int?
+    var g: Double?
+    var goalG: Double?
 }
 
 private struct StoredMacros: Decodable {
-    var protein: StoredMacroRow?
-    var carbs: StoredMacroRow?
-    var fat: StoredMacroRow?
+    var protein: Lossy<StoredMacroRow>?
+    var carbs: Lossy<StoredMacroRow>?
+    var fat: Lossy<StoredMacroRow>?
 }
 
 private struct StoredWater: Decodable {
-    var ml: Int?
-    var goalMl: Int?
+    var ml: Double?
+    var goalMl: Double?
 }
 
 /// One nutrient the app tracks, in its own unit. A missing goal means the
@@ -122,9 +124,13 @@ private struct StoredSnapshot: Decodable {
     var offsetMinutes: Int
     var consumed: Int
     var goal: Int
-    var labels: StoredFigureLabels?
-    var macros: StoredMacros?
-    var water: StoredWater?
+    // Everything after `goal` is read through `Lossy`, so a value of a
+    // shape this extension does not know is skipped and the calorie figures
+    // above still show. `consumed` and `goal` are the exception: they are
+    // what the widget cannot do without, and stay whole numbers.
+    var labels: Lossy<StoredFigureLabels>?
+    var macros: Lossy<StoredMacros>?
+    var water: Lossy<StoredWater>?
     var nutrients: Lossy<[Lossy<StoredNutrient>]>?
 }
 
@@ -232,7 +238,7 @@ private struct CalorieLabels {
 
     /// English only until the app has written its own sentence.
     private static func macrosFallbackSentence(_ reading: CalorieReading?) -> String {
-        func part(_ name: String, _ figure: NutrientFigure?) -> String? {
+        func part(_ name: String, _ figure: AmountFigure?) -> String? {
             guard let figure = figure else { return nil }
             return figure.goal > 0
                 ? "\(name) \(figure.value) of \(figure.goal) grams"
@@ -283,22 +289,30 @@ private enum NutrientId {
     static let fat = "fat"
 }
 
-/// A consumed amount and its goal, in grams for a macro and in millilitres
-/// for water. A goal of zero or less has no bar.
-private struct NutrientFigure {
+/// A consumed amount and its goal as whole numbers: grams for a macro and
+/// millilitres for water. A goal of zero or less has no bar.
+private struct AmountFigure {
     var value: Int
     var goal: Int
 
-    init?(_ row: StoredMacroRow?) {
-        guard let row = row, let value = row.g else { return nil }
-        self.value = max(value, 0)
-        self.goal = row.goalG ?? 0
+    init?(value: Double?, goal: Double?) {
+        guard let value = value, let rounded = Self.whole(value) else { return nil }
+        self.value = max(rounded, 0)
+        self.goal = goal.flatMap { Self.whole($0) } ?? 0
     }
 
-    init?(_ water: StoredWater?) {
-        guard let water = water, let value = water.ml else { return nil }
-        self.value = max(value, 0)
-        self.goal = water.goalMl ?? 0
+    init?(_ row: Lossy<StoredMacroRow>?) {
+        self.init(value: row?.value?.g, goal: row?.value?.goalG)
+    }
+
+    init?(_ water: Lossy<StoredWater>?) {
+        self.init(value: water?.value?.ml, goal: water?.value?.goalMl)
+    }
+
+    /// Nil for a number that is not finite or is too large to hold.
+    private static func whole(_ number: Double) -> Int? {
+        guard number.isFinite, abs(number) < 1_000_000_000 else { return nil }
+        return Int(number.rounded())
     }
 
     var progress: Double? {
@@ -349,10 +363,10 @@ private struct CalorieReading {
     var rowAccessibilityLabel: String? = nil
     // The one-row widget's cells. Nil means the app did not write that
     // figure, and the cell is left out.
-    var carbs: NutrientFigure? = nil
-    var fat: NutrientFigure? = nil
-    var protein: NutrientFigure? = nil
-    var water: NutrientFigure? = nil
+    var carbs: AmountFigure? = nil
+    var fat: AmountFigure? = nil
+    var protein: AmountFigure? = nil
+    var water: AmountFigure? = nil
     // The nutrient widget's figures, by id, and what the app says about
     // them. Empty when the app is older or wrote none.
     var nutrients: [String: NutrientReading] = [:]
@@ -370,24 +384,25 @@ private struct CalorieReading {
         ) else {
             return CalorieReading(hasData: false, dayId: "", offsetMinutes: 0, consumed: 0, goal: 0)
         }
+        let labels = stored.labels?.value
         return CalorieReading(
             hasData: stored.hasData,
             dayId: stored.day,
             offsetMinutes: stored.offsetMinutes,
             consumed: stored.consumed,
             goal: stored.goal,
-            goalLabel: stored.labels?.goal,
-            accessibilityLabel: stored.labels?.accessibility,
-            rowAccessibilityLabel: stored.labels?.rowAccessibility,
-            carbs: NutrientFigure(stored.macros?.carbs),
-            fat: NutrientFigure(stored.macros?.fat),
-            protein: NutrientFigure(stored.macros?.protein),
-            water: NutrientFigure(stored.water),
+            goalLabel: labels?.goal,
+            accessibilityLabel: labels?.accessibility,
+            rowAccessibilityLabel: labels?.rowAccessibility,
+            carbs: AmountFigure(stored.macros?.value?.carbs),
+            fat: AmountFigure(stored.macros?.value?.fat),
+            protein: AmountFigure(stored.macros?.value?.protein),
+            water: AmountFigure(stored.water),
             nutrients: NutrientReading.byId(from: stored.nutrients?.value),
-            nutrientFigureLabels: stored.labels?.nutrients?.value ?? [:],
-            macrosAccessibilityLabel: stored.labels?.macrosAccessibility,
-            waterAccessibilityLabel: stored.labels?.waterAccessibility,
-            waterGoalLabel: stored.labels?.waterGoal
+            nutrientFigureLabels: labels?.nutrients?.value?.compactMapValues { $0.value } ?? [:],
+            macrosAccessibilityLabel: labels?.macrosAccessibility,
+            waterAccessibilityLabel: labels?.waterAccessibility,
+            waterGoalLabel: labels?.waterGoal
         )
     }
 
@@ -408,7 +423,7 @@ private struct CalorieReading {
     /// Islamic, ...) and would format a different year and day.
     private static var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone.current
+        calendar.timeZone = TimeZone.autoupdatingCurrent
         return calendar
     }
 
@@ -545,7 +560,10 @@ private struct NutrientDisplay {
             guard let nutrient = reading.nutrients[id] else { return nil }
             let figure = labels.nutrientFigures[id]
             let name = labels.name(forNutrient: id) ?? id
-            let value = format(nutrient.value)
+            // The app writes the amount and the goal phrase with one
+            // format. Before it has, both fall back to one Swift format, so
+            // the two never disagree.
+            let value = stored(figure?.value, or: format(nutrient.value))
             let goalText = nutrient.goal.map { format($0) }
             return NutrientDisplay(
                 name: name,
@@ -561,7 +579,7 @@ private struct NutrientDisplay {
         }
     }
 
-    private static func macro(_ id: String, _ figure: NutrientFigure?, labels: CalorieLabels) -> NutrientDisplay? {
+    private static func macro(_ id: String, _ figure: AmountFigure?, labels: CalorieLabels) -> NutrientDisplay? {
         guard let figure = figure else { return nil }
         let name = labels.name(forNutrient: id) ?? id
         let storedFigure = labels.nutrientFigures[id]
@@ -580,10 +598,10 @@ private struct NutrientDisplay {
         )
     }
 
-    /// Up to one decimal place, in the device's number format. The app
-    /// already rounded to one decimal.
+    /// Up to one decimal place and no digit grouping, which is the format
+    /// the app writes. The decimal mark is the device's.
     private static func format(_ amount: Double) -> String {
-        amount.formatted(.number.precision(.fractionLength(0...1)))
+        amount.formatted(.number.grouping(.never).precision(.fractionLength(0...1)))
     }
 
     private static func stored(_ value: String?, or fallback: String) -> String {
@@ -757,7 +775,7 @@ private struct NutrientBar: View {
 
 /// Grams or millilitres, a thin bar, and the name in words.
 private struct NutrientCell: View {
-    var figure: NutrientFigure
+    var figure: AmountFigure
     var unit: String
     var label: String
     var color: Color
@@ -974,7 +992,7 @@ private struct NutritionRowView: View {
 /// colour is never the only cue.
 private struct MacroRow: View {
     var label: String
-    var figure: NutrientFigure
+    var figure: AmountFigure
     var unit: String
     var color: Color
 
@@ -1012,7 +1030,7 @@ private struct MacroRow: View {
 private struct MacrosSmallView: View {
     var entry: CalorieEntry
 
-    private var rows: [(label: String, figure: NutrientFigure, color: Color)] {
+    private var rows: [(label: String, figure: AmountFigure, color: Color)] {
         let labels = entry.labels
         let reading = entry.reading
         return [
