@@ -279,6 +279,20 @@ private struct CalorieLabels {
     func heading(forNutrient id: String) -> String {
         id == NutrientId.calories ? title : (name(forNutrient: id) ?? title)
     }
+
+    /// The name to print for a nutrient: the app's, else the fixed label of
+    /// calories or a macro, else the English sample name, else the id. The
+    /// last two only apply before the app has written a name list.
+    func displayName(forNutrient id: String) -> String {
+        if let name = name(forNutrient: id) { return name }
+        switch id {
+        case NutrientId.calories: return title
+        case NutrientId.protein: return protein
+        case NutrientId.carbs: return carbs
+        case NutrientId.fat: return fat
+        default: return SampleReading.englishNames[id] ?? id
+        }
+    }
 }
 
 /// A nutrient the picker offers, with its name in the app's language.
@@ -311,6 +325,11 @@ private enum NutrientId {
 private struct AmountFigure {
     var value: Int
     var goal: Int
+
+    init(whole value: Int, goal: Int) {
+        self.value = value
+        self.goal = goal
+    }
 
     init?(value: Double?, goal: Double?) {
         guard let value = value, let rounded = Self.whole(value) else { return nil }
@@ -476,6 +495,48 @@ private struct CalorieEntry: TimelineEntry {
     var nutrientId: String = NutrientId.calories
 }
 
+/// Made-up figures for the widget gallery and the Edit Widget picker, shown
+/// before the app has written today's figures. They are not the person's.
+/// The names are English and only apply until the app has written its own.
+private enum SampleReading {
+    static let englishNames: [String: String] = [
+        "fiber": "fiber",
+        "sodium": "sodium",
+        "saturated_fat": "saturated fat",
+        "sugar": "sugar",
+        "calcium": "calcium",
+        "iron": "iron",
+        "potassium": "potassium",
+        "vitamin_d": "vitamin D",
+        "vitamin_b12": "vitamin B12",
+        "magnesium": "magnesium",
+    ]
+
+    static let reading = CalorieReading(
+        hasData: true,
+        dayId: "",
+        offsetMinutes: 0,
+        consumed: 1450,
+        goal: 2000,
+        carbs: AmountFigure(whole: 180, goal: 250),
+        fat: AmountFigure(whole: 45, goal: 70),
+        protein: AmountFigure(whole: 85, goal: 120),
+        water: AmountFigure(whole: 1200, goal: 2000),
+        nutrients: [
+            "fiber": NutrientReading(value: 18, goal: 30, unit: "g"),
+            "sodium": NutrientReading(value: 1200, goal: 2300, unit: "mg"),
+            "saturated_fat": NutrientReading(value: 12, goal: 20, unit: "g"),
+            "sugar": NutrientReading(value: 30, goal: 50, unit: "g"),
+            "calcium": NutrientReading(value: 600, goal: 1000, unit: "mg"),
+            "iron": NutrientReading(value: 9, goal: 14, unit: "mg"),
+            "potassium": NutrientReading(value: 2400, goal: 3500, unit: "mg"),
+            "vitamin_d": NutrientReading(value: 8, goal: 15, unit: "µg"),
+            "vitamin_b12": NutrientReading(value: 1.6, goal: 2.4, unit: "µg"),
+            "magnesium": NutrientReading(value: 220, goal: 355, unit: "mg"),
+        ]
+    )
+}
+
 /// The one place the day boundary and the placeholder are decided. The
 /// classic provider and the iOS 17 configurable one both call it, so a
 /// widget can never disagree with another about when to expire.
@@ -490,14 +551,28 @@ private enum CalorieEntries {
         )
     }
 
-    static func snapshot(nutrientId: String = NutrientId.calories) -> CalorieEntry {
+    /// In the gallery or the picker (`isPreview`), with no current figures
+    /// to show, the entry is a sample with numbers, so the person sees the
+    /// widget and not a text placeholder. Anywhere else it is the real
+    /// reading, expired or not.
+    static func snapshot(nutrientId: String = NutrientId.calories, isPreview: Bool = false) -> CalorieEntry {
         let reading = CalorieReading.load()
         let now = Date()
+        let current = reading.isCurrent(at: now)
+        if isPreview && !current {
+            return CalorieEntry(
+                date: now,
+                reading: SampleReading.reading,
+                labels: CalorieLabels.load(for: SampleReading.reading),
+                showsNumbers: true,
+                nutrientId: nutrientId
+            )
+        }
         return CalorieEntry(
             date: now,
             reading: reading,
             labels: CalorieLabels.load(for: reading),
-            showsNumbers: reading.isCurrent(at: now),
+            showsNumbers: current,
             nutrientId: nutrientId
         )
     }
@@ -531,7 +606,7 @@ private struct CalorieProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (CalorieEntry) -> Void) {
-        completion(CalorieEntries.snapshot())
+        completion(CalorieEntries.snapshot(isPreview: context.isPreview))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<CalorieEntry>) -> Void) {
@@ -576,7 +651,7 @@ private struct NutrientDisplay {
         default:
             guard let nutrient = reading.nutrients[id] else { return nil }
             let figure = labels.nutrientFigures[id]
-            let name = labels.name(forNutrient: id) ?? id
+            let name = labels.displayName(forNutrient: id)
             // The app writes the amount and the goal phrase with one
             // format. Before it has, both fall back to one Swift format, so
             // the two never disagree.
@@ -598,7 +673,7 @@ private struct NutrientDisplay {
 
     private static func macro(_ id: String, _ figure: AmountFigure?, labels: CalorieLabels) -> NutrientDisplay? {
         guard let figure = figure else { return nil }
-        let name = labels.name(forNutrient: id) ?? id
+        let name = labels.displayName(forNutrient: id)
         let storedFigure = labels.nutrientFigures[id]
         return NutrientDisplay(
             name: name,
@@ -1282,14 +1357,7 @@ struct NutrientQuery: EntityQuery {
     }
 
     private static func name(for id: String, labels: CalorieLabels) -> String {
-        if let name = labels.name(forNutrient: id) { return name }
-        switch id {
-        case NutrientId.calories: return labels.title
-        case NutrientId.protein: return labels.protein
-        case NutrientId.carbs: return labels.carbs
-        case NutrientId.fat: return labels.fat
-        default: return id
-        }
+        labels.displayName(forNutrient: id)
     }
 }
 
@@ -1310,7 +1378,10 @@ private struct NutrientProvider: AppIntentTimelineProvider {
     }
 
     func snapshot(for configuration: NutrientIntent, in context: Context) async -> CalorieEntry {
-        CalorieEntries.snapshot(nutrientId: configuration.nutrient?.id ?? NutrientId.calories)
+        CalorieEntries.snapshot(
+            nutrientId: configuration.nutrient?.id ?? NutrientId.calories,
+            isPreview: context.isPreview
+        )
     }
 
     func timeline(for configuration: NutrientIntent, in context: Context) async -> Timeline<CalorieEntry> {
