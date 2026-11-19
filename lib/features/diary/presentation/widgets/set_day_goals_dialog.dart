@@ -34,7 +34,13 @@ class _SetDayGoalsDialogState extends State<SetDayGoalsDialog> {
   MacroGoalUnitMode _globalMode = MacroGoalUnitMode.grams;
   double _latestWeightKg = 70.0;
   bool _isLoading = true;
-  bool _isUpdating = false; // Prevents recursive controller triggers
+  bool _isUpdating = false;
+
+  // Lock states
+  bool _isKcalLocked = false;
+  bool _isProteinLocked = false;
+  bool _isCarbsLocked = false;
+  bool _isFatLocked = false;
 
   @override
   void initState() {
@@ -64,9 +70,27 @@ class _SetDayGoalsDialogState extends State<SetDayGoalsDialog> {
       // Fallback
     } finally {
       if (mounted) {
+        // Apply default defaults if no tracked day goals existed
+        if (widget.trackedDayEntity == null) {
+          _applyDefaults();
+        }
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _applyDefaults() {
+    // Default: Protein = 2g/kg, Fat = 1g/kg, Carbs = remaining cals
+    final kcal = 2000.0;
+    final proteinG = 2.0 * _latestWeightKg;
+    final fatG = 1.0 * _latestWeightKg;
+    final remainingCals = kcal - (proteinG * 4.0) - (fatG * 9.0);
+    final carbsG = remainingCals > 0 ? remainingCals / 4.0 : 200.0;
+
+    _kcalController.text = kcal.round().toString();
+    _proteinController.text = proteinG.toStringAsFixed(0);
+    _fatController.text = fatG.toStringAsFixed(0);
+    _carbsController.text = carbsG.toStringAsFixed(0);
   }
 
   @override
@@ -82,176 +106,43 @@ class _SetDayGoalsDialogState extends State<SetDayGoalsDialog> {
     return double.tryParse(controller.text.replaceAll(',', '.')) ?? 0.0;
   }
 
-  // Converts current stored grams to target mode representation for display
-  void _updateDisplayValuesForMode(MacroGoalUnitMode newMode) {
-    if (_isUpdating) return;
-    _isUpdating = true;
+  // Convert current grams to target mode representation
+  double _toGrams(double value, MacroGoalUnitMode mode, double kcal) {
+    switch (mode) {
+      case MacroGoalUnitMode.grams:
+        return value;
+      case MacroGoalUnitMode.percentage:
+        return 0.0; // Handled per-macro with kcal
+      case MacroGoalUnitMode.gramsPerKg:
+        return value * _latestWeightKg;
+    }
+  }
 
+  // Get current grams for all three macros
+  (double carbsG, double proteinG, double fatG) _getCurrentGrams() {
     final kcal = _parse(_kcalController);
-    var carbsG = _parse(_carbsController);
-    var proteinG = _parse(_proteinController);
-    var fatG = _parse(_fatController);
+    var c = _parse(_carbsController);
+    var p = _parse(_proteinController);
+    var f = _parse(_fatController);
 
-    // If currently in percentage or g/kg, we first resolve back to grams internally
     if (_globalMode == MacroGoalUnitMode.percentage && kcal > 0) {
-      carbsG = (kcal * (carbsG / 100.0)) / 4.0;
-      proteinG = (kcal * (proteinG / 100.0)) / 4.0;
-      fatG = (kcal * (fatG / 100.0)) / 9.0;
+      return (
+        (kcal * (c / 100.0)) / 4.0,
+        (kcal * (p / 100.0)) / 4.0,
+        (kcal * (f / 100.0)) / 9.0,
+      );
     } else if (_globalMode == MacroGoalUnitMode.gramsPerKg && _latestWeightKg > 0) {
-      carbsG = carbsG * _latestWeightKg;
-      proteinG = proteinG * _latestWeightKg;
-      fatG = fatG * _latestWeightKg;
+      return (c * _latestWeightKg, p * _latestWeightKg, f * _latestWeightKg);
     }
-
-    // Now convert grams to newMode
-    if (newMode == MacroGoalUnitMode.percentage && kcal > 0) {
-      final carbsPct = ((carbsG * 4.0) / kcal) * 100.0;
-      final proteinPct = ((proteinG * 4.0) / kcal) * 100.0;
-      final fatPct = ((fatG * 9.0) / kcal) * 100.0;
-      _carbsController.text = carbsPct.toStringAsFixed(0);
-      _proteinController.text = proteinPct.toStringAsFixed(0);
-      _fatController.text = fatPct.toStringAsFixed(0);
-    } else if (newMode == MacroGoalUnitMode.gramsPerKg && _latestWeightKg > 0) {
-      _carbsController.text = (carbsG / _latestWeightKg).toStringAsFixed(1);
-      _proteinController.text = (proteinG / _latestWeightKg).toStringAsFixed(1);
-      _fatController.text = (fatG / _latestWeightKg).toStringAsFixed(1);
-    } else {
-      // grams
-      _carbsController.text = carbsG.toStringAsFixed(0);
-      _proteinController.text = proteinG.toStringAsFixed(0);
-      _fatController.text = fatG.toStringAsFixed(0);
-    }
-
-    _globalMode = newMode;
-    _isUpdating = false;
-    setState(() {});
+    return (c, p, f);
   }
 
-  // When Kcal changes, recalculate macros proportionally or keep current ratio
-  void _onKcalChanged(String text) {
-    if (_isUpdating) return;
-    _isUpdating = true;
-
-    final newKcal = _parse(_kcalController);
-    if (newKcal <= 0) {
-      _isUpdating = false;
-      return;
-    }
-
-    if (_globalMode == MacroGoalUnitMode.percentage) {
-      // Percentages stay same, but values change
-      _isUpdating = false;
-      setState(() {});
-      return;
-    }
-
-    // Recalculate grams or g/kg based on ratio
-    var carbs = _parse(_carbsController);
-    var protein = _parse(_proteinController);
-    var fat = _parse(_fatController);
-
-    if (_globalMode == MacroGoalUnitMode.gramsPerKg) {
-      carbs *= _latestWeightKg;
-      protein *= _latestWeightKg;
-      fat *= _latestWeightKg;
-    }
-
-    final totalCalsFromMacros = (carbs * 4.0) + (protein * 4.0) + (fat * 9.0);
-    if (totalCalsFromMacros > 0) {
-      final ratioC = (carbs * 4.0) / totalCalsFromMacros;
-      final ratioP = (protein * 4.0) / totalCalsFromMacros;
-      final ratioF = (fat * 9.0) / totalCalsFromMacros;
-
-      final newCarbsG = (newKcal * ratioC) / 4.0;
-      final newProteinG = (newKcal * ratioP) / 4.0;
-      final newFatG = (newKcal * ratioF) / 9.0;
-
-      if (_globalMode == MacroGoalUnitMode.gramsPerKg && _latestWeightKg > 0) {
-        _carbsController.text = (newCarbsG / _latestWeightKg).toStringAsFixed(1);
-        _proteinController.text = (newProteinG / _latestWeightKg).toStringAsFixed(1);
-        _fatController.text = (newFatG / _latestWeightKg).toStringAsFixed(1);
-      } else {
-        _carbsController.text = newCarbsG.toStringAsFixed(0);
-        _proteinController.text = newProteinG.toStringAsFixed(0);
-        _fatController.text = newFatG.toStringAsFixed(0);
-      }
-    }
-
-    _isUpdating = false;
-    setState(() {});
-  }
-
-  // When one macro changes, rebalance the other two to keep total Kcal locked
-  void _onMacroChanged(String changedMacro) {
-    if (_isUpdating) return;
-    _isUpdating = true;
-
+  void _setGramsToControllers(double cG, double pG, double fG) {
     final kcal = _parse(_kcalController);
-    if (kcal <= 0) {
-      _isUpdating = false;
-      return;
-    }
-
-    // Convert all to grams for rebalancing calculation
-    var cG = _parse(_carbsController);
-    var pG = _parse(_proteinController);
-    var fG = _parse(_fatController);
-
-    if (_globalMode == MacroGoalUnitMode.percentage) {
-      cG = (kcal * (cG / 100.0)) / 4.0;
-      pG = (kcal * (pG / 100.0)) / 4.0;
-      fG = (kcal * (fG / 100.0)) / 9.0;
-    } else if (_globalMode == MacroGoalUnitMode.gramsPerKg) {
-      cG *= _latestWeightKg;
-      pG *= _latestWeightKg;
-      fG *= _latestWeightKg;
-    }
-
-    final changedCals = (changedMacro == 'carbs'
-            ? cG * 4.0
-            : (changedMacro == 'protein' ? pG * 4.0 : fG * 9.0));
-
-    final remainingKcal = kcal - changedCals;
-    if (remainingKcal >= 0) {
-      // Rebalance remaining two macros proportionally
-      if (changedMacro == 'carbs') {
-        final oldRemainingCals = (pG * 4.0) + (fG * 9.0);
-        if (oldRemainingCals > 0) {
-          final pRatio = (pG * 4.0) / oldRemainingCals;
-          pG = (remainingKcal * pRatio) / 4.0;
-          fG = (remainingKcal * (1.0 - pRatio)) / 9.0;
-        } else {
-          pG = remainingKcal / 2.0 / 4.0;
-          fG = remainingKcal / 2.0 / 9.0;
-        }
-      } else if (changedMacro == 'protein') {
-        final oldRemainingCals = (cG * 4.0) + (fG * 9.0);
-        if (oldRemainingCals > 0) {
-          final cRatio = (cG * 4.0) / oldRemainingCals;
-          cG = (remainingKcal * cRatio) / 4.0;
-          fG = (remainingKcal * (1.0 - cRatio)) / 9.0;
-        } else {
-          cG = remainingKcal / 2.0 / 4.0;
-          fG = remainingKcal / 2.0 / 9.0;
-        }
-      } else if (changedMacro == 'fat') {
-        final oldRemainingCals = (cG * 4.0) + (pG * 4.0);
-        if (oldRemainingCals > 0) {
-          final cRatio = (cG * 4.0) / oldRemainingCals;
-          cG = (remainingKcal * cRatio) / 4.0;
-          pG = (remainingKcal * (1.0 - cRatio)) / 4.0;
-        } else {
-          cG = remainingKcal / 2.0 / 4.0;
-          pG = remainingKcal / 2.0 / 4.0;
-        }
-      }
-    }
-
-    // Format back to current mode
     if (_globalMode == MacroGoalUnitMode.percentage && kcal > 0) {
-      _carbsController.text = (((cG * 4.0) / kcal) * 100.0).toStringAsFixed(0);
-      _proteinController.text = (((pG * 4.0) / kcal) * 100.0).toStringAsFixed(0);
-      _fatController.text = (((fG * 9.0) / kcal) * 100.0).toStringAsFixed(0);
+      _carbsController.text = ((cG * 4.0 / kcal) * 100.0).toStringAsFixed(0);
+      _proteinController.text = ((pG * 4.0 / kcal) * 100.0).toStringAsFixed(0);
+      _fatController.text = ((fG * 9.0 / kcal) * 100.0).toStringAsFixed(0);
     } else if (_globalMode == MacroGoalUnitMode.gramsPerKg && _latestWeightKg > 0) {
       _carbsController.text = (cG / _latestWeightKg).toStringAsFixed(1);
       _proteinController.text = (pG / _latestWeightKg).toStringAsFixed(1);
@@ -261,7 +152,110 @@ class _SetDayGoalsDialogState extends State<SetDayGoalsDialog> {
       _proteinController.text = pG.toStringAsFixed(0);
       _fatController.text = fG.toStringAsFixed(0);
     }
+  }
 
+  void _updateDisplayValuesForMode(MacroGoalUnitMode newMode) {
+    if (_isUpdating) return;
+    _isUpdating = true;
+
+    final (cG, pG, fG) = _getCurrentGrams();
+    _globalMode = newMode;
+    _setGramsToControllers(cG, pG, fG);
+
+    _isUpdating = false;
+    setState(() {});
+  }
+
+  // Central rebalancing engine respecting locks
+  void _rebalance({required String source}) {
+    if (_isUpdating) return;
+    _isUpdating = true;
+
+    var kcal = _parse(_kcalController);
+    var (cG, pG, fG) = _getCurrentGrams();
+
+    if (source == 'kcal') {
+      if (_isKcalLocked) {
+        // Kcal is locked, ignore typed kcal change or revert it
+        // Actually if user edits kcal, let's allow it if unlocked, but if locked we don't change kcal.
+      }
+      // If kcal changed and is unlocked, or even if locked, let's rebalance unlocked macros to match kcal
+      final totalMacroCals = (cG * 4.0) + (pG * 4.0) + (fG * 9.0);
+      if (totalMacroCals > 0 && !_isKcalLocked) {
+        // proportional scale
+        final scale = kcal / totalMacroCals;
+        cG *= scale;
+        pG *= scale;
+        fG *= scale;
+      }
+    } else {
+      // A macro changed.
+      // If kcal is unlocked, compute kcal from macros unless kcal is locked.
+      if (!_isKcalLocked) {
+        kcal = (cG * 4.0) + (pG * 4.0) + (fG * 9.0);
+        _kcalController.text = kcal.round().toString();
+      } else {
+        // Kcal is locked! We must make sure unlocked macros absorb the difference to keep Kcal exact.
+        // Identify unlocked macros
+        final unlocked = <String>[
+          if (!_isCarbsLocked) 'carbs',
+          if (!_isProteinLocked) 'protein',
+          if (!_isFatLocked) 'fat',
+        ];
+
+        // Current macro cals
+        final cCals = cG * 4.0;
+        final pCals = pG * 4.0;
+        final fCals = fG * 9.0;
+        final currentMacroSum = cCals + pCals + fCals;
+        final diff = kcal - currentMacroSum;
+
+        if (unlocked.length == 1) {
+          // Only one macro unlocked, it absorbs all diff
+          if (unlocked.first == 'carbs') {
+            cG = (cG * 4.0 + diff) / 4.0;
+          } else if (unlocked.first == 'protein') {
+            pG = (pG * 4.0 + diff) / 4.0;
+          } else if (unlocked.first == 'fat') {
+            fG = (fG * 9.0 + diff) / 9.0;
+          }
+        } else if (unlocked.length == 2) {
+          // Split diff proportionally between the two unlocked macros
+          final u1Cals = unlocked.first == 'carbs' ? cCals : (unlocked.first == 'protein' ? pCals : fCals);
+          final u2Cals = unlocked.last == 'carbs' ? cCals : (unlocked.last == 'protein' ? pCals : fCals);
+          final sumU = u1Cals + u2Cals;
+          if (sumU > 0) {
+            final r1 = u1Cals / sumU;
+            final r2 = u2Cals / sumU;
+            final target1 = u1Cals + diff * r1;
+            final target2 = u2Cals + diff * r2;
+            if (unlocked.first == 'carbs') cG = target1 / 4.0;
+            else if (unlocked.first == 'protein') pG = target1 / 4.0;
+            else if (unlocked.first == 'fat') fG = target1 / 9.0;
+
+            if (unlocked.last == 'carbs') cG = target2 / 4.0;
+            else if (unlocked.last == 'protein') pG = target2 / 4.0;
+            else if (unlocked.last == 'fat') fG = target2 / 9.0;
+          } else {
+            // Split equally in calories
+            final half = diff / 2.0;
+            if (unlocked.first == 'carbs') cG += half / 4.0;
+            else if (unlocked.first == 'protein') pG += half / 4.0;
+            else if (unlocked.first == 'fat') fG += half / 9.0;
+
+            if (unlocked.last == 'carbs') cG += half / 4.0;
+            else if (unlocked.last == 'protein') pG += half / 4.0;
+            else if (unlocked.last == 'fat') fG += half / 9.0;
+          }
+        }
+      }
+    }
+
+    if (cG < 0) cG = 0;
+    if (pG < 0) pG = 0;
+    if (fG < 0) fG = 0;
+
+    _setGramsToControllers(cG, pG, fG);
     _isUpdating = false;
     setState(() {});
   }
@@ -270,27 +264,7 @@ class _SetDayGoalsDialogState extends State<SetDayGoalsDialog> {
     final kcal = _parse(_kcalController);
     if (kcal <= 0) return;
 
-    var cInput = _parse(_carbsController);
-    var pInput = _parse(_proteinController);
-    var fInput = _parse(_fatController);
-
-    double carbsGoal;
-    double proteinGoal;
-    double fatGoal;
-
-    if (_globalMode == MacroGoalUnitMode.percentage) {
-      carbsGoal = (kcal * (cInput / 100.0)) / 4.0;
-      proteinGoal = (kcal * (pInput / 100.0)) / 4.0;
-      fatGoal = (kcal * (fInput / 100.0)) / 9.0;
-    } else if (_globalMode == MacroGoalUnitMode.gramsPerKg) {
-      carbsGoal = cInput * _latestWeightKg;
-      proteinGoal = pInput * _latestWeightKg;
-      fatGoal = fInput * _latestWeightKg;
-    } else {
-      carbsGoal = cInput;
-      proteinGoal = pInput;
-      fatGoal = fInput;
-    }
+    final (carbsGoal, proteinGoal, fatGoal) = _getCurrentGrams();
 
     await widget.calendarDayBloc.setDayGoals(
       widget.selectedDay,
@@ -340,46 +314,50 @@ class _SetDayGoalsDialogState extends State<SetDayGoalsDialog> {
                           if (index == 1) _updateDisplayValuesForMode(MacroGoalUnitMode.percentage);
                           if (index == 2) _updateDisplayValuesForMode(MacroGoalUnitMode.gramsPerKg);
                         },
-                        constraints: const BoxConstraints(minHeight: 36, minWidth: 72),
+                        constraints: const BoxConstraints(minHeight: 36, minWidth: 64),
                         children: const [
-                          Text('Gramas (g)'),
-                          Text('Percentual (%)'),
-                          Text('Por Kg (g/kg)'),
+                          Text('g'),
+                          Text('%'),
+                          Text('g/kg'),
                         ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  TextField(
+                  _buildFieldWithLock(
+                    label: 'Meta de Calorias (kcal)',
                     controller: _kcalController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(
-                      labelText: 'Meta de Calorias (kcal)',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: _onKcalChanged,
+                    isLocked: _isKcalLocked,
+                    onLockChanged: (v) => setState(() => _isKcalLocked = v),
+                    onChanged: (_) => _rebalance(source: 'kcal'),
+                    isInteger: true,
                   ),
                   const SizedBox(height: 16),
-                  _buildMacroField(
+                  _buildFieldWithLock(
                     label: s.proteinLabel,
                     controller: _proteinController,
+                    isLocked: _isProteinLocked,
+                    onLockChanged: (v) => setState(() => _isProteinLocked = v),
+                    onChanged: (_) => _rebalance(source: 'protein'),
                     semanticId: 'day-goals-protein',
-                    onChanged: (_) => _onMacroChanged('protein'),
                   ),
                   const SizedBox(height: 16),
-                  _buildMacroField(
+                  _buildFieldWithLock(
                     label: s.carbsLabel,
                     controller: _carbsController,
+                    isLocked: _isCarbsLocked,
+                    onLockChanged: (v) => setState(() => _isCarbsLocked = v),
+                    onChanged: (_) => _rebalance(source: 'carbs'),
                     semanticId: 'day-goals-carbs',
-                    onChanged: (_) => _onMacroChanged('carbs'),
                   ),
                   const SizedBox(height: 16),
-                  _buildMacroField(
+                  _buildFieldWithLock(
                     label: s.fatLabel,
                     controller: _fatController,
+                    isLocked: _isFatLocked,
+                    onLockChanged: (v) => setState(() => _isFatLocked = v),
+                    onChanged: (_) => _rebalance(source: 'fat'),
                     semanticId: 'day-goals-fat',
-                    onChanged: (_) => _onMacroChanged('fat'),
                   ),
                 ],
               ),
@@ -400,32 +378,60 @@ class _SetDayGoalsDialogState extends State<SetDayGoalsDialog> {
     );
   }
 
-  Widget _buildMacroField({
+  Widget _buildFieldWithLock({
     required String label,
     required TextEditingController controller,
-    required String semanticId,
+    required bool isLocked,
+    required ValueChanged<bool> onLockChanged,
     required ValueChanged<String> onChanged,
+    String? semanticId,
+    bool isInteger = false,
   }) {
     String suffix = 'g';
     if (_globalMode == MacroGoalUnitMode.percentage) suffix = '%';
     if (_globalMode == MacroGoalUnitMode.gramsPerKg) suffix = 'g/kg';
+    if (label.contains('Calorias')) suffix = 'kcal';
 
-    return Semantics(
-      identifier: semanticId,
-      child: TextField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d*')),
-        ],
-        decoration: InputDecoration(
-          labelText: label,
-          suffixText: suffix,
-          border: const OutlineInputBorder(),
-          isDense: true,
+    return Row(
+      children: [
+        Expanded(
+          child: Semantics(
+            identifier: semanticId,
+            child: TextField(
+              controller: controller,
+              keyboardType: isInteger
+                  ? TextInputType.number
+                  : const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: isInteger
+                  ? [FilteringTextInputFormatter.digitsOnly]
+                  : [FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d*'))],
+              decoration: InputDecoration(
+                labelText: label,
+                suffixText: suffix,
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              onChanged: (text) {
+                if (isLocked) {
+                  // If locked, prevent editing by restoring previous value or skip
+                  return;
+                }
+                onChanged(text);
+              },
+              readOnly: isLocked,
+            ),
+          ),
         ),
-        onChanged: onChanged,
-      ),
+        const SizedBox(width: 8),
+        IconButton(
+          icon: Icon(
+            isLocked ? Icons.lock_rounded : Icons.lock_open_rounded,
+            color: isLocked ? Theme.of(context).colorScheme.primary : Colors.grey,
+          ),
+          tooltip: isLocked ? 'Destravar' : 'Travar',
+          onPressed: () => onLockChanged(!isLocked),
+        ),
+      ],
     );
   }
 }

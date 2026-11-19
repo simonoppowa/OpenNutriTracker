@@ -1,21 +1,21 @@
-# Sumário da Implementação - Sincronização com a Home e Recálculo Inteligente de Metas
+# Sumário da Implementação - Sistema de Travas (Locks) e Simplificação de Unidades
 
-Este documento resume as melhorias e refinamentos implementados para atender aos novos requisitos de escalada de dieta, sincronização entre telas e usabilidade.
+Este documento resume as melhorias implementadas no diálogo de definição de metas diárias (`SetDayGoalsDialog`).
 
 ## Mudanças Realizadas
 
-### 1. Sincronização Automática com a Tela Home (`HomeBloc`)
-- **[MODIFY]** [home_bloc.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/home/presentation/bloc/home_bloc.dart):
-  - O `HomeBloc` agora verifica se existe um registro `TrackedDay` para o dia lógico atual.
-  - Caso exista, as metas exibidas na tela **Home** (calorias, carboidratos, gorduras e proteínas) passam a ser exatamente as metas personalizadas definidas no Diário ou via importação, mantendo ambas as telas perfeitamente sincronizadas.
-
-### 2. Unidade Global de Macros e Recálculo Inteligente (`SetDayGoalsDialog`)
+### 1. Sistema de Travas Independentes (Locks)
 - **[MODIFY]** [set_day_goals_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/diary/presentation/widgets/set_day_goals_dialog.dart):
-  - **Unidade Global:** Adicionado seletor no topo para alternar a unidade de todos os macronutrientes em conjunto (`Gramas (g)`, `Percentual (%)` ou `Por Kg (g/kg)` usando o peso de referência mais recente).
-  - **Recálculo Automático de Calorias:** Alterar a meta de calorias totais recalcula automaticamente os macros proporcionalmente.
-  - **Travamento por Kcal (Balanceamento de Macros):** Alterar qualquer macro individualmente (ex: Proteína) rebalanceia automaticamente os outros dois macros restantes para manter a meta calórica total estritamente travada.
+  - Adicionado um botão de cadeado (`lock_rounded` / `lock_open_rounded`) ao lado de cada campo (Calorias, Proteína, Carboidratos e Gordura).
+  - O campo travado fica bloqueado para edição direta (`readOnly: true`) e serve como âncora fixa para o motor de balanceamento.
+  - Se Kcal estiver travada, alterar um macro rebalanceia automaticamente os demais macros livres para manter a meta calórica exata. Se múltiplos campos estiverem travados, o algoritmo distribui proporcionalmente o restante entre os campos livres remanescentes.
+
+### 2. Inicialização com Padrões Inteligentes
+- Dias sem metas personalizadas iniciam automaticamente com valores sugeridos com base no peso corporal (Proteína = 2.0 g/kg, Gordura = 1.0 g/kg e o restante preenchido com Carboidratos).
+
+### 3. Simplificação das Unidades
+- Os botões de unidade global foram simplificados para exibir apenas **`g`**, **`%`** e **`g/kg`**.
 
 ## Validação
 
-- O código compila sem erros, garantindo compatibilidade total com os fluxos do app.
-- Sincronização confirmada entre as exibições da Home e do Diário.
+- O código compila com sucesso e o comportamento das travas e recálculo automático foi validado.

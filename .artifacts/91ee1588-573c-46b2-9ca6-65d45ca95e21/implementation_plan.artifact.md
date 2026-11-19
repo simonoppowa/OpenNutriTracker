@@ -1,35 +1,31 @@
-# Plano de Evolução: Metas Personalizadas, Sincronização com a Home e Ajustes Automáticos de Macros
+# Plano de Evolução: Sistema de Travas (Locks) e Simplificação de Unidades no Diálogo de Metas
 
-Este documento descreve as melhorias solicitadas na interface de configuração de metas diárias e na sincronização com a tela inicial (Home).
+Este documento descreve as alterações para implementar botões de trava (*lock/unlock*) independentes para Calorias e cada um dos 3 macronutrientes, além de simplificar os botões de unidade para `%`, `g` e `g/kg`.
 
 ## Revisão Necessária pelo Usuário
 
 > [!IMPORTANT]
-> **1. Unidade Global de Macros:** A escolha da unidade (`%`, `g`, `g/kg`) passa a ser **global** para todos os macronutrientes em conjunto, e não mais individual por macro.
-> **2. Cálculo Automático e Travas:**
-> - Alterar as **Calorias (kcal)** recalcula automaticamente os 3 macros mantendo a proporção.
-> - **Travado por Kcal (padrão):** Alterar um macro (ex: Proteína) recalcula automaticamente os outros dois para manter a meta calórica total inalterada.
-> - **Travado por Macros:** Alterar os macros recalcula automaticamente a meta de calorias total (`kcal = carbs * 4 + protein * 4 + fat * 9`).
-> **3. Sincronização com a Home:** O `HomeBloc` passará a verificar se existe um `TrackedDay` para o dia atual; se houver, usará as metas personalizadas (sejam definidas via UI no Diário ou via importação), sincronizando perfeitamente as telas de Diário e Home.
+> **1. Botões de Trava (Lock):** Cada campo (Calorias, Proteína, Carboidratos e Gordura) terá um botão de trava (`IconButton` com ícone de cadeado). O que estiver travado **não pode mudar** ao alterar outros campos.
+> **2. Regras de Recálculo com Travas:**
+> - Se **Kcal estiver travada**, alterar Kcal preenche automaticamente os macros não travados (padrão inicial: Proteína = 2g/kg, Gordura = 1g/kg, Carboidratos = restante).
+> - Se **Kcal e Proteína estiverem travadas**, alterar Carboidratos ajustará apenas a Gordura.
+> - Se **Kcal, Proteína e Carboidratos estiverem travadas**, a Gordura se ajustará automaticamente para fechar a meta calórica exata.
+> **3. Simplificação dos Botões de Unidade:** Os botões de unidade global agora exibirão apenas `%`, `g` e `g/kg`.
 
 ## Mudanças Propostas
 
-### 1. Sincronização na Home
-- **[MODIFY]** [home_bloc.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/home/presentation/bloc/home_bloc.dart):
-  - Consultar `GetTrackedDayUsecase` para o dia lógico atual (`today`).
-  - Se um `TrackedDay` com metas personalizadas existir, utilizá-lo como fonte principal para `totalKcalGoal`, `totalCarbsGoal`, `totalFatsGoal`, `totalProteinsGoal`. Caso contrário, manter o cálculo padrão via perfil.
-
-### 2. Redesenho do Diálogo de Metas (`SetDayGoalsDialog`)
+### 1. Refatoração do `SetDayGoalsDialog`
 - **[MODIFY]** [set_day_goals_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/diary/presentation/widgets/set_day_goals_dialog.dart):
-  - Inserir seletor global de unidade (`%`, `g`, `g/kg`) no topo.
-  - Implementar lógica inteligente de rebalanceamento automático (ao mudar kcal, recalcular macros; ao mudar um macro, recalcular os demais mantendo kcal travada; ou opcionalmente recalcular kcal se travado por macros).
+  - Adicionar estados booleanos de trava (`_isKcalLocked`, `_isProteinLocked`, `_isCarbsLocked`, `_isFatLocked`).
+  - Adicionar ícones de cadeado (`Icons.lock_rounded` / `Icons.lock_open_rounded`) em cada linha (Kcal, Proteína, Carboidratos, Gordura).
+  - Implementar o motor de balanceamento que respeita as travas ativas ao recalcular valores.
+  - Simplificar os rótulos dos botões de unidade para `%`, `g`, `g/kg`.
 
 ## Plano de Verificação
 
 ### Testes Automatizados
-- Executar `flutter test` para validar o comportamento dos blocos e lógica de cálculo.
+- Executar `flutter test` para garantir a integridade dos testes do projeto.
 
 ### Verificação Manual
-- Testar alteração de calorias na tela de Diário e verificar recálculo automático dos macros.
-- Testar alteração de um macro e verificar rebalanceamento dos demais mantendo a kcal total.
-- Verificar se as alterações feitas no Diário refletem imediatamente na tela **Home**.
+- Testar o bloqueio de campos via ícone de cadeado no diálogo de metas do Diário.
+- Validar se os cálculos respeitam estritamente os itens travados.

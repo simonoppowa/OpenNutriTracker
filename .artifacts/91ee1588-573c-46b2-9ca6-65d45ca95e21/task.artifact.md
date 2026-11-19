@@ -1,7 +1,7 @@
-# Tarefas - Ajustes de Metas, Sincronização com Home e Recálculo Automático
+# Tarefas - Sistema de Travas e Simplificação de Unidades
 
-- [x] Atualizar `HomeBloc` para ler as metas do `TrackedDay` do dia atual quando existirem
-- [x] Refatorar `SetDayGoalsDialog` para unidade global de macros (`%`, `g`, `g/kg`)
-- [x] Implementar recálculo automático inteligente (Kcal -> Macros, e Macro -> Outros Macros com trava de Kcal)
-- [x] Executar testes e validar funcionamento na Home e Diário
+- [x] Atualizar `SetDayGoalsDialog` com botões de trava independentes para Kcal, Proteína, Carboidratos e Gordura
+- [x] Implementar algoritmo de balanceamento com suporte a múltiplos campos travados
+- [x] Simplificar os botões de unidade para `%`, `g`, `g/kg`
+- [x] Executar testes e validar comportamento na UI
 - [x] Atualizar `walkthrough.artifact.md`
