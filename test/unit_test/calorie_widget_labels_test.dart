@@ -44,23 +44,24 @@ void main() {
       'macrosTitle': 'Macros',
       'macrosDescription': "Today's protein, fat and carbs against your goals.",
       'waterDescription': "Today's water against your goal.",
-      // The names the nutrient picker offers, by stable id.
-      'nutrients': {
-        'calories': 'Calories',
-        'protein': 'protein',
-        'carbs': 'carbs',
-        'fat': 'fat',
-        'fiber': 'fiber',
-        'sodium': 'sodium',
-        'saturated_fat': 'saturated fat',
-        'sugar': 'sugar',
-        'calcium': 'calcium',
-        'iron': 'iron',
-        'potassium': 'potassium',
-        'vitamin_d': 'vitamin D',
-        'vitamin_b12': 'vitamin B12',
-        'magnesium': 'magnesium',
-      },
+      // The names the nutrient picker offers, by stable id, in the order
+      // the picker lists them.
+      'nutrients': [
+        {'id': 'calories', 'name': 'Calories'},
+        {'id': 'protein', 'name': 'protein'},
+        {'id': 'carbs', 'name': 'carbs'},
+        {'id': 'fat', 'name': 'fat'},
+        {'id': 'fiber', 'name': 'fiber'},
+        {'id': 'sodium', 'name': 'sodium'},
+        {'id': 'saturated_fat', 'name': 'saturated fat'},
+        {'id': 'sugar', 'name': 'sugar'},
+        {'id': 'calcium', 'name': 'calcium'},
+        {'id': 'iron', 'name': 'iron'},
+        {'id': 'potassium', 'name': 'potassium'},
+        {'id': 'vitamin_d', 'name': 'vitamin D'},
+        {'id': 'vitamin_b12', 'name': 'vitamin B12'},
+        {'id': 'magnesium', 'name': 'magnesium'},
+      ],
     });
     expect(labels.figureJson(), {
       'goal': 'of 2001',
@@ -196,21 +197,23 @@ void main() {
         'Protein 9 of 75 grams. Fat 4 of 67 grams. Carbs 20 of 300 grams.',
       );
       expect(json['waterAccessibility'], 'Water 750 of 1900 millilitres.');
+      expect(json['waterGoal'], 'of 1900');
     });
 
-    test('a nutrient sentence names it, its amount, its unit and its goal', () {
+    test('a nutrient gets its goal phrase and a sentence with its figures', () {
       final json = CalorieWidgetLabels.of(
         lookupS(const Locale('en')),
         full,
       ).figureJson();
 
       expect(json['nutrients'], {
-        'fiber': 'fiber: 12.5 g of 30 g',
-        // No goal, so no "of": a missing figure is never spoken as zero.
-        'sodium': 'sodium: 800 mg',
-        'protein': 'protein: 9 g of 75 g',
-        'carbs': 'carbs: 20 g of 300 g',
-        'fat': 'fat: 4 g of 67 g',
+        'fiber': {'goal': 'of 30', 'accessibility': 'fiber: 12.5 g of 30 g'},
+        // No goal, so no phrase and no "of": a missing figure is never
+        // spoken or shown as zero.
+        'sodium': {'accessibility': 'sodium: 800 mg'},
+        'protein': {'goal': 'of 75', 'accessibility': 'protein: 9 g of 75 g'},
+        'carbs': {'goal': 'of 300', 'accessibility': 'carbs: 20 g of 300 g'},
+        'fat': {'goal': 'of 67', 'accessibility': 'fat: 4 g of 67 g'},
       });
     });
 
@@ -222,6 +225,7 @@ void main() {
 
       expect(json.containsKey('macrosAccessibility'), isFalse);
       expect(json.containsKey('waterAccessibility'), isFalse);
+      expect(json.containsKey('waterGoal'), isFalse);
       expect(json.containsKey('nutrients'), isFalse);
       expect(json.keys, containsAll(['goal', 'accessibility']));
     });
@@ -232,8 +236,8 @@ void main() {
         snapshotWith(macros: macros, nutrients: [fiber]),
       );
 
-      final sentences = labels.figureJson()['nutrients']! as Map;
-      expect(sentences.containsKey('sodium'), isFalse);
+      final figures = labels.figureJson()['nutrients']! as Map;
+      expect(figures.containsKey('sodium'), isFalse);
       // The picker still offers it. It shows a placeholder until shown again.
       expect(labels.nutrientNames['sodium'], 'sodium');
     });
@@ -265,10 +269,15 @@ void main() {
       expect(german.nutrientNames['calories'], de.trendsCaloriesLabel);
       expect(german.nutrientNames['vitamin_b12'], de.vitaminB12Label);
       expect(german.nutrientNames['protein'], de.proteinLabel);
-      expect(
-        (german.figureJson()['nutrients']! as Map)['fiber'],
-        de.nutrientWidgetAccessibilityLabel(de.fiberLabel, '12.5', 'g', '30'),
-      );
+      expect((german.figureJson()['nutrients']! as Map)['fiber'], {
+        'goal': de.calorieWidgetGoalLabel('30'),
+        'accessibility': de.nutrientWidgetAccessibilityLabel(
+          de.fiberLabel,
+          '12.5',
+          'g',
+          '30',
+        ),
+      });
       expect(german.macrosTitle, de.macrosSmallWidgetDisplayName);
       expect(german.encodeLanguage(), isNot(english.encodeLanguage()));
     });
@@ -278,11 +287,16 @@ void main() {
 
       final decoded = jsonDecode(labels.encodeLanguage());
 
-      expect(decoded['nutrients']['fiber'], 'fiber');
+      expect(decoded['nutrients'].first, {
+        'id': 'calories',
+        'name': 'Calories',
+      });
+      expect(decoded['nutrients'][4], {'id': 'fiber', 'name': 'fiber'});
       expect(decoded['title'], 'Calories');
       // The figure sentences are not in it: a wipe must not keep them.
       expect(decoded.containsKey('macrosAccessibility'), isFalse);
       expect(decoded.containsKey('waterAccessibility'), isFalse);
+      expect(decoded.containsKey('waterGoal'), isFalse);
     });
 
     test('whole amounts print without a decimal and others with one', () {
@@ -307,8 +321,11 @@ void main() {
       );
 
       expect(labels.figureJson()['nutrients'], {
-        'iron': 'iron: 8 mg of 18 mg',
-        'vitamin_b12': 'vitamin B12: 1.3 µg of 2.4 µg',
+        'iron': {'goal': 'of 18', 'accessibility': 'iron: 8 mg of 18 mg'},
+        'vitamin_b12': {
+          'goal': 'of 2.4',
+          'accessibility': 'vitamin B12: 1.3 µg of 2.4 µg',
+        },
       });
     });
   });

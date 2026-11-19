@@ -64,14 +64,18 @@ class CalorieWidgetLabels {
   /// hidden.
   final Map<String, String> nutrientNames;
 
-  /// VoiceOver sentences for the small widgets. Each is empty or absent
-  /// when its figure was not written, so the reader never speaks a
-  /// figure it lacks.
+  /// The small widgets' text that describes figures. Each is empty or
+  /// absent when its figure was not written, so the reader never speaks a
+  /// figure it lacks: the VoiceOver sentences of the macros and water
+  /// widgets, and the water goal phrase, e.g. 'of 1900'.
   final String macrosAccessibility;
   final String waterAccessibility;
+  final String waterGoal;
 
-  /// One sentence per nutrient the widget can show, by id.
-  final Map<String, String> nutrientAccessibility;
+  /// What the nutrient widget says about each nutrient it can show, by id:
+  /// its goal phrase, e.g. 'of 30', when it has a goal, and its VoiceOver
+  /// sentence. Calories keep [goal] and [accessibility].
+  final Map<String, Map<String, String>> nutrientFigures;
 
   const CalorieWidgetLabels({
     required this.title,
@@ -95,7 +99,8 @@ class CalorieWidgetLabels {
     this.nutrientNames = const {},
     this.macrosAccessibility = '',
     this.waterAccessibility = '',
-    this.nutrientAccessibility = const {},
+    this.waterGoal = '',
+    this.nutrientFigures = const {},
   });
 
   /// The labels for [snapshot] in the language of [s]. The goal and the
@@ -172,7 +177,10 @@ class CalorieWidgetLabels {
               '${water.intakeMl}',
               '${water.goalMl}',
             ),
-      nutrientAccessibility: _nutrientSentences(s, macros, nutrients),
+      waterGoal: water == null
+          ? ''
+          : s.calorieWidgetGoalLabel(_figure(water.goalMl.toDouble())),
+      nutrientFigures: _nutrientFigures(s, macros, nutrients),
     );
   }
 
@@ -195,31 +203,39 @@ class CalorieWidgetLabels {
     NutrientPanelKeys.magnesium: s.magnesiumLabel,
   };
 
-  /// One sentence for each macro and panel nutrient the snapshot holds.
-  /// Calories keep their own sentence. A nutrient without a goal gets the
-  /// sentence without "of", never a goal of zero.
-  static Map<String, String> _nutrientSentences(
+  /// The goal phrase and the sentence for each macro and panel nutrient
+  /// the snapshot holds. Calories keep their own. A nutrient without a goal
+  /// gets no goal phrase and the sentence without "of", never a goal of
+  /// zero.
+  static Map<String, Map<String, String>> _nutrientFigures(
     S s,
     CalorieWidgetMacros? macros,
     List<CalorieWidgetNutrient> nutrients,
   ) {
     final names = _nutrientNames(s);
-    String sentence(CalorieWidgetNutrient nutrient) {
+    Map<String, String> figure(CalorieWidgetNutrient nutrient) {
       final name = names[nutrient.id] ?? nutrient.id;
       final amount = _figure(nutrient.consumed);
       final goal = nutrient.goal;
-      return goal == null
-          ? s.nutrientWidgetAccessibilityNoGoalLabel(
-              name,
-              amount,
-              nutrient.unit,
-            )
-          : s.nutrientWidgetAccessibilityLabel(
-              name,
-              amount,
-              nutrient.unit,
-              _figure(goal),
-            );
+      if (goal == null) {
+        return {
+          'accessibility': s.nutrientWidgetAccessibilityNoGoalLabel(
+            name,
+            amount,
+            nutrient.unit,
+          ),
+        };
+      }
+      final goalText = _figure(goal);
+      return {
+        'goal': s.calorieWidgetGoalLabel(goalText),
+        'accessibility': s.nutrientWidgetAccessibilityLabel(
+          name,
+          amount,
+          nutrient.unit,
+          goalText,
+        ),
+      };
     }
 
     CalorieWidgetNutrient gram(String id, int consumed, int goal) =>
@@ -231,23 +247,23 @@ class CalorieWidgetLabels {
         );
 
     return {
-      for (final nutrient in nutrients) nutrient.id: sentence(nutrient),
+      for (final nutrient in nutrients) nutrient.id: figure(nutrient),
       if (macros != null) ...{
-        CalorieWidgetNutrientIds.protein: sentence(
+        CalorieWidgetNutrientIds.protein: figure(
           gram(
             CalorieWidgetNutrientIds.protein,
             macros.proteinIntakeG,
             macros.proteinGoalG,
           ),
         ),
-        CalorieWidgetNutrientIds.carbs: sentence(
+        CalorieWidgetNutrientIds.carbs: figure(
           gram(
             CalorieWidgetNutrientIds.carbs,
             macros.carbsIntakeG,
             macros.carbsGoalG,
           ),
         ),
-        CalorieWidgetNutrientIds.fat: sentence(
+        CalorieWidgetNutrientIds.fat: figure(
           gram(
             CalorieWidgetNutrientIds.fat,
             macros.fatsIntakeG,
@@ -298,7 +314,11 @@ class CalorieWidgetLabels {
     'macrosTitle': macrosTitle,
     'macrosDescription': macrosDescription,
     'waterDescription': waterDescription,
-    'nutrients': nutrientNames,
+    // A list, not a map, so the picker keeps this order.
+    'nutrients': [
+      for (final entry in nutrientNames.entries)
+        {'id': entry.key, 'name': entry.value},
+    ],
   };
 
   Map<String, Object> figureJson() => {
@@ -310,7 +330,8 @@ class CalorieWidgetLabels {
     if (macrosAccessibility.isNotEmpty)
       'macrosAccessibility': macrosAccessibility,
     if (waterAccessibility.isNotEmpty) 'waterAccessibility': waterAccessibility,
-    if (nutrientAccessibility.isNotEmpty) 'nutrients': nutrientAccessibility,
+    if (waterGoal.isNotEmpty) 'waterGoal': waterGoal,
+    if (nutrientFigures.isNotEmpty) 'nutrients': nutrientFigures,
   };
 
   String encodeLanguage() => jsonEncode(languageJson());

@@ -334,7 +334,10 @@ void main() {
       {'id': 'fiber', 'consumed': 12.5, 'goal': 30.0, 'unit': 'g'},
       {'id': 'sodium', 'consumed': 800.0, 'unit': 'mg'},
     ]);
-    expect(decoded['labels']['nutrients']['fiber'], 'fiber: 12.5 g of 30 g');
+    expect(decoded['labels']['nutrients']['fiber'], {
+      'goal': 'of 30',
+      'accessibility': 'fiber: 12.5 g of 30 g',
+    });
 
     await store.relabel(lookupS(const Locale('de')));
 
@@ -346,10 +349,10 @@ void main() {
     expect(decoded['nutrients'], hasLength(2));
     expect(decoded['labels'], germanLabels.figureJson());
     expect(stored[labelsKey], germanLabels.encodeLanguage());
-    expect(
-      jsonDecode(stored[labelsKey]! as String)['nutrients']['fiber'],
-      lookupS(const Locale('de')).fiberLabel,
-    );
+    expect(jsonDecode(stored[labelsKey]! as String)['nutrients'][4], {
+      'id': 'fiber',
+      'name': lookupS(const Locale('de')).fiberLabel,
+    });
   });
 
   test('a write carries the names for the picker, one value', () async {
@@ -359,7 +362,7 @@ void main() {
 
     final names = jsonDecode(stored[labelsKey]! as String)['nutrients'];
     expect(names, hasLength(14));
-    expect(names['calories'], german.title);
+    expect(names.first, {'id': 'calories', 'name': german.title});
   });
 
   test('relabel on an older snapshot adds no row sentence', () async {
