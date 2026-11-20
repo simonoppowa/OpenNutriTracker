@@ -203,14 +203,18 @@ act-uuid-67890,2026-11-20T18:00:00.000,45.0,300.0,01010,Corrida 8km/h,Corrida mo
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Nome do Arquivo: ${_getFileName()}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    'Nome do Arquivo: ${_getFileName()}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.copy_rounded, size: 20),
                   tooltip: 'Copiar Modelo',
