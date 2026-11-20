@@ -1,30 +1,20 @@
-# Sumário da Implementação - Botão de Modelos de Importação e Suporte a Medicamentos
+# Sumário da Implementação - Suporte a ZIPs Parciais e Arquivos Soltos (`.json` e `.csv`)
 
-Este documento descreve a adição do botão de **Modelos de Importação (Templates)** no aplicativo e o suporte a **importação/exportação de medicamentos**.
+Este documento resume o aprimoramento do motor de importação do OpenNutriTracker.
 
 ## Mudanças Realizadas
 
-### 1. Suporte a Medicamentos na Importação / Exportação (`user_medication.json` e `user_medication.csv`)
-- **[MODIFY]** [export_data_usecase.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/domain/usecase/export_data_usecase.dart):
-  - Incluídos os arquivos `user_medication.json` e `user_medication.csv` no pacote de exportação `.zip`.
+### 1. Suporte a Arquivos Soltos (`.json` e `.csv`)
 - **[MODIFY]** [import_data_usecase.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/domain/usecase/import_data_usecase.dart):
-  - Adicionado suporte a leitura e restauração de medicamentos a partir de `user_medication.json` ou `user_medication.csv` dentro de arquivos `.zip`.
-- **[MODIFY]** [csv_data_exporter.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/utils/csv_data_exporter.dart):
-  - Adicionadas colunas e métodos para conversão CSV de medicamentos (`medicationsToCsv` e `parseMedicationsFromCsv`).
+  - Atualizado o método `_pickAndDecodeArchive()` para identificar quando o usuário escolhe um arquivo individual `.json` ou `.csv` (ex: selecionar diretamente `user_tracked_day.json` ou `user_medication.json` no celular).
+  - O arquivo individual é envelopado automaticamente em um pacote de arquivo (`Archive`), dispensando a necessidade de compactar em `.zip` previamente.
 
-### 2. Diálogo de Modelos de Importação (`ImportTemplatesDialog`)
-- **[NEW]** [import_templates_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/presentation/widgets/import_templates_dialog.dart):
-  - Oferece modelos prontos em **JSON** e **CSV** para:
-    - **Metas Diárias** (`user_tracked_day`)
-    - **Medicamentos** (`user_medication`)
-    - **Refeições** (`user_intake`)
-    - **Atividades Físicas** (`user_activity`)
-  - Inclui botão de **"Copiar Modelo"** para salvar os modelos na área de transferência com um clique.
-
-### 3. Integração na Tela de Configurações (`ExportImportDialog`)
-- **[MODIFY]** [export_import_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/presentation/widgets/export_import_dialog.dart):
-  - Adicionado o botão **"Modelos (Templates)"** no diálogo de Importação/Exportação do app.
+### 2. Importação Parcial de ZIPs
+- **[MODIFY]** [import_data_usecase.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/domain/usecase/import_data_usecase.dart):
+  - Tornadas opcionais as entradas `user_activity`, `user_intake` e `user_tracked_day`.
+  - Se um arquivo `.zip` contiver apenas o `user_tracked_day.json` ou apenas o `user_medication.json`, o aplicativo importa os dados presentes sem rejeitar o arquivo por falta das demais tabelas.
 
 ## Validação
 
 - Código compilado e verificado via `flutter test`.
+- O motor aceita agora tanto `.zip` completos/parciais quanto arquivos soltos `.json`/`.csv`.

@@ -1,36 +1,26 @@
-# Plano de Implementação: Botão de Modelos (Templates) e Importação/Exportação de Medicamentos
+# Plano de Implementação: Suporte a Importação Parcial e Arquivos JSON/CSV Individuais
 
-Este documento descreve a adição do botão de **Modelos de Importação (Templates)** no diálogo de Importação/Exportação (`ExportImportDialog`) e o suporte completo a importação/exportação de medicamentos (`user_medication.json` e `user_medication.csv`).
+Este documento descreve as melhorias no motor de importação (`ImportDataUsecase`) para permitir a importação de **arquivos ZIP parciais** (ex: contendo apenas `user_tracked_day.json` ou `user_medication.json`) e a importação de **arquivos individuais `.json` ou `.csv`** diretamente sem a necessidade de criar um ZIP.
 
 ## Revisão Necessária pelo Usuário
 
 > [!IMPORTANT]
-> **1. Importação/Exportação de Medicamentos:** Adicionar suporte a `user_medication.json` e `user_medication.csv` no `ImportDataUsecase` e `ExportDataUsecase` para backup/restauração completa do módulo de medicamentos.
-> **2. Botão de Templates:** No menu **Configurações → Importar/Exportar dados do app**, será adicionado o botão **"Modelos de Importação"**.
-> **3. Diálogo de Modelos (`ImportTemplatesDialog`):**
-> - Exibirá modelos prontos para **Metas Diárias** (`user_tracked_day`), **Medicamentos** (`user_medication`), **Alimentos/Refeições** (`user_intake`) e **Atividades** (`user_activity`).
-> - Permitirá alternar entre os formatos **JSON** e **CSV**.
-> - Incluirá o botão **"Copiar Modelo"** para copiar o código diretamente para a área de transferência.
-
-## Questões em Aberto
-
-- Nenhuma questão pendente.
+> **1. Aceitar Arquivos Indivíduais Directamente:** O seletor de arquivos passará a aceitar diretamente arquivos `.json` e `.csv` soltos (ex: selecionar diretamente `user_tracked_day.json` no celular), envelopando o arquivo temporariamente como um pacote de importação válido.
+> **2. Suporte a ZIPs Parciais:** Todos os arquivos dentro do ZIP passarão a ser opcionais. Se o ZIP contiver apenas `user_tracked_day.json` (ou apenas `user_medication.json`), o aplicativo importará esses dados com sucesso sem exigir que `user_activity.json` ou `user_intake.json` estejam presentes.
 
 ## Mudanças Propostas
 
-### 1. Suporte a Importação/Exportação do Módulo de Medicamentos
-- **[MODIFY]** [export_data_usecase.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/domain/usecase/export_data_usecase.dart): Incluir `user_medication.json` e `user_medication.csv` no zip de exportação.
-- **[MODIFY]** [import_data_usecase.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/domain/usecase/import_data_usecase.dart): Ler `user_medication.json` / `user_medication.csv` do zip (se presente) e importar via `MedicationRepository`.
-
-### 2. Interface de Usuário
-- **[NEW]** [import_templates_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/presentation/widgets/import_templates_dialog.dart): Diálogo para visualizar e copiar modelos de importação (JSON/CSV) com suporte a cópia via `Clipboard.setData`.
-- **[MODIFY]** [export_import_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/presentation/widgets/export_import_dialog.dart): Adicionar o botão **"Modelos de Importação"** nas ações do diálogo.
+### Camada de Domínio / Configurações
+- **[MODIFY]** [import_data_usecase.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/domain/usecase/import_data_usecase.dart):
+  - Refatorar `_pickAndDecodeArchive()` para detectar se o arquivo selecionado é um `.zip` ou um arquivo individual (`.json` ou `.csv`). Caso seja um arquivo solto, envelopá-lo automaticamente em um objeto de arquivo (`Archive`).
+  - Tornar a leitura de `user_activity`, `user_intake` e `user_tracked_day` opcional (retornando lista vazia `[]` caso não estejam no ZIP, em vez de rejeitar todo o arquivo).
+  - Garantir que pelo menos 1 arquivo válido seja processado durante a importação.
 
 ## Plano de Verificação
 
 ### Testes Automatizados
-- Executar `flutter test` para validar a compilação e suíte de testes.
+- Executar `flutter test` para validar o comportamento do `ImportDataUsecase` e garantir ausência de erros de regressão.
 
 ### Verificação Manual
-- Abrir o diálogo de Importação/Exportação e testar os modelos no novo diálogo.
-- Testar exportação e importação de arquivo `.zip` contendo `user_medication.json` ou `user_medication.csv`.
+- Testar a importação de um arquivo `.json` individual (ex: `user_tracked_day.json`) direto pelo menu de importação do celular.
+- Testar a importação de um arquivo `.zip` parcial contendo apenas `user_tracked_day.json` ou `user_medication.json`.

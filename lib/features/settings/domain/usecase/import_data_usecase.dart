@@ -108,25 +108,22 @@ class ImportDataUsecase {
     // below replace and delete rows on the device, so an archive with a
     // missing or malformed entry must be rejected while it has touched
     // nothing.
-    final userActivityDBOs = _decodeJsonList(
-      _requireEntry(archive, userActivityJsonFileName),
-      UserActivityDBO.fromJson,
-    );
+    final userActivityFile = archive.findFile(userActivityJsonFileName);
+    final userActivityDBOs = userActivityFile == null
+        ? <UserActivityDBO>[]
+        : _decodeJsonList(userActivityFile, UserActivityDBO.fromJson);
 
-    // A bundle written by a build before #775 carries its Open Food Facts
-    // micronutrients in raw grams and no `dataVersion` on the meal; scale
-    // those rows on the way in, the same way the startup pass does for rows
-    // already on disk (#1152). A bundle from a repaired build carries the
-    // stamp and passes through unchanged.
-    final intakeDBOs = _decodeJsonList(
-      _requireEntry(archive, userIntakeJsonFileName),
-      IntakeDBO.fromJson,
-    ).map(OffMicronutrientRepair.repairIntake).toList();
+    final intakeFile = archive.findFile(userIntakeJsonFileName);
+    final intakeDBOs = intakeFile == null
+        ? <IntakeDBO>[]
+        : _decodeJsonList(intakeFile, IntakeDBO.fromJson)
+            .map(OffMicronutrientRepair.repairIntake)
+            .toList();
 
-    final trackedDayDBOs = _decodeJsonList(
-      _requireEntry(archive, trackedDayJsonFileName),
-      TrackedDayDBO.fromJson,
-    );
+    final trackedDayFile = archive.findFile(trackedDayJsonFileName);
+    final trackedDayDBOs = trackedDayFile == null
+        ? <TrackedDayDBO>[]
+        : _decodeJsonList(trackedDayFile, TrackedDayDBO.fromJson);
 
     // Recipes, the weight log and Custom activity templates (#70
     // follow-up) are optional so zips from older versions still import.
@@ -259,20 +256,22 @@ class ImportDataUsecase {
     final archive = await _pickAndDecodeArchive();
 
     // Decode all three before writing any, as in [importData] (#1357).
-    final activityDBOs = _decodeCsv(
-      _requireEntry(archive, userActivityCsvFileName),
-      CsvDataExporter.parseUserActivitiesFromCsv,
-    );
-    // Same pre-#775 scaling as the JSON leg: a CSV without the
-    // `meal_data_version` column came from a build that wrote raw grams.
-    final intakeDBOs = _decodeCsv(
-      _requireEntry(archive, userIntakeCsvFileName),
-      CsvDataExporter.parseIntakesFromCsv,
-    ).map(OffMicronutrientRepair.repairIntake).toList();
-    final trackedDayDBOs = _decodeCsv(
-      _requireEntry(archive, trackedDayCsvFileName),
-      CsvDataExporter.parseTrackedDaysFromCsv,
-    );
+    final activityFile = archive.findFile(userActivityCsvFileName);
+    final activityDBOs = activityFile == null
+        ? <UserActivityDBO>[]
+        : _decodeCsv(activityFile, CsvDataExporter.parseUserActivitiesFromCsv);
+
+    final intakeFile = archive.findFile(userIntakeCsvFileName);
+    final intakeDBOs = intakeFile == null
+        ? <IntakeDBO>[]
+        : _decodeCsv(intakeFile, CsvDataExporter.parseIntakesFromCsv)
+            .map(OffMicronutrientRepair.repairIntake)
+            .toList();
+
+    final trackedDayFile = archive.findFile(trackedDayCsvFileName);
+    final trackedDayDBOs = trackedDayFile == null
+        ? <TrackedDayDBO>[]
+        : _decodeCsv(trackedDayFile, CsvDataExporter.parseTrackedDaysFromCsv);
 
     final medicationCsvFile = archive.findFile('user_medication.csv');
     final medicationCsvDBOs = medicationCsvFile == null
@@ -368,16 +367,26 @@ class ImportDataUsecase {
       );
     }
 
-    final zipBytes = await ExportImportFailure.guard(
+    final fileBytes = await ExportImportFailure.guard(
       ExportImportFailureReason.unreadableOrWrongFormat,
       'Could not read the picked file $path',
       () => File(path).readAsBytes(),
     );
-    return ExportImportFailure.guardSync(
-      ExportImportFailureReason.unreadableOrWrongFormat,
-      'The picked file $path is not a zip archive',
-      () => ZipDecoder().decodeBytes(zipBytes),
-    );
+
+    final fileName = result.name.toLowerCase();
+    if (fileName.endsWith('.json') || fileName.endsWith('.csv')) {
+      final archive = Archive();
+      archive.addFile(ArchiveFile(result.name, fileBytes.length, fileBytes));
+      return archive;
+    }
+
+    try {
+      return ZipDecoder().decodeBytes(fileBytes);
+    } catch (_) {
+      final archive = Archive();
+      archive.addFile(ArchiveFile(result.name, fileBytes.length, fileBytes));
+      return archive;
+    }
   }
 
   /// The archive's [entryName] entry, or [_missingEntry] when it has none.
