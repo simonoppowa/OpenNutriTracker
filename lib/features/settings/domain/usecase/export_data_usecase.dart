@@ -216,6 +216,24 @@ class ExportDataUsecase {
         );
       }
 
+      // Medication dataset
+      final fullMedications = await locator<MedicationRepository>().getAllMedicationsDBO();
+      if (format == ExportFormat.json) {
+        final bytes = utf8.encode(
+          jsonEncode(fullMedications.map((m) => m.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile('user_medication.json', bytes.length, bytes),
+        );
+      } else {
+        final bytes = utf8.encode(
+          CsvDataExporter.medicationsToCsv(fullMedications),
+        );
+        archive.addFile(
+          ArchiveFile('user_medication.csv', bytes.length, bytes),
+        );
+      }
+
       // The boundary those rows are keyed by (#1317), so a restore under
       // another one can move them. Left out while this profile's rows have
       // none on record, which reads the same as a bundle from before it.

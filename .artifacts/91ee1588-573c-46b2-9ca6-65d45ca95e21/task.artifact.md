@@ -1,9 +1,7 @@
-# Tarefas - Novo Módulo de Medicamentos
+# Tarefas - Botão de Templates e Importação/Exportação de Medicamentos
 
-- [x] Criar `MedicationDBO` e registrar no `HiveDBProvider`
-- [x] Implementar `MedicationDataSource`, `MedicationRepository` e casos de uso
-- [x] Executar codegen (`build_runner`) para gerar adaptadores do Hive
-- [x] Criar componentes de UI (`AddMedicationDialog`, `MedicationsSectionWidget`)
-- [x] Integrar no Diário (`DayInfoWidget`) e na Home (`HomePage`)
-- [x] Validar via testes automatizados (`flutter test`)
+- [x] Atualizar `ExportDataUsecase` e `ImportDataUsecase` para suportar `user_medication.json` e `user_medication.csv`
+- [x] Criar `ImportTemplatesDialog` com modelos para Metas Diárias, Medicamentos, Refeições e Atividades
+- [x] Adicionar o botão "Modelos de Importação" no `ExportImportDialog`
+- [x] Executar testes e validar comportamento na UI
 - [x] Atualizar `walkthrough.artifact.md`

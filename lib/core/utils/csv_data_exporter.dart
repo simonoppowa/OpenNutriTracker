@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/medication_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/utils/csv_row_parser.dart';
@@ -103,6 +104,15 @@ class CsvDataExporter {
     'fat_tracked',
     'protein_goal',
     'protein_tracked',
+  ];
+
+  static const medicationColumns = <String>[
+    'id',
+    'day',
+    'name',
+    'amount',
+    'unit',
+    'taken',
   ];
 
   /// Build the intakes CSV string from a list of [IntakeDBO]. Each row
@@ -212,6 +222,24 @@ class CsvDataExporter {
         _num(d.fatTracked),
         _num(d.proteinGoal),
         _num(d.proteinTracked),
+      ];
+      buf.writeln(cells.join(','));
+    }
+    return buf.toString();
+  }
+
+  /// Build the medications CSV string from a list of [MedicationDBO].
+  static String medicationsToCsv(List<MedicationDBO> meds) {
+    final buf = StringBuffer();
+    buf.writeln(medicationColumns.join(','));
+    for (final m in meds) {
+      final cells = <String>[
+        _cell(m.id),
+        _cell(m.day.toIso8601String()),
+        _cell(m.name),
+        _num(m.amount),
+        _cell(m.unit),
+        _cell(m.taken.toString()),
       ];
       buf.writeln(cells.join(','));
     }
@@ -338,6 +366,28 @@ class CsvDataExporter {
           fatTracked: _double(row['fat_tracked']),
           proteinGoal: _double(row['protein_goal']),
           proteinTracked: _double(row['protein_tracked']),
+        ),
+      );
+    }
+    return out;
+  }
+
+  /// Parse a medications CSV back into [MedicationDBO]s.
+  static List<MedicationDBO> parseMedicationsFromCsv(String csv) {
+    final rows = _parseRows(csv);
+    if (rows.isEmpty) return const [];
+    final header = rows.first;
+    final out = <MedicationDBO>[];
+    for (var i = 1; i < rows.length; i++) {
+      final row = _zip(header, rows[i]);
+      out.add(
+        MedicationDBO(
+          id: row['id'] ?? '',
+          day: DateTime.parse(row['day'] ?? ''),
+          name: row['name'] ?? '',
+          amount: _double(row['amount']) ?? 0.0,
+          unit: row['unit'] ?? 'mL',
+          taken: row['taken']?.toLowerCase() == 'true',
         ),
       );
     }

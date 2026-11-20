@@ -20,6 +20,14 @@ class MedicationRepository {
     await _dataSource.deleteEntry(id);
   }
 
+  Future<List<MedicationDBO>> getAllMedicationsDBO() async {
+    return await _dataSource.allEntries();
+  }
+
+  Future<void> addAllEntries(List<MedicationDBO> entries) async {
+    await _dataSource.addAllEntries(entries);
+  }
+
   Future<void> toggleTaken(String id) async {
     final dbo = await _dataSource.getEntry(id);
     if (dbo != null) {

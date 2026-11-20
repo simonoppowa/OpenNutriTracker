@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/data/data_source/custom_activity_template_
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/favourite_meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/medication_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
@@ -14,6 +15,7 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/medication_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
@@ -154,6 +156,11 @@ class ImportDataUsecase {
         ? null
         : _decodeJsonList(favouriteFile, FavouriteMealDBO.fromJson);
 
+    final medicationFile = archive.findFile('user_medication.json');
+    final medicationDBOs = medicationFile == null
+        ? null
+        : _decodeJsonList(medicationFile, MedicationDBO.fromJson);
+
     // The profile's goal settings (#1363), absent from zips written before
     // they were exported. Checked here with everything else, so a bad
     // value rejects the zip before any of the writes below.
@@ -194,6 +201,9 @@ class ImportDataUsecase {
       if (favouriteDBOs != null) {
         // Upsert by identity while retaining favourites not in this backup.
         await _favouriteMealRepository.addAllFavouriteDBOs(favouriteDBOs);
+      }
+      if (medicationDBOs != null) {
+        await locator<MedicationRepository>().addAllEntries(medicationDBOs);
       }
       if (goalSettings != null) {
         await _configRepository.setConfigGoalSettings(
@@ -263,18 +273,32 @@ class ImportDataUsecase {
       CsvDataExporter.parseTrackedDaysFromCsv,
     );
 
+    final medicationCsvFile = archive.findFile('user_medication.csv');
+    final medicationCsvDBOs = medicationCsvFile == null
+        ? null
+        : _decodeCsv(
+            medicationCsvFile,
+            CsvDataExporter.parseMedicationsFromCsv,
+          );
+
     final keyedBy = _decodeBoundary(
       archive.findFile(TrackedDayBoundaryRecord.csvFileName),
       TrackedDayBoundaryRecord.fromCsv,
     );
 
     final imported = await withTrackedDayLockOnProfile(
-      () => _writeEntriesAndRows(
-        activityDBOs,
-        intakeDBOs,
-        trackedDayDBOs,
-        keyedBy,
-      ).then((_) => true),
+      () async {
+        await _writeEntriesAndRows(
+          activityDBOs,
+          intakeDBOs,
+          trackedDayDBOs,
+          keyedBy,
+        );
+        if (medicationCsvDBOs != null) {
+          await locator<MedicationRepository>().addAllEntries(medicationCsvDBOs);
+        }
+        return true;
+      },
       startedOn: startedOn,
     );
     return imported ?? false;

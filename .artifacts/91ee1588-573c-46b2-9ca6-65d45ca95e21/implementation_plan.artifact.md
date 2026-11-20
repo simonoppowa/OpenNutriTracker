@@ -1,42 +1,36 @@
-# Plano de Implementação: Novo Módulo de Medicamentos
+# Plano de Implementação: Botão de Modelos (Templates) e Importação/Exportação de Medicamentos
 
-Este documento descreve a arquitetura e o plano de implementação para o novo módulo de **Medicamentos** no OpenNutriTracker, permitindo o acompanhamento diário de doses (`mL`, `mg`, `mcg`) com marcação de concluído (*checkbox*), integrado tanto no **Diário** quanto na **Home**.
+Este documento descreve a adição do botão de **Modelos de Importação (Templates)** no diálogo de Importação/Exportação (`ExportImportDialog`) e o suporte completo a importação/exportação de medicamentos (`user_medication.json` e `user_medication.csv`).
 
 ## Revisão Necessária pelo Usuário
 
 > [!IMPORTANT]
-> **1. Armazenamento Local (Hive):** Será criado um novo objeto DBO (`MedicationDBO`) e uma nova Hive Box (`MedicationBox`), salvos por perfil de usuário.
-> **2. Flexibilidade por Dia:** Cada registro de medicamento pertence a um dia específico (`day`), permitindo doses variáveis conforme o dia (ex: 10 mL hoje, 15 mL amanhã).
-> **3. Unidades de Medida:** Suporte estrito às unidades `mL`, `mg` e `mcg`.
-> **4. Diário e Home:** O painel de medicamentos será exibido no Diário (para a data selecionada) e na Home (para o dia atual), contendo caixas de seleção (*checkboxes*) para marcar facilmente se já tomou ou não.
+> **1. Importação/Exportação de Medicamentos:** Adicionar suporte a `user_medication.json` e `user_medication.csv` no `ImportDataUsecase` e `ExportDataUsecase` para backup/restauração completa do módulo de medicamentos.
+> **2. Botão de Templates:** No menu **Configurações → Importar/Exportar dados do app**, será adicionado o botão **"Modelos de Importação"**.
+> **3. Diálogo de Modelos (`ImportTemplatesDialog`):**
+> - Exibirá modelos prontos para **Metas Diárias** (`user_tracked_day`), **Medicamentos** (`user_medication`), **Alimentos/Refeições** (`user_intake`) e **Atividades** (`user_activity`).
+> - Permitirá alternar entre os formatos **JSON** e **CSV**.
+> - Incluirá o botão **"Copiar Modelo"** para copiar o código diretamente para a área de transferência.
 
 ## Questões em Aberto
 
-- Nenhuma questão pendente; o escopo atende a acompanhamento simples com unidades em mL, mg e mcg e checagem diária.
+- Nenhuma questão pendente.
 
 ## Mudanças Propostas
 
-### 1. Camada de Dados (`core/data`)
-- **[NEW]** [medication_dbo.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/dbo/medication_dbo.dart): Objeto Hive annotado (`typeId` livre, ex: 31) com campos `id`, `day`, `name`, `amount`, `unit` e `taken`.
-- **[MODIFY]** [hive_db_provider.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/utils/hive_db_provider.dart): Registrar a nova `medicationBoxName` e incluí-la em `perProfileBoxNames`.
-- **[NEW]** [medication_data_source.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/data_source/medication_data_source.dart): Acesso à Hive Box de medicamentos.
-- **[NEW]** [medication_repository.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/data/repository/medication_repository.dart): Repositório mediador.
+### 1. Suporte a Importação/Exportação do Módulo de Medicamentos
+- **[MODIFY]** [export_data_usecase.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/domain/usecase/export_data_usecase.dart): Incluir `user_medication.json` e `user_medication.csv` no zip de exportação.
+- **[MODIFY]** [import_data_usecase.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/domain/usecase/import_data_usecase.dart): Ler `user_medication.json` / `user_medication.csv` do zip (se presente) e importar via `MedicationRepository`.
 
-### 2. Camada de Domínio (`core/domain`)
-- **[NEW]** [medication_entity.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/core/domain/entity/medication_entity.dart): Entidade de domínio.
-- **[NEW]** Casos de uso: `AddMedicationUsecase`, `GetMedicationUsecase`, `DeleteMedicationUsecase`, `ToggleMedicationTakenUsecase`.
-
-### 3. Camada de Apresentação (UI e BLoC)
-- **[NEW]** [add_medication_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/medications/presentation/widgets/add_medication_dialog.dart): Diálogo para incluir/editar medicamento (Nome, Quantidade, Unidade: mL/mg/mcg).
-- **[NEW]** [medications_section_widget.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/medications/presentation/widgets/medications_section_widget.dart): Widget de lista com *checkboxes* para marcar os medicamentos como tomados.
-- **[MODIFY]** Integração na `DayInfoWidget` (Diário) e `HomePage` / `HomeBloc` (Home).
+### 2. Interface de Usuário
+- **[NEW]** [import_templates_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/presentation/widgets/import_templates_dialog.dart): Diálogo para visualizar e copiar modelos de importação (JSON/CSV) com suporte a cópia via `Clipboard.setData`.
+- **[MODIFY]** [export_import_dialog.dart](file:///C:/Users/Alec/Desktop/repos_git/OpenNutriTracker/lib/features/settings/presentation/widgets/export_import_dialog.dart): Adicionar o botão **"Modelos de Importação"** nas ações do diálogo.
 
 ## Plano de Verificação
 
 ### Testes Automatizados
-- Executar `flutter test` após a geração dos adaptadores do Hive (`just build` / `build_runner`).
+- Executar `flutter test` para validar a compilação e suíte de testes.
 
 ### Verificação Manual
-- Adicionar medicamentos com diferentes unidades (`mL`, `mg`, `mcg`) no Diário.
-- Marcar e desmarcar o *checkbox* de tomados.
-- Verificar a exibição na tela Home.
+- Abrir o diálogo de Importação/Exportação e testar os modelos no novo diálogo.
+- Testar exportação e importação de arquivo `.zip` contendo `user_medication.json` ou `user_medication.csv`.
