@@ -103,6 +103,7 @@ class ImportDataUsecase {
   }) async {
     final startedOn = ProfileStamp.now();
     final archive = await _pickAndDecodeArchive();
+    print('[IMPORT DEBUG] JSON Archive files found: ${archive.files.map((f) => f.name).toList()}');
 
     // Decode every entry before writing anything (#1357): the upserts
     // below replace and delete rows on the device, so an archive with a
@@ -172,6 +173,8 @@ class ImportDataUsecase {
               _decodeFinite(utf8.decode(goalSettingsFile.content as List<int>)),
             ),
           );
+
+    print('[IMPORT DEBUG] Decoded trackedDays: ${trackedDayDBOs.length}, medications: ${medicationDBOs?.length ?? 0}');
 
     final keyedBy = _decodeBoundary(
       archive.findFile(TrackedDayBoundaryRecord.jsonFileName),
@@ -254,6 +257,7 @@ class ImportDataUsecase {
   }) async {
     final startedOn = ProfileStamp.now();
     final archive = await _pickAndDecodeArchive();
+    print('[IMPORT DEBUG] CSV Archive files found: ${archive.files.map((f) => f.name).toList()}');
 
     // Decode all three before writing any, as in [importData] (#1357).
     final activityFile = archive.findFile(userActivityCsvFileName);
@@ -280,6 +284,8 @@ class ImportDataUsecase {
             medicationCsvFile,
             CsvDataExporter.parseMedicationsFromCsv,
           );
+
+    print('[IMPORT DEBUG] Decoded trackedDays CSV: ${trackedDayDBOs.length}, medications CSV: ${medicationCsvDBOs?.length ?? 0}');
 
     final keyedBy = _decodeBoundary(
       archive.findFile(TrackedDayBoundaryRecord.csvFileName),
