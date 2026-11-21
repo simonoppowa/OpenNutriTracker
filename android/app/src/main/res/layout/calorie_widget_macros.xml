@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The macro rows beside the wide body's ring, shared by calorie_widget
+     and calorie_widget_compact. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_weight="1"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/calorie_widget_row_protein"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <!-- Takes the width the figures leave, and ellipsizes a long
+             translated name rather than pushing them out. -->
+        <TextView
+            android:id="@+id/calorie_widget_protein_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/calorie_widget_protein"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/calorie_widget_protein_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:textColor="@color/calorie_widget_text"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/calorie_widget_protein_pct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="44dp"
+            android:gravity="end"
+            android:textColor="@color/calorie_widget_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/calorie_widget_row_carbs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <!-- Takes the width the figures leave, and ellipsizes a long
+             translated name rather than pushing them out. -->
+        <TextView
+            android:id="@+id/calorie_widget_carbs_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/calorie_widget_carbs"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/calorie_widget_carbs_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:textColor="@color/calorie_widget_text"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/calorie_widget_carbs_pct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="44dp"
+            android:gravity="end"
+            android:textColor="@color/calorie_widget_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/calorie_widget_row_fat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <!-- Takes the width the figures leave, and ellipsizes a long
+             translated name rather than pushing them out. -->
+        <TextView
+            android:id="@+id/calorie_widget_fat_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/calorie_widget_fat"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/calorie_widget_fat_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:textColor="@color/calorie_widget_text"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/calorie_widget_fat_pct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="44dp"
+            android:gravity="end"
+            android:textColor="@color/calorie_widget_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+</LinearLayout>

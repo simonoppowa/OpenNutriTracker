@@ -7,7 +7,9 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
@@ -45,8 +47,7 @@ class CalorieWidgetProvider : AppWidgetProvider() {
         appWidgetId: Int,
         newOptions: Bundle,
     ) {
-        val minWidth = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
-        WidgetView.refreshOne(context, appWidgetManager, appWidgetId, minWidth)
+        WidgetView.refreshOne(context, appWidgetManager, appWidgetId, newOptions)
     }
 }
 
@@ -88,13 +89,40 @@ private class WidgetView private constructor(
         return if (value.isEmpty()) fallback else value
     }
 
+    /** API 31+ hands the launcher one layout per size class and lets it
+     * pick for each size it shows the widget at, portrait and landscape.
+     * Before that, one layout for the portrait size: the minimum width
+     * and the maximum height. The landscape height is the minimum one,
+     * which on the Pixel launcher is 109dp at any row count, so sizing
+     * for both would make every widget compact. A home screen rotated
+     * to landscape can still clip there, as it could before. */
     fun render(
         context: Context,
-        views: RemoteViews,
         manager: AppWidgetManager,
         appWidgetId: Int,
-        minWidthDp: Int,
+        options: Bundle,
     ) {
+        val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            RemoteViews(
+                WidgetSize.entries.associate {
+                    SizeF(it.minWidthDp.toFloat(), it.minHeightDp.toFloat()) to
+                        build(context, it)
+                },
+            )
+        } else {
+            build(
+                context,
+                WidgetSize.forSize(
+                    options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0),
+                    options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0),
+                ),
+            )
+        }
+        manager.updateAppWidget(appWidgetId, views)
+    }
+
+    private fun build(context: Context, size: WidgetSize): RemoteViews {
+        val views = RemoteViews(context.packageName, size.layoutId)
         views.setOnClickPendingIntent(
             R.id.calorie_widget_root,
             PendingIntent.getActivity(
@@ -107,11 +135,11 @@ private class WidgetView private constructor(
         )
 
         if (isCurrent) {
-            showContent(context, views, wide = minWidthDp >= WIDE_MIN_DP)
+            showContent(context, views, size)
         } else {
             showPlaceholder(views)
         }
-        manager.updateAppWidget(appWidgetId, views)
+        return views
     }
 
     /** Asks for one more update when the snapshot's logical day ends, so
@@ -185,13 +213,17 @@ private class WidgetView private constructor(
     private fun showContent(
         context: Context,
         views: RemoteViews,
-        wide: Boolean,
+        size: WidgetSize,
     ) {
+        val wide = size.wide
         val title = label("title", FALLBACK_TITLE)
         val unit = label("unit", FALLBACK_UNIT)
         // The narrow body has no room to spare; the goal caption under the
-        // ring already says what a title would.
-        views.setViewVisibility(R.id.calorie_widget_title, if (wide) View.VISIBLE else View.GONE)
+        // ring already says what a title would. Neither does a compact one.
+        views.setViewVisibility(
+            R.id.calorie_widget_title,
+            if (wide && !size.compact) View.VISIBLE else View.GONE,
+        )
         views.setTextViewText(R.id.calorie_widget_title, "$title ($unit)")
         views.setViewVisibility(R.id.calorie_widget_placeholder, View.GONE)
         views.setViewVisibility(R.id.calorie_widget_body_wide, if (wide) View.VISIBLE else View.GONE)
@@ -292,13 +324,6 @@ private class WidgetView private constructor(
         private const val DAY_END_REQUEST = 1
         private const val DAY_END_WINDOW_MS = 60_000L
 
-        /** Below this width in dp, the granted cell span only fits the
-         * ring; above it, the macro rows sit beside it. The 24dp padding,
-         * the 104dp ring and its 8dp margin leave the rows 124dp here:
-         * enough for a name, "123 g" and the 44dp percentage, where 168
-         * left them 32dp. */
-        private const val WIDE_MIN_DP = 260
-
         private const val FALLBACK_TITLE = "Calories"
         private const val FALLBACK_UNIT = "kcal"
         private const val FALLBACK_GRAM = "g"
@@ -316,7 +341,7 @@ private class WidgetView private constructor(
             return runCatching { JSONObject(raw) }.getOrNull()
         }
 
-        private fun build(context: Context): WidgetView {
+        private fun read(context: Context): WidgetView {
             val labels = readJson(context, LABELS_KEY) ?: JSONObject()
             val snapshot = readJson(context, SNAPSHOT_KEY)
             return WidgetView(snapshot, labels)
@@ -328,7 +353,12 @@ private class WidgetView private constructor(
             appWidgetIds: IntArray,
         ) {
             for (appWidgetId in appWidgetIds) {
-                refreshOne(context, appWidgetManager, appWidgetId, 0)
+                refreshOne(
+                    context,
+                    appWidgetManager,
+                    appWidgetId,
+                    appWidgetManager.getAppWidgetOptions(appWidgetId),
+                )
             }
         }
 
@@ -336,19 +366,10 @@ private class WidgetView private constructor(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int,
-            minWidth: Int,
+            options: Bundle,
         ) {
-            val minWidthDp = if (minWidth > 0) minWidth
-            else appWidgetManager.getAppWidgetOptions(appWidgetId)
-                .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
-            val view = build(context)
-            view.render(
-                context,
-                RemoteViews(context.packageName, R.layout.calorie_widget),
-                appWidgetManager,
-                appWidgetId,
-                minWidthDp,
-            )
+            val view = read(context)
+            view.render(context, appWidgetManager, appWidgetId, options)
             view.scheduleDayEnd(context, appWidgetManager)
         }
 
@@ -360,3 +381,40 @@ private class WidgetView private constructor(
         private const val SNAPSHOT_KEY = "ont_calorie_snapshot"
     }
 }
+
+/** The layout for a size: the body by width, the ring size by height.
+ * Each entry applies from its minimum width and height up, in dp; the
+ * last one that fits wins. Launchers on API 31+ pick the same one: the
+ * closest of the sizes that fit. */
+private enum class WidgetSize(
+    val layoutId: Int,
+    val wide: Boolean,
+    val compact: Boolean,
+    val minWidthDp: Int,
+    val minHeightDp: Int,
+) {
+    NARROW_COMPACT(R.layout.calorie_widget_compact, false, true, 0, 0),
+    NARROW(R.layout.calorie_widget, false, false, 0, NARROW_MIN_HEIGHT_DP),
+    WIDE_COMPACT(R.layout.calorie_widget_compact, true, true, WIDE_MIN_DP, 0),
+    WIDE(R.layout.calorie_widget, true, false, WIDE_MIN_DP, WIDE_MIN_HEIGHT_DP);
+
+    companion object {
+        fun forSize(widthDp: Int, heightDp: Int): WidgetSize =
+            entries.last { widthDp >= it.minWidthDp && heightDp >= it.minHeightDp }
+    }
+}
+
+/** Below this width in dp, the granted cell span only fits the
+ * ring; above it, the macro rows sit beside it. The 24dp padding,
+ * the 104dp ring and its 8dp margin leave the rows 124dp here:
+ * enough for a name, "123 g" and the 44dp percentage, where 168
+ * left them 32dp. */
+private const val WIDE_MIN_DP = 260
+
+/** The heights calorie_widget needs, in dp, with about 2dp to spare:
+ * the 24dp padding, then the 22dp title, its 4dp margin and the 104dp
+ * ring for the wide body (154dp), or the 88dp ring, 4dp margin and 16dp
+ * goal caption for the narrow one (132dp), as measured at the default
+ * font size. Below them, calorie_widget_compact. */
+private const val WIDE_MIN_HEIGHT_DP = 156
+private const val NARROW_MIN_HEIGHT_DP = 134
