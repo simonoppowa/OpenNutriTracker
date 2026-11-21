@@ -224,18 +224,29 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       // open (#1360), rebuilding this list for that day.
                       final intakes = widget.intakeList;
                       final onDeleteIntake = widget.onDeleteIntakeCallback;
+                      final onCopyIntake = widget.onCopyIntakeCallback;
                       final trackedDay = widget.trackedDayEntity;
                       switch (selection) {
                         case VerticalListPopupMenuSelections.onCopy:
-                          final copyDialog =
-                              CopyDialog(initialValue: widget.addMealType);
+                          // A copy lands today, so on today's section
+                          // its own meal would only log it a second time.
+                          final copyDialog = CopyDialog(
+                              initialValue: widget.addMealType,
+                              excluded: DateUtils.isSameDay(
+                                      widget.day, DateTime.now())
+                                  ? widget.addMealType
+                                  : null);
                           final selectedMealType =
                               await showDialog<AddMealType>(
                                   context: context,
                                   builder: (context) => copyDialog);
-                          if (selectedMealType != null) {
+                          if (selectedMealType != null &&
+                              onCopyIntake != null) {
+                            // One entry after another, in the section's
+                            // order: each copy is stored and counted before
+                            // the next one starts.
                             for (IntakeEntity intake in intakes) {
-                              widget.onCopyIntakeCallback!(
+                              await onCopyIntake(
                                   intake, null, selectedMealType);
                             }
                           }
