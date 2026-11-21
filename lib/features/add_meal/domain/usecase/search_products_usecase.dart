@@ -54,11 +54,15 @@ class SearchProductsUseCase {
   /// [skipRemote] limits the search to local matches (custom meals, recipes,
   /// recent intake, cached results) and does not touch the network — used for
   /// short as-you-type queries.
+  ///
+  /// With Open Food Facts switched off in Settings → Food databases (#946)
+  /// every search takes that local path, minus the cached OFF products:
+  /// nothing waits on OFF, and nothing of it is listed.
   Future<SearchProductsResult> searchOFFProductsByString(
     String searchString, {
     bool skipRemote = false,
   }) async {
-    if (skipRemote) {
+    if (skipRemote || !(await _getConfigUsecase.getConfig()).isOffEnabled) {
       return _buildResult(searchString, const [],
           remoteSkipped: true, cacheSource: MealSourceEntity.off);
     }
@@ -214,9 +218,9 @@ class SearchProductsUseCase {
     // own and are intentionally surfaced in both tabs.
     // Cached entries respect the food-source selection (Settings → Food
     // databases) just like fresh remote results, which the data source
-    // already filters server-side. Entries without a backendSource (OFF
-    // products, pre-migration rows) are always kept — only Supabase backend
-    // sources are user-selectable.
+    // already filters server-side. Cached OFF products go with Open Food
+    // Facts' own switch (#946); other entries without a backendSource
+    // (pre-migration rows) are always kept.
     //
     // A record this search's remote page returned is in the cache already
     // — `_cacheRemoteResults` ran first — and its cached copy takes the
@@ -237,6 +241,8 @@ class SearchProductsUseCase {
         .getAllByMostRecentlyTouched()
         .map(MealEntity.fromMealDBO)
         .where((meal) => meal.source == cacheSource)
+        .where((meal) =>
+            meal.source != MealSourceEntity.off || config.isOffEnabled)
         .where((meal) =>
             meal.backendSource == null ||
             config.isFoodSourceEnabled(meal.backendSource!))
