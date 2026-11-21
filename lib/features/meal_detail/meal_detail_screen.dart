@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
+import 'package:opennutritracker/core/presentation/widgets/user_image.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
@@ -474,27 +475,41 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(80),
                 child: GestureDetector(
+                  // The full-screen viewer only loads remote images, so a
+                  // tap opens it for those alone.
+                  onTap: meal.localImagePath != null
+                      ? null
+                      : () {
+                          Navigator.of(context).pushNamed(
+                            NavigationOptions.imageFullScreenRoute,
+                            arguments: ImageFullScreenArguments(
+                              meal.mainImageUrl ?? "",
+                            ),
+                          );
+                        },
                   child: Hero(
                     tag: ImageFullScreen.fullScreenHeroTag,
-                    child: CachedNetworkImage(
-                      width: 250,
-                      height: 250,
-                      cacheManager: locator<CacheManager>(),
-                      imageUrl: meal.mainImageUrl ?? "",
-                      fit: BoxFit.cover,
-                      placeholder: (context, string) => const MealPlaceholder(),
-                      errorWidget: (context, url, error) =>
-                          const MealPlaceholder(),
-                    ),
+                    // A recipe's or custom meal's own photo fills the slot
+                    // (#675).
+                    child: meal.localImagePath != null
+                        ? UserImage(
+                            storedPath: meal.localImagePath!,
+                            width: 250,
+                            height: 250,
+                            fallback: const MealPlaceholder(),
+                          )
+                        : CachedNetworkImage(
+                            width: 250,
+                            height: 250,
+                            cacheManager: locator<CacheManager>(),
+                            imageUrl: meal.mainImageUrl ?? "",
+                            fit: BoxFit.cover,
+                            placeholder: (context, string) =>
+                                const MealPlaceholder(),
+                            errorWidget: (context, url, error) =>
+                                const MealPlaceholder(),
+                          ),
                   ),
-                  onTap: () {
-                    Navigator.of(context).pushNamed(
-                      NavigationOptions.imageFullScreenRoute,
-                      arguments: ImageFullScreenArguments(
-                        meal.mainImageUrl ?? "",
-                      ),
-                    );
-                  },
                 ),
               ),
             ),

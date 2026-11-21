@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
+import 'package:opennutritracker/core/presentation/widgets/user_image.dart';
 import 'package:opennutritracker/core/presentation/widgets/user_image_picker_tile.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
@@ -977,6 +978,18 @@ class _EditMealScreenState extends State<EditMealScreen> {
   }
 
   Widget _buildRemoteMealImage() {
+    // A recipe opened here keeps its own photo, read-only (#675).
+    final localImagePath = _mealEntity.localImagePath;
+    if (localImagePath != null) {
+      return ClipOval(
+        child: UserImage(
+          storedPath: localImagePath,
+          width: 120,
+          height: 120,
+          fallback: const DefaultMealImage(),
+        ),
+      );
+    }
     return ClipOval(
       child: CachedNetworkImage(
         cacheManager: locator<CacheManager>(),

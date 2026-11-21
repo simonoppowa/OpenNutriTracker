@@ -135,11 +135,12 @@ class MealEntity extends Equatable {
   /// comment already records.
   final bool portionsUnavailable;
 
-  /// Relative path (`meal_images/<code>.webp`) to a user-attached photo
-  /// for a custom meal, or null if none is set. Resolved to an absolute
-  /// path at render time via `MealImageStorage.absolutePath`. Always
-  /// null for OFF / FDC / recipe-derived meals — those carry remote URLs
-  /// in `thumbnailImageUrl` / `mainImageUrl` instead.
+  /// Relative path to a user-attached photo, or null if none is set:
+  /// `meal_images/<code>.webp` for a custom meal, `recipe_images/<id>.webp`
+  /// for a recipe-derived meal (the recipe's own photo, #675). Resolved
+  /// against the documents directory at render time by `UserImage`. Always
+  /// null for OFF / FDC meals, which carry remote URLs in
+  /// `thumbnailImageUrl` / `mainImageUrl` instead.
   final String? localImagePath;
 
   final MealNutrimentsEntity nutriments;
