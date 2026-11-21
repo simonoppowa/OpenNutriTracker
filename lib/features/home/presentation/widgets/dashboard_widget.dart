@@ -176,6 +176,21 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                     ),
                   ),
                 ),
+                const SizedBox(height: Dimens.spacing8),
+                // The gauge tap above is easy to miss, and users who pick
+                // "lose weight" keep asking where the target comes from
+                // (#1308), so the same screen also gets a visible link.
+                Semantics(
+                  identifier: 'home-kcal-goal-info',
+                  child: TextButton.icon(
+                    onPressed: _openKcalGoalInfoScreen,
+                    icon: const Icon(Icons.info_outline_rounded, size: 18),
+                    label: Text(
+                      S.of(context).settingsKcalGoalInfoLabel,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
