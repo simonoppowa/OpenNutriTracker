@@ -69,7 +69,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Camera permission is used to scan barcodes, to attach a photo to a custom meal so it's easier to recognise in your saved list, and — only if you turn on AI meal assistance — to photograph a meal so the provider you configured can read what is in it. That photo is sent for that one request; the app saves no copy of its own and deletes the camera's temporary file as soon as it has been encoded, so the photo is not in your saved meals and not in your exports.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-    <string>Used to attach a photo to a custom meal so it's easier to recognise in your saved list, and for exporting data.</string>
+    <string>Used to attach a photo to a custom meal so it's easier to recognise in your saved list, for exporting data, and — only if you turn on AI meal assistance — to choose a meal photo from your library so the provider you configured can read what is in it. That photo is sent for that one request; the app saves no copy of its own.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Read access to your workouts and body fat percentage is used to import workouts into your diary and to suggest how much of their energy to credit toward your daily goal. Nothing is written back to Health, and the data stays on your device.</string>
 	<key>NSLocalNetworkUsageDescription</key>
