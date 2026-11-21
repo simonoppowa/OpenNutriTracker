@@ -1449,6 +1449,10 @@
   "aiAssistNoKeyForProviderLabel": "No key saved for this provider.",
   "aiAssistKeyFieldLabel": "{provider} API key",
   "@aiAssistKeyFieldLabel": {"placeholders": {"provider": {"type": "String"}}},
+  "aiAssistKeyMalformedLabel": "This key has a space, a line break or a character a key can't contain. Copy it again from your provider and paste it here.",
+  "@aiAssistKeyMalformedLabel": {
+    "description": "Error under the API key field when the typed key cannot be sent, for example two lines pasted together. Never shows the key itself."
+  },
   "aiAssistKeySavedLabel": "Key saved",
   "aiAssistRemoveKeyLabel": "Remove key",
   "bulkAddReadByModelLabel": "Read by AI — check each row",

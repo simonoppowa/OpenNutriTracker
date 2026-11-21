@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/presentation/ai_assist_summary.dart';
 import 'package:opennutritracker/core/utils/ai_credential_storage.dart';
 import 'package:opennutritracker/core/utils/ai_model_catalogue.dart';
 import 'package:opennutritracker/core/utils/ai_model_list_api.dart';
+import 'package:opennutritracker/core/utils/api_key_input.dart';
 import 'package:opennutritracker/core/utils/plaintext_destination_guard.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/probe_ai_endpoint_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/usecase/run_ai_endpoint_probe_usecase.dart';
@@ -126,8 +127,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// Where a refused OK sends the user. #1364: the refusal sat below the
   /// fold with the keyboard up, so OK looked like it did nothing.
   final _modelFocus = FocusNode();
+  final _keyFocus = FocusNode();
   final _endpointFieldKey = GlobalKey();
   final _modelFieldKey = GlobalKey();
+  final _keyFieldKey = GlobalKey();
 
   bool _loading = true;
   bool _changed = false;
@@ -185,6 +188,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// answered".
   String? _endpointError;
   String? _modelError;
+
+  /// A typed key that cannot be sent, such as two halves with a space
+  /// between them (#1253). Never holds or quotes the key itself.
+  String? _keyError;
 
   /// What the server last said it has, or **null when nothing has been
   /// asked** — which is the state this dialog opens in and stays in until the
@@ -299,6 +306,8 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       fieldContext = _modelFieldKey.currentContext;
     } else if (_endpointError != null && _endpointFocus.hasFocus) {
       fieldContext = _endpointFieldKey.currentContext;
+    } else if (_keyError != null && _keyFocus.hasFocus) {
+      fieldContext = _keyFieldKey.currentContext;
     } else {
       return false;
     }
@@ -323,6 +332,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     _endpointFocus.removeListener(_onEndpointFocusChanged);
     _endpointFocus.dispose();
     _modelFocus.dispose();
+    _keyFocus.dispose();
     _ownedModelList?.close();
     super.dispose();
   }
@@ -494,7 +504,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
           (bound != null &&
               AiCredentialStorage.resolveEndpoint(address) != null &&
               !AiCredentialStorage.sameServer(bound, address))) {
-        _apiKeyController.clear();
+        _discardTypedKey();
         _typedKeyServer = null;
       }
       _endpointError = null;
@@ -506,9 +516,18 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     });
   }
 
+  /// Empties the key field, and its refusal with it: a refusal over an empty
+  /// field describes a key that is no longer there (#1253). Callers rebuild,
+  /// either inside `setState` or through the [_load] that follows.
+  void _discardTypedKey() {
+    _apiKeyController.clear();
+    _keyError = null;
+  }
+
   /// A key typed with an address in the field belongs to that server; one
   /// typed before there is an address binds to the first one it is sent to.
   void _keyTyped(String key) {
+    if (_keyError != null) setState(() => _keyError = null);
     final address = _endpointController.text.trim();
     _typedKeyServer =
         key.trim().isEmpty ||
@@ -625,10 +644,13 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // falling back to the stored key sent a Gemini user's Google key to it
     // as a bearer, before any save and even if the dialog was then cancelled
     // (#1257).
-    final typedKey = _apiKeyController.text.trim();
+    //
+    // A typed key that cannot be sent goes nowhere rather than being swapped
+    // for the stored one: the user is mid-way through replacing it.
+    final typedKey = cleanApiKey(_apiKeyController.text);
     if (typedKey.isNotEmpty) _typedKeyServer ??= typed;
     final apiKey = typedKey.isNotEmpty
-        ? typedKey
+        ? (isWellFormedApiKey(typedKey) ? typedKey : null)
         : await widget.storage.apiKeyForServer(typed, provider: provider);
     // Checked before sending as well as after: a lookup superseded while the
     // key was being read would otherwise still carry it to an address the
@@ -662,7 +684,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     // Selecting one with no key is allowed: the feature goes quietly
     // unavailable, which is a setting rather than a fault.
     await widget.storage.setActiveProvider(provider);
-    _apiKeyController.clear();
+    _discardTypedKey();
     _changed = true;
     await _load();
   }
@@ -741,6 +763,17 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
     var changed = _changed;
     var probe = false;
 
+    // First, because nothing may be written before every refusal has had its
+    // say. An empty field is not a refusal: it means "keep what is stored".
+    // No prefix is asked for — Google's newer keys start `AQ.` (#1253) — and
+    // the message never repeats the key, which this dialog keeps masked.
+    final typed = cleanApiKey(_apiKeyController.text);
+    if (typed.isNotEmpty && !isWellFormedApiKey(typed)) {
+      setState(() => _keyError = s.aiAssistKeyMalformedLabel);
+      _revealRefusal(_keyFieldKey, _keyFocus);
+      return;
+    }
+
     if (provider == AiProvider.ownServer) {
       // The address is this provider's credential, and the model is part of
       // what "configured" means for it (#738) — so both are saved here, and
@@ -783,7 +816,10 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
             _endpointError = endpointError;
             _modelError = modelError;
           });
-          _revealRefusal(endpointError != null);
+          _revealRefusal(
+            endpointError != null ? _endpointFieldKey : _modelFieldKey,
+            endpointError != null ? _endpointFocus : _modelFocus,
+          );
           return;
         }
 
@@ -827,7 +863,6 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       }
     }
 
-    final typed = _apiKeyController.text.trim();
     if (typed.isNotEmpty) {
       // The own-server branch above has already asked, and asking is
       // idempotent: it returns true without a screen once the agreement is on
@@ -849,9 +884,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   /// Brings a refused field into view and puts the cursor in it, once the
   /// error text has been laid out. #1364: the dialog is taller than a phone,
   /// so a refusal rendered below the fold made OK look dead.
-  void _revealRefusal(bool onEndpoint) {
-    final key = onEndpoint ? _endpointFieldKey : _modelFieldKey;
-    final focus = onEndpoint ? _endpointFocus : _modelFocus;
+  void _revealRefusal(GlobalKey key, FocusNode focus) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final fieldContext = key.currentContext;
       if (!mounted || fieldContext == null) return;
@@ -898,7 +931,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
       typedEndpoint: _endpointController.text,
     );
     if (!agreed) {
-      if (mounted) _apiKeyController.clear();
+      if (mounted) setState(_discardTypedKey);
       return false;
     }
     // Written only once the answer is yes, so a dismissed screen leaves no
@@ -914,7 +947,7 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   Future<void> _remove() async {
     await widget.storage.clear(provider: _provider);
     if (!mounted) return;
-    _apiKeyController.clear();
+    _discardTypedKey();
     _changed = true;
     await _load();
   }
@@ -1163,7 +1196,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                       Semantics(
                         identifier: 'ai-assist-key-field',
                         child: TextField(
+                          key: _keyFieldKey,
                           controller: _apiKeyController,
+                          focusNode: _keyFocus,
                           onChanged: _keyTyped,
                           autocorrect: false,
                           enableSuggestions: false,
@@ -1172,6 +1207,8 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                             labelText: s.aiAssistKeyFieldLabel(
                               _providerName(context, _provider),
                             ),
+                            errorText: _keyError,
+                            errorMaxLines: 4,
                             border: const OutlineInputBorder(),
                           ),
                         ),
