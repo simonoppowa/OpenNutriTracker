@@ -1,0 +1,55 @@
+name: Setup Gradle
+description: >-
+  Restores the Gradle cache (read-only on pull requests) and downloads the
+  Gradle distribution with retries. Run it after Java and Flutter are set up,
+  before the first Flutter build.
+outputs:
+  cache-hit:
+    description: '`true` when the Gradle cache key matched exactly.'
+    value: ${{ steps.cache.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    # One definition for every job: actions/cache folds `path` into the cache
+    # version, so a job listing different paths can never restore an entry
+    # another job saved under the same key.
+    #
+    # The distribution zip is dropped: once unpacked, the wrapper only checks
+    # for the unpacked dir and its `.ok` marker, so the ~220 MB zip is dead
+    # weight. Transforms stay in: they hold the dexed and jetified libraries,
+    # and rebuilding those on every PR costs minutes.
+    - name: Cache Gradle
+      id: cache
+      uses: ./.github/actions/pr-read-only-cache
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+          !~/.gradle/wrapper/dists/**/*.zip
+        key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    # The wrapper downloads gradle-*-all.zip on its first run and has no
+    # retry, so a single HTTP 504 from services.gradle.org (which redirects to
+    # GitHub releases) failed the whole job before any test ran (PR #1566).
+    # `gradlew` is gitignored; `--config-only` makes Flutter write it without
+    # running Gradle, and `gradlew --version` then fetches the distribution.
+    # With a warm cache the distribution is already there and this takes
+    # seconds.
+    - name: Download Gradle distribution (3 attempts)
+      shell: bash
+      run: |
+        flutter build apk --config-only
+        cd android
+        for attempt in 1 2 3; do
+          if ./gradlew --version; then
+            exit 0
+          fi
+          if [ "$attempt" -lt 3 ]; then
+            echo "::warning::Gradle distribution download failed (attempt $attempt of 3), retrying in $((attempt * 30))s"
+            sleep $((attempt * 30))
+          fi
+        done
+        echo "::error::Gradle distribution download failed 3 times"
+        exit 1
