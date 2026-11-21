@@ -1,18 +1,19 @@
-import 'dart:io';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:intl/intl.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
+import 'package:opennutritracker/core/presentation/widgets/local_user_image.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/user_image_storage.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -179,21 +180,88 @@ class IntakeCard extends StatelessWidget {
 
 /// The leading thumbnail: a user photo, the remote OFF/FDC image, or a soft
 /// fallback chip with a food icon — clipped to a rounded square.
-class _Thumbnail extends StatelessWidget {
+class _Thumbnail extends StatefulWidget {
   final IntakeEntity intake;
   final AppPalette palette;
 
   const _Thumbnail({required this.intake, required this.palette});
 
   @override
-  Widget build(BuildContext context) {
+  State<_Thumbnail> createState() => _ThumbnailState();
+}
+
+class _ThumbnailState extends State<_Thumbnail> {
+  late Stream<int> _changes;
+  int _photoRevision = 0;
+
+  void _watchLibrary() {
+    final changes = widget.intake.meal.source == MealSourceEntity.recipe
+        ? locator<RecipeDataSource>().watch()
+        : locator<CustomMealDataSource>().watch();
+    _changes = changes.map((_) => ++_photoRevision);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _watchLibrary();
+  }
+
+  @override
+  void didUpdateWidget(covariant _Thumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.intake.meal.source != widget.intake.meal.source) {
+      _watchLibrary();
+    }
+  }
+
+  // Resolve only presentation metadata; logged portions and nutrition stay put.
+  ({String? local, String? remote}) _photo() {
+    final meal = widget.intake.meal;
+    if (meal.source == MealSourceEntity.recipe && meal.code != null) {
+      final recipe = locator<RecipeDataSource>().getRecipeById(meal.code!);
+      if (recipe != null) return (local: recipe.imagePath, remote: null);
+    } else if (meal.source != MealSourceEntity.recipe) {
+      final identity = meal.code ?? meal.name;
+      if (identity != null) {
+        for (final current
+            in locator<CustomMealDataSource>().getAllCustomMeals()) {
+          if (MealSourceEntity.fromMealSourceDBO(current.source) ==
+                  meal.source &&
+              (current.code ?? current.name) == identity) {
+            return (
+              local: current.localImagePath,
+              remote: current.mainImageUrl,
+            );
+          }
+        }
+      }
+    }
+    return (local: meal.localImagePath, remote: meal.mainImageUrl);
+  }
+
+  @override
+  Widget build(BuildContext context) => StreamBuilder<int>(
+    stream: _changes,
+    builder: (context, snapshot) => _buildPhoto(snapshot.data),
+  );
+
+  Widget _buildPhoto(int? revision) {
+    final photo = _photo();
     Widget content;
-    if (intake.meal.localImagePath != null) {
-      content = _LocalMealImage(relativePath: intake.meal.localImagePath!);
-    } else if (intake.meal.mainImageUrl != null) {
+    if (photo.local != null) {
+      content = LocalUserImage(
+        // The picker evicts overwritten bytes, but the slug stays the same.
+        key: ValueKey((photo.local, revision)),
+        relativePath: photo.local!,
+        width: IntakeCard.thumbSize,
+        height: IntakeCard.thumbSize,
+        placeholder: _fallback(),
+      );
+    } else if (photo.remote != null) {
       content = CachedNetworkImage(
         cacheManager: locator<CacheManager>(),
-        imageUrl: intake.meal.mainImageUrl ?? "",
+        imageUrl: photo.remote!,
         fit: BoxFit.cover,
         errorWidget: (context, url, error) => _fallback(),
         placeholder: (context, url) => _fallback(),
@@ -212,26 +280,11 @@ class _Thumbnail extends StatelessWidget {
   }
 
   Widget _fallback() => Container(
-        color: palette.surfaceMuted,
-        child: Icon(Icons.restaurant_rounded, color: palette.textMuted, size: 24),
-      );
-}
-
-class _LocalMealImage extends StatelessWidget {
-  final String relativePath;
-
-  const _LocalMealImage({required this.relativePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: UserImageStorage.absolutePath(relativePath),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox.shrink();
-        final file = File(snapshot.data!);
-        if (!file.existsSync()) return const SizedBox.shrink();
-        return Image.file(file, fit: BoxFit.cover);
-      },
-    );
-  }
+    color: widget.palette.surfaceMuted,
+    child: Icon(
+      Icons.restaurant_rounded,
+      color: widget.palette.textMuted,
+      size: 24,
+    ),
+  );
 }

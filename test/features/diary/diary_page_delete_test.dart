@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
@@ -13,6 +14,7 @@ import 'package:opennutritracker/core/data/data_source/user_activity_data_source
 import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
@@ -168,6 +170,10 @@ void main() {
       bytes: Uint8List(0),
     );
     final db = FakeHiveDBProvider(
+      customMealBox: await Hive.openBox<MealDBO>(
+        'diary_delete_meals_$tag',
+        bytes: Uint8List(0),
+      ),
       configBox: configBox,
       intakeBox: intakeBox,
       trackedDayBox: trackedDayBox,
@@ -222,8 +228,10 @@ void main() {
     final getIntake = GetIntakeUsecase(
       intakeRepository,
       RecipeRepository(RecipeDataSource(db)),
+      CustomMealDataSource(db),
     );
     locator
+      ..registerSingleton<CustomMealDataSource>(CustomMealDataSource(db))
       ..registerSingleton<DiaryBloc>(
         DiaryBloc(getTrackedDay, getConfig, getIntake),
       )

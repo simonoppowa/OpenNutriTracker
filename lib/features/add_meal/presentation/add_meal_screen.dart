@@ -88,6 +88,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
   // case still upgrades to All on first keystroke, matching existing
   // behavior for someone who never touched the chips).
   bool _stickOnRecent = false;
+  bool? _wasCurrentRoute;
 
   @override
   void initState() {
@@ -118,6 +119,17 @@ class _AddMealScreenState extends State<AddMealScreen> {
         ModalRoute.of(context)?.settings.arguments as AddMealScreenArguments;
     _mealType = args.mealType;
     _day = args.day;
+    final isCurrent = ModalRoute.isCurrentOf(context);
+    // Save can replace Detail repeatedly; refresh when the picker returns.
+    if (_wasCurrentRoute == false &&
+        isCurrent == true &&
+        _resolveSource(_searchStringListener.value.trim()) ==
+            _SearchSource.recent) {
+      _recentMealBloc.add(
+        LoadRecentMealEvent(searchString: _searchStringListener.value),
+      );
+    }
+    _wasCurrentRoute = isCurrent;
     super.didChangeDependencies();
   }
 

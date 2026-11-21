@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/data/repository/favourite_meal_repository.
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 
 /// Regression test for #495 — custom-food serving size.
@@ -86,6 +87,48 @@ void main() {
       expect(meal.servingUnit, 'ml');
       expect(meal.mealUnit, 'ml');
     });
+
+    test(
+      'omitted canonical micronutrients are not normalized a second time',
+      () {
+        const old = MealEntity(
+          code: 'old-food',
+          name: 'Food',
+          url: null,
+          mealQuantity: '60',
+          mealUnit: 'g',
+          servingQuantity: 60,
+          servingUnit: 'g',
+          servingSize: '60 g',
+          source: MealSourceEntity.custom,
+          nutriments: MealNutrimentsEntity(
+            energyKcal100: 460,
+            carbohydrates100: 60,
+            fat100: 20,
+            proteins100: 10,
+            sugars100: null,
+            saturatedFat100: null,
+            fiber100: 8,
+          ),
+        );
+        final meal = bloc.createNewMealEntity(
+          old,
+          'Food',
+          '',
+          '60',
+          '60',
+          '60',
+          'g',
+          '276',
+          '36',
+          '12',
+          '6',
+        );
+        expect(meal.nutriments.energyKcal100, 460);
+        expect(meal.nutriments.fiber100, 8);
+        expect(meal.nutriments.sugars100, isNull);
+      },
+    );
 
     test('the g/ml default unit is preserved on the serving', () {
       final meal = build(servingQuantity: '100', unit: 'g/ml');

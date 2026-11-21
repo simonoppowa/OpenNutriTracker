@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
@@ -75,7 +78,16 @@ Widget wrap(
   ),
 );
 
+class _EmptyLibrary extends Fake implements CustomMealDataSource {
+  @override
+  List<MealDBO> getAllCustomMeals() => [];
+  @override
+  Stream<void> watch() => const Stream.empty();
+}
+
 void main() {
+  setUp(() => GetIt.I.registerSingleton<CustomMealDataSource>(_EmptyLibrary()));
+  tearDown(() => GetIt.I.reset());
   for (final (sort, label) in [
     (DiarySortType.protein, '7.5 g protein'),
     (DiarySortType.carbs, '30.0 g carbs'),

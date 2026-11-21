@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
@@ -94,7 +96,16 @@ class _SingleProfileGetProfilesUsecase implements GetProfilesUsecase {
   ProfileEntity? getActiveProfile() => _profile;
 }
 
+class _EmptyLibrary extends Fake implements CustomMealDataSource {
+  @override
+  List<MealDBO> getAllCustomMeals() => [];
+  @override
+  Stream<void> watch() => const Stream.empty();
+}
+
 class _RecipeDataSource extends Fake implements RecipeDataSource {
+  @override
+  Stream<void> watch() => const Stream.empty();
   final _recipes = <String, RecipeDBO>{};
 
   @override
@@ -158,8 +169,10 @@ Widget _wrapWithMaterial(Widget child) {
 void main() {
   setUpAll(() {
     final locator = GetIt.instance;
+    locator.registerSingleton<CustomMealDataSource>(_EmptyLibrary());
+    locator.registerSingleton<RecipeDataSource>(_RecipeDataSource());
     locator.registerSingleton<RecipeRepository>(
-      RecipeRepository(_RecipeDataSource()),
+      RecipeRepository(locator<RecipeDataSource>()),
     );
     locator.registerFactory<MealDetailBloc>(_FakeMealDetailBloc.new);
     locator.registerFactory<HomeBloc>(_FakeHomeBloc.new);

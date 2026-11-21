@@ -479,7 +479,7 @@ Future<void> initLocator() async {
     ),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
-    () => GetIntakeUsecase(locator(), locator()),
+    () => GetIntakeUsecase(locator(), locator(), locator()),
   );
   locator.registerLazySingleton<AddIntakeUsecase>(
     () => AddIntakeUsecase(locator()),

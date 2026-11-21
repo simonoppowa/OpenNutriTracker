@@ -1,3 +1,4 @@
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -8,8 +9,13 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 class GetIntakeUsecase {
   final IntakeRepository _intakeRepository;
   final RecipeRepository _recipeRepository;
+  final CustomMealDataSource _customMeals;
 
-  GetIntakeUsecase(this._intakeRepository, this._recipeRepository);
+  GetIntakeUsecase(
+    this._intakeRepository,
+    this._recipeRepository,
+    this._customMeals,
+  );
 
   /// The day label the `getToday…` reads below filter on. The queries
   /// take a label, so the boundary has to be resolved here rather than
@@ -111,23 +117,31 @@ class GetIntakeUsecase {
   /// Recents are built from the meal snapshot each intake stored, which is
   /// right for the diary and wrong for re-logging: after a recipe is edited,
   /// its old name, nutrition and servings kept being offered (#1276). A
-  /// recipe that still exists is offered as it is now; a deleted one keeps
-  /// its last snapshot, and the intakes themselves are never rewritten.
+  /// recipe or saved personal food is offered as it is now; a deleted one
+  /// keeps its last snapshot. The intakes themselves are never rewritten.
   Future<List<IntakeEntity>> getRecentIntake() async {
     final recent = await _intakeRepository.getRecentIntake();
+    final customByKey = {
+      for (final meal in _customMeals.getAllCustomMeals())
+        if ((meal.code ?? meal.name) != null) meal.code ?? meal.name: meal,
+    };
     return recent.map((intake) {
       final meal = intake.meal;
-      if (meal.source != MealSourceEntity.recipe || meal.code == null) {
-        return intake;
+      MealEntity? current;
+      if (meal.source == MealSourceEntity.recipe && meal.code != null) {
+        current = _recipeRepository.getRecipeById(meal.code!)?.toMealEntity();
+      } else if (meal.source != MealSourceEntity.recipe) {
+        // Personal corrections may replace an OFF/FDC snapshot under its code.
+        final saved = customByKey[meal.code ?? meal.name];
+        if (saved != null) current = MealEntity.fromMealDBO(saved);
       }
-      final recipe = _recipeRepository.getRecipeById(meal.code!);
-      if (recipe == null) return intake;
+      if (current == null) return intake;
       return IntakeEntity(
         id: intake.id,
         unit: intake.unit,
         amount: intake.amount,
         type: intake.type,
-        meal: recipe.toMealEntity(),
+        meal: current,
         dateTime: intake.dateTime,
       );
     }).toList();
