@@ -221,6 +221,15 @@ class ConfigDBO extends HiveObject {
   @HiveField(42)
   bool? hasLeftTip;
 
+  // Trends choices belong to the active profile, like its tracked days.
+  // Null keeps the existing 7-day range and shows every average row.
+  @HiveField(49)
+  Map<String, bool>? trendsMetricVisibility;
+  @HiveField(50)
+  int? trendsSelectedRangeDays;
+  @HiveField(51)
+  int? trendsCustomRangeDays;
+
   ConfigDBO(
     this.hasAcceptedDisclaimer,
     this.hasAcceptedPolicy,
@@ -262,6 +271,9 @@ class ConfigDBO extends HiveObject {
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
     this.hasLeftTip,
+    this.trendsMetricVisibility,
+    this.trendsSelectedRangeDays,
+    this.trendsCustomRangeDays,
   });
 
   factory ConfigDBO.empty() =>
@@ -276,6 +288,9 @@ class ConfigDBO extends HiveObject {
     usesImperialFoodUnits: entity.usesImperialFoodUnits,
     usesImperialHeightUnits: entity.usesImperialHeightUnits,
     bodyWeightUnitIndex: entity.bodyWeightUnit.index,
+    trendsMetricVisibility: entity.trendsMetricVisibility,
+    trendsSelectedRangeDays: entity.trendsSelectedRangeDays,
+    trendsCustomRangeDays: entity.trendsCustomRangeDays,
   );
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>

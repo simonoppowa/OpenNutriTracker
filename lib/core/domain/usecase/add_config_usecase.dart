@@ -106,6 +106,17 @@ class AddConfigUsecase {
     await _configRepository.setConfigNutrientPanelVisibility(visibility);
   }
 
+  Future<void> setTrendsMetricVisibility(Map<String, bool> visibility) async {
+    await _configRepository.setTrendsMetricVisibility(visibility);
+  }
+
+  Future<void> setTrendsRangeDays(int rangeDays, {int? customDays}) async {
+    await _configRepository.setTrendsRangeDays(
+      rangeDays,
+      customDays: customDays,
+    );
+  }
+
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
     await _configRepository.setConfigDailyWaterGoalMl(goalMl);
   }

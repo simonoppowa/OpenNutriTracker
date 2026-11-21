@@ -2,12 +2,12 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/diary/domain/usecase/get_diary_entry_day_keys_usecase.dart';
 
 part 'diary_event.dart';
 
@@ -16,16 +16,15 @@ part 'diary_state.dart';
 class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final GetTrackedDayUsecase _getDayTrackedUsecase;
   final GetConfigUsecase _getConfigUsecase;
-  final GetIntakeUsecase _getIntakeUsecase;
+  final GetDiaryEntryDayKeysUsecase _getEntryDayKeysUsecase;
 
   DateTime currentDay = DateTime.now();
 
   DiaryBloc(
     this._getDayTrackedUsecase,
     this._getConfigUsecase,
-    this._getIntakeUsecase,
-  )
-      : super(DiaryInitial()) {
+    this._getEntryDayKeysUsecase,
+  ) : super(DiaryInitial()) {
     on<LoadDiaryYearEvent>((event, emit) async {
       emit(DiaryLoadingState());
 
@@ -47,25 +46,24 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
         currentDay.subtract(yearDuration),
         currentDay.add(yearDuration),
       );
+      final entryDayKeys = await _getEntryDayKeysUsecase.getEntryDayKeys(
+        config.dayStartOffsetTotalMinutes,
+      );
 
       final trackedDaysMap = {
         for (var trackedDay in trackedDays)
           trackedDay.day.toParsedDay(): trackedDay,
       };
 
-      // The calendar marks a day by what is logged on it, not by its row:
-      // a row stays for its goals when a boundary move empties its day.
-      final daysWithEntries = await _getIntakeUsecase.getDayKeysWithIntakes(
-        config.dayStartOffsetTotalMinutes,
+      emit(
+        DiaryLoadedState(
+          trackedDaysMap,
+          usesImperialUnits,
+          daysWithEntries: entryDayKeys,
+          showMealMacros: showMealMacros,
+          showActivityTracking: showActivityTracking,
+        ),
       );
-
-      emit(DiaryLoadedState(
-        trackedDaysMap,
-        usesImperialUnits,
-        daysWithEntries: daysWithEntries,
-        showMealMacros: showMealMacros,
-        showActivityTracking: showActivityTracking,
-      ));
     });
   }
 
