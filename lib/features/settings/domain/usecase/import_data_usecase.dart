@@ -203,6 +203,7 @@ class ImportDataUsecase {
           fatGoalPct: goalSettings.fatGoalPct,
           mealKcalSharesPct: goalSettings.mealKcalSharesPct,
           dailyWaterGoalMl: goalSettings.dailyWaterGoalMl,
+          nutrientGoals: goalSettings.nutrientGoals,
         );
       }
 

@@ -105,6 +105,7 @@ class ConfigRepository {
     required double? fatGoalPct,
     required Map<String, int>? mealKcalSharesPct,
     required int? dailyWaterGoalMl,
+    required Map<String, double>? nutrientGoals,
   }) async {
     await _configDataSource.setConfigGoalSettings(
       kcalAdjustment: kcalAdjustment,
@@ -113,6 +114,7 @@ class ConfigRepository {
       fatGoalPct: fatGoalPct,
       mealKcalSharesPct: mealKcalSharesPct,
       dailyWaterGoalMl: dailyWaterGoalMl,
+      nutrientGoals: nutrientGoals,
     );
   }
 
@@ -188,6 +190,10 @@ class ConfigRepository {
 
   Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
     await _configDataSource.setConfigDailyWaterGoalMl(goalMl);
+  }
+
+  Future<void> setConfigUserNutrientGoals(Map<String, double> goals) async {
+    await _configDataSource.setConfigUserNutrientGoals(goals);
   }
 
   Future<void> setFastingWarningAcknowledged(bool acknowledged) async {

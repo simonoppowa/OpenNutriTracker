@@ -110,6 +110,10 @@ class AddConfigUsecase {
     await _configRepository.setConfigDailyWaterGoalMl(goalMl);
   }
 
+  Future<void> setConfigUserNutrientGoals(Map<String, double> goals) async {
+    await _configRepository.setConfigUserNutrientGoals(goals);
+  }
+
   Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {
     await _configRepository.setConfigUseMaterialYou(useMaterialYou);
   }

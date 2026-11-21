@@ -3,6 +3,7 @@ import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
+import 'package:opennutritracker/core/domain/entity/nutrient_goal_keys.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
 
 class ConfigEntity extends Equatable {
@@ -63,6 +64,9 @@ class ConfigEntity extends Equatable {
   // gendered default at read time. Once the user has touched the
   // setting, their override is persisted and survives a profile edit.
   final int? dailyWaterGoalMl;
+  // #1316: the user's own per-nutrient goals, keyed by [NutrientGoalKeys].
+  // Only valid amounts; a nutrient that is absent uses its default.
+  final Map<String, double> userNutrientGoals;
   // #84: whether the user has acknowledged the one-time content warning
   // shown before the fasting timer becomes usable. Defaults to false; the
   // warning is shown until the user explicitly taps "I understand, enable
@@ -257,6 +261,7 @@ class ConfigEntity extends Equatable {
     this.dayStartOffsetHours = 0,
     this.dayStartOffsetMinutes = 0,
     this.dailyWaterGoalMl,
+    this.userNutrientGoals = const <String, double>{},
     this.fastingWarningAcknowledged = false,
     this.useMaterialYou = true,
     this.accentColor,
@@ -371,6 +376,7 @@ class ConfigEntity extends Equatable {
     dayStartOffsetHours: _normaliseOffsetHours(dbo.dayStartOffsetHours),
     dayStartOffsetMinutes: _normaliseOffsetMinutes(dbo.dayStartOffsetMinutes),
     dailyWaterGoalMl: _normaliseWaterGoal(dbo.dailyWaterGoalMl),
+    userNutrientGoals: NutrientGoalKeys.sanitise(dbo.userNutrientGoals),
     fastingWarningAcknowledged: dbo.fastingWarningAcknowledged ?? false,
     useMaterialYou: dbo.useMaterialYou ?? true,
     accentColor: _normaliseAccentColor(dbo.accentColor),
@@ -484,6 +490,7 @@ class ConfigEntity extends Equatable {
     dayStartOffsetHours,
     dayStartOffsetMinutes,
     dailyWaterGoalMl,
+    userNutrientGoals,
     fastingWarningAcknowledged,
     useMaterialYou,
     accentColor,

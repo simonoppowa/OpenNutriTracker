@@ -10,6 +10,7 @@ import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
@@ -61,6 +62,8 @@ void main() {
     trackedDayBox = await Hive.openBox<TrackedDayDBO>('remap_tracked_$stamp');
     otherIntakeBox = await Hive.openBox<IntakeDBO>('remap_other_$stamp');
     profileBox = await Hive.openBox<ProfileDBO>('remap_profiles_$stamp');
+    // A new tracked day reads the profile's nutrient goals (#1316).
+    final configBox = await Hive.openBox<ConfigDBO>('remap_config_$stamp');
     await profileBox.addAll([
       ProfileDBO(
         id: 'me',
@@ -81,6 +84,7 @@ void main() {
       customMealBox: customMealBox,
       intakeBox: intakeBox,
       trackedDayBox: trackedDayBox,
+      configBox: configBox,
     );
     favourites = _RecordingFavouriteMealRepository();
     bloc = EditMealBloc(
@@ -418,6 +422,7 @@ class _ProfilesHiveDBProvider extends FakeHiveDBProvider {
     super.customMealBox,
     super.intakeBox,
     super.trackedDayBox,
+    super.configBox,
   }) : _profiles = profiles,
        scopedIntakeBoxes = Map.of(scopedIntakeBoxes),
        super(activeProfileId: 'me');

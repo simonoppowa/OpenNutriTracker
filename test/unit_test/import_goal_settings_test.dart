@@ -133,6 +133,7 @@ Map<String, dynamic> _goalsJson() => {
     'snack': 10,
   },
   'dailyWaterGoalMl': 2600,
+  'nutrientGoals': {'iron': 30.0, 'fibre': 40},
 };
 
 /// Restoring a backup after a reset or reinstall must bring the goal
@@ -338,6 +339,7 @@ void main() {
       'snack': 10,
     });
     await config.setConfigDailyWaterGoalMl(3100);
+    await config.setConfigUserNutrientGoals({'iron': 30, 'sugars': 0});
   }
 
   Future<Map<String, Object?>> goals() async {
@@ -349,6 +351,7 @@ void main() {
       'fatGoalPct': c.userFatGoalPct,
       'mealKcalSharesPct': c.mealKcalSharesPct,
       'dailyWaterGoalMl': c.dailyWaterGoalMl,
+      'nutrientGoals': c.userNutrientGoals,
     };
   }
 
@@ -443,6 +446,70 @@ void main() {
     },
   );
 
+  // #1316: the nutrient goals new days start with travel in the file too.
+  group('nutrient goals', () {
+    Future<Object?> importNutrientGoals(Map<String, dynamic> file) async {
+      await setCustomGoals();
+      writeZip({ExportImportBloc.goalSettingsJsonFileName: jsonEncode(file)});
+      expect(await importJson(), isTrue);
+      return (await goals())['nutrientGoals'];
+    }
+
+    test('replace the device ones', () async {
+      expect(await importNutrientGoals(_goalsJson()), {
+        'iron': 30.0,
+        'fibre': 40.0,
+      });
+    });
+
+    test('a null puts them back to the defaults', () async {
+      expect(
+        await importNutrientGoals({..._goalsJson(), 'nutrientGoals': null}),
+        isNull,
+      );
+    });
+
+    test('a file without them, from a build before #1316, puts them back '
+        'to the defaults like any missing key', () async {
+      expect(
+        await importNutrientGoals(_goalsJson()..remove('nutrientGoals')),
+        isNull,
+      );
+    });
+
+    test(
+      'keep a goal of 0 and ignore a nutrient this build does not know',
+      () async {
+        expect(
+          await importNutrientGoals({
+            ..._goalsJson(),
+            'nutrientGoals': {'sugars': 0, 'zinc': 11},
+          }),
+          {'sugars': 0.0},
+        );
+      },
+    );
+
+    test('an export carries the stored goals', () async {
+      await setCustomGoals();
+      expect(
+        GoalSettingsBackup.fromConfigDBO(
+          await config.getConfig(),
+        ).toJson()['nutrientGoals'],
+        {'iron': 30.0, 'sugars': 0.0},
+      );
+    });
+
+    test('an export of no goals writes null', () async {
+      expect(
+        GoalSettingsBackup.fromConfigDBO(
+          ConfigDBO.empty(),
+        ).toJson()['nutrientGoals'],
+        isNull,
+      );
+    });
+  });
+
   test('goal settings from a newer format are skipped and the rest of the '
       'archive still imports', () async {
     await setCustomGoals();
@@ -526,6 +593,18 @@ void main() {
       'water goal not a whole number': jsonEncode({
         ..._goalsJson(),
         'dailyWaterGoalMl': 2600.5,
+      }),
+      'nutrient goals not an object': jsonEncode({
+        ..._goalsJson(),
+        'nutrientGoals': [30],
+      }),
+      'nutrient goal is text': jsonEncode({
+        ..._goalsJson(),
+        'nutrientGoals': {'iron': '30'},
+      }),
+      'nutrient goal negative': jsonEncode({
+        ..._goalsJson(),
+        'nutrientGoals': {'iron': -1},
       }),
     };
     final intake = jsonEncode([
@@ -755,6 +834,7 @@ void main() {
         'fatGoalPct',
         'mealKcalSharesPct',
         'dailyWaterGoalMl',
+        'nutrientGoals',
       });
     });
   });
