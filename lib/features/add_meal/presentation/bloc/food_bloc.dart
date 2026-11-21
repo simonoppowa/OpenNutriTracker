@@ -91,6 +91,7 @@ class FoodBloc extends Bloc<FoodEvent, FoodState> {
           remoteSourceEmpty: result.remoteSourceEmpty,
           remoteSourceFailed: result.remoteSourceFailed,
           query: searchString,
+          recentlyLoggedKeys: result.recentlyLoggedKeys,
         ),
       );
       _completedQuery = searchString;

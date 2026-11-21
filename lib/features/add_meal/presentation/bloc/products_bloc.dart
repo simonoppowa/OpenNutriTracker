@@ -111,6 +111,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
           remoteSourceEmpty: result.remoteSourceEmpty,
           remoteSourceFailed: result.remoteSourceFailed,
           query: searchString,
+          recentlyLoggedKeys: result.recentlyLoggedKeys,
         ),
       );
       _completedQuery = searchString;

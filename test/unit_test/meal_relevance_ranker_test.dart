@@ -459,4 +459,144 @@ void main() {
       expect(merged, [exactFdc, looseOff]);
     });
   });
+
+  // #576: the per-source lists put what the user has logged above the
+  // remote page, and the merged All list used to undo that by sorting it
+  // back into the page by relevance — so an exact remote match pushed out
+  // the food the user logs every day.
+  group('mergeAndRankMeals with recently logged keys', () {
+    test('mealSearchKey is source plus code, falling back to the name', () {
+      expect(mealSearchKey(_meal(name: 'Milk', code: '123')), 'off:123');
+      expect(mealSearchKey(_codeless('Milk')), 'fdc:Milk');
+    });
+
+    test('ranks a logged result above a closer remote match', () {
+      final logged = _meal(name: 'Banana chips', code: 'chips');
+      final exact = _meal(name: 'Banana', code: 'banana');
+
+      final merged = mergeAndRankMeals(
+        [exact, logged],
+        [],
+        'banana',
+        recentlyLogged: {mealSearchKey(logged)},
+      );
+
+      expect(merged, [logged, exact]);
+    });
+
+    test('keeps own custom meals and recipes above logged results', () {
+      final own = _meal(
+        name: 'My banana bread',
+        source: MealSourceEntity.custom,
+      );
+      final logged = _meal(name: 'Banana', code: 'banana');
+
+      final merged = mergeAndRankMeals(
+        [logged],
+        [own],
+        'banana',
+        recentlyLogged: {mealSearchKey(logged)},
+      );
+
+      expect(merged, [own, logged]);
+    });
+
+    test('relevance-sorts logged results from both sources together', () {
+      final loggedLoose = _meal(name: 'Banana chips', code: 'chips');
+      final loggedExact = _meal(
+        name: 'Banana',
+        code: 'fdc-banana',
+        source: MealSourceEntity.fdc,
+      );
+      final remote = _meal(name: 'Banana split', code: 'split');
+
+      final merged = mergeAndRankMeals(
+        [loggedLoose, remote],
+        [loggedExact],
+        'banana',
+        recentlyLogged: {
+          mealSearchKey(loggedLoose),
+          mealSearchKey(loggedExact),
+        },
+      );
+
+      expect(merged, [loggedExact, loggedLoose, remote]);
+    });
+
+    test('drops an OFF near-duplicate of a logged product, keeping the '
+        'logged copy even when the other scores higher', () {
+      final logged = _meal(name: 'Whole Milk', code: 'logged', brands: 'Acme');
+      final copy = _meal(
+        name: 'Whole Milk',
+        code: 'copy',
+        brands: 'Acme',
+        detailed: true,
+      );
+
+      final merged = mergeAndRankMeals(
+        [copy, logged],
+        [],
+        'milk',
+        recentlyLogged: {mealSearchKey(logged)},
+      );
+
+      expect(merged, [logged]);
+    });
+
+    test('collapses two logged barcodes of one OFF product into one', () {
+      final first = _meal(name: 'Whole Milk', code: 'first', brands: 'Acme');
+      final second = _meal(name: 'Whole Milk', code: 'second', brands: 'Acme');
+
+      final merged = mergeAndRankMeals(
+        [first, second],
+        [],
+        'milk',
+        recentlyLogged: {mealSearchKey(first), mealSearchKey(second)},
+      );
+
+      expect(merged, [first]);
+    });
+
+    test('never drops a backend record that shares a logged name', () {
+      final logged = _meal(
+        name: 'Egg',
+        code: 'egg-1',
+        source: MealSourceEntity.fdc,
+      );
+      final sibling = _meal(
+        name: 'Egg',
+        code: 'egg-2',
+        source: MealSourceEntity.fdc,
+      );
+
+      final merged = mergeAndRankMeals(
+        [],
+        [sibling, logged],
+        'egg',
+        recentlyLogged: {mealSearchKey(logged)},
+      );
+
+      expect(merged, [logged, sibling]);
+    });
+
+    test('a logged key matching nothing in the lists adds nothing', () {
+      final remote = _meal(name: 'Banana', code: 'banana');
+
+      final merged = mergeAndRankMeals(
+        [remote],
+        [],
+        'banana',
+        recentlyLogged: {'off:gone', 'fdc:gone'},
+      );
+
+      expect(merged, [remote]);
+    });
+
+    test('without logged keys the order is unchanged', () {
+      final loose = _meal(name: 'Banana chips', code: 'chips');
+      final exact = _meal(name: 'Banana', code: 'banana');
+
+      expect(mergeAndRankMeals([loose, exact], [], 'banana'), [exact, loose]);
+    });
+  });
 }

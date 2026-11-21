@@ -34,17 +34,28 @@ class ProductsLoadedState extends ProductsState {
   /// debouncing/in flight" — the latter shows a spinner, not "no results".
   final String query;
 
+  /// Keys of the [products] the user has logged — see
+  /// `SearchProductsResult.recentlyLoggedKeys`. The "All" view ranks them
+  /// above the rest of the merged list (#576).
+  final Set<String> recentlyLoggedKeys;
+
   const ProductsLoadedState({
     required this.products,
     this.usesImperialUnits = false,
     this.remoteSourceEmpty = false,
     this.remoteSourceFailed = false,
     this.query = '',
+    this.recentlyLoggedKeys = const {},
   });
 
   @override
-  List<Object?> get props =>
-      [products, remoteSourceEmpty, remoteSourceFailed, query];
+  List<Object?> get props => [
+    products,
+    remoteSourceEmpty,
+    remoteSourceFailed,
+    query,
+    recentlyLoggedKeys,
+  ];
 }
 
 class ProductsFailedState extends ProductsState {

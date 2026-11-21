@@ -568,7 +568,18 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       final foods = fs is FoodLoadedState
                           ? fs.food
                           : const <MealEntity>[];
-                      final merged = mergeAndRankMeals(products, foods, query);
+                      // What the user has logged ranks above the rest of
+                      // the page, as in each source's own list (#576).
+                      final merged = mergeAndRankMeals(
+                        products,
+                        foods,
+                        query,
+                        recentlyLogged: {
+                          if (ps is ProductsLoadedState)
+                            ...ps.recentlyLoggedKeys,
+                          if (fs is FoodLoadedState) ...fs.recentlyLoggedKeys,
+                        },
+                      );
                       final imperial = ps is ProductsLoadedState
                           ? ps.usesImperialUnits
                           : (fs is FoodLoadedState

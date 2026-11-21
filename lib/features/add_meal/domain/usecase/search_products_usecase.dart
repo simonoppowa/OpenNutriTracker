@@ -8,6 +8,7 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/add_meal/util/meal_relevance_ranker.dart';
 import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart';
 
 /// Output of a product/food search. [meals] is the deduplicated list shown
@@ -20,15 +21,23 @@ import 'package:opennutritracker/features/meal_detail/util/hydrate_off_meal.dart
 /// [remoteSourceFailed] is true only when the remote source threw — a
 /// genuine zero-row answer leaves it false. The "All" view needs the two
 /// apart: a provider outage must not read as "no matching foods".
+///
+/// [recentlyLoggedKeys] holds the [mealSearchKey]s of the entries in [meals]
+/// of the searched source that the user has logged, most recently logged
+/// first. The "All" view ranks those above the rest of the merged page
+/// (#576), the way this list already puts them above its own page. Custom
+/// meals and recipes are never in it: they rank as the user's own anyway.
 class SearchProductsResult {
   final List<MealEntity> meals;
   final bool remoteSourceEmpty;
   final bool remoteSourceFailed;
+  final Set<String> recentlyLoggedKeys;
 
   const SearchProductsResult({
     required this.meals,
     required this.remoteSourceEmpty,
     this.remoteSourceFailed = false,
+    this.recentlyLoggedKeys = const {},
   });
 }
 
@@ -270,18 +279,29 @@ class SearchProductsUseCase {
     };
     bool logged(MealEntity meal) => loggedKeys.contains(_dedupKey(meal));
 
+    final meals = _deduplicateMeals([
+      ...fromCustomMealBox,
+      ...fromRecipes,
+      ...fromIntakeHistory,
+      ...fromCache.where(logged),
+      ...fromRemote.where(logged),
+      ...fromRemote,
+      ...fromCache,
+    ]);
+    // In the order the user logged them, newest first, and only those the
+    // list carries: a logged record this search did not return, or one
+    // from a food source the user turned off, is not named.
+    final listedKeys = {for (final meal in meals) _dedupKey(meal)};
     return SearchProductsResult(
-      meals: _deduplicateMeals([
-        ...fromCustomMealBox,
-        ...fromRecipes,
-        ...fromIntakeHistory,
-        ...fromCache.where(logged),
-        ...fromRemote.where(logged),
-        ...fromRemote,
-        ...fromCache,
-      ]),
+      meals: meals,
       remoteSourceEmpty: remoteSourceEmpty,
       remoteSourceFailed: remoteFailed,
+      recentlyLoggedKeys: {
+        for (final intake in recentIntake)
+          if (intake.meal.source == cacheSource &&
+              listedKeys.contains(_dedupKey(intake.meal)))
+            _dedupKey(intake.meal),
+      },
     );
   }
 
@@ -305,8 +325,7 @@ class SearchProductsUseCase {
     return fresh;
   }
 
-  String _dedupKey(MealEntity meal) =>
-      '${meal.source.name}:${meal.code ?? meal.name ?? ''}';
+  String _dedupKey(MealEntity meal) => mealSearchKey(meal);
 
   List<MealEntity> _deduplicateMeals(List<MealEntity> meals) {
     final seenKeys = <String>{};

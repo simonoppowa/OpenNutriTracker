@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
@@ -66,9 +67,12 @@ class _FakeProductsRepository implements ProductsRepository {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
+/// What the user has logged, newest first; [_register] clears it.
+List<IntakeEntity> _recentIntake = const [];
+
 class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => const [];
+  Future<List<IntakeEntity>> getRecentIntake() async => _recentIntake;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -162,6 +166,7 @@ FakeFavourites? _favourites;
 
 Future<void> _register() async {
   await getIt.reset();
+  _recentIntake = const [];
   _repository = _FakeProductsRepository();
   _customMeals = _FakeCustomMealDataSource();
   final config = _FakeGetConfigUsecase();
@@ -207,6 +212,10 @@ Widget _app() => MaterialApp(
 /// the card appends the brand.
 Finder _card(String name) =>
     find.textContaining(name, findRichText: true);
+
+/// How far down the screen the card for [name] starts.
+double _top(WidgetTester tester, String name) =>
+    tester.getTopLeft(_card(name)).dy;
 
 /// Opens the screen and submits [query], which searches All.
 Future<void> _search(WidgetTester tester, String query) async {
@@ -441,6 +450,67 @@ void main() {
       expect(find.byType(NoResultsWidget), findsOneWidget);
       expect(find.byType(PartialResultsNotice), findsNothing);
       expect(find.text(l10nEn.errorFetchingProductData), findsNothing);
+    });
+  });
+
+  // #576: a food the user has logged ranks above the rest of the merged
+  // list, as it does in its own source's list, instead of under a closer
+  // remote match.
+  group('AddMealScreen All search with logged results', () {
+    tearDown(() async => getIt.reset());
+
+    IntakeEntity logged(MealEntity meal) => IntakeEntity(
+      id: 'intake-${meal.code}',
+      unit: 'g',
+      amount: 100,
+      type: IntakeTypeEntity.lunch,
+      meal: meal,
+      dateTime: DateTime(2026, 9, 30),
+    );
+
+    testWidgets('a logged backend food ranks above an exact OFF match', (
+      tester,
+    ) async {
+      await _register();
+      final ripe = _meal('Ripe banana', MealSourceEntity.fdc);
+      _recentIntake = [logged(ripe)];
+      _repository
+        ..offResults = [_meal('Banana', MealSourceEntity.off)]
+        ..fdcResults = [ripe];
+
+      await _search(tester, 'banana');
+
+      expect(_card('Banana'), findsOneWidget);
+      expect(_card('Ripe banana'), findsOneWidget);
+      expect(_top(tester, 'Ripe banana'), lessThan(_top(tester, 'Banana')));
+    });
+
+    testWidgets('with nothing logged, the closer match comes first', (
+      tester,
+    ) async {
+      await _register();
+      _repository
+        ..offResults = [_meal('Banana', MealSourceEntity.off)]
+        ..fdcResults = [_meal('Ripe banana', MealSourceEntity.fdc)];
+
+      await _search(tester, 'banana');
+
+      expect(_top(tester, 'Banana'), lessThan(_top(tester, 'Ripe banana')));
+    });
+
+    testWidgets('one provider down: the logged food still leads, with the '
+        'partial notice', (tester) async {
+      await _register();
+      final ripe = _meal('Ripe banana', MealSourceEntity.fdc);
+      _recentIntake = [logged(ripe)];
+      _repository
+        ..offThrows = true
+        ..fdcResults = [_meal('Banana', MealSourceEntity.fdc), ripe];
+
+      await _search(tester, 'banana');
+
+      expect(find.byType(PartialResultsNotice), findsOneWidget);
+      expect(_top(tester, 'Ripe banana'), lessThan(_top(tester, 'Banana')));
     });
   });
 }
