@@ -58,6 +58,8 @@ class URLConst {
       "https://www.who.int/data/gho/data/themes/topics/topic-details/GHO/body-mass-index";
   static const sourceMacrosWhoTrs916URL =
       "https://iris.who.int/handle/10665/42665";
+  static const sourceMacrosFeinman2015URL =
+      "https://doi.org/10.1016/j.nut.2014.06.011";
   static const sourceActivityCompendium2024URL =
       "https://pubmed.ncbi.nlm.nih.gov/38242596/";
   static const sourceInclusiveDesignLinsenmeyer2021URL =

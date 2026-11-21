@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/macro_preset_buttons.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Rounds three macro percentage shares to integers that sum to exactly 100.
@@ -148,6 +149,17 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     } finally {
       _syncingControllers = false;
     }
+  }
+
+  /// Presets are authored to sum to 100, so they skip the rebalance pass.
+  void _applyPreset(int carbsPct, int proteinPct, int fatPct) {
+    _lastEditedMacro = null;
+    setState(() {
+      _carbsPct = carbsPct.toDouble();
+      _proteinPct = proteinPct.toDouble();
+      _fatPct = fatPct.toDouble();
+    });
+    _syncControllers();
   }
 
   void _markLastEdited(_MacroField field) {
@@ -347,6 +359,13 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                   Text(
                     '$totalPct% total',
                     style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 8),
+                  MacroPresetButtons(
+                    carbsPct: _carbsPct.round(),
+                    proteinPct: _proteinPct.round(),
+                    fatPct: _fatPct.round(),
+                    onSelected: _applyPreset,
                   ),
                   const SizedBox(height: 8),
                   _MacroRow(
