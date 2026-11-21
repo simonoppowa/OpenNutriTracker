@@ -137,4 +137,77 @@ void main() {
       expect(ref!.amount, 355);
     });
   });
+
+  group('getReferenceFor — nutrients added in #1624', () {
+    double amount(String key, int age, UserGenderEntity gender) =>
+        getReferenceFor(
+          nutrient: key,
+          user: user(age: age, gender: gender),
+        )!.amount;
+
+    const male = UserGenderEntity.male;
+    const female = UserGenderEntity.female;
+
+    test('zinc: 11 mg men, 8 mg women (IOM RDA)', () {
+      expect(amount(NutrientPanelKeys.zinc, 25, male), 11);
+      expect(amount(NutrientPanelKeys.zinc, 75, male), 11);
+      expect(amount(NutrientPanelKeys.zinc, 25, female), 8);
+    });
+
+    test('phosphorus: 700 mg for every adult', () {
+      expect(amount(NutrientPanelKeys.phosphorus, 25, male), 700);
+      expect(amount(NutrientPanelKeys.phosphorus, 60, female), 700);
+    });
+
+    test('vitamin A: 900 µg RAE men, 700 µg RAE women', () {
+      final ref = getReferenceFor(
+        nutrient: NutrientPanelKeys.vitaminA,
+        user: user(age: 40, gender: male),
+      )!;
+      expect(ref.amount, 900);
+      expect(ref.unit, 'µg');
+      expect(amount(NutrientPanelKeys.vitaminA, 40, female), 700);
+    });
+
+    test('vitamin C: 90 mg men, 75 mg women', () {
+      expect(amount(NutrientPanelKeys.vitaminC, 30, male), 90);
+      expect(amount(NutrientPanelKeys.vitaminC, 30, female), 75);
+    });
+
+    test('vitamin B6: 1.3 mg to 50, then 1.7 mg men and 1.5 mg women', () {
+      expect(amount(NutrientPanelKeys.vitaminB6, 45, male), 1.3);
+      expect(amount(NutrientPanelKeys.vitaminB6, 45, female), 1.3);
+      expect(amount(NutrientPanelKeys.vitaminB6, 55, male), 1.7);
+      expect(amount(NutrientPanelKeys.vitaminB6, 55, female), 1.5);
+    });
+
+    test('niacin: 16 mg men, 14 mg women', () {
+      expect(amount(NutrientPanelKeys.niacin, 25, male), 16);
+      expect(amount(NutrientPanelKeys.niacin, 25, female), 14);
+    });
+
+    test('every new nutrient has a row for every life stage', () {
+      for (final key in [
+        NutrientPanelKeys.zinc,
+        NutrientPanelKeys.phosphorus,
+        NutrientPanelKeys.vitaminA,
+        NutrientPanelKeys.vitaminC,
+        NutrientPanelKeys.vitaminB6,
+        NutrientPanelKeys.niacin,
+      ]) {
+        for (final gender in [male, female]) {
+          for (final age in [25, 40, 60, 80]) {
+            expect(
+              getReferenceFor(
+                nutrient: key,
+                user: user(age: age, gender: gender),
+              ),
+              isNotNull,
+              reason: '$key, $gender, $age',
+            );
+          }
+        }
+      }
+    });
+  });
 }
