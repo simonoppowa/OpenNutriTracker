@@ -401,8 +401,8 @@ class OpenAiCompatibleMealItemsApi implements MealItemsApi {
   /// sends, which is the clearest single reason these are two classes.
   Object _contentJson(MealContent content) => switch (content) {
     MealTextContent(:final text) => text,
-    MealPhotoContent(:final mediaType, :final base64Data) => [
-      {'type': 'text', 'text': mealPhotoContentPrompt},
+    MealPhotoContent(:final mediaType, :final base64Data, :final note) => [
+      {'type': 'text', 'text': mealPhotoContentText(note)},
       {
         'type': 'image_url',
         'image_url': {'url': 'data:$mediaType;base64,$base64Data'},
