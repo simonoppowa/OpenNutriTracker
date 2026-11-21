@@ -259,19 +259,13 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         activityEntity.burnedKcal,
       );
 
-      final carbsAmount = MacroCalc.getTotalCarbsGoal(
-        activityEntity.burnedKcal,
-      );
-      final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
-      final proteinAmount = MacroCalc.getTotalProteinsGoal(
-        activityEntity.burnedKcal,
-      );
+      final share = await _activityMacroShare(activityEntity.burnedKcal);
 
       await _addTrackedDayUsecase.reduceDayMacroGoals(
         day,
-        carbsAmount: carbsAmount,
-        fatAmount: fatAmount,
-        proteinAmount: proteinAmount,
+        carbsAmount: share.carbs,
+        fatAmount: share.fat,
+        proteinAmount: share.protein,
       );
     });
     _updateDiaryPage(day);
@@ -291,24 +285,35 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       );
       assert(newActivity != null);
       final kcalDiff = newActivity!.burnedKcal - activityEntity.burnedKcal;
+      final share = await _activityMacroShare(kcalDiff.abs());
       if (kcalDiff > 0) {
         await _addTrackedDayUsecase.increaseDayCalorieGoal(day, kcalDiff);
         await _addTrackedDayUsecase.increaseDayMacroGoals(
           day,
-          carbsAmount: MacroCalc.getTotalCarbsGoal(kcalDiff),
-          fatAmount: MacroCalc.getTotalFatsGoal(kcalDiff),
-          proteinAmount: MacroCalc.getTotalProteinsGoal(kcalDiff),
+          carbsAmount: share.carbs,
+          fatAmount: share.fat,
+          proteinAmount: share.protein,
         );
       } else if (kcalDiff < 0) {
         await _addTrackedDayUsecase.reduceDayCalorieGoal(day, kcalDiff.abs());
         await _addTrackedDayUsecase.reduceDayMacroGoals(
           day,
-          carbsAmount: MacroCalc.getTotalCarbsGoal(kcalDiff.abs()),
-          fatAmount: MacroCalc.getTotalFatsGoal(kcalDiff.abs()),
-          proteinAmount: MacroCalc.getTotalProteinsGoal(kcalDiff.abs()),
+          carbsAmount: share.carbs,
+          fatAmount: share.fat,
+          proteinAmount: share.protein,
         );
       }
     });
+  }
+
+  /// What [burnedKcal] of activity adds to a day's macro goals: nothing
+  /// while gram macro goals are set (#642).
+  Future<MacroGrams> _activityMacroShare(double burnedKcal) async {
+    final config = await _getConfigUsecase.getConfig();
+    return MacroGramGoals.activityShare(
+      burnedKcal,
+      gramGoals: config.macroGramGoals != null,
+    );
   }
 
   Future<void> _updateDiaryPage(DateTime day) async {

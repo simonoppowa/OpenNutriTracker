@@ -88,6 +88,11 @@ class _FakeMacroGoal extends Fake implements GetMacroGoalUsecase {
 
   @override
   Future<double> getProteinsGoal(double totalCalorieGoal) async => 100;
+
+  // The split's share, as with no gram macro goals set (#642).
+  @override
+  Future<MacroGrams> getActivityMacroShare(double burnedKcal) async =>
+      MacroGramGoals.activityShare(burnedKcal, gramGoals: false);
 }
 
 class _FakeProductsRepository extends Fake implements ProductsRepository {}

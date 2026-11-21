@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -24,6 +25,13 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
 
   @override
   Future<double?> getUserFatGoalPct() async => 0.25;
+
+  @override
+  Future<({bool inGrams, MacroGrams? grams})> getMacroGramGoals() async =>
+      (inGrams: false, grams: null);
+
+  @override
+  Future<double> getKcalGoalWithoutActivities() async => 2000;
 
   @override
   Future<void> setMacroGoals(

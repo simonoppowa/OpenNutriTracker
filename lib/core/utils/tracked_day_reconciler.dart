@@ -175,7 +175,23 @@ Future<int> reconcileTrackedDays(
   Set<String>? previousKeys,
   Map<String, double>? creditedBurned,
   TrackedDayGoals? currentGoals,
+  bool gramMacroGoals = false,
+  bool? previousKeysGramMacroGoals,
 }) {
+  // What activity energy adds to the macro goals of the row under [key]:
+  // nothing while gram macro goals are set (#642). The rows under
+  // [previousKeys] (a restore's) were credited under the archive's mode,
+  // [previousKeysGramMacroGoals] when known; every other row under this
+  // profile's, [gramMacroGoals].
+  MacroGrams share(Object? key, double burned) =>
+      MacroGramGoals.activityShare(
+        burned,
+        gramGoals:
+            previousKeysGramMacroGoals != null &&
+                (previousKeys?.contains(key) ?? false)
+            ? previousKeysGramMacroGoals
+            : gramMacroGoals,
+      );
   final rows = db.trackedDayBox;
   final listed = _listedDays(db, offsetMinutes);
   final previousImports = previousImportOffsetMinutes ?? previousOffsetMinutes;
@@ -211,6 +227,7 @@ Future<int> reconcileTrackedDays(
       existing,
       burnedOn,
       currentGoals,
+      share,
     );
     if (row == null) {
       _log.warning('No goal to create the tracked day of $key from');
@@ -237,14 +254,12 @@ Future<int> reconcileTrackedDays(
     }
     final burnedMoved = day.burned - burnedOn(key);
     if (movesCredit && burnedMoved.abs() > _epsilon) {
+      final moved = share(key, burnedMoved);
       row
         ..calorieGoal += burnedMoved
-        ..carbsGoal =
-            (row.carbsGoal ?? 0) + MacroCalc.getTotalCarbsGoal(burnedMoved)
-        ..fatGoal = (row.fatGoal ?? 0) + MacroCalc.getTotalFatsGoal(burnedMoved)
-        ..proteinGoal =
-            (row.proteinGoal ?? 0) +
-            MacroCalc.getTotalProteinsGoal(burnedMoved);
+        ..carbsGoal = (row.carbsGoal ?? 0) + moved.carbs
+        ..fatGoal = (row.fatGoal ?? 0) + moved.fat
+        ..proteinGoal = (row.proteinGoal ?? 0) + moved.protein;
       changed = true;
     }
     if (changed) written[key] = row;
@@ -263,6 +278,7 @@ TrackedDayDBO? _newRow(
   Map<dynamic, TrackedDayDBO> rows,
   double Function(String key) burnedOn,
   TrackedDayGoals? currentGoals,
+  MacroGrams Function(Object? key, double burned) share,
 ) {
   // Counted in calendar days, not hours: the keys parse to local
   // midnights, and across a daylight-saving change two of those are 23 or
@@ -291,31 +307,32 @@ TrackedDayDBO? _newRow(
   TrackedDayGoals? base = currentGoals;
   if (nearest != null) {
     final burned = burnedOn(nearestKey!);
+    final credited = share(nearestKey, burned);
     double? less(double? goal, double amount) =>
         goal == null ? null : goal - amount;
     base = (
       kcal: nearest.calorieGoal - burned,
-      carbs: less(nearest.carbsGoal, MacroCalc.getTotalCarbsGoal(burned)),
-      fat: less(nearest.fatGoal, MacroCalc.getTotalFatsGoal(burned)),
-      protein: less(
-        nearest.proteinGoal,
-        MacroCalc.getTotalProteinsGoal(burned),
-      ),
+      carbs: less(nearest.carbsGoal, credited.carbs),
+      fat: less(nearest.fatGoal, credited.fat),
+      protein: less(nearest.proteinGoal, credited.protein),
     );
   }
   if (base == null) return null;
 
   double? more(double? goal, double amount) =>
       goal == null ? null : goal + amount;
+  // In the mode of the row its base goals come from, so the row's base
+  // and its credit agree.
+  final own = share(nearestKey, day.burned);
   return TrackedDayDBO(
     day: date,
     calorieGoal: base.kcal + day.burned,
     caloriesTracked: day.kcal,
-    carbsGoal: more(base.carbs, MacroCalc.getTotalCarbsGoal(day.burned)),
+    carbsGoal: more(base.carbs, own.carbs),
     carbsTracked: day.carbs,
-    fatGoal: more(base.fat, MacroCalc.getTotalFatsGoal(day.burned)),
+    fatGoal: more(base.fat, own.fat),
     fatTracked: day.fat,
-    proteinGoal: more(base.protein, MacroCalc.getTotalProteinsGoal(day.burned)),
+    proteinGoal: more(base.protein, own.protein),
     proteinTracked: day.protein,
     fibreGoal: nearest?.fibreGoal,
     satFatGoal: nearest?.satFatGoal,
@@ -387,6 +404,7 @@ Future<int> ensureTrackedDaysMatchEntries(
       previousOffsetMinutes: keyedBy,
       previousImportOffsetMinutes: recordedBy == null ? offset : null,
       currentGoals: goals,
+      gramMacroGoals: _gramMacroGoals(configDataSource),
     );
     final recorded = recordedBy == offset
         ? null
@@ -402,6 +420,19 @@ Future<int> ensureTrackedDaysMatchEntries(
     );
   }
   return changed;
+}
+
+/// Whether the active profile's gram macro goals are in effect (#642), so
+/// moved activity energy leaves the macro goals alone.
+bool _gramMacroGoals(ConfigDataSource configDataSource) {
+  final config = configDataSource.getConfigNow();
+  return MacroGramGoals.effective(
+        inGrams: config.userMacroGoalsInGrams,
+        carbs: config.userCarbGoalGrams,
+        protein: config.userProteinGoalGrams,
+        fat: config.userFatGoalGrams,
+      ) !=
+      null;
 }
 
 /// Records the configured boundary as the one the active profile's rows
@@ -458,6 +489,10 @@ Future<void> ensureTrackedDaysRepaired(
 /// archive's activities count as the import stores them: one per id, the
 /// last, while each with a blank id is its own.
 ///
+/// [importedGramMacroGoals] is whether the archive's gram macro goals were
+/// in effect (#642), so its rows' macro goals did not follow its
+/// activities.
+///
 /// Records the configured boundary as the one this profile's rows are
 /// keyed by now. Runs under [withTrackedDayLock], so no writer changes
 /// the rows between the snapshot, the write and the reconciliation.
@@ -468,6 +503,7 @@ Future<int> restoreTrackedDays(
   required Set<String> importedDayKeys,
   required Iterable<UserActivityDBO> importedActivities,
   required int? keyedByOffsetMinutes,
+  bool importedGramMacroGoals = false,
 }) => withTrackedDayLock(() async {
   final offset = _offsetMinutesNow(configDataSource);
   final deviceCredit = _burnedByDay(db.userActivityBox.values, offset);
@@ -496,6 +532,11 @@ Future<int> restoreTrackedDays(
         if (!importedDayKeys.contains(key)) key: value,
       for (final key in importedDayKeys) key: archiveCredit[key] ?? 0,
     },
+    // The device's own rows were credited under its mode, read before the
+    // import restores the archive's goals; the archive's rows under the
+    // archive's (#642).
+    gramMacroGoals: _gramMacroGoals(configDataSource),
+    previousKeysGramMacroGoals: importedGramMacroGoals,
   );
   final recorded = configDataSource.setConfigTrackedDaysOffsetMinutes(offset);
   final changed = await rowsWritten;
@@ -530,6 +571,7 @@ Future<void> moveDayBoundary(
     db,
     offsetMinutes: after,
     previousOffsetMinutes: before,
+    gramMacroGoals: _gramMacroGoals(configDataSource),
   );
   final recorded = configDataSource.setConfigTrackedDaysOffsetMinutes(after);
   return Future.wait([configWritten, rowsWritten, recorded]);

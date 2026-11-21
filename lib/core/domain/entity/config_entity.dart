@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 
 class ConfigEntity extends Equatable {
   // #150: keys for the per-meal kcal share map. Kept as plain strings rather
@@ -40,6 +41,11 @@ class ConfigEntity extends Equatable {
   final double? userCarbGoalPct;
   final double? userProteinGoalPct;
   final double? userFatGoalPct;
+  // #642: absolute macro goals. See [macroGramGoals] for the ones in effect.
+  final bool userMacroGoalsInGrams;
+  final double? userCarbGoalGrams;
+  final double? userProteinGoalGrams;
+  final double? userFatGoalGrams;
   final bool showActivityTracking;
   final bool showMealMacros;
   final bool notificationsEnabled;
@@ -243,6 +249,10 @@ class ConfigEntity extends Equatable {
     this.userCarbGoalPct,
     this.userProteinGoalPct,
     this.userFatGoalPct,
+    this.userMacroGoalsInGrams = false,
+    this.userCarbGoalGrams,
+    this.userProteinGoalGrams,
+    this.userFatGoalGrams,
     this.showActivityTracking = true,
     this.showMealMacros = true,
     this.notificationsEnabled = false,
@@ -355,6 +365,10 @@ class ConfigEntity extends Equatable {
     userCarbGoalPct: dbo.userCarbGoalPct,
     userProteinGoalPct: dbo.userProteinGoalPct,
     userFatGoalPct: dbo.userFatGoalPct,
+    userMacroGoalsInGrams: dbo.userMacroGoalsInGrams ?? false,
+    userCarbGoalGrams: dbo.userCarbGoalGrams,
+    userProteinGoalGrams: dbo.userProteinGoalGrams,
+    userFatGoalGrams: dbo.userFatGoalGrams,
     showActivityTracking: dbo.showActivityTracking ?? true,
     showMealMacros: dbo.showMealMacros ?? true,
     notificationsEnabled: dbo.notificationsEnabled ?? false,
@@ -392,6 +406,15 @@ class ConfigEntity extends Equatable {
         ? Set<String>.from(dbo.healthDeletedExternalIds!)
         : const <String>{},
     defaultToRawFoodUnits: dbo.defaultToRawFoodUnits ?? false,
+  );
+
+  /// The gram macro goals in effect (#642), or null when the percentage
+  /// split applies: gram mode is off, or a stored value is invalid.
+  MacroGrams? get macroGramGoals => MacroGramGoals.effective(
+    inGrams: userMacroGoalsInGrams,
+    carbs: userCarbGoalGrams,
+    protein: userProteinGoalGrams,
+    fat: userFatGoalGrams,
   );
 
   /// Returns the recommended kcal target for [mealKey] given a daily goal.
@@ -470,6 +493,10 @@ class ConfigEntity extends Equatable {
     userCarbGoalPct,
     userProteinGoalPct,
     userFatGoalPct,
+    userMacroGoalsInGrams,
+    userCarbGoalGrams,
+    userProteinGoalGrams,
+    userFatGoalGrams,
     showActivityTracking,
     showMealMacros,
     notificationsEnabled,

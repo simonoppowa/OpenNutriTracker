@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/log_user_activity_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
@@ -88,6 +89,11 @@ class _FakeGetMacroGoalUsecase extends Fake implements GetMacroGoalUsecase {
 
   @override
   Future<double> getProteinsGoal(double totalCalorieGoal) async => 90;
+
+  // The split's share, as with no gram macro goals set (#642).
+  @override
+  Future<MacroGrams> getActivityMacroShare(double burnedKcal) async =>
+      MacroGramGoals.activityShare(burnedKcal, gramGoals: false);
 }
 
 class _NoopAddIntakeUsecase extends Fake implements AddIntakeUsecase {
