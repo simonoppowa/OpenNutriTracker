@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
@@ -20,6 +21,11 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
   final GetConfigUsecase _getConfigUsecase;
   final GetWaterIntakeUsecase _getWaterIntakeUsecase;
 
+  /// The clock "today" is read from. Tests pin it to a day near a DST
+  /// transition (#1224).
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
+
   /// The range of the last [LoadTrendsEvent], so a [RefreshTrendsEvent]
   /// keeps the chip the user picked. Null until the page first loads.
   int? _rangeDays;
@@ -40,7 +46,7 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
       _rangeDays = event.rangeDays;
       emit(const TrendsLoading());
       try {
-        final now = DateTime.now();
+        final now = clock();
         final today = DateTime(now.year, now.month, now.day);
         // Today's tracked day is stamped with the time it was created, so the
         // range end must cover the whole day or today drops out of the result
@@ -50,8 +56,11 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         // span fall out of the earliest data point below.
         final isAll = event.rangeDays == 0;
         final fetchDays = isAll ? 3650 : event.rangeDays;
+        // Calendar days back from today, so the fetch starts at midnight in
+        // every zone: a `Duration` lands an hour off it across a DST
+        // transition (#1224).
         final days = await _getTrackedDayUsecase.getTrackedDaysByRange(
-          today.subtract(Duration(days: fetchDays - 1)),
+          CalendarDayCalc.addDays(today, -(fetchDays - 1)),
           endOfToday,
         );
         // The full weight history; the chart windows it for display. This
@@ -61,7 +70,7 @@ class TrendsBloc extends Bloc<TrendsEvent, TrendsState> {
         weight.sort((a, b) => a.date.compareTo(b.date));
         // The 7 days before this week, for a week-over-week consistency delta.
         final priorWeek = await _getTrackedDayUsecase.getTrackedDaysByRange(
-          today.subtract(const Duration(days: 13)),
+          CalendarDayCalc.addDays(today, -13),
           DateTime(now.year, now.month, now.day - 7, 23, 59, 59),
         );
         final user = await _getUserUsecase.getUserData();

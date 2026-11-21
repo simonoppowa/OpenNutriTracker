@@ -92,4 +92,86 @@ void main() {
       skip: _skipUnless(DateTime(2026, 3, 29), 23, 'spring-forward'),
     );
   });
+  // #1224: the Trends page, its bloc and the demo seeder step back from today
+  // in calendar days. `today.subtract(Duration(days: n))` lands at 23:00 the
+  // evening before across a spring-forward (so its date is a day early) and
+  // at 01:00 across a fall-back (so it is no longer midnight).
+  group('CalendarDayCalc.addDays and daysEnding', () {
+    test('addDays steps forward and back to local midnight', () {
+      expect(
+        CalendarDayCalc.addDays(DateTime(2026, 6, 15), -6),
+        DateTime(2026, 6, 9),
+      );
+      expect(
+        CalendarDayCalc.addDays(DateTime(2026, 6, 15), 20),
+        DateTime(2026, 7, 5),
+      );
+      expect(
+        CalendarDayCalc.addDays(DateTime(2026, 6, 15, 18, 30), 0),
+        DateTime(2026, 6, 15),
+        reason: 'the time of day is dropped',
+      );
+    });
+
+    test('an empty range has no days', () {
+      expect(CalendarDayCalc.daysEnding(DateTime(2026, 6, 15), 0), isEmpty);
+      expect(CalendarDayCalc.daysEnding(DateTime(2026, 6, 15), -3), isEmpty);
+    });
+
+    test('a one-day range is just today at midnight', () {
+      expect(CalendarDayCalc.daysEnding(DateTime(2026, 6, 15, 9), 1), [
+        DateTime(2026, 6, 15),
+      ]);
+    });
+
+    group(
+      'across a fall-back and a spring-forward in one window',
+      () {
+        // 2025-10-05 .. 2026-04-02: Europe/Berlin fell back on 2025-10-26 and
+        // springs forward on 2026-03-29, both inside these 180 days.
+        final today = DateTime(2026, 4, 2);
+        final days = CalendarDayCalc.daysEnding(today, 180);
+
+        test('has every calendar day once, oldest first, at midnight', () {
+          expect(days, hasLength(180));
+          expect(days.first, DateTime(2025, 10, 5));
+          expect(days.last, today);
+          expect(days.toSet(), hasLength(180), reason: 'no day doubled');
+          for (var i = 0; i < days.length; i++) {
+            final d = days[i];
+            expect(d.hour, 0, reason: '$d is not midnight');
+            if (i > 0) {
+              expect(
+                CalendarDayCalc.daysBetween(days[i - 1], d),
+                1,
+                reason: 'a day is skipped before $d',
+              );
+            }
+          }
+          expect(days, contains(DateTime(2025, 10, 26)));
+          expect(days, contains(DateTime(2026, 3, 29)));
+        });
+
+        test('addDays lands on midnight of the right day either side', () {
+          expect(CalendarDayCalc.addDays(today, -6), DateTime(2026, 3, 27));
+          expect(
+            CalendarDayCalc.addDays(DateTime(2025, 10, 30), -6),
+            DateTime(2025, 10, 24),
+          );
+          // The 24-hour form this replaces, for contrast.
+          expect(
+            today.subtract(const Duration(days: 6)),
+            DateTime(2026, 3, 26, 23),
+          );
+          expect(
+            DateTime(2025, 10, 30).subtract(const Duration(days: 6)),
+            DateTime(2025, 10, 24, 1),
+          );
+        });
+      },
+      skip:
+          _skipUnless(DateTime(2025, 10, 26), 25, 'autumn fall-back') ??
+          _skipUnless(DateTime(2026, 3, 29), 23, 'spring-forward'),
+    );
+  });
 }
