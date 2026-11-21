@@ -416,6 +416,8 @@
   "dialogCopyLabel": "Copy to today",
   "dialogDeleteLabel": "DELETE",
   "dialogOKLabel": "OK",
+  "@dialogDeleteLabel": {"description": "Label for the delete button in confirmation dialogs"},
+  "@dialogOKLabel": {"description": "Label for the OK button in dialogs"},
   "diaryFutureDateWarning": "You are editing a future date",
   "diaryLabel": "Diary",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
