@@ -249,11 +249,14 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   /// the profile the backup came from. Both are recomputed here, before
   /// the screens reload. Past days keep the goals they were logged with.
   ///
-  /// "Today" is `DateTime.now()`, as in the dialogs. It should become the
-  /// logical day once `SettingsBloc.getCurrentLogicalDay` (#1382) lands.
+  /// "Today" is the logical day, as in the goal dialogs (#1382): with the
+  /// day boundary moved past midnight, an import between midnight and the
+  /// boundary still refreshes the day Home and the Diary show (#1394).
   Future<void> _syncTodayGoals() async {
     try {
-      await _settingsBloc.updateTrackedDay(DateTime.now());
+      await _settingsBloc.updateTrackedDay(
+        await _settingsBloc.getCurrentLogicalDay(),
+      );
     } catch (e, stackTrace) {
       // The data is already imported. A stale goal on today's row is not
       // worth reporting the whole import as failed.
