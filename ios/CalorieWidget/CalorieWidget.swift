@@ -902,6 +902,14 @@ private enum NutritionRowColors {
     }
 }
 
+/// The text styles of the wide widget's small figures. The macro amounts and
+/// the water amount share `amount`, and the macro names and the water unit
+/// share `name`, so the three never drift apart.
+private enum WideTextStyle {
+    static let amount = Font.caption2.weight(.semibold)
+    static let name = Font.caption2
+}
+
 /// Thin bar, consumed over goal, clamped to 0...1. A goal of zero or less
 /// leaves the space empty so the cells stay level.
 private struct NutrientBar: View {
@@ -956,6 +964,10 @@ private struct NutritionRowView: View {
     /// From xLarge the ring gets smaller, so the macros keep their width.
     /// Every number stays.
     private var compact: Bool { typeSize >= .xLarge }
+
+    /// The calorie figure in the ring: 4 pt under `title2` (22 pt at the
+    /// default size), and it still scales with text size.
+    @ScaledMetric(relativeTo: .title2) private var calorieSize: CGFloat = 18
 
     private let spacing: CGFloat = 10
     private var maxRing: CGFloat { compact ? 80 : 88 }
@@ -1013,7 +1025,7 @@ private struct NutritionRowView: View {
                 FigureText(
                     value: "\(entry.reading.consumed)",
                     unit: labels.unit,
-                    font: .title2
+                    font: .system(size: calorieSize)
                 )
             }
             .frame(width: ring, height: ring)
@@ -1033,6 +1045,9 @@ private struct NutritionRowView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
+                // The text boxes carry empty space above the ink, so the
+                // visible rows sit low. Measured in the render, in points.
+                .offset(y: compact ? -2 : -1)
             } else {
                 Spacer(minLength: 0)
             }
@@ -1043,20 +1058,25 @@ private struct NutritionRowView: View {
                 // xLarge the unit goes first. The number never does.
                 VStack(spacing: 4) {
                     WaterLevel(progress: water.progress)
-                    Text(verbatim: "\(water.value)")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                    if !compact {
-                        Text(labels.milliliter)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                    VStack(spacing: 0) {
+                        Text(verbatim: "\(water.value)")
+                            .font(WideTextStyle.amount)
+                            .foregroundStyle(.primary)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.6)
+                            .minimumScaleFactor(0.5)
+                        if !compact {
+                            Text(labels.milliliter)
+                                .font(WideTextStyle.name)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                        }
                     }
                 }
                 .layoutPriority(1)
+                // The unit line carries empty space below its ink, so the
+                // visible column sits high. Measured in the render.
+                .offset(y: 2)
             }
         }
     }
@@ -1096,7 +1116,7 @@ private struct MacroRow: View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(label)
-                    .font(.caption2)
+                    .font(WideTextStyle.name)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
@@ -1104,7 +1124,7 @@ private struct MacroRow: View {
                 Spacer(minLength: 4)
                 // The numbers shrink before the name does, and are never cut.
                 Text(amount)
-                    .font((short ? Font.caption2 : Font.caption).weight(.semibold))
+                    .font(short ? WideTextStyle.amount : Font.caption.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
