@@ -74,6 +74,9 @@ private struct StoredLanguageLabels: Decodable {
     // the widget tells that case from "the app has not written yet".
     var nutrientNotShown: String?
     var waterNoGoal: String?
+    // The widget background styles' names, as a list of id and name. Absent
+    // in a write from an older app, which then offers the English names.
+    var styles: Lossy<[Lossy<StoredNutrientName>]>?
 }
 
 /// What the app says about one nutrient: the goal phrase, such as "of 30",
@@ -165,6 +168,9 @@ private struct CalorieLabels {
     var rowAccessibility: String
     /// The names the Edit Widget picker offers, in the app's order.
     var nutrientNames: [NutrientName]
+    /// The names of the background styles, in the app's order. Empty until
+    /// the app has written them.
+    var styleNames: [NutrientName]
     /// Goal phrases and VoiceOver sentences by nutrient id.
     var nutrientFigures: [String: StoredFigureNutrient]
     // The small macros and water widgets.
@@ -224,6 +230,7 @@ private struct CalorieLabels {
                 or: accessibility
             ),
             nutrientNames: NutrientName.list(from: language?.nutrients?.value),
+            styleNames: NutrientName.list(from: language?.styles?.value),
             nutrientFigures: reading?.nutrientFigureLabels ?? [:],
             macrosTitle: stored(language?.macrosTitle, or: "Macros"),
             macrosDescription: stored(
@@ -276,6 +283,11 @@ private struct CalorieLabels {
     /// The name the app wrote for a nutrient, if it wrote one.
     func name(forNutrient id: String) -> String? {
         nutrientNames.first { $0.id == id }?.name
+    }
+
+    /// The name of a background style: the app's, else the English word.
+    func styleName(forStyle id: String) -> String {
+        styleNames.first { $0.id == id }?.name ?? WidgetStyleId.englishName(id)
     }
 
     /// The heading of the small calorie widget for a nutrient, also when
@@ -361,6 +373,9 @@ private struct AmountFigure {
         guard goal > 0 else { return nil }
         return min(max(Double(value) / Double(goal), 0), 1)
     }
+
+    /// Above a goal that exists. At the goal is not over it.
+    var isOver: Bool { goal > 0 && value > goal }
 }
 
 /// One nutrient in its own unit. A goal of zero or less is no goal.
@@ -501,6 +516,9 @@ private struct CalorieEntry: TimelineEntry {
     /// Which nutrient the small calorie widget shows. Calories until the
     /// person picks another one (iOS 17 and later).
     var nutrientId: String = NutrientId.calories
+    /// The background style the person chose in the Edit Widget sheet, or
+    /// the system look when none was chosen or the id is not known.
+    var styleId: String = WidgetStyleId.system
 }
 
 /// Made-up figures for the widget gallery and the Edit Widget picker, shown
@@ -549,13 +567,27 @@ private enum SampleReading {
 /// classic provider and the iOS 17 configurable one both call it, so a
 /// widget can never disagree with another about when to expire.
 private enum CalorieEntries {
-    static func placeholder(nutrientId: String = NutrientId.calories) -> CalorieEntry {
-        CalorieEntry(
+    /// An id the extension does not know is the system look, so a style
+    /// from a newer app, or none, never breaks a widget.
+    static func resolvedStyle(_ id: String?) -> String {
+        guard let id = id, WidgetStyleId.all.contains(id) else {
+            return WidgetStyleId.system
+        }
+        return id
+    }
+
+    static func placeholder(
+        nutrientId: String = NutrientId.calories,
+        styleId: String? = nil
+    ) -> CalorieEntry {
+        let style = resolvedStyle(styleId)
+        return CalorieEntry(
             date: Date(),
             reading: CalorieReading(hasData: false, dayId: "", offsetMinutes: 0, consumed: 0, goal: 0),
             labels: CalorieLabels.load(),
             showsNumbers: false,
-            nutrientId: nutrientId
+            nutrientId: nutrientId,
+            styleId: style
         )
     }
 
@@ -563,7 +595,12 @@ private enum CalorieEntries {
     /// to show, the entry is a sample with numbers, so the person sees the
     /// widget and not a text placeholder. Anywhere else it is the real
     /// reading, expired or not.
-    static func snapshot(nutrientId: String = NutrientId.calories, isPreview: Bool = false) -> CalorieEntry {
+    static func snapshot(
+        nutrientId: String = NutrientId.calories,
+        isPreview: Bool = false,
+        styleId: String? = nil
+    ) -> CalorieEntry {
+        let style = resolvedStyle(styleId)
         let reading = CalorieReading.load()
         let now = Date()
         let current = reading.isCurrent(at: now)
@@ -573,7 +610,8 @@ private enum CalorieEntries {
                 reading: SampleReading.reading,
                 labels: CalorieLabels.load(for: SampleReading.reading),
                 showsNumbers: true,
-                nutrientId: nutrientId
+                nutrientId: nutrientId,
+                styleId: style
             )
         }
         return CalorieEntry(
@@ -581,11 +619,16 @@ private enum CalorieEntries {
             reading: reading,
             labels: CalorieLabels.load(for: reading),
             showsNumbers: current,
-            nutrientId: nutrientId
+            nutrientId: nutrientId,
+            styleId: style
         )
     }
 
-    static func timeline(nutrientId: String = NutrientId.calories) -> Timeline<CalorieEntry> {
+    static func timeline(
+        nutrientId: String = NutrientId.calories,
+        styleId: String? = nil
+    ) -> Timeline<CalorieEntry> {
+        let style = resolvedStyle(styleId)
         let reading = CalorieReading.load()
         let labels = CalorieLabels.load(for: reading)
         let now = Date()
@@ -595,14 +638,16 @@ private enum CalorieEntries {
             reading: reading,
             labels: labels,
             showsNumbers: reading.isCurrent(at: now),
-            nutrientId: nutrientId
+            nutrientId: nutrientId,
+            styleId: style
         )
         let expired = CalorieEntry(
             date: boundary,
             reading: reading,
             labels: labels,
             showsNumbers: false,
-            nutrientId: nutrientId
+            nutrientId: nutrientId,
+            styleId: style
         )
         return Timeline(entries: [current, expired], policy: .after(boundary))
     }
@@ -636,6 +681,8 @@ private struct NutrientDisplay {
     var goalPhrase: String?
     var progress: Double?
     var accessibility: String
+    /// Above its goal. The widget then adds the arrow to the goal phrase.
+    var overGoal: Bool = false
 
     /// Nil when the app has not written this nutrient: the person hid it,
     /// the app is older, or it has not written yet. The widget then shows
@@ -650,7 +697,8 @@ private struct NutrientDisplay {
                 unit: labels.unit,
                 goalPhrase: labels.goal,
                 progress: min(max(Double(reading.consumed) / Double(goal), 0), 1),
-                accessibility: labels.accessibility
+                accessibility: labels.accessibility,
+                overGoal: reading.goal > 0 && reading.consumed > reading.goal
             )
         case NutrientId.protein:
             return macro(id, reading.protein, labels: labels)
@@ -676,7 +724,8 @@ private struct NutrientDisplay {
                 accessibility: stored(
                     figure?.accessibility,
                     or: [name, value, nutrient.unit].joined(separator: " ")
-                )
+                ),
+                overGoal: nutrient.goal.map { nutrient.value > $0 } ?? false
             )
         }
     }
@@ -696,7 +745,8 @@ private struct NutrientDisplay {
             accessibility: stored(
                 storedFigure?.accessibility,
                 or: "\(name) \(figure.value) \(labels.gram)"
-            )
+            ),
+            overGoal: figure.isOver
         )
     }
 
@@ -719,45 +769,53 @@ private struct FigureText: View {
     var unit: String
     var font: Font
 
+    @Environment(\.widgetTheme) private var theme
+
     var body: some View {
         VStack(spacing: 0) {
             Text(value)
                 .font(font.weight(.semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(theme.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             Text(unit)
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
         }
     }
 }
 
-/// A grey track and a round-capped arc from the top, clockwise, 8 pt wide.
-/// `progress` is consumed over goal, already clamped to 0...1. The small
-/// ring widgets and the wide widget draw the ring with it, so they match.
+/// A grey track and a round-capped arc from the top, clockwise, 8 pt wide
+/// (9 pt in a high-contrast look). `progress` is consumed over goal, already
+/// clamped to 0...1. The small ring widgets and the wide widget draw the
+/// ring with it, so they match. The arc is the accent group in a tinted or
+/// clear Home Screen, and the track is the primary group.
 private struct ProgressRing<Content: View>: View {
     var progress: Double
     var color: Color
     @ViewBuilder var content: () -> Content
 
+    @Environment(\.widgetTheme) private var theme
+
     var body: some View {
+        let width = 8 + theme.strokeBoost
         ZStack {
             Circle()
-                .stroke(NutritionRowColors.track, lineWidth: 8)
+                .stroke(theme.track, lineWidth: width)
             Circle()
                 .trim(from: 0, to: progress)
                 .stroke(
                     color,
-                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                    style: StrokeStyle(lineWidth: width, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-            // The 8 pt stroke and a 4 pt gap stay clear of the figure, which
+                .accentable()
+            // The stroke and a 4 pt gap stay clear of the figure, which
             // shrinks to fit instead of touching the ring.
             content()
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 12 + theme.strokeBoost)
         }
     }
 }
@@ -772,13 +830,18 @@ private struct RingFigureView: View {
     var progress: Double?
     var ringColor: Color
     var accessibility: String
+    /// Above the goal: the goal phrase gets the arrow, so the state does
+    /// not depend on colour. The ring is full either way.
+    var overGoal = false
+
+    @Environment(\.widgetTheme) private var theme
 
     var body: some View {
         VStack(spacing: 6) {
             if let name = name {
                 Text(name)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
             }
@@ -788,9 +851,9 @@ private struct RingFigureView: View {
                 }
                 .padding(.horizontal, 8)
                 if let goalPhrase = goalPhrase {
-                    Text(goalPhrase)
+                    Text(overGoal ? "\(WidgetCue.over) \(goalPhrase)" : goalPhrase)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                 }
@@ -824,7 +887,8 @@ private struct CalorieWidgetView: View {
                     goalPhrase: display.goalPhrase,
                     progress: display.progress,
                     ringColor: NutritionRowColors.ring,
-                    accessibility: display.accessibility
+                    accessibility: display.accessibility,
+                    overGoal: display.overGoal
                 )
             } else {
                 // The nutrient's name stays. With current figures but not
@@ -841,7 +905,7 @@ private struct CalorieWidgetView: View {
         // inside its stroke, and above that size the number and its unit
         // would no longer fit. The numbers shrink before they are cut.
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .widgetBackground()
+        .themed(entry.styleId)
     }
 }
 
@@ -853,15 +917,18 @@ private struct CalorieWidgetPlaceholder: View {
     var title: String
     var message: String
 
+    @Environment(\.widgetTheme) private var theme
+
     var body: some View {
         VStack(spacing: 4) {
             Text(title)
                 .font(.headline)
+                .foregroundStyle(theme.primary)
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
             Text(message)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
                 .minimumScaleFactor(0.7)
@@ -871,34 +938,307 @@ private struct CalorieWidgetPlaceholder: View {
     }
 }
 
-/// The one-row widget's colours. The three macro colours are the app's own
-/// (`AppPalette`), which stay the same across every accent theme. The app
-/// has no water colour, so water has its own aqua blue, defined here.
+/// The widgets' fixed colours. The three macro colours are the app's own
+/// (`AppPalette`), which stay the same across every accent theme. The ring
+/// is the app's brand green. The app has no water colour, so water has its
+/// own aqua blue, defined here. A dark style forces the dark scheme, so each
+/// of these resolves to its dark value there.
 private enum NutritionRowColors {
-    static let carbs = dynamic(light: 0xB87410, dark: 0xF2B45A)
-    static let fat = dynamic(light: 0xD05536, dark: 0xFF937B)
-    static let protein = dynamic(light: 0x1F8E80, dark: 0x49C9B8)
+    static let carbs = dynamicColor(light: 0xB87410, dark: 0xF2B45A)
+    static let fat = dynamicColor(light: 0xD05536, dark: 0xFF937B)
+    static let protein = dynamicColor(light: 0x1F8E80, dark: 0x49C9B8)
     /// Water, in the small widget's ring and the wide widget's level: an
     /// aqua blue, bluer than the protein teal so the two stay apart. The app
     /// has no water colour. At least 3:1 against the track and the widget
     /// background in both modes.
-    static let water = dynamic(light: 0x1478A0, dark: 0x56C2E6)
+    static let water = dynamicColor(light: 0x1478A0, dark: 0x56C2E6)
     /// The ring colour of the calorie and nutrient rings, small and wide.
     /// The app's brand green. The extension has no AccentColor asset, so
     /// `Color.accentColor` would be the system blue here.
-    static let ring = dynamic(light: 0x0E7A4D, dark: 0x34D08A)
-    static let track = Color.secondary.opacity(0.25)
+    static let ring = dynamicColor(light: 0x0E7A4D, dark: 0x34D08A)
+}
 
-    private static func dynamic(light: UInt32, dark: UInt32) -> Color {
-        Color(UIColor { traits in
-            let hex = traits.userInterfaceStyle == .dark ? dark : light
-            return UIColor(
-                red: CGFloat((hex >> 16) & 0xFF) / 255,
-                green: CGFloat((hex >> 8) & 0xFF) / 255,
-                blue: CGFloat(hex & 0xFF) / 255,
-                alpha: 1
+private func dynamicColor(
+    light: UInt32,
+    dark: UInt32,
+    lightAlpha: CGFloat = 1,
+    darkAlpha: CGFloat = 1
+) -> Color {
+    Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(hex: dark, alpha: darkAlpha)
+            : UIColor(hex: light, alpha: lightAlpha)
+    })
+}
+
+private func fixedColor(_ hex: UInt32, alpha: CGFloat = 1) -> Color {
+    Color(UIColor(hex: hex, alpha: alpha))
+}
+
+private extension UIColor {
+    convenience init(hex: UInt32, alpha: CGFloat = 1) {
+        self.init(
+            red: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: alpha
+        )
+    }
+}
+
+/// The mark that says a figure is above its goal. It is a word-free symbol
+/// in the figure's own line, so the state never depends on colour. The Dart
+/// side adds the same fact to the VoiceOver sentence in words.
+private enum WidgetCue {
+    static let over = "\u{2191}"
+}
+
+// MARK: - Styles and themes
+
+/// The background styles the Edit Widget sheet offers. The ids are stable
+/// and the names come from the app, in its language.
+private enum WidgetStyleId {
+    static let system = "system"
+    static let paper = "paper"
+    static let dark = "dark"
+    static let highContrast = "highContrast"
+    static let all = [system, paper, dark, highContrast]
+
+    /// Only until the app has written its own names.
+    static func englishName(_ id: String) -> String {
+        switch id {
+        case paper: return "Paper"
+        case dark: return "Dark"
+        case highContrast: return "High contrast"
+        default: return "System"
+        }
+    }
+}
+
+/// Everything a style decides, once: the container background, the two
+/// text colours, the track, the stroke width, and the colour scheme the
+/// fixed colours resolve in. The three accessibility settings and the
+/// rendering mode adjust it in `make`.
+private struct WidgetTheme {
+    /// Nil is the system's own widget fill.
+    var background: Color?
+    var primary: Color
+    var secondary: Color
+    /// The unfilled part of a ring, a bar or the water level.
+    var track: Color
+    /// Extra stroke width in points, for Increase Contrast and the
+    /// high-contrast style.
+    var strokeBoost: CGFloat
+    /// A style that forces a scheme, so the fixed colours resolve in it.
+    var scheme: ColorScheme?
+    /// An outline round the tracks, for Increase Contrast and Differentiate
+    /// Without Colour.
+    var outlined: Bool
+
+    static func make(
+        styleId: String,
+        accented: Bool,
+        increasedContrast: Bool,
+        reduceTransparency: Bool,
+        differentiate: Bool
+    ) -> WidgetTheme {
+        let paperSecondary = dynamicColor(light: 0x6E685E, dark: 0xA39E94)
+        let darkSecondary = fixedColor(0xA39E94)
+        let strongSecondary = dynamicColor(light: 0x404040, dark: 0xD0D0D0)
+        var theme: WidgetTheme
+        switch styleId {
+        case WidgetStyleId.paper:
+            theme = WidgetTheme(
+                background: dynamicColor(light: 0xF7F4EF, dark: 0x1B1A18),
+                primary: dynamicColor(light: 0x2B2A27, dark: 0xECE8E1),
+                secondary: paperSecondary,
+                // Light: about 10 percent, so the macro colours keep 3:1
+                // against the track. Dark: 25 percent.
+                track: dynamicColor(
+                    light: 0x6E685E, dark: 0xA39E94,
+                    lightAlpha: 0.10, darkAlpha: 0.25
+                ),
+                strokeBoost: 0,
+                scheme: nil,
+                outlined: false
             )
-        })
+        case WidgetStyleId.dark:
+            theme = WidgetTheme(
+                background: fixedColor(0x1B1A18),
+                primary: fixedColor(0xECE8E1),
+                secondary: darkSecondary,
+                track: fixedColor(0xA39E94, alpha: 0.25),
+                strokeBoost: 0,
+                scheme: .dark,
+                outlined: false
+            )
+        case WidgetStyleId.highContrast:
+            theme = WidgetTheme(
+                background: dynamicColor(light: 0xFFFFFF, dark: 0x000000),
+                primary: dynamicColor(light: 0x000000, dark: 0xFFFFFF),
+                secondary: strongSecondary,
+                track: dynamicColor(
+                    light: 0x404040, dark: 0xD0D0D0,
+                    lightAlpha: 0.12, darkAlpha: 0.25
+                ),
+                strokeBoost: 1,
+                scheme: nil,
+                outlined: true
+            )
+        default:
+            theme = WidgetTheme(
+                // The translucent system fill, or an opaque one when the
+                // person turned Reduce Transparency on.
+                background: reduceTransparency
+                    ? dynamicColor(light: 0xF2F2F7, dark: 0x1C1C1E)
+                    : nil,
+                primary: .primary,
+                secondary: .secondary,
+                track: Color.secondary.opacity(0.25),
+                strokeBoost: 0,
+                scheme: nil,
+                outlined: false
+            )
+        }
+        if increasedContrast {
+            theme.secondary = theme.primary.opacity(0.85)
+            theme.strokeBoost = max(theme.strokeBoost, 1)
+            theme.outlined = true
+        }
+        if differentiate {
+            theme.outlined = true
+        }
+        if accented {
+            // The system removes the background and paints the content with
+            // its own white or tint, so nothing here may depend on hue. Text
+            // is the system primary, and the arc is the accent group.
+            theme.background = nil
+            theme.primary = .primary
+            theme.secondary = Color.primary.opacity(0.85)
+            theme.track = Color.primary.opacity(increasedContrast ? 0.4 : 0.25)
+            theme.scheme = nil
+        }
+        return theme
+    }
+}
+
+private struct WidgetThemeKey: EnvironmentKey {
+    static let defaultValue = WidgetTheme.make(
+        styleId: WidgetStyleId.system,
+        accented: false,
+        increasedContrast: false,
+        reduceTransparency: false,
+        differentiate: false
+    )
+}
+
+private extension EnvironmentValues {
+    var widgetTheme: WidgetTheme {
+        get { self[WidgetThemeKey.self] }
+        set { self[WidgetThemeKey.self] = newValue }
+    }
+}
+
+/// Reads the three accessibility settings and, from iOS 16, the rendering
+/// mode, then gives the content its theme, its colour scheme and its
+/// container background. The container background is the only place a
+/// background is set from iOS 17, so a tinted or clear Home Screen can
+/// replace it.
+private struct ThemedRoot<Content: View>: View {
+    var styleId: String
+    var content: Content
+
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
+
+    var body: some View {
+        if #available(iOSApplicationExtension 16.0, *) {
+            RenderingModeReader(
+                styleId: styleId,
+                increasedContrast: contrast == .increased,
+                reduceTransparency: reduceTransparency,
+                differentiate: differentiate,
+                content: content
+            )
+        } else {
+            ThemeApplied(
+                theme: .make(
+                    styleId: styleId,
+                    accented: false,
+                    increasedContrast: contrast == .increased,
+                    reduceTransparency: reduceTransparency,
+                    differentiate: differentiate
+                ),
+                content: content
+            )
+        }
+    }
+}
+
+@available(iOS 16.0, *)
+private struct RenderingModeReader<Content: View>: View {
+    var styleId: String
+    var increasedContrast: Bool
+    var reduceTransparency: Bool
+    var differentiate: Bool
+    var content: Content
+
+    @Environment(\.widgetRenderingMode) private var mode
+
+    var body: some View {
+        ThemeApplied(
+            theme: .make(
+                styleId: styleId,
+                accented: mode == .accented,
+                increasedContrast: increasedContrast,
+                reduceTransparency: reduceTransparency,
+                differentiate: differentiate
+            ),
+            content: content
+        )
+    }
+}
+
+private struct ThemeApplied<Content: View>: View {
+    var theme: WidgetTheme
+    var content: Content
+
+    var body: some View {
+        content
+            .environment(\.widgetTheme, theme)
+            .forcingScheme(theme.scheme)
+            .themedContainer(theme)
+    }
+}
+
+/// Thin bar, consumed over goal, clamped to 0...1. A goal of zero or less
+/// leaves the space empty so the cells stay level.
+private struct NutrientBar: View {
+    var progress: Double?
+    var color: Color
+
+    @Environment(\.widgetTheme) private var theme
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(theme.track)
+                if let progress = progress {
+                    Capsule()
+                        .fill(color)
+                        .frame(width: proxy.size.width * CGFloat(progress))
+                        .accentable()
+                }
+            }
+            .overlay {
+                if theme.outlined {
+                    Capsule().strokeBorder(theme.primary.opacity(0.5), lineWidth: 0.5)
+                }
+            }
+        }
+        .frame(height: 4 + theme.strokeBoost)
+        .accessibilityHidden(true)
     }
 }
 
@@ -910,47 +1250,34 @@ private enum WideTextStyle {
     static let name = Font.caption2
 }
 
-/// Thin bar, consumed over goal, clamped to 0...1. A goal of zero or less
-/// leaves the space empty so the cells stay level.
-private struct NutrientBar: View {
-    var progress: Double?
-    var color: Color
-
-    var body: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-                Capsule().fill(NutritionRowColors.track)
-                if let progress = progress {
-                    Capsule()
-                        .fill(color)
-                        .frame(width: proxy.size.width * CGFloat(progress))
-                }
-            }
-        }
-        .frame(height: 4)
-        .accessibilityHidden(true)
-    }
-}
-
 /// Water as a tall capsule that fills from the bottom, consumed over goal.
 /// The top of the fill is flat, like a liquid level. A goal of zero or less
-/// leaves the capsule empty.
+/// leaves the capsule empty. The fill is the accent group in a tinted or
+/// clear Home Screen.
 private struct WaterLevel: View {
     var progress: Double?
+
+    @Environment(\.widgetTheme) private var theme
 
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .bottom) {
-                Rectangle().fill(NutritionRowColors.track)
+                Rectangle().fill(theme.track)
                 if let progress = progress {
                     Rectangle()
                         .fill(NutritionRowColors.water)
                         .frame(height: proxy.size.height * CGFloat(progress))
+                        .accentable()
                 }
             }
             .clipShape(Capsule())
+            .overlay {
+                if theme.outlined {
+                    Capsule().strokeBorder(theme.primary.opacity(0.5), lineWidth: 0.5)
+                }
+            }
         }
-        .frame(width: 24)
+        .frame(width: 24 + theme.strokeBoost)
         .accessibilityHidden(true)
     }
 }
@@ -960,6 +1287,32 @@ private struct WaterLevel: View {
 private struct NutritionRowView: View {
     var entry: CalorieEntry
 
+    var body: some View {
+        Group {
+            if entry.showsNumbers {
+                NutritionRowContent(entry: entry)
+            } else {
+                CalorieWidgetPlaceholder(
+                    title: entry.labels.rowTitle,
+                    message: entry.labels.openApp
+                )
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Text stops growing at xxxLarge, as in the small widgets. Above
+        // that, a ring, three macro rows and a water level would no longer
+        // fit one 4x2 widget. Every number shrinks before it is cut.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .themed(entry.styleId)
+    }
+}
+
+/// The wide widget's figures. A separate view, so that it reads the theme
+/// that `themed` puts in the environment.
+private struct NutritionRowContent: View {
+    var entry: CalorieEntry
+
+    @Environment(\.widgetTheme) private var theme
     @Environment(\.dynamicTypeSize) private var typeSize
     /// From xLarge the ring gets smaller, so the macros keep their width.
     /// Every number stays.
@@ -983,25 +1336,6 @@ private struct NutritionRowView: View {
     }
 
     var body: some View {
-        Group {
-            if entry.showsNumbers {
-                rowBody
-            } else {
-                CalorieWidgetPlaceholder(
-                    title: entry.labels.rowTitle,
-                    message: entry.labels.openApp
-                )
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Text stops growing at xxxLarge, as in the small widgets. Above
-        // that, a ring, three macro rows and a water level would no longer
-        // fit one 4x2 widget. Every number shrinks before it is cut.
-        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .widgetBackground()
-    }
-
-    private var rowBody: some View {
         GeometryReader { proxy in
             content(height: proxy.size.height)
                 .frame(
@@ -1020,11 +1354,13 @@ private struct NutritionRowView: View {
         // The stroke is drawn 4 pt outside the ring's frame, so the frame
         // leaves 8 pt of the height and the column adds it back to its width.
         let ring = max(min(height - 8, maxRing), 0)
+        let caloriesOver = entry.reading.goal > 0
+            && entry.reading.consumed > entry.reading.goal
         return HStack(spacing: spacing) {
             ProgressRing(progress: calorieProgress, color: NutritionRowColors.ring) {
                 FigureText(
                     value: "\(entry.reading.consumed)",
-                    unit: labels.unit,
+                    unit: caloriesOver ? "\(WidgetCue.over) \(labels.unit)" : labels.unit,
                     font: .system(size: calorieSize)
                 )
             }
@@ -1059,15 +1395,15 @@ private struct NutritionRowView: View {
                 VStack(spacing: 4) {
                     WaterLevel(progress: water.progress)
                     VStack(spacing: 0) {
-                        Text(verbatim: "\(water.value)")
+                        Text(verbatim: water.isOver ? "\(WidgetCue.over)\(water.value)" : "\(water.value)")
                             .font(WideTextStyle.amount)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(theme.primary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
                         if !compact {
                             Text(labels.milliliter)
                                 .font(WideTextStyle.name)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(theme.secondary)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.6)
                         }
@@ -1090,7 +1426,8 @@ private struct NutritionRowView: View {
 
 /// One macro in the small macros widget: its name, grams over goal grams,
 /// and a thin bar. The name and the numbers carry the meaning, so the bar
-/// colour is never the only cue.
+/// colour is never the only cue. A figure above its goal starts with the
+/// arrow.
 private struct MacroRow: View {
     var label: String
     var figure: AmountFigure
@@ -1103,13 +1440,18 @@ private struct MacroRow: View {
     /// in a smaller size. The name and the Dart sentence carry the rest.
     var short = false
 
+    @Environment(\.widgetTheme) private var theme
+
     private var amount: String {
+        let text: String
         if short {
-            return figure.goal > 0 ? "\(figure.value)/\(figure.goal)" : "\(figure.value)"
+            text = figure.goal > 0 ? "\(figure.value)/\(figure.goal)" : "\(figure.value)"
+        } else {
+            text = figure.goal > 0
+                ? "\(figure.value) / \(figure.goal) \(unit)"
+                : "\(figure.value) \(unit)"
         }
-        return figure.goal > 0
-            ? "\(figure.value) / \(figure.goal) \(unit)"
-            : "\(figure.value) \(unit)"
+        return figure.isOver ? "\(WidgetCue.over)\(text)" : text
     }
 
     var body: some View {
@@ -1117,7 +1459,7 @@ private struct MacroRow: View {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(label)
                     .font(WideTextStyle.name)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .layoutPriority(namePriority)
@@ -1125,7 +1467,7 @@ private struct MacroRow: View {
                 // The numbers shrink before the name does, and are never cut.
                 Text(amount)
                     .font(short ? WideTextStyle.amount : Font.caption.weight(.semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(theme.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
                     .layoutPriority(namePriority > 0 ? 0 : 1)
@@ -1179,7 +1521,7 @@ private struct MacrosSmallView: View {
         // bars and gaps are estimated to fit the small widget there; above
         // it they would not. This is an estimate, not a render.
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .widgetBackground()
+        .themed(entry.styleId)
     }
 }
 
@@ -1198,7 +1540,8 @@ private struct WaterSmallView: View {
                     goalPhrase: water.progress == nil ? nil : entry.labels.waterGoal,
                     progress: water.progress,
                     ringColor: NutritionRowColors.water,
-                    accessibility: entry.labels.waterAccessibility
+                    accessibility: entry.labels.waterAccessibility,
+                    overGoal: water.isOver
                 )
             } else {
                 CalorieWidgetPlaceholder(
@@ -1212,7 +1555,7 @@ private struct WaterSmallView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .widgetBackground()
+        .themed(entry.styleId)
     }
 }
 
@@ -1229,12 +1572,45 @@ private extension View {
         }
     }
 
+    /// Gives the content the theme of the chosen style, and its container
+    /// background.
+    func themed(_ styleId: String) -> some View {
+        ThemedRoot(styleId: styleId, content: self)
+    }
+
+    /// Puts the arc, the bar fill or the water level in the accent group of
+    /// a tinted or clear Home Screen. A full-colour widget does not change.
     @ViewBuilder
-    func widgetBackground() -> some View {
-        if #available(iOSApplicationExtension 17.0, *) {
-            containerBackground(.fill.tertiary, for: .widget)
+    func accentable() -> some View {
+        if #available(iOSApplicationExtension 16.0, *) {
+            widgetAccentable()
         } else {
-            background(Color(.systemBackground))
+            self
+        }
+    }
+
+    @ViewBuilder
+    func forcingScheme(_ scheme: ColorScheme?) -> some View {
+        if let scheme = scheme {
+            environment(\.colorScheme, scheme)
+        } else {
+            self
+        }
+    }
+
+    /// The only place a background is set from iOS 17. The system can then
+    /// replace it with Liquid Glass or a tint. Before iOS 17 there is no
+    /// container background, so a plain background is the fallback.
+    @ViewBuilder
+    func themedContainer(_ theme: WidgetTheme) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            if let background = theme.background {
+                containerBackground(for: .widget) { background }
+            } else {
+                containerBackground(.fill.tertiary, for: .widget)
+            }
+        } else {
+            background(theme.background ?? Color(.systemBackground))
         }
     }
 }
@@ -1317,6 +1693,68 @@ struct WaterSmallWidget: Widget {
     }
 }
 
+// MARK: - Styled widgets (iOS 17)
+
+/// The same three kinds, with a Style choice in the Edit Widget sheet. Each
+/// keeps its kind string, so a widget already on a Home Screen stays in
+/// place. Before iOS 17 the classic widgets above stay, with the system look.
+@available(iOS 17.0, *)
+struct StyledNutritionRowWidget: Widget {
+    let kind = CalorieWidgetKind.row
+
+    var body: some WidgetConfiguration {
+        let labels = CalorieLabels.load()
+        return AppIntentConfiguration(
+            kind: kind,
+            intent: StyleIntent.self,
+            provider: StyleProvider()
+        ) { entry in
+            NutritionRowView(entry: entry)
+        }
+        .configurationDisplayName(labels.rowTitle)
+        .description(labels.rowDescription)
+        .supportedFamilies([.systemMedium])
+    }
+}
+
+@available(iOS 17.0, *)
+struct StyledMacrosSmallWidget: Widget {
+    let kind = CalorieWidgetKind.macros
+
+    var body: some WidgetConfiguration {
+        let labels = CalorieLabels.load()
+        return AppIntentConfiguration(
+            kind: kind,
+            intent: StyleIntent.self,
+            provider: StyleProvider()
+        ) { entry in
+            MacrosSmallView(entry: entry)
+        }
+        .configurationDisplayName(labels.macrosTitle)
+        .description(labels.macrosDescription)
+        .supportedFamilies([.systemSmall])
+    }
+}
+
+@available(iOS 17.0, *)
+struct StyledWaterSmallWidget: Widget {
+    let kind = CalorieWidgetKind.water
+
+    var body: some WidgetConfiguration {
+        let labels = CalorieLabels.load()
+        return AppIntentConfiguration(
+            kind: kind,
+            intent: StyleIntent.self,
+            provider: StyleProvider()
+        ) { entry in
+            WaterSmallView(entry: entry)
+        }
+        .configurationDisplayName(labels.water)
+        .description(labels.waterDescription)
+        .supportedFamilies([.systemSmall])
+    }
+}
+
 // MARK: - Nutrient picker (iOS 17)
 
 /// One nutrient in the Edit Widget picker. The names are the app's own
@@ -1374,14 +1812,87 @@ struct NutrientQuery: EntityQuery {
     }
 }
 
+/// One background style in the Edit Widget sheet. The names are the app's
+/// own strings in the app's language, written into the App Group, so none
+/// of them is Swift copy. Only the parameter's title is fixed English.
+@available(iOS 17.0, *)
+struct StyleEntity: AppEntity {
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Style")
+    static let defaultQuery = StyleQuery()
+
+    var id: String
+    var name: String
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: "\(name)")
+    }
+}
+
+@available(iOS 17.0, *)
+struct StyleQuery: EntityQuery {
+    /// Resolves by id. An id this extension does not know is left out, so a
+    /// style from a newer app falls back to the default instead of failing.
+    func entities(for identifiers: [String]) async throws -> [StyleEntity] {
+        let labels = CalorieLabels.load()
+        return identifiers
+            .filter { WidgetStyleId.all.contains($0) }
+            .map { StyleEntity(id: $0, name: labels.styleName(forStyle: $0)) }
+    }
+
+    func suggestedEntities() async throws -> [StyleEntity] {
+        let labels = CalorieLabels.load()
+        return WidgetStyleId.all.map {
+            StyleEntity(id: $0, name: labels.styleName(forStyle: $0))
+        }
+    }
+
+    /// The system look, built here so it does not depend on the app's names.
+    func defaultResult() async -> StyleEntity? {
+        StyleEntity(
+            id: WidgetStyleId.system,
+            name: CalorieLabels.load().styleName(forStyle: WidgetStyleId.system)
+        )
+    }
+}
+
 /// The Edit Widget sheet of the small calorie widget. No choice made means
-/// calories.
+/// calories in the system look.
 @available(iOS 17.0, *)
 struct NutrientIntent: WidgetConfigurationIntent {
     static let title: LocalizedStringResource = "Nutrient"
 
     @Parameter(title: "Nutrient")
     var nutrient: NutrientEntity?
+
+    @Parameter(title: "Style")
+    var style: StyleEntity?
+}
+
+/// The Edit Widget sheet of the widgets that have only a style to choose.
+@available(iOS 17.0, *)
+struct StyleIntent: WidgetConfigurationIntent {
+    static let title: LocalizedStringResource = "Style"
+
+    @Parameter(title: "Style")
+    var style: StyleEntity?
+}
+
+@available(iOS 17.0, *)
+private struct StyleProvider: AppIntentTimelineProvider {
+    func placeholder(in context: Context) -> CalorieEntry {
+        CalorieEntries.placeholder()
+    }
+
+    func snapshot(for configuration: StyleIntent, in context: Context) async -> CalorieEntry {
+        CalorieEntries.snapshot(
+            isPreview: context.isPreview,
+            styleId: configuration.style?.id
+        )
+    }
+
+    func timeline(for configuration: StyleIntent, in context: Context) async -> Timeline<CalorieEntry> {
+        CalorieEntries.timeline(styleId: configuration.style?.id)
+    }
 }
 
 @available(iOS 17.0, *)
@@ -1393,12 +1904,16 @@ private struct NutrientProvider: AppIntentTimelineProvider {
     func snapshot(for configuration: NutrientIntent, in context: Context) async -> CalorieEntry {
         CalorieEntries.snapshot(
             nutrientId: configuration.nutrient?.id ?? NutrientId.calories,
-            isPreview: context.isPreview
+            isPreview: context.isPreview,
+            styleId: configuration.style?.id
         )
     }
 
     func timeline(for configuration: NutrientIntent, in context: Context) async -> Timeline<CalorieEntry> {
-        CalorieEntries.timeline(nutrientId: configuration.nutrient?.id ?? NutrientId.calories)
+        CalorieEntries.timeline(
+            nutrientId: configuration.nutrient?.id ?? NutrientId.calories,
+            styleId: configuration.style?.id
+        )
     }
 }
 
@@ -1432,9 +1947,9 @@ struct NutrientCalorieWidget: Widget {
 private struct CalorieWidgetBundleModern: WidgetBundle {
     var body: some Widget {
         NutrientCalorieWidget()
-        OneRowNutritionWidget()
-        MacrosSmallWidget()
-        WaterSmallWidget()
+        StyledNutritionRowWidget()
+        StyledMacrosSmallWidget()
+        StyledWaterSmallWidget()
     }
 }
 

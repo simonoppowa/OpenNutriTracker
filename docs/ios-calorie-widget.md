@@ -74,6 +74,31 @@ The ring, macros and water widgets stop growing text at `xxxLarge`. Above that, 
 
 From iOS 17 the system insets widget content. Below iOS 17 each widget adds 12 pt itself. One helper does this for every view, so no widget is inset twice.
 
+### Background styles
+
+On iOS 17 and later every widget has a Style choice in its Edit Widget sheet. Before iOS 17 the widgets keep the system look. The four styles are:
+
+- System: the standard widget background. This is the default, so nothing changes until a person picks another style.
+- Paper: the app's warm canvas, `F7F4EF` in light mode and `1B1A18` in dark mode, with the app's text colours. It follows the system appearance.
+- Dark: always the app's dark canvas `1B1A18` with the dark colours, also in light mode.
+- High contrast: white with black text in light mode and black with white text in dark mode, with bars 1 pt thicker.
+
+The three widgets that had no setting before (Macros, Water and the wide Nutrition widget) moved from a static configuration to an App Intent configuration on iOS 17 and later. They keep their kind strings, so a widget already on a Home Screen stays in place and shows the system look until a style is chosen. The small calorie widget gets the same Style parameter next to Nutrient. The style also applies to the placeholder and to the gallery sample.
+
+The style names are written by the app in its language, as a `styles` list of id and name in the language-only labels. The extension offers them as an `AppEntity`, so they are translated through the ARB files. An older write has no list, and the extension then offers the English words System, Paper, Dark and High contrast. Two strings stay English because App Intents reads them at build time: the intent title and the parameter title "Style". The ids are `system`, `paper`, `dark` and `highContrast`. An id the extension does not know is the system look.
+
+### Tinted and clear Home Screens, and accessibility
+
+From iOS 18 a person can pick a tinted or a clear Home Screen. The system then removes the widget background and paints the content in white or the tint. The background is set only with `containerBackground`, so the system can replace it. The ring arcs, the bar fills and the water level are marked as the accent group. The tracks and the text are the primary group. In that mode the text uses the system primary colour, and secondary labels use it at 85 percent, whatever style was chosen. Nothing depends on hue.
+
+- Increase Contrast: strokes are 1 pt thicker, the tracks get a thin outline, and secondary text is the primary colour at 85 percent.
+- Differentiate Without Colour: the tracks get the same outline. Every bar already has its name and numbers, and the water level has its number.
+- Reduce Transparency: the System style uses an opaque fill instead of the translucent one.
+- Above the goal: a figure above its goal starts with an arrow, for example "↑ 96/86", and the goal line of a ring reads "↑ of 38". The Dart sentences add the same fact in words, for example "fat is over the goal."
+- VoiceOver is still one sentence per widget, written by Dart.
+
+The fills reach 3:1 against the track in every style except the light macro bars in the System style, where the fixed macro colours reach about 2.6 to 2.9. The Paper and High contrast styles use a lighter track in light mode for that reason. In the System style the secondary text in light mode is the system secondary colour, about 3.3:1 on the widget fill. Increase Contrast replaces it with the primary colour at 85 percent.
+
 ### New snapshot fields
 
 The snapshot gains one optional key. If the app has no figure, the key is left out:
