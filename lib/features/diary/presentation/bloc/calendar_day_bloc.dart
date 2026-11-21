@@ -19,6 +19,7 @@ import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 
 part 'calendar_day_event.dart';
 
@@ -309,6 +310,40 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         );
       }
     });
+  }
+
+  Future<void> setDayGoals(
+    DateTime day, {
+    required double calorieGoal,
+    required double carbsGoal,
+    required double fatGoal,
+    required double proteinGoal,
+  }) async {
+    day = _dateLabel(day);
+    await withTrackedDayLockOnProfile(() async {
+      final exists = await _addTrackedDayUsecase.hasTrackedDay(day);
+      if (!exists) {
+        await _addTrackedDayUsecase.addNewTrackedDay(
+          day,
+          calorieGoal,
+          carbsGoal,
+          fatGoal,
+          proteinGoal,
+        );
+      } else {
+        await _addTrackedDayUsecase.updateDayCalorieGoal(day, calorieGoal);
+        await _addTrackedDayUsecase.updateDayMacroGoals(
+          day,
+          carbsGoal: carbsGoal,
+          fatGoal: fatGoal,
+          proteinGoal: proteinGoal,
+        );
+      }
+    });
+    _updateDiaryPage(day);
+    try {
+      locator<HomeBloc>().add(const LoadItemsEvent());
+    } catch (_) {}
   }
 
   Future<void> _updateDiaryPage(DateTime day) async {

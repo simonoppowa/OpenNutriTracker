@@ -13,6 +13,7 @@ import 'package:opennutritracker/core/data/dbo/profile_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/medication_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/water_intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
 import 'package:opennutritracker/core/utils/hive_storage_integrity_exception.dart';
@@ -66,6 +67,7 @@ class HiveDBProvider extends ChangeNotifier {
   // list of what *this* person usually eats, unlike the shared custom-meal
   // and recipe libraries it may point into.
   static const favouriteMealBoxName = 'FavouriteMealBox';
+  static const medicationBoxName = 'MedicationBox';
   // #471: registry of profiles. Global — shared across every profile so
   // the app can enumerate and switch profiles before any one of them is
   // active.
@@ -90,6 +92,7 @@ class HiveDBProvider extends ChangeNotifier {
     waterIntakeBoxName,
     fastingBoxName,
     favouriteMealBoxName,
+    medicationBoxName,
   ];
 
   // Global boxes — opened once, never closed on a profile switch.
@@ -118,6 +121,7 @@ class HiveDBProvider extends ChangeNotifier {
   Box<WaterIntakeDBO>? _waterIntakeBox;
   Box<FastingSessionDBO>? _fastingBox;
   Box<FavouriteMealDBO>? _favouriteMealBox;
+  Box<MedicationDBO>? _medicationBox;
 
   late final HiveAesCipher _cipher;
   String _activeProfileId = '';
@@ -141,6 +145,8 @@ class HiveDBProvider extends ChangeNotifier {
       _requireBox(_fastingBox, fastingBoxName);
   Box<FavouriteMealDBO> get favouriteMealBox =>
       _requireBox(_favouriteMealBox, favouriteMealBoxName);
+  Box<MedicationDBO> get medicationBox =>
+      _requireBox(_medicationBox, medicationBoxName);
 
   Box<T> _requireBox<T>(Box<T>? box, String name) {
     if (_switching) {
@@ -241,6 +247,9 @@ class HiveDBProvider extends ChangeNotifier {
     _favouriteMealBox = await _openEncryptedBox(
       boxNameFor(favouriteMealBoxName, suffix),
     );
+    _medicationBox = await _openEncryptedBox(
+      boxNameFor(medicationBoxName, suffix),
+    );
   }
 
   Future<void> _closeActiveProfileBoxes() async {
@@ -254,6 +263,7 @@ class HiveDBProvider extends ChangeNotifier {
       if (_waterIntakeBox != null) _waterIntakeBox!.close(),
       if (_fastingBox != null) _fastingBox!.close(),
       if (_favouriteMealBox != null) _favouriteMealBox!.close(),
+      if (_medicationBox != null) _medicationBox!.close(),
     ]);
     _configBox = null;
     _intakeBox = null;
@@ -264,6 +274,7 @@ class HiveDBProvider extends ChangeNotifier {
     _waterIntakeBox = null;
     _fastingBox = null;
     _favouriteMealBox = null;
+    _medicationBox = null;
   }
 
   /// Opens (or returns the already-open) box for an arbitrary profile

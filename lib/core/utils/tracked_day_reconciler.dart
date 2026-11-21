@@ -237,15 +237,17 @@ Future<int> reconcileTrackedDays(
     }
     final burnedMoved = day.burned - burnedOn(key);
     if (movesCredit && burnedMoved.abs() > _epsilon) {
-      row
-        ..calorieGoal += burnedMoved
-        ..carbsGoal =
-            (row.carbsGoal ?? 0) + MacroCalc.getTotalCarbsGoal(burnedMoved)
-        ..fatGoal = (row.fatGoal ?? 0) + MacroCalc.getTotalFatsGoal(burnedMoved)
-        ..proteinGoal =
-            (row.proteinGoal ?? 0) +
-            MacroCalc.getTotalProteinsGoal(burnedMoved);
-      changed = true;
+      if (previousKeys == null || !previousKeys.contains(key)) {
+        row
+          ..calorieGoal += burnedMoved
+          ..carbsGoal =
+              (row.carbsGoal ?? 0) + MacroCalc.getTotalCarbsGoal(burnedMoved)
+          ..fatGoal = (row.fatGoal ?? 0) + MacroCalc.getTotalFatsGoal(burnedMoved)
+          ..proteinGoal =
+              (row.proteinGoal ?? 0) +
+              MacroCalc.getTotalProteinsGoal(burnedMoved);
+        changed = true;
+      }
     }
     if (changed) written[key] = row;
   }

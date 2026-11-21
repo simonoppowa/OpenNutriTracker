@@ -9,6 +9,7 @@ import 'package:opennutritracker/features/settings/domain/usecase/export_data_us
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/import_templates_dialog.dart';
 import 'package:opennutritracker/features/trends/presentation/bloc/trends_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -144,6 +145,13 @@ class _ExportImportDialogState extends State<ExportImportDialog> {
         ],
       ),
       actions: <Widget>[
+        TextButton(
+          onPressed: () => showDialog(
+            context: context,
+            builder: (context) => const ImportTemplatesDialog(),
+          ),
+          child: const Text('Modelos (Templates)'),
+        ),
         TextButton(
           onPressed: () => _exportImportBloc.add(
             ExportDataEvent(format: _exportFormat),

@@ -20,6 +20,7 @@ import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
@@ -175,18 +176,37 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           .fold<int>(0, (sum, ml) => sum + ml);
 
       final user = await _getUserUsecase.getUserData();
-      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
-        userEntity: user,
+
+      final todayLogicalDay = DayBoundaryCalc.currentLogicalDayLabel(
+        dayStartOffsetHours,
+        dayStartOffsetMinutes,
       );
-      final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
-        totalKcalGoal,
-      );
-      final totalFatsGoal = await _getMacroGoalUsecase.getFatsGoal(
-        totalKcalGoal,
-      );
-      final totalProteinsGoal = await _getMacroGoalUsecase.getProteinsGoal(
-        totalKcalGoal,
-      );
+      final trackedDayEntity = await locator<GetTrackedDayUsecase>().getTrackedDay(todayLogicalDay);
+
+      double totalKcalGoal;
+      double totalCarbsGoal;
+      double totalFatsGoal;
+      double totalProteinsGoal;
+
+      if (trackedDayEntity != null && trackedDayEntity.calorieGoal > 0) {
+        totalKcalGoal = trackedDayEntity.calorieGoal;
+        totalCarbsGoal = trackedDayEntity.carbsGoal ?? 0;
+        totalFatsGoal = trackedDayEntity.fatGoal ?? 0;
+        totalProteinsGoal = trackedDayEntity.proteinGoal ?? 0;
+      } else {
+        totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+          userEntity: user,
+        );
+        totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
+          totalKcalGoal,
+        );
+        totalFatsGoal = await _getMacroGoalUsecase.getFatsGoal(
+          totalKcalGoal,
+        );
+        totalProteinsGoal = await _getMacroGoalUsecase.getProteinsGoal(
+          totalKcalGoal,
+        );
+      }
 
       final totalKcalLeft = CalorieGoalCalc.getDailyKcalLeft(
         totalKcalGoal,

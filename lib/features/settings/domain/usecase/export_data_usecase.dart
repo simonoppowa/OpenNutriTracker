@@ -14,12 +14,14 @@ import 'package:opennutritracker/core/data/repository/config_repository.dart';
 import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/favourite_meal_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/data/repository/medication_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 import 'package:opennutritracker/core/utils/export_write_verifier.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
@@ -213,6 +215,24 @@ class ExportDataUsecase {
         );
         archive.addFile(
           ArchiveFile(trackedDayCsvFileName, bytes.length, bytes),
+        );
+      }
+
+      // Medication dataset
+      final fullMedications = await locator<MedicationRepository>().getAllMedicationsDBO();
+      if (format == ExportFormat.json) {
+        final bytes = utf8.encode(
+          jsonEncode(fullMedications.map((m) => m.toJson()).toList()),
+        );
+        archive.addFile(
+          ArchiveFile('user_medication.json', bytes.length, bytes),
+        );
+      } else {
+        final bytes = utf8.encode(
+          CsvDataExporter.medicationsToCsv(fullMedications),
+        );
+        archive.addFile(
+          ArchiveFile('user_medication.csv', bytes.length, bytes),
         );
       }
 

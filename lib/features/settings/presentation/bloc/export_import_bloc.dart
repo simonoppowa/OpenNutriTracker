@@ -10,6 +10,8 @@ import 'package:opennutritracker/features/settings/domain/usecase/import_meals_c
 import 'package:opennutritracker/features/settings/domain/usecase/import_meals_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
+import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
+import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 
 part 'export_import_event.dart';
@@ -253,7 +255,15 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   /// logical day once `SettingsBloc.getCurrentLogicalDay` (#1382) lands.
   Future<void> _syncTodayGoals() async {
     try {
-      await _settingsBloc.updateTrackedDay(DateTime.now());
+      final today = DateTime.now();
+      final trackedDay = await locator<TrackedDayRepository>().getTrackedDay(today);
+      if (trackedDay != null &&
+          (trackedDay.carbsGoal != null ||
+              trackedDay.proteinGoal != null ||
+              trackedDay.fatGoal != null)) {
+        return;
+      }
+      await _settingsBloc.updateTrackedDay(today);
     } catch (e, stackTrace) {
       // The data is already imported. A stale goal on today's row is not
       // worth reporting the whole import as failed.
