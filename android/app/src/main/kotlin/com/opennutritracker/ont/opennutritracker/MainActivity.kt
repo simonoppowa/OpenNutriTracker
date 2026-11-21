@@ -105,6 +105,11 @@ class MainActivity : FlutterFragmentActivity() {
                             applicationContext,
                         )
                     }
+                    "hasWeightReadPermission" -> answerFromHealthConnect(result) {
+                        HealthConnectWorkoutReader.hasWeightReadPermission(
+                            applicationContext,
+                        )
+                    }
                     else -> result.notImplemented()
                 }
             }
