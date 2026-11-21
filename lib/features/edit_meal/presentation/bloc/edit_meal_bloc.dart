@@ -202,6 +202,14 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
     );
   }
 
+  bool hasOtherCustomMealWithName(String name, String? currentCode) =>
+      _customMealDataSource.getAllCustomMeals().any((meal) =>
+          (meal.name ?? '').trim().toLowerCase() == name.trim().toLowerCase() &&
+          meal.code != currentCode);
+
+  Iterable<String> get customMealNames =>
+      _customMealDataSource.getAllCustomMeals().map((meal) => meal.name ?? '');
+
   /// Persist custom meal template so it appears in Recent Meals before first log (#267)
   ///
   /// [previous] is the meal as it was before the edit: its library entry is

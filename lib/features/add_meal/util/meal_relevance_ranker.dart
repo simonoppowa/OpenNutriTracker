@@ -97,6 +97,46 @@ List<MealEntity> mergeAndRankMeals(List<MealEntity> a, List<MealEntity> b, Strin
   return [...rankMealsByRelevance(own, query), ...rankMealsByRelevance(collapsedRest, query)];
 }
 
+/// Keeps the positions already shown while a second online source finishes.
+///
+/// Only what [latest] still holds is kept: an item a refresh no longer
+/// returns leaves the list rather than staying selectable. A refreshed copy
+/// of an item replaces its earlier copy in place, and new matches are
+/// appended in [latest]'s relevance order.
+List<MealEntity> appendStableSearchResults(
+  List<MealEntity> shown,
+  List<MealEntity> latest,
+) {
+  String exactKey(MealEntity meal) =>
+      '${meal.source.name}:${meal.code ?? meal.name ?? identityHashCode(meal)}';
+  final latestByKey = <String, MealEntity>{};
+  for (final meal in latest) {
+    latestByKey.putIfAbsent(exactKey(meal), () => meal);
+  }
+  final result = <MealEntity>[];
+  final placed = <String>{};
+  for (final meal in shown) {
+    final key = exactKey(meal);
+    final fresh = latestByKey[key];
+    if (fresh != null && placed.add(key)) result.add(fresh);
+  }
+  final offGroups = <String>{
+    for (final meal in result)
+      if (meal.source == MealSourceEntity.off) _nearDuplicateKey(meal),
+  };
+  for (final meal in latest) {
+    final key = exactKey(meal);
+    if (placed.contains(key)) continue;
+    if (meal.source == MealSourceEntity.off &&
+        !offGroups.add(_nearDuplicateKey(meal))) {
+      continue;
+    }
+    placed.add(key);
+    result.add(meal);
+  }
+  return result;
+}
+
 /// Same dedup key as `SearchProductsUseCase._deduplicateMeals` (source +
 /// code, falling back to name) so a custom meal or recipe that independently
 /// surfaced in both the OFF and Food lists collapses to a single entry here.
