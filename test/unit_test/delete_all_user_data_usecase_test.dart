@@ -149,6 +149,7 @@ class _TestHiveDBProvider extends HiveDBProvider {
   final Box<WaterIntakeDBO> water;
   final Box<FastingSessionDBO> fasting;
   final Box<FavouriteMealDBO> favourites;
+  final Box<DateTime> hiddenRecent;
   final Box<ConfigDBO> sharedAppConfig;
 
   _TestHiveDBProvider({
@@ -161,6 +162,7 @@ class _TestHiveDBProvider extends HiveDBProvider {
     required this.water,
     required this.fasting,
     required this.favourites,
+    required this.hiddenRecent,
     required this.sharedAppConfig,
   });
 
@@ -183,6 +185,8 @@ class _TestHiveDBProvider extends HiveDBProvider {
   @override
   Box<FavouriteMealDBO> get favouriteMealBox => favourites;
   @override
+  Box<DateTime> get hiddenRecentBox => hiddenRecent;
+  @override
   Box<ConfigDBO> get appConfigBox => sharedAppConfig;
 }
 
@@ -196,6 +200,7 @@ void main() {
   late Box<ConfigDBO> configBox;
   late Box<ConfigDBO> appConfigBox;
   late Box<FavouriteMealDBO> favouriteBox;
+  late Box<DateTime> hiddenRecentBox;
   late _RecordingWidgetStore widgetStore;
 
   setUp(() async {
@@ -217,6 +222,9 @@ void main() {
       fasting: await Hive.openBox<FastingSessionDBO>('wipe_fasting_$tag'),
       favourites: favouriteBox = await Hive.openBox<FavouriteMealDBO>(
         'wipe_favourites_$tag',
+      ),
+      hiddenRecent: hiddenRecentBox = await Hive.openBox<DateTime>(
+        'wipe_hidden_recent_$tag',
       ),
       sharedAppConfig: appConfigBox,
     );
@@ -358,6 +366,16 @@ void main() {
     await sut.deleteAll();
 
     expect(favouriteBox.isEmpty, isTrue);
+  });
+
+  test('clears the foods the profile removed from Recently', () async {
+    // #1198: which entries are hidden from Recently is per-profile, so a
+    // reset takes it with the entries themselves.
+    await hiddenRecentBox.put('intake-1', DateTime(2026, 11, 9));
+
+    await sut.deleteAll();
+
+    expect(hiddenRecentBox.isEmpty, isTrue);
   });
 
   test('clears the home-screen widget', () async {

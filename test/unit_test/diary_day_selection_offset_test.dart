@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/hidden_recent_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
@@ -148,6 +149,7 @@ void main() {
       intakeUsecase = GetIntakeUsecase(
         repo,
         RecipeRepository(RecipeDataSource(FakeHiveDBProvider())),
+        HiddenRecentDataSource(FakeHiveDBProvider()),
       );
 
       final activityBox =

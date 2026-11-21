@@ -65,12 +65,12 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   int recentIntakeCallCount = 0;
 
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async {
+  Future<List<IntakeEntity>> getRecentIntakeIncludingHidden() async {
     recentIntakeCallCount++;
     return recentIntake;
   }
 
-  // Stub everything else — only getRecentIntake is exercised here.
+  // Stub everything else — only getRecentIntakeIncludingHidden is exercised here.
   @override
   dynamic noSuchMethod(Invocation invocation) {
     throw UnimplementedError(
