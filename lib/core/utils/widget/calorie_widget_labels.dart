@@ -11,6 +11,15 @@ import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutri
     show NutrientPanelKeys;
 import 'package:opennutritracker/generated/l10n.dart';
 
+/// The stable ids of the widget background styles. The extension offers
+/// them in the Edit Widget sheet and reads the same strings.
+class CalorieWidgetStyleIds {
+  static const system = 'system';
+  static const paper = 'paper';
+  static const dark = 'dark';
+  static const highContrast = 'highContrast';
+}
+
 /// The iOS widget's text, translated on the Dart side.
 ///
 /// The extension cannot read the generated Dart strings, and copy written
@@ -71,6 +80,11 @@ class CalorieWidgetLabels {
   /// hidden.
   final Map<String, String> nutrientNames;
 
+  /// The names of the widget background styles by stable id, in the order
+  /// the Edit Widget sheet offers them. Language-only, like the nutrient
+  /// names. The ids are `system`, `paper`, `dark` and `highContrast`.
+  final Map<String, String> styleNames;
+
   /// The small widgets' text that describes figures. Each is empty or
   /// absent when its figure was not written, so the reader never speaks a
   /// figure it lacks: the VoiceOver sentences of the macros and water
@@ -106,6 +120,7 @@ class CalorieWidgetLabels {
     this.nutrientNotShown = '',
     this.waterNoGoal = '',
     this.nutrientNames = const {},
+    this.styleNames = const {},
     this.macrosAccessibility = '',
     this.waterAccessibility = '',
     this.waterGoal = '',
@@ -137,11 +152,25 @@ class CalorieWidgetLabels {
   }) {
     final consumed = '$consumedKcal';
     final goal = '$goalKcal';
+    final caloriesOver = _isOver(consumedKcal, goalKcal);
+    final macrosOver = [
+      if (macros != null && _isOver(macros.proteinIntakeG, macros.proteinGoalG))
+        s.proteinLabel,
+      if (macros != null && _isOver(macros.fatsIntakeG, macros.fatsGoalG))
+        s.fatLabel,
+      if (macros != null && _isOver(macros.carbsIntakeG, macros.carbsGoalG))
+        s.carbsLabel,
+    ];
+    final waterOver = water != null && _isOver(water.intakeMl, water.goalMl);
     return CalorieWidgetLabels(
       title: s.trendsCaloriesLabel,
       unit: s.kcalLabel,
       goal: s.calorieWidgetGoalLabel(goal),
-      accessibility: s.calorieWidgetAccessibilityLabel(consumed, goal),
+      accessibility: _withOver(
+        s,
+        s.calorieWidgetAccessibilityLabel(consumed, goal),
+        [if (caloriesOver) s.trendsCaloriesLabel],
+      ),
       openApp: s.calorieWidgetOpenAppHint,
       description: s.calorieWidgetDescription,
       protein: s.proteinLabel,
@@ -154,17 +183,25 @@ class CalorieWidgetLabels {
       rowDescription: s.nutritionRowWidgetDescription,
       rowAccessibility: macros == null || water == null
           ? ''
-          : s.nutritionRowWidgetAccessibilityLabel(
-              consumed,
-              goal,
-              '${macros.carbsIntakeG}',
-              '${macros.carbsGoalG}',
-              '${macros.fatsIntakeG}',
-              '${macros.fatsGoalG}',
-              '${macros.proteinIntakeG}',
-              '${macros.proteinGoalG}',
-              '${water.intakeMl}',
-              '${water.goalMl}',
+          : _withOver(
+              s,
+              s.nutritionRowWidgetAccessibilityLabel(
+                consumed,
+                goal,
+                '${macros.carbsIntakeG}',
+                '${macros.carbsGoalG}',
+                '${macros.fatsIntakeG}',
+                '${macros.fatsGoalG}',
+                '${macros.proteinIntakeG}',
+                '${macros.proteinGoalG}',
+                '${water.intakeMl}',
+                '${water.goalMl}',
+              ),
+              [
+                if (caloriesOver) s.trendsCaloriesLabel,
+                ...macrosOver,
+                if (waterOver) s.trendsWaterLabel,
+              ],
             ),
       macrosTitle: s.macrosSmallWidgetDisplayName,
       macrosDescription: s.macrosSmallWidgetDescription,
@@ -172,21 +209,30 @@ class CalorieWidgetLabels {
       nutrientNotShown: s.nutrientWidgetNotShownLabel,
       waterNoGoal: s.waterSmallWidgetNoGoalLabel,
       nutrientNames: _nutrientNames(s),
+      styleNames: _styleNames(s),
       macrosAccessibility: macros == null
           ? ''
-          : s.macrosSmallWidgetAccessibilityLabel(
-              '${macros.proteinIntakeG}',
-              '${macros.proteinGoalG}',
-              '${macros.fatsIntakeG}',
-              '${macros.fatsGoalG}',
-              '${macros.carbsIntakeG}',
-              '${macros.carbsGoalG}',
+          : _withOver(
+              s,
+              s.macrosSmallWidgetAccessibilityLabel(
+                '${macros.proteinIntakeG}',
+                '${macros.proteinGoalG}',
+                '${macros.fatsIntakeG}',
+                '${macros.fatsGoalG}',
+                '${macros.carbsIntakeG}',
+                '${macros.carbsGoalG}',
+              ),
+              macrosOver,
             ),
       waterAccessibility: water == null
           ? ''
-          : s.waterSmallWidgetAccessibilityLabel(
-              '${water.intakeMl}',
-              '${water.goalMl}',
+          : _withOver(
+              s,
+              s.waterSmallWidgetAccessibilityLabel(
+                '${water.intakeMl}',
+                '${water.goalMl}',
+              ),
+              [if (waterOver) s.trendsWaterLabel],
             ),
       waterGoal: water == null
           ? ''
@@ -194,6 +240,27 @@ class CalorieWidgetLabels {
       nutrientFigures: _nutrientFigures(s, macros, nutrients),
     );
   }
+
+  /// A figure above a goal. A goal of zero or less is no goal.
+  static bool _isOver(num value, num goal) => goal > 0 && value > goal;
+
+  /// [sentence] followed by one over-the-goal sentence for each name in
+  /// [over]. The cue has words so that no state depends on colour or on a
+  /// symbol. The sentence is returned as it is when nothing is over.
+  static String _withOver(S s, String sentence, List<String> over) {
+    if (over.isEmpty) return sentence;
+    final joiner = sentence.endsWith('.') ? ' ' : '. ';
+    return '$sentence$joiner${over.map(s.widgetOverGoalLabel).join(' ')}';
+  }
+
+  /// The widget background styles' names, in the order the Edit Widget
+  /// sheet offers them.
+  static Map<String, String> _styleNames(S s) => {
+    CalorieWidgetStyleIds.system: s.widgetStyleSystem,
+    CalorieWidgetStyleIds.paper: s.widgetStylePaper,
+    CalorieWidgetStyleIds.dark: s.widgetStyleDark,
+    CalorieWidgetStyleIds.highContrast: s.widgetStyleHighContrast,
+  };
 
   /// The names the nutrient picker offers, from the strings the app
   /// already translates.
@@ -250,11 +317,15 @@ class CalorieWidgetLabels {
       return {
         if (writesValue) 'value': amount,
         'goal': s.calorieWidgetGoalLabel(goalText),
-        'accessibility': s.nutrientWidgetAccessibilityLabel(
-          name,
-          amount,
-          nutrient.unit,
-          goalText,
+        'accessibility': _withOver(
+          s,
+          s.nutrientWidgetAccessibilityLabel(
+            name,
+            amount,
+            nutrient.unit,
+            goalText,
+          ),
+          [if (_isOver(nutrient.consumed, goal)) name],
         ),
       };
     }
@@ -349,6 +420,11 @@ class CalorieWidgetLabels {
     // A list, not a map, so the picker keeps this order.
     'nutrients': [
       for (final entry in nutrientNames.entries)
+        {'id': entry.key, 'name': entry.value},
+    ],
+    // A list too, in the order the Edit Widget sheet offers the styles.
+    'styles': [
+      for (final entry in styleNames.entries)
         {'id': entry.key, 'name': entry.value},
     ],
   };

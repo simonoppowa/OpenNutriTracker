@@ -65,6 +65,13 @@ void main() {
         {'id': 'vitamin_b12', 'name': 'vitamin B12'},
         {'id': 'magnesium', 'name': 'magnesium'},
       ],
+      // The background styles the Edit Widget sheet offers, in order.
+      'styles': [
+        {'id': 'system', 'name': 'System'},
+        {'id': 'paper', 'name': 'Paper'},
+        {'id': 'dark', 'name': 'Dark'},
+        {'id': 'highContrast', 'name': 'High contrast'},
+      ],
     });
     expect(labels.figureJson(), {
       'goal': 'of 2001',
@@ -407,5 +414,144 @@ void main() {
     final labels = CalorieWidgetLabels.forAppLocale(snapshot);
 
     expect(labels.title, 'Calories');
+  });
+
+  group('the widget background styles', () {
+    test('are written with stable ids in the app\'s language', () {
+      final german = CalorieWidgetLabels.of(
+        lookupS(const Locale('de')),
+        snapshot,
+      );
+      final de = lookupS(const Locale('de'));
+
+      expect(german.styleNames.keys, [
+        CalorieWidgetStyleIds.system,
+        CalorieWidgetStyleIds.paper,
+        CalorieWidgetStyleIds.dark,
+        CalorieWidgetStyleIds.highContrast,
+      ]);
+      expect(
+        german.styleNames[CalorieWidgetStyleIds.paper],
+        de.widgetStylePaper,
+      );
+      expect(
+        german.styleNames[CalorieWidgetStyleIds.highContrast],
+        de.widgetStyleHighContrast,
+      );
+    });
+
+    test('travel in the language-only JSON as an ordered list', () {
+      final labels = CalorieWidgetLabels.of(
+        lookupS(const Locale('en')),
+        snapshot,
+      );
+
+      final decoded = jsonDecode(labels.encodeLanguage());
+
+      expect(decoded['styles'], [
+        {'id': 'system', 'name': 'System'},
+        {'id': 'paper', 'name': 'Paper'},
+        {'id': 'dark', 'name': 'Dark'},
+        {'id': 'highContrast', 'name': 'High contrast'},
+      ]);
+    });
+
+    test('an older write without them still decodes as the other labels', () {
+      final labels = CalorieWidgetLabels.of(
+        lookupS(const Locale('en')),
+        snapshot,
+      );
+      final json = Map<String, Object?>.from(labels.languageJson())
+        ..remove('styles');
+
+      final decoded = jsonDecode(jsonEncode(json)) as Map<String, Object?>;
+
+      expect(decoded.containsKey('styles'), isFalse);
+      expect(decoded['title'], 'Calories');
+      expect(decoded['nutrients'], isNotEmpty);
+    });
+  });
+
+  group('the over-the-goal wording', () {
+    final en = lookupS(const Locale('en'));
+    const macros = CalorieWidgetMacros(
+      proteinIntakeG: 102,
+      proteinGoalG: 116,
+      carbsIntakeG: 413,
+      carbsGoalG: 465,
+      fatsIntakeG: 96,
+      fatsGoalG: 86,
+    );
+    const water = CalorieWidgetWater(intakeMl: 2500, goalMl: 1900);
+
+    test('is added to each sentence for a figure above its goal only', () {
+      final labels = CalorieWidgetLabels.forFigures(
+        en,
+        consumedKcal: 2898,
+        goalKcal: 2000,
+        macros: macros,
+        water: water,
+      );
+
+      expect(
+        labels.accessibility,
+        '2898 of 2000 kilocalories. Calories is over the goal.',
+      );
+      expect(labels.macrosAccessibility, endsWith('fat is over the goal.'));
+      expect(labels.macrosAccessibility, isNot(contains('protein is over')));
+      expect(labels.waterAccessibility, endsWith('Water is over the goal.'));
+      expect(labels.rowAccessibility, contains('Calories is over the goal.'));
+      expect(labels.rowAccessibility, contains('fat is over the goal.'));
+      expect(labels.rowAccessibility, contains('Water is over the goal.'));
+      expect(labels.rowAccessibility, isNot(contains('carbs is over')));
+    });
+
+    test('is left out when every figure is at or under its goal', () {
+      final labels = CalorieWidgetLabels.forFigures(
+        en,
+        consumedKcal: 2000,
+        goalKcal: 2000,
+        macros: const CalorieWidgetMacros(
+          proteinIntakeG: 116,
+          proteinGoalG: 116,
+          carbsIntakeG: 1,
+          carbsGoalG: 465,
+          fatsIntakeG: 0,
+          fatsGoalG: 86,
+        ),
+        water: const CalorieWidgetWater(intakeMl: 1900, goalMl: 1900),
+      );
+
+      expect(labels.accessibility, '2000 of 2000 kilocalories');
+      expect(labels.macrosAccessibility, isNot(contains('over the goal')));
+      expect(labels.waterAccessibility, isNot(contains('over the goal')));
+      expect(labels.rowAccessibility, isNot(contains('over the goal')));
+    });
+
+    test('is never added for a goal of zero', () {
+      final labels = CalorieWidgetLabels.forFigures(
+        en,
+        consumedKcal: 500,
+        goalKcal: 0,
+        water: const CalorieWidgetWater(intakeMl: 500, goalMl: 0),
+      );
+
+      expect(labels.accessibility, isNot(contains('over the goal')));
+      expect(labels.waterAccessibility, isNot(contains('over the goal')));
+    });
+
+    test('is added to a panel nutrient above its goal', () {
+      final labels = CalorieWidgetLabels.forFigures(
+        en,
+        consumedKcal: 100,
+        goalKcal: 2000,
+        nutrients: const [
+          CalorieWidgetNutrient(id: 'fiber', consumed: 35, goal: 30, unit: 'g'),
+        ],
+      );
+
+      final fiber = (labels.figureJson()['nutrients']! as Map)['fiber'] as Map;
+      expect(fiber['accessibility'], endsWith('fiber is over the goal.'));
+    });
   });
 }

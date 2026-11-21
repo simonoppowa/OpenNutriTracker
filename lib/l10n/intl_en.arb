@@ -1344,6 +1344,31 @@
   "@waterSmallWidgetDescription": {
     "description": "Subtitle of the small water widget in the iOS widget gallery."
   },
+  "widgetOverGoalLabel": "{name} is over the goal.",
+  "@widgetOverGoalLabel": {
+    "description": "Added to the VoiceOver sentence of an iOS widget when a figure is above its goal, for example 'Fat is over the goal.'. The name is the figure's name in the app.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStyleDark": "Dark",
+  "@widgetStyleDark": {
+    "description": "A background style of the iOS widgets in the Edit Widget sheet: always the app's dark colours, even in light mode."
+  },
+  "widgetStyleHighContrast": "High contrast",
+  "@widgetStyleHighContrast": {
+    "description": "A background style of the iOS widgets in the Edit Widget sheet: black text on white, or white text on black, with stronger bars."
+  },
+  "widgetStylePaper": "Paper",
+  "@widgetStylePaper": {
+    "description": "A background style of the iOS widgets in the Edit Widget sheet: the app's calm warm canvas, which follows light and dark mode."
+  },
+  "widgetStyleSystem": "System",
+  "@widgetStyleSystem": {
+    "description": "A background style of the iOS widgets in the Edit Widget sheet: the standard iOS widget background."
+  },
   "weeklyWeightGoalKgPerWeek": "{rate} kg/week",
   "weeklyWeightGoalLabel": "Weekly rate",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/week",
