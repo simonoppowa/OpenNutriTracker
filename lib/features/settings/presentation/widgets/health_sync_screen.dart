@@ -4,8 +4,10 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/repository/health_export_repository.dart';
 import 'package:opennutritracker/core/data/repository/health_import_repository.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/export_diary_to_health_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/import_workouts_usecase.dart';
@@ -90,6 +92,9 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
   double? _suggestedMultiplier;
   DateTime? _lastImportAt;
 
+  bool _exportEnabled = false;
+  DateTime? _lastExportAt;
+
   @override
   void initState() {
     super.initState();
@@ -106,6 +111,8 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
       _storedMultiplier = config.healthWorkoutKcalMultiplier;
       _multiplier = config.effectiveHealthWorkoutKcalMultiplier;
       _lastImportAt = config.healthLastImportAt;
+      _exportEnabled = config.healthExportEnabled;
+      _lastExportAt = config.healthLastExportAt;
       _loading = false;
     });
     // Only meaningful once the user has opted in: the body fat reading the
@@ -156,7 +163,7 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     // Shown on every opt-in, not once ever. Re-enabling is rare, and a
     // disclosure that only the first user of a device ever saw would be a
     // disclosure to the wrong person on a shared handset.
-    if (!await _confirmDisclosure()) return;
+    if (!await _confirmDisclosure(const HealthDisclosureDialog())) return;
 
     setState(() => _busy = true);
     try {
@@ -232,6 +239,66 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     }
   }
 
+  Future<void> _onExportChanged(bool enabled) async {
+    if (!enabled) {
+      setState(() => _exportEnabled = false);
+      await locator<SettingsBloc>().setHealthExportEnabled(false);
+      return;
+    }
+    if (!await _confirmDisclosure(const HealthDisclosureDialog.export())) {
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      final granted = await locator<HealthExportRepository>()
+          .requestPermissions();
+      if (!mounted) return;
+      if (!granted) {
+        _showExportDenied();
+        return;
+      }
+      await locator<SettingsBloc>().setHealthExportEnabled(true);
+      if (!mounted) return;
+      setState(() => _exportEnabled = true);
+      await _runExport(reportCount: false);
+    } catch (error, stackTrace) {
+      _log.warning('Enabling health export failed', error, stackTrace);
+      if (!mounted) return;
+      setState(() => _exportEnabled = false);
+      _showExportDenied();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _runExport({bool reportCount = true}) async {
+    try {
+      final written = await locator<ExportDiaryToHealthUsecase>().exportNow();
+      final config = await locator<GetConfigUsecase>().getConfig();
+      if (!mounted) return;
+      setState(() => _lastExportAt = config.healthLastExportAt);
+      if (reportCount) {
+        _showMessage(S.of(context).healthSyncExportedCountLabel(written));
+      }
+    } catch (error, stackTrace) {
+      _log.warning('Health export failed', error, stackTrace);
+      if (mounted) _showExportDenied();
+    }
+  }
+
+  Future<void> _onExportNowPressed() async {
+    setState(() => _busy = true);
+    try {
+      await _runExport();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _showExportDenied() => _showMessage(
+    S.of(context).healthSyncExportPermissionDeniedLabel(healthPlatformName),
+  );
+
   /// Re-reads the watermark the importer just wrote, so the "last import"
   /// subtitle reflects the run that finished rather than the one before it.
   Future<void> _reloadWatermark() async {
@@ -265,11 +332,11 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
   /// A dismissal returns null, which reads as a refusal — the one direction
   /// this must fail in, since the alternative is asking the platform for
   /// health data on the strength of a stray tap.
-  Future<bool> _confirmDisclosure() async {
+  Future<bool> _confirmDisclosure(Widget dialog) async {
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const HealthDisclosureDialog(),
+      builder: (_) => dialog,
     );
     return accepted ?? false;
   }
@@ -300,9 +367,9 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
     return suggested;
   }
 
-  String _formatLastImport(BuildContext context, DateTime lastImportAt) {
+  String _formatTime(BuildContext context, DateTime time) {
     final localeTag = Localizations.localeOf(context).toLanguageTag();
-    return DateFormat.yMMMd(localeTag).add_Hm().format(lastImportAt);
+    return DateFormat.yMMMd(localeTag).add_Hm().format(time);
   }
 
   @override
@@ -350,11 +417,37 @@ class _HealthSyncScreenState extends State<HealthSyncScreen> {
                       _lastImportAt == null
                           ? s.healthSyncNeverImportedLabel
                           : s.healthSyncLastImportLabel(
-                              _formatLastImport(context, _lastImportAt!),
+                              _formatTime(context, _lastImportAt!),
                             ),
                     ),
                     enabled: canEdit,
                     onTap: _onImportNowPressed,
+                  ),
+                ),
+                const Divider(),
+                Semantics(
+                  identifier: 'health-sync-export',
+                  child: SwitchListTile(
+                    secondary: const Icon(Icons.upload_rounded),
+                    title: Text(s.healthSyncExportLabel(healthPlatformName)),
+                    value: _exportEnabled,
+                    onChanged: _isAvailable && !_busy ? _onExportChanged : null,
+                  ),
+                ),
+                Semantics(
+                  identifier: 'health-sync-export-now',
+                  child: ListTile(
+                    leading: const Icon(Icons.upload_file_rounded),
+                    title: Text(s.healthSyncExportNowLabel),
+                    subtitle: Text(
+                      _lastExportAt == null
+                          ? s.healthSyncNeverExportedLabel
+                          : s.healthSyncLastExportLabel(
+                              _formatTime(context, _lastExportAt!),
+                            ),
+                    ),
+                    enabled: _isAvailable && _exportEnabled && !_busy,
+                    onTap: _onExportNowPressed,
                   ),
                 ),
                 // Health Connect can send the user straight here to ask what

@@ -11,7 +11,7 @@ OpenNutriTracker is a calorie counter and food diary with no account, no subscri
 ⚡ Quick add: Skip the search when you already know roughly how much you ate — a title plus kcal (and optional macros), logged straight to the meal.
 🤖 AI meal assistance (experimental, off by default): Describe a meal in one line, or photograph it, and have several items resolved at once. Needs your own API key (Anthropic, OpenAI, OpenRouter) or a server you run — the project never sees either. The model reads language, not nutrition: every calorie still comes from the food databases.
 📷 Barcode scanner: Scan packaged items for instant lookup, paste a barcode manually, or attach a barcode to a custom meal so future scans recognise your own foods.
-🏃 Activities and workout import: Log workouts from a categorised catalogue or define custom activities with direct kcal entry and templates. Optionally import finished workouts from Health Connect — read-only, off by default, nothing is written back, and they stay on your device.
+🏃 Activities and workout import: Log workouts from a categorised catalogue or define custom activities with direct kcal entry and templates. Optionally import finished workouts from Health Connect, or export your meals and water to it — both off by default, and everything stays on your device.
 💧 Water tracker: A water chip on the home screen with quick-add increments, an editable goal, and undo for the last entry.
 ⏱️ Fasting timer: Optional intermittent-fasting timer with a content-warning gate, a home chip showing time remaining, and a completion notification.
 ⚖️ Weight history: Capture weight during onboarding and on demand, see the trend against your target, and optionally taper the calorie goal as you approach it.

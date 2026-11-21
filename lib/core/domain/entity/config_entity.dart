@@ -135,6 +135,13 @@ class ConfigEntity extends Equatable {
     ...legacyHealthDeletedExternalIds,
   };
 
+  /// Whether logged meals and water are mirrored into Health Connect / Apple
+  /// Health, when the last run finished, and per diary day the fingerprint
+  /// of what was last written (see `ExportDiaryToHealthUsecase`).
+  final bool healthExportEnabled;
+  final DateTime? healthLastExportAt;
+  final Map<String, String> healthExportedDays;
+
   /// The earliest instant any future import could ask the platform about, and
   /// therefore the point before which a tombstone is dead weight rather than
   /// protection.
@@ -190,6 +197,9 @@ class ConfigEntity extends Equatable {
 
   /// How far back the very first import reaches when there is no watermark.
   static const int healthImportBackfillDays = 30;
+
+  /// How far back the export looks for days that have never been written.
+  static const int healthExportBackfillDays = 30;
 
   /// Default daily water goal in millilitres for the home chip when the
   /// user has not picked one yet.
@@ -268,6 +278,9 @@ class ConfigEntity extends Equatable {
     this.healthLastImportAt,
     this.healthDeletedWorkouts = const <String, DateTime>{},
     this.legacyHealthDeletedExternalIds = const <String>{},
+    this.healthExportEnabled = false,
+    this.healthLastExportAt,
+    this.healthExportedDays = const <String, String>{},
     this.policyNoticeRevisionSeen = 0,
     this.defaultToRawFoodUnits = false,
   });
@@ -391,6 +404,11 @@ class ConfigEntity extends Equatable {
     legacyHealthDeletedExternalIds: dbo.healthDeletedExternalIds != null
         ? Set<String>.from(dbo.healthDeletedExternalIds!)
         : const <String>{},
+    healthExportEnabled: dbo.healthExportEnabled ?? false,
+    healthLastExportAt: dbo.healthLastExportAt,
+    healthExportedDays: dbo.healthExportedDays != null
+        ? Map<String, String>.from(dbo.healthExportedDays!)
+        : const <String, String>{},
     defaultToRawFoodUnits: dbo.defaultToRawFoodUnits ?? false,
   );
 
@@ -495,6 +513,9 @@ class ConfigEntity extends Equatable {
     healthLastImportAt,
     healthDeletedWorkouts,
     legacyHealthDeletedExternalIds,
+    healthExportEnabled,
+    healthLastExportAt,
+    healthExportedDays,
     policyNoticeRevisionSeen,
     defaultToRawFoodUnits,
   ];
