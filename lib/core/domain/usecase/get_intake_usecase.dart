@@ -152,4 +152,17 @@ class GetIntakeUsecase {
     for (final dbo in await _intakeRepository.getAllIntakesDBO())
       DayBoundaryCalc.dayKeyOf(dbo.dateTime, offsetTotalMinutes),
   };
+
+  /// The last time [meal] was logged in the active profile, for the
+  /// meal-detail screen to open on that amount (#1265). Null for a food
+  /// never logged, and for one without a code: a name is not enough to
+  /// tell two foods apart.
+  ///
+  /// The intake's own meal snapshot is returned as stored, so its serving
+  /// is the one the amount was logged against.
+  Future<IntakeEntity?> getLastIntakeOfMeal(MealEntity meal) async {
+    final code = meal.code;
+    if (code == null || code.isEmpty) return null;
+    return _intakeRepository.getLatestIntakeOfMeal(meal, code);
+  }
 }

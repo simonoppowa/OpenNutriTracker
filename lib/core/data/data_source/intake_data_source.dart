@@ -158,6 +158,24 @@ class IntakeDataSource {
     return uniqueIntake.take(number).toList();
   }
 
+  /// The newest intake of the food [source] knows as [code] in the active
+  /// profile, or null when it was never logged there (#1265).
+  ///
+  /// Newest by the entry's date; of two at the same moment, the one added
+  /// last. Matched by source and code only, never by name: two foods can
+  /// share a name, and a name is not a stable key. One pass over the box,
+  /// without sorting or copying it.
+  IntakeDBO? getLatestIntakeOfMeal(MealSourceDBO source, String code) {
+    IntakeDBO? latest;
+    for (final intake in _intakeBox.values) {
+      if (intake.meal.source != source || intake.meal.code != code) continue;
+      if (latest == null || !intake.dateTime.isBefore(latest.dateTime)) {
+        latest = intake;
+      }
+    }
+    return latest;
+  }
+
   Future<List<IntakeDBO>> getCustomMealIntakes() async {
     return _intakeBox.values.where((dbo) => dbo.meal.source == MealSourceDBO.custom).toList();
   }
