@@ -6,6 +6,7 @@ import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
+import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_dto.dart';
 
 /// Regression test for #495 — custom-food serving size.
 ///
@@ -71,6 +72,62 @@ void main() {
         '1', // protein
       );
     }
+
+      // #1597: a scanned product with no nutrition data was edited, but the typed
+  // values vanished on save. The edited meal came back with `detailed: false`,
+  // so meal detail hydrated it from Open Food Facts and the empty record
+  // replaced what the user had typed.
+  group('createNewMealEntity detailed flag (#1597)', () {
+    late EditMealBloc bloc;
+
+    setUp(() {
+      bloc = EditMealBloc(
+        _FakeGetConfigUsecase(),
+        _FakeCustomMealDataSource(),
+        _FakeConfigRepository(),
+        _FakeFavouriteMealRepository(),
+        _FakeIntakeRepository(),
+      );
+    });
+
+    tearDown(() async {
+      await bloc.close();
+    });
+
+    MealEntity edit(MealEntity meal) => bloc.createNewMealEntity(
+      meal,
+      'Speiseröhre',
+      '',
+      '',
+      '',
+      '100',
+      'g',
+      '250',
+      '30',
+      '10',
+      '5',
+    );
+
+    MealEntity scannedProductWithoutNutrition() => MealEntity.fromOFFProduct(
+      OFFProductDTO.fromJson(const {
+        'code': '4061458245067',
+        'product_name': 'Speiseröhre',
+        'nutriments': <String, dynamic>{},
+      }),
+      detailed: true,
+    );
+
+    test('an edited Open Food Facts food is not hydrated over', () {
+      final edited = edit(scannedProductWithoutNutrition());
+
+      expect(edited.detailed, isTrue);
+      expect(edited.nutriments.energyKcal100, 250);
+    });
+
+    test('a custom meal is not marked detailed', () {
+      expect(edit(MealEntity.empty()).detailed, isFalse);
+    });
+  });
 
     test('serving unit is the selected unit, not the serving quantity text',
         () {
