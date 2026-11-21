@@ -3,6 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:provider/provider.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -15,6 +23,7 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_meal_bloc.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/favourite_toggle_bloc.dart';
@@ -39,8 +48,14 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
   final bool imperial;
+  final int offsetHours;
+  final int offsetMinutes;
 
-  _FakeGetConfigUsecase({this.imperial = false});
+  _FakeGetConfigUsecase({
+    this.imperial = false,
+    this.offsetHours = 0,
+    this.offsetMinutes = 0,
+  });
 
   @override
   Future<ConfigEntity> getConfig() async => ConfigEntity(
@@ -49,6 +64,8 @@ class _FakeGetConfigUsecase implements GetConfigUsecase {
     false,
     AppThemeEntity.system,
     usesImperialFoodUnits: imperial,
+    dayStartOffsetHours: offsetHours,
+    dayStartOffsetMinutes: offsetMinutes,
   );
 
   @override
@@ -81,6 +98,122 @@ class _FakeSearch implements SearchProductsUseCase {
       throw UnimplementedError('Unexpected call: ${invocation.memberName}');
 }
 
+class _YesterdayIntakes extends Fake implements IntakeRepository {
+  final List<IntakeEntity> intakes;
+  final queries = <({DateTime day, int hours, int minutes})>[];
+  bool fail = false;
+
+  _YesterdayIntakes(this.intakes);
+
+  @override
+  Future<List<IntakeEntity>> getIntakeByDateAndType(
+    IntakeTypeEntity type,
+    DateTime date, {
+    int dayStartOffsetHours = 0,
+    int dayStartOffsetMinutes = 0,
+  }) async {
+    if (fail) throw StateError('read failed');
+    queries.add((
+      day: date,
+      hours: dayStartOffsetHours,
+      minutes: dayStartOffsetMinutes,
+    ));
+    return intakes.where((intake) => intake.type == type).toList();
+  }
+}
+
+class _Copies extends Fake implements MealDetailBloc {
+  final written = <IntakeEntity>[];
+  int? failAt;
+
+  @override
+  Future<void> addIntake(
+    BuildContext context,
+    String unit,
+    String amountText,
+    IntakeTypeEntity type,
+    MealEntity meal,
+    DateTime day,
+  ) async {
+    if (failAt == written.length) throw StateError('write failed');
+    written.add(
+      IntakeEntity(
+        id: 'copy-${written.length}',
+        unit: unit,
+        amount: double.parse(amountText),
+        type: type,
+        meal: meal,
+        dateTime: day,
+      ),
+    );
+  }
+}
+
+class _HomeRefresh extends Fake implements HomeBloc {
+  @override
+  void add(HomeEvent event) {}
+}
+
+class _DiaryRefresh extends Fake implements DiaryBloc {
+  @override
+  void add(DiaryEvent event) {}
+}
+
+class _CalendarRefresh extends Fake implements CalendarDayBloc {
+  @override
+  void add(CalendarDayEvent event) {}
+}
+
+late _YesterdayIntakes _intakes;
+late _Copies _copies;
+
+IntakeEntity _yesterdayFood(
+  String id, {
+  String unit = 'g',
+  double amount = 123.45,
+}) => IntakeEntity(
+  id: id,
+  unit: unit,
+  amount: amount,
+  type: IntakeTypeEntity.dinner,
+  meal: MealEntity(
+    code: id,
+    name: id,
+    url: null,
+    mealQuantity: null,
+    mealUnit: 'g',
+    servingQuantity: 30,
+    servingUnit: 'g',
+    servingSize: '1 slice (30 g)',
+    nutriments: MealEntity.empty().nutriments,
+    source: MealSourceEntity.custom,
+  ),
+  dateTime: DateTime(2026, 10, 17, 20),
+);
+
+Future<void> _openYesterday(WidgetTester tester) async {
+  final entry = find.bySemanticsIdentifier('add-meal-reuse-yesterday');
+  await tester.ensureVisible(entry);
+  await tester.tap(entry);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _chooseMeal(
+  WidgetTester tester,
+  String identifier,
+  String label,
+) async {
+  await tester.tap(find.bySemanticsIdentifier(identifier));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(label).last);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _confirm(WidgetTester tester) async {
+  await tester.tap(find.text(l10nEn.dialogOKLabel));
+  await tester.pumpAndSettle();
+}
+
 /// A keystore holding only the flag that hides the AI features (#1518).
 class _HiddenAiStorage implements FlutterSecureStorage {
   @override
@@ -101,14 +234,32 @@ class _HiddenAiStorage implements FlutterSecureStorage {
 final getIt = GetIt.instance;
 FakeFavourites? _favourites;
 
-Future<void> _register({bool imperial = false, bool aiHidden = false}) async {
+Future<void> _register({
+  bool imperial = false,
+  bool aiHidden = false,
+  int offsetHours = 0,
+  int offsetMinutes = 0,
+  List<IntakeEntity> yesterday = const [],
+}) async {
   await getIt.reset();
   if (aiHidden) {
     getIt.registerSingleton<AiCredentialStorage>(
       AiCredentialStorage(_HiddenAiStorage()),
     );
   }
-  final config = _FakeGetConfigUsecase(imperial: imperial);
+  final config = _FakeGetConfigUsecase(
+    imperial: imperial,
+    offsetHours: offsetHours,
+    offsetMinutes: offsetMinutes,
+  );
+  getIt.registerSingleton<GetConfigUsecase>(config);
+  _intakes = _YesterdayIntakes(yesterday);
+  getIt.registerSingleton<IntakeRepository>(_intakes);
+  _copies = _Copies();
+  getIt.registerSingleton<MealDetailBloc>(_copies);
+  getIt.registerSingleton<HomeBloc>(_HomeRefresh());
+  getIt.registerSingleton<DiaryBloc>(_DiaryRefresh());
+  getIt.registerSingleton<CalendarDayBloc>(_CalendarRefresh());
   final search = _FakeSearch();
   getIt.registerFactory<AddMealBloc>(() => AddMealBloc(config));
   getIt.registerFactory<ProductsBloc>(() => ProductsBloc(search, config));
@@ -158,6 +309,320 @@ Widget _app(List<RouteSettings> pushed) => MaterialApp(
 );
 
 void main() {
+  setUp(() {
+    DayBoundaryCalc.clock = () => DateTime(2026, 10, 18, 12);
+  });
+
+  tearDown(() {
+    DayBoundaryCalc.clock = DateTime.now;
+  });
+
+  testWidgets(
+    'yesterday Dinner copies only selected foods to confirmed today Lunch',
+    (tester) async {
+      final dinner = _yesterdayFood('Dinner food');
+      await _register(
+        yesterday: [dinner, _yesterdayFood('Not selected', amount: 50)],
+      );
+      final pushed = <RouteSettings>[];
+      await tester.pumpWidget(
+        ChangeNotifierProvider<EnergyUnitProvider>(
+          create: (_) => EnergyUnitProvider(),
+          child: _app(pushed),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsIdentifier('add-meal-method-barcode'));
+      await tester.pumpAndSettle();
+      final tray = (pushed.single.arguments as ScannerScreenArguments).logTray!;
+      final pending = LogTrayItem(
+        meal: _yesterdayFood('Pending food').meal,
+        unit: 'g',
+        amount: 75,
+        amountLabel: '75 g',
+      );
+      tray.add(pending);
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      await _openYesterday(tester);
+
+      expect(_copies.written, isEmpty);
+      expect(
+        tester
+            .widget<TextButton>(
+              find.widgetWithText(TextButton, l10nEn.dialogOKLabel),
+            )
+            .onPressed,
+        isNull,
+      );
+      await _chooseMeal(tester, 'yesterday-source-meal', l10nEn.dinnerLabel);
+      expect(find.text('Dinner food'), findsOneWidget);
+      expect(find.textContaining('123.45'), findsOneWidget);
+      await tester.tap(find.text('Dinner food'));
+      await tester.pump();
+      await _confirm(tester);
+
+      expect(_copies.written, isEmpty);
+      expect(find.text('Copy to Sunday, October 18, 2026'), findsOneWidget);
+      await _chooseMeal(tester, 'copy-destination-meal', l10nEn.lunchLabel);
+      expect(_copies.written, isEmpty);
+      await _confirm(tester);
+
+      final copied = _copies.written.single;
+      expect(copied.type, IntakeTypeEntity.lunch);
+      expect(copied.dateTime, DateTime(2026, 10, 18));
+      expect(copied.amount, 123.45);
+      expect(copied.unit, dinner.unit);
+      expect(copied.meal, same(dinner.meal));
+      expect(tray.items, [same(pending)]);
+      expect(find.text('Pending food'), findsOneWidget);
+      expect(
+        _intakes.queries.map((q) => q.day),
+        everyElement(DateTime(2026, 10, 17)),
+      );
+    },
+  );
+
+  for (final cancelDestination in [false, true]) {
+    testWidgets(
+      'cancel ${cancelDestination ? 'destination' : 'source'} does not copy foods',
+      (tester) async {
+        await _register(yesterday: [_yesterdayFood('Dinner food')]);
+        await tester.pumpWidget(_app([]));
+        await tester.pumpAndSettle();
+        await _openYesterday(tester);
+        if (cancelDestination) {
+          await _chooseMeal(
+            tester,
+            'yesterday-source-meal',
+            l10nEn.dinnerLabel,
+          );
+          await tester.tap(find.text('Dinner food'));
+          await tester.pump();
+          await _confirm(tester);
+        }
+        await tester.tap(find.text(l10nEn.dialogCancelLabel));
+        await tester.pumpAndSettle();
+        expect(_copies.written, isEmpty);
+        expect(find.byType(AlertDialog), findsNothing);
+        // Cancellation does not leave the entry or the screen blocked.
+        await _openYesterday(tester);
+        expect(find.byType(AlertDialog), findsOneWidget);
+      },
+    );
+  }
+
+  testWidgets('empty yesterday is safe and cannot be confirmed', (
+    tester,
+  ) async {
+    await _register();
+    await tester.pumpWidget(_app([]));
+    await tester.pumpAndSettle();
+    await _openYesterday(tester);
+    expect(find.text(l10nEn.nothingAddedLabel), findsOneWidget);
+    expect(
+      tester
+          .widget<TextButton>(
+            find.widgetWithText(TextButton, l10nEn.dialogOKLabel),
+          )
+          .onPressed,
+      isNull,
+    );
+    expect(_copies.written, isEmpty);
+    await tester.tap(find.text(l10nEn.dialogCancelLabel));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets(
+    'all source categories are available and switching clears food selection',
+    (tester) async {
+      await _register(yesterday: [_yesterdayFood('Dinner food')]);
+      await tester.pumpWidget(_app([]));
+      await tester.pumpAndSettle();
+      await _openYesterday(tester);
+      for (final label in [
+        l10nEn.breakfastLabel,
+        l10nEn.lunchLabel,
+        l10nEn.snackLabel,
+      ]) {
+        await _chooseMeal(tester, 'yesterday-source-meal', label);
+        expect(find.text(l10nEn.nothingAddedLabel), findsOneWidget);
+      }
+      await _chooseMeal(tester, 'yesterday-source-meal', l10nEn.dinnerLabel);
+      await tester.tap(find.text('Dinner food'));
+      await tester.pump();
+      await _chooseMeal(tester, 'yesterday-source-meal', l10nEn.lunchLabel);
+      await _chooseMeal(tester, 'yesterday-source-meal', l10nEn.dinnerLabel);
+      expect(
+        tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+        isFalse,
+      );
+      expect(_copies.written, isEmpty);
+    },
+  );
+
+  testWidgets('stored serving amounts are copied without scaling again', (
+    tester,
+  ) async {
+    await _register(
+      yesterday: [_yesterdayFood('Two slices', unit: 'serving', amount: 60)],
+    );
+    await tester.pumpWidget(_app([]));
+    await tester.pumpAndSettle();
+    await _openYesterday(tester);
+    await _chooseMeal(tester, 'yesterday-source-meal', l10nEn.dinnerLabel);
+    expect(find.text('60 g'), findsOneWidget);
+    await tester.tap(find.text('Two slices'));
+    await tester.pump();
+    await _confirm(tester);
+    await _confirm(tester);
+    expect(_copies.written.single.amount, 60);
+    expect(_copies.written.single.unit, 'serving');
+    // Confirmation uses the logging context, not the source's Dinner.
+    expect(_copies.written.single.type, IntakeTypeEntity.breakfast);
+  });
+
+  for (final scenario in [
+    (
+      now: DateTime(2026, 1, 1, 6, 29),
+      hours: 6,
+      minutes: 30,
+      today: DateTime(2025, 12, 31),
+      yesterday: DateTime(2025, 12, 30),
+    ),
+    (
+      now: DateTime(2026, 1, 1, 6, 30),
+      hours: 6,
+      minutes: 30,
+      today: DateTime(2026, 1, 1),
+      yesterday: DateTime(2025, 12, 31),
+    ),
+    (
+      now: DateTime(2026, 3, 30, 12),
+      hours: 4,
+      minutes: 0,
+      today: DateTime(2026, 3, 30),
+      yesterday: DateTime(2026, 3, 29),
+    ),
+    (
+      now: DateTime(2026, 10, 26, 12),
+      hours: 4,
+      minutes: 0,
+      today: DateTime(2026, 10, 26),
+      yesterday: DateTime(2026, 10, 25),
+    ),
+  ]) {
+    testWidgets('yesterday uses logical calendar days at ${scenario.now}', (
+      tester,
+    ) async {
+      DayBoundaryCalc.clock = () => scenario.now;
+      await _register(
+        offsetHours: scenario.hours,
+        offsetMinutes: scenario.minutes,
+        yesterday: [_yesterdayFood('Dinner food')],
+      );
+      await tester.pumpWidget(_app([]));
+      await tester.pumpAndSettle();
+      await _openYesterday(tester);
+      expect(_intakes.queries, hasLength(4));
+      expect(
+        _intakes.queries.map((q) => q.day),
+        everyElement(scenario.yesterday),
+      );
+      expect(
+        _intakes.queries.map((q) => q.hours),
+        everyElement(scenario.hours),
+      );
+      expect(
+        _intakes.queries.map((q) => q.minutes),
+        everyElement(scenario.minutes),
+      );
+      await _chooseMeal(tester, 'yesterday-source-meal', l10nEn.dinnerLabel);
+      await tester.tap(find.text('Dinner food'));
+      await tester.pump();
+      await _confirm(tester);
+      // A boundary passing while confirming must not silently change the date.
+      DayBoundaryCalc.clock = () => DateTime(2027, 1, 1, 12);
+      await _confirm(tester);
+      expect(_copies.written.single.dateTime, scenario.today);
+    });
+  }
+
+  testWidgets(
+    'yesterday food selection scrolls with large text on a small screen',
+    (tester) async {
+      await _register(
+        yesterday: List.generate(20, (i) => _yesterdayFood('Food $i')),
+      );
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(_app([]));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'add-food');
+      await _openYesterday(tester);
+      expect(tester.takeException(), isNull, reason: 'source dialog');
+      await _chooseMeal(tester, 'yesterday-source-meal', l10nEn.dinnerLabel);
+      expect(tester.takeException(), isNull, reason: 'source foods');
+      await tester.scrollUntilVisible(
+        find.text('Food 19'),
+        200,
+        scrollable: find.descendant(
+          of: find.bySemanticsIdentifier('yesterday-foods-list'),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.tap(find.text('Food 19'));
+      await tester.pump();
+      await _confirm(tester);
+      expect(tester.takeException(), isNull);
+      await _confirm(tester);
+      expect(_copies.written.single.meal.name, 'Food 19');
+    },
+  );
+
+  testWidgets('read failure reports an error and allows reopening', (
+    tester,
+  ) async {
+    await _register();
+    _intakes.fail = true;
+    await tester.pumpWidget(_app([]));
+    await tester.pumpAndSettle();
+    await _openYesterday(tester);
+    expect(find.text(l10nEn.reuseYesterdayLoadFailedLabel), findsOneWidget);
+    expect(_copies.written, isEmpty);
+    _intakes.fail = false;
+    await _openYesterday(tester);
+    expect(find.text(l10nEn.nothingAddedLabel), findsOneWidget);
+  });
+
+  testWidgets(
+    'partial copy failure reports the written count without replaying',
+    (tester) async {
+      await _register(
+        yesterday: [_yesterdayFood('First'), _yesterdayFood('Second')],
+      );
+      _copies.failAt = 1;
+      await tester.pumpWidget(_app([]));
+      await tester.pumpAndSettle();
+      await _openYesterday(tester);
+      await _chooseMeal(tester, 'yesterday-source-meal', l10nEn.dinnerLabel);
+      await tester.tap(find.text('First'));
+      await tester.tap(find.text('Second'));
+      await tester.pump();
+      await _confirm(tester);
+      await _confirm(tester);
+      expect(_copies.written.single.meal.name, 'First');
+      expect(
+        find.text(l10nEn.reuseYesterdayCopyFailedLabel(1)),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('the three entry methods sit under the search field', (
     tester,
   ) async {
@@ -172,6 +637,11 @@ void main() {
     expect(find.bySemanticsIdentifier('add-meal-method-photo'), findsOneWidget);
     expect(
       find.bySemanticsIdentifier('add-meal-method-describe'),
+      findsOneWidget,
+    );
+    expect(find.text(l10nEn.customMealBarcodeLabel), findsOneWidget);
+    expect(
+      find.bySemanticsIdentifier('add-meal-reuse-yesterday'),
       findsOneWidget,
     );
     expect(find.text(l10nEn.addMealSnapMealLabel), findsOneWidget);

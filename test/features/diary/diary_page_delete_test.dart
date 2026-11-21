@@ -306,6 +306,69 @@ void main() {
 
   TrackedDayDBO? rowOf(DateTime day) => trackedDayBox.get(day.toParsedDay());
 
+  testWidgets('food menu on a past day cancels then deletes only that intake '
+      'and refreshes totals', (tester) async {
+    await setUpDiary(yesterdayHasRow: true);
+    await intakeBox.put(
+      'sibling',
+      IntakeDBO.fromIntakeEntity(
+        IntakeEntity(
+          id: 'sibling',
+          unit: 'g',
+          amount: 50,
+          type: IntakeTypeEntity.breakfast,
+          meal: _meal,
+          dateTime: yesterday,
+        ),
+      ),
+    );
+    await trackedDayBox.put(
+      yesterday.toParsedDay(),
+      _row(yesterday, goal: 2150, kcal: 300),
+    );
+    await pumpDiary(tester);
+    await tester.fling(find.byType(DayInfoWidget), const Offset(400, 0), 1500);
+    await settle(tester);
+    expect(find.text('Toast'), findsNWidgets(2));
+
+    Future<void> openDelete() async {
+      final menu = find.descendant(
+        of: find.byKey(const ValueKey('toast')),
+        matching: find.bySemanticsIdentifier('intake-item-menu'),
+      );
+      await tester.ensureVisible(menu);
+      await tester.tap(menu);
+      await settle(tester);
+      await tester.tap(find.text('Delete'));
+      await settle(tester);
+      expect(find.text(l10nEn.deleteTimeDialogTitle), findsOneWidget);
+      expect(find.text(l10nEn.copyOrDeleteTimeDialogTitle), findsNothing);
+    }
+
+    await openDelete();
+    await tester.tap(find.text(l10nEn.dialogCancelLabel));
+    await settle(tester);
+    expect(
+      intakeBox.values.map((entry) => entry.id),
+      unorderedEquals(['toast', 'sibling']),
+    );
+    expect(rowOf(yesterday)!.caloriesTracked, 300);
+
+    await openDelete();
+    await tester.tap(find.text(l10nEn.dialogOKLabel));
+    await settle(tester);
+    expect(intakeBox.values.single.id, 'sibling');
+    expect(find.text('Toast'), findsOneWidget);
+    expect(find.byKey(const ValueKey('toast')), findsNothing);
+    final row = rowOf(yesterday)!;
+    expect(row.caloriesTracked, 100);
+    expect(row.carbsTracked, 20);
+    expect(row.fatTracked, 1);
+    expect(row.proteinTracked, 3);
+    expect(rowOf(today)!.caloriesTracked, 500);
+    expect(find.text('100/2150 ${l10nEn.kcalLabel}'), findsOneWidget);
+  });
+
   testWidgets('deleting a past day\'s entries changes only that day\'s row', (
     tester,
   ) async {
@@ -378,21 +441,31 @@ void main() {
       expect(rowOf(tomorrow), isNull);
     });
 
-    testWidgets('a delete debits the row of the day the entry is on', (
-      tester,
-    ) async {
-      await openToday(tester);
+    for (final useMenu in [false, true]) {
+      testWidgets(
+        'a ${useMenu ? 'food menu' : 'long-press'} delete stays bound '
+        'to its day during confirmation',
+        (tester) async {
+          await openToday(tester);
 
-      await tester.longPress(find.text('Toast'));
-      await settle(tester);
-      await passMidnight(tester);
-      await tester.tap(find.text(l10nEn.dialogOKLabel));
-      await settle(tester);
+          if (useMenu) {
+            await tester.tap(find.bySemanticsIdentifier('intake-item-menu'));
+            await settle(tester);
+            await tester.tap(find.text('Delete'));
+          } else {
+            await tester.longPress(find.text('Toast'));
+          }
+          await settle(tester);
+          await passMidnight(tester);
+          await tester.tap(find.text(l10nEn.dialogOKLabel));
+          await settle(tester);
 
-      expect(intakeBox.isEmpty, isTrue);
-      expect(rowOf(today)!.caloriesTracked, 300, reason: 'was left at 500');
-      expect(rowOf(tomorrow), isNull);
-    });
+          expect(intakeBox.isEmpty, isTrue);
+          expect(rowOf(today)!.caloriesTracked, 300, reason: 'was left at 500');
+          expect(rowOf(tomorrow), isNull);
+        },
+      );
+    }
 
     testWidgets('an activity delete lowers the goal of its own day', (
       tester,

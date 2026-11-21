@@ -619,6 +619,7 @@ void main() {
 
       final rows = find.bySemanticsIdentifier('add-meal-tray-edit');
       expect(rows, findsNWidgets(2));
+      await tester.ensureVisible(rows.last);
       await tester.tap(rows.last);
       await tester.pumpAndSettle();
 

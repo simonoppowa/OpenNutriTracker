@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class CopyDialog extends StatefulWidget {
   final AddMealType initialValue;
 
-  const CopyDialog({super.key, required this.initialValue});
+  final DateTime? destinationDay;
+
+  const CopyDialog({
+    super.key,
+    required this.initialValue,
+    this.destinationDay,
+  });
   @override
   State<StatefulWidget> createState() {
     return CopyDialogState();
@@ -26,23 +33,46 @@ class CopyDialogState extends State<CopyDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: Text(S.of(context).copyDialogTitle),
-      content: DropdownButton<AddMealType>(
-        value: _selectedValue,
-        itemHeight: null,
-        onChanged: (AddMealType? addMealType) {
-          if (addMealType != null) {
-            setState(() {
-              _selectedValue = addMealType;
-            });
-          }
-        },
-        items: AddMealType.values.map((AddMealType addMealType) {
-          return DropdownMenuItem(
-            value: addMealType,
-            child: Text(addMealType.getTypeName(context)),
-          );
-        }).toList(),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.destinationDay != null)
+            Text(
+              S
+                  .of(context)
+                  .copyToDateLabel(
+                    DateFormat.yMMMMEEEEd().format(widget.destinationDay!),
+                  ),
+            ),
+          Semantics(
+            identifier: 'copy-destination-meal',
+            child: DropdownButton<AddMealType>(
+              value: _selectedValue,
+              isExpanded: true,
+              itemHeight: null,
+              onChanged: (AddMealType? addMealType) {
+                if (addMealType != null) {
+                  setState(() {
+                    _selectedValue = addMealType;
+                  });
+                }
+              },
+              items: AddMealType.values.map((AddMealType addMealType) {
+                return DropdownMenuItem(
+                  value: addMealType,
+                  child: Text(
+                    addMealType.getTypeName(context),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
       actions: [
         TextButton(

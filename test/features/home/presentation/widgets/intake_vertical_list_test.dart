@@ -194,6 +194,163 @@ void main() {
 
   String headerKcalOnly() => '200 ${l10nEn.kcalLabel}';
 
+  testWidgets(
+    'food menu cancels safely then deletes only the selected intake',
+    (tester) async {
+      final selected = _buildIntake(
+        id: 'selected',
+        name: 'Selected food',
+        amount: 60,
+        kcal100: 200,
+        carbs100: 20,
+        fat100: 10,
+        protein100: 5,
+      );
+      final deleted = <IntakeEntity>[];
+      await tester.pumpWidget(
+        _wrapWithMaterial(
+          IntakeVerticalList(
+            day: DateTime(2026, 1, 1),
+            title: 'Breakfast',
+            listIcon: Icons.bakery_dining_outlined,
+            addMealType: AddMealType.breakfastType,
+            intakeList: [intakes.single, selected],
+            usesImperialUnits: false,
+            onDeleteIntakeCallback: (intake, _) => deleted.add(intake),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Future<void> openDelete() async {
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const ValueKey('selected')),
+            matching: find.byIcon(Icons.more_vert_rounded),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text(l10nEn.shareFoodLabel), findsOneWidget);
+        expect(find.text('Delete'), findsOneWidget);
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+        expect(find.text(l10nEn.deleteTimeDialogTitle), findsOneWidget);
+      }
+
+      await openDelete();
+      expect(deleted, isEmpty);
+      await tester.tap(find.text(l10nEn.dialogCancelLabel));
+      await tester.pumpAndSettle();
+      expect(deleted, isEmpty);
+      expect(find.text('Test Meal'), findsOneWidget);
+      expect(find.text('Selected food'), findsOneWidget);
+
+      await openDelete();
+      await tester.tap(find.text(l10nEn.dialogOKLabel));
+      await tester.pumpAndSettle();
+      expect(deleted, [selected]);
+    },
+  );
+
+  testWidgets('retained food delete popup ignores a disposed intake list', (
+    tester,
+  ) async {
+    var showList = true;
+    late StateSetter setHostState;
+    final deleted = <IntakeEntity>[];
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        StatefulBuilder(
+          builder: (context, setState) {
+            setHostState = setState;
+            return showList
+                ? IntakeVerticalList(
+                    day: DateTime(2026, 1, 1),
+                    title: 'Breakfast',
+                    listIcon: Icons.bakery_dining_outlined,
+                    addMealType: AddMealType.breakfastType,
+                    intakeList: intakes,
+                    usesImperialUnits: false,
+                    onDeleteIntakeCallback: (intake, _) => deleted.add(intake),
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final listState = tester.state(find.byType(IntakeVerticalList));
+    final navigator = tester.state(find.byType(Navigator));
+
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('test-intake')),
+        matching: find.byIcon(Icons.more_vert_rounded),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Delete'), findsOneWidget);
+
+    setHostState(() => showList = false);
+    await tester.pumpAndSettle();
+    expect(listState.mounted, isFalse);
+    expect(find.byType(IntakeVerticalList), findsNothing);
+    expect(tester.state(find.byType(Navigator)), same(navigator));
+    expect(find.text('Delete'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text(l10nEn.deleteTimeDialogTitle), findsNothing);
+    expect(deleted, isEmpty);
+  });
+
+  testWidgets('row taps and section sharing still use existing paths', (
+    tester,
+  ) async {
+    final sibling = _buildIntake(
+      id: 'sibling',
+      name: 'Sibling food',
+      amount: 50,
+      kcal100: 200,
+      carbs100: 20,
+      fat100: 10,
+      protein100: 5,
+    );
+    final tapped = <IntakeEntity>[];
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: [intakes.single, sibling],
+          usesImperialUnits: false,
+          onDeleteIntakeCallback: (_, _) {},
+          onItemTappedCallback: (_, intake, _) => tapped.add(intake),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sibling food'));
+    expect(tapped, [sibling]);
+    await tester.tap(find.bySemanticsIdentifier('intake-section-menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10nEn.shareMealLabel));
+    await tester.pumpAndSettle();
+    final dialog = tester.widget<ShareQrDialog>(find.byType(ShareQrDialog));
+    final payload = SharedMealPayload.fromJsonString(dialog.code);
+    expect(payload.items.map((item) => item.name), [
+      'Test Meal',
+      'Sibling food',
+    ]);
+    expect(payload.items.map((item) => item.amount), [100, 50]);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('sharing one food exports only its logged portion', (
     tester,
   ) async {
@@ -228,11 +385,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Share food'));
+    expect(find.text('Delete'), findsOneWidget);
+    await tester.tap(find.text(l10nEn.shareFoodLabel));
     await tester.pumpAndSettle();
 
     final dialog = tester.widget<ShareQrDialog>(find.byType(ShareQrDialog));
-    expect(dialog.title, 'Share food');
+    expect(dialog.title, l10nEn.shareFoodLabel);
     final shared = SharedMealPayload.fromJsonString(dialog.code);
     expect(shared.totalCount, 1);
     expect(shared.items.single.name, 'Selected food');
