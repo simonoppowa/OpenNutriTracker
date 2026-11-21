@@ -16,6 +16,7 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/search_debo
 import 'package:opennutritracker/features/add_meal/presentation/widgets/default_results_widget.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/no_results_widget.dart';
+import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_ingredient_recent_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Reusable 3-tab food search (Products / Food / Recently) that delegates the
@@ -53,7 +54,8 @@ class _FoodSearchTabViewState extends State<FoodSearchTabView>
     super.initState();
     _productsBloc = locator<ProductsBloc>();
     _foodBloc = locator<FoodBloc>();
-    _recentMealBloc = locator<RecentMealBloc>();
+    // #516: Recent also offers the foods the saved recipes use.
+    _recentMealBloc = locator<RecipeIngredientRecentBloc>();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       _onSearchSubmit(_searchStringListener.value);
