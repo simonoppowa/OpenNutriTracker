@@ -47,11 +47,14 @@ void main() {
     });
 
     test('resolves the device preference list as MaterialApp does', () {
-      // Unshipped French first, shipped German second: the UI shows German,
+      // Dutch has an ARB that Weblate is still filling, but is not shipped.
+      expect(shippedLocales, isNot(contains('nl')));
+
+      // Unshipped Dutch first, shipped German second: the UI shows German,
       // so food names must be German too — not the first locale, and not
       // English.
       AppLocale.preferredLocales = () => const [
-        Locale('fr', 'FR'),
+        Locale('nl', 'NL'),
         Locale('de', 'DE'),
       ];
       expect(AppLocale.localeName, 'de');
@@ -62,8 +65,20 @@ void main() {
 
       // A device with no shipped language at all falls to English, the
       // first shipped locale, as the UI does.
-      AppLocale.preferredLocales = () => const [Locale('fr', 'FR')];
+      AppLocale.preferredLocales = () => const [Locale('nl', 'NL')];
       expect(AppLocale.localeName, 'en');
+    });
+
+    test('a French device resolves to French now that it ships (#596)', () {
+      AppLocale.preferredLocales = () => const [Locale('fr', 'FR')];
+      expect(AppLocale.localeName, 'fr');
+
+      // Behind an unshipped language, too: the first shipped match wins.
+      AppLocale.preferredLocales = () => const [
+        Locale('nl', 'BE'),
+        Locale('fr', 'BE'),
+      ];
+      expect(AppLocale.localeName, 'fr');
     });
 
     test('LocaleProvider is its writer, at creation and on update', () {
