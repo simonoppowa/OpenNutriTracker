@@ -1320,6 +1320,25 @@
   "copyToProfileLabel": "Copy to profile",
   "copiedToProfileSnackbar": "Meal copied to profile",
   "copyActionLabel": "Copy",
+  "copyToOtherMealLabel": "Copy to other meal",
+  "@copyToOtherMealLabel": {
+    "description": "Meal section menu item that copies the meal's entries into another meal of the same day."
+  },
+  "copiedToMealSnackbar": "{count, plural, one{Copied 1 item to {meal}} other{Copied {count} items to {meal}}}",
+  "@copiedToMealSnackbar": {
+    "description": "Shown after Copy to other meal. meal is the meal the entries were copied into, such as Dinner.",
+    "placeholders": {
+      "count": { "type": "int" },
+      "meal": { "type": "String" }
+    }
+  },
+  "copyToMealFailedSnackbar": "Not every item could be copied. Check {meal} before you try again.",
+  "@copyToMealFailedSnackbar": {
+    "description": "Shown when Copy to other meal stops partway. meal is the meal the entries were being copied into.",
+    "placeholders": {
+      "meal": { "type": "String" }
+    }
+  },
   "quickAddActivityTitleLabel": "Quick add activity",
   "quickAddActivityDurationLabel": "Duration (min, optional)",
   "quickAddActivityEnergyLabelKcal": "Energy burned (kcal)",

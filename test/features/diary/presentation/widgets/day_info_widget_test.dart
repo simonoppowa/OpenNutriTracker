@@ -206,7 +206,8 @@ void main() {
       expect(copied, isEmpty);
     });
 
-    testWidgets('the section menu has no Copy', (WidgetTester tester) async {
+    testWidgets('the section menu has no Copy to today, but Copy to other '
+        'meal', (WidgetTester tester) async {
       await _pumpOmadDay(
         tester,
         breakfastIntake: const [],
@@ -216,6 +217,8 @@ void main() {
       await tester.tap(find.bySemanticsIdentifier('intake-section-menu'));
       await tester.pumpAndSettle();
       expect(find.text(l10nEn.dialogCopyLabel), findsNothing);
+      // #842: copying within the day stays on offer.
+      expect(find.text(l10nEn.copyToOtherMealLabel), findsOneWidget);
     });
   });
 
@@ -227,5 +230,7 @@ void main() {
     await tester.tap(find.bySemanticsIdentifier('intake-section-menu'));
     await tester.pumpAndSettle();
     expect(find.text(l10nEn.dialogCopyLabel), findsOneWidget);
+    // #842: and copying into another meal of that past day.
+    expect(find.text(l10nEn.copyToOtherMealLabel), findsOneWidget);
   });
 }
