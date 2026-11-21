@@ -20,7 +20,7 @@ import 'package:provider/provider.dart';
 class ActivityDetailBottomSheet extends StatefulWidget {
   final Future<void> Function(
     BuildContext, {
-    String? templateName,
+    String? customName,
     bool saveAsTemplate,
   })
   onAddButtonPressed;
@@ -59,7 +59,7 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
       final trimmedName = _nameController.text.trim();
       await widget.onAddButtonPressed(
         context,
-        templateName: trimmedName.isEmpty ? null : trimmedName,
+        customName: trimmedName.isEmpty ? null : trimmedName,
         saveAsTemplate: _saveAsTemplate,
       );
     } finally {
