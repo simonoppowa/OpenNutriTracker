@@ -120,7 +120,7 @@ class CsvDataExporter {
       final n = meal.nutriments;
       final cells = <String>[
         _cell(intake.id),
-        _cell(intake.dateTime.toIso8601String()),
+        _cell(intake.loggedDateTime.toIso8601String()),
         _cell(intake.type.name),
         _num(intake.amount),
         _cell(intake.unit),
@@ -179,7 +179,7 @@ class CsvDataExporter {
       final tagsCell = pa.tags.join('|');
       final cells = <String>[
         _cell(activity.id),
-        _cell(activity.date.toIso8601String()),
+        _cell(activity.loggedDate.toIso8601String()),
         _num(activity.duration),
         _num(activity.burnedKcal),
         _cell(pa.code),
@@ -203,7 +203,7 @@ class CsvDataExporter {
     buf.writeln(trackedDayColumns.join(','));
     for (final d in days) {
       final cells = <String>[
-        _cell(d.day.toIso8601String()),
+        _cell(d.calendarDay.toIso8601String()),
         _num(d.calorieGoal),
         _num(d.caloriesTracked),
         _num(d.carbsGoal),

@@ -45,7 +45,7 @@ String _activityKey(
   int offsetMinutes,
   int? importOffsetMinutes,
 ) => DayBoundaryCalc.dayKeyOf(
-  activity.date,
+  activity.loggedWallClock,
   importOffsetMinutes != null && activity.externalId != null
       ? importOffsetMinutes
       : offsetMinutes,
@@ -70,7 +70,7 @@ Map<String, _ListedDay> _listedDays(
   final days = <String, _ListedDay>{};
   for (final dbo in db.intakeBox.values) {
     final intake = IntakeEntity.fromIntakeDBO(dbo);
-    days.putIfAbsent(keyOf(intake.dateTime), _ListedDay.new)
+    days.putIfAbsent(keyOf(dbo.loggedWallClock), _ListedDay.new)
       ..kcal += _finiteOrZero(intake.totalKcal)
       ..carbs += _finiteOrZero(intake.totalCarbsGram)
       ..fat += _finiteOrZero(intake.totalFatsGram)

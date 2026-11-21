@@ -86,6 +86,25 @@ class TrackedDayDBO extends HiveObject {
     this.magnesiumGoal,
   });
 
+  /// The calendar day this row holds (#1309): [day], unless its date in
+  /// the current time zone is not the row's key.
+  ///
+  /// Every writer keys a row by its day's `yyyy-MM-dd`. [day] itself is
+  /// stored as an instant, so a local midnight written in one zone is
+  /// the evening before in a zone further west, and its date there names
+  /// the neighbouring row. The key, parsed to a local midnight, is the
+  /// day the row was written for. A row outside a box has no key and
+  /// keeps [day].
+  DateTime get calendarDay {
+    final rowKey = key;
+    if (rowKey is! String) return day;
+    String pad(int value, int width) => '$value'.padLeft(width, '0');
+    final dayKey =
+        '${pad(day.year, 4)}-${pad(day.month, 2)}-${pad(day.day, 2)}';
+    if (dayKey == rowKey) return day;
+    return DateTime.tryParse(rowKey) ?? day;
+  }
+
   factory TrackedDayDBO.fromTrackedDayEntity(TrackedDayEntity entity) {
     return TrackedDayDBO(
       day: entity.day,
@@ -113,5 +132,6 @@ class TrackedDayDBO extends HiveObject {
   factory TrackedDayDBO.fromJson(Map<String, dynamic> json) =>
       _$TrackedDayDBOFromJson(json);
 
-  Map<String, dynamic> toJson() => _$TrackedDayDBOToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$TrackedDayDBOToJson(this)..['day'] = calendarDay.toIso8601String();
 }

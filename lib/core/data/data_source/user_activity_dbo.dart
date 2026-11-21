@@ -2,6 +2,7 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:opennutritracker/core/utils/calc/logged_time.dart';
 
 part 'user_activity_dbo.g.dart';
 
@@ -43,6 +44,16 @@ class UserActivityDBO extends HiveObject {
   @HiveField(7)
   final double? sourceReportedKcal;
 
+  /// The UTC offset, in minutes, of the zone [date] was logged in
+  /// (#1309); see [LoggedTime]. Null for activities stored before it was
+  /// recorded, and for a UTC day label.
+  ///
+  /// Not exported: [toJson] writes [date] as that zone's clock instead,
+  /// which a restore reads back on the same day anywhere.
+  @HiveField(8)
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final int? loggedUtcOffsetMinutes;
+
   UserActivityDBO(
     this.id,
     this.duration,
@@ -52,7 +63,17 @@ class UserActivityDBO extends HiveObject {
     this.userKcal,
     this.externalId,
     this.sourceReportedKcal,
+    this.loggedUtcOffsetMinutes,
   });
+
+  /// [date] on the clock of the zone it was logged in, as a local time:
+  /// the day the Diary lists this activity on, wherever it is read.
+  DateTime get loggedDate =>
+      LoggedTime.localWallClock(date, loggedUtcOffsetMinutes);
+
+  /// The same clock for day keys, without a lookup of the current zone.
+  DateTime get loggedWallClock =>
+      LoggedTime.wallClock(date, loggedUtcOffsetMinutes);
 
   factory UserActivityDBO.fromUserActivityEntity(
     UserActivityEntity userActivityEntity,
@@ -68,11 +89,13 @@ class UserActivityDBO extends HiveObject {
       userKcal: userActivityEntity.userKcal,
       externalId: userActivityEntity.externalId,
       sourceReportedKcal: userActivityEntity.sourceReportedKcal,
+      loggedUtcOffsetMinutes: LoggedTime.offsetOf(userActivityEntity.date),
     );
   }
 
   factory UserActivityDBO.fromJson(Map<String, dynamic> json) =>
       _$UserActivityDBOFromJson(json);
 
-  Map<String, dynamic> toJson() => _$UserActivityDBOToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$UserActivityDBOToJson(this)..['date'] = loggedDate.toIso8601String();
 }
