@@ -73,6 +73,10 @@ class CsvDataExporter {
     // here was written before #775 and holds its micronutrients in raw
     // grams, which the importer scales into app units (#1152).
     'meal_data_version',
+    // Appended after `meal_data_version`, for the same reason. Mirrors
+    // `MealDBO.fixedTotals` (#705): `true` on a Quick Add saved without a
+    // weight, empty everywhere else.
+    'meal_fixed_totals',
   ];
 
   static const userActivityColumns = <String>[
@@ -161,6 +165,7 @@ class CsvDataExporter {
         _num(n.vitaminB12100),
         _num(n.niacin100),
         _num(meal.dataVersion?.toDouble()),
+        _cell(meal.fixedTotals == true ? 'true' : null),
       ];
       buf.writeln(cells.join(','));
     }
@@ -268,6 +273,7 @@ class CsvDataExporter {
         source: _parseMealSource(row['meal_source']),
         nutriments: nutriments,
         dataVersion: _double(row['meal_data_version'])?.toInt(),
+        fixedTotals: row['meal_fixed_totals']?.trim() == 'true' ? true : null,
       );
       out.add(
         IntakeDBO(
