@@ -59,7 +59,7 @@ class SpFoodDataSource {
   /// therefore captured once per attempt and the attempt is repeated when
   /// it no longer holds; a second change during the retry is left alone.
   String? _foodLocale() => SPConst.translationLocaleOf(
-    SupportedLanguage.fromCode(AppLocale.localeName),
+    SupportedLanguage.fromCode(AppLocale.foodLocaleName),
   );
 
   /// The twenty rows the app keeps of the backend's hundred for
@@ -203,7 +203,7 @@ class SpFoodDataSource {
     // penalise or to spare.
     if (foodIds.isEmpty) return const {};
     final locale = SPConst.translationLocaleOf(
-      SupportedLanguage.fromCode(AppLocale.localeName),
+      SupportedLanguage.fromCode(AppLocale.foodLocaleName),
     );
 
     try {

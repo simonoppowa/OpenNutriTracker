@@ -51,8 +51,9 @@ class RemoteSearchCacheDataSource {
   static int _encodeLanguage(String code) =>
       code.codeUnits.take(3).fold(0, (packed, unit) => packed * 256 + unit);
 
-  int get _currentLanguage =>
-      _encodeLanguage(SupportedLanguage.fromCode(AppLocale.localeName).name);
+  int get _currentLanguage => _encodeLanguage(
+    SupportedLanguage.fromCode(AppLocale.foodLocaleName).name,
+  );
 
   /// Whether the cached names are in the app's current language. A cache
   /// written before the stamp existed counts as foreign: its names may be
