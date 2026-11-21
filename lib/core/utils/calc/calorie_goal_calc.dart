@@ -30,12 +30,19 @@ class CalorieGoalCalc {
   // 1 kg of body fat ≈ 7700 kcal; spread over 7 days → ~1100 kcal/day per kg/week
   static const double _kcalPerKgPerWeekDaily = 1100.0;
 
+  /// [fixedKcalGoal] is the user's own daily goal (#671). When it is set it
+  /// replaces the TDEE, the weight-goal adjustment and [kcalUserAdjustment];
+  /// [totalKcalActivities] is still added, as it is to the calculated goal.
+  /// A value outside the allowed range is ignored (see [validFixedKcalGoal]).
   static double getTotalKcalGoal(
     UserEntity userEntity,
     double totalKcalActivities, {
     double? kcalUserAdjustment,
     bool caloriesTaperEnabled = false,
+    double? fixedKcalGoal,
   }) {
+    final fixed = validFixedKcalGoal(fixedKcalGoal);
+    if (fixed != null) return fixed + totalKcalActivities;
     final baseAdjustment = getKcalGoalAdjustment(
       userEntity.goal,
       weeklyWeightGoalKg: userEntity.weeklyWeightGoalKg,
@@ -51,6 +58,22 @@ class CalorieGoalCalc {
         adjustment +
         (kcalUserAdjustment ?? 0) +
         totalKcalActivities;
+  }
+
+  /// [kcal] when it is a usable fixed daily goal, otherwise null.
+  ///
+  /// The Settings dialog only stores values inside
+  /// [Ranges.minFixedDailyKcalGoal]..[Ranges.maxFixedDailyKcalGoal], and an
+  /// import rejects anything else, so a value outside it is corruption.
+  /// Reading it as "no fixed goal" falls back to the calculated goal rather
+  /// than showing a goal of 0, a negative one or NaN.
+  static double? validFixedKcalGoal(double? kcal) {
+    if (kcal == null || !kcal.isFinite) return null;
+    if (kcal < Ranges.minFixedDailyKcalGoal ||
+        kcal > Ranges.maxFixedDailyKcalGoal) {
+      return null;
+    }
+    return kcal;
   }
 
   static double getKcalGoalAdjustment(UserWeightGoalEntity goal,

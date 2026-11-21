@@ -198,6 +198,7 @@ class ImportDataUsecase {
       if (goalSettings != null) {
         await _configRepository.setConfigGoalSettings(
           kcalAdjustment: goalSettings.kcalAdjustment,
+          fixedKcalGoal: goalSettings.fixedKcalGoal,
           carbGoalPct: goalSettings.carbGoalPct,
           proteinGoalPct: goalSettings.proteinGoalPct,
           fatGoalPct: goalSettings.fatGoalPct,

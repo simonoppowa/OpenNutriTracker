@@ -164,6 +164,7 @@ class _EmptyConfigRepository extends ConfigRepository {
   @override
   Future<void> setConfigGoalSettings({
     required double? kcalAdjustment,
+    required double? fixedKcalGoal,
     required double? carbGoalPct,
     required double? proteinGoalPct,
     required double? fatGoalPct,
