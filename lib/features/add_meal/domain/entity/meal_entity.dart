@@ -157,6 +157,27 @@ class MealEntity extends Equatable {
 
   bool get isSolid => solidUnits.contains(mealUnit);
 
+  /// The values logging this food needs that it lacks; empty when it can
+  /// be logged.
+  ///
+  /// Energy is always needed. Carbs, fat and protein are needed only from a
+  /// database food, where a gap is missing data the user should see (#1474).
+  /// A food the user made (a Quick Add entry, a custom meal) is stored as it
+  /// was entered, and a macro left out there is unknown: logging it again
+  /// keeps it unknown, as the first log did, rather than refusing it (#1295).
+  List<RequiredNutrient> get missingRequiredNutrients {
+    final n = nutriments;
+    final macrosOptional = source == MealSourceEntity.custom;
+    return [
+      if (n.energyKcal100 == null) RequiredNutrient.energy,
+      if (!macrosOptional) ...[
+        if (n.carbohydrates100 == null) RequiredNutrient.carbohydrates,
+        if (n.fat100 == null) RequiredNutrient.fat,
+        if (n.proteins100 == null) RequiredNutrient.protein,
+      ],
+    ];
+  }
+
   /// The text the search scorers match this meal on: for a backend record
   /// the [name] up to its first comma — "Egg" for "Egg, whole, raw" — and
   /// for everything else the name itself. What follows the comma is
@@ -614,6 +635,10 @@ class MealEntity extends Equatable {
   @override
   List<Object?> get props => [code, name];
 }
+
+/// A value a food needs before it can be logged; see
+/// [MealEntity.missingRequiredNutrients].
+enum RequiredNutrient { energy, carbohydrates, fat, protein }
 
 enum MealSourceEntity {
   unknown,

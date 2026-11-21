@@ -75,6 +75,35 @@ MealEntity _meal(
   detailed: detailed,
 );
 
+/// Shaped as Quick Add stores its entry: per 100 g/ml, no serving, and
+/// only the macros that were typed (#1295).
+MealEntity _quickAdded(
+  String name, {
+  double? kcal = 350,
+  double? carbs,
+  double? fat,
+  double? protein,
+}) => MealEntity(
+  code: name,
+  name: name,
+  url: null,
+  mealQuantity: '100',
+  mealUnit: 'gml',
+  servingQuantity: null,
+  servingUnit: 'gml',
+  servingSize: '',
+  nutriments: MealNutrimentsEntity(
+    energyKcal100: kcal,
+    carbohydrates100: carbs,
+    fat100: fat,
+    proteins100: protein,
+    sugars100: null,
+    saturatedFat100: null,
+    fiber100: null,
+  ),
+  source: MealSourceEntity.custom,
+);
+
 IntakeEntity _intake(MealEntity meal) => IntakeEntity(
   id: meal.name!,
   unit: 'g',
@@ -156,7 +185,8 @@ class _FakeProducts extends Fake implements ProductsRepository {
 }
 
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
-  final writes = <({String unit, String amount, String? name})>[];
+  final writes =
+      <({String unit, String amount, String? name, MealEntity meal})>[];
   int? failAt;
 
   /// When set, every write waits on it.
@@ -173,7 +203,7 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   ) async {
     if (failAt == writes.length) throw StateError('write failed');
     await gate?.future;
-    writes.add((unit: unit, amount: amountText, name: meal.name));
+    writes.add((unit: unit, amount: amountText, name: meal.name, meal: meal));
   }
 }
 
@@ -574,8 +604,45 @@ void main() {
       expect(item.selectedUnit, 'oz');
     });
 
-    testWidgets('a food missing a macro has no default', (tester) async {
-      expect(await resolve(tester, _meal('Odd', complete: false)), isNull);
+    testWidgets('a database food missing a macro has no default', (
+      tester,
+    ) async {
+      expect(
+        await resolve(
+          tester,
+          _meal('Odd', complete: false, source: MealSourceEntity.fdc),
+        ),
+        isNull,
+      );
+    });
+
+    testWidgets('a Quick Add entry with only energy goes on as entered', (
+      tester,
+    ) async {
+      final item = await resolve(tester, _quickAdded('Cake'));
+      expect(item!.unit, 'g/ml');
+      expect(item.amount, 100);
+      expect(item.kcal, 350);
+    });
+
+    testWidgets('a Quick Add entry with some macros goes on as entered', (
+      tester,
+    ) async {
+      final item = await resolve(tester, _quickAdded('Cake', carbs: 40));
+      expect(item!.amount, 100);
+      expect(item.kcal, 350);
+    });
+
+    testWidgets('a food the user made without energy has no default', (
+      tester,
+    ) async {
+      expect(
+        await resolve(
+          tester,
+          _quickAdded('Odd', kcal: null, carbs: 1, fat: 1, protein: 1),
+        ),
+        isNull,
+      );
     });
   });
 
@@ -1035,10 +1102,12 @@ void main() {
       expect(find.byKey(const Key('main')), findsOneWidget);
     });
 
-    testWidgets('a food missing a macro opens its detail instead', (
+    testWidgets('a database food missing a macro opens its detail instead', (
       tester,
     ) async {
-      await _register([_meal('Odd', complete: false)]);
+      await _register([
+        _meal('Odd', complete: false, source: MealSourceEntity.fdc),
+      ]);
       final pushed = <RouteSettings>[];
       await _openAddMeal(tester, pushed);
 
@@ -1047,6 +1116,40 @@ void main() {
 
       expect(pushed.single.name, NavigationOptions.mealDetailRoute);
       expect(_logButton(), findsNothing);
+    });
+
+    // #1295: a Quick Add entry saved with only its energy sat in Recents
+    // and could not be logged again.
+    testWidgets('+ on a Quick Add entry with only energy logs it again', (
+      tester,
+    ) async {
+      await _register([_quickAdded('Cake')]);
+      final pushed = <RouteSettings>[];
+      await _openAddMeal(tester, pushed);
+
+      // It is in Recents, and its + no longer sends it to the detail
+      // screen's "missing data" warning.
+      expect(_card('Cake'), findsOneWidget);
+
+      await _tapPlus(tester, 'Cake');
+      await tester.pumpAndSettle();
+
+      expect(pushed, isEmpty);
+      expect(find.text(l10nEn.bulkAddSubmitLabel(1)), findsOneWidget);
+      expect(find.text('350 kcal'), findsWidgets);
+
+      await tester.tap(_logButton());
+      await tester.pumpAndSettle();
+
+      final write = _mealDetailBloc.writes.single;
+      expect(write.name, 'Cake');
+      expect(write.unit, 'g/ml');
+      expect(write.amount, '100.0');
+      // Still unknown, not 0 g, as the first Quick Add stored them.
+      expect(write.meal.nutriments.carbohydrates100, isNull);
+      expect(write.meal.nutriments.fat100, isNull);
+      expect(write.meal.nutriments.proteins100, isNull);
+      expect(write.meal.nutriments.energyKcal100, 350);
     });
   });
 }

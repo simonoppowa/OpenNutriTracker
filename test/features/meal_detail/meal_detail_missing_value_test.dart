@@ -58,7 +58,10 @@ MealEntity _driedApple({double? energyKcal100 = 242, double? fat100}) =>
         saturatedFat100: 0.1,
         fiber100: 10.7,
       ),
-      source: MealSourceEntity.custom,
+      // A database food (BLS through the backend): it needs all four
+      // values. A food the user made may leave macros out (#1295).
+      source: MealSourceEntity.fdc,
+      backendSource: 'bls',
     );
 
 void main() {
