@@ -204,8 +204,17 @@ class ImportWorkoutsUsecase {
     };
 
     var imported = 0;
+    var notImportable = 0;
+    var alreadyOnFile = 0;
     for (final workout in workouts) {
-      if (!_isImportable(workout) || !seenIds.add(workout.id)) continue;
+      if (!_isImportable(workout)) {
+        notImportable++;
+        continue;
+      }
+      if (!seenIds.add(workout.id)) {
+        alreadyOnFile++;
+        continue;
+      }
       // Re-checked per workout rather than once before the loop: logging an
       // activity is itself several awaits, so a long import has a switch
       // window between every row. Rows already written went to the right
@@ -256,9 +265,12 @@ class ImportWorkoutsUsecase {
         overlapTolerance: overlapTolerance,
       ),
     );
-    if (imported > 0) {
-      _log.info('Imported $imported workout(s) from the platform health store');
-    }
+    _logOutcome(
+      read: workouts.length,
+      imported: imported,
+      notImportable: notImportable,
+      alreadyOnFile: alreadyOnFile,
+    );
     return imported;
   }
 
@@ -280,6 +292,31 @@ class ImportWorkoutsUsecase {
       'Abandoning the workout import: the active profile changed mid-run',
     );
     return false;
+  }
+
+  /// One line per finished run, in counts only: no workout's type, time or
+  /// energy reaches the log.
+  ///
+  /// Written for every run, an empty one included, because a run that files
+  /// nothing looks the same from outside whatever the reason. The device pass
+  /// for #948 saw "Last import" stamped, no workout in the Diary and nothing
+  /// in logcat, and could not tell an empty window from workouts dropped for
+  /// having no energy.
+  void _logOutcome({
+    required int read,
+    required int imported,
+    required int notImportable,
+    required int alreadyOnFile,
+  }) {
+    if (read == 0) {
+      _log.info('Workout import read 0 workout(s)');
+      return;
+    }
+    _log.info(
+      'Workout import read $read workout(s): $imported imported, '
+      '$notImportable without energy or duration, '
+      '$alreadyOnFile already imported or deleted',
+    );
   }
 
   /// A workout the app can turn into a meaningful diary row: it lasted some
