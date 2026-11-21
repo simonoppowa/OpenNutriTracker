@@ -97,7 +97,7 @@ From iOS 18 a person can pick a tinted or a clear Home Screen. The system then r
 - Above the goal: a figure above its goal starts with an arrow, for example "↑ 96/86", and the goal line of a ring reads "↑ of 38". The Dart sentences add the same fact in words, for example "fat is over the goal."
 - VoiceOver is still one sentence per widget, written by Dart.
 
-The fills reach 3:1 against the track in every style except the light macro bars in the System style, where the fixed macro colours reach about 2.6 to 2.9. The Paper and High contrast styles use a lighter track in light mode for that reason. In the System style the secondary text in light mode is the system secondary colour, about 3.3:1 on the widget fill. Increase Contrast replaces it with the primary colour at 85 percent.
+Every fill reaches 3:1 against its track and against the widget fill in every style, and the secondary text reaches 4.5:1. The System style uses an explicit grey, `606060`, for secondary text in light mode, and a very light track in light mode (the track is close to the fill colour on purpose, because a darker track lowers the contrast of the fill against it). The Paper and High contrast styles do the same with their own tracks. The cost is a faint track, about 1.1:1 against the background, so the numbers carry the goal. Increase Contrast and Differentiate Without Colour outline the tracks.
 
 ### New snapshot fields
 

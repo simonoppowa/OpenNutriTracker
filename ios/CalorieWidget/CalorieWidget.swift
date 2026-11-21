@@ -1093,8 +1093,19 @@ private struct WidgetTheme {
                     ? dynamicColor(light: 0xF2F2F7, dark: 0x1C1C1E)
                     : nil,
                 primary: .primary,
-                secondary: .secondary,
-                track: Color.secondary.opacity(0.25),
+                // An explicit grey, not the system secondary, which is only
+                // about 3.3:1 on the light fill. 606060 reaches 5.5:1 or
+                // more on the light containers. Dark keeps the system value.
+                secondary: dynamicColor(
+                    light: 0x606060, dark: 0xEBEBF5, darkAlpha: 0.6
+                ),
+                // Light: a track close to the fill, so that every fill keeps
+                // 3:1 against it. A darker track lowers that ratio. Dark is
+                // the same value as before.
+                track: dynamicColor(
+                    light: 0x3C3C43, dark: 0xEBEBF5,
+                    lightAlpha: 0.06, darkAlpha: 0.15
+                ),
                 strokeBoost: 0,
                 scheme: nil,
                 outlined: false
