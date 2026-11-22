@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/data/repository/intake_repository.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
+import 'package:opennutritracker/features/add_meal/presentation/widgets/yesterday_foods_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/empty_hint.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -138,7 +144,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       listenable: _logTray,
       builder: (context, _) => PopScope(
         // Leaving with items on the list would drop them without a word.
-        canPop: _logTray.isEmpty,
+        canPop: _logTray.isEmpty && !_logging,
         onPopInvokedWithResult: (didPop, _) {
           if (!didPop && !_logging) _confirmDiscardTray();
         },
@@ -235,6 +241,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
                               setState(() => _describeOpen = !_describeOpen),
                           describeOpen: _describeOpen,
                           showAi: !_aiHidden,
+                        ),
+                        Semantics(
+                          identifier: 'add-meal-reuse-yesterday',
+                          child: TextButton.icon(
+                            onPressed: _logging ? null : _reuseYesterday,
+                            icon: const Icon(Icons.history_rounded),
+                            label: Text(S.of(context).reuseYesterdayLabel),
+                          ),
                         ),
                         if (_describeOpen) ...[
                           const SizedBox(height: Dimens.spacing12),
@@ -1095,6 +1109,85 @@ class _AddMealScreenState extends State<AddMealScreen> {
     // has done its job.
     if (mounted && _logTray.length > before && _describeOpen) {
       setState(() => _describeOpen = false);
+    }
+  }
+
+  Future<void> _reuseYesterday() async {
+    setState(() => _logging = true);
+    var written = 0;
+    var copying = false;
+    try {
+      final config = await locator<GetConfigUsecase>().getConfig();
+      final today = DayBoundaryCalc.currentLogicalDayLabel(
+        config.dayStartOffsetHours,
+        config.dayStartOffsetMinutes,
+      );
+      // Calendar arithmetic, not 24 hours: yesterday can span a DST change.
+      final yesterday = DateTime(today.year, today.month, today.day - 1);
+      final repository = locator<IntakeRepository>();
+      final intakes = <AddMealType, List<IntakeEntity>>{};
+      for (final type in AddMealType.values) {
+        intakes[type] = await repository.getIntakeByDateAndType(
+          type.getIntakeType(),
+          yesterday,
+          dayStartOffsetHours: config.dayStartOffsetHours,
+          dayStartOffsetMinutes: config.dayStartOffsetMinutes,
+        );
+      }
+      if (!mounted) return;
+      final selected = await showDialog<List<IntakeEntity>>(
+        context: context,
+        builder: (_) => YesterdayFoodsDialog(
+          day: yesterday,
+          intakes: intakes,
+          usesImperialUnits: config.usesImperialFoodUnits,
+        ),
+      );
+      if (selected == null || selected.isEmpty || !mounted) return;
+      final destination = await showDialog<AddMealType>(
+        context: context,
+        builder: (_) =>
+            CopyDialog(initialValue: _mealType, destinationDay: today),
+      );
+      if (destination == null || !mounted) return;
+      copying = true;
+      final mealDetailBloc = locator<MealDetailBloc>();
+      // The same copy primitive as Diary: stored amounts are already in
+      // base units and must not be converted as new servings.
+      for (final intake in selected) {
+        await mealDetailBloc.addIntake(
+          context,
+          intake.unit,
+          intake.amount.toString(),
+          destination.getIntakeType(),
+          intake.meal,
+          today,
+        );
+        written++;
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context).infoAddedIntakeLabel)),
+        );
+      }
+    } catch (error, stackTrace) {
+      _log.warning('Yesterday reuse failed', error, stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              copying
+                  ? S.of(context).reuseYesterdayCopyFailedLabel(written)
+                  : S.of(context).reuseYesterdayLoadFailedLabel,
+            ),
+          ),
+        );
+      }
+    } finally {
+      _refreshLoggedDays(written);
+      if (mounted) {
+        setState(() => _logging = false);
+      }
     }
   }
 

@@ -25,6 +25,7 @@ class IntakeCard extends StatelessWidget {
   final IntakeEntity intake;
   final Function(BuildContext, IntakeEntity)? onItemLongPressed;
   final Function(BuildContext, IntakeEntity, bool)? onItemTapped;
+  final VoidCallback? onDelete;
   final VoidCallback? onShare;
   final bool firstListElement;
   final bool usesImperialUnits;
@@ -35,6 +36,7 @@ class IntakeCard extends StatelessWidget {
     required this.intake,
     this.onItemLongPressed,
     this.onItemTapped,
+    this.onDelete,
     this.onShare,
     required this.firstListElement,
     required this.usesImperialUnits,
@@ -139,7 +141,7 @@ class IntakeCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (onShare != null)
+                if (onDelete != null || onShare != null)
                   Semantics(
                     identifier: 'intake-item-menu',
                     container: true,
@@ -149,14 +151,27 @@ class IntakeCard extends StatelessWidget {
                         color: palette.textMuted,
                       ),
                       shape: Dimens.shapeM,
-                      itemBuilder: (_) => [
-                        PopupMenuItem<void>(
-                          onTap: onShare,
-                          child: Semantics(
-                            identifier: 'intake-share-food',
-                            child: Text(s.shareFoodLabel),
+                      itemBuilder: (menuContext) => [
+                        if (onShare != null)
+                          PopupMenuItem<void>(
+                            onTap: onShare,
+                            child: Semantics(
+                              identifier: 'intake-share-food',
+                              child: Text(s.shareFoodLabel),
+                            ),
                           ),
-                        ),
+                        if (onDelete != null)
+                          PopupMenuItem<void>(
+                            onTap: onDelete,
+                            child: Semantics(
+                              identifier: 'intake-delete-food',
+                              child: Text(
+                                MaterialLocalizations.of(
+                                  menuContext,
+                                ).deleteButtonTooltip,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
