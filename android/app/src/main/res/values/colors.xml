@@ -5,14 +5,19 @@
          Flutter splash (see lib/core/presentation/splash_screen.dart). -->
     <color name="splash_background">#F7F4EF</color>
 
-    <!-- Calorie home-screen widget: a dark card in both modes, so the
-         snapshot's figures read the way the screenshots show them. -->
-    <color name="calorie_widget_background">#262A3D</color>
-    <color name="calorie_widget_text">#FFFFFF</color>
-    <color name="calorie_widget_text_secondary">#9AA0B5</color>
-    <color name="calorie_widget_ring_track">#3A3F58</color>
-    <color name="calorie_widget_ring_progress">#37D3D4</color>
-    <color name="calorie_widget_protein">#6FCF7C</color>
-    <color name="calorie_widget_carbs">#4FAFFF</color>
-    <color name="calorie_widget_fat">#FF6E5E</color>
+    <!-- Calorie home-screen widget, light mode: AppPalette.light
+         (lib/core/styles/app_palette.dart). The warm-neutral surface card
+         with the hairline border the redesign uses for depth, the accent
+         ring, and the fixed macro trio — carbs amber, fat coral, protein
+         teal — so the widget reads the same as the dashboard. The
+         values-night copy mirrors AppPalette.dark. -->
+    <color name="calorie_widget_background">#FFFFFF</color>
+    <color name="calorie_widget_border">#E7E1D6</color>
+    <color name="calorie_widget_text">#2B2A27</color>
+    <color name="calorie_widget_text_secondary">#6E685E</color>
+    <color name="calorie_widget_ring_track">#EFEAE1</color>
+    <color name="calorie_widget_ring_progress">#0E7A4D</color>
+    <color name="calorie_widget_protein">#1F8E80</color>
+    <color name="calorie_widget_carbs">#B87410</color>
+    <color name="calorie_widget_fat">#D05536</color>
 </resources>

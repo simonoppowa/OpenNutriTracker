@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- minHeight 110dp keeps the pre-12 default at a 2x2 cell span (raise it
+     and the default becomes 2x3 instead). The provider answers for the
+     height: below ~145dp it shows the compact body (76dp ring alone), and
+     the macro rows appear once both the width and the height allow it, so
+     nothing clips at the smallest resize on either side. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="110dp"
     android:minHeight="110dp"

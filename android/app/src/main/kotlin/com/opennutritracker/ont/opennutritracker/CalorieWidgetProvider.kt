@@ -46,8 +46,26 @@ class CalorieWidgetProvider : AppWidgetProvider() {
         newOptions: Bundle,
     ) {
         val minWidth = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
-        WidgetView.refreshOne(context, appWidgetManager, appWidgetId, minWidth)
+        val minHeight = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+        WidgetView.refreshOne(context, appWidgetManager, appWidgetId, minWidth, minHeight)
     }
+}
+
+/** How much of the widget's content fits in the granted size. The rings
+ * cannot be resized remotely (pre-31 `RemoteViews` cannot change view
+ * dimensions), so each tier has its own views in the layout. */
+private enum class CalorieWidgetBody {
+    /** Title, 104dp ring beside the macro rows. Needs about 153dp of
+     * content height. */
+    WIDE,
+
+    /** 88dp ring over the "of 2000" caption. Needs about 133dp. */
+    NARROW,
+
+    /** A 76dp ring alone. Fits the 110dp `minHeight` the widget
+     * declares, at the smallest vertical resize and on a launcher whose
+     * two rows come to less than the narrow body needs. */
+    COMPACT,
 }
 
 /** One re-render's inputs: snapshot figures, macros, figure labels, and
@@ -88,12 +106,25 @@ private class WidgetView private constructor(
         return if (value.isEmpty()) fallback else value
     }
 
+    /** Whichever body fits the granted height, then width. Height is
+     * decided first, because the review that found #1516's clip was right
+     * that width alone says nothing about whether the ring and the caption
+     * fit vertically. An unknown height (no option yet) gets the compact
+     * body, which nothing clips. */
+    fun bodyFor(minWidthDp: Int, minHeightDp: Int): CalorieWidgetBody {
+        if (minHeightDp < NARROW_FULL_MIN_DP) return CalorieWidgetBody.COMPACT
+        val fitsMacrosBesideRing =
+            minWidthDp >= WIDE_MIN_DP && minHeightDp >= WIDE_FULL_MIN_DP
+        return if (fitsMacrosBesideRing) CalorieWidgetBody.WIDE else CalorieWidgetBody.NARROW
+    }
+
     fun render(
         context: Context,
         views: RemoteViews,
         manager: AppWidgetManager,
         appWidgetId: Int,
         minWidthDp: Int,
+        minHeightDp: Int,
     ) {
         views.setOnClickPendingIntent(
             R.id.calorie_widget_root,
@@ -107,7 +138,7 @@ private class WidgetView private constructor(
         )
 
         if (isCurrent) {
-            showContent(context, views, wide = minWidthDp >= WIDE_MIN_DP)
+            showContent(context, views, bodyFor(minWidthDp, minHeightDp))
         } else {
             showPlaceholder(views)
         }
@@ -170,6 +201,7 @@ private class WidgetView private constructor(
         views.setTextViewText(R.id.calorie_widget_title, title)
         views.setViewVisibility(R.id.calorie_widget_body_wide, View.GONE)
         views.setViewVisibility(R.id.calorie_widget_body_narrow, View.GONE)
+        views.setViewVisibility(R.id.calorie_widget_body_compact, View.GONE)
         views.setViewVisibility(R.id.calorie_widget_placeholder, View.VISIBLE)
         views.setTextViewText(R.id.calorie_widget_placeholder_title, title)
         views.setTextViewText(
@@ -185,20 +217,45 @@ private class WidgetView private constructor(
     private fun showContent(
         context: Context,
         views: RemoteViews,
-        wide: Boolean,
+        body: CalorieWidgetBody,
     ) {
         val title = label("title", FALLBACK_TITLE)
         val unit = label("unit", FALLBACK_UNIT)
-        // The narrow body has no room to spare; the goal caption under the
-        // ring already says what a title would.
-        views.setViewVisibility(R.id.calorie_widget_title, if (wide) View.VISIBLE else View.GONE)
+        // The narrow and compact bodies have no room to spare; the goal
+        // caption (narrow) already says what a title would.
+        views.setViewVisibility(
+            R.id.calorie_widget_title,
+            if (body == CalorieWidgetBody.WIDE) View.VISIBLE else View.GONE,
+        )
         views.setTextViewText(R.id.calorie_widget_title, "$title ($unit)")
         views.setViewVisibility(R.id.calorie_widget_placeholder, View.GONE)
-        views.setViewVisibility(R.id.calorie_widget_body_wide, if (wide) View.VISIBLE else View.GONE)
-        views.setViewVisibility(R.id.calorie_widget_body_narrow, if (wide) View.GONE else View.VISIBLE)
-        val ringId = if (wide) R.id.calorie_widget_ring_wide else R.id.calorie_widget_ring_narrow
-        val consumedId = if (wide) R.id.calorie_widget_consumed_wide else R.id.calorie_widget_consumed_narrow
-        val unitId = if (wide) R.id.calorie_widget_unit_wide else R.id.calorie_widget_unit_narrow
+        views.setViewVisibility(
+            R.id.calorie_widget_body_wide,
+            if (body == CalorieWidgetBody.WIDE) View.VISIBLE else View.GONE,
+        )
+        views.setViewVisibility(
+            R.id.calorie_widget_body_narrow,
+            if (body == CalorieWidgetBody.NARROW) View.VISIBLE else View.GONE,
+        )
+        views.setViewVisibility(
+            R.id.calorie_widget_body_compact,
+            if (body == CalorieWidgetBody.COMPACT) View.VISIBLE else View.GONE,
+        )
+        val ringId = when (body) {
+            CalorieWidgetBody.WIDE -> R.id.calorie_widget_ring_wide
+            CalorieWidgetBody.NARROW -> R.id.calorie_widget_ring_narrow
+            CalorieWidgetBody.COMPACT -> R.id.calorie_widget_ring_compact
+        }
+        val consumedId = when (body) {
+            CalorieWidgetBody.WIDE -> R.id.calorie_widget_consumed_wide
+            CalorieWidgetBody.NARROW -> R.id.calorie_widget_consumed_narrow
+            CalorieWidgetBody.COMPACT -> R.id.calorie_widget_consumed_compact
+        }
+        val unitId = when (body) {
+            CalorieWidgetBody.WIDE -> R.id.calorie_widget_unit_wide
+            CalorieWidgetBody.NARROW -> R.id.calorie_widget_unit_narrow
+            CalorieWidgetBody.COMPACT -> R.id.calorie_widget_unit_compact
+        }
 
         val progress = if (goalKcal > 0) {
             (consumedKcal.toDouble() / goalKcal * RING_MAX).toInt().coerceIn(0, RING_MAX)
@@ -209,8 +266,17 @@ private class WidgetView private constructor(
 
         // "of 2000" travels beside the figures, so it always describes
         // what is on screen, in the app's language.
-        val goalId = if (wide) R.id.calorie_widget_goal_wide else R.id.calorie_widget_goal_caption
-        views.setTextViewText(goalId, figureLabel("goal", "/ $goalKcal"))
+        if (body == CalorieWidgetBody.NARROW) {
+            views.setTextViewText(
+                R.id.calorie_widget_goal_caption,
+                figureLabel("goal", "/ $goalKcal"),
+            )
+        } else if (body == CalorieWidgetBody.WIDE) {
+            views.setTextViewText(
+                R.id.calorie_widget_goal_wide,
+                figureLabel("goal", "/ $goalKcal"),
+            )
+        }
 
         // Replaces the placeholder's "Open the app": a launcher may reapply
         // these views to the hierarchy that showed the placeholder.
@@ -218,6 +284,11 @@ private class WidgetView private constructor(
             R.id.calorie_widget_root,
             figureLabel("accessibility", "$consumedKcal / $goalKcal $unit"),
         )
+
+        if (body != CalorieWidgetBody.WIDE) {
+            // The compact and narrow bodies have no macro rows.
+            return
+        }
 
         val macros = snapshot?.optJSONObject("macros")
         val gram = label("gram", FALLBACK_GRAM)
@@ -293,11 +364,22 @@ private class WidgetView private constructor(
         private const val DAY_END_WINDOW_MS = 60_000L
 
         /** Below this width in dp, the granted cell span only fits the
-         * ring; above it, the macro rows sit beside it. The 24dp padding,
-         * the 104dp ring and its 8dp margin leave the rows 124dp here:
-         * enough for a name, "123 g" and the 44dp percentage, where 168
-         * left them 32dp. */
+         * ring; above it, the macro rows can sit beside it. The 24dp
+         * padding, the 104dp ring and its 8dp margin leave the rows 124dp
+         * here: enough for a name, "123 g" and the 44dp percentage, where
+         * 168 left them 32dp. */
         private const val WIDE_MIN_DP = 260
+
+        /** Content height the narrow body needs: 24dp padding, the 88dp
+         * ring, the 4dp margin and a ~17dp caption, plus launchers' own
+         * padding around the widget, which the reported height includes.
+         * Below it, only the compact body fits without clipping. */
+        private const val NARROW_FULL_MIN_DP = 145
+
+        /** Content height the wide body needs: its ring alone stands as
+         * high as the narrow ring plus caption, and the title (~21sp bold
+         * plus its 4dp margin) sits above. */
+        private const val WIDE_FULL_MIN_DP = 165
 
         private const val FALLBACK_TITLE = "Calories"
         private const val FALLBACK_UNIT = "kcal"
@@ -328,7 +410,7 @@ private class WidgetView private constructor(
             appWidgetIds: IntArray,
         ) {
             for (appWidgetId in appWidgetIds) {
-                refreshOne(context, appWidgetManager, appWidgetId, 0)
+                refreshOne(context, appWidgetManager, appWidgetId, 0, 0)
             }
         }
 
@@ -337,10 +419,13 @@ private class WidgetView private constructor(
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int,
             minWidth: Int,
+            minHeight: Int,
         ) {
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minWidthDp = if (minWidth > 0) minWidth
-            else appWidgetManager.getAppWidgetOptions(appWidgetId)
-                .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+            else options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+            val minHeightDp = if (minHeight > 0) minHeight
+            else options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
             val view = build(context)
             view.render(
                 context,
@@ -348,6 +433,7 @@ private class WidgetView private constructor(
                 appWidgetManager,
                 appWidgetId,
                 minWidthDp,
+                minHeightDp,
             )
             view.scheduleDayEnd(context, appWidgetManager)
         }
