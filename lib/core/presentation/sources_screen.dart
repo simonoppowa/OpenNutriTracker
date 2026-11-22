@@ -53,6 +53,21 @@ class SourcesScreen extends StatelessWidget {
                 'Series 916.',
             url: URLConst.sourceMacrosWhoTrs916URL,
           ),
+          _SourceLink(
+            citation:
+                'Institute of Medicine (2005). Dietary Reference Intakes for '
+                'Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, '
+                'Protein, and Amino Acids, Chapter 11: Macronutrients and '
+                'Healthful Diets.',
+            url: URLConst.sourceEnergyIomDriURL,
+          ),
+          _SourceLink(
+            citation:
+                'Feinman RD, et al. (2015). Dietary carbohydrate restriction '
+                'as the first approach in diabetes management: critical '
+                'review and evidence base. Nutrition 31(1), 1–13.',
+            url: URLConst.sourceMacrosFeinman2015URL,
+          ),
         ],
       ),
       _SourceEntry(
