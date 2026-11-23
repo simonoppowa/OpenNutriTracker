@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
@@ -127,4 +127,33 @@ void main() {
       semanticsHandle.dispose();
     },
   );
+
+  testWidgets('at twice the font size the macro tiles stack, uncut', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 2000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _wrap(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(360, 2000),
+            textScaler: TextScaler.linear(2),
+          ),
+          child: dashboardWidget(totalKcalLeft: 0),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final carbs = tester.getTopLeft(find.text('carbs'));
+    final protein = tester.getTopLeft(find.text('protein'));
+    expect(protein.dy, greaterThan(carbs.dy));
+    // "100/375 g" stays on one line rather than breaking mid-number.
+    final value = tester.renderObject<RenderParagraph>(find.text('100/375 g'));
+    final oneLine = value.getFullHeightForCaret(const TextPosition(offset: 0));
+    expect(value.size.height, lessThan(oneLine * 1.5));
+  });
 }

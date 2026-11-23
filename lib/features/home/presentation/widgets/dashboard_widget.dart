@@ -79,6 +79,8 @@ class _DashboardWidgetState extends State<DashboardWidget> {
     final displayBurned = usesKilojoules
         ? UnitCalc.kcalToKj(widget.totalKcalBurned)
         : widget.totalKcalBurned;
+    final stackMacros = MediaQuery.textScalerOf(context).scale(10) > 13;
+    Widget fit(Widget tile) => stackMacros ? tile : Expanded(child: tile);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final palette = isDark ? AppPalette.dark : AppPalette.light;
@@ -180,10 +182,16 @@ class _DashboardWidgetState extends State<DashboardWidget> {
             ),
           ),
           const SizedBox(height: Dimens.spacing12),
-          Row(
+          // At a large font the tiles stack, so their labels and values are
+          // not broken mid-word.
+          Flex(
+            direction: stackMacros ? Axis.vertical : Axis.horizontal,
+            crossAxisAlignment: stackMacros
+                ? CrossAxisAlignment.stretch
+                : CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: _MacroTile(
+              fit(
+                _MacroTile(
                   label: S.of(context).carbsLabel,
                   intake: widget.totalCarbsIntake,
                   goal: widget.totalCarbsGoal,
@@ -191,9 +199,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   palette: palette,
                 ),
               ),
-              const SizedBox(width: Dimens.spacing12),
-              Expanded(
-                child: _MacroTile(
+              const SizedBox(width: Dimens.spacing12, height: Dimens.spacing12),
+              fit(
+                _MacroTile(
                   label: S.of(context).fatLabel,
                   intake: widget.totalFatsIntake,
                   goal: widget.totalFatsGoal,
@@ -201,9 +209,9 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                   palette: palette,
                 ),
               ),
-              const SizedBox(width: Dimens.spacing12),
-              Expanded(
-                child: _MacroTile(
+              const SizedBox(width: Dimens.spacing12, height: Dimens.spacing12),
+              fit(
+                _MacroTile(
                   label: S.of(context).proteinLabel,
                   intake: widget.totalProteinsIntake,
                   goal: widget.totalProteinsGoal,

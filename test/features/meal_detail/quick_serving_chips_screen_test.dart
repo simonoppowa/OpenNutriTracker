@@ -223,6 +223,12 @@ void main() {
     expect(favourites.contains(meal), isFalse);
     expect(find.byTooltip(l10nEn.favouriteAddTooltip), findsOneWidget);
   });
+
+  testWidgets('the app bar\'s edit button says what it does', (tester) async {
+    await pumpMealDetail(tester, _solidThirtyGramServing());
+
+    expect(find.byTooltip(l10nEn.editMealLabel), findsOneWidget);
+  });
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {

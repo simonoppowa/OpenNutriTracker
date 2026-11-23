@@ -153,6 +153,23 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
     return kcalLine;
   }
 
+  /// The header summary in words, "20 g carbs" rather than "20 C".
+  String _headerSummaryLabel(BuildContext context) {
+    final s = S.of(context);
+    final consumed = EnergyDisplay.formatValue(context, totalKcal);
+    final kcalLine = _hasMealKcalTarget
+        ? s.diaryMealKcalConsumedOfTarget(
+            consumed,
+            EnergyDisplay.formatValue(context, widget.mealKcalTarget!),
+          )
+        : EnergyDisplay.formatWithUnit(context, totalKcal);
+    if (!widget.showMealMacros || totalKcal <= 0) return kcalLine;
+    return '$kcalLine, '
+        '${totalCarbsGram.toInt()} ${s.gramUnit} ${s.carbsLabel}, '
+        '${totalFatsGram.toInt()} ${s.gramUnit} ${s.fatLabel}, '
+        '${totalProteinsGram.toInt()} ${s.gramUnit} ${s.proteinLabel}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -181,14 +198,18 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
               ),
               const SizedBox(width: Dimens.spacing12),
               Expanded(
-                child: AutoSizeText(
-                  widget.title,
-                  maxLines: 1,
-                  minFontSize: 14,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.titleLarge?.copyWith(
-                    color: palette.textStrong,
-                    fontWeight: FontWeight.w700,
+                // A heading screen readers can jump between.
+                child: Semantics(
+                  header: true,
+                  child: AutoSizeText(
+                    widget.title,
+                    maxLines: 1,
+                    minFontSize: 14,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.titleLarge?.copyWith(
+                      color: palette.textStrong,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -197,8 +218,9 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                 Flexible(
                   child: Text(
                     _buildHeaderSummary(context),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    semanticsLabel: _headerSummaryLabel(context),
+                    // No line limit: at a large font the macros wrap rather
+                    // than being cut off (an ellipsis would keep one line).
                     style: textTheme.labelMedium?.copyWith(
                       color: palette.textMuted,
                       fontWeight: FontWeight.w700,
@@ -215,6 +237,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                   // Row's full-width box and coordinate taps miss the button.
                   container: true,
                   child: PopupMenuButton<VerticalListPopupMenuSelections>(
+                    tooltip: S.of(context).sectionOptionsLabel(widget.title),
                     icon: Icon(Icons.more_vert_rounded, color: palette.textMuted),
                     shape: Dimens.shapeM,
                     onSelected:

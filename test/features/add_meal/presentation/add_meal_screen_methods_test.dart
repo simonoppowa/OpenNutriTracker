@@ -294,4 +294,12 @@ void main() {
       );
     });
   }
+
+  testWidgets('the new custom food button says what it does', (tester) async {
+    await _register();
+    await tester.pumpWidget(_app([]));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip(l10nEn.newCustomMealLabel), findsOneWidget);
+  });
 }
