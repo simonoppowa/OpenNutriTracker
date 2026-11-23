@@ -8,7 +8,7 @@ abstract class TrendsEvent extends Equatable {
 }
 
 class LoadTrendsEvent extends TrendsEvent {
-  /// Window for the calorie and macro trends, in days (7, 30 or 90). The
+  /// Window in days; 0 means all logged history. The
   /// on-track streak is always the most recent 7 days within the window.
   final int rangeDays;
 

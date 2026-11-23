@@ -507,6 +507,20 @@
   "trendsPerWeekSuffix": "/week",
   "trendsWeeksToGoalLabel": "weeks to goal",
   "trendsWaterLabel": "Water",
+  "trendsMacrosLabel": "Macros",
+  "trendsRangeWeekLabel": "1W",
+  "trendsRangeMonthLabel": "1M",
+  "trendsRangeThreeMonthsLabel": "3M",
+  "trendsRangeSixMonthsLabel": "6M",
+  "trendsRangeYearLabel": "1Y",
+  "trendsRangeTooltip": "Last {days} days",
+  "@trendsRangeTooltip": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "importAction": "Import",
   "importActivityConfirmContent": "These activities will be added to today.",
   "importActivityConfirmTitle": "Import {count} activities?",

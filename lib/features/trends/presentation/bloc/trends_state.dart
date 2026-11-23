@@ -16,7 +16,7 @@ class TrendsLoading extends TrendsState {
 }
 
 class TrendsLoaded extends TrendsState {
-  final int rangeDays; // the selected range chip: 7, 30, 90, or 0 for "All"
+  final int rangeDays; // Window in days; 0 means all logged history.
   final int windowDays; // effective span the charts plot over (resolved "All")
   final List<TrackedDayEntity> days; // tracked days over the selected window
   final List<TrackedDayEntity> priorWeek; // the 7 days before this week
