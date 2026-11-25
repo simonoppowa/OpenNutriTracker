@@ -208,22 +208,15 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Future<void> _onFabPressed(BuildContext context) async {
     final config = await locator<GetConfigUsecase>().getConfig();
     if (!context.mounted) return;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      // A tall sheet (large font) stops below the status bar.
-      useSafeArea: true,
-      builder: (BuildContext context) {
-        return AddItemBottomSheet(
-          day: DateTime.now(),
-          showActivityTracking: config.showActivityTracking,
-          usesImperialUnits: config.usesImperialFoodUnits,
-          suggestedType: MealTypeSuggester.suggestFromTime(
-            DateTime.now(),
-            mealSharesPct: config.mealKcalSharesPct,
-          ),
-        );
-      },
+    showAddItemBottomSheet(
+      context,
+      day: DateTime.now(),
+      showActivityTracking: config.showActivityTracking,
+      usesImperialUnits: config.usesImperialFoodUnits,
+      suggestedType: MealTypeSuggester.suggestFromTime(
+        DateTime.now(),
+        mealSharesPct: config.mealKcalSharesPct,
+      ),
     );
   }
 }

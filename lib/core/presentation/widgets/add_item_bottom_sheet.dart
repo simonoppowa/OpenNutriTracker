@@ -1,8 +1,10 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
@@ -10,6 +12,28 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+
+/// Opens the sheet the centre "+" shows.
+///
+/// `useSafeArea` keeps a tall sheet (four recent foods, or a large font)
+/// below the status bar and the Dynamic Island (#812).
+Future<void> showAddItemBottomSheet(
+  BuildContext context, {
+  required DateTime day,
+  bool showActivityTracking = true,
+  bool usesImperialUnits = false,
+  IntakeTypeEntity? suggestedType,
+}) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  builder: (BuildContext context) => AddItemBottomSheet(
+    day: day,
+    showActivityTracking: showActivityTracking,
+    usesImperialUnits: usesImperialUnits,
+    suggestedType: suggestedType,
+  ),
+);
 
 class AddItemBottomSheet extends StatelessWidget {
   final DateTime day;
@@ -38,14 +62,35 @@ class AddItemBottomSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // The close button is the one way out that is visible: the
+            // scrim, a drag and system back close the sheet too, but nothing
+            // on screen said so (#812).
             Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                S.of(context).addItemLabel,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
+              padding: const EdgeInsets.fromLTRB(16, 6, 4, 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AutoSizeText(
+                      S.of(context).addItemLabel,
+                      maxLines: 1,
+                      minFontSize: 14,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                     ),
+                  ),
+                  Semantics(
+                    identifier: 'add-item-close',
+                    child: IconButton(
+                      tooltip:
+                          MaterialLocalizations.of(context).closeButtonTooltip,
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
               ),
             ),
             _buildRecentSection(context),
@@ -247,14 +292,22 @@ class AddItemBottomSheet extends StatelessWidget {
                     ),
               ),
             ),
+            // The same side margins as the add-food screen's lists; the
+            // card itself only pads above and below (#812).
             for (final (index, intake) in recent.indexed)
-              MealItemCard(
-                day: day,
-                mealEntity: intake.meal,
-                addMealType: AddMealExtension.fromIntakeTypeEntity(intake.type),
-                usesImperialUnits: usesImperialUnits,
-                favouriteSemanticsIdentifier:
-                    'add-item-recent-favourite-${index + 1}',
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Dimens.spacing16,
+                ),
+                child: MealItemCard(
+                  day: day,
+                  mealEntity: intake.meal,
+                  addMealType:
+                      AddMealExtension.fromIntakeTypeEntity(intake.type),
+                  usesImperialUnits: usesImperialUnits,
+                  favouriteSemanticsIdentifier:
+                      'add-item-recent-favourite-${index + 1}',
+                ),
               ),
             const Divider(indent: 16, endIndent: 16),
           ],
