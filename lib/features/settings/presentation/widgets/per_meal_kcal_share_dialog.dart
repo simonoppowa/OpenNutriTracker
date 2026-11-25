@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/meal_pattern_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -7,10 +8,12 @@ import 'package:opennutritracker/features/settings/presentation/bloc/settings_bl
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// #150: Split the daily kcal goal across breakfast / lunch / dinner /
-/// snack. Moving any one slider rebalances the other three
-/// proportionally so the four percentages always sum to 100. Preset
-/// chips (#150 follow-up) drop in pre-authored splits for IF / OMAD /
-/// five-small-meals routines without making the user dial them in.
+/// snack. Each meal has a slider and a typed whole-percent field kept in
+/// sync. Editing one share never touches the others (#715): the dialog
+/// shows the running total and keeps OK disabled until it is exactly
+/// 100 %. Preset chips (#150 follow-up) drop in pre-authored splits for
+/// IF / OMAD / five-small-meals routines without making the user dial
+/// them in.
 class PerMealKcalShareDialog extends StatefulWidget {
   final SettingsBloc settingsBloc;
   final HomeBloc homeBloc;
@@ -29,10 +32,27 @@ class PerMealKcalShareDialog extends StatefulWidget {
 }
 
 class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
-  double _breakfastPct = 30;
-  double _lunchPct = 40;
-  double _dinnerPct = 20;
-  double _snackPct = 10;
+  static const _meals = [
+    ConfigEntity.mealKeyBreakfast,
+    ConfigEntity.mealKeyLunch,
+    ConfigEntity.mealKeyDinner,
+    ConfigEntity.mealKeySnack,
+  ];
+
+  static final _wholePercent = RegExp(r'^\d{1,3}$');
+
+  /// The last valid share per meal; the sliders show these.
+  final Map<String, int> _shares = Map.of(
+    ConfigEntity.defaultMealKcalSharesPct,
+  );
+
+  /// Meals whose field holds something other than a whole 0-100.
+  final Set<String> _invalid = {};
+
+  final Map<String, TextEditingController> _controllers = {
+    for (final meal in _meals) meal: TextEditingController(),
+  };
+
   bool _loaded = false;
 
   @override
@@ -41,74 +61,80 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
     _load();
   }
 
+  @override
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
   Future<void> _load() async {
-    final shares = await widget.settingsBloc.getMealKcalSharesPct();
+    final stored = await widget.settingsBloc.getMealKcalSharesPct();
     if (!mounted) return;
     setState(() {
-      _breakfastPct = (shares[ConfigEntity.mealKeyBreakfast] ?? 30).toDouble();
-      _lunchPct = (shares[ConfigEntity.mealKeyLunch] ?? 40).toDouble();
-      _dinnerPct = (shares[ConfigEntity.mealKeyDinner] ?? 20).toDouble();
-      _snackPct = (shares[ConfigEntity.mealKeySnack] ?? 10).toDouble();
+      _setAll({
+        for (final meal in _meals)
+          meal: stored[meal] ?? ConfigEntity.defaultMealKcalSharesPct[meal]!,
+      });
       _loaded = true;
     });
   }
 
-  /// Move one slider, rebalance the other three to fill the remainder.
-  /// Integer rounding can leave a 1-2% drift after the redistribution;
-  /// we absorb it into whichever "other" share was largest so the trio
-  /// always sums exactly to 100 with the moved slider held fixed.
-  void _rebalance({required String changed, required double newValue}) {
-    final clamped = newValue.clamp(0, 100).toDouble();
-    final shares = {
-      ConfigEntity.mealKeyBreakfast: _breakfastPct,
-      ConfigEntity.mealKeyLunch: _lunchPct,
-      ConfigEntity.mealKeyDinner: _dinnerPct,
-      ConfigEntity.mealKeySnack: _snackPct,
-    };
-    shares[changed] = clamped;
-    final others = shares.keys.where((k) => k != changed).toList();
-    final remaining = 100 - clamped;
-    final othersTotal =
-        others.fold<double>(0, (acc, k) => acc + shares[k]!);
-    if (remaining <= 0) {
-      for (final k in others) {
-        shares[k] = 0;
-      }
-    } else if (othersTotal == 0) {
-      final even = remaining / others.length;
-      for (final k in others) {
-        shares[k] = even;
-      }
-    } else {
-      for (final k in others) {
-        shares[k] = (shares[k]! / othersTotal) * remaining;
-      }
+  /// Puts [shares] into every slider and field. A stored value outside
+  /// 0-100 is shown as stored and flagged, not silently clamped.
+  void _setAll(Map<String, int> shares) {
+    _invalid.clear();
+    for (final meal in _meals) {
+      final value = shares[meal]!;
+      _shares[meal] = value.clamp(0, 100);
+      _setText(meal, '$value');
+      if (value < 0 || value > 100) _invalid.add(meal);
     }
-    final rounded = {for (final k in shares.keys) k: shares[k]!.round()};
-    final drift = 100 - rounded.values.fold<int>(0, (a, b) => a + b);
-    if (drift != 0) {
-      final adjustTarget = others.reduce(
-        (a, b) => rounded[a]! >= rounded[b]! ? a : b,
-      );
-      rounded[adjustTarget] = rounded[adjustTarget]! + drift;
-    }
+  }
+
+  void _setText(String meal, String text) {
+    _controllers[meal]!.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+
+  int? _parse(String text) {
+    final trimmed = text.trim();
+    if (!_wholePercent.hasMatch(trimmed)) return null;
+    final value = int.parse(trimmed);
+    return value <= 100 ? value : null;
+  }
+
+  void _onSliderChanged(String meal, double value) {
+    final rounded = value.round();
     setState(() {
-      _breakfastPct = rounded[ConfigEntity.mealKeyBreakfast]!.toDouble();
-      _lunchPct = rounded[ConfigEntity.mealKeyLunch]!.toDouble();
-      _dinnerPct = rounded[ConfigEntity.mealKeyDinner]!.toDouble();
-      _snackPct = rounded[ConfigEntity.mealKeySnack]!.toDouble();
+      _shares[meal] = rounded;
+      _invalid.remove(meal);
+      _setText(meal, '$rounded');
     });
   }
 
-  /// Presets are authored to sum to 100 already, so we drop them in
-  /// without running them through the rebalance pass.
-  void _applyPreset(MealPatternEntity pattern) {
+  void _onTextChanged(String meal, String text) {
+    final value = _parse(text);
     setState(() {
-      _breakfastPct = pattern.breakfastPct.toDouble();
-      _lunchPct = pattern.lunchPct.toDouble();
-      _dinnerPct = pattern.dinnerPct.toDouble();
-      _snackPct = pattern.snackPct.toDouble();
+      if (value == null) {
+        _invalid.add(meal);
+      } else {
+        _invalid.remove(meal);
+        _shares[meal] = value;
+      }
     });
+  }
+
+  int get _total => _shares.values.fold<int>(0, (a, b) => a + b);
+
+  bool get _canSave => _loaded && _invalid.isEmpty && _total == 100;
+
+  /// Presets are authored to sum to 100 already.
+  void _applyPreset(MealPatternEntity pattern) {
+    setState(() => _setAll(pattern.toSharesMap()));
   }
 
   String _presetLabel(BuildContext context, MealPatternEntity pattern) {
@@ -128,12 +154,8 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
   }
 
   Future<void> _save() async {
-    await widget.settingsBloc.setMealKcalSharesPct({
-      ConfigEntity.mealKeyBreakfast: _breakfastPct.round(),
-      ConfigEntity.mealKeyLunch: _lunchPct.round(),
-      ConfigEntity.mealKeyDinner: _dinnerPct.round(),
-      ConfigEntity.mealKeySnack: _snackPct.round(),
-    });
+    if (!_canSave) return;
+    await widget.settingsBloc.setMealKcalSharesPct(Map.of(_shares));
     widget.settingsBloc.add(LoadSettingsEvent());
     widget.homeBloc.add(const LoadItemsEvent());
     widget.calendarDayBloc.add(RefreshCalendarDayEvent());
@@ -142,29 +164,36 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
   }
 
   void _reset() {
-    setState(() {
-      _breakfastPct = (ConfigEntity
-              .defaultMealKcalSharesPct[ConfigEntity.mealKeyBreakfast]!)
-          .toDouble();
-      _lunchPct = (ConfigEntity
-              .defaultMealKcalSharesPct[ConfigEntity.mealKeyLunch]!)
-          .toDouble();
-      _dinnerPct = (ConfigEntity
-              .defaultMealKcalSharesPct[ConfigEntity.mealKeyDinner]!)
-          .toDouble();
-      _snackPct = (ConfigEntity
-              .defaultMealKcalSharesPct[ConfigEntity.mealKeySnack]!)
-          .toDouble();
-    });
+    setState(() => _setAll(ConfigEntity.defaultMealKcalSharesPct));
+  }
+
+  String _mealLabel(S s, String meal) {
+    switch (meal) {
+      case ConfigEntity.mealKeyBreakfast:
+        return s.settingsPerMealKcalShareBreakfast;
+      case ConfigEntity.mealKeyLunch:
+        return s.settingsPerMealKcalShareLunch;
+      case ConfigEntity.mealKeyDinner:
+        return s.settingsPerMealKcalShareDinner;
+      default:
+        return s.settingsPerMealKcalShareSnack;
+    }
+  }
+
+  /// What still stands between the user and OK, or null when nothing does.
+  String? _blocker(S s) {
+    if (_invalid.isNotEmpty) return s.mealShareInvalidValueLabel;
+    final total = _total;
+    if (total > 100) return s.mealShareOverLabel(total - 100);
+    if (total < 100) return s.mealShareRemainingLabel(100 - total);
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    final totalPct = _breakfastPct.round() +
-        _lunchPct.round() +
-        _dinnerPct.round() +
-        _snackPct.round();
+    final theme = Theme.of(context);
+    final blocker = _loaded ? _blocker(s) : null;
     return AlertDialog(
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -195,12 +224,12 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
                 children: [
                   Text(
                     s.settingsPerMealKcalShareDescription,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     s.mealPatternPresetsLabel,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                   ),
                   const SizedBox(height: 4),
                   Wrap(
@@ -218,45 +247,35 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    '$totalPct% total',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  for (final meal in _meals)
+                    _MealShareRow(
+                      label: _mealLabel(s, meal),
+                      value: _shares[meal]!,
+                      invalid: _invalid.contains(meal),
+                      controller: _controllers[meal]!,
+                      identifier: 'meal-share-$meal',
+                      onSliderChanged: (v) => _onSliderChanged(meal, v),
+                      onTextChanged: (t) => _onTextChanged(meal, t),
+                    ),
                   const SizedBox(height: 8),
-                  _MealShareRow(
-                    label: s.settingsPerMealKcalShareBreakfast,
-                    value: _breakfastPct,
-                    identifier: 'meal-share-breakfast',
-                    onChanged: (v) => _rebalance(
-                      changed: ConfigEntity.mealKeyBreakfast,
-                      newValue: v,
-                    ),
-                  ),
-                  _MealShareRow(
-                    label: s.settingsPerMealKcalShareLunch,
-                    value: _lunchPct,
-                    identifier: 'meal-share-lunch',
-                    onChanged: (v) => _rebalance(
-                      changed: ConfigEntity.mealKeyLunch,
-                      newValue: v,
-                    ),
-                  ),
-                  _MealShareRow(
-                    label: s.settingsPerMealKcalShareDinner,
-                    value: _dinnerPct,
-                    identifier: 'meal-share-dinner',
-                    onChanged: (v) => _rebalance(
-                      changed: ConfigEntity.mealKeyDinner,
-                      newValue: v,
-                    ),
-                  ),
-                  _MealShareRow(
-                    label: s.settingsPerMealKcalShareSnack,
-                    value: _snackPct,
-                    identifier: 'meal-share-snack',
-                    onChanged: (v) => _rebalance(
-                      changed: ConfigEntity.mealKeySnack,
-                      newValue: v,
+                  Semantics(
+                    liveRegion: true,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_invalid.isEmpty)
+                          Text(
+                            s.mealShareTotalLabel(_total),
+                            style: theme.textTheme.titleSmall,
+                          ),
+                        if (blocker != null)
+                          Text(
+                            blocker,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.error,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ],
@@ -270,7 +289,7 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
         Semantics(
           identifier: 'meal-share-save',
           child: TextButton(
-            onPressed: _loaded ? _save : null,
+            onPressed: _canSave ? _save : null,
             child: Text(s.dialogOKLabel),
           ),
         ),
@@ -281,15 +300,21 @@ class _PerMealKcalShareDialogState extends State<PerMealKcalShareDialog> {
 
 class _MealShareRow extends StatelessWidget {
   final String label;
-  final double value;
+  final int value;
+  final bool invalid;
+  final TextEditingController controller;
   final String identifier;
-  final ValueChanged<double> onChanged;
+  final ValueChanged<double> onSliderChanged;
+  final ValueChanged<String> onTextChanged;
 
   const _MealShareRow({
     required this.label,
     required this.value,
+    required this.invalid,
+    required this.controller,
     required this.identifier,
-    required this.onChanged,
+    required this.onSliderChanged,
+    required this.onTextChanged,
   });
 
   @override
@@ -299,8 +324,39 @@ class _MealShareRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text(label)),
-            Text('${value.round()}%'),
+            Expanded(
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              // Scale with the text setting so the value and its % suffix
+              // stay readable at large font scales.
+              width: MediaQuery.textScalerOf(context).scale(96),
+              child: Semantics(
+                identifier: '$identifier-input',
+                child: TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  // Let a typed decimal through so it is flagged, instead of
+                  // "23,5" quietly turning into 235.
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                  ],
+                  textAlign: TextAlign.right,
+                  decoration: InputDecoration(
+                    suffixText: '%',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 12,
+                    ),
+                    // Red outline only; the message sits under the total.
+                    error: invalid ? const SizedBox.shrink() : null,
+                  ),
+                  onChanged: onTextChanged,
+                ),
+              ),
+            ),
           ],
         ),
         Semantics(
@@ -308,10 +364,12 @@ class _MealShareRow extends StatelessWidget {
           child: Slider(
             min: 0,
             max: 100,
-            value: value.clamp(0, 100),
+            value: value.clamp(0, 100).toDouble(),
             divisions: 100,
-            label: '${value.round()}%',
-            onChanged: onChanged,
+            label: '$value%',
+            // Read as the share it sets, not the slider's position.
+            semanticFormatterCallback: (v) => '${v.round()}%',
+            onChanged: onSliderChanged,
           ),
         ),
       ],
