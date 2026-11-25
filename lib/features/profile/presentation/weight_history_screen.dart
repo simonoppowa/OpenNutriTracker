@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
@@ -7,12 +9,16 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/import_weights_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/calendar_day_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
+import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/utils/profile_display_format.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/body_weight_input.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/weight_trend_chart.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/health_sync_screen.dart'
+    show healthPlatformName;
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Screen for browsing and adding weight log entries.
@@ -33,6 +39,10 @@ class WeightHistoryScreen extends StatefulWidget {
   final ConfigRepository? configRepository;
   final GetUserUsecase? getUserUsecase;
 
+  /// Fires when the health weight import files new readings. Defaults to
+  /// [ImportWeightsUsecase.weightsImported].
+  final Stream<void>? weightsImported;
+
   const WeightHistoryScreen({
     super.key,
     this.getUsecase,
@@ -40,6 +50,7 @@ class WeightHistoryScreen extends StatefulWidget {
     this.deleteUsecase,
     this.configRepository,
     this.getUserUsecase,
+    this.weightsImported,
   });
 
   @override
@@ -73,10 +84,27 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
   double? _profileWeightKg;
   _ChartRange _selectedRange = _ChartRange.days30;
 
+  StreamSubscription<void>? _weightsImportedSubscription;
+
   @override
   void initState() {
     super.initState();
     _load();
+    // An import can land while this screen is open — on app resume, the
+    // Home page underneath runs one — and the list above is a copy of the
+    // log, so it reloads rather than waiting to be reopened.
+    final weightsImported =
+        widget.weightsImported ??
+        (locator.isRegistered<ImportWeightsUsecase>()
+            ? locator<ImportWeightsUsecase>().weightsImported
+            : null);
+    _weightsImportedSubscription = weightsImported?.listen((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _weightsImportedSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -244,9 +272,14 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     return ListTile(
       title: Text(displayStr),
       subtitle: Text(
-        entry.note?.isNotEmpty == true
-            ? '$dateLabel  •  ${entry.note}'
-            : dateLabel,
+        [
+          dateLabel,
+          if (entry.note?.isNotEmpty == true) entry.note!,
+          // Tells the user why an entry they never typed is here, and which
+          // app to look in if the reading is wrong.
+          if (entry.isImported)
+            S.of(context).weightHistoryImportedLabel(healthPlatformName),
+        ].join('  •  '),
       ),
       trailing: IconButton(
         icon: const Icon(Icons.delete_outline),
@@ -272,7 +305,7 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
     );
     if (result == null) return;
 
-    await _addUsecase.addEntry(
+    final weightChanged = await _addUsecase.addEntry(
       WeightLogEntity(
         date: DateTime(result.date.year, result.date.month, result.date.day),
         weightKg: result.weightKg,
@@ -280,12 +313,25 @@ class _WeightHistoryScreenState extends State<WeightHistoryScreen> {
       ),
     );
     await _load();
+    if (weightChanged && locator.isRegistered<ProfileBloc>()) {
+      // The entry became the current weight — today's, or a correction of
+      // the imported entry it came from — so BMI and today's calorie goal
+      // move with it. This also reloads Diary and Trends.
+      await locator<ProfileBloc>().reloadAfterWeightImport();
+      return;
+    }
     reloadDiaryAndTrends();
   }
 
   Future<void> _onDelete(WeightLogEntity entry) async {
-    await _deleteUsecase.deleteEntry(entry);
+    final weightChanged = await _deleteUsecase.deleteEntry(entry);
     await _load();
+    if (weightChanged && locator.isRegistered<ProfileBloc>()) {
+      // The deleted entry was the current weight; BMI and today's calorie
+      // goal move with its replacement. This also reloads Diary and Trends.
+      await locator<ProfileBloc>().reloadAfterWeightImport();
+      return;
+    }
     reloadDiaryAndTrends();
   }
 }

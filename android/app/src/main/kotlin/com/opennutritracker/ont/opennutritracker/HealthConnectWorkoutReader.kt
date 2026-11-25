@@ -4,6 +4,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
+import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import android.content.Context
@@ -47,6 +48,18 @@ object HealthConnectWorkoutReader {
             HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         )
         return client.permissionController.getGrantedPermissions().containsAll(needed)
+    }
+
+    /**
+     * Whether `READ_WEIGHT`, the one grant the weight import reads with, is
+     * held. Asked here for the same reason as [hasWorkoutReadPermissions]:
+     * the plugin's own check would take the process down when Health Connect
+     * refuses the call.
+     */
+    suspend fun hasWeightReadPermission(context: Context): Boolean {
+        val client = HealthConnectClient.getOrCreate(context)
+        return client.permissionController.getGrantedPermissions()
+            .contains(HealthPermission.getReadPermission(WeightRecord::class))
     }
 
     /**

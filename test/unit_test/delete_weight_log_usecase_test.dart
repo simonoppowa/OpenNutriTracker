@@ -1,7 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
+import 'package:opennutritracker/core/data/repository/config_repository.dart';
+import 'package:opennutritracker/core/data/repository/user_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
@@ -18,6 +24,8 @@ import '../helpers/hive_test_setup.dart';
 /// zone change leaves behind — rather than changing the process time zone.
 void main() {
   late Box<WeightLogDBO> box;
+  late Box<ConfigDBO> configBox;
+  late Box<UserDBO> userBox;
   late GetWeightLogUsecase getUsecase;
   late DeleteWeightLogUsecase deleteUsecase;
 
@@ -31,15 +39,34 @@ void main() {
     box = await Hive.openBox<WeightLogDBO>(
       'delete_weight_log_test_${DateTime.now().microsecondsSinceEpoch}',
     );
-    final repository = WeightLogRepository(
-      WeightLogDataSource(FakeHiveDBProvider(weightLogBox: box)),
+    configBox = await Hive.openBox<ConfigDBO>(
+      'delete_weight_log_config_test_${DateTime.now().microsecondsSinceEpoch}',
     );
+    userBox = await Hive.openBox<UserDBO>(
+      'delete_weight_log_user_test_${DateTime.now().microsecondsSinceEpoch}',
+    );
+    final provider = FakeHiveDBProvider(
+      weightLogBox: box,
+      configBox: configBox,
+      userBox: userBox,
+    );
+    await ConfigDataSource(provider).initializeConfig();
+    final repository = WeightLogRepository(WeightLogDataSource(provider));
     getUsecase = GetWeightLogUsecase(repository);
-    deleteUsecase = DeleteWeightLogUsecase(repository);
+    // The rows here are manual entries: deleting one stores its day's
+    // cutoff for the health import. No user is stored, so the current
+    // weight is not in play.
+    deleteUsecase = DeleteWeightLogUsecase(
+      repository,
+      ConfigRepository(ConfigDataSource(provider)),
+      UserRepository(UserDataSource(provider)),
+    );
   });
 
   tearDown(() async {
     await box.deleteFromDisk();
+    await configBox.deleteFromDisk();
+    await userBox.deleteFromDisk();
   });
 
   Future<WeightLogEntity> shownEntry(double weightKg) async {

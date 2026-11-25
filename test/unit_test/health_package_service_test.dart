@@ -66,6 +66,18 @@ class _FakeWorkoutReader extends Fake implements HealthConnectWorkoutReader {
     return permissionsHeld;
   }
 
+  bool weightPermissionHeld = true;
+  Object? weightPermissionError;
+  int weightPermissionChecks = 0;
+
+  @override
+  Future<bool> hasWeightReadPermission() async {
+    weightPermissionChecks++;
+    final error = weightPermissionError;
+    if (error != null) throw error;
+    return weightPermissionHeld;
+  }
+
   @override
   Future<List<ExternalWorkout>> readExerciseSessions({
     required DateTime from,
@@ -447,6 +459,190 @@ void main() {
       expect(await service.requestPermissions(), isFalse);
       expect(reader.permissionChecks, 1);
       expect(health.recheckedTypes, isNull);
+    });
+  });
+  group('HealthPackageService weight', () {
+    HealthDataPoint weightPoint(num value, HealthDataUnit unit) =>
+        HealthDataPoint(
+          uuid: 'weight-1',
+          value: NumericHealthValue(numericValue: value),
+          type: HealthDataType.WEIGHT,
+          unit: unit,
+          dateFrom: DateTime(2026, 8, 13, 7),
+          dateTo: DateTime(2026, 8, 13, 7),
+          sourcePlatform: HealthPlatformType.googleHealthConnect,
+          sourceDeviceId: 'device',
+          sourceId: 'source',
+          sourceName: 'Health Sync',
+        );
+
+    test('asks for weight alone', () async {
+      final health = _FakeHealth()..workoutPermissions = true;
+      final service = HealthPackageService(
+        health,
+        workoutReader: _FakeWorkoutReader(),
+        platform: HealthTargetPlatform.android,
+      );
+
+      expect(await service.requestWeightPermissions(), isTrue);
+      expect(health.requestedTypes, [HealthDataType.WEIGHT]);
+    });
+
+    test('the workout request does not ask for weight', () async {
+      final health = _FakeHealth()..workoutPermissions = true;
+      await HealthPackageService(
+        health,
+        workoutReader: _FakeWorkoutReader(),
+        platform: HealthTargetPlatform.android,
+      ).requestPermissions();
+
+      expect(health.requestedTypes, isNot(contains(HealthDataType.WEIGHT)));
+    });
+
+    test('a refused weight grant is a refusal', () async {
+      final service = HealthPackageService(
+        _FakeHealth(),
+        workoutReader: _FakeWorkoutReader()..weightPermissionHeld = false,
+        platform: HealthTargetPlatform.android,
+      );
+
+      expect(await service.requestWeightPermissions(), isFalse);
+    });
+
+    test('a revoked grant fails the read instead of answering empty', () {
+      final service = HealthPackageService(
+        _FakeHealth(),
+        workoutReader: _FakeWorkoutReader()..weightPermissionHeld = false,
+        platform: HealthTargetPlatform.android,
+      );
+
+      expect(
+        service.readWeights(
+          from: DateTime(2026, 8, 1),
+          to: DateTime(2026, 8, 2),
+        ),
+        throwsStateError,
+      );
+    });
+
+    // The plugin's hasPermissions runs getGrantedPermissions() in a coroutine
+    // with no handler, so a rate-limited Health Connect there ends the
+    // process. On Android the weight grant check must not touch it either.
+    test('on Android the weight grant check never goes through the plugin',
+        () async {
+      final health = _FakeHealth()..workoutPermissions = true;
+      final reader = _FakeWorkoutReader();
+      final service = HealthPackageService(
+        health,
+        workoutReader: reader,
+        platform: HealthTargetPlatform.android,
+      );
+
+      await service.requestWeightPermissions();
+      await service.readWeights(
+        from: DateTime(2026, 8, 1),
+        to: DateTime(2026, 8, 2),
+      );
+
+      expect(reader.weightPermissionChecks, 2);
+      expect(health.recheckedTypes, isNull);
+    });
+
+    test('a failing weight grant check surfaces as an error, not a read',
+        () async {
+      final health = _FakeHealth();
+      final service = HealthPackageService(
+        health,
+        workoutReader: _FakeWorkoutReader()
+          ..weightPermissionError = PlatformException(
+            code: HealthConnectWorkoutReader.rateLimitedCode,
+          ),
+        platform: HealthTargetPlatform.android,
+      );
+
+      await expectLater(
+        service.readWeights(
+          from: DateTime(2026, 8, 1),
+          to: DateTime(2026, 8, 2),
+        ),
+        throwsA(isA<PlatformException>()),
+      );
+      expect(health.queriedTypes, isEmpty);
+    });
+
+    test('on iOS the weight grant is still asked of the plugin', () async {
+      final health = _FakeHealth()..workoutPermissions = false;
+      final reader = _FakeWorkoutReader();
+      final service = HealthPackageService(
+        health,
+        workoutReader: reader,
+        platform: HealthTargetPlatform.ios,
+      );
+
+      expect(await service.requestWeightPermissions(), isFalse);
+      expect(health.recheckedTypes, [HealthDataType.WEIGHT]);
+      expect(reader.weightPermissionChecks, 0);
+    });
+
+    test('maps a kilogram reading', () {
+      final weight = HealthPackageService.weightFromPoint(
+        weightPoint(80.5, HealthDataUnit.KILOGRAM),
+      )!;
+      expect(weight.id, 'weight-1');
+      expect(weight.weightKg, 80.5);
+      expect(weight.measuredAt, DateTime(2026, 8, 13, 7));
+      expect(weight.sourceAppName, 'Health Sync');
+    });
+
+    test('converts pounds and grams', () {
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(176.37, HealthDataUnit.POUND),
+        )!.weightKg,
+        closeTo(80.0, 0.01),
+      );
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(80000, HealthDataUnit.GRAM),
+        )!.weightKg,
+        closeTo(80.0, 0.001),
+      );
+    });
+
+    test('drops a reading in a unit it cannot convert, or with no weight', () {
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(80, HealthDataUnit.METER),
+        ),
+        isNull,
+      );
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(0, HealthDataUnit.KILOGRAM),
+        ),
+        isNull,
+      );
+    });
+
+    test('drops a reading outside the bounds manual entry enforces', () {
+      for (final (value, unit) in [
+        (1.0, HealthDataUnit.KILOGRAM),
+        (800.0, HealthDataUnit.KILOGRAM),
+        (1500.0, HealthDataUnit.POUND),
+        (1500.0, HealthDataUnit.GRAM),
+      ]) {
+        expect(
+          HealthPackageService.weightFromPoint(weightPoint(value, unit)),
+          isNull,
+          reason: '$value $unit',
+        );
+      }
+      expect(
+        HealthPackageService.weightFromPoint(
+          weightPoint(640, HealthDataUnit.KILOGRAM),
+        ),
+        isNotNull,
+      );
     });
   });
 }
