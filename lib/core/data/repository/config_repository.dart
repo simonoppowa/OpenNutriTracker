@@ -98,6 +98,18 @@ class ConfigRepository {
     await _configDataSource.setConfigFatGoalPct(fat);
   }
 
+  Future<void> setUserMacroGrams(
+    double carbs,
+    double protein,
+    double fat,
+  ) async {
+    await _configDataSource.setConfigMacroGoalGrams(carbs, protein, fat);
+  }
+
+  Future<void> setUserMacroGoalsInGrams(bool inGrams) async {
+    await _configDataSource.setConfigMacroGoalsInGrams(inGrams);
+  }
+
   Future<void> setConfigGoalSettings({
     required double? kcalAdjustment,
     required double? carbGoalPct,
@@ -105,6 +117,10 @@ class ConfigRepository {
     required double? fatGoalPct,
     required Map<String, int>? mealKcalSharesPct,
     required int? dailyWaterGoalMl,
+    required bool? macroGoalsInGrams,
+    required double? carbGoalGrams,
+    required double? proteinGoalGrams,
+    required double? fatGoalGrams,
   }) async {
     await _configDataSource.setConfigGoalSettings(
       kcalAdjustment: kcalAdjustment,
@@ -113,6 +129,10 @@ class ConfigRepository {
       fatGoalPct: fatGoalPct,
       mealKcalSharesPct: mealKcalSharesPct,
       dailyWaterGoalMl: dailyWaterGoalMl,
+      macroGoalsInGrams: macroGoalsInGrams,
+      carbGoalGrams: carbGoalGrams,
+      proteinGoalGrams: proteinGoalGrams,
+      fatGoalGrams: fatGoalGrams,
     );
   }
 

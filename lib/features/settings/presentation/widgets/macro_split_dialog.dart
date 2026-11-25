@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
+import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
+import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/reload_diary_and_trends.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
+import 'package:provider/provider.dart';
 
 /// Rounds three macro percentage shares to integers that sum to exactly 100.
 ///
@@ -51,6 +55,9 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// the other two against 100% so the trio always adds up, with each
 /// macro pinned to a 5% floor so the diary still has something to
 /// track against if a user pulls one slider all the way down.
+///
+/// A `Percent | Grams` switch (#642) swaps the sliders for three gram
+/// fields that are set independently and do not follow the calorie goal.
 class MacroSplitDialog extends StatefulWidget {
   final SettingsBloc settingsBloc;
   final HomeBloc homeBloc;
@@ -77,6 +84,14 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   double _fatPct = _defaultFatPct;
   bool _loaded = false;
   bool _syncingControllers = false;
+
+  // #642: gram goals. [_grams] is the last valid value of each field, which
+  // a cleared or non-numeric field snaps back to.
+  bool _inGrams = false;
+  MacroGrams? _grams;
+  double _kcalGoal = 0;
+  late final Map<_MacroField, TextEditingController> _gramControllers;
+  late final Map<_MacroField, FocusNode> _gramFocusNodes;
 
   /// The field whose typed text has not been applied yet. Only this field's
   /// text is applied — last write wins. Reconciling conflicting edits across
@@ -106,6 +121,18 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
       for (final field in _MacroField.values)
         field: FocusNode()..addListener(() => _onFocusChanged(field)),
     };
+    _gramControllers = {
+      for (final field in _MacroField.values) field: TextEditingController(),
+    };
+    _gramFocusNodes = {
+      for (final field in _MacroField.values)
+        field: FocusNode()
+          ..addListener(() {
+            if (mounted && !_gramFocusNodes[field]!.hasFocus) {
+              _commitGramInput(field);
+            }
+          }),
+    };
     _load();
   }
 
@@ -115,6 +142,12 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     _proteinController.dispose();
     _fatController.dispose();
     for (final node in _focusNodes.values) {
+      node.dispose();
+    }
+    for (final controller in _gramControllers.values) {
+      controller.dispose();
+    }
+    for (final node in _gramFocusNodes.values) {
       node.dispose();
     }
     super.dispose();
@@ -129,14 +162,97 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
     final carbs = await widget.settingsBloc.getUserCarbGoalPct();
     final protein = await widget.settingsBloc.getUserProteinGoalPct();
     final fat = await widget.settingsBloc.getUserFatGoalPct();
+    final gramGoals = await widget.settingsBloc.getMacroGramGoals();
+    final kcalGoal = await widget.settingsBloc.getKcalGoalWithoutActivities();
     if (!mounted) return;
     setState(() {
       _carbsPct = (carbs ?? _defaultCarbsPct / 100) * 100;
       _proteinPct = (protein ?? _defaultProteinPct / 100) * 100;
       _fatPct = (fat ?? _defaultFatPct / 100) * 100;
+      _inGrams = gramGoals.inGrams;
+      _grams = gramGoals.grams;
+      _kcalGoal = kcalGoal.isFinite ? kcalGoal : 0;
+      if (_inGrams) _grams ??= _gramsFromSplit();
       _loaded = true;
     });
     _syncControllers();
+    _syncGramControllers();
+  }
+
+  /// The split on screen as whole grams of today's goal: where the gram
+  /// fields start when the user first switches to grams.
+  MacroGrams _gramsFromSplit() => MacroGramGoals.fromSplit(
+    _kcalGoal,
+    carbsPct: _carbsPct / 100,
+    proteinPct: _proteinPct / 100,
+    fatPct: _fatPct / 100,
+  );
+
+  double _gramsOf(_MacroField field) {
+    final grams = _grams!;
+    return switch (field) {
+      _MacroField.carbs => grams.carbs,
+      _MacroField.protein => grams.protein,
+      _MacroField.fat => grams.fat,
+    };
+  }
+
+  MacroGrams _withGrams(_MacroField field, double value) {
+    final grams = _grams!;
+    return (
+      carbs: field == _MacroField.carbs ? value : grams.carbs,
+      protein: field == _MacroField.protein ? value : grams.protein,
+      fat: field == _MacroField.fat ? value : grams.fat,
+    );
+  }
+
+  void _syncGramControllers() {
+    if (_grams == null) return;
+    for (final field in _MacroField.values) {
+      _gramControllers[field]!.text = _gramsOf(field).round().toString();
+    }
+  }
+
+  /// Applies a typed gram value as it is typed, so the energy line keeps
+  /// up. Out-of-range and unparsable text waits for [_commitGramInput].
+  void _onGramTextChanged(_MacroField field, String text) {
+    final parsed = double.tryParse(text);
+    if (!MacroGramGoals.isValidGrams(parsed)) return;
+    setState(() => _grams = _withGrams(field, parsed!));
+  }
+
+  /// When a field is left or submitted: an empty or non-numeric value snaps
+  /// back to the last valid one, and one above the maximum is clamped.
+  void _commitGramInput(_MacroField field) {
+    if (_grams == null) return;
+    final parsed = double.tryParse(_gramControllers[field]!.text);
+    if (parsed != null && parsed > MacroGramGoals.maxGrams) {
+      setState(() => _grams = _withGrams(field, MacroGramGoals.maxGrams));
+    } else if (MacroGramGoals.isValidGrams(parsed)) {
+      setState(() => _grams = _withGrams(field, parsed!));
+    }
+    _gramControllers[field]!.text = _gramsOf(field).round().toString();
+  }
+
+  void _setInGrams(bool inGrams) {
+    if (inGrams == _inGrams) return;
+    if (inGrams) {
+      _applyPendingTextInputs();
+    } else {
+      for (final field in _MacroField.values) {
+        _commitGramInput(field);
+      }
+    }
+    setState(() {
+      _inGrams = inGrams;
+      if (inGrams) _grams ??= _gramsFromSplit();
+    });
+    _syncGramControllers();
+  }
+
+  bool get _gramsAllZero {
+    final grams = _grams;
+    return grams == null || grams.carbs + grams.protein + grams.fat <= 0;
   }
 
   void _syncControllers() {
@@ -278,6 +394,32 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
   }
 
   Future<void> _save() async {
+    if (_inGrams) {
+      for (final field in _MacroField.values) {
+        _commitGramInput(field);
+      }
+      if (_gramsAllZero) return;
+      final grams = _grams!;
+      await widget.settingsBloc.setMacroGramGoals(
+        grams.carbs,
+        grams.protein,
+        grams.fat,
+      );
+    } else {
+      await _saveSplit();
+    }
+    widget.settingsBloc.add(LoadSettingsEvent());
+    widget.homeBloc.add(const LoadItemsEvent());
+    await widget.settingsBloc.updateTrackedDay(
+      await widget.settingsBloc.getCurrentLogicalDay(),
+    );
+    reloadDiaryAndTrends();
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
+  /// Saves the percentage split, which also switches gram goals off.
+  Future<void> _saveSplit() async {
     _applyPendingTextInputs();
     // [_redistribute] leaves fractional percentages. Independent `.round()`
     // can sum to 99 or 101 (two half-up .5s → 101), and setMacroGoals stores
@@ -292,14 +434,85 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
       rounded.$2.toDouble(),
       rounded.$3.toDouble(),
     );
-    widget.settingsBloc.add(LoadSettingsEvent());
-    widget.homeBloc.add(const LoadItemsEvent());
-    await widget.settingsBloc.updateTrackedDay(
-      await widget.settingsBloc.getCurrentLogicalDay(),
-    );
-    reloadDiaryAndTrends();
-    if (!mounted) return;
-    Navigator.of(context).pop();
+  }
+
+  List<Widget> _buildGramFields(BuildContext context, S s) {
+    final theme = Theme.of(context);
+    final usesKj =
+        Provider.of<EnergyUnitProvider?>(
+          context,
+          listen: false,
+        )?.usesKilojoules ??
+        false;
+    String energy(double kcal) =>
+        (usesKj ? UnitCalc.kcalToKj(kcal) : kcal).round().toString();
+    final grams = _grams;
+    return [
+      Text(s.macroGoalGramsExplanation, style: theme.textTheme.bodySmall),
+      const SizedBox(height: 8),
+      for (final (field, label, id) in [
+        (_MacroField.carbs, s.carbsLabel, 'macro-split-carbs-grams'),
+        (_MacroField.protein, s.proteinLabel, 'macro-split-protein-grams'),
+        (_MacroField.fat, s.fatLabel, 'macro-split-fat-grams'),
+      ])
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(
+                width: MediaQuery.textScalerOf(context).scale(96),
+                // The macro's name sits in a sibling Text, so the field
+                // carries it for TalkBack and VoiceOver.
+                child: Semantics(
+                  identifier: id,
+                  label: label,
+                  child: TextField(
+                    controller: _gramControllers[field],
+                    focusNode: _gramFocusNodes[field],
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.right,
+                    decoration: InputDecoration(
+                      suffixText: s.gramUnit,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: (text) => _onGramTextChanged(field, text),
+                    onSubmitted: (_) => _commitGramInput(field),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      const SizedBox(height: 8),
+      if (grams != null)
+        Text(
+          s.macroGoalGramsEnergySum(
+            energy(MacroGramGoals.kcalOf(grams)),
+            energy(_kcalGoal),
+            usesKj ? s.kjLabel : s.kcalLabel,
+          ),
+          style: theme.textTheme.bodySmall,
+        ),
+      if (_gramsAllZero)
+        Text(
+          s.macroGoalGramsAllZero,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.error,
+          ),
+        ),
+    ];
   }
 
   @override
@@ -318,20 +531,22 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
             ),
           ),
           const SizedBox(width: 8),
-          TextButton(
-            onPressed: _loaded
-                ? () {
-                    _lastEditedMacro = null;
-                    setState(() {
-                      _carbsPct = _defaultCarbsPct;
-                      _proteinPct = _defaultProteinPct;
-                      _fatPct = _defaultFatPct;
-                    });
-                    _syncControllers();
-                  }
-                : null,
-            child: Text(s.buttonResetLabel),
-          ),
+          // Reset restores the default split; gram goals have no default.
+          if (!_inGrams)
+            TextButton(
+              onPressed: _loaded
+                  ? () {
+                      _lastEditedMacro = null;
+                      setState(() {
+                        _carbsPct = _defaultCarbsPct;
+                        _proteinPct = _defaultProteinPct;
+                        _fatPct = _defaultFatPct;
+                      });
+                      _syncControllers();
+                    }
+                  : null,
+              child: Text(s.buttonResetLabel),
+            ),
         ],
       ),
       content: !_loaded
@@ -344,77 +559,110 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '$totalPct% total',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 8),
-                  _MacroRow(
-                    label: s.carbsLabel,
-                    value: _carbsPct,
-                    color: Colors.orange,
-                    controller: _carbsController,
-                    focusNode: _focusNodes[_MacroField.carbs]!,
-                    semanticIdentifier: 'macro-split-carbs',
-                    onSliderChanged: (v) => setState(
-                      () => _redistribute(
-                        moved: v,
-                        oldMoved: _carbsPct,
-                        setMoved: (x) => _carbsPct = x,
-                        otherA: _proteinPct,
-                        setOtherA: (x) => _proteinPct = x,
-                        otherB: _fatPct,
-                        setOtherB: (x) => _fatPct = x,
-                      ),
+                  Semantics(
+                    identifier: 'macro-split-mode',
+                    child: SegmentedButton<bool>(
+                      segments: [
+                        ButtonSegment(
+                          value: false,
+                          label: Text(
+                            s.macroGoalModePercentLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          label: Text(
+                            s.macroGoalModeGramsLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      selected: {_inGrams},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (selected) =>
+                          _setInGrams(selected.first),
                     ),
-                    onSliderEnd: _syncControllers,
-                    onTextChanged: (_) => _markLastEdited(_MacroField.carbs),
-                    onTextSubmitted: _applyPendingTextInputs,
                   ),
-                  _MacroRow(
-                    label: s.proteinLabel,
-                    value: _proteinPct,
-                    color: Colors.blue,
-                    controller: _proteinController,
-                    focusNode: _focusNodes[_MacroField.protein]!,
-                    semanticIdentifier: 'macro-split-protein',
-                    onSliderChanged: (v) => setState(
-                      () => _redistribute(
-                        moved: v,
-                        oldMoved: _proteinPct,
-                        setMoved: (x) => _proteinPct = x,
-                        otherA: _carbsPct,
-                        setOtherA: (x) => _carbsPct = x,
-                        otherB: _fatPct,
-                        setOtherB: (x) => _fatPct = x,
-                      ),
+                  const SizedBox(height: 12),
+                  if (_inGrams)
+                    ..._buildGramFields(context, s)
+                  else ...[
+                    Text(
+                      '$totalPct% total',
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                    onSliderEnd: _syncControllers,
-                    onTextChanged: (_) => _markLastEdited(_MacroField.protein),
-                    onTextSubmitted: _applyPendingTextInputs,
-                  ),
-                  _MacroRow(
-                    label: s.fatLabel,
-                    value: _fatPct,
-                    color: Colors.green,
-                    controller: _fatController,
-                    focusNode: _focusNodes[_MacroField.fat]!,
-                    semanticIdentifier: 'macro-split-fat',
-                    onSliderChanged: (v) => setState(
-                      () => _redistribute(
-                        moved: v,
-                        oldMoved: _fatPct,
-                        setMoved: (x) => _fatPct = x,
-                        otherA: _carbsPct,
-                        setOtherA: (x) => _carbsPct = x,
-                        otherB: _proteinPct,
-                        setOtherB: (x) => _proteinPct = x,
+                    const SizedBox(height: 8),
+                    _MacroRow(
+                      label: s.carbsLabel,
+                      value: _carbsPct,
+                      color: Colors.orange,
+                      controller: _carbsController,
+                      focusNode: _focusNodes[_MacroField.carbs]!,
+                      semanticIdentifier: 'macro-split-carbs',
+                      onSliderChanged: (v) => setState(
+                        () => _redistribute(
+                          moved: v,
+                          oldMoved: _carbsPct,
+                          setMoved: (x) => _carbsPct = x,
+                          otherA: _proteinPct,
+                          setOtherA: (x) => _proteinPct = x,
+                          otherB: _fatPct,
+                          setOtherB: (x) => _fatPct = x,
+                        ),
                       ),
+                      onSliderEnd: _syncControllers,
+                      onTextChanged: (_) => _markLastEdited(_MacroField.carbs),
+                      onTextSubmitted: _applyPendingTextInputs,
                     ),
-                    onSliderEnd: _syncControllers,
-                    onTextChanged: (_) => _markLastEdited(_MacroField.fat),
-                    onTextSubmitted: _applyPendingTextInputs,
-                  ),
+                    _MacroRow(
+                      label: s.proteinLabel,
+                      value: _proteinPct,
+                      color: Colors.blue,
+                      controller: _proteinController,
+                      focusNode: _focusNodes[_MacroField.protein]!,
+                      semanticIdentifier: 'macro-split-protein',
+                      onSliderChanged: (v) => setState(
+                        () => _redistribute(
+                          moved: v,
+                          oldMoved: _proteinPct,
+                          setMoved: (x) => _proteinPct = x,
+                          otherA: _carbsPct,
+                          setOtherA: (x) => _carbsPct = x,
+                          otherB: _fatPct,
+                          setOtherB: (x) => _fatPct = x,
+                        ),
+                      ),
+                      onSliderEnd: _syncControllers,
+                      onTextChanged: (_) =>
+                          _markLastEdited(_MacroField.protein),
+                      onTextSubmitted: _applyPendingTextInputs,
+                    ),
+                    _MacroRow(
+                      label: s.fatLabel,
+                      value: _fatPct,
+                      color: Colors.green,
+                      controller: _fatController,
+                      focusNode: _focusNodes[_MacroField.fat]!,
+                      semanticIdentifier: 'macro-split-fat',
+                      onSliderChanged: (v) => setState(
+                        () => _redistribute(
+                          moved: v,
+                          oldMoved: _fatPct,
+                          setMoved: (x) => _fatPct = x,
+                          otherA: _carbsPct,
+                          setOtherA: (x) => _carbsPct = x,
+                          otherB: _proteinPct,
+                          setOtherB: (x) => _proteinPct = x,
+                        ),
+                      ),
+                      onSliderEnd: _syncControllers,
+                      onTextChanged: (_) => _markLastEdited(_MacroField.fat),
+                      onTextSubmitted: _applyPendingTextInputs,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -426,7 +674,7 @@ class _MacroSplitDialogState extends State<MacroSplitDialog> {
         Semantics(
           identifier: 'macro-split-save',
           child: TextButton(
-            onPressed: _loaded ? _save : null,
+            onPressed: _loaded && !(_inGrams && _gramsAllZero) ? _save : null,
             child: Text(s.dialogOKLabel),
           ),
         ),

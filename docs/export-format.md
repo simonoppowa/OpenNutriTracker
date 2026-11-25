@@ -246,13 +246,23 @@ keeps its own goals. Those older builds ignore the file when they meet it.
     "dinner": 30,
     "snack": 10
   },
-  "dailyWaterGoalMl": 2600          // 100..10000
+  "dailyWaterGoalMl": 2600,         // 100..10000
+  "macroGoalsInGrams": true,        // the gram goals below replace the split
+  "carbGoalGrams": 20.0,            // macro goals in grams, 0..1000 each:
+  "proteinGoalGrams": 120.0,        //   all three set or all three null, and
+  "fatGoalGrams": 140.0             //   not all 0 when macroGoalsInGrams is true
 }
 ```
 
+The gram goals ([#642](https://github.com/simonoppowa/OpenNutriTracker/issues/642))
+came without a version bump: an older build ignores the four keys and restores
+the split. The grams are exported while the split is in use too
+(`macroGoalsInGrams` null), so a switch back to grams after a restore finds
+them, as on the device.
+
 `null`, or a missing key, means the app default — no kcal adjustment, the
-60 / 15 / 25 carbs / protein / fat split, the 30 / 40 / 20 / 10 meal shares,
-the water goal seeded from the profile — and importing it puts that goal back
+60 / 15 / 25 carbs / protein / fat split, no gram goals, the 30 / 40 / 20 / 10
+meal shares, the water goal seeded from the profile — and importing it puts that goal back
 to the default. A file with a value outside the ranges above, or a number
 that is not finite, is rejected, and
 the whole zip with it, before anything on the device changes. The tolerances

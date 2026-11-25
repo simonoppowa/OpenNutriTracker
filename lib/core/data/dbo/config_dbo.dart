@@ -220,6 +220,19 @@ class ConfigDBO extends HiveObject {
   // (`DeleteAllUserDataUsecase`). Null means no tip.
   @HiveField(42)
   bool? hasLeftTip;
+  // #642: macro goals as absolute grams instead of a split of the kcal goal.
+  // Per profile, so all four are in the personal-field overlay in
+  // `ConfigDataSource._readMerged`. Null or false means the split applies.
+  // The grams are kept when the user switches back to the split, so
+  // switching to grams again restores them. 43 is taken by #1553.
+  @HiveField(44)
+  bool? userMacroGoalsInGrams;
+  @HiveField(45)
+  double? userCarbGoalGrams;
+  @HiveField(46)
+  double? userProteinGoalGrams;
+  @HiveField(47)
+  double? userFatGoalGrams;
 
   ConfigDBO(
     this.hasAcceptedDisclaimer,
@@ -262,6 +275,10 @@ class ConfigDBO extends HiveObject {
     this.trackedDaysOffsetMinutes,
     this.localeSyncSeeded,
     this.hasLeftTip,
+    this.userMacroGoalsInGrams,
+    this.userCarbGoalGrams,
+    this.userProteinGoalGrams,
+    this.userFatGoalGrams,
   });
 
   factory ConfigDBO.empty() =>

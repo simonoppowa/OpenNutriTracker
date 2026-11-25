@@ -437,18 +437,24 @@ class _MacroCard extends StatelessWidget {
       title: l10n.kcalGoalInfoMacroSection,
       children: [
         Text(
-          l10n.kcalGoalInfoMacroExplanation,
+          // #642: gram goals are the user's own, so there is no formula.
+          breakdown.macroGoalsInGrams
+              ? l10n.kcalGoalInfoMacroGramsExplanation
+              : l10n.kcalGoalInfoMacroExplanation,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
-        const SizedBox(height: Dimens.spacing12),
-        _FormulaText.raw(
-          text: '${l10n.carbsLabel}: '
-              '${_macroLine(goalKcal, breakdown.carbsFractionGoal, MacroCalc.carbsKcalPerGram, breakdown.carbsGoalGrams)}\n'
-              '${l10n.fatLabel}: '
-              '${_macroLine(goalKcal, breakdown.fatsFractionGoal, MacroCalc.fatKcalPerGram, breakdown.fatsGoalGrams)}\n'
-              '${l10n.proteinLabel}: '
-              '${_macroLine(goalKcal, breakdown.proteinsFractionGoal, MacroCalc.proteinKcalPerGram, breakdown.proteinsGoalGrams)}',
-        ),
+        if (!breakdown.macroGoalsInGrams) ...[
+          const SizedBox(height: Dimens.spacing12),
+          _FormulaText.raw(
+            text:
+                '${l10n.carbsLabel}: '
+                '${_macroLine(goalKcal, breakdown.carbsFractionGoal, MacroCalc.carbsKcalPerGram, breakdown.carbsGoalGrams)}\n'
+                '${l10n.fatLabel}: '
+                '${_macroLine(goalKcal, breakdown.fatsFractionGoal, MacroCalc.fatKcalPerGram, breakdown.fatsGoalGrams)}\n'
+                '${l10n.proteinLabel}: '
+                '${_macroLine(goalKcal, breakdown.proteinsFractionGoal, MacroCalc.proteinKcalPerGram, breakdown.proteinsGoalGrams)}',
+          ),
+        ],
         const Divider(height: Dimens.spacing20),
         _ValueRow(
           label: l10n.carbsLabel,

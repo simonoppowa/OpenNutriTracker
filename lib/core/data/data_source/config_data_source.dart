@@ -64,6 +64,10 @@ class ConfigDataSource {
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
       merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
       merged.trackedDaysOffsetMinutes = profile.trackedDaysOffsetMinutes;
+      merged.userMacroGoalsInGrams = profile.userMacroGoalsInGrams;
+      merged.userCarbGoalGrams = profile.userCarbGoalGrams;
+      merged.userProteinGoalGrams = profile.userProteinGoalGrams;
+      merged.userFatGoalGrams = profile.userFatGoalGrams;
     } else {
       // Explicitly clear personal fields so they don't leak from the
       // app box after a profile reset. A fresh profile therefore reads as
@@ -81,6 +85,10 @@ class ConfigDataSource {
       merged.healthDeletedExternalIds = null;
       merged.healthDeletedWorkouts = null;
       merged.trackedDaysOffsetMinutes = null;
+      merged.userMacroGoalsInGrams = null;
+      merged.userCarbGoalGrams = null;
+      merged.userProteinGoalGrams = null;
+      merged.userFatGoalGrams = null;
     }
     return merged;
   }
@@ -210,6 +218,26 @@ class ConfigDataSource {
 
   Future<void> setConfigFatGoalPct(double fatGoalPct) async {
     await _update((c) => c.userFatGoalPct = fatGoalPct);
+  }
+
+  /// #642: stores absolute macro goals and switches to them, in one write.
+  Future<void> setConfigMacroGoalGrams(
+    double carbGrams,
+    double proteinGrams,
+    double fatGrams,
+  ) async {
+    await _update((c) {
+      c.userMacroGoalsInGrams = true;
+      c.userCarbGoalGrams = carbGrams;
+      c.userProteinGoalGrams = proteinGrams;
+      c.userFatGoalGrams = fatGrams;
+    });
+  }
+
+  /// #642: switches between gram goals and the percentage split. The gram
+  /// values are kept either way, so switching back restores them.
+  Future<void> setConfigMacroGoalsInGrams(bool inGrams) async {
+    await _update((c) => c.userMacroGoalsInGrams = inGrams);
   }
 
   Future<void> setConfigShowActivityTracking(bool show) async {
@@ -377,6 +405,10 @@ class ConfigDataSource {
     required double? fatGoalPct,
     required Map<String, int>? mealKcalSharesPct,
     required int? dailyWaterGoalMl,
+    required bool? macroGoalsInGrams,
+    required double? carbGoalGrams,
+    required double? proteinGoalGrams,
+    required double? fatGoalGrams,
   }) async {
     await _update((c) {
       c.userKcalAdjustment = kcalAdjustment;
@@ -387,6 +419,10 @@ class ConfigDataSource {
           ? null
           : Map<String, int>.from(mealKcalSharesPct);
       c.dailyWaterGoalMl = dailyWaterGoalMl;
+      c.userMacroGoalsInGrams = macroGoalsInGrams;
+      c.userCarbGoalGrams = carbGoalGrams;
+      c.userProteinGoalGrams = proteinGoalGrams;
+      c.userFatGoalGrams = fatGoalGrams;
     });
   }
 

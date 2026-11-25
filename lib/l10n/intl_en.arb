@@ -558,6 +558,7 @@
   "kcalGoalInfoLearnMoreLabel": "Full calculation documentation",
   "kcalGoalInfoMacroExplanation": "Your calorie goal is split into carbs, fat, and protein using your macro split (default: 60 % carbs, 25 % fat, 15 % protein — adjustable in Settings). Gram targets follow from the energy densities: carbohydrates and protein provide 4 kcal per gram, fat 9 kcal per gram.",
   "kcalGoalInfoMacroSection": "Macronutrient distribution",
+  "kcalGoalInfoMacroGramsExplanation": "You set your macro goals in grams in Settings, so they don't follow from the calorie goal or change with logged activities.",
   "kcalGoalInfoMaleReferenceLabel": "Male reference",
   "kcalGoalInfoManualExplanation": "A fixed offset you set yourself in Settings, for when you know your needs differ from the estimate.",
   "kcalGoalInfoManualSection": "Step 3 · Manual adjustment",
@@ -1115,6 +1116,18 @@
   "settingsAccentHueDisabledHint": "Turn off system colours to choose a custom accent.",
   "settingsAccentHueReset": "Reset",
   "settingsMacroSplitLabel": "Macro split",
+  "macroGoalModePercentLabel": "Percent",
+  "macroGoalModeGramsLabel": "Grams",
+  "macroGoalGramsExplanation": "Exact daily targets, for example from a coach or a keto plan. They don't change with your calorie goal or with logged activities.",
+  "macroGoalGramsEnergySum": "Your macros add up to {macroEnergy} {unit}. Your daily goal is {goalEnergy} {unit}.",
+  "@macroGoalGramsEnergySum": {
+    "placeholders": {
+      "macroEnergy": {"type": "String"},
+      "goalEnergy": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "macroGoalGramsAllZero": "Set at least one macro above 0 g.",
   "settingsLicensesLabel": "Licenses",
   "settingsMagnesiumGoalDescription": "Daily magnesium target in milligrams. Default varies by gender (400mg male, 310mg female, 355mg otherwise).",
   "settingsMagnesiumGoalLabel": "Magnesium goal",

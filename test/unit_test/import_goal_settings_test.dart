@@ -527,6 +527,17 @@ void main() {
         ..._goalsJson(),
         'dailyWaterGoalMl': 2600.5,
       }),
+      'gram macro goals out of range (#642)': jsonEncode({
+        ..._goalsJson(),
+        'macroGoalsInGrams': true,
+        'carbGoalGrams': 20,
+        'proteinGoalGrams': 120,
+        'fatGoalGrams': 5000,
+      }),
+      'gram mode without gram goals (#642)': jsonEncode({
+        ..._goalsJson(),
+        'macroGoalsInGrams': true,
+      }),
     };
     final intake = jsonEncode([
       {
@@ -755,7 +766,55 @@ void main() {
         'fatGoalPct',
         'mealKcalSharesPct',
         'dailyWaterGoalMl',
+        'macroGoalsInGrams',
+        'carbGoalGrams',
+        'proteinGoalGrams',
+        'fatGoalGrams',
       });
     });
+  });
+
+  test('gram macro goals travel in a JSON export and are restored after a '
+      'profile reset (#642)', () async {
+    await setCustomGoals();
+    await config.setConfigMacroGoalGrams(20, 120, 140);
+    final archive = await exporter.assembleArchive(
+      format: ExportFormat.json,
+      userActivityJsonFileName: ExportImportBloc.userActivityJsonFileName,
+      userIntakeJsonFileName: ExportImportBloc.userIntakeJsonFileName,
+      trackedDayJsonFileName: ExportImportBloc.trackedDayJsonFileName,
+      recipeJsonFileName: ExportImportBloc.recipeJsonFileName,
+      weightLogJsonFileName: ExportImportBloc.weightLogJsonFileName,
+      customActivityTemplateJsonFileName:
+          ExportImportBloc.customActivityTemplateJsonFileName,
+      goalSettingsJsonFileName: ExportImportBloc.goalSettingsJsonFileName,
+    );
+    writeArchive(archive);
+    await profileConfigBox.clear();
+    await config.initializeConfig();
+    expect(await macroGoal.getCarbsGoal(2000), 300);
+
+    expect(await importJson(), isTrue);
+
+    expect(await macroGoal.getCarbsGoal(2000), 20);
+    expect(await macroGoal.getProteinsGoal(2000), 120);
+    expect(await macroGoal.getFatsGoal(2000), 140);
+    // The split kept beside them comes back too.
+    expect((await config.getConfig()).userCarbGoalPct, 0.5);
+  });
+
+  test('a backup without gram goals turns them off, like any goal the file '
+      'leaves out (#642)', () async {
+    await config.setConfigMacroGoalGrams(20, 120, 140);
+    writeZip({
+      ExportImportBloc.goalSettingsJsonFileName: jsonEncode(_goalsJson()),
+    });
+
+    expect(await importJson(), isTrue);
+
+    final restored = await config.getConfig();
+    expect(restored.userMacroGoalsInGrams, isNull);
+    expect(restored.userCarbGoalGrams, isNull);
+    expect(await macroGoal.getCarbsGoal(2000), 2000 * 0.4 / 4);
   });
 }

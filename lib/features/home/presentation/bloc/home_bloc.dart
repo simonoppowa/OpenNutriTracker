@@ -28,7 +28,6 @@ import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -415,19 +414,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         activityEntity.burnedKcal,
       );
 
-      final carbsAmount = MacroCalc.getTotalCarbsGoal(
-        activityEntity.burnedKcal,
-      );
-      final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
-      final proteinAmount = MacroCalc.getTotalProteinsGoal(
+      // Nothing while gram macro goals are set (#642).
+      final share = await _getMacroGoalUsecase.getActivityMacroShare(
         activityEntity.burnedKcal,
       );
 
       await _addTrackedDayUseCase.reduceDayMacroGoals(
         dateTime,
-        carbsAmount: carbsAmount,
-        fatAmount: fatAmount,
-        proteinAmount: proteinAmount,
+        carbsAmount: share.carbs,
+        fatAmount: share.fat,
+        proteinAmount: share.protein,
       );
       return dateTime;
     });
@@ -451,13 +447,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       assert(newActivity != null);
       final kcalDiff = newActivity!.burnedKcal - activityEntity.burnedKcal;
+      // Nothing while gram macro goals are set (#642).
+      final share = await _getMacroGoalUsecase.getActivityMacroShare(
+        kcalDiff.abs(),
+      );
       if (kcalDiff > 0) {
         await _addTrackedDayUseCase.increaseDayCalorieGoal(dateTime, kcalDiff);
         await _addTrackedDayUseCase.increaseDayMacroGoals(
           dateTime,
-          carbsAmount: MacroCalc.getTotalCarbsGoal(kcalDiff),
-          fatAmount: MacroCalc.getTotalFatsGoal(kcalDiff),
-          proteinAmount: MacroCalc.getTotalProteinsGoal(kcalDiff),
+          carbsAmount: share.carbs,
+          fatAmount: share.fat,
+          proteinAmount: share.protein,
         );
       } else if (kcalDiff < 0) {
         await _addTrackedDayUseCase.reduceDayCalorieGoal(
@@ -466,9 +466,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         );
         await _addTrackedDayUseCase.reduceDayMacroGoals(
           dateTime,
-          carbsAmount: MacroCalc.getTotalCarbsGoal(kcalDiff.abs()),
-          fatAmount: MacroCalc.getTotalFatsGoal(kcalDiff.abs()),
-          proteinAmount: MacroCalc.getTotalProteinsGoal(kcalDiff.abs()),
+          carbsAmount: share.carbs,
+          fatAmount: share.fat,
+          proteinAmount: share.protein,
         );
       }
       return dateTime;
