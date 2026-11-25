@@ -113,6 +113,87 @@ class _EditMealScreenState extends State<EditMealScreen> {
   String? _localImagePath;
   bool _localImageCleared = false;
 
+  /// The text each value field was filled with when the editor opened
+  /// (#1466). Several fields show a rounded value (energy to one decimal,
+  /// imperial sizes to two), so a field the user leaves as it was saves the
+  /// stored value at full precision rather than reading back the rounded
+  /// text. Saving without a change then leaves the meal exactly as it was.
+  final Map<TextEditingController, String> _seededText = {};
+
+  /// The unit selector's value when the editor opened. An imperial size is
+  /// shown converted from it, so after a unit change the shown number is
+  /// read in the new unit and the stored size no longer applies.
+  String? _seededUnit;
+
+  void _seed(TextEditingController controller, String text) {
+    controller.text = text;
+    _seededText[controller] = text;
+  }
+
+  bool _isUntouched(TextEditingController controller) =>
+      controller.text == _seededText[controller];
+
+  /// The per-100 nutrient fields shown at full precision, beside the stored
+  /// value each one was filled from. Energy is handled on its own: it is
+  /// shown rounded and in the user's energy unit.
+  List<(TextEditingController, double?)> get _storedNutrients {
+    final n = _mealEntity.nutriments;
+    return [
+      (_carbsTextController, n.carbohydrates100),
+      (_fatTextController, n.fat100),
+      (_proteinTextController, n.proteins100),
+      (_fiberTextController, n.fiber100),
+      (_saturatedFatTextController, n.saturatedFat100),
+      (_sugarsTextController, n.sugars100),
+      (_sodiumTextController, n.sodium100),
+      (_calciumTextController, n.calcium100),
+      (_ironTextController, n.iron100),
+      (_potassiumTextController, n.potassium100),
+      (_magnesiumTextController, n.magnesium100),
+      (_vitaminDTextController, n.vitaminD100),
+      (_vitaminB12TextController, n.vitaminB12100),
+    ];
+  }
+
+  /// The text a nutrient field saves: its stored value at full precision
+  /// when the user left the field as it was, otherwise what is typed. A
+  /// blank field saves blank, which is "not set" for every nutrient.
+  String _nutrientTextToSave(
+    TextEditingController controller,
+    double? stored,
+  ) => _isUntouched(controller) && stored != null
+      ? stored.toString()
+      : controller.text;
+
+  /// The energy the user means, in kcal, or null for a blank field. An
+  /// untouched field gives the stored value; a typed one is read in the
+  /// active energy unit, with kJ folded to kcal at one decimal as before.
+  double? _enteredKcal(bool usesKj) {
+    final stored = _mealEntity.nutriments.energyKcal100;
+    if (_isUntouched(_kcalTextController) && stored != null) return stored;
+    final raw = double.tryParse(_kcalTextController.text);
+    if (raw == null) return null;
+    return usesKj
+        ? double.parse(UnitCalc.kjToKcal(raw).toStringAsFixed(1))
+        : raw;
+  }
+
+  /// The size a quantity field saves, as metric text. An untouched field
+  /// gives [stored] as it was. A typed one, or any after an imperial unit
+  /// change, is read from the field and converted back from imperial.
+  String _quantityTextToSave(
+    TextEditingController controller,
+    String stored,
+    bool usesImperialUnits,
+    String unitForConversion,
+  ) {
+    final unitUnchanged = !usesImperialUnits || selectedUnit == _seededUnit;
+    if (_isUntouched(controller) && unitUnchanged) return stored;
+    return usesImperialUnits
+        ? _convertToMetric(controller.text, unitForConversion)
+        : controller.text;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -157,38 +238,20 @@ class _EditMealScreenState extends State<EditMealScreen> {
     // follow-up). Storage stays kcal — we only translate at the edges.
     final usesKjOnLoad =
         Provider.of<EnergyUnitProvider>(context, listen: false).usesKilojoules;
-    _kcalTextController.text = _formatStoredKcalForDisplay(
-      _mealEntity.nutriments.energyKcal100,
-      usesKjOnLoad,
+    _seed(
+      _kcalTextController,
+      _formatStoredKcalForDisplay(
+        _mealEntity.nutriments.energyKcal100,
+        usesKjOnLoad,
+      ),
     );
     _lastRenderedUsesKj = usesKjOnLoad;
-    _carbsTextController.text =
-        _mealEntity.nutriments.carbohydrates100.toStringOrEmpty();
-    _fatTextController.text = _mealEntity.nutriments.fat100.toStringOrEmpty();
-    _proteinTextController.text =
-        _mealEntity.nutriments.proteins100.toStringOrEmpty();
-    _fiberTextController.text =
-        _mealEntity.nutriments.fiber100.toStringOrEmpty();
-    _saturatedFatTextController.text =
-        _mealEntity.nutriments.saturatedFat100.toStringOrEmpty();
-    _sugarsTextController.text =
-        _mealEntity.nutriments.sugars100.toStringOrEmpty();
-    _sodiumTextController.text =
-        _mealEntity.nutriments.sodium100.toStringOrEmpty();
-    _calciumTextController.text =
-        _mealEntity.nutriments.calcium100.toStringOrEmpty();
-    _ironTextController.text =
-        _mealEntity.nutriments.iron100.toStringOrEmpty();
-    _potassiumTextController.text =
-        _mealEntity.nutriments.potassium100.toStringOrEmpty();
-    _magnesiumTextController.text =
-        _mealEntity.nutriments.magnesium100.toStringOrEmpty();
-    _vitaminDTextController.text =
-        _mealEntity.nutriments.vitaminD100.toStringOrEmpty();
-    _vitaminB12TextController.text =
-        _mealEntity.nutriments.vitaminB12100.toStringOrEmpty();
+    for (final (controller, stored) in _storedNutrients) {
+      _seed(controller, stored.toStringOrEmpty());
+    }
     _localImagePath = _mealEntity.localImagePath;
     selectedUnit = _switchButtonUnit(_mealEntity.mealUnit);
+    _seededUnit = selectedUnit;
 
     // Convert meal size to imperial units if necessary
     if (_usesImperialUnits) {
@@ -201,6 +264,8 @@ class _EditMealScreenState extends State<EditMealScreen> {
         _mealEntity.mealUnit ?? "0",
       );
     }
+    _seed(_mealQuantityTextController, _mealQuantityTextController.text);
+    _seed(_servingQuantityTextController, _servingQuantityTextController.text);
 
     _mealUnitButtonSegment = [
       ButtonSegment(
@@ -303,6 +368,19 @@ class _EditMealScreenState extends State<EditMealScreen> {
   /// unit suffix. We round to one decimal place to keep the field tidy.
   void _maybeReinterpretKcalField(bool usesKj) {
     if (_lastRenderedUsesKj == null || _lastRenderedUsesKj == usesKj) {
+      _lastRenderedUsesKj = usesKj;
+      return;
+    }
+    // An untouched field is shown again from the stored kcal, so it stays
+    // untouched and still saves the stored value (#1466).
+    if (_isUntouched(_kcalTextController)) {
+      _seed(
+        _kcalTextController,
+        _formatStoredKcalForDisplay(
+          _mealEntity.nutriments.energyKcal100,
+          usesKj,
+        ),
+      );
       _lastRenderedUsesKj = usesKj;
       return;
     }
@@ -500,6 +578,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
             inputFormatters: CustomTextInputFormatter.doubleOnly(),
             decoration: InputDecoration(
                 labelText: '${S.of(context).baseQuantityLabel} ($unitSuffix)',
+                // The values are stored per 100, so a new base reads every
+                // value below per that amount and rescales the ones left as
+                // they were. Kept, and said here (#1466).
+                helperText: S.of(context).baseQuantityRescaleHelper,
+                helperMaxLines: 3,
                 border: const OutlineInputBorder(borderRadius: Dimens.borderRadiusM)),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
@@ -723,7 +806,11 @@ class _EditMealScreenState extends State<EditMealScreen> {
             Provider.of<EnergyUnitProvider>(context, listen: false)
                 .usesKilojoules;
         final enteredEnergyRaw = double.tryParse(_kcalTextController.text);
-        final kcalTextForSimple = (enteredEnergyRaw != null && usesKjOnSave)
+        final storedKcal = _mealEntity.nutriments.energyKcal100;
+        final kcalTextForSimple =
+            (_isUntouched(_kcalTextController) && storedKcal != null)
+            ? storedKcal.toString()
+            : (enteredEnergyRaw != null && usesKjOnSave)
             ? UnitCalc.kjToKcal(enteredEnergyRaw).toStringAsFixed(1)
             : _kcalTextController.text;
         // Treat empty Simple-mode macro fields as an explicit zero rather
@@ -745,9 +832,24 @@ class _EditMealScreenState extends State<EditMealScreen> {
           "100",
           _units[2], // g/ml
           _simpleFieldOrZero(kcalTextForSimple),
-          _simpleFieldOrZero(_carbsTextController.text),
-          _simpleFieldOrZero(_fatTextController.text),
-          _simpleFieldOrZero(_proteinTextController.text),
+          _simpleFieldOrZero(
+            _nutrientTextToSave(
+              _carbsTextController,
+              _mealEntity.nutriments.carbohydrates100,
+            ),
+          ),
+          _simpleFieldOrZero(
+            _nutrientTextToSave(
+              _fatTextController,
+              _mealEntity.nutriments.fat100,
+            ),
+          ),
+          _simpleFieldOrZero(
+            _nutrientTextToSave(
+              _proteinTextController,
+              _mealEntity.nutriments.proteins100,
+            ),
+          ),
           barcodeOverride: rawBarcode,
           localImagePathOverride: _localImagePath,
           clearLocalImagePath: _localImageCleared && _localImagePath == null,
@@ -763,13 +865,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
         final usesKjOnSave =
             Provider.of<EnergyUnitProvider>(context, listen: false)
                 .usesKilojoules;
-        final enteredEnergyRaw = double.tryParse(_kcalTextController.text);
-        final enteredKcal = enteredEnergyRaw == null
-            ? null
-            : (usesKjOnSave
-                ? double.parse(
-                    UnitCalc.kjToKcal(enteredEnergyRaw).toStringAsFixed(1))
-                : enteredEnergyRaw);
+        final enteredKcal = _enteredKcal(usesKjOnSave);
         final enteredCarbs = double.tryParse(_carbsTextController.text);
         final enteredFat = double.tryParse(_fatTextController.text);
         final enteredProtein = double.tryParse(_proteinTextController.text);
@@ -828,19 +924,24 @@ class _EditMealScreenState extends State<EditMealScreen> {
         // Convert meal size back to metric units if necessary
         final mealUnitForConversion =
             selectedUnit ?? _mealEntity.mealUnit ?? '0';
-        final mealQuantity = usesImperialUnits
-            ? _convertToMetric(
-                _mealQuantityTextController.text, mealUnitForConversion)
-            : _mealQuantityTextController.text;
+        final mealQuantity = _quantityTextToSave(
+          _mealQuantityTextController,
+          // Still with a period for a comma, as the form loads it (9ce962fe).
+          _mealEntity.mealQuantity?.withDotDecimal() ?? "",
+          usesImperialUnits,
+          mealUnitForConversion,
+        );
         // The serving quantity is loaded and edited in imperial too (see the
         // initial _convertToImperial above), so it has to fold back to metric
         // on save the same way the meal size does — otherwise an imperial
         // serving value is stored raw into a metric field and drifts further
         // on every reopen (#495).
-        final servingQuantity = usesImperialUnits
-            ? _convertToMetric(
-                _servingQuantityTextController.text, mealUnitForConversion)
-            : _servingQuantityTextController.text;
+        final servingQuantity = _quantityTextToSave(
+          _servingQuantityTextController,
+          _mealEntity.servingQuantity.toStringOrEmpty(),
+          usesImperialUnits,
+          mealUnitForConversion,
+        );
 
         // Convert total → per-base-qty if in total input mode. kcalText
         // uses the already-kcal-folded value so kJ entries are persisted
@@ -848,19 +949,53 @@ class _EditMealScreenState extends State<EditMealScreen> {
         String kcalText = enteredKcal == null
             ? _kcalTextController.text
             : enteredKcal.toStringOrEmpty();
-        String carbsText = _carbsTextController.text;
-        String fatText = _fatTextController.text;
-        String proteinText = _proteinTextController.text;
-        String fiberText = _fiberTextController.text;
-        String saturatedFatText = _saturatedFatTextController.text;
-        String sugarsText = _sugarsTextController.text;
-        String sodiumText = _sodiumTextController.text;
-        String calciumText = _calciumTextController.text;
-        String ironText = _ironTextController.text;
-        String potassiumText = _potassiumTextController.text;
-        String magnesiumText = _magnesiumTextController.text;
-        String vitaminDText = _vitaminDTextController.text;
-        String vitaminB12Text = _vitaminB12TextController.text;
+        final n = _mealEntity.nutriments;
+        String carbsText = _nutrientTextToSave(
+          _carbsTextController,
+          n.carbohydrates100,
+        );
+        String fatText = _nutrientTextToSave(_fatTextController, n.fat100);
+        String proteinText = _nutrientTextToSave(
+          _proteinTextController,
+          n.proteins100,
+        );
+        String fiberText = _nutrientTextToSave(
+          _fiberTextController,
+          n.fiber100,
+        );
+        String saturatedFatText = _nutrientTextToSave(
+          _saturatedFatTextController,
+          n.saturatedFat100,
+        );
+        String sugarsText = _nutrientTextToSave(
+          _sugarsTextController,
+          n.sugars100,
+        );
+        String sodiumText = _nutrientTextToSave(
+          _sodiumTextController,
+          n.sodium100,
+        );
+        String calciumText = _nutrientTextToSave(
+          _calciumTextController,
+          n.calcium100,
+        );
+        String ironText = _nutrientTextToSave(_ironTextController, n.iron100);
+        String potassiumText = _nutrientTextToSave(
+          _potassiumTextController,
+          n.potassium100,
+        );
+        String magnesiumText = _nutrientTextToSave(
+          _magnesiumTextController,
+          n.magnesium100,
+        );
+        String vitaminDText = _nutrientTextToSave(
+          _vitaminDTextController,
+          n.vitaminD100,
+        );
+        String vitaminB12Text = _nutrientTextToSave(
+          _vitaminB12TextController,
+          n.vitaminB12100,
+        );
         if (_isTotal) {
           final mealQty = double.tryParse(mealQuantity) ?? 0.0;
           final baseQtyForConversion =
