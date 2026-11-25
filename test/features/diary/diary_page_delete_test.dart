@@ -368,7 +368,7 @@ void main() {
 
       await tester.tap(find.text('Toast'));
       await settle(tester);
-      await tester.enterText(find.byType(TextFormField), '50');
+      await tester.enterText(find.byType(TextFormField).first, '50');
       await passMidnight(tester);
       await tester.tap(find.text(l10nEn.dialogOKLabel));
       await settle(tester);

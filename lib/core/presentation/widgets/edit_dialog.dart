@@ -19,7 +19,15 @@ class EditDialog extends StatefulWidget {
 }
 
 class _EditDialogState extends State<EditDialog> {
+  /// The fractions offered for what was left uneaten.
+  static const leftoverFractions = {'¼': 0.25, '⅓': 1 / 3, '½': 0.5, '¾': 0.75};
+
   late TextEditingController amountEditingController;
+  final leftoverEditingController = TextEditingController();
+
+  /// The amount as logged, in the units shown, which what is left over is
+  /// taken from.
+  late final double _loggedAmount;
 
   @override
   void initState() {
@@ -28,9 +36,33 @@ class _EditDialogState extends State<EditDialog> {
       widget.intakeEntity.amount,
       widget.intakeEntity.meal.mealUnit,
     );
+    _loggedAmount = initialAmount;
     amountEditingController = TextEditingController(
       text: initialAmount.toStringAsFixed(2),
     );
+  }
+
+  @override
+  void dispose() {
+    amountEditingController.dispose();
+    leftoverEditingController.dispose();
+    super.dispose();
+  }
+
+  /// Sets the amount to what was logged minus what was left, so the new
+  /// amount shows in its own field before it is saved. A leftover that is
+  /// not a number, or more than was logged, changes nothing.
+  void _onLeftoverChanged(String text) {
+    final left = double.tryParse(text.replaceAll(',', '.'));
+    if (left == null || left < 0 || left > _loggedAmount) return;
+    amountEditingController.text = (_loggedAmount - left).toStringAsFixed(2);
+  }
+
+  void _onLeftoverFraction(double fraction) {
+    leftoverEditingController.text = (_loggedAmount * fraction).toStringAsFixed(
+      2,
+    );
+    _onLeftoverChanged(leftoverEditingController.text);
   }
 
   @override
@@ -48,6 +80,29 @@ class _EditDialogState extends State<EditDialog> {
               labelText: S.of(context).quantityLabel,
               suffixText: _convertUnit(widget.intakeEntity.meal.mealUnit ?? ''),
             ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: leftoverEditingController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: CustomTextInputFormatter.doubleOnly(),
+            onChanged: _onLeftoverChanged,
+            decoration: InputDecoration(
+              labelText: S.of(context).leftoverLabel,
+              suffixText: _convertUnit(widget.intakeEntity.meal.mealUnit ?? ''),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final MapEntry(key: label, value: fraction)
+                  in leftoverFractions.entries)
+                ActionChip(
+                  label: Text(label),
+                  onPressed: () => _onLeftoverFraction(fraction),
+                ),
+            ],
           ),
         ],
       ),
