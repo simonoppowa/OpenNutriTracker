@@ -507,6 +507,14 @@
   "trendsPerWeekSuffix": "/week",
   "trendsWeeksToGoalLabel": "weeks to goal",
   "trendsWaterLabel": "Water",
+  "trendsNoCaloriesInRange": "No calories logged in this range.",
+  "@trendsNoCaloriesInRange": {
+    "description": "Shown in place of the Trends calorie chart when no day in the selected range has calories logged."
+  },
+  "trendsNoWaterInRange": "No water logged in this range.",
+  "@trendsNoWaterInRange": {
+    "description": "Shown in place of the Trends water chart when no day in the selected range has water logged."
+  },
   "importAction": "Import",
   "importActivityConfirmContent": "These activities will be added to today.",
   "importActivityConfirmTitle": "Import {count} activities?",
@@ -1217,6 +1225,16 @@
   "weeklyWeightGoalNoneLabel": "Not set",
   "weightHistoryAddEntry": "Add entry",
   "weightHistoryChartEmptyState": "Log at least two days to see your trend.",
+  "weightChartWeighedTooltip": "Weighed {weight} {unit}",
+  "@weightChartWeighedTooltip": {
+    "description": "Weight chart tooltip line for a touched weigh-in, e.g. 'Weighed 94.6 kg'.",
+    "placeholders": {"weight": {"type": "String"}, "unit": {"type": "String"}}
+  },
+  "weightChartAverageTooltip": "{days}-day average {weight} {unit}",
+  "@weightChartAverageTooltip": {
+    "description": "Weight chart tooltip line for the touched point of the moving-average line, e.g. '7-day average 95.1 kg'.",
+    "placeholders": {"days": {"type": "int"}, "weight": {"type": "String"}, "unit": {"type": "String"}}
+  },
   "weightHistoryDateLabel": "Date",
   "weightHistoryNoEntries": "No weight readings yet. Add your first one to start tracking a trend.",
   "weightHistoryNoteLabel": "Note (optional)",
