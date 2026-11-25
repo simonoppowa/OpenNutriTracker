@@ -252,7 +252,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     }
   }
 
-  void _onCopyIntakeItem(
+  Future<void> _onCopyIntakeItem(
     IntakeEntity intakeEntity,
     TrackedDayEntity? trackedDayEntity,
     AddMealType? type,
@@ -272,6 +272,9 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       DateTime.now(),
     );
     _diaryBloc.updateHomePage();
+    // The copy lands on today, which the Diary may be showing (#842).
+    _diaryBloc.add(const LoadDiaryYearEvent());
+    _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
   }
 
   void _onCopyActivityItem(

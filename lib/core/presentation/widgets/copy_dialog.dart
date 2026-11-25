@@ -5,7 +5,11 @@ import 'package:opennutritracker/generated/l10n.dart';
 class CopyDialog extends StatefulWidget {
   final AddMealType initialValue;
 
-  const CopyDialog({super.key, required this.initialValue});
+  /// A meal not offered: the one being copied, when the copy would land on
+  /// the same day, where picking it would only log the meal a second time.
+  final AddMealType? excluded;
+
+  const CopyDialog({super.key, required this.initialValue, this.excluded});
   @override
   State<StatefulWidget> createState() {
     return CopyDialogState();
@@ -20,7 +24,9 @@ class CopyDialogState extends State<CopyDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedValue = widget.initialValue;
+    _selectedValue = widget.initialValue != widget.excluded
+        ? widget.initialValue
+        : AddMealType.values.firstWhere((type) => type != widget.excluded);
   }
 
   @override
@@ -37,7 +43,9 @@ class CopyDialogState extends State<CopyDialog> {
             });
           }
         },
-        items: AddMealType.values.map((AddMealType addMealType) {
+        items: AddMealType.values
+            .where((type) => type != widget.excluded)
+            .map((AddMealType addMealType) {
           return DropdownMenuItem(
             value: addMealType,
             child: Text(addMealType.getTypeName(context)),
