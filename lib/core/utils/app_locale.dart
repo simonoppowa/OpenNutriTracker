@@ -4,6 +4,7 @@ import 'dart:ui' show Locale, PlatformDispatcher;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show basicLocaleListResolution;
 import 'package:opennutritracker/core/l10n/app_locales.dart';
+import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// The locale the app is being read in, for code that runs outside the
@@ -25,13 +26,38 @@ class AppLocale {
 
   static String? _selected;
 
-  /// The language tag food names are requested in: the language chosen in
-  /// the app, or — for "System default" — the one `MaterialApp` resolves
-  /// from the device's preference list against the shipped locales. The
-  /// two must agree: a device preferring unshipped French, then German,
-  /// reads the UI in German and should get German food names, which the
-  /// device's first locale alone would not say.
+  /// The language tag the UI is read in: the language chosen in the app,
+  /// or — for "System default" — the one `MaterialApp` resolves from the
+  /// device's preference list against the shipped locales. Food names
+  /// follow it except where [foodLocaleName] says: a device preferring
+  /// unshipped French, then German, reads the UI in German and gets German
+  /// food names, which the device's first locale alone would not say.
   static String get localeName => _selected ?? _systemLocaleName;
+
+  /// The language tag food names are requested in. Usually [localeName];
+  /// it differs only where the UI could not follow the device.
+  ///
+  /// A phone in French reads an English UI, because French is not shipped,
+  /// but Open Food Facts carries French names for most of its catalogue.
+  /// Asking it for English ones meant "tomate" found Spanish tomato sauce
+  /// and the user had to search in English (#1326). So when "System
+  /// default" resolves the UI to English, the first device language ranked
+  /// above English that the food sources carry ([SupportedLanguage]) names
+  /// the food instead. A non-English UI keeps its food names: a device
+  /// preferring French, then German, reads German in both. A language
+  /// chosen in the app always wins, English included.
+  static String get foodLocaleName {
+    final selected = _selected;
+    if (selected != null) return selected;
+    final ui = _systemLocaleName;
+    if (SupportedLanguage.fromCode(ui) != SupportedLanguage.en) return ui;
+    for (final locale in preferredLocales()) {
+      final language = SupportedLanguage.tryFromCode(locale.languageCode);
+      if (language == SupportedLanguage.en) break;
+      if (language != null) return locale.toString();
+    }
+    return ui;
+  }
 
   /// The device's preference list, as `MaterialApp` sees it. Swapped in
   /// tests to exercise the resolution without a platform.
