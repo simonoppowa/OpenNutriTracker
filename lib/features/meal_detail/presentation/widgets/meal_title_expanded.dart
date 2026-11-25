@@ -94,6 +94,15 @@ class MealTitleExpanded extends StatelessWidget {
                     ),
                   )
                 : const SizedBox(),
+            // A recipe's weight is the whole recipe's, not one serving's.
+            if (meal.source == MealSourceEntity.recipe &&
+                meal.mealQuantity != null)
+              Text(
+                S.of(context).recipeWholeLabel,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: palette.textMuted),
+              ),
           ],
         ),
       ),
