@@ -468,6 +468,16 @@
   "exportImportErrorUnreadableLabel": "The selected file could not be read. Choose the .zip backup that OpenNutriTracker exported.",
   "exportImportErrorWriteFailedLabel": "The file could not be saved to the chosen location. Try a different folder.",
   "exportImportSuccessLabel": "Export / Import successful",
+  "exportSavedAsLabel": "Export saved as {fileName}",
+  "@exportSavedAsLabel": {
+    "description": "Shown after an export, with the name the file was saved under. Android can save it under a new name such as 'opennutritracker-export (1).zip' when the folder already has an export.",
+    "placeholders": {
+      "fileName": {
+        "type": "String",
+        "example": "opennutritracker-export (1).zip"
+      }
+    }
+  },
   "fatLabel": "fat",
   "fatLabelShort": "f",
   "favouriteAddTooltip": "Add to favourites",

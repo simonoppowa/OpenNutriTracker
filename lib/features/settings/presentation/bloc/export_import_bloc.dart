@@ -72,8 +72,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
           favouriteJsonFileName: favouriteJsonFileName,
         );
 
-        if (result) {
-          emit(ExportImportSuccess());
+        if (result != null) {
+          emit(ExportImportSuccess(savedFileName: result.fileName));
         } else {
           emit(ExportImportInitial());
         }
