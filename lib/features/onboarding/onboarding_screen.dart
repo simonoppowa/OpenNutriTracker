@@ -14,6 +14,7 @@ import 'package:opennutritracker/features/profile/presentation/utils/profile_swi
 import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
 import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
+import 'package:opennutritracker/features/onboarding/domain/usecase/restore_backup_usecase.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_goal_page_body.dart';
@@ -25,6 +26,8 @@ import 'package:opennutritracker/features/onboarding/presentation/widgets/onboar
 import 'package:opennutritracker/features/onboarding/presentation/widgets/highlight_button.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_about_you_page_body.dart';
 import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_body_measurements_page_body.dart';
+import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
+import 'package:opennutritracker/features/settings/presentation/widgets/export_import_error_text.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// The onboarding pages, in the order they are shown.
@@ -67,6 +70,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _activityPageButtonActive = false;
   bool _goalPageButtonActive = false;
   bool _overviewPageButtonActive = false;
+
+  /// Set once a backup was restored from the intro page (#1355). The rest
+  /// of the flow then asks only for the body profile the backup leaves out
+  /// and finishes on the goal page: the overview would show a goal that
+  /// ignores the restored goal settings, and the other options are
+  /// preferences with defaults, changeable in Settings.
+  bool _restoredFromBackup = false;
 
   /// Ticked when the height/weight page's Next is tapped while blocked, so
   /// that page reveals the errors for fields the user never left.
@@ -200,6 +210,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             setPageContent: _setIntroPageData,
             initialAcceptedPolicy: _introPageButtonActive,
             initialAcceptedDataCollection: selection.acceptDataCollection,
+            onRestoreBackup: _onRestoreBackup,
           ),
           footer: HighlightButton(
             buttonLabel: S.of(context).buttonStartLabel,
@@ -279,8 +290,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             targetWeightKg: selection.targetWeight,
           ),
           footer: HighlightButton(
-            buttonLabel: S.of(context).buttonNextLabel,
-            onButtonPressed: () => _scrollToPage(_OnboardingPage.otherOptions),
+            buttonLabel: _restoredFromBackup
+                ? S.of(context).buttonStartLabel
+                : S.of(context).buttonNextLabel,
+            onButtonPressed: _restoredFromBackup
+                ? () => _onOverviewStartButtonPressed(context)
+                : () => _scrollToPage(_OnboardingPage.otherOptions),
             buttonActive: _goalPageButtonActive,
             inactiveMessage: S.of(context).onboardingBlockedGoalSnack,
           ),
@@ -355,6 +370,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _scrollToPage(_OnboardingPage page) {
     FocusScope.of(context).requestFocus(FocusNode()); // Dismiss Keyboard
     _introKey.currentState?.animateScroll(page.index);
+  }
+
+  /// Restores a backup into the profile being set up, then moves on to the
+  /// body-profile pages. A cancelled pick stays put without a word; a
+  /// failed one says why and also stays, with nothing written.
+  Future<void> _onRestoreBackup() async {
+    final l10n = S.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await locator<RestoreBackupUsecase>().restore();
+    if (!mounted) return;
+
+    void say(String message) => messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+
+    switch (result.outcome) {
+      case RestoreBackupOutcome.restored:
+        setState(() => _restoredFromBackup = true);
+        say(l10n.onboardingRestoreSuccessSnack);
+        _scrollToPage(_OnboardingPage.aboutYou);
+      case RestoreBackupOutcome.cancelled:
+        return;
+      case RestoreBackupOutcome.failed:
+        say(
+          exportImportErrorText(
+            l10n,
+            result.failureReason ?? ExportImportFailureReason.unexpected,
+          ),
+        );
+      case RestoreBackupOutcome.profileHasData:
+        say(l10n.onboardingRestoreProfileHasDataSnack);
+    }
   }
 
   void _setIntroPageData(bool active, bool acceptedDataCollection) {
@@ -505,6 +552,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         useMaterialYou: _onboardingBloc.userSelection.useMaterialYou,
         accentColor: _onboardingBloc.userSelection.accentColor,
       );
+      if (_restoredFromBackup) {
+        // The restored diary may hold a row for today with the old phone's
+        // goals; with a body profile saved they can now be recomputed.
+        await locator<RestoreBackupUsecase>().syncTodayGoals();
+      }
       if (!context.mounted) return;
       // Onboarding can run for a profile added after the app has been in
       // use, so the screen-persistent tab BLoCs may still hold the previous
