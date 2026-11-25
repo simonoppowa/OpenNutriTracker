@@ -406,15 +406,15 @@ class _OnboardingOtherOptionsPageBodyState
   /// while closed, which is the only thing most users need from it.
   Widget _buildFoodSourcesTile(BuildContext context) {
     final s = S.of(context);
-    // Open Food Facts is always searched and has no switch, so it counts
-    // towards both sides of the summary.
-    const alwaysOnCount = 1;
-    final enabled =
-        alwaysOnCount +
-        SPConst.settingsSelectableFoodSources
-            .where((source) => _foodSourceToggles[source] ?? true)
-            .length;
-    final total = alwaysOnCount + SPConst.settingsSelectableFoodSources.length;
+    // Open Food Facts has its own switch (#946) and counts like any other.
+    const sources = [
+      OFFConst.offSourceCode,
+      ...SPConst.settingsSelectableFoodSources,
+    ];
+    final enabled = sources
+        .where((source) => _foodSourceToggles[source] ?? true)
+        .length;
+    final total = sources.length;
 
     return Semantics(
       identifier: 'onboarding-food-sources',
@@ -427,12 +427,16 @@ class _OnboardingOtherOptionsPageBodyState
         ),
         subtitle: Text(s.onboardingFoodSourcesEnabledCount(enabled, total)),
         children: [
-          SwitchListTile(
-            dense: true,
-            title: const Text(OFFConst.offSourceName),
-            subtitle: Text(s.foodSourcesAlwaysEnabledLabel),
-            value: true,
-            onChanged: null,
+          Semantics(
+            identifier: 'onboarding-food-source-${OFFConst.offSourceCode}',
+            child: SwitchListTile(
+              dense: true,
+              title: const Text(OFFConst.offSourceName),
+              subtitle: Text(s.foodSourcesOffSubtitle),
+              value: _foodSourceToggles[OFFConst.offSourceCode] ?? true,
+              onChanged: (value) =>
+                  _onSourceToggled(OFFConst.offSourceCode, value),
+            ),
           ),
           for (final sourceCode in SPConst.settingsSelectableFoodSources)
             Semantics(

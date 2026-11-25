@@ -2,9 +2,11 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
+import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/toggle_favourite_meal_usecase.dart';
 import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/scanner/data/product_not_found_exception.dart';
 
 /// Looks up the meal corresponding to a scanned barcode. Resolution order:
 ///
@@ -23,6 +25,11 @@ import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dar
 ///      exported with the old figures. Only this fresh record is written:
 ///      the cached and custom matches are what is stored already.
 ///
+/// Steps 2 and 3 are Open Food Facts data. With OFF switched off in
+/// Settings → Food databases (#946) the lookup stops after step 1 and
+/// throws [OffDisabledException]: no request, and no product from an
+/// earlier scan.
+///
 /// Recipes do not participate in this lookup. Recipes are compositions
 /// of meals, not single scannable products, so attaching a barcode to a
 /// recipe was a model error in the first cut of #167 — corrected here.
@@ -33,12 +40,14 @@ class SearchProductByBarcodeUseCase {
   final CustomMealDataSource _customMealDataSource;
   final RemoteSearchCacheDataSource _cachedOffMealDataSource;
   final ToggleFavouriteMealUsecase _favourites;
+  final GetConfigUsecase _getConfigUsecase;
 
   SearchProductByBarcodeUseCase(
     this._productsRepository,
     this._customMealDataSource,
     this._cachedOffMealDataSource,
     this._favourites,
+    this._getConfigUsecase,
   );
 
   static final _log = Logger('SearchProductByBarcodeUseCase');
@@ -50,6 +59,10 @@ class SearchProductByBarcodeUseCase {
         .firstOrNull;
     if (customMatch != null) {
       return MealEntity.fromMealDBO(customMatch);
+    }
+
+    if (!(await _getConfigUsecase.getConfig()).isOffEnabled) {
+      throw OffDisabledException();
     }
 
     final cachedMatch = _cachedOffMealDataSource.getDetailedByBarcode(barcode);

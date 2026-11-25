@@ -13,8 +13,8 @@ import 'package:url_launcher/url_launcher.dart';
 /// search screens draw from. State is persisted on
 /// [ConfigEntity.foodSourceToggles]; a source not present in the map
 /// defaults to enabled, so users who never visit this screen search every
-/// database. Open Food Facts powers the product and barcode search and is
-/// shown as a fixed, always-on entry.
+/// database. Open Food Facts powers the product and barcode search; it has
+/// its own entry in the same map (#946), so it too is on until switched off.
 class FoodSourcesScreen extends StatefulWidget {
   const FoodSourcesScreen({super.key});
 
@@ -62,6 +62,22 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
         onPressed: () => _openSourceInfo(url),
       );
 
+  Widget _switch(
+    String sourceCode, {
+    required String infoUrl,
+    required String title,
+    String? subtitle,
+  }) => Semantics(
+    identifier: 'food-sources-switch-${sourceCode.replaceAll('_', '-')}',
+    child: SwitchListTile(
+      secondary: _infoButton(infoUrl),
+      title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle),
+      value: _toggles[sourceCode] ?? true,
+      onChanged: (value) => _toggle(sourceCode, value),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -79,23 +95,19 @@ class _FoodSourcesScreenState extends State<FoodSourcesScreen> {
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
-                SwitchListTile(
-                  secondary: _infoButton(OFFConst.offWebsiteUrl),
-                  title: const Text(OFFConst.offSourceName),
-                  subtitle: Text(s.foodSourcesAlwaysEnabledLabel),
-                  value: true,
-                  onChanged: null,
+                _switch(
+                  OFFConst.offSourceCode,
+                  infoUrl: OFFConst.offWebsiteUrl,
+                  title: OFFConst.offSourceName,
+                  subtitle: s.foodSourcesOffSubtitle,
                 ),
                 for (final sourceCode in SPConst.settingsSelectableFoodSources)
-                  SwitchListTile(
-                    secondary: _infoButton(
-                      SPConst.foodSourceWebsites[sourceCode]!,
-                    ),
-                    title: Text(
-                      SPConst.foodSourceDisplayNames[sourceCode] ?? sourceCode,
-                    ),
-                    value: _toggles[sourceCode] ?? true,
-                    onChanged: (value) => _toggle(sourceCode, value),
+                  _switch(
+                    sourceCode,
+                    infoUrl: SPConst.foodSourceWebsites[sourceCode]!,
+                    title:
+                        SPConst.foodSourceDisplayNames[sourceCode] ??
+                        sourceCode,
                   ),
               ],
             ),

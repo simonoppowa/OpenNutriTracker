@@ -15,6 +15,7 @@ import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/utils/bounds/ranges_const.dart';
 import 'package:opennutritracker/core/utils/locale_units.dart';
+import 'package:opennutritracker/core/utils/off_const.dart';
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
 import 'package:opennutritracker/core/utils/daily_reminder_scheduler.dart';
@@ -91,17 +92,20 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   /// Picks which food databases the "Other options" page starts with.
   /// Follows the same rule as the units: a stored choice wins, and only a
   /// first run falls back to the locale.
+  /// Open Food Facts' switch (#946) is kept either way.
   Future<void> _seedFoodSourceSelection() async {
+    final config = await _getConfigUsecase.getConfig();
     if (await _getConfigUsecase.hasExplicitFoodSourceToggles()) {
-      final config = await _getConfigUsecase.getConfig();
       userSelection.foodSourceToggles = Map<String, bool>.from(
         config.foodSourceToggles,
       );
       return;
     }
-    userSelection.foodSourceToggles = defaultFoodSourceToggles(
-      Platform.localeName,
-    );
+    final off = config.foodSourceToggles[OFFConst.offSourceCode];
+    userSelection.foodSourceToggles = {
+      ...defaultFoodSourceToggles(Platform.localeName),
+      OFFConst.offSourceCode: ?off,
+    };
   }
 
   Future<void> saveOnboardingData(

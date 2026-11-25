@@ -476,6 +476,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator<ToggleFavouriteMealUsecase>(),
+      locator<GetConfigUsecase>(),
     ),
   );
   locator.registerLazySingleton<GetIntakeUsecase>(
