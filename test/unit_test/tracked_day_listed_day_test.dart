@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/hidden_recent_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
@@ -163,6 +164,7 @@ void main() {
     getIntake = GetIntakeUsecase(
       intakeRepository,
       RecipeRepository(RecipeDataSource(db)),
+      HiddenRecentDataSource(db),
     );
     getActivities = GetUserActivityUsecase(activityRepository);
     getTrackedDay = GetTrackedDayUsecase(trackedDayRepository);

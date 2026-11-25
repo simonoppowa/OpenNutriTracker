@@ -197,7 +197,8 @@ class SearchProductsUseCase {
         .where((meal) => _mealMatchesSearch(meal, normalizedSearchString))
         .toList();
 
-    final recentIntake = await _getIntakeUsecase.getRecentIntake();
+    final recentIntake = await _getIntakeUsecase
+        .getRecentIntakeIncludingHidden();
     final fromIntakeHistory = recentIntake
         .map((intake) => intake.meal)
         .where((meal) => meal.source == MealSourceEntity.custom)

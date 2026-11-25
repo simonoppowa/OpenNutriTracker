@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
+import 'package:opennutritracker/core/data/data_source/hidden_recent_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
@@ -153,7 +154,11 @@ void main() {
     final getConfig = GetConfigUsecase(configRepository);
     bloc = CalendarDayBloc(
       GetUserActivityUsecase(activityRepository),
-      GetIntakeUsecase(intakeRepository, RecipeRepository(RecipeDataSource(db))),
+      GetIntakeUsecase(
+        intakeRepository,
+        RecipeRepository(RecipeDataSource(db)),
+        HiddenRecentDataSource(db),
+      ),
       DeleteIntakeUsecase(intakeRepository),
       DeleteUserActivityUsecase(activityRepository, configRepository),
       GetTrackedDayUsecase(trackedDayRepository),

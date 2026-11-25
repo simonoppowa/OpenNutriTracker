@@ -141,21 +141,44 @@ class IntakeDataSource {
         .toList();
   }
 
-  Future<List<IntakeDBO>> getRecentlyAddedIntake({int number = 100000}) async {
+  /// One entry per food, newest first. A food is [recentKeyOf] its meal.
+  ///
+  /// With [isHidden], a food is left out while every entry behind it is
+  /// hidden (#1198), so a new entry for it brings it back.
+  Future<List<IntakeDBO>> getRecentlyAddedIntake({
+    int number = 100000,
+    bool Function(String intakeId)? isHidden,
+  }) async {
     final intakeList = _intakeBox.values.toList();
 
     //  sort list by date (newest first) and filter unique intake
     intakeList.sort((a, b) => (-1) * a.dateTime.compareTo(b.dateTime));
 
-    final filterCodes = <String>{};
-    final uniqueIntake = intakeList
-        .where(
-          (intake) =>
-              filterCodes.add(intake.meal.code ?? intake.meal.name ?? ""),
-        )
-        .toList();
+    final newestByKey = <String, IntakeDBO>{};
+    final shownKeys = <String>{};
+    for (final intake in intakeList) {
+      final key = recentKeyOf(intake.meal);
+      newestByKey.putIfAbsent(key, () => intake);
+      if (isHidden == null || !isHidden(intake.id)) shownKeys.add(key);
+    }
 
-    return uniqueIntake.take(number).toList();
+    return newestByKey.entries
+        .where((entry) => shownKeys.contains(entry.key))
+        .map((entry) => entry.value)
+        .take(number)
+        .toList();
+  }
+
+  /// What makes two entries one row in the Recently list: the food's code,
+  /// or its name when it has none.
+  static String recentKeyOf(MealDBO meal) => meal.code ?? meal.name ?? "";
+
+  /// The id of every entry behind the Recently row for [recentKey].
+  Future<List<String>> getIntakeIdsByRecentKey(String recentKey) async {
+    return _intakeBox.values
+        .where((intake) => recentKeyOf(intake.meal) == recentKey)
+        .map((intake) => intake.id)
+        .toList();
   }
 
   Future<List<IntakeDBO>> getCustomMealIntakes() async {
