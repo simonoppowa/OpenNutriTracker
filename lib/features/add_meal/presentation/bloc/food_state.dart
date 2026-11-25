@@ -32,17 +32,28 @@ class FoodLoadedState extends FoodState {
   /// ProductsLoadedState.query for how the UI uses it.
   final String query;
 
+  /// Keys of the [food] the user has logged — see
+  /// ProductsLoadedState.recentlyLoggedKeys.
+  final Set<String> recentlyLoggedKeys;
+
   const FoodLoadedState({
     required this.food,
     this.usesImperialUnits = false,
     this.remoteSourceEmpty = false,
     this.remoteSourceFailed = false,
     this.query = '',
+    this.recentlyLoggedKeys = const {},
   });
 
   @override
-  List<Object?> get props =>
-      [food, usesImperialUnits, remoteSourceEmpty, remoteSourceFailed, query];
+  List<Object?> get props => [
+    food,
+    usesImperialUnits,
+    remoteSourceEmpty,
+    remoteSourceFailed,
+    query,
+    recentlyLoggedKeys,
+  ];
 }
 
 class FoodFailedState extends FoodState {
