@@ -20,7 +20,9 @@ import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 ///   ([HiveDBProvider.perProfileBoxNames]): each profile opts in for itself,
 ///   imports its own copy of a workout, and tracks its own watermark.
 ///   The boundary the profile's tracked-day rows are keyed by is here for
-///   the same reason: the rows are per-profile too.
+///   the same reason: the rows are per-profile too. So is `isDemoData`:
+///   it says whether *this* profile holds sample data, and onboarding a
+///   second profile must not take the demo-mode banner off the first.
 ///
 /// Reads merge the two — shared fields from the app box, personal fields
 /// from the active profile's box. Writes store a detached copy of the merged
@@ -64,6 +66,7 @@ class ConfigDataSource {
       merged.healthDeletedExternalIds = profile.healthDeletedExternalIds;
       merged.healthDeletedWorkouts = profile.healthDeletedWorkouts;
       merged.trackedDaysOffsetMinutes = profile.trackedDaysOffsetMinutes;
+      merged.isDemoData = profile.isDemoData;
     } else {
       // Explicitly clear personal fields so they don't leak from the
       // app box after a profile reset. A fresh profile therefore reads as
@@ -81,6 +84,7 @@ class ConfigDataSource {
       merged.healthDeletedExternalIds = null;
       merged.healthDeletedWorkouts = null;
       merged.trackedDaysOffsetMinutes = null;
+      merged.isDemoData = null;
     }
     return merged;
   }
