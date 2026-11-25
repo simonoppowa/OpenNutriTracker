@@ -158,6 +158,9 @@ Future<void> initLocator() async {
   // Resolve the active profile and open its box-set (creating the default
   // profile on first run) before anything reads per-profile data.
   await bootstrapActiveProfile(hiveDBProvider, secureAppStorageProvider);
+  // Only now, with the boxes open under the copied key, may the pre-bridge
+  // copy of the secure-storage entries go (#809).
+  await secureAppStorageProvider.clearLegacyCopyOnceVerified();
   locator.registerLazySingleton<SecureAppStorageProvider>(
     () => secureAppStorageProvider,
   );
