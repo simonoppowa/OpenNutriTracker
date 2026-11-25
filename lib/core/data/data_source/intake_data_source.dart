@@ -40,6 +40,7 @@ class IntakeDataSource {
           type: dbo.type,
           meal: dbo.meal,
           dateTime: dbo.dateTime,
+          loggedUtcOffsetMinutes: dbo.loggedUtcOffsetMinutes,
         ),
       ),
       (dbo) => isBlankId(dbo.id) ? null : dbo.id,
@@ -133,7 +134,7 @@ class IntakeDataSource {
           (intake) =>
               DayBoundaryCalc.isMomentInLogicalDayMinutes(
                 day,
-                intake.dateTime,
+                intake.loggedWallClock,
                 totalMinutes,
               ) &&
               intake.type == intakeType,
@@ -286,6 +287,7 @@ class IntakeDataSource {
         type: dbo.type,
         meal: rewrite(dbo.meal),
         dateTime: dbo.dateTime,
+        loggedUtcOffsetMinutes: dbo.loggedUtcOffsetMinutes,
       );
       await box.put(entry.key, updated);
       undo?.add(() => box.put(entry.key, dbo));

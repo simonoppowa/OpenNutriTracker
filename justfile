@@ -158,7 +158,8 @@ test:
 test_dst:
   TZ=Europe/Berlin flutter test \
     test/unit_test/calendar_day_calc_test.dart \
-    test/features/profile/presentation/widgets/weight_trend_chart_test.dart
+    test/features/profile/presentation/widgets/weight_trend_chart_test.dart \
+    test/unit_test/time_zone_travel_day_keys_test.dart
 
 # Run CI checks
 ci: check_agents_md install (format "--set-exit-if-changed") check_l10n build && test test_dst
