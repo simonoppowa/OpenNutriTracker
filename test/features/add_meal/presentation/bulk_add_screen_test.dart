@@ -66,7 +66,7 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   _FakeMealDetailBloc({this.failOnSecondWrite = false});
 
   @override
-  Future<void> addIntake(
+  Future<bool> addIntake(
     BuildContext context,
     String unit,
     String amountText,
@@ -78,6 +78,7 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
       throw StateError('write failed');
     }
     writes.add(_Write(unit, amountText, meal.name));
+    return true;
   }
 }
 

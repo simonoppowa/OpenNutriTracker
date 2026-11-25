@@ -163,7 +163,7 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
   Completer<void>? gate;
 
   @override
-  Future<void> addIntake(
+  Future<bool> addIntake(
     BuildContext context,
     String unit,
     String amountText,
@@ -174,6 +174,7 @@ class _FakeMealDetailBloc extends Fake implements MealDetailBloc {
     if (failAt == writes.length) throw StateError('write failed');
     await gate?.future;
     writes.add((unit: unit, amount: amountText, name: meal.name));
+    return true;
   }
 }
 

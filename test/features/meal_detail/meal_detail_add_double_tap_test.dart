@@ -80,16 +80,17 @@ class _GatedMealDetailBloc extends MealDetailBloc {
   var saves = 0;
 
   @override
-  Future<void> addIntake(
+  Future<bool> addIntake(
     BuildContext context,
     String unit,
     String amountText,
     IntakeTypeEntity type,
     MealEntity meal,
     DateTime day,
-  ) {
+  ) async {
     saves++;
-    return save.future;
+    await save.future;
+    return true;
   }
 }
 
