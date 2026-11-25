@@ -246,7 +246,7 @@
       }
     }
   },
-  "customMealsDeleteConfirmContent": "Toutes les entrées du journal utilisant ce repas seront également supprimées.",
+  "customMealsDeleteConfirmContent": "Toutes les entrées du journal dans ce profil utilisant ce repas seront également supprimées. Les entrées effectuées avant que vous en changiez le nom ou le code barre pourraient rester dans votre journal.",
   "customMealsDeleteConfirmTitle": "Supprimer le repas personnalisé ?",
   "customMealsEmptyLabel": "Aucun repas personnalisé enregistré.",
   "dailyKcalAdjustmentLabel": "Ajustement quotidien (kcal) :",
@@ -611,7 +611,7 @@
   "ozUnit": "oz",
   "paActiveVideoGames": "jeux vidéo actifs",
   "paActiveVideoGamesDesc": "Wii Sports, Dance Dance Revolution, général",
-  "paAmericanFootballGeneral": "football américain",
+  "paAmericanFootballGeneral": "Football Américain",
   "paAmericanFootballGeneralDesc": "touch, flag, général",
   "paArcheryGeneral": "tir à l'arc",
   "paArcheryGeneralDesc": "hors chasse",
@@ -633,7 +633,7 @@
   "paBilliardsGeneralDesc": "général",
   "paBowlingGeneral": "bowling",
   "paBowlingGeneralDesc": "général",
-  "paBoxingBag": "boxe",
+  "paBoxingBag": "Boxe (Sac de frappe)",
   "paBoxingBagDesc": "sac de frappe",
   "paBoxingGeneral": "boxe",
   "paBoxingGeneralDesc": "sur le ring, général",
@@ -667,7 +667,7 @@
   "paDartsWallDesc": "murales ou sur pelouse",
   "paDivingGeneral": "plongée",
   "paDivingGeneralDesc": "plongée libre ou sous-marine, général",
-  "paDivingSpringboardPlatform": "plongeon",
+  "paDivingSpringboardPlatform": "plongeon depuis un plongeoir ou une plate-forme",
   "paDivingSpringboardPlatformDesc": "tremplin ou plateforme",
   "paFencing": "escrime",
   "paFencingDesc": "général",
@@ -722,7 +722,7 @@
   "paLawnBowlingDesc": "pétanque (bocce), extérieur",
   "paMartialArtsModerate": "arts martiaux",
   "paMartialArtsModerateDesc": "différents styles, rythme modéré (judo, jiu-jitsu, karaté, kick-boxing, taekwondo, taï-bo, boxe thaï)",
-  "paMartialArtsSlower": "arts martiaux",
+  "paMartialArtsSlower": "arts martiaux (rythme plus lent)",
   "paMartialArtsSlowerDesc": "différents styles, rythme lent, débutants, entraînement",
   "paMotoCross": "motocross",
   "paMotoCrossDesc": "sports motorisés tout-terrain, quad, général",
@@ -983,7 +983,7 @@
   "settingsDisclaimerLabel": "Avertissement",
   "settingsDistanceLabel": "Distance",
   "settingsEnergyUnitLabel": "Unité d'énergie",
-  "settingsFibreGoalDescription": "Objectif quotidien de fibres en grammes. La valeur de référence par défaut est de 30 g.",
+  "settingsFibreGoalDescription": "Objectif quotidien de fibres en grammes. La valeur de référence varie selon l'âge et le genre (21g à 38g).",
   "settingsFibreGoalLabel": "Objectif de fibres",
   "settingsImperialLabel": "Impérial (lb, ft, oz)",
   "settingsKcalAdjustmentLabel": "Ajustement quotidien (kcal)",
@@ -1305,5 +1305,288 @@
         "type": "String"
       }
     }
-  }
+  },
+  "calorieWidgetOpenAppHint": "Ouvrir l'application",
+  "@calorieWidgetOpenAppHint": {
+    "description": "Calorie widget placeholder, shown until the app has written today's figures."
+  },
+  "settingsDeleteAllDataConfirmContent": "Cette opération supprime votre profil, vos repas, vos activités, l'historique de votre poids et vos séances de jeûne pour le profil actuel uniquement. Elle supprime également toute clé de fournisseur d'IA et toute adresse de serveur, qui sont partagées par tous les profils sur cet appareil. Le contenu partagé (repas personnalisés, recettes, modèles d'activité) ainsi que les catalogues Open Food Facts et USDA Food Data Central ne sont pas concernés. Cette opération est irréversible.",
+  "policyChangeNoticeBody": "Le fonctionnement de l'application n'a pas changé. Ce qui a changé, c'est la quantité d'informations que nous vous communiquons.\n\nLes services qui ont toujours reçu vos recherches sont désormais clairement identifiés. Une nouvelle section est consacrée aux données de santé, et vous pouvez activer l'importation de vos séances d'entraînement. Nous indiquons désormais également la localisation approximative que notre système d'arrière-plan enregistre lors d'une requête de recherche d'aliments et conserve pendant 24 heures.\n\nVotre journal reste sur votre appareil, comme cela a toujours été le cas.",
+  "policyChangeNoticeReadAction": "Lire la politique",
+  "policyChangeNoticeDismissAction": "D'accord",
+  "disclaimerAcknowledgeLabel": "Je comprends",
+  "errorLoadingFavourites": "Erreur lors du chargement des favoris",
+  "exportImportErrorUnreadableLabel": "Le fichier sélectionné n'a pas pu être lu. Choisissez la sauvegardeau format .zip exportée par OpenNutriTracker.",
+  "exportImportErrorWriteFailedLabel": "Le fichier n'a pas pu être enrégistré à l'emplacement choisi. Essayer un autre dossier.",
+  "favouriteAddTooltip": "Ajouter aux favoris",
+  "favouriteRemoveTooltip": "Retirer des favoris",
+  "favouritesEmptySubtitle": "Appuie sur l'étoile sur n'importe quel aliment ou repas pour le garder ici, prêt à être entré.",
+  "favouritesEmptyTitle": "Pas encore de favoris",
+  "favouritesLabel": "Favoris",
+  "sharedMealInvalidCodeLabel": "Entrer un code de partage de repas valide.",
+  "sharedMealUnnamedLabel": "Plat sans nom",
+  "sharedMealUnavailableLabel": "Indisponible — cet élément sera ignoré.",
+  "sharedMealTotalLabel": "Total",
+  "sharedMealPartialTotalLabel": "Total (incomplet)",
+  "hourShortLabel": "h",
+  "@hourShortLabel": {
+    "description": "Short unit after a number of hours, e.g. '4 h', read by a screen reader on the day boundary slider."
+  },
+  "minuteShortLabel": "min",
+  "@minuteShortLabel": {
+    "description": "Short unit after a duration of activity in minutes, e.g. '30 min'."
+  },
+  "missingProductInfoFields": "Manquant : {fields}",
+  "@missingProductInfoFields": {
+    "description": "Under the missing-information warning on the food detail screen; names the required values the food lacks. {fields} is a comma-separated list of the nutrient labels, e.g. 'Missing: fat, protein'.",
+    "placeholders": {
+      "fields": {
+        "type": "String",
+        "example": "fat, protein"
+      }
+    }
+  },
+  "noResultsSubtitle": "Aucun produit ne correspond à cette recherche. Essayez un autre nom, scannez le code-barres ou créez le vôtre.",
+  "noResultsScanBarcode": "Scanner le code-barres",
+  "noResultsCreateCustomFood": "Créer un plat personnalisé",
+  "noResultsSearchAll": "Rechercher dans tout",
+  "partialResultsNotice": "Une source alimentaire n'a pas répondu. Il se peut que certains résultats manquent.",
+  "partialResultsAllSourcesDownNotice": "Aucune source alimentaire en ligne n'a répondu. Affichage des aliments enregistrés uniquement.",
+  "onboardingAdultEquationNotice": "Les apports caloriques recommandés sont calculés à l'aide d'équations de référence pour adultes. Si vous avez moins de 19 ans, vérifiez le résultat auprès d'un médecin ou d'un diététicien.",
+  "onboardingBlockedActivitySnack": "Sélectionner votre niveau d'activité pour continuer",
+  "onboardingBlockedBodySnack": "Veuillez saisir une taille et un poids valides pour continuer",
+  "onboardingBlockedDemoPolicySnack": "Accepter la politique de vie privée pour essayer la démo",
+  "onboardingBlockedGoalSnack": "Sélectionnez votre objectif de poids pour continuer",
+  "onboardingBlockedOverviewSnack": "Certains détails sont manquant. Revenez en arrière et complétez les étapes précédentes.",
+  "onboardingBlockedPolicySnack": "Acceptez la politique de vie privée pour continuer",
+  "onboardingBlockedProfileSnack": "Sélectionnez votre genre entrez votre date d'anniversaire pour continuer",
+  "onboardingFoodSourcesEnabledCount": "{enabled} sur {total} activées",
+  "@onboardingFoodSourcesEnabledCount": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingGoalSuggestedBadge": "Suggéré",
+  "onboardingGoalSuggestionBmi": "Votre IMC est de {bmi} — OMS : {status}.",
+  "@onboardingGoalSuggestionBmi": {
+    "placeholders": {
+      "bmi": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingGoalSuggestionTarget": "En fonction du poids cible que vous avez saisi.",
+  "onboardingHealthyRangeApply": "Utiliser {weight}",
+  "@onboardingHealthyRangeApply": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeLabel": "Plage normale pour {height}: {range}",
+  "@onboardingHealthyRangeLabel": {
+    "placeholders": {
+      "height": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingHealthyRangeSource": "OMS, IMC 18.5–24.9",
+  "onboardingImplausibleChange": "Changer",
+  "onboardingImplausibleHeightBody": "{value} est une taille inhabituelle. Faut-il la garder ?",
+  "@onboardingImplausibleHeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingImplausibleKeep": "Garder",
+  "onboardingImplausibleTitle": "Vérifiez bien cette valeur",
+  "onboardingImplausibleWeightBody": "{value} est un poids inhabituel. Faut-il le garder ?",
+  "@onboardingImplausibleWeightBody": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingPageProgressSemantic": "Page {current} sur {total}",
+  "@onboardingPageProgressSemantic": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingMacrosChangeLaterHint": "Vous pouvez changer modifier celles-ci plus tard dans les Paramètres → {category} → {item}.",
+  "@onboardingMacrosChangeLaterHint": {
+    "description": "Under the macro gram targets on the onboarding overview. Says the values are not edited here and where they can be changed. {category} is the Settings group name and {item} the row name, both filled in from their own strings.",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Goals & nutrition"
+      },
+      "item": {
+        "type": "String",
+        "example": "Macro split"
+      }
+    }
+  },
+  "paCalisthenicsVigorous": "Calisthénie (intense)",
+  "paCalisthenicsVigorousDesc": "Effort intense (par exemple : pompes, abdominaux, tractions, jumping jacks, burpees)",
+  "paCircuitTraining": "entraînement par circuits",
+  "paCircuitTrainingDesc": "notamment des haltères, des exercices d'aérobie avec des temps de repos minimaux, à une intensité élevée",
+  "paEllipticalTrainer": "vélo elliptique",
+  "paRowingMachine": "rameur",
+  "paStairTreadmillErgometer": "ergomètre à marches et tapis roulant",
+  "paTrackField1": "athlétisme (lancers)",
+  "paTrackField2": "athlétisme (sauts et javelot)",
+  "paTrackField3": "athlétisme (course de haies)",
+  "paYoga": "yoga",
+  "paYogaDesc": "général, hatha",
+  "recipeTotalWeightCalculatedHelper": "Chiffres calculés à partir des ingrédients. Pour les liquides, on considère approximativement que 1 ml ≈ 1 g.",
+  "recipeTotalWeightManualHelper": "Cette recette a été saisie manuellement ; par conséquent, modifier les ingrédients n'aura aucune incidence sur celle-ci.",
+  "recipeTotalWeightUseIngredientTotalButton": "Utiliser la quantité totale d'ingrédients",
+  "sendCrashReports": "Envoyer des rapports d'erreur",
+  "settingsKjAdjustmentLabel": "Ajustement quotidien en kJ",
+  "settingsShowAiFeaturesLabel": "Afficher les fonctionnalités IA",
+  "@settingsShowAiFeaturesLabel": {
+    "description": "Settings switch (#1518). Off hides Snap meal, the AI badges and AI meal assistance, and stops anything being sent to an AI model."
+  },
+  "settingsShowAiFeaturesSubtitle": "Repas « Snap » et assistance IA pour les repas. Lorsque cette fonction est désactivée, aucune donnée n'est transmise au modèle d'IA.",
+  "settingsDefaultToRawFoodUnitsLabel": "Par défaut, afficher le poids ou le volume, et non le nombre de portions",
+  "settingsDefaultToRawFoodUnitsSubtitle": "Lorsqu'un aliment est proposé par portion, enregistrez-le plutôt en poids ou en volume. Vous pouvez toujours sélectionner des portions dans le menu déroulant des unités.",
+  "shareCodeErrorLabel": "Impossible de partager le code. Réessayez ou copiez-le plutôt.",
+  "shareFoodLabel": "Partager un plat",
+  "shareQrTooLargeLabel": "Ce code est trop long pour tenir dans un code QR. Copiez-le ou partagez-le sous forme de texte.",
+  "shareQrUnavailableLabel": "Impossible de créer une image QR. Copiez ou partagez plutôt le code sous forme de texte.",
+  "suggestedLabel": "Suggéré",
+  "logWaterAmountLabelFlOz": "Ajouter {amount} fl.oz",
+  "@logWaterAmountLabelFlOz": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "waterChipLabelFlOz": "{current} / {goal} fl.oz",
+  "@waterChipLabelFlOz": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddTitle": "Ajouter plusieurs éléments",
+  "bulkAddInputHint": "2 œufs, 100 g de pain grillé, un café noir",
+  "bulkAddParseLabel": "Trouver des aliments",
+  "voiceInputStartTooltip": "Dites ce que vous voulez manger",
+  "voiceInputStopTooltip": "Arrêter d'écouter",
+  "voiceInputLanguageTooltip": "Langue de dictée : {language}. Appuyez pour changer de langue.",
+  "@voiceInputLanguageTooltip": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceInputPermissionDenied": "Autorisez l'accès au microphone et à la reconnaissance vocale pour dicter un repas.",
+  "voiceInputUnavailable": "La reconnaissance vocale n'est pas disponible sur cet appareil.",
+  "bulkAddSubmitLabel": "{count, plural, =1{Log 1 item} other{Log {count} items}}",
+  "@bulkAddSubmitLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddSkipLabel": "Passer",
+  "bulkAddIncludeLabel": "Inclure",
+  "bulkAddChooseFoodLabel": "Choisir un autre aliment",
+  "bulkAddNothingToLogLabel": "Rien à enregistrer pour l'instant",
+  "bulkAddSearchFailedLabel": "Impossible de rechercher ces aliments",
+  "bulkAddCheckAmountLabel": "Vérifiez l'unité pour ce montant",
+  "bulkAddDefaultAmountLabel": "Montant non précisé",
+  "bulkAddErrorInvalidName": "Élément {number} : nom d'aliment non valide",
+  "@bulkAddErrorInvalidName": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bulkAddRowQuantityInvalid": "Entrez un nombre comportant 2 décimales au maximum",
+  "bulkAddRowQuantityTooSmall": "La quantité doit être plus grande que 0",
+  "bulkAddRowQuantityTooLarge": "La quantité doit être {bound} ou moins",
+  "@bulkAddRowQuantityTooLarge": {
+    "placeholders": {
+      "bound": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAiAssistNotConfiguredLabel": "Désactivé — aucune clé sauvegardée",
+  "settingsAiAssistPausedLabel": "En pause — clé sauvegardée",
+  "settingsAiAssistEnabledLabel": "Utiliser l'assitance par IA",
+  "aiAssistExperimentalLabel": "Expérimentale",
+  "aiConsentTitle": "Avant que vous activiez ceci",
+  "bulkAddModelHintLabel": "Un modèle peut lire ceci pour vous",
+  "bulkAddModelHintKeyLabel": "Avec votre propre clé API",
+  "aiConsentChangeProviderNote": "Vous pouvez changer de fournisseur ultérieurement. Les conditions générales de chaque fournisseur sont indiquées dans les Paramètres, et rien de ce que vous saisissez ou photographiez n'est envoyé tant que vous n'utilisez pas la fonctionnalité.",
+  "aiConsentOwnServerCheckNote": "Lors de l'enregistrement de l'adresse de votre serveur, le système lui demande également quels modèles il propose et effectue une vérification de configuration : une ligne d'exemple fixe et un échantillon de photo provenant de nos archives, jamais l'un de vos éléments.",
+  "aiConsentAgreeLabel": "JE COMPRENDS",
+  "aiAssistDisclosureCommon": "Votre journal alimentaire et votre profil ne sont jamais transmis. Les valeurs nutritionnelles proviennent toujours des bases de données alimentaires, jamais du modèle. La clé est stockée uniquement sur cet appareil : OpenNutriTracker n'y a jamais accès et ne paie pas pour son utilisation.",
+  "aiAssistDisclosureAnthropic": "Une fois la clé enregistrée, le texte que vous saisissez sur l'écran d'ajout de plusieurs éléments — ainsi que toute photo que vous choisissez d'y lire — est envoyé à Anthropic. Les photos sont transmises uniquement pour cette requête et ne sont jamais enregistrées.",
+  "aiAssistDisclosureOpenRouter": "Une fois la clé enregistrée, le texte que vous saisissez sur l’écran d’ajout de plusieurs éléments — ainsi que toute photo que vous choisissez d’y lire — est envoyé à OpenRouter, qui le transmet au fournisseur gérant le modèle que vous avez choisi. OpenRouter transmet également à ce fournisseur une identité au niveau du compte à chaque requête, et cette fonctionnalité ne peut pas être désactivée. Il ne conserve pas votre contenu au-delà du routage de la requête, sauf si cela est nécessaire à des fins de détection des abus, de sécurité, de facturation ou de conformité légale. Le fournisseur hébergeant votre modèle conserve ce qu’il reçoit conformément à sa propre politique.",
+  "aiAssistDisclosureOpenAI": "Une fois la clé enregistrée, le texte que vous saisissez sur l'écran d'ajout de plusieurs éléments — ainsi que toute photo que vous choisissez d'y lire — est envoyé à OpenAI. OpenAI conserve ce que vous envoyez pendant 30 jours maximum afin de détecter d'éventuels abus, et plus longtemps si la loi l'exige ou si cela s'avère raisonnablement nécessaire pour protéger ses services ou un tiers contre tout préjudice.",
+  "aiAssistProviderOwnServerLabel": "Votre propre serveur",
+  "aiAssistEndpointFieldLabel": "Adresse du serveur",
+  "aiAssistModelFieldLabel": "Nom du modèle",
+  "aiAssistDisclosureOwnServerSecure": "Une fois l'adresse enregistrée, le texte que vous saisissez sur l'écran d'ajout de plusieurs éléments, ainsi que toute photo que vous choisissez d'y lire, sont envoyés à {host} — un serveur que vous gérez vous-même. Aucun tiers n'y a accès, et le projet n'a aucun lien avec cette machine et ne peut donner aucune garantie quant aux données qu'elle conserve. La connexion est cryptée.",
+  "@aiAssistDisclosureOwnServerSecure": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistDisclosureOwnServerPlaintext": "Une fois l’adresse enregistrée, le texte que vous saisissez sur l’écran d’ajout de plusieurs éléments, ainsi que toute photo que vous choisissez d’y lire, sont envoyés à {host} — un serveur que vous gérez. Aucun tiers ne les reçoit, et le projet n’a aucun lien avec cette machine et ne peut donner aucune garantie quant aux données qu’elle conserve. Cette adresse utilise le protocole HTTP en clair ; la connexion n’est donc pas chiffrée : tout élément présent sur le réseau entre ce téléphone et ce serveur peut lire les données envoyées.",
+  "@aiAssistDisclosureOwnServerPlaintext": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistDisclosureOwnServerGemini": "Une fois l'adresse enregistrée, le texte que vous saisissez sur l'écran d'ajout de plusieurs éléments, ainsi que toute photo que vous choisissez d'y lire, sont envoyés à l'API Gemini de Google à l'adresse {host}. Il ne s'agit pas d'un serveur que vous gérez : c'est Google qui les reçoit, et le projet n'a aucun lien avec Google. Dans le cadre d'une utilisation non payante de l'API Gemini, Google peut utiliser ce que vous envoyez pour améliorer ses produits et son apprentissage automatique, et des modérateurs humains peuvent le lire. En cas d’utilisation payante, ainsi que pour toute utilisation au sein de l’EEE, en Suisse et au Royaume-Uni, Google n’utilise pas ces données pour améliorer ses produits, mais les conserve pendant une durée limitée afin de détecter toute utilisation abusive.",
+  "@aiAssistDisclosureOwnServerGemini": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAssistEndpointInvalidLabel": "Saisissez une adresse commençant par http:// ou https://",
+  "aiAssistModelRequiredLabel": "Indiquez le nom du modèle que ce serveur doit utiliser.",
+  "aiAssistEndpointPublicPlaintextLabel": "Cette adresse est publique et non chiffrée ; par conséquent, les requêtes qui lui sont adressées sont refusées. Utilisez le protocole https ou une adresse privée.",
+  "aiAssistProbeSectionLabel": "Vérification de la configuration"
 }
