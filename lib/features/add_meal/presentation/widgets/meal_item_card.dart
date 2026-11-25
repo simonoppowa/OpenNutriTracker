@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
+import 'package:opennutritracker/core/presentation/widgets/user_image.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
 import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
@@ -130,6 +131,20 @@ class MealItemCard extends StatelessWidget {
     String? emoji,
   ) {
     final radius = BorderRadius.circular(Dimens.radiusM);
+    // The user's own photo (a recipe's or a custom meal's) comes first, with
+    // the placeholder below standing in when the file is gone (#675).
+    final localImagePath = mealEntity.localImagePath;
+    if (localImagePath != null) {
+      return ClipRRect(
+        borderRadius: radius,
+        child: UserImage(
+          storedPath: localImagePath,
+          width: Dimens.mealThumb,
+          height: Dimens.mealThumb,
+          fallback: _placeholderThumbnail(palette, accent, isRecipe, emoji),
+        ),
+      );
+    }
     if (mealEntity.thumbnailImageUrl != null) {
       return ClipRRect(
         borderRadius: radius,
@@ -142,6 +157,16 @@ class MealItemCard extends StatelessWidget {
         ),
       );
     }
+    return _placeholderThumbnail(palette, accent, isRecipe, emoji);
+  }
+
+  Widget _placeholderThumbnail(
+    AppPalette palette,
+    Color accent,
+    bool isRecipe,
+    String? emoji,
+  ) {
+    final radius = BorderRadius.circular(Dimens.radiusM);
     return Container(
       width: Dimens.mealThumb,
       height: Dimens.mealThumb,
