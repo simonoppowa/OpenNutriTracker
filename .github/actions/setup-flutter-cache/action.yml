@@ -1,5 +1,7 @@
 name: Setup Flutter
-description: Installs Flutter via subosito/flutter-action and uses its built-in SDK cache.
+description: >-
+  Installs Flutter via subosito/flutter-action, with the SDK and pub caches
+  read-only on pull requests (see ../pr-read-only-cache).
 inputs:
   flutter-version:
     description: Flutter SDK version.
@@ -12,9 +14,38 @@ inputs:
 runs:
   using: composite
   steps:
+    # subosito's own `cache: true` always saves, so pull requests would keep
+    # writing PR-scoped copies nobody else can restore. Its dry run only
+    # resolves the cache keys and paths; the caching happens below with the
+    # same keys, and the real install after it skips the download when the
+    # restored SDK is already in place.
+    - name: Resolve Flutter cache keys
+      id: flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ inputs.flutter-version }}
+        channel: ${{ inputs.channel }}
+        dry-run: true
+
+    - name: Cache Flutter SDK
+      uses: ./.github/actions/pr-read-only-cache
+      with:
+        path: ${{ steps.flutter.outputs.CACHE-PATH }}
+        key: ${{ steps.flutter.outputs.CACHE-KEY }}
+
+    # Same key subosito uses. The prefix restore-key is new: a PR that
+    # changes pubspec.lock now starts from develop's packages and fetches
+    # only the difference.
+    - name: Cache pub dependencies
+      uses: ./.github/actions/pr-read-only-cache
+      with:
+        path: ${{ steps.flutter.outputs.PUB-CACHE-PATH }}
+        key: ${{ steps.flutter.outputs.PUB-CACHE-KEY }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ steps.flutter.outputs.PUB-CACHE-KEY }}-
+
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ inputs.flutter-version }}
         channel: ${{ inputs.channel }}
-        cache: true
