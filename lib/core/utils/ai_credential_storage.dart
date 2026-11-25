@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:opennutritracker/core/utils/api_key_input.dart';
 import 'package:opennutritracker/core/utils/gemini_endpoint.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
 import 'package:synchronized/synchronized.dart';
@@ -1115,23 +1116,29 @@ class AiCredentialStorage {
     final target = await _target(provider);
     if (target == null) return null;
 
-    final value = await _storage.read(key: _slotTag(target));
-    if (value != null && value.isNotEmpty) return value;
+    // Cleaned on the way out as well as on the way in: a build before #1253
+    // only trimmed, so a key pasted with an invisible character in it is
+    // still in the keystore that way, and still failing every request.
+    final value = cleanApiKey(await _storage.read(key: _slotTag(target)) ?? '');
+    if (value.isNotEmpty) return value;
 
     if (target != AiProvider.anthropic) return null;
 
-    final legacy = await _storage.read(key: _legacyApiKeyTag);
-    if (legacy == null || legacy.isEmpty) return null;
+    final legacy = cleanApiKey(
+      await _storage.read(key: _legacyApiKeyTag) ?? '',
+    );
+    if (legacy.isEmpty) return null;
     return legacy;
   }
 
   /// Stores [apiKey] for [provider], defaulting to the active one. A blank
   /// value clears instead of writing an empty credential that would later
-  /// fail as a puzzling 401.
+  /// fail as a puzzling 401. Stored as [cleanApiKey] leaves it, so what a
+  /// paste added is not sent with every request (#1253).
   Future<void> writeApiKey(String apiKey, {AiProvider? provider}) async {
     final target = await _target(provider);
     if (target == null) return;
-    final trimmed = apiKey.trim();
+    final trimmed = cleanApiKey(apiKey);
     if (trimmed.isEmpty) {
       await clear(provider: target);
       return;
