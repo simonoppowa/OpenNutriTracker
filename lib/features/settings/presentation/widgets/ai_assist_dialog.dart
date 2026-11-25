@@ -1017,6 +1017,9 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
   }
 
   Widget _buildDialog(BuildContext context, S s, ThemeData theme) {
+    final keyFieldName = s.aiAssistKeyFieldLabel(
+      _providerName(context, _provider),
+    );
     return AlertDialog(
       // The Experimental marker is deliberately *not* appended here. At a 2x
       // text scale on a 320px phone it makes this title tall enough to squeeze
@@ -1160,19 +1163,34 @@ class _AiAssistDialogState extends State<AiAssistDialog> {
                         ),
                       ),
                       const SizedBox(height: 8),
+                      // The field's name is drawn above it, where it wraps:
+                      // as labelText it stays on one line, and at twice the
+                      // font size "OpenRouter API key" was cut off. The
+                      // field carries the name as its semantics label, so
+                      // this copy is left out and a screen reader reads it
+                      // once.
+                      ExcludeSemantics(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            keyFieldName,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
                       Semantics(
                         identifier: 'ai-assist-key-field',
+                        label: keyFieldName,
                         child: TextField(
                           controller: _apiKeyController,
                           onChanged: _keyTyped,
                           autocorrect: false,
                           enableSuggestions: false,
                           obscureText: true,
-                          decoration: InputDecoration(
-                            labelText: s.aiAssistKeyFieldLabel(
-                              _providerName(context, _provider),
-                            ),
-                            border: const OutlineInputBorder(),
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
                           ),
                         ),
                       ),

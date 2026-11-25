@@ -298,8 +298,15 @@ class _RecipesPageState extends State<RecipesPage>
                           if (_selectionMode) _buildSelectionBar(context),
                           Expanded(
                             child: ListView.builder(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: Dimens.spacing8),
+                              // The list draws under the navigation bar
+                              // (edge-to-edge), so its end clears the bar for
+                              // the last recipe to be reachable.
+                              padding: EdgeInsets.only(
+                                top: Dimens.spacing8,
+                                bottom:
+                                    Dimens.spacing8 +
+                                    MediaQuery.paddingOf(context).bottom,
+                              ),
                               itemCount: filtered.length,
                               itemBuilder: (context, index) {
                                 final recipe = filtered[index];

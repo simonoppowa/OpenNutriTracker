@@ -417,6 +417,10 @@
   "dialogDeleteLabel": "DELETE",
   "dialogOKLabel": "OK",
   "diaryFutureDateWarning": "You are editing a future date",
+  "diaryGoToTodayLabel": "Go to today",
+  "@diaryGoToTodayLabel": {
+    "description": "Tooltip and screen reader label of the Diary's button that jumps back to today, shown while another day is selected."
+  },
   "diaryLabel": "Diary",
   "diaryMealKcalConsumedOfTarget": "{consumed} / {target} kcal",
   "diaryNutrientPanelDataDisclaimer": "Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.",

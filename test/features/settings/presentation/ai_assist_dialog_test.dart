@@ -466,6 +466,55 @@ void main() {
     );
   });
 
+  // An in-field label stays on one line, and at twice the font size
+  // "OpenRouter API key" was cut off. Drawn above the field, it wraps; the
+  // field still carries the name, and a screen reader reads it once.
+  final providerRows = <String, Future<void> Function(WidgetTester)>{
+    'Anthropic': (_) async {},
+    'OpenRouter': (tester) => tester.tap(find.text('OpenRouter')),
+    'OpenAI': (tester) => tester.tap(find.text('OpenAI')),
+    l10nEn.aiAssistProviderOwnServerLabel: (tester) =>
+        tester.tap(find.text(l10nEn.aiAssistProviderOwnServerLabel)),
+  };
+  for (final MapEntry(key: provider, value: choose) in providerRows.entries) {
+    testWidgets('at 2x text the $provider key field is named whole, once', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      // A 411 dp wide phone.
+      tester.view.physicalSize = const Size(1080, 2340);
+      tester.view.devicePixelRatio = 2.625;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
+          child: _app(storage),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await choose(tester);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final name = l10nEn.aiAssistKeyFieldLabel(provider);
+      final drawn = find.text(name);
+      expect(drawn, findsOneWidget);
+      expect(
+        tester.renderObject<RenderParagraph>(drawn).didExceedMaxLines,
+        isFalse,
+      );
+
+      final named = find.semantics.byLabel(RegExp(RegExp.escape(name)));
+      expect(named, findsOne);
+      final data = named.evaluate().single.getSemanticsData();
+      expect(data.label, name);
+      expect(data.flagsCollection.isTextField, isTrue);
+      expect(data.identifier, 'ai-assist-key-field');
+      semantics.dispose();
+    });
+  }
+
   testWidgets('a key saved for one provider is not offered for the other', (
     tester,
   ) async {
