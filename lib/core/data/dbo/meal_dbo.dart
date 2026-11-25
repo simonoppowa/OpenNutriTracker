@@ -84,6 +84,13 @@ class MealDBO extends HiveObject {
   @HiveField(17)
   final int? dataVersion;
 
+  /// See `MealEntity.fixedTotals` (#705). True only on a Quick Add entry
+  /// saved without a weight; null everywhere else, including every row
+  /// written before the field existed, which reads as false. Copied through
+  /// JSON and CSV exports so a restored entry stays a fixed total.
+  @HiveField(18)
+  final bool? fixedTotals;
+
   /// Rows at this version or above carry every micronutrient in the app's
   /// units: milligrams for the minerals, cholesterol and vitamins C, B6 and
   /// niacin, micrograms for vitamins A, D and B12. Below it (null included)
@@ -116,6 +123,7 @@ class MealDBO extends HiveObject {
     this.backendSource,
     this.machineTranslatedName,
     this.dataVersion,
+    this.fixedTotals,
   });
 
   /// Entities always carry app units — every remote mapping converts on
@@ -141,6 +149,7 @@ class MealDBO extends HiveObject {
         backendSource: mealEntity.backendSource,
         machineTranslatedName: mealEntity.machineTranslatedName,
         dataVersion: currentDataVersion,
+        fixedTotals: mealEntity.fixedTotals ? true : null,
       );
 
   factory MealDBO.fromJson(Map<String, dynamic> json) =>

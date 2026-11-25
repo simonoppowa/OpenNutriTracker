@@ -95,12 +95,26 @@ class IntakeCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      MealValueUnitText(
-                        value: intake.amount,
-                        meal: intake.meal,
-                        usesImperialUnits: usesImperialUnits,
-                        textStyle: textTheme.bodySmall?.copyWith(color: palette.textMuted),
-                      ),
+                      // A Quick Add without a weight has no amount to show,
+                      // only the made-up 100 g/ml it is stored at (#705).
+                      if (intake.hasFixedTotals)
+                        Text(
+                          s.quickAddCardLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: palette.textMuted,
+                          ),
+                        )
+                      else
+                        MealValueUnitText(
+                          value: intake.amount,
+                          meal: intake.meal,
+                          usesImperialUnits: usesImperialUnits,
+                          textStyle: textTheme.bodySmall?.copyWith(
+                            color: palette.textMuted,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -173,6 +187,14 @@ class IntakeCard extends StatelessWidget {
   }
 
   void onTappedItem(BuildContext context, bool usesImperialUnits) {
+    // Its totals were typed for no particular weight, so there is no
+    // amount to change them by (#705). Say so rather than ignore the tap.
+    if (intake.hasFixedTotals) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).quickAddFixedTotalsSnack)),
+      );
+      return;
+    }
     onItemTapped?.call(context, intake, usesImperialUnits);
   }
 }

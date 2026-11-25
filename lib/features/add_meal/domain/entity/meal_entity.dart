@@ -153,6 +153,21 @@ class MealEntity extends Equatable {
   /// hydration step in MealDetailBloc.
   final bool detailed;
 
+  /// True for a Quick Add entry saved without a weight (#705): its
+  /// [nutriments] are the totals the user typed, stored per 100 g/ml so an
+  /// intake of [fixedTotalsBasis] adds up to exactly those totals. There is
+  /// no real weight behind it, so the logged entry hides the synthetic
+  /// 100 g/ml and its amount cannot be changed (see
+  /// `IntakeEntity.hasFixedTotals`).
+  ///
+  /// False for everything else, including every Quick Add stored before the
+  /// flag existed: those cannot be told apart from a custom meal logged at
+  /// 100 g, so they keep the 100 g/ml they have always shown.
+  final bool fixedTotals;
+
+  /// The amount a [fixedTotals] meal is logged at.
+  static const double fixedTotalsBasis = 100;
+
   bool get isLiquid => liquidUnits.contains(mealUnit);
 
   bool get isSolid => solidUnits.contains(mealUnit);
@@ -239,6 +254,7 @@ class MealEntity extends Equatable {
     this.portionsUnavailable = false,
     this.localImagePath,
     this.detailed = false,
+    this.fixedTotals = false,
   });
 
   /// The same meal with a verified translation in place of the English
@@ -270,6 +286,7 @@ class MealEntity extends Equatable {
     portionsUnavailable: portionsUnavailable,
     localImagePath: localImagePath,
     detailed: detailed,
+    fixedTotals: fixedTotals,
   );
 
   /// The same meal knowing every portion it can be counted in.
@@ -298,6 +315,7 @@ class MealEntity extends Equatable {
     portionsUnavailable: portionsUnavailable,
     localImagePath: localImagePath,
     detailed: detailed,
+    fixedTotals: fixedTotals,
   );
 
   /// The same meal, recording that its portions could not be looked up.
@@ -326,6 +344,7 @@ class MealEntity extends Equatable {
     portionsUnavailable: true,
     localImagePath: localImagePath,
     detailed: detailed,
+    fixedTotals: fixedTotals,
   );
 
   /// The same meal under [newName]; nothing else moves.
@@ -350,6 +369,7 @@ class MealEntity extends Equatable {
     portionsUnavailable: portionsUnavailable,
     localImagePath: localImagePath,
     detailed: detailed,
+    fixedTotals: fixedTotals,
   );
 
   factory MealEntity.empty() => MealEntity(
@@ -383,6 +403,7 @@ class MealEntity extends Equatable {
     machineTranslatedName: mealDBO.machineTranslatedName ?? false,
     localImagePath: mealDBO.localImagePath,
     detailed: mealDBO.detailed ?? false,
+    fixedTotals: mealDBO.fixedTotals ?? false,
   );
 
   /// [detailed] is true for full-product responses (the v2 barcode endpoint),
