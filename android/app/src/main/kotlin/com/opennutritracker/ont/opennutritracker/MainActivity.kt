@@ -93,6 +93,29 @@ class MainActivity : FlutterFragmentActivity() {
                             )
                         }
                     }
+                    // The energy behind those sessions. Read here rather than
+                    // through the health plugin, whose getData answers any
+                    // failure, a rate limit included, with an empty list
+                    // (#1459); here a refusal reaches Dart as an error.
+                    "readTotalCaloriesBurned" -> {
+                        val from = call.argument<Number>("fromMillis")?.toLong()
+                        val to = call.argument<Number>("toMillis")?.toLong()
+                        if (from == null || to == null) {
+                            result.error(
+                                "invalid_arguments",
+                                "readTotalCaloriesBurned needs fromMillis and toMillis",
+                                null,
+                            )
+                            return@setMethodCallHandler
+                        }
+                        answerFromHealthConnect(result) {
+                            HealthConnectWorkoutReader.readTotalCaloriesBurned(
+                                applicationContext,
+                                from,
+                                to,
+                            )
+                        }
+                    }
                     // Whether the two grants a workout import needs are still
                     // held. Asked here rather than through the health plugin's
                     // `hasPermissions`, which calls `getGrantedPermissions()`
