@@ -16,12 +16,13 @@ pays no provider.
 1. [The one rule that shapes everything](#the-one-rule-that-shapes-everything)
 2. [A typed meal, end to end](#a-typed-meal-end-to-end)
 3. [A photo, end to end](#a-photo-end-to-end)
-4. [Where a request goes](#where-a-request-goes)
-5. [Choosing a provider](#choosing-a-provider)
-6. [A server you run: the probe](#a-server-you-run-the-probe)
-7. [The guardrails](#the-guardrails)
-8. [What it deliberately does not do](#what-it-deliberately-does-not-do)
-9. [Code map](#code-map)
+4. [A nutrition label](#a-nutrition-label)
+5. [Where a request goes](#where-a-request-goes)
+6. [Choosing a provider](#choosing-a-provider)
+7. [A server you run: the probe](#a-server-you-run-the-probe)
+8. [The guardrails](#the-guardrails)
+9. [What it deliberately does not do](#what-it-deliberately-does-not-do)
+10. [Code map](#code-map)
 
 ---
 
@@ -37,6 +38,11 @@ has always used: Open Food Facts, USDA FoodData Central, the German BLS.
 
 So the app's older claim — *every number is cited* — survives the feature intact. The model
 changes how a food is **found**, never what it **contains**.
+
+One feature reads numbers through a model, and only numbers already printed in front of it: a
+photo of a packaged food's nutrition label, read into the custom-meal form. That is a
+transcription with its source in your hand, not an estimate, and it is set out in
+[a nutrition label](#a-nutrition-label).
 
 The rule is enforced structurally rather than by convention. The schema every provider is held to
 is a single top-level constant with no nutrition fields in it, so adding a provider cannot
@@ -256,6 +262,33 @@ with it. Keeping the bare number is the worse failure: an estimated `200 g` of r
 logged as 200 servings. The row falls back to the amount an unquantified item gets, and you set
 it. The rule sits in the shared photo interpreter rather than in a client, so a provider added
 later inherits it.
+
+## A nutrition label
+
+The custom-meal form has a *Read nutrition label* button for a packaged food no database has. It
+is offered only while AI meal assistance is on, agreed to and not hidden, and for a server you
+run only once its setup check has read a photo — the same gate as the meal photo's camera. A sheet
+names where the photo goes before the camera opens.
+
+**This is the one place a model hands the app a nutrition number, and the number is printed on
+the label.** The prompt asks for a transcription: the name, brand, barcode, a stated serving, and
+the per-100 g values the form takes, each converted to the form's unit (kJ to kcal, salt to
+sodium) and a value that cannot be read left out rather than guessed. Nothing is saved from the
+reading: it fills the form's fields, switches the form to per-100 values, and you check every one
+before you save, as you would have typed them. A barcode already in the form — the scanner's —
+is kept over the model's reading of one.
+
+The reply rides on the same tool and schema as everything else, one item per value with
+`key=value` as its `query`, rather than on a schema of its own: the schema's quantity field
+refuses the zero a label prints, and a second schema would be a second thing every provider has
+to be held to. A key the form does not take, a number that does not parse, a value no label can
+print (more than 100 g of fat per 100 g, more than 900 kcal) and a barcode of the wrong shape are
+dropped in Dart, whatever the model answered. The photo goes through the same encoder as a meal
+photo, and its cache copy is deleted the same way.
+
+When a scanned barcode is not found, the scanner offers *Add it from its label*: a new custom meal
+carrying that barcode, so the next scan finds it. That offer needs no model; the label can be
+typed in by hand.
 
 ## Where a request goes
 
@@ -523,7 +556,9 @@ address**. An IPv4-only check would never have seen where the connection actuall
 
 - **No inference the project runs, and no key the project holds.** You bring a credential or an
   address. The project pays nothing and is not in the request path.
-- **No nutrition number from a model**, ever — see [the one rule](#the-one-rule-that-shapes-everything).
+- **No nutrition number from a model**, except one copied off a nutrition label you photographed,
+  into a form you check before saving — see [the one rule](#the-one-rule-that-shapes-everything)
+  and [a nutrition label](#a-nutrition-label).
 - **No on-device model.** The local tier is a deterministic parser, not a small model.
 - **No photo kept.** Not in the documents directory, not in an export, not for a retry.
 - **No silent provider substitution.** A provider name this build does not recognise refuses to
@@ -543,6 +578,8 @@ address**. An IPv4-only check would never have seen where the connection actuall
 | [`openai_meal_items_api.dart`](../lib/features/add_meal/data/openai_meal_items_api.dart) | OpenAI Responses wire format |
 | [`openai_compatible_meal_items_api.dart`](../lib/features/add_meal/data/openai_compatible_meal_items_api.dart) | Chat-completions format — serves OpenRouter and your own server |
 | [`meal_items_api_factory.dart`](../lib/features/add_meal/data/meal_items_api_factory.dart) | The whole of provider selection, plus per-provider timeouts |
+| [`read_nutrition_label_usecase.dart`](../lib/features/edit_meal/domain/usecase/read_nutrition_label_usecase.dart) | The label prompt, and reading its values back |
+| [`label_scan_button.dart`](../lib/features/edit_meal/presentation/widgets/label_scan_button.dart) | The custom-meal form's *Read nutrition label*, its gate and its sheet |
 | [`model_meal_text_interpreter.dart`](../lib/features/add_meal/data/model_meal_text_interpreter.dart) | Prompt and locale handling for text |
 | [`model_meal_photo_interpreter.dart`](../lib/features/add_meal/data/model_meal_photo_interpreter.dart) | The same for photos |
 | [`read_meal_text_usecase.dart`](../lib/features/add_meal/domain/usecase/read_meal_text_usecase.dart) | Model-or-parser policy, and which failures are worth reporting |

@@ -27,8 +27,10 @@ import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/navigation_predicates.dart';
 import 'package:opennutritracker/features/add_meal/presentation/log_tray.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/edit_meal/domain/usecase/read_nutrition_label_usecase.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/widgets/default_meal_image.dart';
+import 'package:opennutritracker/features/edit_meal/presentation/widgets/label_scan_button.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -262,6 +264,12 @@ class _EditMealScreenState extends State<EditMealScreen> {
             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
           actions: [
+            // Only a custom meal's values are the user's to type, so only
+            // there is a label read into them.
+            if (_mealEntity.source == MealSourceEntity.custom)
+              LabelScanButton(
+                onRead: (reading) => _fillFromLabel(reading, usesKj),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(Dimens.spacing16, 0, Dimens.spacing16, 0),
               child: Semantics(
@@ -315,6 +323,79 @@ class _EditMealScreenState extends State<EditMealScreen> {
           double.parse(converted.toStringAsFixed(1)).toStringOrEmpty();
     }
     _lastRenderedUsesKj = usesKj;
+  }
+
+  /// Fills the form from a nutrition label: what the label printed replaces
+  /// the field, and everything else stays as typed. A barcode already in the
+  /// form stays too — the scanner read it, and reads it better than a model
+  /// reads a photo of one.
+  ///
+  /// A label prints per 100 g, so values switch the form to Advanced with
+  /// base quantity 100 and per-base rather than Total. The serving goes in
+  /// the form's own unit, which is oz or fl oz with imperial units. Values
+  /// typed in Total mode were per meal, so on that switch the ones the label
+  /// did not print are cleared rather than read as per 100.
+  void _fillFromLabel(NutritionLabelReading reading, bool usesKj) {
+    var filled = 0;
+    void put(TextEditingController controller, String? text) {
+      if (text == null) return;
+      controller.text = text;
+      if (text.isNotEmpty) filled++;
+    }
+
+    final per100 = reading.per100;
+    final clearUnprinted = per100.isNotEmpty && _isTotal;
+    setState(() {
+      put(_nameTextController, reading.name);
+      put(_brandsTextController, reading.brand);
+      if (_barcodeTextController.text.trim().isEmpty) {
+        put(_barcodeTextController, reading.barcode);
+      }
+      final serving = reading.servingGrams?.toStringOrEmpty();
+      put(
+        _servingQuantityTextController,
+        serving == null || !_usesImperialUnits
+            ? serving
+            : _convertToImperial(serving, selectedUnit ?? _units[2]),
+      );
+      final kcal = per100['energyKcal'];
+      put(
+        _kcalTextController,
+        kcal != null
+            ? _formatStoredKcalForDisplay(kcal, usesKj)
+            : (clearUnprinted ? '' : null),
+      );
+      for (final (key, controller) in [
+        ('carbs', _carbsTextController),
+        ('fat', _fatTextController),
+        ('protein', _proteinTextController),
+        ('fiber', _fiberTextController),
+        ('saturatedFat', _saturatedFatTextController),
+        ('sugars', _sugarsTextController),
+        ('sodium', _sodiumTextController),
+        ('calcium', _calciumTextController),
+        ('iron', _ironTextController),
+        ('potassium', _potassiumTextController),
+        ('magnesium', _magnesiumTextController),
+        ('vitaminD', _vitaminDTextController),
+        ('vitaminB12', _vitaminB12TextController),
+      ]) {
+        put(
+          controller,
+          per100[key]?.toStringOrEmpty() ?? (clearUnprinted ? '' : null),
+        );
+      }
+      if (per100.isNotEmpty) {
+        _isTotal = false;
+        _baseQuantityTextController.text = '100';
+        _formMode = CustomMealFormMode.advanced;
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(S.of(context).customMealLabelScanFilled(filled)),
+      ),
+    );
   }
 
   /// Convert a stored kcal value into the string the user should see in
