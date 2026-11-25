@@ -3,6 +3,21 @@ import 'package:opennutritracker/features/trends/presentation/trends_calc.dart';
 
 DateTime _d(int y, int m, int day) => DateTime(y, m, day);
 
+/// Hours in the local calendar day that starts at [day]'s midnight: 24
+/// normally, 25 on a fall-back day, 23 on a spring-forward day.
+int _hoursIn(DateTime day) =>
+    DateTime(day.year, day.month, day.day + 1).difference(day).inHours;
+
+/// The DST groups need a zone with both transitions; `just test` runs in the
+/// process zone (UTC on CI), where they skip, and `just test_dst` reruns this
+/// file under Europe/Berlin, which fell back on 2025-10-26 and springs
+/// forward on 2026-03-29.
+final String? _skipWithoutDst =
+    _hoursIn(_d(2025, 10, 26)) == 25 && _hoursIn(_d(2026, 3, 29)) == 23
+    ? null
+    : 'no DST transitions in zone ${_d(2026, 1, 1).timeZoneName}; '
+          'run `just test_dst` (TZ=Europe/Berlin)';
+
 void main() {
   group('streakStats', () {
     final start = _d(2026, 5, 1);
@@ -80,4 +95,51 @@ void main() {
       expect(p.weeksToTarget, isNull);
     });
   });
+
+  // #1224: both spans count calendar days, so a 23-hour or 25-hour day inside
+  // the window is still one day. A 24-hour span only goes wrong when the
+  // window's two ends sit in different UTC offsets, so each transition gets
+  // its own 30-day window: Europe/Berlin fell back on 2025-10-26 and springs
+  // forward on 2026-03-29.
+  final windows = {
+    'a fall-back': (start: _d(2025, 10, 12), today: _d(2025, 11, 10)),
+    'a spring-forward': (start: _d(2026, 3, 12), today: _d(2026, 4, 10)),
+  };
+  for (final MapEntry(key: name, value: w) in windows.entries) {
+    group('across $name', () {
+      test('streakStats counts every day of the window once', () {
+        final onTrack = {
+          for (var i = 0; i < 30; i++)
+            _d(w.start.year, w.start.month, w.start.day + i),
+        };
+        expect(onTrack, hasLength(30));
+        expect(onTrack, contains(w.today));
+        final s = streakStats(onTrack, w.start, w.today);
+        // Across the spring-forward a 24-hour span measures 29 days minus an
+        // hour, truncates to 28 and stops both runs a day short.
+        expect(s.current, 30);
+        expect(s.longest, 30);
+      });
+
+      test('streakStats over a one-day window counts only that day', () {
+        final s = streakStats({w.today}, w.today, w.today);
+        expect(s.current, 1);
+        expect(s.longest, 1);
+      });
+
+      test('weightProjection reads one calendar day as one x unit', () {
+        // Exactly 0.1 kg a day: a 24-hour span puts every point after the
+        // spring-forward one x unit early and bends the slope off 0.7.
+        final points = [
+          for (var i = 0; i < 30; i++)
+            (
+              date: _d(w.start.year, w.start.month, w.start.day + i),
+              kg: 90 - i * 0.1,
+            ),
+        ];
+        final p = weightProjection(points, null)!;
+        expect(p.ratePerWeek, closeTo(-0.7, 1e-9));
+      });
+    }, skip: _skipWithoutDst);
+  }
 }
