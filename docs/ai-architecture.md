@@ -195,6 +195,13 @@ attribution headers are deliberately not among them: they would put the app on a
 leaderboard as a side effect of somebody saving a key. A photo request differs only where it has
 to, in its own prompt and a picture in place of the line.
 
+**That prompt carries one thing of yours the typed one does not: the names of your saved
+recipes.** A photograph names a regional dish generically — *dumplings* for the *Pelmeni* you
+saved — and the search then never reaches your recipe, so the prompt lists up to 60 names, the
+latest changed first, and asks for one by its exact name only when the photo clearly shows it. The
+names and nothing else: no ingredient, amount or nutrition value of a recipe goes with them. The
+photo sheet says so before the camera opens, and the setup check's sample photograph carries none.
+
 ## A photo, end to end
 
 Reading a photo is the same feature with a camera instead of a keyboard, offered once a key or

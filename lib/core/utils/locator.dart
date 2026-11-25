@@ -180,8 +180,11 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ReadMealPhotoUseCase>(
     () => ReadMealPhotoUseCase(
       locator<AiCredentialStorage>(),
-      (selection) =>
-          ModelMealPhotoInterpreter(mealItemsApiFor(locator(), selection)),
+      (selection) => ModelMealPhotoInterpreter(
+        mealItemsApiFor(locator(), selection),
+        savedDishes: () =>
+            locator<RecipeRepository>().getRecipeNamesLatestFirst(),
+      ),
     ),
   );
   // A singleton because it is the thing that outlives the settings dialog:
