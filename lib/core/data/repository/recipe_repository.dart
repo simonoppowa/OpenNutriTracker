@@ -20,6 +20,9 @@ class RecipeRepository {
 
   Future<void> deleteRecipe(String id) => _dataSource.deleteRecipe(id);
 
+  /// Fires after every write to the recipe library.
+  Stream<void> watch() => _dataSource.watch();
+
   // Used by ExportDataUsecase / ImportDataUsecase.
   List<RecipeDBO> getAllRecipesDBO() => _dataSource.getAllRecipes();
 
