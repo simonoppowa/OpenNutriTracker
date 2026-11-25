@@ -5,6 +5,10 @@ import 'package:opennutritracker/core/utils/custom_text_input_formatter.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class EditDialog extends StatefulWidget {
+  /// What the dialog returns when the user taps Delete. OK never returns
+  /// it: an amount of 0 or less is refused.
+  static const deleteResult = -1.0;
+
   final IntakeEntity intakeEntity;
   final bool usesImperialUnits;
 
@@ -51,27 +55,45 @@ class _EditDialogState extends State<EditDialog> {
           ),
         ],
       ),
+      // Delete on its own on the left, so deleting needs no long-press or
+      // drag; Cancel and the confirming OK together on the right.
+      actionsAlignment: MainAxisAlignment.spaceBetween,
       actions: [
-        TextButton(
-          onPressed: () {
-            final newAmount = double.tryParse(
-              amountEditingController.text.replaceAll(',', '.'),
-            );
-            if (newAmount == null) return;
-            Navigator.of(context).pop(
-              _convertBackToMetricValue(
-                newAmount,
-                widget.intakeEntity.meal.mealUnit,
-              ),
-            );
-          },
-          child: Text(S.of(context).dialogOKLabel),
+        Semantics(
+          identifier: 'edit-item-delete',
+          child: TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(context).pop(EditDialog.deleteResult),
+            child: Text(S.of(context).dialogDeleteLabel),
+          ),
         ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: Text(S.of(context).dialogCancelLabel),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(S.of(context).dialogCancelLabel),
+            ),
+            TextButton(
+              onPressed: () {
+                final newAmount = double.tryParse(
+                  amountEditingController.text.replaceAll(',', '.'),
+                );
+                if (newAmount == null || newAmount <= 0) return;
+                Navigator.of(context).pop(
+                  _convertBackToMetricValue(
+                    newAmount,
+                    widget.intakeEntity.meal.mealUnit,
+                  ),
+                );
+              },
+              child: Text(S.of(context).dialogOKLabel),
+            ),
+          ],
         ),
       ],
     );
