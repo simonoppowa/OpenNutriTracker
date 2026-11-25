@@ -27,13 +27,31 @@ final class MealPhotoContent extends MealContent {
   final String mediaType;
   final String base64Data;
 
-  const MealPhotoContent({required this.mediaType, required this.base64Data});
+  /// What the user typed alongside the photo ("2 eggs, the cheese is
+  /// sulguni"), or null. It names what the picture cannot show, and it is
+  /// the only place a photo's amount may come from.
+  final String? note;
+
+  const MealPhotoContent({
+    required this.mediaType,
+    required this.base64Data,
+    this.note,
+  });
 }
 
 /// The text part that accompanies a photo. Short on purpose: the system
 /// prompt carries the rules, and this only has to say what the picture is
 /// for.
 const mealPhotoContentPrompt = 'List the foods in this photo.';
+
+/// The text part sent with a photo: [mealPhotoContentPrompt], and the user's
+/// note when there is one, quoted so it reads as theirs.
+String mealPhotoContentText(String? note) {
+  final trimmed = note?.trim() ?? '';
+  return trimmed.isEmpty
+      ? mealPhotoContentPrompt
+      : '$mealPhotoContentPrompt\nThe user\'s note: "$trimmed"';
+}
 
 const mealItemsToolName = 'log_meal_items';
 

@@ -44,5 +44,12 @@ abstract interface class MealPhotoInterpreter {
   /// Raises [MealInterpreterException] for every ordinary failure. Unlike
   /// the text path there is nothing to fall back to — there is no offline
   /// parser for an image — so the caller shows the user what happened.
-  Future<MealTextParseResult> interpret(MealPhoto photo, {String? localeCode});
+  ///
+  /// [note] is what the user typed with the photo, if anything: it may name
+  /// a food the picture cannot show, or state an amount.
+  Future<MealTextParseResult> interpret(
+    MealPhoto photo, {
+    String? localeCode,
+    String? note,
+  });
 }

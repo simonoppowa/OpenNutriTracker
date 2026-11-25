@@ -69,6 +69,7 @@ class _FakeInterpreter implements MealPhotoInterpreter {
 
   MealPhoto? sawPhoto;
   String? sawLocale;
+  String? sawNote;
   var calls = 0;
   final entered = Completer<void>();
 
@@ -78,10 +79,12 @@ class _FakeInterpreter implements MealPhotoInterpreter {
   Future<MealTextParseResult> interpret(
     MealPhoto photo, {
     String? localeCode,
+    String? note,
   }) async {
     calls++;
     sawPhoto = photo;
     sawLocale = localeCode;
+    sawNote = note;
     if (!entered.isCompleted) entered.complete();
     if (waitUntilReleased != null) await waitUntilReleased;
     if (throws != null) throw throws!;
@@ -186,6 +189,14 @@ void main() {
       expect((reading as MealPhotoRead).result.items.single.query, 'egg');
       expect(s.interpreter.sawPhoto, same(_photo));
       expect(s.interpreter.sawLocale, 'de');
+    });
+
+    test("passes the user's note through", () async {
+      final s = subject(apiKey: 'k', result: _oneItem);
+
+      await s.useCase.read(_photo, note: '2 eggs');
+
+      expect(s.interpreter.sawNote, '2 eggs');
     });
 
     test('an empty answer is a reading, not a failure', () async {

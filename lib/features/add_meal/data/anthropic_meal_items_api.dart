@@ -168,7 +168,7 @@ class AnthropicMealItemsApi implements MealItemsApi {
   /// than on [MealContent].
   Object _contentJson(MealContent content) => switch (content) {
     MealTextContent(:final text) => text,
-    MealPhotoContent(:final mediaType, :final base64Data) => [
+    MealPhotoContent(:final mediaType, :final base64Data, :final note) => [
       {
         'type': 'image',
         'source': {
@@ -177,7 +177,7 @@ class AnthropicMealItemsApi implements MealItemsApi {
           'data': base64Data,
         },
       },
-      {'type': 'text', 'text': mealPhotoContentPrompt},
+      {'type': 'text', 'text': mealPhotoContentText(note)},
     ],
   };
 

@@ -1695,6 +1695,9 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
         photo: photo,
         usesImperialUnits: _args.usesImperialUnits,
         localeCode: Localizations.localeOf(context).languageCode,
+        note: _textController.text.trim().isEmpty
+            ? null
+            : _textController.text.trim(),
       ),
     );
   }

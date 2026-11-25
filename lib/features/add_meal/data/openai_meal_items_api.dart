@@ -146,12 +146,12 @@ class OpenAiMealItemsApi implements MealItemsApi {
         MealTextContent(:final text) => [
           {'type': 'input_text', 'text': text},
         ],
-        MealPhotoContent(:final mediaType, :final base64Data) => [
+        MealPhotoContent(:final mediaType, :final base64Data, :final note) => [
           {
             'type': 'input_image',
             'image_url': 'data:$mediaType;base64,$base64Data',
           },
-          {'type': 'input_text', 'text': mealPhotoContentPrompt},
+          {'type': 'input_text', 'text': mealPhotoContentText(note)},
         ],
       };
 

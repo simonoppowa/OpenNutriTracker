@@ -93,6 +93,7 @@ class ReadMealPhotoUseCase {
   Future<MealPhotoReadResult> read(
     MealPhoto photo, {
     String? localeCode,
+    String? note,
   }) async {
     final selection = await _credentials.readSelection();
     if (selection == null) {
@@ -102,7 +103,7 @@ class ReadMealPhotoUseCase {
     try {
       final result = await _interpreterFactory(
         selection,
-      ).interpret(photo, localeCode: localeCode);
+      ).interpret(photo, localeCode: localeCode, note: note);
       return MealPhotoRead(result);
     } on MealInterpreterException catch (e) {
       _log.info('Photo interpreter failed: ${e.reason}');
