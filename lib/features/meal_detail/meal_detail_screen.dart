@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
@@ -27,6 +28,7 @@ import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_title_expanded.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/off_disclaimer.dart';
+import 'package:opennutritracker/features/meal_detail/util/last_portion.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class MealDetailScreen extends StatefulWidget {
@@ -63,6 +65,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   String _initialUnit = "";
   String _initialQuantity = "";
+
+  /// The last time this food was logged (#1265), once the lookup returns.
+  /// `_applyInitialSelection` opens on its amount when the food still
+  /// offers its unit.
+  IntakeEntity? _lastIntake;
 
   // Set on the first didChangeDependencies pass, which is the only one that
   // reads the route arguments and requests hydration (see there).
@@ -158,6 +165,9 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       // (serving fields + micronutrients) once, in the background; the
       // listener in build() swaps the displayed meal in when it arrives.
       _mealDetailBloc.add(HydrateMealEvent(meal));
+
+      // A row reopened from the To-log list already has its amount.
+      if (_editingTrayItem == null) _loadLastIntake();
     }
 
     _mealDetailBloc.add(LoadDailyTotalsEvent(_day));
@@ -165,6 +175,18 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     _applyInitialSelection();
 
     super.didChangeDependencies();
+  }
+
+  /// Looks up the last time this food was logged and, if the user has not
+  /// picked an amount meanwhile, re-picks the defaults so it opens on that
+  /// amount instead (#1265).
+  Future<void> _loadLastIntake() async {
+    final last = await _mealDetailBloc.lastIntakeOf(meal);
+    if (!mounted || last == null || _userChangedSelection) return;
+    _lastIntake = last;
+    _initialUnit = "";
+    _initialQuantity = "";
+    _applyInitialSelection();
   }
 
   /// Opened from a row on the To-log list: start from that row's amount, and
@@ -215,11 +237,35 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         : rounded.toString();
   }
 
-  /// Pick the default unit and quantity from the meal's shape. Serving-based
-  /// meals default to 1 serving; otherwise to 100 g/ml (or 1 oz/fl oz in
-  /// imperial). Guarded so it only runs while the user hasn't chosen yet, and
-  /// re-run after hydration reveals serving values.
+  /// Pick the default unit and quantity. A food logged before opens on the
+  /// amount it was last logged with, when it still offers that unit (#1265).
+  /// Otherwise, from the meal's shape: serving-based meals default to 1
+  /// serving; others to 100 g/ml (or 1 oz/fl oz in imperial). Guarded so it
+  /// only runs while the user hasn't chosen yet, and re-run after hydration
+  /// reveals serving values.
   void _applyInitialSelection() {
+    final lastPortion = _initialUnit == "" && _initialQuantity == ""
+        ? lastPortionFor(meal, _lastIntake)
+        : null;
+    if (lastPortion != null) {
+      _initialUnit = lastPortion.unit;
+      _initialQuantity = lastPortion.quantity;
+      _applyingInitialSelection = true;
+      try {
+        quantityTextController.text = _initialQuantity;
+      } finally {
+        _applyingInitialSelection = false;
+      }
+      _mealDetailBloc.add(
+        UpdateKcalEvent(
+          meal: meal,
+          totalQuantity: _initialQuantity,
+          selectedUnit: _initialUnit,
+        ),
+      );
+      return;
+    }
+
     // #1126: when the user has opted into raw units in Settings, the
     // scalable-serving branch is skipped so grams/oz (or ml/fl oz)
     // becomes the very first render's default. `hasScalableServing`

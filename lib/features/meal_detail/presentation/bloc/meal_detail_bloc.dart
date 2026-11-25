@@ -12,6 +12,7 @@ import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
@@ -46,6 +47,11 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   /// fails (#1461). Left out where a test never fails that update.
   final DeleteIntakeUsecase? _deleteIntakeUsecase;
 
+  /// Finds the last time a food was logged, for the screen to open on that
+  /// amount (#1265). Left out where a test does not need it; the screen
+  /// then opens on its usual default.
+  final GetIntakeUsecase? _getIntakeUsecase;
+
   MealDetailBloc(
     this._addIntakeUseCase,
     this._addTrackedDayUsecase,
@@ -56,8 +62,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
     this._remoteSearchCacheDataSource, {
     ToggleFavouriteMealUsecase? favourites,
     DeleteIntakeUsecase? deleteIntake,
+    GetIntakeUsecase? getIntake,
   }) : _favourites = favourites,
        _deleteIntakeUsecase = deleteIntake,
+       _getIntakeUsecase = getIntake,
        super(
           MealDetailInitial(
             totalQuantityConverted: '100',
@@ -160,6 +168,18 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         emit(state.copyWith(isHydrating: false));
       }
     });
+  }
+
+  /// The last time [meal] was logged in the active profile, or null when it
+  /// never was or the lookup fails. Only reads: nothing logged changes.
+  Future<IntakeEntity?> lastIntakeOf(MealEntity meal) async {
+    try {
+      return await _getIntakeUsecase?.getLastIntakeOfMeal(meal);
+    } catch (e, st) {
+      // The usual default is a fine place to start; not worth an error.
+      log.warning('Could not look up the last intake of a food', e, st);
+      return null;
+    }
   }
 
   /// Returns a future so callers writing more than one intake can await

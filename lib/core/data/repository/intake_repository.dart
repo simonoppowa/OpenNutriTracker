@@ -4,6 +4,7 @@ import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class IntakeRepository {
   final IntakeDataSource _intakeDataSource;
@@ -102,4 +103,14 @@ class IntakeRepository {
     fromMealKey: fromMealKey,
     toMeal: toMeal,
   );
+
+  /// The newest entry of [meal] in the active profile, matched by its
+  /// source and [code]. See [IntakeDataSource.getLatestIntakeOfMeal].
+  IntakeEntity? getLatestIntakeOfMeal(MealEntity meal, String code) {
+    final dbo = _intakeDataSource.getLatestIntakeOfMeal(
+      MealSourceDBO.fromMealSourceEntity(meal.source),
+      code,
+    );
+    return dbo == null ? null : IntakeEntity.fromIntakeDBO(dbo);
+  }
 }
