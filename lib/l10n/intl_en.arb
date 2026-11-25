@@ -564,6 +564,19 @@
   "kcalGoalInfoPaRowLabel": "Activity coefficient (PA)",
   "kcalGoalInfoPalRowLabel": "Physical activity level (PAL)",
   "kcalGoalInfoResultSection": "Today's calorie goal",
+  "kcalGoalInfoSummaryActivitiesRow": "Activities logged today",
+  "kcalGoalInfoSummaryEquationLink": "Maintenance equation: IOM 2005",
+  "kcalGoalInfoSummaryGoalRow": "Goal \"{goal}\"",
+  "@kcalGoalInfoSummaryGoalRow": {
+    "description": "Row label for the daily deficit or surplus of the user's weight goal. goal is the goal's name, e.g. Lose Weight.",
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "kcalGoalInfoSummaryIncludedNote": "Your goal's deficit or surplus is already part of this number. Don't subtract it again.",
+  "kcalGoalInfoSummaryMaintenanceRow": "Estimated maintenance (TDEE)",
   "kcalGoalInfoTaperNote": "Because the target-weight taper is on, the adjustment is scaled down as you approach your target weight (full effect beyond 5 kg, maintenance within 1 kg).",
   "kcalGoalInfoTdeeExplanation": "Your total daily energy expenditure (TDEE) — the energy you use on a typical day — is estimated with the IOM 2005 equation from your age, weight, height, and activity level.",
   "kcalGoalInfoTdeeResultLabel": "Your TDEE",

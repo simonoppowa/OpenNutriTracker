@@ -125,6 +125,18 @@ void main() {
     },
   );
 
+  test('summary rows add up to the production kcal goal, rounded like Home '
+      '(#1308)', () async {
+    final summary = (await breakdownUsecase.getBreakdown()).summary();
+    final productionGoal = await kcalGoalUsecase.getKcalGoal();
+
+    expect(summary.total, productionGoal.round());
+    expect(summary.rows.fold(0, (sum, row) => sum + row.value), summary.total);
+    // Every term applies for this profile (tapered weekly pace, manual
+    // offset, two activities), so every row is there.
+    expect(summary.rows, hasLength(4));
+  });
+
   test('breakdown activity kcal is the sum of the logged activities', () async {
     final breakdown = await breakdownUsecase.getBreakdown();
 
