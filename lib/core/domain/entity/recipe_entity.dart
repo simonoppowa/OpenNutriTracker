@@ -82,8 +82,13 @@ class RecipeEntity extends Equatable {
   // special-case branches downstream. When `servingsCount` is set, the
   // returned MealEntity exposes serving values so the unit dropdown offers
   // "serving" alongside grams.
+  //
+  // A batch with no weight has no serving to scale: offering one logged 0 g
+  // whatever the quantity, so such a recipe is logged in grams only.
   MealEntity toMealEntity() {
-    final hasServings = servingsCount != null && servingsCount! > 0;
+    final hasServings =
+        servingsCount != null && servingsCount! > 0 && totalWeightG > 0;
+    final servingG = hasServings ? totalWeightG / servingsCount! : null;
     return MealEntity(
       code: id,
       name: name,
@@ -93,12 +98,25 @@ class RecipeEntity extends Equatable {
       url: null,
       mealQuantity: totalWeightG.toString(),
       mealUnit: 'g',
-      servingQuantity: hasServings ? totalWeightG / servingsCount! : null,
+      servingQuantity: servingG,
       servingUnit: hasServings ? 'g' : null,
-      servingSize: hasServings ? '$servingsCount servings' : null,
+      // One serving and what it weighs, which is what the unit dropdown
+      // shows. "4 servings" — the batch's count — read as if a serving were
+      // the whole batch, or the count a weight (#833). Kept in English like
+      // every stored serving label; `localizeServingLabel` translates
+      // "serving" and `imperialServingLabel` the grams at display time.
+      servingSize: servingG != null
+          ? '1 serving (${_formatGrams(servingG)} g)'
+          : null,
       nutriments: aggregatedNutrimentsPer100,
       source: MealSourceEntity.recipe,
     );
+  }
+
+  /// One decimal at most, without a trailing zero: 300, 333.3, 1.
+  static String _formatGrams(double grams) {
+    final fixed = grams.toStringAsFixed(1);
+    return fixed.endsWith('.0') ? fixed.substring(0, fixed.length - 2) : fixed;
   }
 
   RecipeEntity copyWith({
