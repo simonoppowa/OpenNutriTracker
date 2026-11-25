@@ -35,8 +35,14 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
   // BodyWeightInput path for stones, which owns the kg directly.
   late double _pickerDisplayWeight;
 
-  // Stones path: kg reported by BodyWeightInput, null if invalid/empty.
+  // Typed path: kg reported by BodyWeightInput, null if invalid/empty. Always
+  // used for stones; for kg / lb only when [_typedLast] is set.
   double? _stKg;
+
+  // For kg / lb the ruler takes a drag that screen-reader users cannot make,
+  // so a typed field sits under it. The field follows the ruler; whichever
+  // was moved last is the value saved.
+  bool _typedLast = false;
 
   // Date-only (midnight) so it never sits after the date-only lastDate bound.
   late DateTime _selectedDate;
@@ -88,7 +94,7 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
 
   void _submit() {
     final double kg;
-    if (widget.unit == BodyWeightUnit.st) {
+    if (widget.unit == BodyWeightUnit.st || _typedLast) {
       final valid = _stKg;
       if (valid == null) {
         Navigator.of(context).pop();
@@ -116,6 +122,10 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
     final minWeight = minSelectableWeight(_pickerDisplayWeight, isImperial);
     final maxWeight = maxSelectableWeight(_pickerDisplayWeight, isImperial);
 
+    final invalid =
+        (widget.unit == BodyWeightUnit.st || _typedLast) && _stKg == null;
+    final error = invalid ? S.of(context).onboardingWrongWeightLabel : null;
+
     return AlertDialog(
       title: Text(S.of(context).selectWeightDialogLabel),
       content: Wrap(
@@ -128,24 +138,48 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
                   unit: BodyWeightUnit.st,
                   identifierPrefix: 'set-weight-dialog',
                   autofocus: true,
+                  errorText: error,
                   onChangedKg: (kg) => setState(() => _stKg = kg),
                 )
               else
-                HorizontalPicker(
-                  height: 100,
-                  backgroundColor: Colors.transparent,
-                  minValue: minWeight,
-                  maxValue: maxWeight,
-                  initialPosition: InitialPosition.center,
-                  divisions: 1000, // Supports decimal values (#244)
-                  suffix: isImperial
-                      ? S.of(context).lbsLabel
-                      : S.of(context).kgLabel,
-                  onChanged: (value) {
-                    setState(() {
-                      _pickerDisplayWeight = value;
-                    });
-                  },
+                // The typed field below says the weight; the ruler is dimmed
+                // while a typed weight is the one that will be saved.
+                ExcludeSemantics(
+                  child: Opacity(
+                    opacity: _typedLast ? 0.38 : 1,
+                    child: HorizontalPicker(
+                      height: 100,
+                      backgroundColor: Colors.transparent,
+                      minValue: minWeight,
+                      maxValue: maxWeight,
+                      initialPosition: InitialPosition.center,
+                      divisions: 1000, // Supports decimal values (#244)
+                      suffix: isImperial
+                          ? S.of(context).lbsLabel
+                          : S.of(context).kgLabel,
+                      onChanged: (value) {
+                        setState(() {
+                          _pickerDisplayWeight = value;
+                          _typedLast = false;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              if (widget.unit != BodyWeightUnit.st)
+                BodyWeightInput(
+                  // Reseeded each time the ruler moves.
+                  key: ValueKey(_pickerDisplayWeight.toStringAsFixed(1)),
+                  initialKg: _pickerWeightToKg(
+                    double.parse(_pickerDisplayWeight.toStringAsFixed(1)),
+                  ),
+                  unit: widget.unit,
+                  identifierPrefix: 'set-weight-dialog',
+                  errorText: error,
+                  onChangedKg: (kg) => setState(() {
+                    _stKg = kg;
+                    _typedLast = true;
+                  }),
                 ),
               if (widget.allowDateSelection) ...[
                 const SizedBox(height: 8),
@@ -171,7 +205,7 @@ class _SetWeightDialogState extends State<SetWeightDialog> {
           child: Text(S.of(context).dialogCancelLabel),
         ),
         TextButton(
-          onPressed: _submit,
+          onPressed: invalid ? null : _submit,
           child: Text(S.of(context).dialogOKLabel),
         ),
       ],
