@@ -25,6 +25,9 @@ class MealItemCard extends StatelessWidget {
   final MealEntity mealEntity;
   final bool usesImperialUnits;
   final String? favouriteSemanticsIdentifier;
+  final bool selectionMode;
+  final bool selected;
+  final VoidCallback? onSelectionChanged;
 
   /// The add-food screen's "To log" list. With one, opening the food adds
   /// to it instead of logging, and [onQuickAdd] answers the +.
@@ -43,6 +46,9 @@ class MealItemCard extends StatelessWidget {
     this.favouriteSemanticsIdentifier,
     this.logTray,
     this.onQuickAdd,
+    this.selectionMode = false,
+    this.selected = false,
+    this.onSelectionChanged,
   });
 
   @override
@@ -61,7 +67,9 @@ class MealItemCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Dimens.spacing8),
       child: AppCard(
-        onTap: () => _onItemPressed(context),
+        onTap: selectionMode
+            ? onSelectionChanged
+            : () => _onItemPressed(context),
         padding: const EdgeInsets.all(Dimens.spacing12),
         child: Row(
           children: [
@@ -100,22 +108,31 @@ class MealItemCard extends StatelessWidget {
             // A builder row leaves the identifier out and its list carries
             // one (AGENTS.md, "Dynamic lists"); the add-item sheet's fixed
             // recent rows pass their own.
-            FavouriteToggleButton(
-              meal: mealEntity,
-              semanticsIdentifier: favouriteSemanticsIdentifier,
-            ),
-            Semantics(
-              identifier: 'meal-item-add',
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  backgroundColor: accent,
-                  shape: const RoundedRectangleBorder(borderRadius: Dimens.borderRadiusM),
-                ),
-                icon: const Icon(Icons.add_rounded, size: 24),
-                onPressed: onQuickAdd ?? () => _onItemPressed(context),
+            if (!selectionMode)
+              FavouriteToggleButton(
+                meal: mealEntity,
+                semanticsIdentifier: favouriteSemanticsIdentifier,
               ),
-            ),
+            if (selectionMode)
+              Checkbox(
+                value: selected,
+                onChanged: (_) => onSelectionChanged?.call(),
+              )
+            else
+              Semantics(
+                identifier: 'meal-item-add',
+                child: IconButton(
+                  style: IconButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: accent,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: Dimens.borderRadiusM,
+                    ),
+                  ),
+                  icon: const Icon(Icons.add_rounded, size: 24),
+                  onPressed: onQuickAdd ?? () => _onItemPressed(context),
+                ),
+              ),
           ],
         ),
       ),

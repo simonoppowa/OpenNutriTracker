@@ -16,6 +16,8 @@ import 'package:opennutritracker/core/utils/user_image_storage.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
+enum _IntakeItemAction { share, transfer }
+
 /// A logged intake, rendered as a full-width row: a rounded thumbnail, the meal
 /// name and amount, and the energy on the trailing edge. Replaces the old
 /// 120x120 tile so a day's meals read as a clean scannable list.
@@ -29,6 +31,7 @@ class IntakeCard extends StatelessWidget {
   final bool firstListElement;
   final bool usesImperialUnits;
   final DiarySortType? sortType;
+  final Future<void> Function(IntakeEntity intake)? onTransfer;
 
   const IntakeCard({
     required super.key,
@@ -39,6 +42,7 @@ class IntakeCard extends StatelessWidget {
     required this.firstListElement,
     required this.usesImperialUnits,
     this.sortType,
+    this.onTransfer,
   });
 
   @override
@@ -139,24 +143,39 @@ class IntakeCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (onShare != null)
+                if (onShare != null || onTransfer != null)
                   Semantics(
                     identifier: 'intake-item-menu',
                     container: true,
-                    child: PopupMenuButton<void>(
+                    child: PopupMenuButton<_IntakeItemAction>(
                       icon: Icon(
                         Icons.more_vert_rounded,
                         color: palette.textMuted,
                       ),
                       shape: Dimens.shapeM,
+                      // Acting once the menu has closed: a dialog opened
+                      // from an item's onTap is popped by the menu itself.
+                      onSelected: (action) => switch (action) {
+                        _IntakeItemAction.share => onShare?.call(),
+                        _IntakeItemAction.transfer => onTransfer?.call(intake),
+                      },
                       itemBuilder: (_) => [
-                        PopupMenuItem<void>(
-                          onTap: onShare,
-                          child: Semantics(
-                            identifier: 'intake-share-food',
-                            child: Text(s.shareFoodLabel),
+                        if (onShare != null)
+                          PopupMenuItem(
+                            value: _IntakeItemAction.share,
+                            child: Semantics(
+                              identifier: 'intake-share-food',
+                              child: Text(s.shareFoodLabel),
+                            ),
                           ),
-                        ),
+                        if (onTransfer != null)
+                          PopupMenuItem(
+                            value: _IntakeItemAction.transfer,
+                            child: Semantics(
+                              identifier: 'diary-transfer-intake',
+                              child: Text(s.diaryTransferTitle),
+                            ),
+                          ),
                       ],
                     ),
                   ),

@@ -13,6 +13,10 @@ class ConfigEntity extends Equatable {
   static const mealKeyLunch = 'lunch';
   static const mealKeyDinner = 'dinner';
   static const mealKeySnack = 'snack';
+  static const trendsCaloriesKey = 'calories';
+  static const trendsCarbsKey = 'carbs';
+  static const trendsFatKey = 'fat';
+  static const trendsProteinKey = 'protein';
 
   /// Default share across breakfast / lunch / dinner / snack used when the
   /// user has never tuned the values themselves. Sums to 100; sensible
@@ -56,6 +60,9 @@ class ConfigEntity extends Equatable {
   // falls back to the default, which is currently "visible" for every
   // nutrient — see [isNutrientVisible].
   final Map<String, bool> nutrientPanelVisibility;
+  final Map<String, bool> trendsMetricVisibility;
+  final int trendsSelectedRangeDays;
+  final int? trendsCustomRangeDays;
   final int dayStartOffsetHours; // #139: 0-23, default 0 (wall-clock midnight)
   final int
   dayStartOffsetMinutes; // #139 follow-up: 0-59, composes additively with hours
@@ -254,6 +261,9 @@ class ConfigEntity extends Equatable {
     this.mealKcalSharesPct = defaultMealKcalSharesPct,
     this.diarySortPreferences,
     this.nutrientPanelVisibility = const <String, bool>{},
+    this.trendsMetricVisibility = const <String, bool>{},
+    this.trendsSelectedRangeDays = 7,
+    this.trendsCustomRangeDays,
     this.dayStartOffsetHours = 0,
     this.dayStartOffsetMinutes = 0,
     this.dailyWaterGoalMl,
@@ -336,6 +346,14 @@ class ConfigEntity extends Equatable {
   int get dayStartOffsetTotalMinutes =>
       dayStartOffsetHours * 60 + dayStartOffsetMinutes;
 
+  bool isTrendsMetricVisible(String key) => trendsMetricVisibility[key] ?? true;
+
+  static int validTrendsRange(int? days) =>
+      days == 0 || (days != null && days >= 2 && days <= 3650) ? days! : 7;
+
+  static int? validCustomTrendsRange(int? days) =>
+      days != null && days >= 2 && days <= 3650 ? days : null;
+
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
     dbo.hasAcceptedDisclaimer,
     dbo.hasAcceptedPolicy,
@@ -368,6 +386,10 @@ class ConfigEntity extends Equatable {
     diarySortPreferences: dbo.diarySortPreferences,
     nutrientPanelVisibility:
         dbo.nutrientPanelVisibility ?? const <String, bool>{},
+    trendsMetricVisibility:
+        dbo.trendsMetricVisibility ?? const <String, bool>{},
+    trendsSelectedRangeDays: validTrendsRange(dbo.trendsSelectedRangeDays),
+    trendsCustomRangeDays: validCustomTrendsRange(dbo.trendsCustomRangeDays),
     dayStartOffsetHours: _normaliseOffsetHours(dbo.dayStartOffsetHours),
     dayStartOffsetMinutes: _normaliseOffsetMinutes(dbo.dayStartOffsetMinutes),
     dailyWaterGoalMl: _normaliseWaterGoal(dbo.dailyWaterGoalMl),
@@ -481,6 +503,9 @@ class ConfigEntity extends Equatable {
     mealKcalSharesPct,
     diarySortPreferences,
     nutrientPanelVisibility,
+    trendsMetricVisibility,
+    trendsSelectedRangeDays,
+    trendsCustomRangeDays,
     dayStartOffsetHours,
     dayStartOffsetMinutes,
     dailyWaterGoalMl,
