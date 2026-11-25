@@ -121,7 +121,8 @@
                  list is what the AI path does and does not add — not a claim
                  that the whole manifest is complete.
                * Health and Fitness. Workouts and body fat percentage are read
-                 from HealthKit and never transmitted off the device — and
+                 from HealthKit, meals and water are written to it, and none of
+                 it is transmitted off the device — and
                  "collect" is about transmission, not access.
                * Photos attached to a custom meal or recipe. Those stay on
                  disk and are never sent anywhere.

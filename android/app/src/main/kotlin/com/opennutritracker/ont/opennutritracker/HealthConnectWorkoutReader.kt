@@ -3,6 +3,8 @@ package com.opennutritracker.ont.opennutritracker
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
+import androidx.health.connect.client.records.HydrationRecord
+import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
@@ -45,6 +47,22 @@ object HealthConnectWorkoutReader {
         val needed = setOf(
             HealthPermission.getReadPermission(ExerciseSessionRecord::class),
             HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
+        )
+        return client.permissionController.getGrantedPermissions().containsAll(needed)
+    }
+
+    /**
+     * Whether both grants the nutrition export writes with are held:
+     * `WRITE_NUTRITION` for meals and `WRITE_HYDRATION` for water. The
+     * permission screen lets the user tick one of the two, and the plugin's
+     * request still answers granted. Asked here for the same reason as
+     * [hasWorkoutReadPermissions].
+     */
+    suspend fun hasExportWritePermissions(context: Context): Boolean {
+        val client = HealthConnectClient.getOrCreate(context)
+        val needed = setOf(
+            HealthPermission.getWritePermission(NutritionRecord::class),
+            HealthPermission.getWritePermission(HydrationRecord::class),
         )
         return client.permissionController.getGrantedPermissions().containsAll(needed)
     }

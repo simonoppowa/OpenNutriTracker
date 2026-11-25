@@ -1,4 +1,5 @@
 import 'package:opennutritracker/core/data/data_source/health/external_workout.dart';
+import 'package:opennutritracker/core/data/data_source/health/health_export_records.dart';
 
 /// The app's whole surface onto the platform health store — Health Connect
 /// on Android, Apple Health on iOS.
@@ -28,4 +29,17 @@ abstract class HealthService {
   /// Null when nothing is recorded or the read was not permitted — the
   /// suggestion calculator treats that as "fall back to BMI".
   Future<double?> readLatestBodyFatPercent();
+
+  /// Asks the user for write access to meals and water. Returns whether the
+  /// request came back granted.
+  Future<bool> requestExportPermissions();
+
+  /// Replaces this app's own meal and water records starting in `[from, to)`
+  /// with [meals] and [water]. Throws if the platform refuses any step.
+  Future<void> replaceExportedDay({
+    required DateTime from,
+    required DateTime to,
+    required List<ExportedMeal> meals,
+    required List<ExportedWater> water,
+  });
 }

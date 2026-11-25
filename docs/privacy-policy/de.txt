@@ -102,7 +102,7 @@ Handhabung von Aktivitätsdaten
 
 Diese Art von Diensten ermöglichen es dem Anbieter, Aktivitätsdaten oder biometrische Daten für diese Anwendung zu nutzen, um bestimmte Funktionen auszuführen oder bereitzustellen. Die von Ihrem Gerät erfassten Daten können Bewegungen, Herzschlag, Höhenunterschiede oder Umgebungsdaten beinhalten. Je nachdem, was nachfolgend beschrieben wird, können Dritte an der Aktivitätserfassung beteiligt sein. Bei den meisten Geräten können Nutzer festlegen, welche Daten abgerufen oder gespeichert werden.
 
-Gesundheits- und Fitnessdaten (Trainingsimport)
+Gesundheits- und Fitnessdaten (Trainingsimport und Ernährungsexport)
 
 Diese Anwendung kann Trainings aus Health Connect (Android) bzw. Apple Health (iOS) importieren. Die Funktion ist deaktiviert, bis Sie sie einschalten (Einstellungen → Gesundheitsdaten-Sync); erst dann erscheint die Berechtigungsabfrage der Plattform.
 
@@ -115,7 +115,7 @@ Unter Android werden zusätzlich der Gesamtenergieverbrauch, die Distanz und die
 
 Trainings werden in Ihr Tagebuch übernommen. Der Körperfettanteil wird, sofern vorhanden, ausschließlich dazu verwendet, den Vorschlag zu personalisieren, wie viel der Trainingsenergie auf Ihr Tagesziel angerechnet wird.
 
-Der Zugriff erfolgt ausschließlich lesend. Es wird nichts nach Health Connect oder Apple Health zurückgeschrieben.
+Der Import erfolgt ausschließlich lesend. Davon getrennt können Sie unter Einstellungen → Gesundheitsdaten-Sync den Export Ihres Tagebuchs einschalten: Die von Ihnen erfassten Mahlzeiten und Wassermengen werden dann als Ernährungs- und Flüssigkeitseinträge nach Health Connect bzw. Apple Health geschrieben; geändert oder entfernt werden dort nur Einträge, die diese Anwendung selbst geschrieben hat. Der Export ist standardmäßig ausgeschaltet.
 
 Diese Daten werden nicht übertragen. Sie liegen in der verschlüsselten Datenbank auf Ihrem Gerät, werden weder an den Eigentümer noch an Dritte gesendet und verlassen das Gerät nur durch ein Backup oder einen Export, den Sie selbst vornehmen.
 

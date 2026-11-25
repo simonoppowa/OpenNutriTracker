@@ -22,7 +22,12 @@ import 'package:opennutritracker/generated/l10n.dart';
 /// disclosure that appeared on one platform and not the other would be a
 /// strange thing to explain and a worse thing to maintain.
 class HealthDisclosureDialog extends StatelessWidget {
-  const HealthDisclosureDialog({super.key});
+  final bool export;
+
+  const HealthDisclosureDialog({super.key}) : export = false;
+
+  /// The nutrition export's disclosure: what is written rather than read.
+  const HealthDisclosureDialog.export({super.key}) : export = true;
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +38,12 @@ class HealthDisclosureDialog extends StatelessWidget {
       // short viewport, so the whole thing scrolls rather than just the
       // content (see PolicyChangeDialog, which had exactly this bug).
       scrollable: true,
-      title: Text(s.healthSyncDisclosureTitle(healthPlatformName)),
-      content: Text(_body(s)),
+      title: Text(
+        export
+            ? s.healthSyncExportDisclosureTitle(healthPlatformName)
+            : s.healthSyncDisclosureTitle(healthPlatformName),
+      ),
+      content: Text(export ? _exportBody(s) : _body(s)),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
@@ -60,5 +69,10 @@ class HealthDisclosureDialog extends StatelessWidget {
     if (healthStoreReadsBodyFat)
       s.healthSyncDisclosureBodyFatAddendum(healthPlatformName),
     s.healthSyncDisclosureFooter(healthPlatformName),
+  ].join('\n\n');
+
+  String _exportBody(S s) => [
+    s.healthSyncExportDisclosureBody(healthPlatformName),
+    s.healthSyncExportDisclosureFooter(healthPlatformName),
   ].join('\n\n');
 }

@@ -46,6 +46,15 @@ class HealthConnectWorkoutReader {
       await _methodChannel.invokeMethod<bool>('hasWorkoutReadPermissions') ??
       false;
 
+  /// Whether both write grants the nutrition export needs are held:
+  /// nutrition for meals and hydration for water. Health Connect lets the
+  /// user tick one and not the other, and answers the request as granted
+  /// either way. Asked here for the same reason as
+  /// [hasWorkoutReadPermissions].
+  Future<bool> hasExportWritePermissions() async =>
+      await _methodChannel.invokeMethod<bool>('hasExportWritePermissions') ??
+      false;
+
   /// Sessions starting within `[from, to)`.
   ///
   /// Throws [PlatformException] when the platform refuses — code

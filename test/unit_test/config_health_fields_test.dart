@@ -91,6 +91,14 @@ void main() {
       expect(config.healthImportEnabled, isTrue);
       expect(config.healthLastImportAt, equals(watermark));
     });
+
+    test('the export reads as off with nothing written', () {
+      final config = ConfigEntity.fromConfigDBO(ConfigDBO.empty());
+
+      expect(config.healthExportEnabled, isFalse);
+      expect(config.healthLastExportAt, isNull);
+      expect(config.healthExportedDays, isEmpty);
+    });
   });
 
   group('ConfigDataSource health settings ownership', () {
@@ -140,6 +148,23 @@ void main() {
       expect(config.healthImportEnabled, isNull);
       expect(config.healthWorkoutKcalMultiplier, isNull);
       expect(config.healthLastImportAt, isNull);
+    });
+
+    test('the export opt-in stays with the profile, the written days are '
+        'device-wide', () async {
+      final profileA = sourceFor(profileABox);
+      await profileA.initializeConfig();
+      await profileA.setConfigHealthExportEnabled(true);
+      await profileA.setConfigHealthExportedDay('2026-05-23', 'abc');
+
+      final profileB = sourceFor(profileBBox);
+      await profileB.initializeConfig();
+      final config = await profileB.getConfig();
+
+      expect(config.healthExportEnabled, isNull);
+      // The health store is one person's: a day another profile wrote is
+      // one this profile has to replace, not one it may ignore.
+      expect(config.healthExportedDays, {'2026-05-23': 'abc'});
     });
 
     test('each profile keeps its own settings and watermark', () async {
