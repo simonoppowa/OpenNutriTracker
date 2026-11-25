@@ -5,6 +5,7 @@ import 'package:opennutritracker/core/styles/dimens.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/serving_label_localizer.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -16,6 +17,7 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
+import 'package:opennutritracker/features/meal_detail/util/missing_nutrients.dart';
 import 'package:opennutritracker/features/meal_detail/util/quick_serving_option.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -352,7 +354,7 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
                         ),
                       productMissingRequiredInfo
                           ? Text(
-                              '${S.of(context).missingProductInfo}\n'
+                              '${S.of(context).missingProductInfoPer100g}\n'
                               '$missingFieldsText',
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
@@ -372,18 +374,25 @@ class _MealDetailBottomSheetState extends State<MealDetailBottomSheet> {
   }
 
   bool _hasRequiredProductInfoMissing() =>
-      _missingRequiredProductInfo().isNotEmpty;
+      missingRequiredNutrients(widget.product.nutriments).isNotEmpty;
 
   /// The labels of the required values the product lacks, so the warning
-  /// can say which one is missing (#1474).
+  /// can say which one is missing (#1474). Energy is named in the unit the
+  /// user reads it in.
   List<String> _missingRequiredProductInfo() {
-    final productNutriments = widget.product.nutriments;
     final s = S.of(context);
     return [
-      if (productNutriments.energyKcal100 == null) s.energyLabel,
-      if (productNutriments.carbohydrates100 == null) s.carbohydrateLabel,
-      if (productNutriments.fat100 == null) s.fatLabel,
-      if (productNutriments.proteins100 == null) s.proteinLabel,
+      for (final nutrient in missingRequiredNutrients(
+        widget.product.nutriments,
+      ))
+        switch (nutrient) {
+          RequiredNutrient.energy => s.energyInUnitLabel(
+            EnergyDisplay.unitLabel(context),
+          ),
+          RequiredNutrient.carbohydrate => s.carbohydrateLabel,
+          RequiredNutrient.fat => s.fatLabel,
+          RequiredNutrient.protein => s.proteinLabel,
+        },
     ];
   }
 
