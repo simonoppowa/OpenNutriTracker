@@ -7,6 +7,7 @@ import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc.dart';
 import 'package:opennutritracker/features/fasting/presentation/widgets/fasting_warning_dialog.dart';
+import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 /// Preset fasting windows offered in the UI. Kept here rather than in the
@@ -37,6 +38,11 @@ class _FastingScreenState extends State<FastingScreen> {
   @override
   void dispose() {
     _bloc.close();
+    // Home's fasting chip reloads with Home, so it drops or picks up the
+    // session started or ended here (#1636).
+    if (locator.isRegistered<HomeBloc>()) {
+      locator<HomeBloc>().add(const LoadItemsEvent());
+    }
     super.dispose();
   }
 
