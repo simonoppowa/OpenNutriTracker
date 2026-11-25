@@ -47,6 +47,7 @@ import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/set_day_boundary_usecase.dart';
+import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/features/settings/domain/export_import_failure.dart';
 import 'package:opennutritracker/features/settings/domain/goal_settings_backup.dart';
@@ -685,6 +686,49 @@ void main() {
 
       expect(trackedDayBox.get(yesterday.toParsedDay())!.calorieGoal, 2744);
     });
+
+    test(
+      'with a 04:00 day boundary, an import at 02:00 refreshes the '
+      'previous calendar date and leaves the new one alone (#1394)',
+      () async {
+        await config.setConfigDayStartOffsetHours(4);
+        DayBoundaryCalc.clock = () => DateTime(2026, 3, 10, 2);
+        addTearDown(() => DayBoundaryCalc.clock = DateTime.now);
+        final logicalDay = DateTime(2026, 3, 9);
+        final calendarDay = DateTime(2026, 3, 10);
+        await trackedDayBox.put(
+          logicalDay.toParsedDay(),
+          TrackedDayDBO(
+            day: logicalDay,
+            calorieGoal: 2744,
+            caloriesTracked: 640,
+            carbsGoal: 343,
+            fatGoal: 91,
+            proteinGoal: 137,
+          ),
+        );
+        await trackedDayBox.put(
+          calendarDay.toParsedDay(),
+          TrackedDayDBO(
+            day: calendarDay,
+            calorieGoal: 2744,
+            caloriesTracked: 0,
+          ),
+        );
+        writeZip({
+          ExportImportBloc.goalSettingsJsonFileName: jsonEncode(_goalsJson()),
+        });
+
+        expect(await runImport(), isA<ExportImportSuccess>());
+
+        final kcal = await kcalGoal.getKcalGoal();
+        final logicalRow = trackedDayBox.get(logicalDay.toParsedDay())!;
+        expect(logicalRow.calorieGoal, kcal);
+        expect(logicalRow.calorieGoal, isNot(2744));
+        expect(logicalRow.proteinGoal, await macroGoal.getProteinsGoal(kcal));
+        expect(trackedDayBox.get(calendarDay.toParsedDay())!.calorieGoal, 2744);
+      },
+    );
 
     test("a rejected archive leaves today's row alone", () async {
       await trackedDayBox.put(today.toParsedDay(), staleToday());
