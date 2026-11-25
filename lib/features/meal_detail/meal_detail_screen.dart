@@ -336,11 +336,20 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       listenWhen: (prev, curr) =>
           curr.hydratedMeal != null && curr.hydratedMeal != prev.hydratedMeal,
       listener: (context, state) => _onMealHydrated(state.hydratedMeal!),
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor:
-              (Theme.of(context).brightness == Brightness.dark ? AppPalette.dark : AppPalette.light).canvas,
-          body: BlocBuilder<MealDetailBloc, MealDetailState>(
+      // The Scaffold fills the screen so its canvas colour paints behind the
+      // status bar and the home indicator. A SafeArea around it left those
+      // insets unpainted, and they showed black. The pinned SliverAppBar
+      // clears the status bar, and the SafeArea on the body keeps the content
+      // clear of the side insets in landscape.
+      child: Scaffold(
+        backgroundColor:
+            (Theme.of(context).brightness == Brightness.dark
+                    ? AppPalette.dark
+                    : AppPalette.light)
+                .canvas,
+        body: SafeArea(
+          top: false,
+          child: BlocBuilder<MealDetailBloc, MealDetailState>(
             bloc: _mealDetailBloc,
             builder: (context, state) {
               if (state is MealDetailInitial) {
@@ -360,23 +369,31 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
               return const Center(child: CircularProgressIndicator());
             },
           ),
-        bottomSheet: BlocSelector<MealDetailBloc, MealDetailState, String>(
-          bloc: _mealDetailBloc,
-          selector: (state) => state.selectedUnit,
-          builder: (context, selectedUnit) {
-            return MealDetailBottomSheet(
-              product: meal,
-              day: _day,
-              intakeTypeEntity: intakeTypeEntity,
-              selectedUnit: selectedUnit,
-              usesImperialUnits: _usesImperialUnits,
-              mealDetailBloc: _mealDetailBloc,
-              quantityTextController: quantityTextController,
-              onQuantityOrUnitChanged: onQuantityOrUnitChanged,
-              logTray: _logTray,
-              editingTrayItem: _editingTrayItem,
-            );
-          },
+        ),
+        // Scaffold strips the bottom padding from the bottom sheet's
+        // MediaQuery, so the sheet's own SafeArea would see none and leave
+        // Add behind the home indicator. Hand it the screen's insets back:
+        // its surface still paints behind the indicator, its content sits
+        // above it.
+        bottomSheet: MediaQuery(
+          data: MediaQuery.of(context),
+          child: BlocSelector<MealDetailBloc, MealDetailState, String>(
+            bloc: _mealDetailBloc,
+            selector: (state) => state.selectedUnit,
+            builder: (context, selectedUnit) {
+              return MealDetailBottomSheet(
+                product: meal,
+                day: _day,
+                intakeTypeEntity: intakeTypeEntity,
+                selectedUnit: selectedUnit,
+                usesImperialUnits: _usesImperialUnits,
+                mealDetailBloc: _mealDetailBloc,
+                quantityTextController: quantityTextController,
+                onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+                logTray: _logTray,
+                editingTrayItem: _editingTrayItem,
+              );
+            },
           ),
         ),
       ),
