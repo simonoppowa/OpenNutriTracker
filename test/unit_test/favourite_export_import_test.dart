@@ -169,6 +169,7 @@ class _EmptyConfigRepository extends ConfigRepository {
     required double? fatGoalPct,
     required Map<String, int>? mealKcalSharesPct,
     required int? dailyWaterGoalMl,
+    required Map<String, double>? nutrientGoals,
   }) async {}
 }
 

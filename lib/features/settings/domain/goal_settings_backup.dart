@@ -1,16 +1,17 @@
 import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/entity/nutrient_goal_keys.dart';
 
 /// The active profile's goal settings as they travel in a JSON backup, as
 /// `goal_settings.json` (#1363).
 ///
 /// Only the goals the config keeps per profile (see `ConfigDataSource`):
-/// the kcal adjustment, the macro split, the per-meal kcal shares and the
-/// daily water goal. Device-wide preferences (theme, language, units,
-/// notifications, consents) and the health-import state are left out; see
-/// `docs/export-format.md` for why. Per-nutrient goals are not here either:
-/// they are stored on each tracked day and travel in
-/// `user_tracked_day.json`.
+/// the kcal adjustment, the macro split, the per-meal kcal shares, the
+/// daily water goal and the nutrient goals new days start with (#1316).
+/// Device-wide preferences (theme, language, units, notifications,
+/// consents) and the health-import state are left out; see
+/// `docs/export-format.md` for why. The goals each past day was logged
+/// with stay on that day, in `user_tracked_day.json`.
 ///
 /// A null field means "no override, use the app's default".
 class GoalSettingsBackup {
@@ -43,6 +44,9 @@ class GoalSettingsBackup {
   final Map<String, int>? mealKcalSharesPct;
   final int? dailyWaterGoalMl;
 
+  /// Keyed by [NutrientGoalKeys]; null when the user has set none.
+  final Map<String, double>? nutrientGoals;
+
   const GoalSettingsBackup({
     this.kcalAdjustment,
     this.carbGoalPct,
@@ -50,6 +54,7 @@ class GoalSettingsBackup {
     this.fatGoalPct,
     this.mealKcalSharesPct,
     this.dailyWaterGoalMl,
+    this.nutrientGoals,
   });
 
   /// The goals stored in [config], with any value [fromJson] would reject
@@ -65,6 +70,7 @@ class GoalSettingsBackup {
     final macrosValid = _macroSplitError(macros) == null;
     final shares = config.mealKcalSharesPct;
     final water = config.dailyWaterGoalMl;
+    final nutrients = NutrientGoalKeys.sanitise(config.userNutrientGoals);
     return GoalSettingsBackup(
       kcalAdjustment: _kcalAdjustmentError(config.userKcalAdjustment) == null
           ? config.userKcalAdjustment
@@ -76,6 +82,7 @@ class GoalSettingsBackup {
           ? {for (final k in _mealKeys) k: shares[k]!}
           : null,
       dailyWaterGoalMl: _waterGoalError(water) == null ? water : null,
+      nutrientGoals: nutrients.isEmpty ? null : nutrients,
     );
   }
 
@@ -104,6 +111,7 @@ class GoalSettingsBackup {
     ];
     final shares = _optionalShares(json, 'mealKcalSharesPct');
     final water = _optionalInt(json, 'dailyWaterGoalMl');
+    final nutrients = _optionalNutrientGoals(json, 'nutrientGoals');
 
     final error =
         _kcalAdjustmentError(kcal) ??
@@ -121,6 +129,7 @@ class GoalSettingsBackup {
           ? null
           : {for (final k in _mealKeys) k: shares[k]!},
       dailyWaterGoalMl: water,
+      nutrientGoals: nutrients == null || nutrients.isEmpty ? null : nutrients,
     );
   }
 
@@ -132,6 +141,7 @@ class GoalSettingsBackup {
     'fatGoalPct': fatGoalPct,
     'mealKcalSharesPct': mealKcalSharesPct,
     'dailyWaterGoalMl': dailyWaterGoalMl,
+    'nutrientGoals': nutrientGoals,
   };
 
   static double? _optionalDouble(Map<String, dynamic> json, String key) {
@@ -162,6 +172,31 @@ class GoalSettingsBackup {
       throw FormatException('$key must map meal names to whole numbers');
     }
     return value.cast<String, int>();
+  }
+
+  /// A map of nutrient to goal, each a finite amount of 0 or more. A
+  /// nutrient this build does not know is skipped, as a newer build may
+  /// add one.
+  static Map<String, double>? _optionalNutrientGoals(
+    Map<String, dynamic> json,
+    String key,
+  ) {
+    final value = json[key];
+    if (value == null) return null;
+    if (value is! Map<String, dynamic>) {
+      throw FormatException('$key must map nutrients to amounts');
+    }
+    final goals = <String, double>{};
+    value.forEach((nutrient, amount) {
+      if (!NutrientGoalKeys.all.contains(nutrient)) return;
+      if (amount is! num || !amount.isFinite || amount < 0) {
+        throw FormatException(
+          '$key.$nutrient must be an amount of 0 or more, got $amount',
+        );
+      }
+      goals[nutrient] = amount.toDouble();
+    });
+    return goals;
   }
 
   static String? _kcalAdjustmentError(double? kcal) {

@@ -6,6 +6,7 @@ import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
@@ -159,7 +160,13 @@ void main() {
   setUp(() async {
     Hive.init('.');
     box = await Hive.openBox<TrackedDayDBO>('tracked_day_if_absent_test');
-    dataSource = TrackedDayDataSource(FakeHiveDBProvider(trackedDayBox: box));
+    // A new tracked day reads the profile's nutrient goals (#1316).
+    final configBox = await Hive.openBox<ConfigDBO>(
+      'tracked_day_if_absent_config_test',
+    );
+    dataSource = TrackedDayDataSource(
+      FakeHiveDBProvider(trackedDayBox: box, configBox: configBox),
+    );
     repository = TrackedDayRepository(dataSource);
   });
 

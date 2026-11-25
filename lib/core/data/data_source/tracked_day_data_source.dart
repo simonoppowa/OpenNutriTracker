@@ -3,6 +3,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:opennutritracker/core/domain/entity/nutrient_goal_keys.dart';
 import 'package:opennutritracker/core/utils/calc/day_boundary_calc.dart';
 import 'package:opennutritracker/core/utils/extensions.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
@@ -32,6 +33,13 @@ class TrackedDayDataSource {
     );
     return DayBoundaryCalc.dayLabelOf(day, config.dayStartOffsetTotalMinutes);
   }
+
+  /// The nutrient goals the user has set for this source's profile, the
+  /// ones a newly created day starts with (#1316). Read without a yield,
+  /// so a caller can stamp them and write the row in one step.
+  Map<String, double> userNutrientGoalsNow() => NutrientGoalKeys.sanitise(
+    ConfigDataSource(_db).getConfigNow().userNutrientGoals,
+  );
 
   Future<void> saveTrackedDay(TrackedDayDBO trackedDayDBO) async {
     log.fine('Updating tracked day in db');

@@ -27,6 +27,12 @@ class _FakeSettingsBloc extends Fake implements SettingsBloc {
   @override
   Future<TrackedDayEntity?> getTodayTrackedDay(DateTime day) async => today;
 
+  /// The profile's stored nutrient goals (#1316).
+  Map<String, double> stored = {};
+
+  @override
+  Future<Map<String, double>> getUserNutrientGoals() async => stored;
+
   @override
   Future<DateTime> getCurrentLogicalDay() async => DateTime(2026, 10, 10);
 
@@ -260,6 +266,55 @@ void main() {
   // #1349: Reset then Save has to clear goals already stored on today's
   // row. The data source skips null columns unless clearAll is set, so
   // the screen must pass it with every goal null.
+  // #1316: on a new day the screen read only today's row, so it opened at
+  // the defaults and Save wrote them over the user's goals.
+  group('stored goals fill in for today', () {
+    testWidgets('a day without a row opens at the stored goals', (
+      tester,
+    ) async {
+      final settingsBloc = _FakeSettingsBloc()
+        ..stored = {'iron': 30, 'sugars': 0};
+      await openScreen(tester, settingsBloc);
+
+      expect(find.widgetWithText(TextField, '30'), findsOneWidget);
+      await tapSave(tester);
+
+      expect(settingsBloc.savedGoals['iron'], 30);
+      expect(settingsBloc.savedGoals['sugars'], 0);
+      expect(settingsBloc.savedGoals['fibre'], isNull);
+    });
+
+    testWidgets('today\'s own goal wins over the stored one', (tester) async {
+      final settingsBloc = _FakeSettingsBloc()
+        ..today = TrackedDayEntity(
+          day: DateTime(2026, 10, 10),
+          calorieGoal: 2000,
+          caloriesTracked: 0,
+          ironGoal: 12.5,
+        )
+        ..stored = {'iron': 30, 'fibre': 40};
+      await openScreen(tester, settingsBloc);
+
+      await tapSave(tester);
+
+      expect(settingsBloc.savedIron, 12.5);
+      // A nutrient today's row has no goal for takes the stored one.
+      expect(settingsBloc.savedFibre, 40);
+    });
+
+    testWidgets('Reset then Save still clears a stored goal', (tester) async {
+      final settingsBloc = _FakeSettingsBloc()..stored = {'iron': 30};
+      await openScreen(tester, settingsBloc);
+
+      await tester.tap(find.text(l10nEn.buttonResetLabel));
+      await tester.pumpAndSettle();
+      await tapSave(tester);
+
+      expect(settingsBloc.savedIron, isNull);
+      expect(settingsBloc.savedClearAll, isTrue);
+    });
+  });
+
   testWidgets('Reset then Save clears stored goals with clearAll', (
     tester,
   ) async {
