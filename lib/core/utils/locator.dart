@@ -541,7 +541,7 @@ Future<void> initLocator() async {
     () => AddWeightLogUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<DeleteWeightLogUsecase>(
-    () => DeleteWeightLogUsecase(locator()),
+    () => DeleteWeightLogUsecase(locator(), locator()),
   );
   locator.registerLazySingleton<GetFavouriteMealsUsecase>(
     () => GetFavouriteMealsUsecase(locator()),
