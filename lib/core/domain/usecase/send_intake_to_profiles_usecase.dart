@@ -149,7 +149,10 @@ class SendIntakeToProfilesUsecase {
 
       final day = copy.dateTime;
       if (!await addTrackedDay.hasTrackedDay(day)) {
-        final kcalGoal = await getKcalGoal.getKcalGoal();
+        // A day with no row has no activity: logging one creates the row.
+        final kcalGoal = await getKcalGoal.getKcalGoal(
+          totalKcalActivitiesParam: 0,
+        );
         await addTrackedDay.addNewTrackedDayIfAbsent(
           day,
           kcalGoal,

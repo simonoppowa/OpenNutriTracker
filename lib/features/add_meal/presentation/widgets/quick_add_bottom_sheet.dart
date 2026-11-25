@@ -231,7 +231,10 @@ class _QuickAddBottomSheetState extends State<QuickAddBottomSheet> {
     final addTrackedDay = locator<AddTrackedDayUsecase>();
     final hasTrackedDay = await addTrackedDay.hasTrackedDay(widget.day);
     if (!hasTrackedDay) {
-      final kcalGoal = await locator<GetKcalGoalUsecase>().getKcalGoal();
+      // A day with no row has no activity: logging one creates the row.
+      final kcalGoal = await locator<GetKcalGoalUsecase>().getKcalGoal(
+        totalKcalActivitiesParam: 0,
+      );
       final macroGoal = locator<GetMacroGoalUsecase>();
       await addTrackedDay.addNewTrackedDayIfAbsent(
         widget.day,

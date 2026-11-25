@@ -144,7 +144,10 @@ class ImportMealsJsonUsecase {
   Future<void> _ensureTrackedDay(DateTime day) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (hasTrackedDay) return;
-    final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
+    // A day with no row has no activity: logging one creates the row.
+    final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+      totalKcalActivitiesParam: 0,
+    );
     final totalCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(
       totalKcalGoal,
     );
