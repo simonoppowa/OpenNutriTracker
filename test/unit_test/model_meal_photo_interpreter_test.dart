@@ -129,6 +129,30 @@ void main() {
       expect(client.sentBody!['system'], contains('"de"'));
     });
 
+    test(
+      'asks for English queries where the search reads English names',
+      () async {
+        final client = FakeClient(body: toolReply([]));
+        await interpreterWith(client).interpret(_photo, localeCode: 'es');
+
+        expect(
+          client.sentBody!['system'],
+          contains('Write "query" in English'),
+        );
+      },
+    );
+
+    test('keeps the query in the app language where translated names are '
+        'searched', () async {
+      final client = FakeClient(body: toolReply([]));
+      await interpreterWith(client).interpret(_photo, localeCode: 'de');
+
+      expect(
+        client.sentBody!['system'],
+        isNot(contains('Write "query" in English')),
+      );
+    });
+
     test('sends the key as a header, never in the body', () async {
       final client = FakeClient(body: toolReply([]));
       await interpreterWith(client).interpret(_photo);

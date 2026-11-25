@@ -58,11 +58,12 @@ decoding that would guarantee the reply matches the schema. The app does not rel
 guarantee is re-checked in Dart against a reply that ignored the schema entirely — because a
 guarantee you cannot verify locally is a guarantee held by somebody else.
 
-The permitted fields are exactly four: `query` (the food name, in your language), and optionally
-`quantity`, `unit` — the latter constrained to a fixed list — and `portion`. That list includes
-`l`, `kg` and `lb` for a measured reason recorded in the source: omitting them did not stop the
-model answering, it made the model map a litre onto `ml` and keep the number, turning 1.5 l of milk
-into 1.5 ml. A thousandfold undercount that nothing flagged, because a unit *had* been stated.
+The permitted fields are exactly four: `query` (the food name, in the language the food search
+reads), and optionally `quantity`, `unit` — the latter constrained to a fixed list — and
+`portion`. That list includes `l`, `kg` and `lb` for a measured reason recorded in the source:
+omitting them did not stop the model answering, it made the model map a litre onto `ml` and keep
+the number, turning 1.5 l of milk into 1.5 ml. A thousandfold undercount that nothing flagged,
+because a unit *had* been stated.
 
 Adding them opened the failure on the other side: a model answering with a unit nobody typed.
 *"ein Glas Milch"* states no amount at all — Anthropic answered `1 l`, OpenAI answered
@@ -183,7 +184,11 @@ The system prompt is about two hundred words, and it is rules rather than data: 
 food, `query` is the food name alone in the language you wrote in, an amount only where you stated
 one, never converted between units, and an empty list when the input holds no food. Your app
 language is appended to it as a single sentence — *The user's app language is "de"* — and that is
-the bare language code, with no region and nothing else about the device it came from.
+the bare language code, with no region and nothing else about the device it came from. Where the
+food search has no translated names for that language (`SPConst.translationLocaleOf` returns null:
+English, Spanish and Hungarian today) a second sentence asks for `query` in English, because that
+search matches English names only and a query in Spanish finds no generic food. It is derived from
+the same code, so nothing more about you is sent.
 
 **Nothing else is attached, and there is nowhere for it to be attached.** Not a diary entry, a
 past meal, a goal, a weight, an age or anything else from your profile; not an earlier request or
