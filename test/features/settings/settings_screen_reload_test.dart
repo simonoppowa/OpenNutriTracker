@@ -214,7 +214,7 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    expect(find.text(l10nEn.settingsKjAdjustmentLabel), findsOneWidget);
-    expect(find.text(l10nEn.settingsKcalAdjustmentLabel), findsNothing);
+    expect(find.text(l10nEn.settingsKjGoalLabel), findsOneWidget);
+    expect(find.text(l10nEn.settingsKcalGoalLabel), findsNothing);
   });
 }

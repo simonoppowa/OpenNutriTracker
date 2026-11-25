@@ -84,6 +84,10 @@ class ConfigRepository {
     await _configDataSource.setConfigKcalAdjustment(kcalAdjustment);
   }
 
+  Future<void> setConfigFixedKcalGoal(double? kcal) async {
+    await _configDataSource.setConfigFixedKcalGoal(kcal);
+  }
+
   Future<void> setConfigShowActivityTracking(bool show) async {
     await _configDataSource.setConfigShowActivityTracking(show);
   }
@@ -100,6 +104,7 @@ class ConfigRepository {
 
   Future<void> setConfigGoalSettings({
     required double? kcalAdjustment,
+    required double? fixedKcalGoal,
     required double? carbGoalPct,
     required double? proteinGoalPct,
     required double? fatGoalPct,
@@ -108,6 +113,7 @@ class ConfigRepository {
   }) async {
     await _configDataSource.setConfigGoalSettings(
       kcalAdjustment: kcalAdjustment,
+      fixedKcalGoal: fixedKcalGoal,
       carbGoalPct: carbGoalPct,
       proteinGoalPct: proteinGoalPct,
       fatGoalPct: fatGoalPct,

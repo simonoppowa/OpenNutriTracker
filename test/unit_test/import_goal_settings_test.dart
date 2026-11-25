@@ -123,6 +123,7 @@ class _UnusedImportRecipesJson extends Fake
 Map<String, dynamic> _goalsJson() => {
   'version': 1,
   'kcalAdjustment': -300.0,
+  'fixedKcalGoal': 1750.0,
   'carbGoalPct': 0.4,
   'proteinGoalPct': 0.3,
   'fatGoalPct': 0.3,
@@ -328,6 +329,7 @@ void main() {
 
   Future<void> setCustomGoals() async {
     await config.setConfigKcalAdjustment(250);
+    await config.setConfigFixedKcalGoal(1900);
     await config.setConfigCarbGoalPct(0.5);
     await config.setConfigProteinGoalPct(0.25);
     await config.setConfigFatGoalPct(0.25);
@@ -344,6 +346,7 @@ void main() {
     final c = await config.getConfig();
     return {
       'kcalAdjustment': c.userKcalAdjustment,
+      'fixedKcalGoal': c.userFixedKcalGoal,
       'carbGoalPct': c.userCarbGoalPct,
       'proteinGoalPct': c.userProteinGoalPct,
       'fatGoalPct': c.userFatGoalPct,
@@ -436,12 +439,49 @@ void main() {
 
       final restored = await goals();
       expect(restored['kcalAdjustment'], -300);
+      expect(restored['fixedKcalGoal'], 1750);
       expect(restored['carbGoalPct'], isNull);
       expect(restored['proteinGoalPct'], isNull);
       expect(restored['fatGoalPct'], isNull);
       expect(restored['dailyWaterGoalMl'], isNull);
     },
   );
+
+  // #671: a backup written before the fixed goal existed has no key for it.
+  // Like any other missing key it restores the default, which is the
+  // calculated goal, and the offset it does carry applies again.
+  test(
+    'goal settings without a fixed goal restore the calculated goal',
+    () async {
+      await setCustomGoals();
+      writeZip({
+        ExportImportBloc.goalSettingsJsonFileName: jsonEncode(
+          {..._goalsJson()}..remove('fixedKcalGoal'),
+        ),
+      });
+
+      expect(await importJson(), isTrue);
+
+      final restored = await goals();
+      expect(restored['fixedKcalGoal'], isNull);
+      expect(restored['kcalAdjustment'], -300);
+      expect(
+        await kcalGoal.getKcalGoal(),
+        isNot(1900),
+        reason: 'the fixed goal set before the import no longer applies',
+      );
+    },
+  );
+
+  test('a restored fixed goal is the daily goal', () async {
+    writeZip({
+      ExportImportBloc.goalSettingsJsonFileName: jsonEncode(_goalsJson()),
+    });
+
+    expect(await importJson(), isTrue);
+
+    expect(await kcalGoal.getKcalGoal(), 1750);
+  });
 
   test('goal settings from a newer format are skipped and the rest of the '
       'archive still imports', () async {
@@ -491,6 +531,18 @@ void main() {
       'kcal adjustment out of range': jsonEncode({
         ..._goalsJson(),
         'kcalAdjustment': 5000,
+      }),
+      'fixed goal is text': jsonEncode({
+        ..._goalsJson(),
+        'fixedKcalGoal': '1750',
+      }),
+      'fixed goal below the range': jsonEncode({
+        ..._goalsJson(),
+        'fixedKcalGoal': 0,
+      }),
+      'fixed goal above the range': jsonEncode({
+        ..._goalsJson(),
+        'fixedKcalGoal': 20000,
       }),
       'macro split given in percent': jsonEncode({
         ..._goalsJson(),
@@ -589,6 +641,16 @@ void main() {
           () => GoalSettingsBackup.fromJson({
             ..._goalsJson(),
             'kcalAdjustment': bad,
+          }),
+          throwsFormatException,
+        );
+      });
+
+      test('rejects a non-finite fixed goal ($bad)', () {
+        expect(
+          () => GoalSettingsBackup.fromJson({
+            ..._goalsJson(),
+            'fixedKcalGoal': bad,
           }),
           throwsFormatException,
         );
@@ -701,6 +763,7 @@ void main() {
         'rejected on import', () {
       final stored = ConfigDBO.empty()
         ..userKcalAdjustment = 200
+        ..userFixedKcalGoal = 30
         ..userCarbGoalPct = 0.6
         ..userProteinGoalPct = 0.6
         ..userFatGoalPct = 0.6
@@ -713,6 +776,7 @@ void main() {
       );
 
       expect(reread!.kcalAdjustment, 200);
+      expect(reread.fixedKcalGoal, isNull);
       expect(reread.carbGoalPct, isNull);
       expect(reread.proteinGoalPct, isNull);
       expect(reread.fatGoalPct, isNull);
@@ -724,6 +788,7 @@ void main() {
         'the backup still encodes', () {
       for (final bad in [double.nan, double.infinity]) {
         final kcalStored = ConfigDBO.empty()..userKcalAdjustment = bad;
+        final fixedStored = ConfigDBO.empty()..userFixedKcalGoal = bad;
         final macroStored = ConfigDBO.empty()
           ..userCarbGoalPct = bad
           ..userProteinGoalPct = 0.3
@@ -732,7 +797,10 @@ void main() {
         final kcalBackup = GoalSettingsBackup.fromConfigDBO(kcalStored);
         final macroBackup = GoalSettingsBackup.fromConfigDBO(macroStored);
 
+        final fixedBackup = GoalSettingsBackup.fromConfigDBO(fixedStored);
         expect(kcalBackup.kcalAdjustment, isNull, reason: '$bad');
+        expect(fixedBackup.fixedKcalGoal, isNull, reason: '$bad');
+        expect(() => jsonEncode(fixedBackup.toJson()), returnsNormally);
         expect(macroBackup.carbGoalPct, isNull, reason: '$bad');
         expect(macroBackup.proteinGoalPct, isNull, reason: '$bad');
         expect(macroBackup.fatGoalPct, isNull, reason: '$bad');
@@ -750,6 +818,7 @@ void main() {
       expect(GoalSettingsBackup.fromConfigDBO(stored).toJson().keys, {
         'version',
         'kcalAdjustment',
+        'fixedKcalGoal',
         'carbGoalPct',
         'proteinGoalPct',
         'fatGoalPct',

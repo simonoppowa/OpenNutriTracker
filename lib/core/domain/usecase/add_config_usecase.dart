@@ -56,6 +56,11 @@ class AddConfigUsecase {
     await _configRepository.setConfigKcalAdjustment(kcalAdjustment);
   }
 
+  /// Null clears the fixed goal, so the calculated goal applies again.
+  Future<void> setConfigFixedKcalGoal(double? kcal) async {
+    await _configRepository.setConfigFixedKcalGoal(kcal);
+  }
+
   Future<void> setConfigMacroGoalPct(
     double carbGoalPct,
     double proteinGoalPct,

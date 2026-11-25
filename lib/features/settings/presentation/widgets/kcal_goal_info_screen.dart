@@ -76,6 +76,10 @@ class _KcalGoalInfoScreenState extends State<KcalGoalInfoScreen> {
               const SizedBox(height: Dimens.spacing16),
               _InputsCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing12),
+              if (breakdown.usesFixedGoal) ...[
+                _FixedGoalCard(breakdown: breakdown),
+                const SizedBox(height: Dimens.spacing12),
+              ],
               _TdeeCard(breakdown: breakdown),
               const SizedBox(height: Dimens.spacing12),
               _AdjustmentCard(breakdown: breakdown),
@@ -343,6 +347,37 @@ class _ManualAdjustmentCard extends StatelessWidget {
   }
 }
 
+/// The fixed daily goal (#671), which replaces steps 1–3. Only shown when
+/// one is set.
+class _FixedGoalCard extends StatelessWidget {
+  final KcalGoalBreakdownEntity breakdown;
+
+  const _FixedGoalCard({required this.breakdown});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context);
+    return _SectionCard(
+      title: l10n.kcalGoalInfoFixedSection,
+      children: [
+        Text(
+          l10n.kcalGoalInfoFixedExplanation,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const Divider(height: Dimens.spacing20),
+        _ValueRow(
+          label: l10n.fixedKcalGoalLabel,
+          value: EnergyDisplay.formatWithUnit(
+            context,
+            breakdown.fixedKcalGoal!,
+          ),
+          emphasized: true,
+        ),
+      ],
+    );
+  }
+}
+
 /// Step 4 — today's logged exercise energy.
 class _ActivityCard extends StatelessWidget {
   final KcalGoalBreakdownEntity breakdown;
@@ -383,18 +418,30 @@ class _ResultCard extends StatelessWidget {
     return _SectionCard(
       title: l10n.kcalGoalInfoResultSection,
       children: [
-        _ValueRow(
-          label: l10n.kcalGoalInfoTdeeResultLabel,
-          value: EnergyDisplay.formatWithUnit(context, breakdown.tdeeKcal),
-        ),
-        _ValueRow(
-          label: l10n.kcalGoalInfoAppliedAdjustmentLabel,
-          value: _signedEnergy(context, breakdown.effectiveAdjustmentKcal),
-        ),
-        _ValueRow(
-          label: l10n.settingsKcalAdjustmentLabel,
-          value: _signedEnergy(context, breakdown.manualKcalAdjustment),
-        ),
+        // A fixed goal replaces the first three terms, so the sum shows it
+        // in their place and stays equal to the goal on Home.
+        if (breakdown.usesFixedGoal)
+          _ValueRow(
+            label: l10n.fixedKcalGoalLabel,
+            value: EnergyDisplay.formatWithUnit(
+              context,
+              breakdown.fixedKcalGoal!,
+            ),
+          )
+        else ...[
+          _ValueRow(
+            label: l10n.kcalGoalInfoTdeeResultLabel,
+            value: EnergyDisplay.formatWithUnit(context, breakdown.tdeeKcal),
+          ),
+          _ValueRow(
+            label: l10n.kcalGoalInfoAppliedAdjustmentLabel,
+            value: _signedEnergy(context, breakdown.effectiveAdjustmentKcal),
+          ),
+          _ValueRow(
+            label: l10n.settingsKcalAdjustmentLabel,
+            value: _signedEnergy(context, breakdown.manualKcalAdjustment),
+          ),
+        ],
         _ValueRow(
           label: l10n.activityLabel,
           value: _signedEnergy(context, breakdown.activityKcal),
