@@ -103,8 +103,18 @@ When either says the upload needs doing by hand:
    regression in [#959](https://github.com/simonoppowa/OpenNutriTracker/issues/959) went unnoticed
    for eight days.
 
-Build 65 needed none of the three steps above. Keep them until a release proves the API upload
-repeatable — see the caveat at the top of this section.
+Build 65 needed none of the three steps above. Neither did build 66 (2.4.0, 2026-09-26,
+[run 36272991336](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/36272991336)),
+build 67 (2.5.0, 2026-10-23,
+[run 39941371399](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/39941371399)) or
+build 68 (2.6.0, 2026-10-30,
+[run 41118540771](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/41118540771)): each
+uploaded through the API with only notices, declaring the same two health permissions as 65.
+Those runs arguably meet the condition in the caveat at the top of this section, but relaxing the
+caveat is a decision of its own and has not been made. Until it is, the caveat stands: treat a
+working API upload as welcome rather than expected, and keep the three steps. Whatever that
+decision is, these runs do not say which of the two changes fixed the upload, so a release that
+changes the `android.permission.health.*` set reopens the question.
 
 ## Before opening the release PR
 
@@ -139,6 +149,79 @@ repeatable — see the caveat at the top of this section.
       adds or changes a network destination changes this answer. It is the one item here whose
       failure mode is the app being pulled rather than a bad release.
 - [ ] **Confirm no unreleased-feature documentation is public** — see the doc steps below.
+- [ ] **If the build adds an iOS target or entitlement, do the signing work first** — see
+      [New iOS targets or capabilities](#new-ios-targets-or-capabilities).
+
+### New iOS targets or capabilities
+
+A release whose build adds an iOS target (an extension) or an entitlement (an App Group, any
+capability) needs signing work that CI cannot do for itself, and it has to be finished **before**
+the merge to `main`. `ios-package` runs match read-only, so a profile missing from the match
+repository fails the build after the approval, not before it. 2.5.0 found this out over three
+failed `ios-package` runs when the calorie widget extension
+([#1251](https://github.com/simonoppowa/OpenNutriTracker/pull/1251)) first shipped; the fixes are
+[#1449](https://github.com/simonoppowa/OpenNutriTracker/pull/1449),
+[#1451](https://github.com/simonoppowa/OpenNutriTracker/pull/1451) and
+[#1452](https://github.com/simonoppowa/OpenNutriTracker/pull/1452), and
+[`docs/ios-calorie-widget.md`](ios-calorie-widget.md) has that target's ids.
+
+1. **Register the App ID with the capability *configured*, not just ticked.** In Certificates,
+   Identifiers & Profiles an App Group is only attached once the identifier reads **Enabled App
+   Groups (1)**. Ticking the box leaves it at (0): the App ID looks enabled, and the profile
+   generated from it lacks the group.
+2. **If registration says the bundle id is "not available", pick a different one.** Bundle ids are
+   unique across all of Apple, not per team, so that message means another team holds the id and
+   nothing on this side gets it back. The widget was `….CalorieWidget` until that happened; it
+   shipped as `com.opennutritracker.ont.opennutritracker.widget`.
+3. **List a new bundle id in `ios/fastlane/Matchfile`, then generate the profile with match in
+   writable mode.** The Matchfile edit comes first: `sync_signing` passes match no
+   `app_identifier`, so match signs exactly the ids in the Matchfile's `app_identifier` list and
+   creates no profile for one that is missing. CI never runs match writable, so the profile has to
+   be in `simonoppowa/ont-ios-certificates` before the release run. A capability added to an
+   *existing* target needs the same, with `MATCH_FORCE=true`, or match keeps serving the old
+   profile without it; force renews the profile of every id in the list, the app's included.
+
+   Locally, the lane needs what CI injects from repository secrets, none of it set in a
+   maintainer's shell by default: `MATCH_GIT_URL` and `MATCH_PASSWORD` for the match repository,
+   push access to that repository (an SSH key or token that can write, not the read-only kind), and
+   `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID` and `APP_STORE_CONNECT_API_KEY_P8`
+   for the API key. The lane reads the `.p8` content as base64 unless
+   `APP_STORE_CONNECT_API_KEY_IS_KEY_CONTENT_BASE64=false`. With those exported, on a Mac with
+   Ruby, run from `ios/`:
+   - new target: `MATCH_READONLY=false bundle exec fastlane ios certs`;
+   - capability added to an existing target: `MATCH_READONLY=false MATCH_FORCE=true bundle exec
+     fastlane ios certs`.
+
+   Without a Mac, the route that worked for 2.5.0 was a throwaway branch
+   (`ops/match-regen-widget`), cut from a commit that already has the Matchfile entry, carrying a
+   push-triggered macOS workflow:
+   - the workflow sets `MATCH_READONLY: 'false'` and `MATCH_FORCE: 'true'` and runs a one-off lane;
+   - the lane calls `setup_ci`, then sets `ENV['MATCH_READONLY'] = 'false'`, then calls
+     `sync_signing`. The reassignment is the part that matters: `setup_ci` forces
+     `MATCH_READONLY` to `true` whatever the workflow set, which is how the first attempt
+     ([run 39922161888](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/39922161888))
+     failed with *"cannot create a new one because you enabled `readonly`"*;
+   - the match and App Store Connect secrets are repository-level, so they reach a workflow on any
+     branch and the branch needs no other setup.
+
+   Delete the branch afterwards. The workflow exists only there, and while it does, any push to
+   that branch rewrites the signing profiles.
+4. **Read the match log, not the job colour.** match reports a failed push as an error line and
+   carries on to a green finish. The first attempt of
+   [run 39923146716](https://github.com/simonoppowa/OpenNutriTracker/actions/runs/39923146716) is
+   green, and its log says *"The key you are authenticating with has been marked as read only"*,
+   then *"Couldn't commit or push changes back to git..."*, then *"Finished uploading files to Git
+   Repo"*. Search the log for `Couldn't commit or push`, and confirm a new `[fastlane] Updated
+   appstore` commit in the match repository. Its deploy key has been a write key since 2026-10-23
+   (*SSH Github Actions (write)*), so that particular cause is gone; the green finish on a failed
+   push is not.
+5. **Give the export an explicit profile for every bundle id.** With an extension embedded,
+   `flutter build ipa --export-method app-store` cannot tell which match profile signs which bundle
+   id and rejects the `.appex`. `ios/ExportOptions.plist` maps each bundle id to its match
+   profile, and the fastlane `build` lane passes it with `--export-options-plist` by **absolute**
+   path: flutter did not resolve a relative one against the directory the lane runs from. A new
+   target adds its line there, next to its `enforce_app_store_signing` block in
+   `ios/fastlane/Fastfile` and the Matchfile entry from step 3.
 
 ## The release PR
 
