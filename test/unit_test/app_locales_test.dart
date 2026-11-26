@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/l10n/app_locales.dart';
 import 'package:opennutritracker/core/l10n/shipped_locales.dart';
+import 'package:opennutritracker/generated/l10n.dart';
 
 /// `appLocales` is what keeps a language that is present in `lib/l10n/` but
 /// not yet shipped from being resolved for a matching device — including a
@@ -16,7 +17,7 @@ void main() {
       const Locale('zh'),
       const Locale('zh', 'TW'), // variant of a shipped language: still inert
       const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
-      const Locale('pt', 'BR'), // no base language shipped either
+      const Locale('pt', 'BR'), // regional variant, base not listed here
     ];
 
     expect(appLocales(generated), [
@@ -24,6 +25,11 @@ void main() {
       const Locale('de'),
       const Locale('zh'),
     ]);
+  });
+
+  test('Portuguese ships, and the app resolves against it', () {
+    expect(shippedLocales['pt'], 'Português');
+    expect(appLocales(S.supportedLocales), contains(const Locale('pt')));
   });
 
   test('every shipped language survives the narrowing', () {
