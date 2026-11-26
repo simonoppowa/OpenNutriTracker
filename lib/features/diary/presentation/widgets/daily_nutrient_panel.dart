@@ -74,6 +74,14 @@ class DailyNutrientPanel extends StatefulWidget {
   static const double defaultVitaminDRefUg = 15.0;
   static const double defaultVitaminB12RefUg = 2.4;
   static const double defaultMagnesiumRefMg = 355.0; // non-binary midpoint
+  // #1624: used only without a profile; with one, the IOM row applies.
+  // Where the female and male RDAs differ these are the adult midpoints.
+  static const double defaultZincRefMg = 9.5;
+  static const double defaultPhosphorusRefMg = 700.0;
+  static const double defaultVitaminARefUg = 800.0;
+  static const double defaultVitaminCRefMg = 82.5;
+  static const double defaultVitaminB6RefMg = 1.3;
+  static const double defaultNiacinRefMg = 15.0;
 
   /// Pure helpers that prefer the user's [TrackedDayEntity] per-nutrient
   /// goal when set, falling back to the published default otherwise.
@@ -242,6 +250,12 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     final vitaminDMcg = totals.vitaminDMcg;
     final vitaminB12Mcg = totals.vitaminB12Mcg;
     final magnesiumMg = totals.magnesiumMg;
+    final zincMg = totals.zincMg;
+    final phosphorusMg = totals.phosphorusMg;
+    final vitaminAMcg = totals.vitaminAMcg;
+    final vitaminCMg = totals.vitaminCMg;
+    final vitaminB6Mg = totals.vitaminB6Mg;
+    final niacinMg = totals.niacinMg;
 
     // Reference values are sensible adult DRIs / FDA Daily Values. Iron's
     // reference uses UserEntity.gender so women see 18mg and men see 8mg;
@@ -308,6 +322,34 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
       () => td?.magnesiumGoal,
       NutrientPanelKeys.magnesium,
       _magnesiumRefForUser(user),
+    );
+    // #1624: no per-day goal fields yet, so the IOM row (or the default
+    // when there is no profile) is the reference.
+    double dri(String key, double fallback) =>
+        DailyNutrientPanel.defaultReferenceFor(key, user, fallback);
+    final zincRefMg = dri(
+      NutrientPanelKeys.zinc,
+      DailyNutrientPanel.defaultZincRefMg,
+    );
+    final phosphorusRefMg = dri(
+      NutrientPanelKeys.phosphorus,
+      DailyNutrientPanel.defaultPhosphorusRefMg,
+    );
+    final vitaminARefMcg = dri(
+      NutrientPanelKeys.vitaminA,
+      DailyNutrientPanel.defaultVitaminARefUg,
+    );
+    final vitaminCRefMg = dri(
+      NutrientPanelKeys.vitaminC,
+      DailyNutrientPanel.defaultVitaminCRefMg,
+    );
+    final vitaminB6RefMg = dri(
+      NutrientPanelKeys.vitaminB6,
+      DailyNutrientPanel.defaultVitaminB6RefMg,
+    );
+    final niacinRefMg = dri(
+      NutrientPanelKeys.niacin,
+      DailyNutrientPanel.defaultNiacinRefMg,
     );
 
     final s = S.of(context);
@@ -389,6 +431,54 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
         label: s.magnesiumLabel,
         value: magnesiumMg,
         reference: magnesiumRefMg,
+        unit: 'mg',
+        excessMatters: false,
+      ),
+      _PanelRow(
+        key: NutrientPanelKeys.zinc,
+        label: s.zincLabel,
+        value: zincMg,
+        reference: zincRefMg,
+        unit: 'mg',
+        excessMatters: false,
+      ),
+      _PanelRow(
+        key: NutrientPanelKeys.phosphorus,
+        label: s.phosphorusLabel,
+        value: phosphorusMg,
+        reference: phosphorusRefMg,
+        unit: 'mg',
+        excessMatters: false,
+      ),
+      _PanelRow(
+        key: NutrientPanelKeys.vitaminA,
+        label: s.vitaminALabel,
+        value: vitaminAMcg,
+        reference: vitaminARefMcg,
+        unit: 'µg',
+        excessMatters: false,
+      ),
+      _PanelRow(
+        key: NutrientPanelKeys.vitaminC,
+        label: s.vitaminCLabel,
+        value: vitaminCMg,
+        reference: vitaminCRefMg,
+        unit: 'mg',
+        excessMatters: false,
+      ),
+      _PanelRow(
+        key: NutrientPanelKeys.vitaminB6,
+        label: s.vitaminB6Label,
+        value: vitaminB6Mg,
+        reference: vitaminB6RefMg,
+        unit: 'mg',
+        excessMatters: false,
+      ),
+      _PanelRow(
+        key: NutrientPanelKeys.niacin,
+        label: s.niacinLabel,
+        value: niacinMg,
+        reference: niacinRefMg,
         unit: 'mg',
         excessMatters: false,
       ),
@@ -644,6 +734,12 @@ class NutrientPanelTotals {
   final double vitaminDMcg;
   final double vitaminB12Mcg;
   final double magnesiumMg;
+  final double zincMg;
+  final double phosphorusMg;
+  final double vitaminAMcg;
+  final double vitaminCMg;
+  final double vitaminB6Mg;
+  final double niacinMg;
 
   const NutrientPanelTotals({
     required this.fiberG,
@@ -656,6 +752,12 @@ class NutrientPanelTotals {
     required this.vitaminDMcg,
     required this.vitaminB12Mcg,
     required this.magnesiumMg,
+    required this.zincMg,
+    required this.phosphorusMg,
+    required this.vitaminAMcg,
+    required this.vitaminCMg,
+    required this.vitaminB6Mg,
+    required this.niacinMg,
   });
 
   factory NutrientPanelTotals.fromIntakes(
@@ -683,6 +785,12 @@ class NutrientPanelTotals {
       vitaminDMcg: sum((n) => n.vitaminD100),
       vitaminB12Mcg: sum((n) => n.vitaminB12100),
       magnesiumMg: sum((n) => n.magnesium100),
+      zincMg: sum((n) => n.zinc100),
+      phosphorusMg: sum((n) => n.phosphorus100),
+      vitaminAMcg: sum((n) => n.vitaminA100),
+      vitaminCMg: sum((n) => n.vitaminC100),
+      vitaminB6Mg: sum((n) => n.vitaminB6100),
+      niacinMg: sum((n) => n.niacin100),
     );
   }
 }
@@ -704,6 +812,13 @@ class NutrientPanelKeys {
   static const String vitaminD = 'vitamin_d';
   static const String vitaminB12 = 'vitamin_b12';
   static const String magnesium = 'magnesium';
+  // #1624: stored per food already; totalled on the panel from here on.
+  static const String zinc = 'zinc';
+  static const String phosphorus = 'phosphorus';
+  static const String vitaminA = 'vitamin_a';
+  static const String vitaminC = 'vitamin_c';
+  static const String vitaminB6 = 'vitamin_b6';
+  static const String niacin = 'niacin';
 
   static const List<String> all = <String>[
     fiber,
@@ -716,6 +831,12 @@ class NutrientPanelKeys {
     vitaminD,
     vitaminB12,
     magnesium,
+    zinc,
+    phosphorus,
+    vitaminA,
+    vitaminC,
+    vitaminB6,
+    niacin,
   ];
 }
 

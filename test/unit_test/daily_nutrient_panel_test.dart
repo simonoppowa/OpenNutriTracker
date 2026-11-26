@@ -21,6 +21,12 @@ MealEntity _meal({
   double? vitaminD,
   double? vitaminB12,
   double? magnesium,
+  double? zinc,
+  double? phosphorus,
+  double? vitaminA,
+  double? vitaminC,
+  double? vitaminB6,
+  double? niacin,
 }) {
   return MealEntity(
     code: 'test',
@@ -47,6 +53,12 @@ MealEntity _meal({
       iron100: iron,
       vitaminD100: vitaminD,
       vitaminB12100: vitaminB12,
+      zinc100: zinc,
+      phosphorus100: phosphorus,
+      vitaminA100: vitaminA,
+      vitaminC100: vitaminC,
+      vitaminB6100: vitaminB6,
+      niacin100: niacin,
     ),
   );
 }
@@ -141,6 +153,52 @@ void main() {
       expect(totals.vitaminB12Mcg, closeTo(3.8, 1e-9));
       // magnesium: 200×40/100 + 150×60/100 + 100×20/100 = 80 + 90 + 20 = 190
       expect(totals.magnesiumMg, closeTo(190.0, 1e-9));
+    });
+
+    test('aggregates the nutrients added in #1624', () {
+      final intakes = <IntakeEntity>[
+        _intake(
+          amountGrams: 200,
+          meal: _meal(
+            zinc: 1.5,
+            phosphorus: 150,
+            vitaminA: 40,
+            vitaminC: 10,
+            vitaminB6: 0.2,
+            niacin: 3,
+          ),
+        ),
+        _intake(
+          amountGrams: 50,
+          meal: _meal(
+            zinc: 4,
+            phosphorus: 300,
+            vitaminA: 600,
+            vitaminC: 0,
+            vitaminB6: 0.6,
+            niacin: 10,
+          ),
+        ),
+      ];
+
+      final totals = NutrientPanelTotals.fromIntakes(intakes);
+
+      // zinc: 200×1.5/100 + 50×4/100 = 3 + 2 = 5
+      expect(totals.zincMg, closeTo(5.0, 1e-9));
+      // phosphorus: 200×150/100 + 50×300/100 = 300 + 150 = 450
+      expect(totals.phosphorusMg, closeTo(450.0, 1e-9));
+      // vitamin A: 200×40/100 + 50×600/100 = 80 + 300 = 380
+      expect(totals.vitaminAMcg, closeTo(380.0, 1e-9));
+      // vitamin C: 200×10/100 + 50×0/100 = 20
+      expect(totals.vitaminCMg, closeTo(20.0, 1e-9));
+      // vitamin B6: 200×0.2/100 + 50×0.6/100 = 0.4 + 0.3 = 0.7
+      expect(totals.vitaminB6Mg, closeTo(0.7, 1e-9));
+      // niacin: 200×3/100 + 50×10/100 = 6 + 5 = 11
+      expect(totals.niacinMg, closeTo(11.0, 1e-9));
+
+      // Weekly view averages them like the rest: 5 / 7.
+      final weekly = NutrientPanelTotals.fromIntakes(intakes, weekly: true);
+      expect(weekly.zincMg, closeTo(5.0 / 7, 1e-9));
     });
 
     test('treats null nutrient values as zero', () {
@@ -243,8 +301,8 @@ void main() {
   });
 
   group('NutrientPanelKeys', () {
-    test('exposes all ten nutrient identifiers', () {
-      expect(NutrientPanelKeys.all, hasLength(10));
+    test('exposes all sixteen nutrient identifiers', () {
+      expect(NutrientPanelKeys.all, hasLength(16));
       expect(
         NutrientPanelKeys.all.toSet(),
         equals(<String>{
@@ -258,6 +316,12 @@ void main() {
           NutrientPanelKeys.vitaminD,
           NutrientPanelKeys.vitaminB12,
           NutrientPanelKeys.magnesium,
+          NutrientPanelKeys.zinc,
+          NutrientPanelKeys.phosphorus,
+          NutrientPanelKeys.vitaminA,
+          NutrientPanelKeys.vitaminC,
+          NutrientPanelKeys.vitaminB6,
+          NutrientPanelKeys.niacin,
         }),
       );
     });
