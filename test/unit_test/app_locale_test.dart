@@ -66,6 +66,14 @@ void main() {
       expect(AppLocale.localeName, 'en');
     });
 
+    test('a Portuguese device resolves to Portuguese now that it ships', () {
+      // Brazil and Portugal both land on the one `pt` ARB.
+      AppLocale.preferredLocales = () => const [Locale('pt', 'BR')];
+      expect(AppLocale.localeName, 'pt');
+      AppLocale.preferredLocales = () => const [Locale('pt', 'PT')];
+      expect(AppLocale.localeName, 'pt');
+    });
+
     test('LocaleProvider is its writer, at creation and on update', () {
       final provider = LocaleProvider(locale: Locale(chosen));
       expect(AppLocale.localeName, chosen);
