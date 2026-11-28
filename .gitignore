@@ -77,3 +77,4 @@ tool/verify_openai_key.dart
 
 # Fastlane / Bundler — local gem install path (bundle config set path vendor/bundle)
 ios/vendor/
+android/build/reports/problems/problems-report.html
