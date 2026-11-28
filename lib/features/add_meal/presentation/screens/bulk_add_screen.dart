@@ -1647,7 +1647,8 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
               child: ListTile(
                 leading: const Icon(Icons.photo_library_rounded),
                 title: Text(S.of(sheetContext).mealImagePickFromGallery),
-                onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.gallery),
               ),
             ),
           ],
@@ -1663,7 +1664,11 @@ class _BulkAddScreenState extends State<BulkAddScreen> {
       _log.warning('Opening the meal photo picker failed', e, stackTrace);
       if (!mounted) return;
       _bloc.add(
-        const ReadMealPhotoFailedEvent(BulkAddPhotoError.transient),
+        ReadMealPhotoFailedEvent(
+          source == ImageSource.camera
+              ? BulkAddPhotoError.camera
+              : BulkAddPhotoError.transient,
+        ),
       );
       return;
     }
