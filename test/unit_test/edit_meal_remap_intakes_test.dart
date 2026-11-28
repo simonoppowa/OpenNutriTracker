@@ -21,6 +21,7 @@ import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart'
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/other_profile_diaries_usecase.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/tracked_day_lock.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -255,8 +256,10 @@ void main() {
         intakeRepository,
         addTrackedDay,
         favourites,
+        OtherProfileDiariesUsecase(db),
       ),
       favourites,
+      OtherProfileDiariesUsecase(db),
     );
     addTearDown(customMealsBloc.close);
     customMealsBloc.add(DeleteCustomMealEvent('4006381333931'));

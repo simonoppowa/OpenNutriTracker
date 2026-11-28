@@ -17,6 +17,7 @@ import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/other_profile_diaries_usecase.dart';
 
 import '../helpers/hive_test_setup.dart';
 import '../helpers/fake_hive_db_provider.dart';
@@ -108,6 +109,7 @@ void main() {
           customDs,
           RecipeDataSource(favouriteProvider),
         ),
+        OtherProfileDiariesUsecase(favouriteProvider),
       );
     });
 
