@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opennutritracker/core/utils/app_locale.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_labels.dart';
+import 'package:opennutritracker/core/utils/widget/calorie_widget_nutrients.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_snapshot.dart';
 import 'package:opennutritracker/core/utils/widget/calorie_widget_writer.dart';
 import 'package:opennutritracker/generated/l10n.dart';
@@ -19,16 +20,18 @@ void main() {
   late List<String> calls;
   late Set<String> groups;
   late List<MapEntry<String, Object?>> saves;
-  Map<Object?, Object?> lastUpdateArgs = {};
+  late List<Map<Object?, Object?>> updates;
   String? failOn;
+  String? failUpdateOf;
 
   setUp(() {
     stored = {};
     saves = [];
     failOn = null;
+    failUpdateOf = null;
+    updates = [];
     calls = [];
     groups = {};
-    lastUpdateArgs = {};
     PackageInfo.setMockInitialValues(
       appName: 'OpenNutriTracker',
       packageName: 'com.opennutritracker.ont.opennutritracker',
@@ -40,7 +43,11 @@ void main() {
         .setMockMethodCallHandler(channel, (call) async {
           calls.add(call.method);
           if (call.method == 'updateWidget') {
-            lastUpdateArgs = (call.arguments as Map<Object?, Object?>?) ?? {};
+            final update = (call.arguments as Map<Object?, Object?>?) ?? {};
+            updates.add(update);
+            if (failUpdateOf != null && update['ios'] == failUpdateOf) {
+              throw PlatformException(code: 'no-such-widget');
+            }
           }
           final args = call.arguments as Map<Object?, Object?>?;
           groups.addAll(
@@ -167,10 +174,207 @@ void main() {
     // The qualified name is identical for both flavours, so a develop
     // install reaches its own provider without the suffix problem.
     expect(
-      lastUpdateArgs['qualifiedAndroidName'],
+      updates.first['qualifiedAndroidName'],
       CalorieWidgetSnapshot.androidWidgetQualifiedName,
     );
-    expect(lastUpdateArgs['ios'], CalorieWidgetSnapshot.iosWidgetKind);
+    expect(updates.first['ios'], CalorieWidgetSnapshot.iosWidgetKind);
+  });
+
+  final allKinds = [
+    CalorieWidgetSnapshot.iosWidgetKind,
+    CalorieWidgetSnapshot.nutritionRowIosWidgetKind,
+    CalorieWidgetSnapshot.macrosSmallIosWidgetKind,
+    CalorieWidgetSnapshot.waterSmallIosWidgetKind,
+  ];
+
+  test('a write reloads every iOS widget kind, existing ones first', () async {
+    final store = HomeWidgetCalorieStore();
+
+    await store.write(snapshot, german);
+
+    expect(updates.map((args) => args['ios']), allKinds);
+    expect(allKinds, [
+      'CalorieProgressWidget',
+      'NutritionRowWidget',
+      'MacrosSmallWidget',
+      'WaterSmallWidget',
+    ]);
+  });
+
+  test('a clear and a relabel reload every iOS widget kind too', () async {
+    final store = HomeWidgetCalorieStore();
+    await store.write(snapshot, german);
+
+    updates.clear();
+    await store.clear();
+    expect(updates.map((args) => args['ios']), allKinds);
+
+    updates.clear();
+    await store.relabel(lookupS(const Locale('en')));
+    expect(updates.map((args) => args['ios']), allKinds);
+  });
+
+  test('only the ring widget names the Android provider', () async {
+    final store = HomeWidgetCalorieStore();
+
+    await store.write(snapshot, german);
+
+    expect(updates.map((args) => args['qualifiedAndroidName']).toList(), [
+      CalorieWidgetSnapshot.androidWidgetQualifiedName,
+      null,
+      null,
+      null,
+    ]);
+  });
+
+  test('a reload that fails does not stop the other one', () async {
+    // The extension may not carry one of the kinds, for example an older
+    // build still on a device.
+    final store = HomeWidgetCalorieStore();
+    failUpdateOf = CalorieWidgetSnapshot.iosWidgetKind;
+
+    await store.write(snapshot, german);
+
+    expect(updates, hasLength(allKinds.length));
+    expect(stored[snapshotKey], snapshot.encode(german));
+  });
+
+  test('each small widget kind can fail alone, losing nothing', () async {
+    for (final kind in allKinds.skip(1)) {
+      updates.clear();
+      failUpdateOf = kind;
+      final store = HomeWidgetCalorieStore();
+
+      await store.write(snapshot, german);
+
+      expect(updates, hasLength(allKinds.length), reason: kind);
+      expect(stored[snapshotKey], snapshot.encode(german), reason: kind);
+    }
+  });
+
+  test('a failing second reload is swallowed like the first', () async {
+    // On Android the plugin has no class for the iOS name and answers
+    // with a PlatformException; the write still succeeds.
+    final store = HomeWidgetCalorieStore();
+    failUpdateOf = CalorieWidgetSnapshot.nutritionRowIosWidgetKind;
+
+    await store.write(snapshot, german);
+
+    expect(stored[snapshotKey], snapshot.encode(german));
+  });
+
+  test('a snapshot with water keeps it, and relabel rebuilds the row '
+      'sentence from the stored figures', () async {
+    final store = HomeWidgetCalorieStore();
+    final full = CalorieWidgetSnapshot.fromHome(
+      consumedKcal: 180,
+      goalKcal: 2000,
+      offsetMinutes: 0,
+      now: DateTime(2026, 9, 23, 13, 0),
+      macros: const CalorieWidgetMacros(
+        proteinIntakeG: 9,
+        proteinGoalG: 75,
+        carbsIntakeG: 20,
+        carbsGoalG: 300,
+        fatsIntakeG: 4,
+        fatsGoalG: 67,
+      ),
+      water: const CalorieWidgetWater(intakeMl: 750, goalMl: 1900),
+    );
+    final english = CalorieWidgetLabels.of(lookupS(const Locale('en')), full);
+
+    await store.write(full, english);
+    var decoded = jsonDecode(stored[snapshotKey]! as String);
+    expect(decoded['water'], {'ml': 750, 'goalMl': 1900});
+    expect(
+      decoded['labels']['rowAccessibility'],
+      contains('Water 750 of 1900'),
+    );
+
+    await store.relabel(lookupS(const Locale('de')));
+
+    decoded = jsonDecode(stored[snapshotKey]! as String);
+    expect(decoded['water'], {'ml': 750, 'goalMl': 1900});
+    expect(
+      decoded['labels'],
+      CalorieWidgetLabels.of(lookupS(const Locale('de')), full).figureJson(),
+    );
+  });
+
+  test('nutrients are kept by a relabel, and their sentences are '
+      'rewritten in the new language', () async {
+    final store = HomeWidgetCalorieStore();
+    final withNutrients = CalorieWidgetSnapshot.fromHome(
+      consumedKcal: 180,
+      goalKcal: 2000,
+      offsetMinutes: 0,
+      now: DateTime(2026, 9, 23, 13, 0),
+      macros: const CalorieWidgetMacros(
+        proteinIntakeG: 9,
+        proteinGoalG: 75,
+        carbsIntakeG: 20,
+        carbsGoalG: 300,
+        fatsIntakeG: 4,
+        fatsGoalG: 67,
+      ),
+      water: const CalorieWidgetWater(intakeMl: 750, goalMl: 1900),
+      nutrients: const [
+        CalorieWidgetNutrient(id: 'fiber', consumed: 12.5, goal: 30, unit: 'g'),
+        CalorieWidgetNutrient(id: 'sodium', consumed: 800, unit: 'mg'),
+      ],
+    );
+    final english = CalorieWidgetLabels.of(
+      lookupS(const Locale('en')),
+      withNutrients,
+    );
+
+    await store.write(withNutrients, english);
+    var decoded = jsonDecode(stored[snapshotKey]! as String);
+    expect(decoded['nutrients'], [
+      {'id': 'fiber', 'consumed': 12.5, 'goal': 30.0, 'unit': 'g'},
+      {'id': 'sodium', 'consumed': 800.0, 'unit': 'mg'},
+    ]);
+    expect(decoded['labels']['nutrients']['fiber'], {
+      'value': '12.5',
+      'goal': 'of 30',
+      'accessibility': 'fiber: 12.5 g of 30 g',
+    });
+
+    await store.relabel(lookupS(const Locale('de')));
+
+    final germanLabels = CalorieWidgetLabels.of(
+      lookupS(const Locale('de')),
+      withNutrients,
+    );
+    decoded = jsonDecode(stored[snapshotKey]! as String);
+    expect(decoded['nutrients'], hasLength(2));
+    expect(decoded['labels'], germanLabels.figureJson());
+    expect(stored[labelsKey], germanLabels.encodeLanguage());
+    expect(jsonDecode(stored[labelsKey]! as String)['nutrients'][4], {
+      'id': 'fiber',
+      'name': lookupS(const Locale('de')).fiberLabel,
+    });
+  });
+
+  test('a write carries the names for the picker, one value', () async {
+    final store = HomeWidgetCalorieStore();
+
+    await store.write(snapshot, german);
+
+    final names = jsonDecode(stored[labelsKey]! as String)['nutrients'];
+    expect(names, hasLength(14));
+    expect(names.first, {'id': 'calories', 'name': german.title});
+  });
+
+  test('relabel on an older snapshot adds no row sentence', () async {
+    // Written by an app that knew neither macros nor water.
+    final store = HomeWidgetCalorieStore();
+    await store.write(snapshot, german);
+
+    await store.relabel(lookupS(const Locale('en')));
+
+    final labels = jsonDecode(stored[snapshotKey]! as String)['labels'];
+    expect(labels.containsKey('rowAccessibility'), isFalse);
   });
 
   test('clear removes the figures and keeps the translated labels', () async {

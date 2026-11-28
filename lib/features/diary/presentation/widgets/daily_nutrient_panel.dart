@@ -130,6 +130,49 @@ class DailyNutrientPanel extends StatefulWidget {
   static double resolveMagnesiumReference(TrackedDayEntity? trackedDay) =>
       trackedDay?.magnesiumGoal ?? defaultMagnesiumRefMg;
 
+  /// The reference the panel shows for [nutrientKey]: the day's own goal,
+  /// else the IOM row for [user], else the published default. Null for a
+  /// key that is not one of [NutrientPanelKeys.all]. The home screen
+  /// widget reads its goals here, so it cannot disagree with the panel.
+  static double? referenceFor(
+    String nutrientKey,
+    UserEntity? user,
+    TrackedDayEntity? trackedDay,
+  ) {
+    double pick(double? own, double fallback) =>
+        own ?? defaultReferenceFor(nutrientKey, user, fallback);
+    final td = trackedDay;
+    switch (nutrientKey) {
+      case NutrientPanelKeys.fiber:
+        return pick(td?.fibreGoal, defaultFibreRefG);
+      case NutrientPanelKeys.sodium:
+        return pick(td?.sodiumGoal, defaultSodiumRefMg);
+      case NutrientPanelKeys.saturatedFat:
+        return resolveSatFatReference(td);
+      case NutrientPanelKeys.sugar:
+        return resolveSugarsReference(td);
+      case NutrientPanelKeys.calcium:
+        return pick(td?.calciumGoal, defaultCalciumRefMg);
+      case NutrientPanelKeys.iron:
+        return pick(
+          td?.ironGoal,
+          _DailyNutrientPanelState._ironRefForUser(user),
+        );
+      case NutrientPanelKeys.potassium:
+        return pick(td?.potassiumGoal, defaultPotassiumRefMg);
+      case NutrientPanelKeys.vitaminD:
+        return pick(td?.vitaminDGoal, defaultVitaminDRefUg);
+      case NutrientPanelKeys.vitaminB12:
+        return pick(td?.vitaminB12Goal, defaultVitaminB12RefUg);
+      case NutrientPanelKeys.magnesium:
+        return pick(
+          td?.magnesiumGoal,
+          _DailyNutrientPanelState._magnesiumRefForUser(user),
+        );
+    }
+    return null;
+  }
+
   @override
   State<DailyNutrientPanel> createState() => _DailyNutrientPanelState();
 }

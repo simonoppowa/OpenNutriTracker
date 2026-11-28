@@ -586,6 +586,38 @@
   "lunchExample": "e.g. pizza, salad, rice ...",
   "lunchLabel": "Lunch",
   "macroDistributionLabel": "Macronutrient Distribution:",
+  "macrosSmallWidgetAccessibilityLabel": "Protein {protein} of {proteinGoal} grams. Fat {fat} of {fatGoal} grams. Carbs {carbs} of {carbsGoal} grams.",
+  "@macrosSmallWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the small iOS macros widget: today's protein, fat and carbs, each as eaten of goal.",
+    "placeholders": {
+      "protein": {
+        "type": "String"
+      },
+      "proteinGoal": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "fatGoal": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "carbsGoal": {
+        "type": "String"
+      }
+    }
+  },
+  "macrosSmallWidgetDescription": "Today's protein, fat and carbs against your goals.",
+  "@macrosSmallWidgetDescription": {
+    "description": "Subtitle of the small macros widget in the iOS widget gallery."
+  },
+  "macrosSmallWidgetDisplayName": "Macros",
+  "@macrosSmallWidgetDisplayName": {
+    "description": "Name of the small macros widget in the iOS widget gallery. It shows protein, fat and carbs."
+  },
   "magnesiumLabel": "magnesium",
   "mealBrandsLabel": "Brands",
   "mealCarbsLabel": "Carbohydrates",
@@ -649,7 +681,88 @@
   "nutrientPanelLimitLabel": "limit",
   "nutrientPanelDayLabel": "Day",
   "nutrientPanelWeekLabel": "Week",
+  "nutrientWidgetNotShownLabel": "Not shown in the app",
+  "@nutrientWidgetNotShownLabel": {
+    "description": "Shown under the nutrient's name in the small iOS nutrient widget when the app does not show that nutrient, for example because it is hidden in Settings."
+  },
+  "nutrientWidgetAccessibilityLabel": "{nutrient}: {amount} {unit} of {goal} {unit}",
+  "@nutrientWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the small iOS nutrient widget when the nutrient has a goal, e.g. 'fiber: 12.5 g of 30 g'. The nutrient is its name in the app, and the unit is g, mg or µg.",
+    "placeholders": {
+      "nutrient": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "nutrientWidgetAccessibilityNoGoalLabel": "{nutrient}: {amount} {unit}",
+  "@nutrientWidgetAccessibilityNoGoalLabel": {
+    "description": "Spoken by VoiceOver for the small iOS nutrient widget when the nutrient has no goal, e.g. 'sodium: 800 mg'.",
+    "placeholders": {
+      "nutrient": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "nutritionInfoLabel": "Nutrition Information",
+  "nutritionRowWidgetAccessibilityLabel": "{calories} of {calorieGoal} kilocalories. Carbs {carbs} of {carbsGoal} grams. Fat {fat} of {fatGoal} grams. Protein {protein} of {proteinGoal} grams. Water {water} of {waterGoal} millilitres.",
+  "@nutritionRowWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the iOS one-row nutrition widget: today's calories, macros and water, each as eaten of goal.",
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      },
+      "calorieGoal": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "carbsGoal": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      },
+      "fatGoal": {
+        "type": "String"
+      },
+      "protein": {
+        "type": "String"
+      },
+      "proteinGoal": {
+        "type": "String"
+      },
+      "water": {
+        "type": "String"
+      },
+      "waterGoal": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionRowWidgetDescription": "Today's calories, macros and water in one row.",
+  "@nutritionRowWidgetDescription": {
+    "description": "Subtitle of the one-row nutrition widget in the iOS widget gallery."
+  },
+  "nutritionRowWidgetDisplayName": "Nutrition",
+  "@nutritionRowWidgetDisplayName": {
+    "description": "Name of the one-row nutrition widget in the iOS widget gallery."
+  },
   "nutritionalStatusNormalWeight": "Normal Weight",
   "nutritionalStatusObeseClassI": "Obesity Class I",
   "nutritionalStatusObeseClassII": "Obesity Class II",
@@ -1211,6 +1324,51 @@
   "vitaminCLabel": "vitamin C",
   "vitaminDLabel": "vitamin D",
   "warningLabel": "Warning",
+  "waterSmallWidgetNoGoalLabel": "No water goal set",
+  "@waterSmallWidgetNoGoalLabel": {
+    "description": "Shown under the name in the small iOS water widget when there is no daily water goal to measure against."
+  },
+  "waterSmallWidgetAccessibilityLabel": "Water {water} of {goal} millilitres.",
+  "@waterSmallWidgetAccessibilityLabel": {
+    "description": "Spoken by VoiceOver for the small iOS water widget: today's water drunk of the daily goal.",
+    "placeholders": {
+      "water": {
+        "type": "String"
+      },
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "waterSmallWidgetDescription": "Today's water against your goal.",
+  "@waterSmallWidgetDescription": {
+    "description": "Subtitle of the small water widget in the iOS widget gallery."
+  },
+  "widgetOverGoalLabel": "{name} is over the goal.",
+  "@widgetOverGoalLabel": {
+    "description": "Added to the VoiceOver sentence of an iOS widget when a figure is above its goal, for example 'Fat is over the goal.'. The name is the figure's name in the app.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "widgetStyleDark": "Dark",
+  "@widgetStyleDark": {
+    "description": "A background style of the iOS widgets in the Edit Widget sheet: always the app's dark colours, even in light mode."
+  },
+  "widgetStyleHighContrast": "High contrast",
+  "@widgetStyleHighContrast": {
+    "description": "A background style of the iOS widgets in the Edit Widget sheet: black text on white, or white text on black, with stronger bars."
+  },
+  "widgetStylePaper": "Paper",
+  "@widgetStylePaper": {
+    "description": "A background style of the iOS widgets in the Edit Widget sheet: the app's calm warm canvas, which follows light and dark mode."
+  },
+  "widgetStyleSystem": "System",
+  "@widgetStyleSystem": {
+    "description": "A background style of the iOS widgets in the Edit Widget sheet: the standard iOS widget background."
+  },
   "weeklyWeightGoalKgPerWeek": "{rate} kg/week",
   "weeklyWeightGoalLabel": "Weekly rate",
   "weeklyWeightGoalLbsPerWeek": "{rate} lbs/week",
