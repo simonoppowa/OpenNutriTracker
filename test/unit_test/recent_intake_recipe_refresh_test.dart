@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
@@ -24,6 +26,7 @@ void main() {
   late IntakeRepository intakeRepo;
   late RecipeRepository recipeRepo;
   late GetIntakeUsecase usecase;
+  late CustomMealDataSource library;
 
   setUp(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -32,10 +35,12 @@ void main() {
     final provider = FakeHiveDBProvider(
       intakeBox: await Hive.openBox<IntakeDBO>('recent_refresh_intake'),
       recipeBox: await Hive.openBox<RecipeDBO>('recent_refresh_recipe'),
+      customMealBox: await Hive.openBox<MealDBO>('recent_refresh_custom'),
     );
     intakeRepo = IntakeRepository(IntakeDataSource(provider));
     recipeRepo = RecipeRepository(RecipeDataSource(provider));
-    usecase = GetIntakeUsecase(intakeRepo, recipeRepo);
+    library = CustomMealDataSource(provider);
+    usecase = GetIntakeUsecase(intakeRepo, recipeRepo, library);
   });
 
   tearDown(() async => Hive.deleteFromDisk());
@@ -115,6 +120,79 @@ void main() {
     final recent = await usecase.getRecentIntake();
     expect(recent.single.meal.name, 'Soup');
   });
+
+  for (final source in [
+    MealSourceEntity.custom,
+    MealSourceEntity.off,
+    MealSourceEntity.fdc,
+  ]) {
+    test(
+      'Recents resolves a saved personal correction of $source, not history',
+      () async {
+        final original = MealEntity(
+          code: 'personal-code',
+          name: 'Original',
+          url: null,
+          mealQuantity: '60',
+          mealUnit: 'g',
+          servingQuantity: 30,
+          servingUnit: 'g',
+          servingSize: 'Legacy serving',
+          nutriments: MealNutrimentsEntity.empty(),
+          source: source,
+        );
+        await log('original', original);
+        final saved = MealEntity(
+          code: original.code,
+          name: 'Corrected',
+          url: null,
+          mealQuantity: '60',
+          mealUnit: 'g',
+          servingQuantity: 28.3495,
+          servingUnit: 'g',
+          servingSize: null,
+          nutriments: MealNutrimentsEntity.empty(),
+          source: MealSourceEntity.custom,
+        );
+        await library.saveCustomMeal(MealDBO.fromMealEntity(saved));
+        final recent = (await usecase.getRecentIntake()).single;
+        expect(recent.meal.name, 'Corrected');
+        expect(recent.meal.source, MealSourceEntity.custom);
+        expect(recent.meal.servingQuantity, 28.3495);
+        expect(recent.amount, 250);
+        expect(
+          (await intakeRepo.getIntakeById('original'))!.meal.servingSize,
+          'Legacy serving',
+        );
+        await library.deleteCustomMeal('personal-code');
+        expect((await usecase.getRecentIntake()).single.meal.name, 'Original');
+      },
+    );
+  }
+
+  test(
+    'a custom key collision does not turn a recipe into a custom food',
+    () async {
+      await recipeRepo.saveRecipe(soup());
+      await log('recipe', soup().toMealEntity());
+      final custom = MealEntity(
+        code: 'soup-1',
+        name: 'Unrelated custom',
+        url: null,
+        mealQuantity: null,
+        mealUnit: 'g',
+        servingQuantity: null,
+        servingUnit: 'g',
+        servingSize: null,
+        nutriments: MealNutrimentsEntity.empty(),
+        source: MealSourceEntity.custom,
+      );
+      await library.saveCustomMeal(MealDBO.fromMealEntity(custom));
+      final recent = (await usecase.getRecentIntake()).single.meal;
+      expect(recent.source, MealSourceEntity.recipe);
+      expect(recent.name, 'Soup');
+    },
+  );
 
   test('foods that are not recipes pass through unchanged', () async {
     await log('breakfast', MealEntityFixtures.mealOne);

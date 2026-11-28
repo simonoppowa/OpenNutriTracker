@@ -33,6 +33,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
         usesKilojoules: fields[16] as bool?,
         mealKcalSharesPct: (fields[17] as Map?)?.cast<String, int>(),
         customMealFormMode: fields[18] as String?,
+        customMealNutrientsTotal: fields[43] as bool?,
         dayStartOffsetHours: (fields[19] as num?)?.toInt(),
         diarySortPreferences: (fields[21] as Map?)?.cast<String, int>(),
         nutrientPanelVisibility: (fields[22] as Map?)?.cast<String, bool>(),
@@ -66,7 +67,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(43)
+      ..writeByte(44)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -152,7 +153,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(41)
       ..write(obj.localeSyncSeeded)
       ..writeByte(42)
-      ..write(obj.hasLeftTip);
+      ..write(obj.hasLeftTip)
+      ..writeByte(43)
+      ..write(obj.customMealNutrientsTotal);
   }
 
   @override
@@ -189,6 +192,7 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) =>
         mealKcalSharesPct: (json['mealKcalSharesPct'] as Map<String, dynamic>?)
             ?.map((k, e) => MapEntry(k, (e as num).toInt())),
         customMealFormMode: json['customMealFormMode'] as String?,
+        customMealNutrientsTotal: json['customMealNutrientsTotal'] as bool?,
         dayStartOffsetHours: (json['dayStartOffsetHours'] as num?)?.toInt(),
         diarySortPreferences:
             (json['diarySortPreferences'] as Map<String, dynamic>?)?.map(
@@ -282,6 +286,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
   'trackedDaysOffsetMinutes': instance.trackedDaysOffsetMinutes,
   'localeSyncSeeded': instance.localeSyncSeeded,
   'hasLeftTip': instance.hasLeftTip,
+  'customMealNutrientsTotal': instance.customMealNutrientsTotal,
 };
 
 const _$AppThemeDBOEnumMap = {

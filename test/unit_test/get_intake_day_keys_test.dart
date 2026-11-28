@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
@@ -55,6 +56,7 @@ IntakeDBO _intake(String id, MealEntity meal, DateTime at) => IntakeDBO(
 GetIntakeUsecase _usecase(List<IntakeDBO> intakes) => GetIntakeUsecase(
   _StubIntakeRepository(intakes),
   RecipeRepository(RecipeDataSource(FakeHiveDBProvider())),
+  CustomMealDataSource(FakeHiveDBProvider()),
 );
 
 void main() {

@@ -104,6 +104,7 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       emit(EditMealLoadedState(
         usesImperialUnits: config.usesImperialFoodUnits,
         formMode: mode,
+        nutrientsTotal: await _configRepository.getCustomMealNutrientsTotal(),
       ));
     });
   }
@@ -112,6 +113,10 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
   /// opens in the same mode they last used (#232).
   Future<void> setFormMode(CustomMealFormMode mode) async {
     await _configRepository.setCustomMealFormMode(mode.name);
+  }
+
+  Future<void> setNutrientsTotal(bool total) async {
+    await _configRepository.setCustomMealNutrientsTotal(total);
   }
 
   MealEntity createNewMealEntity(
@@ -146,8 +151,9 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       return nutrimentValue != null ? nutrimentValue * factorTo100g : null;
     }
 
+    // Only typed values use the input basis; old values are already per 100.
     double? fromTextOrOld(String? text, double? oldValue) =>
-        multiplyIfNotNull(text?.toDoubleOrNull() ?? oldValue);
+        multiplyIfNotNull(text?.toDoubleOrNull()) ?? oldValue;
 
     final newMealNutriments = MealNutrimentsEntity(
       energyKcal100: multiplyIfNotNull(kcalText.toDoubleOrNull()),
@@ -190,9 +196,23 @@ class EditMealBloc extends Bloc<EditMealEvent, EditMealState> {
       // the meal-detail serving option read "Serving (50.0 50)" instead of
       // "Serving (50 g)" (#495).
       servingUnit: unitText,
-      servingSize: oldMealEntity.servingSize,
+      // Missing legacy units use the form's default, not an edited serving.
+      servingSize:
+          servingQuantityText.toDoubleOrNull() ==
+                  oldMealEntity.servingQuantity &&
+              unitText ==
+                  (oldMealEntity.servingUnit ??
+                      oldMealEntity.mealUnit ??
+                      'g/ml')
+          ? oldMealEntity.servingSize
+          : null,
       nutriments: newMealNutriments,
-      source: oldMealEntity.source,
+      // Food edits are personal data, not OFF records that hydration or a
+      // refresh may replace. Recipes keep their separate library identity.
+      source: oldMealEntity.source == MealSourceEntity.recipe
+          ? MealSourceEntity.recipe
+          : MealSourceEntity.custom,
+      detailed: true,
       // #64 follow-up: a freshly-picked local photo wins over what was
       // on the old entity; a clear flag means the user removed the
       // photo and the slug should be wiped from the saved meal.

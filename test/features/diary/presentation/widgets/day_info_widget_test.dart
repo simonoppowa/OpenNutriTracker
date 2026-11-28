@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
+import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/profile_entity.dart';
@@ -14,6 +16,13 @@ import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_det
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 import '../../../../helpers/test_l10n.dart';
+
+class _EmptyLibrary extends Fake implements CustomMealDataSource {
+  @override
+  List<MealDBO> getAllCustomMeals() => [];
+  @override
+  Stream<void> watch() => const Stream.empty();
+}
 
 class _FakeMealDetailBloc extends Fake implements MealDetailBloc {}
 
@@ -115,6 +124,7 @@ Future<void> _pumpOmadDay(
 void main() {
   setUpAll(() {
     final locator = GetIt.instance;
+    locator.registerSingleton<CustomMealDataSource>(_EmptyLibrary());
     locator.registerFactory<MealDetailBloc>(_FakeMealDetailBloc.new);
     locator.registerFactory<HomeBloc>(_FakeHomeBloc.new);
     locator.registerFactory<GetProfilesUsecase>(

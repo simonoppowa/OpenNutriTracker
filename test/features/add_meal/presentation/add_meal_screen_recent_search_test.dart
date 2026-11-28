@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -172,6 +174,35 @@ Finder _searchAll() => find.text(l10nEn.noResultsSearchAll);
 
 void main() {
   group('RecentMealBloc search-as-you-type', () {
+    for (final failOld in [false, true]) {
+      test(
+        'an old load cannot replace a newer query; failure=$failOld',
+        () async {
+          final old = Completer<List<IntakeEntity>>();
+          final usecase = _DelayedRecent(old.future, [_intake('Banana')]);
+          final bloc = RecentMealBloc(usecase, _FakeGetConfigUsecase());
+          addTearDown(bloc.close);
+          bloc.add(const LoadRecentMealEvent(searchString: 'apple'));
+          await Future<void>.delayed(Duration.zero);
+          bloc.add(const LoadRecentMealEvent(searchString: 'ban'));
+          await Future<void>.delayed(Duration.zero);
+          if (failOld) {
+            old.completeError(StateError('old read failed'));
+          } else {
+            old.complete([_intake('Apple')]);
+          }
+          await Future<void>.delayed(Duration.zero);
+          expect(
+            (bloc.state as RecentMealLoadedState).recentMeals.single.name,
+            'Banana',
+          );
+          bloc.add(const RecentMealSearchChangedEvent(searchString: 'bana'));
+          await Future<void>.delayed(Duration.zero);
+          expect(usecase.recentReads, 2);
+        },
+      );
+    }
+
     test('keystrokes filter the loaded history without re-reading storage',
         () async {
       final usecase = _FakeGetIntakeUsecase([
@@ -283,4 +314,15 @@ void main() {
       expect(find.text(l10nEn.noResultsFound), findsOneWidget);
     });
   });
+}
+
+class _DelayedRecent extends _FakeGetIntakeUsecase {
+  _DelayedRecent(this.first, super.recent);
+  final Future<List<IntakeEntity>> first;
+
+  @override
+  Future<List<IntakeEntity>> getRecentIntake() async {
+    recentReads++;
+    return recentReads == 1 ? first : recent;
+  }
 }
