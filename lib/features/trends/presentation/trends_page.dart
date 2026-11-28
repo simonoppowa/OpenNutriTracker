@@ -3,9 +3,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/body_weight_unit_entity.dart';
+import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/weight_log_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
+import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_card.dart';
 import 'package:opennutritracker/core/styles/app_palette.dart';
@@ -66,18 +68,27 @@ class _TrendsView extends StatelessWidget {
           children: [
             _StreakCard(
               days: state.days,
+              currentWeek: state.currentWeek ?? state.days,
               priorWeek: state.priorWeek,
               rangeDays: state.windowDays,
               palette: palette,
             ),
             const SizedBox(height: Dimens.spacing16),
-            _RangeSelector(rangeDays: state.rangeDays),
+            _RangeSelector(
+              rangeDays: state.rangeDays,
+              customRangeDays: state.customRangeDays,
+            ),
             const SizedBox(height: Dimens.spacing16),
             _CaloriesTrendCard(
                 days: state.days, rangeDays: state.windowDays, palette: palette),
             const SizedBox(height: Dimens.spacing16),
             _MacrosTrendCard(
-                days: state.days, rangeDays: state.windowDays, palette: palette),
+              days: state.days,
+              rangeDays: state.windowDays,
+              selectedRangeDays: state.rangeDays,
+              metricVisibility: state.metricVisibility,
+              palette: palette,
+            ),
             const SizedBox(height: Dimens.spacing16),
             _WaterTrendCard(
               waterByDay: state.waterByDay,
@@ -103,27 +114,129 @@ class _TrendsView extends StatelessWidget {
 
 class _RangeSelector extends StatelessWidget {
   final int rangeDays;
-  const _RangeSelector({required this.rangeDays});
+  final int? customRangeDays;
+  const _RangeSelector({
+    required this.rangeDays,
+    required this.customRangeDays,
+  });
+
+  Future<void> _saveRange(
+    BuildContext context,
+    int days, {
+    int? customDays,
+  }) async {
+    try {
+      await locator<AddConfigUsecase>().setTrendsRangeDays(
+        days,
+        customDays: customDays,
+      );
+      if (context.mounted) {
+        context.read<TrendsBloc>().add(LoadTrendsEvent(rangeDays: days));
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(S.of(context).trendsSaveError)));
+      }
+    }
+  }
+
+  Future<void> _chooseCustomRange(BuildContext context) async {
+    var input = customRangeDays?.toString() ?? '';
+    String? error;
+    final days = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, update) => AlertDialog(
+          title: Text(S.of(dialogContext).trendsCustomRangeTitle),
+          content: Semantics(
+            identifier: 'trends-custom-days-input',
+            child: TextField(
+              autofocus: true,
+              keyboardType: TextInputType.number,
+              onChanged: (value) => update(() {
+                input = value;
+                error = null;
+              }),
+              decoration: InputDecoration(
+                labelText: S.of(dialogContext).trendsCustomRangeDaysHint,
+                errorText: error,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(S.of(dialogContext).dialogCancelLabel),
+            ),
+            Semantics(
+              identifier: 'trends-custom-days-save',
+              child: FilledButton(
+                onPressed: () {
+                  final parsed = int.tryParse(input.trim());
+                  if (parsed == null || parsed < 2 || parsed > 3650) {
+                    update(
+                      () => error = S.of(dialogContext).trendsCustomRangeInvalid,
+                    );
+                    return;
+                  }
+                  Navigator.pop(dialogContext, parsed);
+                },
+                child: Text(S.of(dialogContext).buttonSaveLabel),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (days != null && context.mounted) {
+      await _saveRange(context, days, customDays: days);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Semantics(
-        identifier: 'trends-range-selector',
-        child: SegmentedButton<int>(
-          showSelectedIcon: false,
-          segments: [
-            const ButtonSegment(value: 7, label: Text('7d')),
-            const ButtonSegment(value: 30, label: Text('30d')),
-            const ButtonSegment(value: 90, label: Text('90d')),
-            // 0 is the "All" sentinel; the bloc resolves it to the full span.
-            ButtonSegment(value: 0, label: Text(S.of(context).allItemsLabel)),
-          ],
-          selected: {rangeDays},
-          onSelectionChanged: (s) => context
-              .read<TrendsBloc>()
-              .add(LoadTrendsEvent(rangeDays: s.first)),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Semantics(
+          identifier: 'trends-range-selector',
+          child: SegmentedButton<int>(
+            showSelectedIcon: false,
+            segments: [
+              const ButtonSegment(value: 7, label: Text('7d')),
+              const ButtonSegment(value: 30, label: Text('30d')),
+              const ButtonSegment(value: 90, label: Text('90d')),
+              // 0 is the "All" sentinel; the bloc resolves it to the full span.
+              ButtonSegment(value: 0, label: Text(S.of(context).allItemsLabel)),
+              ButtonSegment(
+                value: -1,
+                label: Text(
+                  customRangeDays == null
+                      ? S.of(context).fastingPresetCustom
+                      : '${customRangeDays}d',
+                ),
+              ),
+            ],
+            selected: {
+              rangeDays == 0 ||
+                      rangeDays == 7 ||
+                      rangeDays == 30 ||
+                      rangeDays == 90
+                  ? rangeDays
+                  : -1,
+            },
+            onSelectionChanged: (selection) {
+              final value = selection.first;
+              if (value == -1) {
+                _chooseCustomRange(context);
+              } else {
+                _saveRange(context, value);
+              }
+            },
+          ),
         ),
       ),
     );
@@ -132,11 +245,13 @@ class _RangeSelector extends StatelessWidget {
 
 class _StreakCard extends StatelessWidget {
   final List<TrackedDayEntity> days;
+  final List<TrackedDayEntity> currentWeek;
   final List<TrackedDayEntity> priorWeek;
   final int rangeDays;
   final AppPalette palette;
   const _StreakCard({
     required this.days,
+    required this.currentWeek,
     required this.priorWeek,
     required this.rangeDays,
     required this.palette,
@@ -167,10 +282,15 @@ class _StreakCard extends StatelessWidget {
     // Suppress the chip when the prior week is empty — a new user with
     // no baseline would otherwise see a large green delta against 0.
     final priorOnTrack = priorWeek.where(onTrack).toList();
-    final thisWeek = onTrackDays
-        .where((day) =>
-            day.isAfter(weekStart.subtract(const Duration(days: 1))) &&
-            day.isBefore(weekEnd.add(const Duration(days: 1))))
+    final thisWeek = <DateTime>{
+      for (final d in currentWeek)
+        if (onTrack(d)) DateTime(d.day.year, d.day.month, d.day.day),
+    }
+        .where(
+          (day) =>
+              day.isAfter(weekStart.subtract(const Duration(days: 1))) &&
+              day.isBefore(weekEnd.add(const Duration(days: 1))),
+        )
         .length;
     final delta = priorOnTrack.isNotEmpty
         ? thisWeek - priorOnTrack.length
@@ -289,53 +409,58 @@ class _CaloriesTrendCard extends StatelessWidget {
           Semantics(
             label: S.of(context).trendsCaloriesLabel,
             child: SizedBox(
-            height: 140,
-            child: LineChart(
-              LineChartData(
-                minX: 0,
-                maxX: (rangeDays - 1).toDouble(),
-                minY: 0,
-                maxY: maxY,
-                gridData: const FlGridData(show: false),
-                borderData: FlBorderData(show: false),
-                titlesData: const FlTitlesData(show: false),
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipItems: (spots) => [
-                      for (final s in spots)
-                        LineTooltipItem(
-                          s.y.toInt().toString(),
-                          text.labelMedium ?? const TextStyle(),
-                        ),
-                    ],
+              height: 140,
+              child: LineChart(
+                LineChartData(
+                  minX: 0,
+                  maxX: (rangeDays - 1).toDouble(),
+                  minY: 0,
+                  maxY: maxY,
+                  gridData: const FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                  titlesData: const FlTitlesData(show: false),
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (spots) => [
+                        for (final s in spots)
+                          LineTooltipItem(
+                            s.y.toInt().toString(),
+                            text.labelMedium ?? const TextStyle(),
+                          ),
+                      ],
+                    ),
                   ),
+                  // Dashed average-goal reference: the line above/below it reads
+                  // as days over / under goal at a glance.
+                  extraLinesData: avgGoal <= 0
+                      ? const ExtraLinesData()
+                      : ExtraLinesData(
+                          horizontalLines: [
+                            HorizontalLine(
+                              y: avgGoal,
+                              color: palette.textMuted,
+                              strokeWidth: 1.2,
+                              dashArray: const [6, 4],
+                            ),
+                          ],
+                        ),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      preventCurveOverShooting: true,
+                      color: accent,
+                      barWidth: 3,
+                      dotData: FlDotData(show: rangeDays <= 7),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: accent.withValues(alpha: 0.12),
+                      ),
+                    ),
+                  ],
                 ),
-                // Dashed average-goal reference: the line above/below it reads
-                // as days over / under goal at a glance.
-                extraLinesData: avgGoal <= 0
-                    ? const ExtraLinesData()
-                    : ExtraLinesData(horizontalLines: [
-                        HorizontalLine(
-                          y: avgGoal,
-                          color: palette.textMuted,
-                          strokeWidth: 1.2,
-                          dashArray: const [6, 4],
-                        ),
-                      ]),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: spots,
-                    isCurved: true,
-                    preventCurveOverShooting: true,
-                    color: accent,
-                    barWidth: 3,
-                    dotData: FlDotData(show: rangeDays <= 7),
-                    belowBarData: BarAreaData(show: true, color: accent.withValues(alpha: 0.12)),
-                  ),
-                ],
               ),
             ),
-          ),
           ),
         ],
       ),
@@ -470,10 +595,14 @@ class _MacrosTrendCard extends StatelessWidget {
   final List<TrackedDayEntity> days;
   final AppPalette palette;
   final int rangeDays;
+  final int selectedRangeDays;
+  final Map<String, bool> metricVisibility;
   const _MacrosTrendCard({
     required this.days,
     required this.palette,
     required this.rangeDays,
+    required this.selectedRangeDays,
+    required this.metricVisibility,
   });
 
   double _avg(Iterable<double?> values) {
@@ -482,51 +611,173 @@ class _MacrosTrendCard extends StatelessWidget {
     return present.reduce((a, b) => a + b) / rangeDays;
   }
 
+  Future<void> _editMetrics(BuildContext context) async {
+    final labels = <String, String>{
+      ConfigEntity.trendsCaloriesKey: S.of(context).trendsCaloriesLabel,
+      ConfigEntity.trendsCarbsKey: S.of(context).carbsLabel,
+      ConfigEntity.trendsFatKey: S.of(context).fatLabel,
+      ConfigEntity.trendsProteinKey: S.of(context).proteinLabel,
+    };
+    final selected = <String, bool>{
+      for (final key in labels.keys) key: metricVisibility[key] ?? true,
+    };
+    final result = await showDialog<Map<String, bool>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, update) => AlertDialog(
+          title: Text(S.of(dialogContext).trendsEditAverageTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final entry in labels.entries)
+                Semantics(
+                  identifier: 'trends-metric-${entry.key}',
+                  child: CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(entry.value),
+                    value: selected[entry.key],
+                    onChanged: (value) =>
+                        update(() => selected[entry.key] = value ?? false),
+                  ),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(S.of(dialogContext).dialogCancelLabel),
+            ),
+            Semantics(
+              identifier: 'trends-metrics-save',
+              child: FilledButton(
+                onPressed: selected.values.any((visible) => visible)
+                    ? () => Navigator.pop(dialogContext, selected)
+                    : null,
+                child: Text(S.of(dialogContext).buttonSaveLabel),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (result == null || !context.mounted) return;
+    try {
+      await locator<AddConfigUsecase>().setTrendsMetricVisibility(result);
+      if (context.mounted) {
+        context.read<TrendsBloc>().add(
+          LoadTrendsEvent(rangeDays: selectedRangeDays),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(S.of(context).trendsSaveError)));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final rows = [
-      (S.of(context).carbsLabel, _avg(days.map((d) => d.carbsTracked)),
-          _avg(days.map((d) => d.carbsGoal)), palette.carbs),
-      (S.of(context).fatLabel, _avg(days.map((d) => d.fatTracked)),
-          _avg(days.map((d) => d.fatGoal)), palette.fat),
-      (S.of(context).proteinLabel, _avg(days.map((d) => d.proteinTracked)),
-          _avg(days.map((d) => d.proteinGoal)), palette.protein),
+      (
+        ConfigEntity.trendsCaloriesKey,
+        S.of(context).trendsCaloriesLabel,
+        EnergyDisplay.convert(
+          context,
+          _avg(days.map((d) => d.caloriesTracked)),
+        ),
+        EnergyDisplay.convert(context, _avg(days.map((d) => d.calorieGoal))),
+        EnergyDisplay.unitLabel(context),
+        Theme.of(context).colorScheme.primary,
+      ),
+      (
+        ConfigEntity.trendsCarbsKey,
+        S.of(context).carbsLabel,
+        _avg(days.map((d) => d.carbsTracked)),
+        _avg(days.map((d) => d.carbsGoal)),
+        S.of(context).gramUnit,
+        palette.carbs,
+      ),
+      (
+        ConfigEntity.trendsFatKey,
+        S.of(context).fatLabel,
+        _avg(days.map((d) => d.fatTracked)),
+        _avg(days.map((d) => d.fatGoal)),
+        S.of(context).gramUnit,
+        palette.fat,
+      ),
+      (
+        ConfigEntity.trendsProteinKey,
+        S.of(context).proteinLabel,
+        _avg(days.map((d) => d.proteinTracked)),
+        _avg(days.map((d) => d.proteinGoal)),
+        S.of(context).gramUnit,
+        palette.protein,
+      ),
     ];
     return AppCard(
       padding: const EdgeInsets.all(Dimens.spacing20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Average intake vs goal over the window — daily-average macros.
-          Text(S.of(context).trendsDailyAverageLabel, style: text.titleMedium),
+          Row(
+            children: [
+              Expanded(
+                child: AutoSizeText(
+                  S.of(context).trendsDailyAverageLabel,
+                  style: text.titleMedium,
+                  maxLines: 1,
+                  minFontSize: 12,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Semantics(
+                identifier: 'trends-edit-average',
+                child: TextButton.icon(
+                  onPressed: () => _editMetrics(context),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: Text(S.of(context).trendsEditAverageLabel),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: Dimens.spacing16),
-          for (final (label, intake, goal, color) in rows) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(label,
+          for (final (key, label, intake, goal, unit, color) in rows)
+            if (metricVisibility[key] ?? true) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      label,
                       style: text.labelMedium,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                ),
-                const SizedBox(width: Dimens.spacing8),
-                Text('${intake.toInt()} / ${goal.toInt()} g',
-                    style: text.bodySmall?.copyWith(color: palette.textStrong, fontWeight: FontWeight.w700)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: goal <= 0 ? 0 : (intake / goal).clamp(0.0, 1.0),
-                minHeight: 8,
-                backgroundColor: palette.surfaceMuted,
-                valueColor: AlwaysStoppedAnimation(color),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: Dimens.spacing8),
+                  Text(
+                    '${intake.toInt()} / ${goal.toInt()} $unit',
+                    style: text.bodySmall?.copyWith(
+                      color: palette.textStrong,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: Dimens.spacing16),
-          ],
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: goal <= 0 ? 0 : (intake / goal).clamp(0.0, 1.0),
+                  minHeight: 8,
+                  backgroundColor: palette.surfaceMuted,
+                  valueColor: AlwaysStoppedAnimation(color),
+                ),
+              ),
+              const SizedBox(height: Dimens.spacing16),
+            ],
         ],
       ),
     );

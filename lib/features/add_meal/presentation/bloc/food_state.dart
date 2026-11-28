@@ -27,6 +27,7 @@ class FoodLoadedState extends FoodState {
   /// rather than answering — the use case still returns local matches, so
   /// this is a loaded state, but the "All" view flags the gap.
   final bool remoteSourceFailed;
+  final bool remotePending;
 
   /// The raw search input these results answer — see
   /// ProductsLoadedState.query for how the UI uses it.
@@ -37,12 +38,19 @@ class FoodLoadedState extends FoodState {
     this.usesImperialUnits = false,
     this.remoteSourceEmpty = false,
     this.remoteSourceFailed = false,
+    this.remotePending = false,
     this.query = '',
   });
 
   @override
-  List<Object?> get props =>
-      [food, usesImperialUnits, remoteSourceEmpty, remoteSourceFailed, query];
+  List<Object?> get props => [
+    food,
+    usesImperialUnits,
+    remoteSourceEmpty,
+    remoteSourceFailed,
+    remotePending,
+    query,
+  ];
 }
 
 class FoodFailedState extends FoodState {
